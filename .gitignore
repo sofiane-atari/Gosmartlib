@@ -1,0 +1,19 @@
+# Angular
+/bib-frontend/node_modules
+/bib-frontend/dist
+/bib-frontend/.angular
+
+# Java / Spring Boot
+/bib-backend/target
+/bib-backend/.mvn
+/bib-backend/mvnw
+/bib-backend/mvnw.cmd
+.classpath
+.project
+.settings
+
+# IDE bestanden (VS Code / IntelliJ)
+.vscode
+.idea
+*.iml
+.DS_Store
