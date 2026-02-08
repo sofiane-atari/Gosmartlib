@@ -1,0 +1,22 @@
+<div style="text-align: center; margin-top: 50px; font-family: sans-serif;">
+  <h1>Bib Systeem Test</h1>
+  <p>Status verbinding:</p>
+
+  @if (messages.length > 0) {
+    <div>
+      <h2 style="color: green;">Verbonden met Database!</h2>
+      <ul>
+        @for (msg of messages; track $index) {
+          <li>
+            {{ msg.message }}
+          </li>
+        }
+      </ul>
+    </div>
+  } @else {
+    <div>
+      <h2 style="color: orange;">Bezig met verbinden met Spring Boot...</h2>
+      <p>Controleer of je backend draait op poort 8080.</p>
+    </div>
+  }
+</div>
