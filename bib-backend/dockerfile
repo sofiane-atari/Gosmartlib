@@ -1,0 +1,27 @@
+# Gebruik een Maven-image om te bouwen
+FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
+
+# Zet de werkmap
+WORKDIR /app
+
+# Kopieer de pom.xml en download dependencies (gebruikt caching)
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Kopieer de volledige projectcode en bouw de applicatie
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Gebruik een lichtere JDK-runtime voor de uiteindelijke image
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+# Kopieer de JAR uit de vorige build-stage
+COPY --from=builder /app/target/*.jar app.jar
+
+# Expose de juiste poort
+EXPOSE 8080
+
+# Start de applicatie
+ENTRYPOINT ["java", "-jar", "app.jar"]
