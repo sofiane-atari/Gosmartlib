@@ -15,7 +15,7 @@ export class AppComponent {
   messages: any[] = [];
 
   ngOnInit() {
-    this.http.get<any[]>('http://localhost:8080/api/hello')
+    this.http.get<any[]>('https://api.localhost/api/hello')
       .subscribe({
         next: (data) => {
           this.messages = data;
