@@ -65,9 +65,6 @@ services:
       SERVER_PORT: 8080
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
-    # ports:
-    #   - "8080:8080"
-    #   - "5005:5005"  
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`gomsartlib.be`) && PathPrefix(`/api`)"
