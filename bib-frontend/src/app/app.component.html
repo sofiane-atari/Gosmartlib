@@ -20,3 +20,19 @@
     </div>
   }
 </div>
+
+
+  <div style="margin-bottom: 20px; padding: 20px; background-color: #f5f5f5; display: inline-block; border-radius: 8px;">
+    <h3>Bericht toevoegen (POST Test)</h3>
+    <input 
+      type="text" 
+      [(ngModel)]="newMessage" 
+      placeholder="Typ een bericht..." 
+      style="padding: 8px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc;"
+    >
+    <button 
+      (click)="addMessage()" 
+      style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Verzenden
+    </button>
+  </div>

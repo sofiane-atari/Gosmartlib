@@ -5,6 +5,8 @@ import edu.ap.bib_backend.jpa.repository.TestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,5 +23,10 @@ public class TestController {
     @GetMapping("/hello")
     public List<Test> getMessages() {
         return repository.findAll();
+    }
+
+    @PostMapping("/hello")
+    public Test addMessage(@RequestBody Test newTestMessage) {
+        return repository.save(newTestMessage);
     }
 }
