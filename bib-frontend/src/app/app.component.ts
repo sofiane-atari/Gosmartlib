@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -13,9 +14,10 @@ import { HttpClient } from '@angular/common/http';
 export class AppComponent {
    http = inject(HttpClient);
   messages: any[] = [];
+  private baseUrl = `${environment.apiUrl}/hello`;
 
   ngOnInit() {
-    this.http.get<any[]>('https://api.localhost/api/hello')
+    this.http.get<any[]>(this.baseUrl)
       .subscribe({
         next: (data) => {
           this.messages = data;

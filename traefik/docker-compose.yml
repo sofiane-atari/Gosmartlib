@@ -18,6 +18,9 @@ services:
       - "--serverstransport.forwardingtimeouts.dialtimeout=30s"
       - "--serverstransport.forwardingtimeouts.responseheadertimeout=60s"
       - "--entryPoints.traefik.address=:8080"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
     ports:
       - "80:80"
       - "443:443"
@@ -35,11 +38,11 @@ services:
     depends_on:
       - backend
       - traefik
-    ports:
-      - "4200:4200"
+    # ports:
+    #   - "4200:4200"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`frontend.localhost`)"
+      - "traefik.http.routers.frontend.rule=Host(`$DOMAIN`)"
       - "traefik.http.services.frontend.loadbalancer.server.port=8080"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls=true"
@@ -56,18 +59,21 @@ services:
       - mysql
       - traefik
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/bib_systeem?allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8080
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      # SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/bib_systeem?allowPublicKeyRetrieval=true&useSSL=false
+      # SPRING_DATASOURCE_USERNAME: root
+      # SPRING_DATASOURCE_PASSWORD: root
+      # SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      # SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+      # SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # SERVER_PORT: 8080
+      # JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`gosmartlib.be`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.rule=Host(`$DOMAIN`) && PathPrefix(`/api`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
       - "traefik.http.routers.backend.tls=true"
       - "traefik.http.routers.backend.entrypoints=websecure"
@@ -80,8 +86,8 @@ services:
     image: mysql:8.0
     container_name: mysql-db
     restart: always
-    depends_on:
-      - traefik
+    # depends_on:
+    #   - traefik
     environment:
       MYSQL_ROOT_PASSWORD: "root"
       MYSQL_DATABASE: "bib_systeem"

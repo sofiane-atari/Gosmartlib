@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "https://frontend.localhost")
+@CrossOrigin(origins = { "https://frontend.localhost", "https://gosmartlib.be", "http://localhost:4200" })
 public class TestController {
 
     @Autowired

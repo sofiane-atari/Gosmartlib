@@ -11,6 +11,7 @@
 .classpath
 .project
 .settings
+/traefik/.env
 
 # IDE bestanden (VS Code / IntelliJ)
 .vscode
