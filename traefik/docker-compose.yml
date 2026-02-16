@@ -28,7 +28,6 @@ services:
     volumes:
       - "./letsencrypt:/letsencrypt"
       - "./dynamicconfig.yml:/etc/traefik/dynamicconfig.yml"
-      - "./staticconfig.yml:/etc/traefik/staticconfig.yml"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - proxy
@@ -93,8 +92,6 @@ services:
       MYSQL_DATABASE: "bib_systeem"
       # MYSQL_USER: "root"
       # MYSQL_PASSWORD: "root"
-    ports:
-      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
