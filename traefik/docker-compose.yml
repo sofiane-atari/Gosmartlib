@@ -1,9 +1,20 @@
 services:
   traefik:
-    image: "traefik:v3.2"
+    image: "traefik:v3.6"
     container_name: "traefik"
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.dashboard.rule=Host(`dash.195.201.32.128.traefik.me`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls=true"
+
+      - "traefik.http.middlewares.dashboard-auth.basicauth.usersFile=/etc/dash.passwd"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
+
     command:
-      - "--api.insecure=true"
+      - "--api.insecure=false"
       - "--api.dashboard=true"
       - "--log.level=DEBUG"
       - "--providers.docker=true"
@@ -24,11 +35,12 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8090:8080"
+      - "8080:8080"
     volumes:
       - "./letsencrypt:/letsencrypt"
       - "./dynamicconfig.yml:/etc/traefik/dynamicconfig.yml"
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./dash.passwd:/etc/dash.passwd"
     networks:
       - proxy
 
@@ -94,6 +106,8 @@ services:
       # MYSQL_PASSWORD: "root"
     volumes:
       - mysql-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
     networks:
       - proxy
 

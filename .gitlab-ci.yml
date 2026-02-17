@@ -1,0 +1,36 @@
+stages:
+  - deploy
+
+deploy:
+  image: alpine:latest
+  stage: deploy
+  tags:
+    - deployment
+  script:
+    - chmod og= $ID_RSA
+    - apk update && apk add openssh-client
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $REG_USER -p $REG_PASS"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $TAG_COMMIT"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker container rm -f gosmartlib || true"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run -d -p 80:80 --name gosmartlib $TAG_COMMIT"
+
+    - chmod og= $ID_25519
+    - apk update && apk add openssh-client
+
+    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p project/"
+    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cd project/"
+
+    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "rm -rf * && rm -rf .*"
+    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "git clone https://$GITLAB_USER:$GITLAB_USER_AUTH@gitlab.apstudent.be/bachelor-it/software-pro
+ject/25-26/team-02/gosmartlib.git ."
+
+    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker -f traefik/docker-compose.yml build"
+
+    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker -f traefik/docker-compose.yml compose up -d"
+    
+
+  environment:
+    name: production
+    url: http://195.201.32.128 
+  only:
+    - main
