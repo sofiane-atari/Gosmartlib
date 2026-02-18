@@ -21,6 +21,9 @@ deploy:
     - chmod og= $ID_25519
     - apk update && apk add openssh-client
 
+    - echo $GITLAB_USER_AUTH
+    - echo $GITLAB_USER
+
     - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p project/"
     - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cd project/"
 
