@@ -27,7 +27,6 @@ deploy:
 
     - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker -f traefik/docker-compose.yml compose up -d"
     
-
   environment:
     name: production
     url: http://195.201.32.128 
