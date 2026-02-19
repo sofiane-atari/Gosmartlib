@@ -30,7 +30,7 @@ deploy:
 
     - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "rm -rf project/* && rm -rf project/.*"
 
-    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP 'git clone https://$GITLAB_USER_LOC:$GITLAB_USER_AUTH_LOC@gitlab.apstudent.be/bachelor-it/software-project/25-26/team-02/gosmartlib.git project/.'
+    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "git clone https://$GITLAB_USER_LOC:$GITLAB_USER_AUTH_LOC@gitlab.apstudent.be/bachelor-it/software-project/25-26/team-02/gosmartlib.git project/."
 
     - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker -f project/traefik/docker-compose.yml build"
 
