@@ -34,7 +34,7 @@ deploy:
     # .env variables
     - |
       ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<- EOF
-      cat <<- EOF2 > $DIR/traefik/.env
+      cat <<- EOF2 > $DIR/.env
       DOMAIN=$DOMAIN
       EOF2
       EOF
