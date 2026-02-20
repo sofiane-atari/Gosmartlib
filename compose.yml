@@ -1,0 +1,7 @@
+include:
+  - ./bib-frontend/compose.yml
+  - ./bib-backend/compose.yml
+
+networks:
+  proxy:
+    external: true

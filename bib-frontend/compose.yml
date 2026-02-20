@@ -1,0 +1,15 @@
+services:
+  frontend:
+    build: ./
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`$DOMAIN`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+    networks:
+      - proxy
