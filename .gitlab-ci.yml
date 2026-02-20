@@ -21,6 +21,7 @@ deploy:
     # Pulling/cloning
     - |
       ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<- EOF
+      bash <<- EOF2 
       if [[ -de "$DIR/.git/" ]]
         git pull
       else
@@ -28,6 +29,7 @@ deploy:
         mkdir "$DIR/"
         git clone $REPO_URL "$DIR/."
       fi
+      EOF2
       EOF
 
     # .env variables
