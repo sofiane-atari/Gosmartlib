@@ -9,9 +9,9 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SERVER_PORT: 8080
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      # SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/bib_systeem?allowPublicKeyRetrieval=true&useSSL=false
-      # SPRING_DATASOURCE_USERNAME: root
-      # SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/bib_systeem?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: "${DB_USER}" 
+      SPRING_DATASOURCE_PASSWORD: "${DB_USER_PASS}" 
       # SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
       # SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
       # SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -34,10 +34,10 @@ services:
     container_name: mysql-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: "root"
       MYSQL_DATABASE: "bib_systeem"
-      # MYSQL_USER: "root"
-      # MYSQL_PASSWORD: "root"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASS}"
+      MYSQL_USER: "${DB_USER}"
+      MYSQL_PASSWORD: "${DB_USER_PASS}"
     volumes:
       - mysql-data:/var/lib/mysql
     ports:
