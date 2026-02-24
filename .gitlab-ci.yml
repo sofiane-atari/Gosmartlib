@@ -6,7 +6,7 @@ variables:
   TAG_COMMIT: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
   GITLAB_USER_LOC: $GITLAB_USER
   GITLAB_USER_AUTH_LOC: $GITLAB_USER_AUTH
-  DIR: project
+  DIR: gosmartlib
   REPO_URL: https://$GITLAB_USER_LOC:$GITLAB_USER_AUTH_LOC@gitlab.apstudent.be/bachelor-it/software-$DIR/25-26/team-02/gosmartlib.git
 
 deploy:
