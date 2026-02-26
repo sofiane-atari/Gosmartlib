@@ -1,0 +1,23 @@
+<h2>Boeken</h2>
+
+<table>
+  <tr>
+    <th>ISBN</th>
+    <th>Titel</th>
+    <th>Auteur</th>
+    <th>Aantal Pagina's</th>
+    <th>image</th>
+
+  </tr>
+
+@for (book of books; track $index) {
+  <tr>
+    <td>{{ book.title }}</td>
+    <td>{{ book.author }}</td>
+    <td>{{ book.author }}</td>
+    <td>{{ book.pages }}</td>
+    <td>{{ book.image_url }}</td>
+
+  </tr>
+}
+</table>

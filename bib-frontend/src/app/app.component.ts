@@ -1,14 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, ɵEmptyOutletComponent } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { FormsModule } from '@angular/forms';
+import { BooksComponent } from './component/books/books.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ɵEmptyOutletComponent, BooksComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
