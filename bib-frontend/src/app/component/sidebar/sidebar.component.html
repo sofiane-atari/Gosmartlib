@@ -1,0 +1,44 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="profile-container">
+      <div class="avatar">
+        <lucide-icon [name]="UserIcon" class="icon-white"></lucide-icon>
+        <div class="status-indicator"></div>
+      </div>
+      <div class="profile-info">
+        <span class="welcome-text">Welkom terug</span>
+        <span class="user-name">De Beheerder</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div *ngFor="let item of menuItems; let i = index" class="menu-wrapper">
+      <div *ngIf="i === 5" class="divider"></div>
+      <button 
+        type="button"
+        (click)="setActive(i)" 
+        [class.active]="activeMenu === i"
+        class="menu-item"
+      >
+        <lucide-icon [name]="item.icon" class="icon-md"></lucide-icon>
+        <span class="menu-label">{{ item.label }}</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="btn btn-emerald">
+      <lucide-icon [name]="PlusIcon" class="icon-sm"></lucide-icon>
+      <span>Boek Toevoegen</span>
+    </button>
+    <button class="btn btn-blue">
+      <lucide-icon [name]="RotateCcwIcon" class="icon-sm"></lucide-icon>
+      <span>Terugbrengen</span>
+    </button>
+    <button class="btn btn-rose">
+      <lucide-icon [name]="LogOutIcon" class="icon-sm"></lucide-icon>
+      <span>Log uit</span>
+    </button>
+  </div>
+</aside>
