@@ -10,7 +10,7 @@ import { SidebarComponent } from "./component/sidebar/sidebar.component";
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, BooksComponent, SidebarComponent],
+  imports: [CommonModule, FormsModule, BooksComponent, SidebarComponent, RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

@@ -115,8 +115,11 @@ lucide-icon {
 }
 
 .menu-item.active {
-  background: white;
-  color: #b91c1c;
+  background-color: white !important;
+  color: #b91c1c !important;
+  font-weight: 600;
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Als item actief is, moet het icoon ook rood worden */

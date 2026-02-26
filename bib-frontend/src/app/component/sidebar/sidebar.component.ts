@@ -6,16 +6,17 @@ import {
   Package, Flag, FileText, Tag, Plus, RotateCcw, LogOut, User 
 } from 'lucide-angular';
 import { School } from 'lucide-angular/src/icons';
+import { RouterModule } from '@angular/router';
+import { routes } from '../../app.routes';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, RouterModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
-activeMenu = 0;
 
   readonly PlusIcon = Plus;
   readonly UserIcon = User;
@@ -23,20 +24,16 @@ activeMenu = 0;
   readonly LogOutIcon = LogOut;
 
 menuItems = [
-    { icon: Book, label: 'Catalogus' },
-    { icon: Heart, label: 'Favorietenlijst' },
-    { icon: History, label: 'Geschiedenis' },
-    { icon: Star, label: 'Mijn Reviews' },
-    { icon: UserCircle, label: 'Mijn Account' },
-    { icon: Settings, label: 'Instellingen' },
-    { icon: Package, label: 'BookBox' },
-    { icon: Flag, label: 'Rapporteer' },
-    { icon: FileText, label: 'Klasrapportages' },
-    { icon: Tag, label: 'Labelbeheer' },
-    { icon: School, label: 'Schoolbeheer' },
+    { icon: Book, label: 'Catalogus', route: '/catalogus' },
+    { icon: Heart, label: 'Favorietenlijst', route: '/favorieten' },
+    { icon: History, label: 'Geschiedenis', route: '/historiek' },
+    { icon: Star, label: 'Mijn Reviews', route: '/reviews' },
+    { icon: UserCircle, label: 'Mijn Account', route: '/account' },
+    { icon: Settings, label: 'Instellingen', route: '/instellingen' },
+    { icon: Package, label: 'BookBox', route: '/bookbox' },
+    { icon: Flag, label: 'Rapporteer', route: '/gerapporteerd' },
+    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
+    { icon: Tag, label: 'Labelbeheer', route: '/labels' },
+    { icon: School, label: 'Schoolbeheer', route: '/scholen' },
   ];
-
-  setActive(index: number): void {
-    this.activeMenu = index;
-  }
 }

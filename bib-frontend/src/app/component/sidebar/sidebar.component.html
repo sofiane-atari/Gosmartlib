@@ -13,18 +13,23 @@
   </div>
 
   <nav class="sidebar-nav">
-    <div *ngFor="let item of menuItems; let i = index" class="menu-wrapper">
-      <div *ngIf="i === 5" class="divider"></div>
-      <button 
-        type="button"
-        (click)="setActive(i)" 
-        [class.active]="activeMenu === i"
-        class="menu-item"
-      >
-        <lucide-icon [name]="item.icon" class="icon-md"></lucide-icon>
-        <span class="menu-label">{{ item.label }}</span>
-      </button>
-    </div>
+    @for (item of menuItems; track $index) {
+        <div class="menu-wrapper" >
+            @if ($index === 5) {
+                <div class="divider"></div>
+            }
+            <button 
+                type="button"
+                [routerLink]="item.route"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{exact: true}"
+                class="menu-item"
+            >
+                <lucide-icon [name]="item.icon" class="icon-md"></lucide-icon>
+                <span class="menu-label">{{ item.label }}</span>
+            </button>
+        </div>
+    }
   </nav>
 
     <div class="sidebar-footer">
