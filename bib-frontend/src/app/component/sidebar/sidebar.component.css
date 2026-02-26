@@ -43,15 +43,38 @@ lucide-icon {
   gap: 12px;
 }
 
+/* sidebar.component.css */
+
 .avatar {
-  width: 48px;
+  /* Behoud de oorspronkelijke grootte van de cirkel */
+  width: 48px; /* Of de grootte die je oorspronkelijk had */
   height: 48px;
-  background: #ef4444;
+  background-color: #ef4444; /* De rode kleur */
   border-radius: 50%;
+
+  /* Flexbox inschakelen voor verticale centrering */
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center; /* Verticaal in het midden */
+
+  /* Horizontale centrering uitzetten */
+  justify-content: flex-start; /* Beginnen aan de linkerkant */
+
+  /* Stap 1: Voeg padding toe aan de linkerkant om het icoon op te schuiven */
+  padding-left: 12px; /* Pas dit getal aan (bijv. 4px, 8px) tot het goed staat */
+
+  /* Zorg dat padding de cirkel niet groter maakt */
+  box-sizing: border-box;
+
   position: relative;
+}
+
+/* Het icoon binnen de cirkel */
+.avatar lucide-icon {
+  /* Behoud de grootte van het icoon */
+  width: 24px;
+  height: 24px;
+  color: white;
+  display: block;
 }
 
 .status-indicator {
@@ -107,34 +130,64 @@ lucide-icon {
 }
 
 .sidebar-footer {
-  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.1);
+  gap: 12px;
+  padding: 20px 16px;
+  background-color: rgba(0, 0, 0, 0.2); /* Donkere achtergrond voor contrast */
 }
 
 .btn {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 8px;
+  align-items: center; /* Verticaal in het midden van de button */
+  padding: 12px 20px;
+  border-radius: 16px; /* Mooie ronde hoeken zoals in je 2e plaatje */
   border: none;
   color: white;
-  font-weight: bold;
+  font-family: sans-serif;
+  font-weight: 600;
   cursor: pointer;
+  width: 100%;
+  transition: transform 0.2s ease;
 }
 
+/* De truc voor loodrechte uitlijning: */
+.btn-icon {
+  width: 24px; /* Vaste breedte voor het icoon-gebied */
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px; /* Vaste afstand tot de tekst */
+  flex-shrink: 0; /* Voorkomt dat het icoon kleiner wordt */
+}
+
+.btn-text {
+  text-align: left; /* Zorgt dat tekst altijd links begint na het icoon */
+}
+
+/* Kleuren exact volgens je wens */
 .btn-emerald {
-  background: #10b981;
+  background-color: #10b981;
 }
 .btn-blue {
-  background: #3b82f6;
+  background-color: #3b82f6;
 }
 .btn-rose {
-  background: #f43f5e;
+  background-color: #f43f5e;
+}
+
+/* Hover effect */
+.btn:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+/* Icoon grootte binnen de knoppen */
+.icon-sm {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 .divider {

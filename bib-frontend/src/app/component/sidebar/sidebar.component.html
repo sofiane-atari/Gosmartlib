@@ -3,11 +3,11 @@
     <div class="profile-container">
       <div class="avatar">
         <lucide-icon [name]="UserIcon" class="icon-white"></lucide-icon>
-        <div class="status-indicator"></div>
       </div>
       <div class="profile-info">
         <span class="welcome-text">Welkom terug</span>
-        <span class="user-name">De Beheerder</span>
+        <th></th>
+        <span class="user-name">Beheerder</span>
       </div>
     </div>
   </div>
@@ -27,18 +27,20 @@
     </div>
   </nav>
 
-  <div class="sidebar-footer">
+    <div class="sidebar-footer">
     <button class="btn btn-emerald">
-      <lucide-icon [name]="PlusIcon" class="icon-sm"></lucide-icon>
-      <span>Boek Toevoegen</span>
+        <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">Boek Toevoegen</span>
     </button>
+
     <button class="btn btn-blue">
-      <lucide-icon [name]="RotateCcwIcon" class="icon-sm"></lucide-icon>
-      <span>Terugbrengen</span>
+        <lucide-icon [name]="RotateCcwIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">Terugbrengen</span>
     </button>
+
     <button class="btn btn-rose">
-      <lucide-icon [name]="LogOutIcon" class="icon-sm"></lucide-icon>
-      <span>Log uit</span>
+        <lucide-icon [name]="LogOutIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">Log uit</span>
     </button>
-  </div>
+    </div>
 </aside>
