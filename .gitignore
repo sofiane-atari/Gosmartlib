@@ -8,6 +8,7 @@
 /bib-backend/.mvn
 /bib-backend/mvnw
 /bib-backend/mvnw.cmd
+/bib-backend/src/main/resources/application-local-properties
 .classpath
 .project
 .settings

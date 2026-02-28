@@ -1,0 +1,200 @@
+.sidebar {
+  width: 288px;
+  height: 100vh;
+  background: linear-gradient(to bottom, #b91c1c, #991b1b, #450a0a);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  left: 0;
+}
+
+/* Forceer iconen om zichtbaar te zijn */
+lucide-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  color: white; /* Zorg dat ze wit zijn tegen de rode achtergrond */
+}
+
+.icon-white {
+  width: 28px;
+  height: 28px;
+  stroke: white;
+}
+.icon-md {
+  width: 20px;
+  height: 20px;
+}
+.icon-sm {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.profile-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* sidebar.component.css */
+
+.avatar {
+  /* Behoud de oorspronkelijke grootte van de cirkel */
+  width: 48px; /* Of de grootte die je oorspronkelijk had */
+  height: 48px;
+  background-color: #ef4444; /* De rode kleur */
+  border-radius: 50%;
+
+  /* Flexbox inschakelen voor verticale centrering */
+  display: flex;
+  align-items: center; /* Verticaal in het midden */
+
+  /* Horizontale centrering uitzetten */
+  justify-content: flex-start; /* Beginnen aan de linkerkant */
+
+  /* Stap 1: Voeg padding toe aan de linkerkant om het icoon op te schuiven */
+  padding-left: 12px; /* Pas dit getal aan (bijv. 4px, 8px) tot het goed staat */
+
+  /* Zorg dat padding de cirkel niet groter maakt */
+  box-sizing: border-box;
+
+  position: relative;
+}
+
+/* Het icoon binnen de cirkel */
+.avatar lucide-icon {
+  /* Behoud de grootte van het icoon */
+  width: 24px;
+  height: 24px;
+  color: white;
+  display: block;
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: #10b981;
+  border: 2px solid #450a0a;
+  border-radius: 50%;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 12px;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  color: #fecaca;
+  cursor: pointer;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: 0.2s;
+}
+
+/* Zorg dat tekst altijd wit wordt bij hover */
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.menu-item.active {
+  background-color: white !important;
+  color: #b91c1c !important;
+  font-weight: 600;
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Als item actief is, moet het icoon ook rood worden */
+.menu-item.active lucide-icon {
+  color: #b91c1c;
+}
+
+.menu-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px;
+  background-color: rgba(0, 0, 0, 0.2); /* Donkere achtergrond voor contrast */
+}
+
+.btn {
+  display: flex;
+  align-items: center; /* Verticaal in het midden van de button */
+  padding: 12px 20px;
+  border-radius: 16px; /* Mooie ronde hoeken zoals in je 2e plaatje */
+  border: none;
+  color: white;
+  font-family: sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: transform 0.2s ease;
+}
+
+/* De truc voor loodrechte uitlijning: */
+.btn-icon {
+  width: 24px; /* Vaste breedte voor het icoon-gebied */
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px; /* Vaste afstand tot de tekst */
+  flex-shrink: 0; /* Voorkomt dat het icoon kleiner wordt */
+}
+
+.btn-text {
+  text-align: left; /* Zorgt dat tekst altijd links begint na het icoon */
+}
+
+/* Kleuren exact volgens je wens */
+.btn-emerald {
+  background-color: #10b981;
+}
+.btn-blue {
+  background-color: #3b82f6;
+}
+.btn-rose {
+  background-color: #f43f5e;
+}
+
+/* Hover effect */
+.btn:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+/* Icoon grootte binnen de knoppen */
+.icon-sm {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 12px 0;
+}

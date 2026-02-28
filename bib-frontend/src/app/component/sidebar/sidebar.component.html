@@ -1,0 +1,51 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="profile-container">
+      <div class="avatar">
+        <lucide-icon [name]="UserIcon" class="icon-white"></lucide-icon>
+      </div>
+      <div class="profile-info">
+        <span class="welcome-text">Welkom terug</span>
+        <th></th>
+        <span class="user-name">Beheerder</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (item of menuItems; track $index) {
+        <div class="menu-wrapper" >
+            @if ($index === 5) {
+                <div class="divider"></div>
+            }
+            <button 
+                type="button"
+                [routerLink]="item.route"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{exact: true}"
+                class="menu-item"
+            >
+                <lucide-icon [name]="item.icon" class="icon-md"></lucide-icon>
+                <span class="menu-label">{{ item.label }}</span>
+            </button>
+        </div>
+    }
+  </nav>
+
+    <div class="sidebar-footer">
+    <button class="btn btn-emerald">
+        <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">Boek Toevoegen</span>
+    </button>
+
+    <button class="btn btn-blue">
+        <lucide-icon [name]="RotateCcwIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">Terugbrengen</span>
+    </button>
+
+    <button class="btn btn-rose">
+        <lucide-icon [name]="LogOutIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">Log uit</span>
+    </button>
+    </div>
+</aside>

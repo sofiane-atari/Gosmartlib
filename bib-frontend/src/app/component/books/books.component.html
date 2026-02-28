@@ -1,0 +1,27 @@
+<div class="container">
+      <h2>Boeken Catalogus</h2>
+
+      <div class="books-grid">
+        @for (book of books; track $index) {
+          <div class="book-card">
+            <div class="card-header">
+            </div>
+
+            <div class="book-image">
+              <img [src]="book.image_url" [alt]="book.title" />
+            </div>
+
+            <div class="book-info">
+              <h3 class="book-title">{{ book.title }}</h3>
+              <p class="book-author">{{ book.author }}</p>
+              <p class="book-description">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Totam explicabo sapiente non amet sed iusto hic illum temporibus maxime sint suscipit incidunt, consequuntur nisi necessitatibus ipsam sit vel molestiae aperiam?</p>
+
+              <div class="card-footer">
+                <span class="pages">📄 {{ book.pages }} pagina's</span>
+                <button class="favorite-btn">♥</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
