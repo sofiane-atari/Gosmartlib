@@ -21,6 +21,7 @@ public class Book {
     private String image_url;
     private String description;
     private int release_year;
+    private int copies;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -30,7 +31,7 @@ public class Book {
     }
 
     public Book(Long ISBN, String title, String author, int pages, String image_url, String description,
-            int release_year, Availability availability) {
+            int release_year, Availability availability, int copies) {
         this.ISBN = ISBN;
         this.title = title;
         this.author = author;
@@ -39,5 +40,6 @@ public class Book {
         this.description = description;
         this.release_year = release_year;
         this.availability = availability;
+        this.copies = copies;
     }
 }

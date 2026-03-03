@@ -10,4 +10,5 @@ export interface Book {
   description: string;
   release_year: number;
   availability: Availability;
+  copies: number;
 }

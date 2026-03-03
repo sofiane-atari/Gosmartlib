@@ -18,12 +18,13 @@ public class BookDTO {
     private String description;
     private int release_year;
     private Availability availability;
-    
+    private int copies;
 
     public BookDTO() {
     }
 
-    public BookDTO(Long id, Long ISBN, String title, String author, int pages, String image_url, String description, int release_year, Availability availability) {
+    public BookDTO(Long id, Long ISBN, String title, String author, int pages, String image_url, String description,
+            int release_year, Availability availability, int copies) {
         this.id = id;
         this.ISBN = ISBN;
         this.title = title;
@@ -33,5 +34,6 @@ public class BookDTO {
         this.description = description;
         this.release_year = release_year;
         this.availability = availability;
+        this.copies = copies;
     }
 }

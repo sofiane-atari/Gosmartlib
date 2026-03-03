@@ -3,7 +3,7 @@
 
       <div class="books-grid">
         @for (book of books; track $index) {
-          <div class="book-card">
+          <div class="book-card" (click)="openModal(book)">
             <div class="card-header">
             </div>
 
@@ -23,5 +23,43 @@
             </div>
           </div>
         }
-      </div>
+        @if(showModal){
+          <div class="modal-backdrop" (click)="closeModal()"></div>
+          <div class="modal">
+            <button class="close-btn" (click)="closeModal()">✖</button>
+            <img [src]="selectedBook?.image_url" [alt]="selectedBook?.title" class="book-cover" />
+            <h2>{{ selectedBook?.title }}</h2>
+            <p><strong>Auteur:</strong> {{ selectedBook?.author }}</p>
+            <p><strong>Pagina's:</strong> {{ selectedBook?.pages }}</p>
+            <p><strong>Beschrijving:</strong> {{ selectedBook?.description }}</p>
+          </div>
+
+          <div class="bibliotheekbeheer">
+            <label>Voorraad:</label>
+            <input type="number" [(ngModel)]="selectedBook!.copies" min="0" /> exemplaren
+
+            <label>Beschikbaarheid Status:</label>
+            <select [(ngModel)]="selectedBook!.availability">
+              @for(a of availabilityOptions; track $index ){
+                <option [value]="a">{{ a }}</option>
+              }
+            </select>
+
+            <button>Boek Bewerken</button>
+            <button>Boek Verwijderen</button>
+          </div>
+
+          <div class="book-meta">
+            <span>📄 {{ selectedBook?.pages }} pagina's</span>
+            <span>📅 {{ selectedBook?.release_year }}</span>
+            <span>⭐ {{ 'n.v.t.' }}</span>
+            <span>📝 {{ 0 }} reviews</span>
+          </div>
+
+          <div class="description">
+            <h3>Samenvatting</h3>
+            <p>{{ selectedBook?.description }}</p>
+          </div>
+        }
     </div>
+</div>
