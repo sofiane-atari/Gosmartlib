@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/RoleAuthorization/auth.service';
+import { FormsModule } from '@angular/forms';
+import { Role } from '../../model/auth.model';
 import { 
   LucideAngularModule, 
   Book, Heart, History, Star, UserCircle, Settings, 
@@ -12,7 +15,7 @@ import { routes } from '../../app.routes';
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, RouterModule],
+  imports: [CommonModule, LucideAngularModule, RouterModule, FormsModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
@@ -22,6 +25,16 @@ export class SidebarComponent {
   readonly UserIcon = User;
   readonly RotateCcwIcon = RotateCcw;
   readonly LogOutIcon = LogOut;
+  
+  public authService = inject(AuthService);
+
+  public constructor(){
+    
+  }
+
+  onRoleChange(newRole: string) {
+    this.authService.switchRole(newRole as Role);
+  }
 
 menuItems = [
     { icon: Book, label: 'Catalogus', route: '/catalogus' },
@@ -36,4 +49,5 @@ menuItems = [
     { icon: Tag, label: 'Labelbeheer', route: '/labels' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen' },
   ];
+
 }

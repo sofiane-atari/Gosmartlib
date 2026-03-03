@@ -15,5 +15,9 @@ import { SidebarComponent } from "./component/sidebar/sidebar.component";
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  cards = ['Catalogus', 'Favorietenlijst', 'Mijn Account', 'Instellingen', 'BookBox', 'Rapporteer'];
+    http = inject(HttpClient);
+    private baseUrl = `${environment.apiUrl}/hello`;
+    
+    cards = ['Catalogus', 'Favorietenlijst', 'Mijn Account', 'Instellingen', 'BookBox', 'Rapporteer'];
 }
+

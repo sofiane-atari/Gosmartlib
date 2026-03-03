@@ -30,6 +30,17 @@
             </button>
         </div>
     }
+    <div style="margin-left: auto;">
+    <label>Test als: </label>
+    <select 
+      [ngModel]="authService.activeMockRole()" 
+      (ngModelChange)="authService.switchRole($event)">
+      <option value="STUDENT">Student</option>
+      <option value="TEACHER">Leerkracht</option>
+      <option value="LIBRARIAN">Beheerder</option>
+      <option value="ADMIN">Systeem Admin</option>
+    </select>
+  </div>
   </nav>
 
     <div class="sidebar-footer">
