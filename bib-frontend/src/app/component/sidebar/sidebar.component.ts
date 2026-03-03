@@ -1,25 +1,53 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/RoleAuthorization/auth.service';
 import { FormsModule } from '@angular/forms';
 import { Role } from '../../model/auth.model';
+import { 
+  LucideAngularModule, 
+  Book, Heart, History, Star, UserCircle, Settings, 
+  Package, Flag, FileText, Tag, Plus, RotateCcw, LogOut, User 
+} from 'lucide-angular';
+import { School } from 'lucide-angular/src/icons';
+import { RouterModule } from '@angular/router';
+import { routes } from '../../app.routes';
 
 @Component({
-  selector: 'app-navbar',
+  selector: 'app-sidebar',
   standalone: true,
-  imports: [FormsModule,],
+  imports: [CommonModule, LucideAngularModule, RouterModule, FormsModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
 
+  readonly PlusIcon = Plus;
+  readonly UserIcon = User;
+  readonly RotateCcwIcon = RotateCcw;
+  readonly LogOutIcon = LogOut;
+  
   public authService = inject(AuthService);
 
   public constructor(){
-
+    
   }
 
   onRoleChange(newRole: string) {
     this.authService.switchRole(newRole as Role);
   }
+
+menuItems = [
+    { icon: Book, label: 'Catalogus', route: '/catalogus' },
+    { icon: Heart, label: 'Favorietenlijst', route: '/favorieten' },
+    { icon: History, label: 'Geschiedenis', route: '/historiek' },
+    { icon: Star, label: 'Mijn Reviews', route: '/reviews' },
+    { icon: UserCircle, label: 'Mijn Account', route: '/account' },
+    { icon: Settings, label: 'Instellingen', route: '/instellingen' },
+    { icon: Package, label: 'BookBox', route: '/bookbox' },
+    { icon: Flag, label: 'Rapporteer', route: '/gerapporteerd' },
+    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
+    { icon: Tag, label: 'Labelbeheer', route: '/labels' },
+    { icon: School, label: 'Schoolbeheer', route: '/scholen' },
+  ];
 
 }

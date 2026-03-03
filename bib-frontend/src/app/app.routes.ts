@@ -1,14 +1,9 @@
 import { Routes } from '@angular/router';
-import { DashboardRolesComponent } from './component/dashboard-roles/dashboard-roles.component';
+import { BooksComponent } from './component/books/books.component';
+import { TestComponentRenderer } from '@angular/core/testing';
 
 export const routes: Routes = [
-
-  // Als de gebruiker gewoon naar 'localhost:4200' gaat, stuur ze direct door naar het dashboard
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  
-  // Koppel de URL '/dashboard' aan jouw DashboardComponent
-  { path: 'dashboard', component: DashboardRolesComponent },
-  
-  // Hier kun je later andere pagina's toevoegen (zoals catalogus, beheer, etc.)
-  // { path: 'catalog', component: CatalogComponent },
+    { path: 'catalogus', component: BooksComponent },
+    // { path: 'favorieten', component:  },
+    { path: '', redirectTo: '/catalogus', pathMatch: 'full' },
 ];
