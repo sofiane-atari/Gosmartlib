@@ -105,7 +105,7 @@
               <lucide-icon [img]="Calendar" [size]="20"></lucide-icon>
             </div>
             <span class="meta-label">Jaar</span>
-            <span class="meta-value">{{ selectedBook.release_year }}</span>
+            <span class="meta-value">{{ selectedBook.release_year}}</span>
           </div>
 
           <div class="meta-item">
@@ -137,6 +137,11 @@
           <h3>Samenvatting</h3>
           <p>{{ selectedBook.description }}</p>
         </div>
+
+        <div class="review-section">
+          <h4>Reviews</h4>
+        </div>
+        
       </div>
     </div>
   }
