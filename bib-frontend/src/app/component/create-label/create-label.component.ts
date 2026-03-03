@@ -17,6 +17,6 @@ export class CreateLabelComponent {
   });
 
   protected onSubmit() {
-    console.log(this.labelForm.value.labelName);
+    
   }
 }
