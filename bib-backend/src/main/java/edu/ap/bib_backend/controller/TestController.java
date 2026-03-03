@@ -17,8 +17,11 @@ import java.util.List;
 @CrossOrigin(origins = { "https://frontend.localhost", "https://gosmartlib.be", "http://localhost:4200" })
 public class TestController {
 
-    @Autowired
     private TestRepository repository;
+
+    public TestController(TestRepository repository) {
+        this.repository = repository;
+    }
 
     @GetMapping("/hello")
     public List<Test> getMessages() {
