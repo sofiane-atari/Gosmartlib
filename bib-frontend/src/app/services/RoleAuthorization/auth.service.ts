@@ -14,7 +14,7 @@ export class AuthService {
   public currentUser = signal<AuthUserDto | null>(null);
   
   // De geselecteerde mock rol (om mee te sturen naar de backend)
-  public activeMockRole = signal<Role>('STUDENT'); 
+  public activeMockRole = signal<Role>((localStorage.getItem('mockRole') as Role) || 'STUDENT'); 
 
   // Haal de gebruiker op van de backend
   public fetchCurrentUser() {
@@ -27,6 +27,7 @@ export class AuthService {
   // Methode om van rol te wisselen in de UI
   public switchRole(role: Role) {
     this.activeMockRole.set(role);
+    localStorage.setItem('mockRole', role)
     this.fetchCurrentUser();
   }
 
@@ -34,5 +35,5 @@ export class AuthService {
     return this.currentUser()?.role === role;
   }
 
-  
+
 }

@@ -7,10 +7,10 @@ import { Role } from '../../model/auth.model';
   selector: 'app-navbar',
   standalone: true,
   imports: [FormsModule,],
-  templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.css'
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.css'
 })
-export class NavbarComponent {
+export class SidebarComponent {
 
   public authService = inject(AuthService);
 
