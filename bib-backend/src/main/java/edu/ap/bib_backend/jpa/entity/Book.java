@@ -14,29 +14,30 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "isbn_nummer")
     private Long ISBN;
-
-    @Column(name = "titel")
     private String title;
-
-    @Column(name = "auteur")
     private String author;
-
-    @Column(name = "aantal_paginas")
     private int pages;
-
-    @Column(name = "image_url")
     private String image_url;
+    private String description;
+    private int release_year;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Availability availability;
 
     public Book() {
     }
 
-    public Book(Long ISBN, String title, String author, int pages, String image_url) {
+    public Book(Long ISBN, String title, String author, int pages, String image_url, String description,
+            int release_year, Availability availability) {
         this.ISBN = ISBN;
         this.title = title;
         this.author = author;
         this.pages = pages;
         this.image_url = image_url;
+        this.description = description;
+        this.release_year = release_year;
+        this.availability = availability;
     }
 }

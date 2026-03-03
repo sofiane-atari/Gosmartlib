@@ -26,7 +26,10 @@ public class BookService {
                         book.getTitle(),
                         book.getAuthor(),
                         book.getPages(),
-                        book.getImage_url()))
+                        book.getImage_url(),
+                        book.getDescription(),
+                        book.getRelease_year(),
+                        book.getAvailability()))
                 .collect(Collectors.toList());
     }
 
