@@ -1,0 +1,87 @@
+<div class="label-modal">
+
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="header-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h2>Label aanmaken</h2>
+      <p>Organiseer je bibliotheek met eigen labels</p>
+    </div>
+    <button class="close-btn" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Preview Badge -->
+  <div class="preview-section">
+    <span class="preview-label">Voorbeeld</span>
+    <div class="label-preview">
+      <span class="preview-dot" [style.background]="labelForm.get('color')?.value || '#BC808B'"></span>
+      <span class="preview-name">{{ labelForm.get('labelName')?.value || 'Labelnaam' }}</span>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="labelForm" class="label-form">
+
+    <!-- Label Name -->
+    <div class="field-group">
+      <label class="field-label" for="labelName">Labelnaam</label>
+      <input
+        id="labelName"
+        class="field-input"
+        type="text"
+        formControlName="labelName"
+        placeholder="bijv. Moet lezen, Favoriet, Bezig met lezen…"
+      />
+      @if (labelForm.get('labelName')?.invalid && labelForm.get('labelName')?.touched) {
+        <span class="field-error">Labelnaam is verplicht</span>
+      }
+    </div>
+
+    <!-- Color -->
+    <div class="field-group">
+      <label class="field-label" for="color">Kleur</label>
+      <input
+        id="color"
+        class="field-input color-input"
+        type="color"
+        formControlName="color"
+      />
+      @if (labelForm.get('color')?.invalid && labelForm.get('color')?.touched) {
+        <span class="field-error">Kies een kleur</span>
+      }
+    </div>
+
+    <!-- Description -->
+    <div class="field-group">
+      <label class="field-label" for="description">Omschrijving</label>
+      <textarea
+        id="description"
+        class="field-input field-textarea"
+        formControlName="description"
+        placeholder="Welke soort boeken vallen onder dit label?"
+        rows="3">
+      </textarea>
+      @if (labelForm.get('description')?.invalid && labelForm.get('description')?.touched) {
+        <span class="field-error">Omschrijving is verplicht</span>
+      }
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary">Annuleren</button>
+      <button type="submit" class="btn-primary" [disabled]="labelForm.invalid">
+        Label aanmaken
+      </button>
+    </div>
+
+  </form>
+</div>

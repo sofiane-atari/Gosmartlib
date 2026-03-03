@@ -12,3 +12,11 @@ body {
 *:after {
   box-sizing: inherit;
 }
+
+
+:root {
+  --main-color: #8A1E41;
+  --sec-color: #BC808B;
+  --main-light-color: #FFF5F8;
+  --sec-light-color: #EAD3C1;
+}
