@@ -15,4 +15,8 @@ export class CreateLabelComponent {
     color: ['', Validators.required],
     description: ['', Validators.required],
   });
+
+  protected onSubmit() {
+    console.log(this.labelForm.value.labelName);
+  }
 }

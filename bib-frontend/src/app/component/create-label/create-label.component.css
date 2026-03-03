@@ -58,25 +58,6 @@
   color: rgba(255,255,255,0.72);
 }
 
-.close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: rgba(255,255,255,0.15);
-  border: none;
-  border-radius: 6px;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-}
-
-.close-btn:hover { background: rgba(255,255,255,0.28); }
-
 /* ── Preview ── */
 .preview-section {
   display: flex;
