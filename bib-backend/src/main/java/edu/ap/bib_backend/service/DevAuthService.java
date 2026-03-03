@@ -9,14 +9,13 @@ import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.jpa.entity.Role;
 
 @Service
-@Profile("dev")
 public class DevAuthService implements AuthService {
 
     @Override
     public AuthUserDto getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
-        // Default fallback role in case no header was provided
+        // Default fallback role
         Role currentRole = Role.STUDENT; 
         String name = "Mock Student";
 
@@ -25,7 +24,7 @@ public class DevAuthService implements AuthService {
             String roleString = authentication.getAuthorities().stream().findFirst().get().getAuthority().replace("ROLE_", "");
             currentRole = Role.valueOf(roleString);
             
-            // Format the name nicely (e.g., "Mock Admin")
+            // Format name
             name = "Mock " + roleString.charAt(0) + roleString.substring(1).toLowerCase();
         }
 

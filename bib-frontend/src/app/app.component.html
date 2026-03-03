@@ -1,38 +1,17 @@
-<div style="text-align: center; margin-top: 50px; font-family: sans-serif;">
-  <h1>Bib Systeem Test</h1>
-  <p>Status verbinding:</p>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Schoolbib</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <app-navbar></app-navbar>
 
-  @if (messages.length > 0) {
-    <div>
-      <h2 style="color: green;">Verbonden met Database!</h2>
-      <ul>
-        @for (msg of messages; track $index) {
-          <li>
-            {{ msg.message }}
-          </li>
-        }
-      </ul>
-    </div>
-  } @else {
-    <div>
-      <h2 style="color: orange;">Bezig met verbinden met Spring Boot...</h2>
-      <p>Controleer of je backend draait op poort 8080.</p>
-    </div>
-  }
-</div>
+  <main style="padding: 20px;">
+  <router-outlet></router-outlet>
+  </main>
 
-
-  <div style="margin-bottom: 20px; padding: 20px; background-color: #f5f5f5; display: inline-block; border-radius: 8px;">
-    <h3>Bericht toevoegen (POST Test)</h3>
-    <input 
-      type="text" 
-      [(ngModel)]="newMessage" 
-      placeholder="Typ een bericht..." 
-      style="padding: 8px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc;"
-    >
-    <button 
-      (click)="addMessage()" 
-      style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-      Verzenden
-    </button>
-  </div>
+</body>
+</html>

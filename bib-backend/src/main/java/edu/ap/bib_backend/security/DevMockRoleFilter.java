@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 @Component
-@Profile("dev")
 public class DevMockRoleFilter extends OncePerRequestFilter {
 
     @Override
@@ -35,7 +34,7 @@ public class DevMockRoleFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
-        // Continue the filter chain
+
         filterChain.doFilter(request, response);
     }
 }

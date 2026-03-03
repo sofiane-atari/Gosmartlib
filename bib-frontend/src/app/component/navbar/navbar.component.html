@@ -1,0 +1,22 @@
+<nav style="display: flex; gap: 15px; background: #eee; padding: 10px;">
+  <strong>Schoolbib</strong>
+  <a routerLink="/dashboard">Dashboard</a>
+
+  <a routerLink="/catalog">Catalogus</a>
+
+  @if (authService.hasRole('LIBRARIAN') || authService.hasRole('ADMIN')) {
+    <a routerLink="/beheer">Bibliotheekbeheer</a>
+  }
+
+  <div style="margin-left: auto;">
+    <label>Test als: </label>
+    <select 
+      [ngModel]="authService.activeMockRole()" 
+      (ngModelChange)="authService.switchRole($event)">
+      <option value="STUDENT">Student</option>
+      <option value="TEACHER">Leerkracht</option>
+      <option value="LIBRARIAN">Beheerder</option>
+      <option value="ADMIN">Systeem Admin</option>
+    </select>
+  </div>
+</nav>
