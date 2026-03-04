@@ -1,0 +1,40 @@
+<div style="padding: 20px;">
+  @if (authService.currentUser(); as user) {
+    <h1>Welkom terug, {{ user.name }}!</h1>
+    <p>Jouw huidige rol is: <strong>{{ user.role }}</strong></p>
+  } @else {
+    <p>Laden van profiel...</p>
+  }
+
+  <hr>
+
+  <h2>Jouw Dashboard Acties</h2>
+
+  @if (authService.hasRole('STUDENT')) {
+    <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+      <h3>📚 Mijn Gelezen Boeken</h3>
+      <p>Hier komen jouw boeken en reviews te staan.</p>
+    </div>
+  }
+
+  @if (authService.hasRole('TEACHER')) {
+    <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+      <h3>👨‍🏫 Klasbeheer</h3>
+      <p>Bekijk leesstatistieken van jouw klassen.</p>
+    </div>
+  }
+
+  @if (authService.hasRole('LIBRARIAN')) {
+    <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+      <h3>📖 Boeken Toevoegen (ISBN Scan)</h3>
+      <p>Voeg razendsnel nieuwe boeken toe aan de catalogus.</p>
+    </div>
+  }
+
+  @if (authService.hasRole('ADMIN')) {
+    <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0; background: #ffe6e6;">
+      <h3>⚙️ Systeeminstellingen</h3>
+      <p>Beheer scholen, labels en globale applicatie-instellingen.</p>
+    </div>
+  }
+</div>
