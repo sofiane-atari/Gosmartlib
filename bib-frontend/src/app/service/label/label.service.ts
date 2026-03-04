@@ -11,6 +11,6 @@ export class LabelService {
   private url = `${environment.apiUrl}/labels`;
 
   createLabel(label: Label) {
-    this.http.post<Label>(this.url, label);
+    return this.http.post<Label>(this.url, label);
   }
 }
