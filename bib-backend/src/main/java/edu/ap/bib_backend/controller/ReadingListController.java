@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-//Tijdelijk enkel voor development!!!!!
+
 @CrossOrigin(origins = { "https://gosmartlib.be", "https://api.gosmartlib.be", "http://localhost:4200" })
 
 @RestController
