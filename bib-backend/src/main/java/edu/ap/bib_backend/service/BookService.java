@@ -1,11 +1,13 @@
 package edu.ap.bib_backend.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 
 @Service
@@ -34,6 +36,9 @@ public class BookService {
 
                 ))
                 .collect(Collectors.toList());
+    }
+    public Optional<Book> getBookById(Long id){
+        return br.findById(id);
     }
 
 }
