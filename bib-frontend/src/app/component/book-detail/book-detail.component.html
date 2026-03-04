@@ -1,116 +1,172 @@
- @if(selectedBook) {
-    <div class="container">
-    <div class="book-detail" (click)="$event.stopPropagation()">
+@if(selectedBook) {
+  <div class="page-container">
+    <div class="detail-wrapper">
 
-      <div class="modal-header">
-        <img [src]="selectedBook.image_url" [alt]="selectedBook.title" class="modal-cover" />
-        <div class="modal-header-overlay">
-          <h2 class="modal-title">{{ selectedBook.title }}</h2>
-          <p class="modal-author">{{ selectedBook.author }}</p>
+      <!-- Sidebar met Cover en Snelle Acties -->
+      <aside class="sidebar">
+        <div class="cover-container">
+          <img [src]="selectedBook.image_url" [alt]="selectedBook.title" class="book-cover" />
         </div>
-      </div>
 
-      <div class="modal-content">
-        <div class="bibliotheekbeheer">
-          <div class="beheer-header">
-            <div class="beheer-icon">
-              <lucide-icon [img]="Library" [size]="24"></lucide-icon>
-            </div>
-            <span class="beheer-title">Bibliotheekbeheer</span>
+        <div class="quick-stats">
+          <div class="stat-item">
+            <span class="stat-value">{{ selectedBook.copies }}</span>
+            <span class="stat-label">Exemplaren</span>
           </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ selectedBook.pages }}</span>
+            <span class="stat-label">Pagina's</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ selectedBook.release_year }}</span>
+            <span class="stat-label">Jaar</span>
+          </div>
+        </div>
 
-          <div class="beheer-controls">
-            <div class="control-group">
-              <label>Voorraad Beheer</label>
+        <div class="availability-badge" [class.available]="selectedBook.availability === Availability.AVAILABLE">
+          {{ selectedBook.availability }}
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+
+        <!-- Header -->
+        <header class="content-header">
+          <div class="title-section">
+            <h1 class="book-title">{{ selectedBook.title }}</h1>
+            <p class="book-author">door {{ selectedBook.author }}</p>
+          </div>
+        </header>
+
+        <!-- Bibliotheekbeheer -->
+        <section class="management-section">
+          <h2 class="section-title">Bibliotheekbeheer</h2>
+
+          <div class="management-grid">
+            <div class="management-card">
+              <label class="card-label">Voorraad</label>
               <div class="quantity-control">
                 <button class="qty-btn" (click)="decreaseQuantity()" [disabled]="selectedBook.copies === 0">
-                  <lucide-icon [img]="Minus" [size]="18"></lucide-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
                 </button>
                 <input type="number" [(ngModel)]="selectedBook.copies" min="0" readonly class="qty-input" />
                 <button class="qty-btn" (click)="increaseQuantity()">
-                  <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
                 </button>
-                <span class="exemplaren">exemplaren</span>
               </div>
             </div>
 
-            <div class="control-group">
-              <label>Status</label>
-              <div class="status-wrapper">
-                <lucide-icon [img]="CheckCircle" [size]="18" class="status-icon"></lucide-icon>
-                <select [(ngModel)]="selectedBook.availability" class="status-select">
-                  @for(option of availabilityOptions; track option) {
-                    <option [value]="option">{{ option }}</option>
-                  }
-                </select>
-              </div>
+            <div class="management-card">
+              <label class="card-label">Status</label>
+              <select [(ngModel)]="selectedBook.availability" class="status-select">
+                @for(option of availabilityOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
             </div>
           </div>
 
-          <div class="beheer-actions">
-            <button class="action-btn edit-btn">
-              <lucide-icon [img]="Edit2" [size]="18"></lucide-icon>
+          <div class="action-buttons">
+            <button class="action-btn primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+              </svg>
               <span>Bewerken</span>
             </button>
-            <button class="action-btn delete-btn">
-              <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
+            <button class="action-btn danger">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
               <span>Verwijderen</span>
             </button>
           </div>
-        </div>
+        </section>
 
-        <div class="book-meta">
-          <div class="meta-item">
-            <div class="meta-icon">
-              <lucide-icon [img]="BookOpen" [size]="20"></lucide-icon>
+        <!-- Meta Informatie -->
+        <section class="meta-section">
+          <h2 class="section-title">Details</h2>
+          <div class="meta-grid">
+            <div class="meta-row">
+              <span class="meta-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+                Pagina's
+              </span>
+              <span class="meta-value">{{ selectedBook.pages }}</span>
             </div>
-            <span class="meta-label">Pagina's</span>
-            <span class="meta-value">{{ selectedBook.pages }}</span>
-          </div>
-          
-          <div class="meta-item">
-            <div class="meta-icon">
-              <lucide-icon [img]="Calendar" [size]="20"></lucide-icon>
+
+            <div class="meta-row">
+              <span class="meta-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Publicatiejaar
+              </span>
+              <span class="meta-value">{{ selectedBook.release_year }}</span>
             </div>
-            <span class="meta-label">Jaar</span>
-            <span class="meta-value">{{ selectedBook.release_year}}</span>
-          </div>
 
-          <div class="meta-item">
-            <div class="meta-icon">
-              <lucide-icon [img]="Star" [size]="20"></lucide-icon>
+            <div class="meta-row">
+              <span class="meta-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                Rating
+              </span>
+              <span class="meta-value meta-placeholder">Nog geen beoordelingen</span>
             </div>
-            <span class="meta-label">Rating</span>
-            <span class="meta-value">NULL</span>
-          </div>
 
-          <div class="meta-item">
-            <div class="meta-icon">
-              <lucide-icon [img]="MessageCircle" [size]="20"></lucide-icon>
+            <div class="meta-row">
+              <span class="meta-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Reviews
+              </span>
+              <span class="meta-value meta-placeholder">Nog geen reviews</span>
             </div>
-            <span class="meta-label">Reviews</span>
-            <span class="meta-value">NULL</span>
           </div>
-        </div>
+        </section>
 
-        <div class="genres-section">
-          <h4>Genres</h4>
-          <!-- <div class="genres-tags">
-            <span class="genre-tag fantasy">Fantasy</span>
-            <span class="genre-tag adventure">Avontuur</span>
-          </div> -->
-        </div>
+        <!-- Samenvatting -->
+        <section class="summary-section">
+          <h2 class="section-title">Samenvatting</h2>
+          <p class="summary-text">{{ selectedBook.description }}</p>
+        </section>
 
-        <div class="summary-section">
-          <h3>Samenvatting</h3>
-          <p>{{ selectedBook.description }}</p>
-        </div>
+        <!-- Genres -->
+        <section class="genres-section">
+          <h2 class="section-title">Genres</h2>
+          <div class="genres-tags">
+            <span class="genre-tag">Fantasy</span>
+            <span class="genre-tag">Avontuur</span>
+            <span class="genre-tag">Klassiek</span>
+          </div>
+        </section>
 
-        <div class="review-section">
-          <h4>Reviews</h4>
-        </div>
-        
-      </div>
+        <!-- Reviews -->
+        <section class="reviews-section">
+          <h2 class="section-title">Reviews</h2>
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <p>Nog geen reviews beschikbaar</p>
+          </div>
+        </section>
+
+      </main>
     </div>
-        </div>
-  }
+  </div>
+}

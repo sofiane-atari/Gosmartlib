@@ -20,6 +20,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BookService } from '../../services/book.service';
+import { Availability } from '../../model/enums/availability.enum';
 
 @Component({
   selector: 'app-book-detail',
@@ -53,6 +54,7 @@ export class BookDetailComponent {
     { icon: X, label: 'Sluiten' },
   ];
 
+  Availability = Availability;
   constructor(  private route: ActivatedRoute,
   private bookService: BookService) {}
 
