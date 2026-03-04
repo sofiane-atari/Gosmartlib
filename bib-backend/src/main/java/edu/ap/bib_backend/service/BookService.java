@@ -37,8 +37,26 @@ public class BookService {
                 ))
                 .collect(Collectors.toList());
     }
-    public Optional<Book> getBookById(Long id){
-        return br.findById(id);
+
+    private BookDTO mapToDTO(Book book) {
+        BookDTO dto = new BookDTO();
+        dto.setId(book.getId());
+        dto.setTitle(book.getTitle());
+        dto.setAuthor(book.getAuthor());
+        dto.setISBN(book.getISBN());
+        dto.setPages(book.getPages());
+        dto.setImage_url(book.getImage_url());
+        dto.setAvailability(book.getAvailability());
+        dto.setCopies(book.getCopies());
+        dto.setDescription(book.getDescription());
+        dto.setRelease_year(book.getRelease_year());
+        return dto;
+    }
+
+    public BookDTO getBookById(Long id) {
+        return br.findById(id)
+                .map(book -> mapToDTO(book)) // Zet Book om naar BookDTO
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
     }
 
 }

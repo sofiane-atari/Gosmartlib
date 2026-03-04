@@ -31,8 +31,9 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Book>> getBookById(@PathVariable Long id) {
-        return ResponseEntity.ok(bs.getBookById(id));
+    public ResponseEntity<BookDTO> getBookById(@PathVariable Long id) {
+        BookDTO book = bs.getBookById(id);
+        return ResponseEntity.ok(book);
     }
 
 }
