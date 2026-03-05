@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -22,20 +21,14 @@ public class BookService {
     public List<BookDTO> getAllBooks() {
         return br.findAll()
                 .stream()
-                .map(book -> new BookDTO(
-                        book.getId(),
-                        book.getISBN(),
-                        book.getTitle(),
-                        book.getAuthor(),
-                        book.getPages(),
-                        book.getImage_url(),
-                        book.getDescription(),
-                        book.getRelease_year(),
-                        book.getAvailability(),
-                        book.getCopies()
-
-                ))
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public BookDTO createBookWithoutISBN(BookDTO dto) {
+        Book book = mapToEntity(dto);
+        Book savedBook = br.save(book);
+        return mapToDTO(savedBook);
     }
 
     private BookDTO mapToDTO(Book book) {
@@ -51,6 +44,23 @@ public class BookService {
         dto.setDescription(book.getDescription());
         dto.setRelease_year(book.getRelease_year());
         return dto;
+    }
+
+    private Book mapToEntity(BookDTO dto) {
+        Book book = new Book();
+
+        book.setId(dto.getId());
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthor());
+        book.setISBN(dto.getISBN());
+        book.setPages(dto.getPages());
+        book.setImage_url(dto.getImage_url());
+        book.setAvailability(dto.getAvailability());
+        book.setCopies(dto.getCopies());
+        book.setDescription(dto.getDescription());
+        book.setRelease_year(dto.getRelease_year());
+
+        return book;
     }
 
     public BookDTO getBookById(Long id) {

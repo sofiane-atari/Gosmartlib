@@ -1,7 +1,5 @@
 package edu.ap.bib_backend;
 
-import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.service.ReadingListService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -9,11 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.ap.bib_backend.dto.BookDTO;
-import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.service.BookService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/books")
@@ -34,6 +33,12 @@ public class BookController {
     public ResponseEntity<BookDTO> getBookById(@PathVariable Long id) {
         BookDTO book = bs.getBookById(id);
         return ResponseEntity.ok(book);
+    }
+
+    @PostMapping
+    public ResponseEntity<BookDTO> addBookWithoutISBN(@RequestBody BookDTO dto) {
+        BookDTO savedBook = bs.createBookWithoutISBN(dto);
+        return ResponseEntity.ok(savedBook);
     }
 
 }
