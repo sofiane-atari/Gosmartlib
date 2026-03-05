@@ -21,6 +21,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BookService } from '../../services/book.service';
 import { Availability } from '../../model/enums/availability.enum';
+import { Review } from '../../model/review.model';
+import { ReviewService } from '../../services/Reviews/review.service';
 
 @Component({
   selector: 'app-book-detail',
@@ -54,9 +56,16 @@ export class BookDetailComponent {
     { icon: X, label: 'Sluiten' },
   ];
 
+  //Reviews//
+  reviews: Review[] = [];
+  newReviewText: string = '';
+  newReviewRating: number = 5;
+  starsArray: number[] = [1, 2, 3, 4, 5];
+
   Availability = Availability;
-  constructor(  private route: ActivatedRoute,
-  private bookService: BookService) {}
+  constructor(private route: ActivatedRoute, private bookService: BookService, private reviewService: ReviewService ) {
+
+  }
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -66,6 +75,8 @@ export class BookDetailComponent {
         this.bookService.getBookById(+id).subscribe(book => {
           this.selectedBook = book;
         });
+
+        this.loadReviews(+id);
       }
     });
   }
@@ -73,7 +84,35 @@ export class BookDetailComponent {
   public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
   selectedBook?: Book;
 
-  
+  loadReviews(bookId: number) {
+    this.reviewService.getReviewsForBook(bookId).subscribe({
+      next: (data) => this.reviews = data,
+      error: (err) => console.error('Fout bij ophalen reviews', err)
+    });
+  }
+
+  setRating(rating: number){
+    this.newReviewRating = rating;
+  }
+
+  submitReview() {
+    if (!this.newReviewText.trim() || !this.selectedBook?.id) return;
+
+    const newReview: Review = {
+      comment: this.newReviewText,
+      rating: this.newReviewRating
+    };
+
+    this.reviewService.addReviewToBook(this.selectedBook.id, newReview).subscribe({
+      next: (savedReview) => {
+        this.reviews.push(savedReview);
+        this.newReviewText = '';
+        this.newReviewRating = 5;
+      },
+      error: (err) => console.error('Fout bij opslaan review', err)
+    });
+  }
+
   increaseQuantity(): void {
     if (this.selectedBook) {
       this.selectedBook.copies = (this.selectedBook.copies || 0) + 1;
