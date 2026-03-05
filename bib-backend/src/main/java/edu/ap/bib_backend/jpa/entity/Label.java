@@ -27,4 +27,12 @@ public class Label {
     @Column(nullable = false)
     @NotBlank
     private String color;
+
+    public Label() {
+    }
+    public Label(String name, String description, String color) {
+        this.name = name;
+        this.description = description;
+        this.color = color;
+    }
 }
