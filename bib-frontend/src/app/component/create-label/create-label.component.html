@@ -19,7 +19,7 @@
     <span class="preview-label">Voorbeeld</span>
     <div class="label-preview">
       <span class="preview-dot" [style.background]="labelForm.get('color')?.value || '#BC808B'"></span>
-      <span class="preview-name">{{ labelForm.get('labelName')?.value || 'Labelnaam' }}</span>
+      <span class="preview-name">{{ labelForm.get('name')?.value || 'Labelnaam' }}</span>
     </div>
   </div>
 
@@ -28,10 +28,10 @@
 
     <!-- Label Name -->
     <div class="field-group">
-      <label class="field-label" for="labelName">Labelnaam</label>
-      <input id="labelName" class="field-input" type="text" formControlName="labelName"
+      <label class="field-label" for="name">Labelnaam</label>
+      <input id="name" class="field-input" type="text" formControlName="name"
         placeholder="bijv. Moet lezen, Favoriet, Bezig met lezen…" />
-      @if (labelForm.get('labelName')?.invalid && labelForm.get('labelName')?.touched) {
+      @if (labelForm.get('name')?.invalid && labelForm.get('name')?.touched) {
       <span class="field-error">Labelnaam is verplicht</span>
       }
     </div>
@@ -58,6 +58,9 @@
 
     @if (error()) {
     <div class="field-error">{{error()}}</div>
+    }
+    @if (success()) {
+    <div class="field-success">{{success()}}</div>
     }
     <!-- Actions -->
     <div class="form-actions">

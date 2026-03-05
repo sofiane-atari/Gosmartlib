@@ -20,9 +20,10 @@ export class CreateLabelComponent {
   private router = inject(Router);
 
   protected error = signal('');
+  protected success = signal('');
 
   labelForm = this.formBuilder.group({
-    labelName: ['', Validators.required],
+    name: ['', Validators.required],
     color: ['', Validators.required],
     description: ['', Validators.required],
   });
@@ -30,7 +31,7 @@ export class CreateLabelComponent {
   protected onSubmit() {
     this.service
       .createLabel({
-        labelName: this.labelForm.value.labelName,
+        name: this.labelForm.value.name,
         color: this.labelForm.value.color,
         description: this.labelForm.value.description,
       } as Label)
@@ -38,12 +39,16 @@ export class CreateLabelComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          this.success.set('Label succesvol aangemaakt!');
           const navigationOpt: NavigationExtras = {
-            queryParams: { error: "true"},
+            queryParams: { success: 'true' },
           };
           this.router.navigate(['/labels'], navigationOpt);
         },
         error: (err: HttpErrorResponse) => {
+          this.success.set(
+            'Er is een fout opgetreden bij het aanmaken van het label.',
+          );
           if (err.status === 403) {
             this.error.set(err.message);
           }
