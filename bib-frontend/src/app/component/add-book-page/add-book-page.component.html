@@ -1,0 +1,25 @@
+<div class="add-book-container">
+
+  <div class="tabs">
+    <button 
+      [class.active]="mode === 'isbn'"
+      (click)="mode = 'isbn'">
+      Met ISBN
+    </button>
+
+    <button 
+      [class.active]="mode === 'manual'"
+      (click)="mode = 'manual'">
+      Zonder ISBN
+    </button>
+  </div>
+
+  @if(mode === 'isbn') {
+    <app-add-book-isbn></app-add-book-isbn>
+  }
+
+  @if(mode === 'manual') {
+    <app-add-book-manual></app-add-book-manual>
+  }
+
+</div>

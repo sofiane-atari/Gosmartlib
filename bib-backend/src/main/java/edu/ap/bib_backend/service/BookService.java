@@ -38,6 +38,12 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
+    public BookDTO createBookWithoutISBN(BookDTO dto) {
+        Book book = mapToEntity(dto);
+        Book savedBook = br.save(book);
+        return mapToDTO(savedBook);
+    }
+
     private BookDTO mapToDTO(Book book) {
         BookDTO dto = new BookDTO();
         dto.setId(book.getId());
@@ -51,6 +57,23 @@ public class BookService {
         dto.setDescription(book.getDescription());
         dto.setRelease_year(book.getRelease_year());
         return dto;
+    }
+
+    private Book mapToEntity(BookDTO dto) {
+        Book book = new Book();
+
+        book.setId(dto.getId());
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthor());
+        book.setISBN(dto.getISBN());
+        book.setPages(dto.getPages());
+        book.setImage_url(dto.getImage_url());
+        book.setAvailability(dto.getAvailability());
+        book.setCopies(dto.getCopies());
+        book.setDescription(dto.getDescription());
+        book.setRelease_year(dto.getRelease_year());
+
+        return book;
     }
 
     public BookDTO getBookById(Long id) {

@@ -1,0 +1,17 @@
+<h2>Boek handmatig toevoegen</h2>
+
+<form (ngSubmit)="addBook()">
+
+<input type="text" placeholder="Titel" [(ngModel)]="book.title" name="title">
+
+<input type="text" placeholder="Auteur" [(ngModel)]="book.author" name="author">
+
+<input type="number" placeholder="Pagina's" [(ngModel)]="book.pages" name="pages">
+
+<input type="text" placeholder="Image URL" [(ngModel)]="book.image_url" name="image_url">
+
+<textarea placeholder="Beschrijving" [(ngModel)]="book.description" name="description"></textarea>
+
+<button type="submit">Boek toevoegen</button>
+
+</form>
