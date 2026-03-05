@@ -33,5 +33,10 @@ public class ReviewController {
         ReviewDTO savedReview = rs.addReviewToBook(bookId, reviewDTO);
         return ResponseEntity.ok(savedReview);
     }
+
+    @GetMapping("/book/{bookId}/average")
+    public ResponseEntity<Double> getAverageRating(@PathVariable Long bookId) {
+        return ResponseEntity.ok(rs.getAverageRating(bookId));
+    }
     
 }

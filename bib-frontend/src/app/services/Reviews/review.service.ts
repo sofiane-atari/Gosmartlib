@@ -18,4 +18,8 @@ export class ReviewService {
   addReviewToBook(bookId: number, review: Review) {
     return this.http.post<Review>(`${this.apiUrl}/book/${bookId}`, review);
   }
+
+  getAverageRating(bookId: number) {
+    return this.http.get<number>(`${this.apiUrl}/book/${bookId}/average`);
+  }
 }

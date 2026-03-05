@@ -37,5 +37,9 @@ public class ReviewService {
         return new ReviewDTO(savedReview.getId(), savedReview.getComment(), savedReview.getRating());
     }
 
+    public Double getAverageRating(Long bookId) {
+        return rr.getAverageRatingForBook(bookId);
+    }
+
     
 }

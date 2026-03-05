@@ -61,6 +61,7 @@ export class BookDetailComponent {
   newReviewText: string = '';
   newReviewRating: number = 5;
   starsArray: number[] = [1, 2, 3, 4, 5];
+  averageRating: number = 0;
 
   Availability = Availability;
   constructor(private route: ActivatedRoute, private bookService: BookService, private reviewService: ReviewService ) {
@@ -89,10 +90,19 @@ export class BookDetailComponent {
       next: (data) => this.reviews = data,
       error: (err) => console.error('Fout bij ophalen reviews', err)
     });
+
+    this.updateAverage(bookId);
   }
 
   setRating(rating: number){
     this.newReviewRating = rating;
+  }
+
+  updateAverage(bookId: number) {
+    this.reviewService.getAverageRating(bookId).subscribe({
+      next: (avg) => this.averageRating = avg,
+      error: (err) => console.error('Fout bij ophalen gemiddelde', err)
+    });
   }
 
   submitReview() {
@@ -108,6 +118,8 @@ export class BookDetailComponent {
         this.reviews.push(savedReview);
         this.newReviewText = '';
         this.newReviewRating = 5;
+
+        this.updateAverage(this.selectedBook!.id);
       },
       error: (err) => console.error('Fout bij opslaan review', err)
     });
