@@ -14,7 +14,6 @@ import { Route, Router } from '@angular/router';
 })
 export class AddBookManualComponent {
   book: Book = {
-    ISBN: 0,
     title: '',
     author: '',
     pages: 0,

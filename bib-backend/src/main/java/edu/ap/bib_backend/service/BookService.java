@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -22,19 +21,7 @@ public class BookService {
     public List<BookDTO> getAllBooks() {
         return br.findAll()
                 .stream()
-                .map(book -> new BookDTO(
-                        book.getId(),
-                        book.getISBN(),
-                        book.getTitle(),
-                        book.getAuthor(),
-                        book.getPages(),
-                        book.getImage_url(),
-                        book.getDescription(),
-                        book.getRelease_year(),
-                        book.getAvailability(),
-                        book.getCopies()
-
-                ))
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 

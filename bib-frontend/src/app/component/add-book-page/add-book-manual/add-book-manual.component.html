@@ -1,66 +1,53 @@
-<div class="add-book-container">
-  <h2>Boek Handmatig Toevoegen</h2>
+<div class="layout">
 
-  <form (ngSubmit)="addBook()" class="book-form">
+    <form (ngSubmit)="addBook()" class="book-form">
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Titel *</label>
+            <input type="text" [(ngModel)]="book.title" name="title" placeholder="Boektitel" required />
+          </div>
+          <div class="form-group">
+            <label>Auteur *</label>
+            <input type="text" [(ngModel)]="book.author" name="author" placeholder="Auteursnaam" required />
+          </div>
+        </div>
 
-    <div class="form-group">
-      <label>ISBN</label>
-      <input type="number" [(ngModel)]="book.ISBN" name="ISBN" required />
-    </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Aantal Pagina's *</label>
+            <input type="number" [(ngModel)]="book.pages" name="pages" placeholder="320" required />
+          </div>
+          <div class="form-group">
+            <label>Jaar *</label>
+            <input type="number" [(ngModel)]="book.release_year" name="release_year" placeholder="2024" required />
+          </div>
+        </div>
 
-    <div class="form-group">
-      <label>Titel</label>
-      <input type="text" [(ngModel)]="book.title" name="title" required />
-    </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Voorraad *</label>
+            <input type="number" [(ngModel)]="book.copies" name="copies" placeholder="1" required />
+          </div>
+          <div class="form-group">
+            <label>Cover URL (optioneel)</label>
+            <input type="text" [(ngModel)]="book.image_url" name="image_url" placeholder="https://..." />
+          </div>
+        </div>
 
-    <div class="form-group">
-      <label>Auteur</label>
-      <input type="text" [(ngModel)]="book.author" name="author" required />
-    </div>
+        <div class="form-group full-width">
+          <label>Beschrijving *</label>
+          <textarea [(ngModel)]="book.description" name="description" placeholder="Een korte beschrijving van het boek..." required></textarea>
+        </div>
 
-    <div class="form-group">
-      <label>Pagina's</label>
-      <input type="number" [(ngModel)]="book.pages" name="pages" required />
-    </div>
+        <div class="form-group full-width">
+          <label>Genres * (selecteer minimaal 1)</label>
+          <p class="error-message">Selecteer minimaal één genre</p>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label>Release Jaar</label>
-      <input type="number" [(ngModel)]="book.release_year" name="release_year" required />
-    </div>
-
-    <div class="form-group">
-      <label>Aantal Exemplaren</label>
-      <input type="number" [(ngModel)]="book.copies" name="copies" required />
-    </div>
-
-    <div class="form-group">
-      <label>Image URL</label>
-      <input type="text" [(ngModel)]="book.image_url" name="image_url" />
-    </div>
-
-    <div class="form-group">
-      <label>Beschrijving</label>
-      <textarea [(ngModel)]="book.description" name="description"></textarea>
-    </div>
-
-    <div class="form-group">
-    <label>Status</label>
-
-    <select [(ngModel)]="book.availability" name="availability">
-
-        @for(option of availabilityOptions; track option) {
-        <option [value]="option">
-            {{ option }}
-        </option>
-        }
-
-    </select>
-
-    </div>
-
-    <button type="submit" class="submit-btn">
-      Boek Toevoegen
-    </button>
-
-  </form>
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">+ Boek Toevoegen</button>
+      </div>
+    </form>
 </div>

@@ -1,13 +1,18 @@
 <div class="add-book-container">
-
+  <main class="main-content full-page">
+    <div class="content-header">
+      <h1>Boek Toevoegen</h1>
+      <div class="tab-buttons">
+      </div>
+    </div>
   <div class="tabs">
-    <button 
+    <button class="tab-btn active"
       [class.active]="mode === 'isbn'"
       (click)="mode = 'isbn'">
       Met ISBN
     </button>
 
-    <button 
+    <button class="tab-btn"
       [class.active]="mode === 'manual'"
       (click)="mode = 'manual'">
       Zonder ISBN
@@ -21,5 +26,6 @@
   @if(mode === 'manual') {
     <app-add-book-manual></app-add-book-manual>
   }
+  </main>
 
 </div>
