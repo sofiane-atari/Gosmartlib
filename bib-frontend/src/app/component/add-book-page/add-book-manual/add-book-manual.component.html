@@ -1,17 +1,61 @@
-<h2>Boek handmatig toevoegen</h2>
+<div class="add-book-container">
+  <h2>Boek Handmatig Toevoegen</h2>
 
-<form (ngSubmit)="addBook()">
+  <form (ngSubmit)="addBook()" class="book-form">
 
-<input type="text" placeholder="Titel" [(ngModel)]="book.title" name="title">
+    <div class="form-group">
+      <label>ISBN</label>
+      <input type="number" [(ngModel)]="book.ISBN" name="ISBN" required />
+    </div>
 
-<input type="text" placeholder="Auteur" [(ngModel)]="book.author" name="author">
+    <div class="form-group">
+      <label>Titel</label>
+      <input type="text" [(ngModel)]="book.title" name="title" required />
+    </div>
 
-<input type="number" placeholder="Pagina's" [(ngModel)]="book.pages" name="pages">
+    <div class="form-group">
+      <label>Auteur</label>
+      <input type="text" [(ngModel)]="book.author" name="author" required />
+    </div>
 
-<input type="text" placeholder="Image URL" [(ngModel)]="book.image_url" name="image_url">
+    <div class="form-group">
+      <label>Pagina's</label>
+      <input type="number" [(ngModel)]="book.pages" name="pages" required />
+    </div>
 
-<textarea placeholder="Beschrijving" [(ngModel)]="book.description" name="description"></textarea>
+    <div class="form-group">
+      <label>Release Jaar</label>
+      <input type="number" [(ngModel)]="book.release_year" name="release_year" required />
+    </div>
 
-<button type="submit">Boek toevoegen</button>
+    <div class="form-group">
+      <label>Aantal Exemplaren</label>
+      <input type="number" [(ngModel)]="book.copies" name="copies" required />
+    </div>
 
-</form>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="text" [(ngModel)]="book.image_url" name="image_url" />
+    </div>
+
+    <div class="form-group">
+      <label>Beschrijving</label>
+      <textarea [(ngModel)]="book.description" name="description"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Status</label>
+      <select [(ngModel)]="book.availability" name="availability">
+        <option value="AVAILABLE">AVAILABLE</option>
+        <option value="BORROWED">BORROWED</option>
+        <option value="DAMAGED">DAMAGED</option>
+        <option value="LOST">LOST</option>
+      </select>
+    </div>
+
+    <button type="submit" class="submit-btn">
+      Boek Toevoegen
+    </button>
+
+  </form>
+</div>
