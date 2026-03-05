@@ -7,11 +7,11 @@ import { BookDetailComponent } from './component/book-detail/book-detail.compone
 import { AddBookPageComponent } from './component/add-book-page/add-book-page.component';
 
 export const routes: Routes = [
-    { path: 'catalogus', component: BooksComponent },
+    { path: 'catalog', component: BooksComponent },
     { path: 'book/:id', component: BookDetailComponent },
 
     // { path: 'favorieten', component:  },
-    { path: '', redirectTo: '/catalogus', pathMatch: 'full' },
+    { path: '', redirectTo: '/catalog', pathMatch: 'full' },
     { path: 'reading-list', component: ReadingListOverviewComponent},
     { path: 'reading-list/create', component: CreateReadingListComponent },
     { path: 'add-book', component: AddBookPageComponent }

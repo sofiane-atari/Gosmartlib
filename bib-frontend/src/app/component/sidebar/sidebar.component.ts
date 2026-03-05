@@ -36,7 +36,7 @@ export class SidebarComponent {
   }
 
 menuItems = [
-    { icon: Book, label: 'Catalogus', route: '/catalogus' },
+    { icon: Book, label: 'Catalogus', route: '/catalog' },
     { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },
     { icon: History, label: 'Geschiedenis', route: '/historiek' },
     { icon: Star, label: 'Mijn Reviews', route: '/reviews' },

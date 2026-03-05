@@ -3,6 +3,7 @@ import { BookService } from '../../../services/BookService/book.service';
 import { FormsModule } from '@angular/forms';
 import { Book } from '../../../model/book.model';
 import { Availability } from '../../../model/enums/availability.enum';
+import { Route, Router } from '@angular/router';
 
 @Component({
   selector: 'app-add-book-manual',
@@ -26,12 +27,12 @@ export class AddBookManualComponent {
   availabilityOptions = Object.values(Availability);
 
 
-  constructor(private bs: BookService){}
+  constructor(private bs: BookService, private rt: Router){}
 
   addBook() {
     this.bs.createBookWithoutISBN(this.book).subscribe({
       next: () => {
-        console.log("Book added successfully");
+      this.rt.navigate(['/catalog']);
       },
       error: (err) => {
         console.error(err);
