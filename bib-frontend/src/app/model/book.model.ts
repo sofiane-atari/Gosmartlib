@@ -1,7 +1,7 @@
 import { Availability } from "./enums/availability.enum";
 
 export interface Book {
-  id: number;
+  id?: number;
   ISBN: number;
   title: string;
   author: string;

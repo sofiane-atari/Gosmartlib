@@ -44,13 +44,18 @@
     </div>
 
     <div class="form-group">
-      <label>Status</label>
-      <select [(ngModel)]="book.availability" name="availability">
-        <option value="AVAILABLE">AVAILABLE</option>
-        <option value="BORROWED">BORROWED</option>
-        <option value="DAMAGED">DAMAGED</option>
-        <option value="LOST">LOST</option>
-      </select>
+    <label>Status</label>
+
+    <select [(ngModel)]="book.availability" name="availability">
+
+        @for(option of availabilityOptions; track option) {
+        <option [value]="option">
+            {{ option }}
+        </option>
+        }
+
+    </select>
+
     </div>
 
     <button type="submit" class="submit-btn">

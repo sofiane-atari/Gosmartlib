@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { BookService } from '../../../services/BookService/book.service';
 import { FormsModule } from '@angular/forms';
+import { Book } from '../../../model/book.model';
+import { Availability } from '../../../model/enums/availability.enum';
 
 @Component({
   selector: 'app-add-book-manual',
@@ -10,13 +12,30 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './add-book-manual.component.css'
 })
 export class AddBookManualComponent {
-  book: any = {};
+  book: Book = {
+    ISBN: 0,
+    title: '',
+    author: '',
+    pages: 0,
+    image_url: '',
+    description: '',
+    release_year: 0,
+    availability: Availability.AVAILABLE,
+    copies: 0
+  };
+  availabilityOptions = Object.values(Availability);
+
 
   constructor(private bs: BookService){}
 
-  addBook(){
+  addBook() {
     this.bs.createBookWithoutISBN(this.book).subscribe({
-      next: () => console.log("Book added")
+      next: () => {
+        console.log("Book added successfully");
+      },
+      error: (err) => {
+        console.error(err);
+      }
     });
   }
 }
