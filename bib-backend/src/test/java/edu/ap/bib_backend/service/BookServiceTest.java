@@ -1,4 +1,4 @@
-package edu.ap.bib_backend;
+package edu.ap.bib_backend.service;
 
 import static org.mockito.Mockito.when;
 
@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -93,5 +94,47 @@ public class BookServiceTest {
         assertThat(res.getTitle()).isEqualTo("Specifiek Boek");
         assertThat(res.getAvailability()).isEqualTo(Availability.AVAILABLE);
         assertThat(res.getRelease_year()).isEqualTo(2021);
+    }
+
+    @Test
+    void createBookWithoutISBN_savesAndReturnsDTO() {
+        // Arrange
+        BookDTO dto = new BookDTO();
+        dto.setTitle("Nieuwe Boek");
+        dto.setAuthor("Auteur Test");
+        dto.setPages(300);
+        dto.setImage_url("https://example.com/image.jpg");
+        dto.setAvailability(Availability.AVAILABLE);
+        dto.setCopies(2);
+        dto.setDescription("Beschrijving hier");
+        dto.setRelease_year(2024);
+
+        // Mock the repository save method
+        Book savedBook = new Book();
+        savedBook.setId(1L); // Simulate DB-generated ID
+        savedBook.setTitle(dto.getTitle());
+        savedBook.setAuthor(dto.getAuthor());
+        savedBook.setPages(dto.getPages());
+        savedBook.setImage_url(dto.getImage_url());
+        savedBook.setAvailability(dto.getAvailability());
+        savedBook.setCopies(dto.getCopies());
+        savedBook.setDescription(dto.getDescription());
+        savedBook.setRelease_year(dto.getRelease_year());
+
+        Mockito.when(br.save(Mockito.any(Book.class))).thenReturn(savedBook);
+
+        // Act
+        BookDTO result = bs.createBookWithoutISBN(dto);
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getTitle()).isEqualTo("Nieuwe Boek");
+        assertThat(result.getAuthor()).isEqualTo("Auteur Test");
+        assertThat(result.getPages()).isEqualTo(300);
+        assertThat(result.getAvailability()).isEqualTo(Availability.AVAILABLE);
+        assertThat(result.getCopies()).isEqualTo(2);
+        assertThat(result.getDescription()).isEqualTo("Beschrijving hier");
+        assertThat(result.getRelease_year()).isEqualTo(2024);
     }
 }

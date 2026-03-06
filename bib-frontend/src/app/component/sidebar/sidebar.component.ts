@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/RoleAuthorization/auth.service';
 import { FormsModule } from '@angular/forms';
 import { Role } from '../../model/auth.model';
-import { 
-  LucideAngularModule, 
-  Book, Heart, History, Star, UserCircle, Settings, 
-  Package, Flag, FileText, Tag, Plus, RotateCcw, LogOut, User 
+import {
+  LucideAngularModule,
+  Book, Heart, History, Star, UserCircle, Settings,
+  Package, Flag, FileText, Tag, Plus, RotateCcw, LogOut, User
 } from 'lucide-angular';
 import { School } from 'lucide-angular/src/icons';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { routes } from '../../app.routes';
 
 @Component({
@@ -25,20 +25,19 @@ export class SidebarComponent {
   readonly UserIcon = User;
   readonly RotateCcwIcon = RotateCcw;
   readonly LogOutIcon = LogOut;
-  
+
   public authService = inject(AuthService);
 
-  public constructor(){
-    
-  }
+  constructor(private router: Router){}
+
 
   onRoleChange(newRole: string) {
     this.authService.switchRole(newRole as Role);
   }
 
-menuItems = [
-    { icon: Book, label: 'Catalogus', route: '/catalogus' },
-    { icon: Heart, label: 'Favorietenlijst', route: '/favorieten' },
+  menuItems = [
+    { icon: Book, label: 'Catalogus', route: '/catalog' },
+    { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },
     { icon: History, label: 'Geschiedenis', route: '/historiek' },
     { icon: Star, label: 'Mijn Reviews', route: '/reviews' },
     { icon: UserCircle, label: 'Mijn Account', route: '/account' },
@@ -49,5 +48,9 @@ menuItems = [
     { icon: Tag, label: 'Labelbeheer', route: '/labels' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen' },
   ];
+
+  goToAddBook(){
+    this.router.navigate(['/add-book']);
+  }
 
 }

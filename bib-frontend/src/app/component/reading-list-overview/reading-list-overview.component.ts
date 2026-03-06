@@ -17,8 +17,19 @@ export class ReadingListOverviewComponent implements OnInit {
   constructor(private readingListService: ReadingListService) { }
 
   ngOnInit() {
-    this.readingListService.getListsByUser().subscribe(lists => {
+    this.readingListService.getLists().subscribe(lists => {
       this.readingLists = lists;
+    });
+  }
+
+  deleteList(id: number) {
+    this.readingListService.deleteList(id).subscribe({
+      next: () => {
+        this.readingLists = this.readingLists.filter(l => l.id !== id);
+      },
+      error: (err) => {
+        console.error('Fout bij verwijderen van lijst:', err);
+      }
     });
   }
 

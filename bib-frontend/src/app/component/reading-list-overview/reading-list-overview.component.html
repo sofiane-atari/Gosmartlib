@@ -1,12 +1,5 @@
 <div class="page">
 
-  <!-- Top search bar -->
-  <div class="topbar">
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input type="text" placeholder="Zoek op naam van leeslijst..." />
-    </div>
-  </div>
 
   <!-- Page header -->
   <div class="page-header">
@@ -37,31 +30,13 @@
           <div class="card-body">
             <h3 class="card-title">{{ list.name }}</h3>
             <p class="card-author">Leeslijst</p>
+            <button class="btn-delete" (click)="deleteList(list.id); $event.stopPropagation()">Verwijderen</button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Right: purple widgets -->
-    <div class="widgets">
-      <div class="widget">
-        <div class="widget-title">📋 Overzicht</div>
-        <div class="widget-item" *ngFor="let list of readingLists; let i = index">
-          <span class="widget-rank" [ngClass]="'rank-' + (i + 1)">{{ i + 1 }}</span>
-          <div class="widget-info">
-            <p class="widget-name">{{ list.name }}</p>
-          </div>
-        </div>
-        <div class="widget-empty" *ngIf="readingLists.length === 0">
-          <p>Nog geen lijsten</p>
-        </div>
-      </div>
 
-      <div class="widget widget-alt">
-        <div class="widget-title">✨ Snel aanmaken</div>
-        <p class="widget-desc">Maak een nieuwe leeslijst om boeken bij te houden.</p>
-        <button class="btn-widget" routerLink="/reading-list/create">+ Nieuwe leeslijst</button>
-      </div>
     </div>
   </div>
-</div>

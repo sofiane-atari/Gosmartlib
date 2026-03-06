@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
-@CrossOrigin(origins = { "https://gosmartlib.be", "https://api.gosmartlib.be", "http://localhost:4200" })
-
 @RestController
 @RequestMapping("/api/reading-lists")
 public class ReadingListController {
@@ -21,14 +18,25 @@ public class ReadingListController {
         this.readingListService = readingListService;
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ReadingList>> getReadingList(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(readingListService.getListByUser(userId));
+    @GetMapping
+    public ResponseEntity<List<ReadingList>> getAllReadingLists() {
+        return ResponseEntity.ok(readingListService.getAllLists());
     }
 
     @PostMapping
     public ResponseEntity<ReadingList> createReadingList(@RequestBody ReadingListDTO dto) {
         ReadingList created = readingListService.createReadingList(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReadingList(@PathVariable Long id) {
+        readingListService.deleteReadingList(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

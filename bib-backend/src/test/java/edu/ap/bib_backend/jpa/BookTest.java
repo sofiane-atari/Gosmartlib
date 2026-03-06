@@ -1,0 +1,39 @@
+package edu.ap.bib_backend.jpa;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+import edu.ap.bib_backend.jpa.entity.Availability;
+import edu.ap.bib_backend.jpa.entity.Book;
+
+public class BookTest {
+
+    @Test
+    void constructor_setsAllFieldsCorrectly() {
+        // Arrange
+        Long isbn = 123456789L;
+        String title = "Test Book";
+        String author = "Test Author";
+        int pages = 300;
+        String imageUrl = "https://example.com/image.jpg";
+        String description = "This is a test book";
+        int releaseYear = 2023;
+        Availability availability = Availability.AVAILABLE;
+        int copies = 5;
+
+        // Act
+        Book book = new Book(isbn, title, author, pages, imageUrl, description, releaseYear, availability, copies);
+
+        // Assert
+        assertThat(book.getISBN()).isEqualTo(isbn);
+        assertThat(book.getTitle()).isEqualTo(title);
+        assertThat(book.getAuthor()).isEqualTo(author);
+        assertThat(book.getPages()).isEqualTo(pages);
+        assertThat(book.getImage_url()).isEqualTo(imageUrl);
+        assertThat(book.getDescription()).isEqualTo(description);
+        assertThat(book.getRelease_year()).isEqualTo(releaseYear);
+        assertThat(book.getAvailability()).isEqualTo(availability);
+        assertThat(book.getCopies()).isEqualTo(copies);
+    }
+}
