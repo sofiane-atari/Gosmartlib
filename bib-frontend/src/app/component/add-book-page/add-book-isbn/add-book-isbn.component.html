@@ -1,67 +1,149 @@
-<div class="form-container">
-  <h2>Nieuw Boek Toevoegen</h2>
-
-  <div class="search-section">
-    <input type="text" [(ngModel)]="isbn" placeholder="Scan of typ ISBN..." />
-    <button type="button" class="btn-search" (click)="searchByISBN()">
-      Zoek Gegevens
-    </button>
-  </div>
-
-  <hr class="divider"/>
-
+<div class="layout">
   <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
-    
-    <div class="form-group">
-      <label>Titel</label>
-      <input type="text" [(ngModel)]="book.title" name="title" required>
+
+    <div class="search-section">
+      <input
+        type="text"
+        [(ngModel)]="isbn"
+        name="isbn"
+        class="search-input"
+        placeholder="Scan of typ ISBN..."
+      />
+      <button type="button" class="btn-search" (click)="searchByISBN()">
+        Zoek Gegevens
+      </button>
     </div>
 
-    <div class="form-group">
-      <label>Auteur</label>
-      <input type="text" [(ngModel)]="book.author" name="author" required>
-    </div>
+    <hr class="divider"/>
 
-    <div class="row">
-      <div class="form-group">
-        <label>Pagina's</label>
-        <input type="number" [(ngModel)]="book.pages" name="pages">
+    <div class="form-section">
+      <div class="content-wrapper">
+        <div class="form-fields">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Titel *</label>
+              <input
+                type="text"
+                [(ngModel)]="book.title"
+                name="title"
+                placeholder="Boektitel"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Auteur *</label>
+              <input
+                type="text"
+                [(ngModel)]="book.author"
+                name="author"
+                placeholder="Auteursnaam"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Aantal Pagina's *</label>
+              <input
+                type="number"
+                [(ngModel)]="book.pages"
+                name="pages"
+                placeholder="320"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Jaar *</label>
+              <input
+                type="number"
+                [(ngModel)]="book.releaseYear"
+                name="releaseYear"
+                placeholder="2024"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Beschikbaarheid *</label>
+              <select [(ngModel)]="book.availability" name="availability">
+                <option value="AVAILABLE">Beschikbaar</option>
+                <option value="BORROWED">Uitgeleend</option>
+                <option value="DAMAGED">Gereserveerd</option>
+                <option value="LOST">Verloren</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Voorraad *</label>
+              <input
+                type="number"
+                [(ngModel)]="book.copies"
+                name="copies"
+                placeholder="1"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Cover URL (optioneel)</label>
+            <input
+              type="text"
+              [(ngModel)]="book.imageUrl"
+              name="imageUrl"
+              placeholder="https://..."
+            />
+          </div>
+        </div>
+
+        <div class="image-preview-container">
+          @if (book.imageUrl) {
+            <img [src]="book.imageUrl" alt="Book cover" class="preview-image">
+          } @else {
+            <div class="preview-placeholder">
+              <p>Cover afbeelding</p>
+            </div>
+          }
+        </div>
       </div>
-      <div class="form-group">
-        <label>Jaar</label>
-        <input type="number" [(ngModel)]="book.releaseYear" name="releaseYear">
+
+      <div class="form-group full-width">
+        <label>Beschrijving *</label>
+        <textarea
+          [(ngModel)]="book.description"
+          name="description"
+          placeholder="Een korte beschrijving van het boek..."
+          required
+        ></textarea>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label>Beschikbaarheid</label>
-      <select [(ngModel)]="book.availability" name="availability">
-        <option value="AVAILABLE">Beschikbaar</option>
-        <option value="BORROWED">Uitgeleend</option>
-        <option value="RESERVED">Gereserveerd</option>
-        <option value="LOST">Verloren</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Aantal exemplaren</label>
-      <input type="number" [(ngModel)]="book.copies" name="copies">
-    </div>
-
-    <div class="form-group">
-      <label>Beschrijving</label>
-      <textarea [(ngModel)]="book.description" name="description" rows="3"></textarea>
-    </div>
-
-    @if(book.imageUrl){
-      <div class="image-preview">
-        <label>Cover Preview</label>
-        <img [src]="book.imageUrl" alt="Book cover">
+      <div class="form-group full-width">
+        <label>Genres * (selecteer minimaal 1)</label>
+        <!-- <div class="genre-grid">
+          @for (genre of availableGenres; track genre) {
+            <label class="genre-chip" [class.selected]="isGenreSelected(genre)">
+              <input
+                type="checkbox"
+                [checked]="isGenreSelected(genre)"
+                (change)="toggleGenre(genre)"
+              />
+              <span>{{ genre }}</span>
+            </label>
+          }
+        </div>
+        @if (book.genres.length === 0) {
+          <p class="error-message">Selecteer minimaal één genre</p>
+        } -->
       </div>
-    }
 
-    <button type="submit" class="btn-submit">
-       Boek Opslaan
-    </button>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">
+        + Boek Toevoegen
+      </button>
+    </div>
   </form>
 </div>

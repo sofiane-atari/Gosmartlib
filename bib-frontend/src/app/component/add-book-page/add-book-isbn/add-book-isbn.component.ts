@@ -14,6 +14,8 @@ import { Availability } from '../../../model/enums/availability.enum';
 })
 export class AddBookISBNComponent {
   isbn: string = "";
+  public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
+  selectedBook?: Book;
   @Input() book!: Book;
   @Output() bookAdded = new EventEmitter<Book>();
 
