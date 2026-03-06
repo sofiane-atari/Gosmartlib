@@ -3,6 +3,7 @@ package edu.ap.bib_backend.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +38,12 @@ public class ReviewController {
     @GetMapping("/book/{bookId}/average")
     public ResponseEntity<Double> getAverageRating(@PathVariable Long bookId) {
         return ResponseEntity.ok(rs.getAverageRating(bookId));
+    }
+
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId){
+        rs.deleteReview(reviewId);
+        return ResponseEntity.noContent().build();
     }
     
 }

@@ -22,4 +22,8 @@ export class ReviewService {
   getAverageRating(bookId: number) {
     return this.http.get<number>(`${this.apiUrl}/book/${bookId}/average`);
   }
+
+  deleteReview(reviewId: number){
+    return this.http.delete(`${this.apiUrl}/${reviewId}`);
+  }
 }
