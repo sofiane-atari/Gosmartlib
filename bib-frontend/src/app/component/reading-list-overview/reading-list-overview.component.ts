@@ -17,7 +17,7 @@ export class ReadingListOverviewComponent implements OnInit {
   constructor(private readingListService: ReadingListService) { }
 
   ngOnInit() {
-    this.readingListService.getListsByUser().subscribe(lists => {
+    this.readingListService.getLists().subscribe(lists => {
       this.readingLists = lists;
     });
   }

@@ -38,15 +38,14 @@ class ReadingListControllerTest {
     }
 
     @Test
-    void getReadingList_ShouldReturnLists() throws Exception {
-        Long userId = 1L;
+    void getAllReadingLists_ShouldReturnLists() throws Exception {
         ReadingList list = new ReadingList();
         list.setId(10L);
         list.setName("Test List");
 
-        when(readingListService.getListByUser(userId)).thenReturn(Collections.singletonList(list));
+        when(readingListService.getAllLists()).thenReturn(Collections.singletonList(list));
 
-        mockMvc.perform(get("/api/reading-lists/user/{userId}", userId))
+        mockMvc.perform(get("/api/reading-lists"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Test List"))
                 .andExpect(jsonPath("$[0].id").value(10));
@@ -54,7 +53,7 @@ class ReadingListControllerTest {
 
     @Test
     void createReadingList_ValidDTO_ShouldReturnCreated() throws Exception {
-        ReadingListDTO dto = new ReadingListDTO(1L, "New List");
+        ReadingListDTO dto = new ReadingListDTO("New List");
         ReadingList savedList = new ReadingList();
         savedList.setId(10L);
         savedList.setName("New List");
@@ -62,8 +61,8 @@ class ReadingListControllerTest {
         when(readingListService.createReadingList(any(ReadingListDTO.class))).thenReturn(savedList);
 
         mockMvc.perform(post("/api/reading-lists")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("New List"))
                 .andExpect(jsonPath("$.id").value(10));
