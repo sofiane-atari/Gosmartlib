@@ -20,13 +20,15 @@ public class ReadingListService {
     }
 
     public ReadingList createReadingList(ReadingListDTO dto) {
-        // Haal de user entity op uit de DTO
-        User user = userRepository.getReferenceById(dto.userId());
-
         // ✅ Check voor null of lege naam
         if (dto.name() == null || dto.name().trim().isEmpty()) {
             throw new IllegalArgumentException("name mag niet null of leeg zijn");
         }
+
+        // Haal de user entity op — gooit een duidelijke fout als de user niet bestaat
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Gebruiker met id " + dto.userId() + " bestaat niet in de database"));
 
         ReadingList list = new ReadingList();
         list.setName(dto.name().trim());
