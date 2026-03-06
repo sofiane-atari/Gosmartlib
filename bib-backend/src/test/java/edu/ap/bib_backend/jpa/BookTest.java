@@ -30,9 +30,9 @@ public class BookTest {
         assertThat(book.getTitle()).isEqualTo(title);
         assertThat(book.getAuthor()).isEqualTo(author);
         assertThat(book.getPages()).isEqualTo(pages);
-        assertThat(book.getImage_url()).isEqualTo(imageUrl);
+        assertThat(book.getImageUrl()).isEqualTo(imageUrl);
         assertThat(book.getDescription()).isEqualTo(description);
-        assertThat(book.getRelease_year()).isEqualTo(releaseYear);
+        assertThat(book.getReleaseYear()).isEqualTo(releaseYear);
         assertThat(book.getAvailability()).isEqualTo(availability);
         assertThat(book.getCopies()).isEqualTo(copies);
     }

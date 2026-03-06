@@ -15,9 +15,18 @@ import { Route, Router } from '@angular/router';
 export class AddBookManualComponent {
 
   availabilityOptions = Object.values(Availability);
-  @Input() book!: Book;
+    book: Book = {
+    title: '',
+    author: '',
+    pages: 0,
+    imageUrl: '',
+    description: '',
+    releaseYear: new Date().getFullYear(),
+    availability: Availability.AVAILABLE,
+    copies: 1
+  };
   @Output() bookAdded = new EventEmitter<Book>();
-  
+
   save() {
     this.bookAdded.emit(this.book);
   }

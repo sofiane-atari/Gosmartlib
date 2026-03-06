@@ -6,9 +6,9 @@ export interface Book {
   title: string;
   author: string;
   pages: number;
-  image_url: string;
+  imageUrl: string;       
   description: string;
-  release_year: number;
+  releaseYear: number;    
   availability: Availability;
   copies: number;
 }

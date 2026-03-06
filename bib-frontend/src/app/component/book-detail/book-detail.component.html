@@ -5,7 +5,7 @@
       <!-- Sidebar met Cover en Snelle Acties -->
       <aside class="sidebar">
         <div class="cover-container">
-          <img [src]="selectedBook.image_url" [alt]="selectedBook.title" class="book-cover" />
+          <img [src]="selectedBook.imageUrl" [alt]="selectedBook.title" class="book-cover" />
         </div>
 
         <div class="quick-stats">
@@ -18,7 +18,7 @@
             <span class="stat-label">Pagina's</span>
           </div>
           <div class="stat-item">
-            <span class="stat-value">{{ selectedBook.release_year }}</span>
+            <span class="stat-value">{{ selectedBook.releaseYear }}</span>
             <span class="stat-label">Jaar</span>
           </div>
         </div>
@@ -114,7 +114,7 @@
                 </svg>
                 Publicatiejaar
               </span>
-              <span class="meta-value">{{ selectedBook.release_year }}</span>
+              <span class="meta-value">{{ selectedBook.releaseYear }}</span>
             </div>
 
             <div class="meta-row">

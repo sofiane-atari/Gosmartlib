@@ -38,11 +38,11 @@ public class BookControllerTest {
         book.setAuthor("Test Author");
         book.setISBN("1672587");
         book.setPages(324);
-        book.setImage_url("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
+        book.setImageUrl("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
         book.setAvailability(Availability.AVAILABLE);
         book.setCopies(3);
         book.setDescription("dede de d e d ed e d e d e de d e d");
-        book.setRelease_year(2017);
+        book.setReleaseYear(2017);
 
         Mockito.when(bs.getAllBooks()).thenReturn(List.of(book));
 
@@ -69,10 +69,10 @@ public class BookControllerTest {
         book.setAuthor("Bekende Auteur");
         book.setISBN("987654321");
         book.setPages(250);
-        book.setImage_url("https://example.com/image.jpg");
+        book.setImageUrl("https://example.com/image.jpg");
         book.setAvailability(Availability.AVAILABLE);
         book.setCopies(5);
-        book.setRelease_year(2021);
+        book.setReleaseYear(2021);
 
         Mockito.when(bs.getBookById(1L)).thenReturn(book);
 
@@ -95,24 +95,24 @@ public class BookControllerTest {
         requestDTO.setTitle("Nieuwe Boek");
         requestDTO.setAuthor("Auteur Test");
         requestDTO.setPages(300);
-        requestDTO.setImage_url("https://example.com/image.jpg");
+        requestDTO.setImageUrl("https://example.com/image.jpg");
         requestDTO.setAvailability(Availability.AVAILABLE);
         requestDTO.setCopies(2);
         requestDTO.setDescription("Beschrijving hier");
-        requestDTO.setRelease_year(2024);
+        requestDTO.setReleaseYear(2024);
 
         BookDTO savedDTO = new BookDTO();
         savedDTO.setId(1L);
         savedDTO.setTitle("Nieuwe Boek");
         savedDTO.setAuthor("Auteur Test");
         savedDTO.setPages(300);
-        savedDTO.setImage_url("https://example.com/image.jpg");
+        savedDTO.setImageUrl("https://example.com/image.jpg");
         savedDTO.setAvailability(Availability.AVAILABLE);
         savedDTO.setCopies(2);
         savedDTO.setDescription("Beschrijving hier");
-        savedDTO.setRelease_year(2024);
+        savedDTO.setReleaseYear(2024);
 
-        Mockito.when(bs.createBookWithoutISBN(Mockito.any(BookDTO.class))).thenReturn(savedDTO);
+        Mockito.when(bs.addBook(Mockito.any(BookDTO.class))).thenReturn(savedDTO);
 
         // Act & Assert
         mockMvc.perform(post("/api/books")

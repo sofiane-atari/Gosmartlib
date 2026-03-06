@@ -18,10 +18,14 @@ public class Book {
     private String title;
     private String author;
     private int pages;
-    private String image_url;
     private String description;
-    private int release_year;
     private int copies;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "release_year")
+    private int releaseYear;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -36,10 +40,26 @@ public class Book {
         this.title = title;
         this.author = author;
         this.pages = pages;
-        this.image_url = image_url;
+        this.imageUrl = image_url;
         this.description = description;
-        this.release_year = release_year;
+        this.releaseYear = release_year;
         this.availability = availability;
         this.copies = copies;
+    }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", ISBN='" + ISBN + '\'' +
+                ", title='" + title + '\'' +
+                ", author='" + author + '\'' +
+                ", pages=" + pages +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", description='" + description + '\'' +
+                ", releaseYear=" + releaseYear +
+                ", availability=" + availability +
+                ", copies=" + copies +
+                '}';
     }
 }

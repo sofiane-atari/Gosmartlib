@@ -18,19 +18,21 @@ mode: 'isbn' | 'manual' = 'isbn';
 
   constructor(private bs: BookService, private rt: Router){}
   
-  book: Book = {
+    book: Book = {
     title: '',
     author: '',
     pages: 0,
-    image_url: '',
+    imageUrl: '',
     description: '',
-    release_year: 0,
+    releaseYear: new Date().getFullYear(),
     availability: Availability.AVAILABLE,
-    copies: 0
+    copies: 1
   };
   
-  addBook(nieuwBoek: Book) {
-    this.bs.addBook(this.book).subscribe({
+  addBook(event: Book) {
+  const bookToSave = event ?? this.book; // gebruik event als het bestaat, anders fallback
+
+    this.bs.addBook(event).subscribe({
       next: () => {
       this.rt.navigate(['/catalog']);
       },

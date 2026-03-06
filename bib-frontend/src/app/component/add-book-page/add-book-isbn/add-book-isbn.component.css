@@ -1,69 +1,55 @@
-.isbn-search {
-  max-width: 500px;
-  margin: 20px auto;
-  padding: 24px;
-  background-color: #ffffff;
+.form-container {
+  background: white;
+  padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.book-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 15px; /* Ruimte tussen de form-groups */
 }
 
-/* De zoekbalk bovenin */
-.isbn-search input[type="text"]:first-of-type {
-  padding: 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 0.2s;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.isbn-search button {
-  background-color: #10b981; /* Emerald groen, past bij je sidebar */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.btn-submit {
+  margin-top: 10px;
+  background-color: #b91c1c; /* Rood, passend bij je sidebar */
   color: white;
-  padding: 12px;
+  padding: 14px;
   border: none;
   border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 10px;
-  transition: background 0.2s;
-}
-
-.isbn-search button:hover {
-  background-color: #059669;
-}
-
-/* Styling voor labels en invoervelden */
-label {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
-  text-transform: uppercase;
-  color: #64748b;
-  margin-bottom: -8px; /* Trekt label dichter bij de input */
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    background 0.2s;
 }
 
-input,
-select {
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background-color: #f8fafc;
-  font-family: inherit;
+.btn-submit:hover {
+  background-color: #991b1b;
+  transform: translateY(-1px);
 }
 
-input:focus,
-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background-color: #fff;
+.btn-submit:active {
+  transform: translateY(0);
 }
 
-/* De cover afbeelding */
-.isbn-search img {
-  display: block;
-  margin: 10px auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.divider {
+  border: 0;
+  height: 1px;
+  background: #e2e8f0;
+  margin: 20px 0;
 }

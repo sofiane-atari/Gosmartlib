@@ -36,8 +36,10 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookDTO> createBookWithoutISBN(@RequestBody BookDTO dto) {
-        BookDTO savedBook = bs.createBookWithoutISBN(dto);
+    public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO dto) {
+        System.out.println("Ontvangen in backend: " + dto);
+        BookDTO savedBook = bs.addBook(dto);
+        System.out.println("Opgeslagen boek: " + savedBook);
         return ResponseEntity.ok(savedBook);
     }
 
