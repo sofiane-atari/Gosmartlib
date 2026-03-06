@@ -91,10 +91,7 @@
 
 /* ========== LAYOUT ========== */
 .content-layout {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 28px;
-  align-items: start;
+  display: block;
 }
 
 /* ========== CARDS ========== */
