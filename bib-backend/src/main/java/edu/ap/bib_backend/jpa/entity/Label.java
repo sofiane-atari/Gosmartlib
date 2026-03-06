@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.jpa.entity;
 
+import edu.ap.bib_backend.annotation.HexColor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -21,6 +22,7 @@ public class Label {
 
     @Column(nullable = false)
     @NotBlank
+    @HexColor
     private String color;
 
     private String description;
