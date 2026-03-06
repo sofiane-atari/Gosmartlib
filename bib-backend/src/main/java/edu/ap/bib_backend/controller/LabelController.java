@@ -11,7 +11,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import edu.ap.bib_backend.dto.LabelDTO;
 import edu.ap.bib_backend.service.LabelService;
-import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -28,7 +27,7 @@ public class LabelController {
     }
 
     @PostMapping
-    public ResponseEntity<LabelDTO> createLabel(@Valid @RequestBody LabelDTO entity) {
+    public ResponseEntity<LabelDTO> createLabel(@RequestBody LabelDTO entity) {
         
         LabelDTO createdLabel = labelService.createLabel(entity);
 
