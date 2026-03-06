@@ -106,7 +106,6 @@ public class BookService {
         dto.setAuthor(authors.get(0).get("name"));
         dto.setPages((Integer) bookData.get("number_of_pages"));
         dto.setReleaseYear(year);
-        dto.setAvailability(Availability.AVAILABLE); // nog aanpassen
         dto.setCopies(1);// nog aanpassen
 
         return dto;

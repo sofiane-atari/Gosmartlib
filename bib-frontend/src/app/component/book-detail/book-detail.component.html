@@ -63,12 +63,13 @@
             </div>
 
             <div class="management-card">
-              <label class="card-label">Status</label>
-              <select [(ngModel)]="selectedBook.availability" class="status-select">
-                @for(option of availabilityOptions; track option) {
-                  <option [value]="option">{{ option }}</option>
-                }
-              </select>
+              <label class="card-label">Beschikbaarheid</label>
+              <select [(ngModel)]="selectedBook.availability" name="availability" class="status-select">
+                  <option value="AVAILABLE">Beschikbaar</option>
+                  <option value="BORROWED">Uitgeleend</option>
+                  <option value="DAMAGED">Beschadigd</option>
+                  <option value="LOST">Verloren</option>
+                </select>
             </div>
           </div>
 
