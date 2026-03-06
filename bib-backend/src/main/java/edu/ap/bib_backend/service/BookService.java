@@ -2,11 +2,13 @@ package edu.ap.bib_backend.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import ch.qos.logback.core.boolex.Matcher;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
@@ -73,32 +75,37 @@ public class BookService {
     }
 
     public BookDTO fetchBookByISBN(String isbn) {
-
         RestTemplate restTemplate = new RestTemplate();
 
         String url = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data";
-
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-
         Map<String, Object> bookData = (Map<String, Object>) response.get("ISBN:" + isbn);
 
         BookDTO dto = new BookDTO();
-
-        dto.setISBN(isbn);
-        dto.setTitle((String) bookData.get("title"));
-
+        String rawDate = (String) bookData.get("publish_date");
+        int year = 0;
         List<Map<String, String>> authors = (List<Map<String, String>>) bookData.get("authors");
-        dto.setAuthor(authors.get(0).get("name"));
 
-        dto.setPages((Integer) bookData.get("number_of_pages"));
+        if (rawDate != null) {
+            // Zoek naar 4 opeenvolgende cijfers (\d{4})
+            java.util.regex.Matcher matcher = Pattern.compile("\\d{4}").matcher(rawDate);
+            if (matcher.find()) {
+                year = Integer.parseInt(matcher.group());
+            }
+        }
 
         Map<String, String> cover = (Map<String, String>) bookData.get("cover");
         if (cover != null) {
             dto.setImage_url(cover.get("medium"));
         }
 
-        dto.setAvailability(Availability.AVAILABLE); //nog aanpassen
-        dto.setCopies(1);//nog aanpassen
+        dto.setISBN(isbn);
+        dto.setTitle((String) bookData.get("title"));
+        dto.setAuthor(authors.get(0).get("name"));
+        dto.setPages((Integer) bookData.get("number_of_pages"));
+        dto.setRelease_year(year);
+        dto.setAvailability(Availability.AVAILABLE); // nog aanpassen
+        dto.setCopies(1);// nog aanpassen
 
         return dto;
     }

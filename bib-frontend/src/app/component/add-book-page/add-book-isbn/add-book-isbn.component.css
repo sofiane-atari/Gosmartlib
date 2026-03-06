@@ -1,0 +1,69 @@
+.isbn-search {
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* De zoekbalk bovenin */
+.isbn-search input[type="text"]:first-of-type {
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s;
+}
+
+.isbn-search button {
+  background-color: #10b981; /* Emerald groen, past bij je sidebar */
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+
+.isbn-search button:hover {
+  background-color: #059669;
+}
+
+/* Styling voor labels en invoervelden */
+label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: -8px; /* Trekt label dichter bij de input */
+}
+
+input,
+select {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: #fff;
+}
+
+/* De cover afbeelding */
+.isbn-search img {
+  display: block;
+  margin: 10px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}

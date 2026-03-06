@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { BookService } from '../../../services/BookService/book.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,8 +15,13 @@ import { Availability } from '../../../model/enums/availability.enum';
 export class AddBookISBNComponent {
   isbn: string = "";
   @Input() book!: Book;
+  @Output() bookAdded = new EventEmitter<Book>();
 
   constructor(private bs: BookService, private rt: Router){}
+
+  save() {
+    this.bookAdded.emit(this.book);
+  }
   
   searchByISBN() {
     this.bs.getBookByISBN(this.isbn).subscribe({

@@ -36,7 +36,7 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookDTO> addBookWithoutISBN(@RequestBody BookDTO dto) {
+    public ResponseEntity<BookDTO> createBookWithoutISBN(@RequestBody BookDTO dto) {
         BookDTO savedBook = bs.createBookWithoutISBN(dto);
         return ResponseEntity.ok(savedBook);
     }

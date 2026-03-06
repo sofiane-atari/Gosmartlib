@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { BookService } from '../../../services/BookService/book.service';
 import { FormsModule } from '@angular/forms';
 import { Book } from '../../../model/book.model';
@@ -16,18 +16,11 @@ export class AddBookManualComponent {
 
   availabilityOptions = Object.values(Availability);
   @Input() book!: Book;
-
+  @Output() bookAdded = new EventEmitter<Book>();
+  
+  save() {
+    this.bookAdded.emit(this.book);
+  }
 
   constructor(private bs: BookService, private rt: Router){}
-
-  addBook() {
-    this.bs.createBookWithoutISBN(this.book).subscribe({
-      next: () => {
-      this.rt.navigate(['/catalog']);
-      },
-      error: (err) => {
-        console.error(err);
-      }
-    });
-  }
 }

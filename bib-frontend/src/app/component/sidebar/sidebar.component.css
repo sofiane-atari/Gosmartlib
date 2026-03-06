@@ -33,7 +33,7 @@ lucide-icon {
 }
 
 .sidebar-header {
-  padding: 1.5rem;
+  padding: 1rem; /* Was 1.5rem */
   background-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -90,7 +90,8 @@ lucide-icon {
 
 .sidebar-nav {
   flex: 1;
-  padding: 20px 12px;
+  padding: 10px 12px; /* Minder verticale padding */
+  overflow-y: auto; /* Voeg dit toe: als het écht niet past, kun je scrollen binnen de nav */
 }
 
 .menu-item {
@@ -98,7 +99,7 @@ lucide-icon {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  padding: 9px;
   background: transparent;
   border: none;
   color: #fecaca;
