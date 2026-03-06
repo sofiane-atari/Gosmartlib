@@ -110,9 +110,7 @@ export class BookDetailComponent {
   }
 
   submitReview() {
-
     const bookId = this.selectedBook?.id;
-
 
     if (!this.newReviewText.trim() || !bookId) return;
 
@@ -131,6 +129,25 @@ export class BookDetailComponent {
       },
       error: (err) => console.error('Fout bij opslaan review', err)
     });
+  }
+
+  deleteReview(reviewId?: number){
+
+    if (!reviewId) return;
+
+    if (confirm('Weet je zeker dat je deze review wilt verwijderen?')) {
+
+      this.reviewService.deleteReview(reviewId).subscribe({
+        next: () => {
+          this.reviews = this.reviews.filter(r => r.id !== reviewId);
+
+          if(this.selectedBook?.id){
+            this.updateAverage(this.selectedBook.id)
+          }
+        },
+        error: (err) => console.error('Fout bij verwijderen review', err)
+      })
+    }
   }
 
   increaseQuantity(): void {

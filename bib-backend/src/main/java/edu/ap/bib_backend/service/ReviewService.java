@@ -46,11 +46,10 @@ public class ReviewService {
 
     public void deleteReview(Long reviewId){
 
-        if (rr.existsById(reviewId)) {
-            throw new RuntimeException("Review niet gevonden met id:" + reviewId);
-        }
+        Review review = rr.findById(reviewId)
+        .orElseThrow(() -> new RuntimeException("Review niet gevonden met id: " + reviewId));
 
-        rr.deleteById(reviewId);
+        rr.delete(review);
     }
 
     
