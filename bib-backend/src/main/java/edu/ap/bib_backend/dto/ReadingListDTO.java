@@ -2,8 +2,6 @@ package edu.ap.bib_backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
 public record ReadingListDTO(
-        @JsonProperty("userId") Long userId,
-        @JsonProperty("name") String name
-) {}
+                @JsonProperty("name") String name) {
+}
