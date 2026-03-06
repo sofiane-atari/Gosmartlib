@@ -11,24 +11,24 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import edu.ap.bib_backend.dto.LabelDTO;
 import edu.ap.bib_backend.service.LabelService;
+import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
-
 
 @RestController
 @RequestMapping("/api/labels")
 @CrossOrigin(origins = { "https://frontend.localhost/", "https://gosmartlib.be/", "http://localhost:4200/" })
 public class LabelController {
 
-    private final LabelService labelService;    
+    private final LabelService labelService;
 
     public LabelController(LabelService labelService) {
         this.labelService = labelService;
     }
 
     @PostMapping
-    public ResponseEntity<LabelDTO> createLabel(@RequestBody LabelDTO entity) {
-        
+    public ResponseEntity<LabelDTO> createLabel(@Valid @RequestBody LabelDTO entity) {
+
         LabelDTO createdLabel = labelService.createLabel(entity);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{name}")
@@ -36,5 +36,5 @@ public class LabelController {
 
         return ResponseEntity.created(location).body(createdLabel);
     }
-    
+
 }

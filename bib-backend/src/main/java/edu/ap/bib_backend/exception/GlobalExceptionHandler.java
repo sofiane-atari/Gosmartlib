@@ -1,8 +1,11 @@
 package edu.ap.bib_backend.exception;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.validation.FieldError;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,5 +30,21 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = new ErrorResponse(error);
         return ResponseEntity.status(error.getCode()).body(response);
+    }
+
+    // Handles validation errors from @Valid in controllers
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        List<ErrorDetail> details = new ArrayList<>();
+
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            details.add(new ErrorDetail(fieldError.getField(), fieldError.getDefaultMessage()));
+        }
+
+        ApiError error = new ApiError(400, "Validation failed", details);
+        ErrorResponse response = new ErrorResponse(error);
+
+        return ResponseEntity.badRequest().body(response);
+        
     }
 }
