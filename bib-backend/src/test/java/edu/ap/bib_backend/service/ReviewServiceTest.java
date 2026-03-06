@@ -129,4 +129,72 @@ class ReviewServiceTest {
         assertEquals(expectedAverage, result);
         Mockito.verify(reviewRepository).getAverageRatingForBook(bookId);
     }
+
+    @Test
+    @DisplayName("Verwijder review - Succes")
+    void whenDeleteReview_givenExistingId_thenDeleteReview() {
+        // Arrange
+        Long reviewId = 1L;
+        Review review = new Review("Test review", 5, new Book());
+        review.setId(reviewId);
+
+        Mockito.when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+
+        // Act
+        reviewService.deleteReview(reviewId);
+
+        // Assert
+        Mockito.verify(reviewRepository).delete(review);
+    }
+
+    @Test
+    @DisplayName("Verwijder review - Niet gevonden gooit Exception")
+    void whenDeleteReview_givenInvalidId_thenThrowException() {
+        // Arrange
+        Long reviewId = 999L;
+
+        Mockito.when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            reviewService.deleteReview(reviewId);
+        });
+
+        assertEquals("Review niet gevonden met id: 999", exception.getMessage());
+        Mockito.verify(reviewRepository, Mockito.never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("Haal reviews op - Geen reviews gevonden retourneert lege lijst")
+    void whenGetReviewsForBook_givenBookWithoutReviews_thenReturnEmptyList() {
+        // Arrange
+        Long bookId = 2L;
+
+        Mockito.when(reviewRepository.findByBookId(bookId)).thenReturn(List.of());
+
+        // Act
+        List<ReviewDTO> result = reviewService.getReviewsForBook(bookId);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        Mockito.verify(reviewRepository).findByBookId(bookId);
+    }
+
+    @Test
+    @DisplayName("Gemiddelde rating - Geen reviews retourneert 0.0")
+    void whenGetAverageRating_givenBookWithoutReviews_thenReturnZero() {
+        // Arrange
+        Long bookId = 3L;
+        // Door de COALESCE in je query retourneert de database 0.0, geen null!
+        Mockito.when(reviewRepository.getAverageRatingForBook(bookId)).thenReturn(0.0);
+
+        // Act
+        Double result = reviewService.getAverageRating(bookId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(0.0, result);
+        Mockito.verify(reviewRepository).getAverageRatingForBook(bookId);
+    }
 }
