@@ -3,9 +3,15 @@ import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 
 // wat de backend geeft
+export interface ReadingListBook {
+  id: number;
+  bookId: number;
+}
+
 export interface ReadingList {
   id: number;
   name: string;
+  books?: ReadingListBook[];
 }
 
 // wat je naar de backend stuurt
@@ -34,5 +40,9 @@ export class ReadingListService {
 
   deleteList(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getListById(id: number): Observable<ReadingList> {
+    return this.http.get<ReadingList>(`${this.apiUrl}/${id}`);
   }
 }

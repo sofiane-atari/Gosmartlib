@@ -1,0 +1,41 @@
+<div class="page">
+
+    <!-- Loading state -->
+    <div class="loading-state" *ngIf="loading">
+        <p>Leeslijst laden...</p>
+    </div>
+
+    <!-- Error state -->
+    <div class="error-state" *ngIf="error && !loading">
+        <div class="empty-icon">❌</div>
+        <h3>Leeslijst niet gevonden</h3>
+        <p>Deze leeslijst bestaat niet of is verwijderd.</p>
+        <button class="btn-primary" routerLink="/reading-list">Terug naar overzicht</button>
+    </div>
+
+    <!-- List detail -->
+    <div *ngIf="!loading && !error && list">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">{{ list.name }}</h1>
+                <p class="page-subtitle">Gedeelde leeslijst</p>
+            </div>
+            <button class="btn-secondary" routerLink="/reading-list">← Terug</button>
+        </div>
+
+        <div class="books-empty" *ngIf="!list.books || list.books.length === 0">
+            <div class="empty-icon">📖</div>
+            <p>Deze leeslijst bevat nog geen boeken.</p>
+        </div>
+
+        <div class="books-grid" *ngIf="list.books && list.books.length > 0">
+            <div class="book-card" *ngFor="let entry of list.books">
+                <div class="book-cover">📗</div>
+                <div class="book-info">
+                    <p class="book-title">Boek #{{ entry.bookId }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

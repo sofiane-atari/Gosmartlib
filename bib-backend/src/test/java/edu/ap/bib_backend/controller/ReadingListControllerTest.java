@@ -112,4 +112,29 @@ class ReadingListControllerTest {
         mockMvc.perform(delete("/api/reading-lists/{id}", 99L))
                 .andExpect(status().isBadRequest());
     }
+
+    // GET /api/reading-lists/{id}
+
+    @Test
+    void givenExistingId_whenGetReadingListById_thenReturnOk() throws Exception {
+        ReadingList list = new ReadingList();
+        list.setId(10L);
+        list.setName("Gedeelde lijst");
+
+        when(readingListService.getListById(10L)).thenReturn(list);
+
+        mockMvc.perform(get("/api/reading-lists/{id}", 10L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.name").value("Gedeelde lijst"));
+    }
+
+    @Test
+    void givenNonExistingId_whenGetReadingListById_thenReturnBadRequest() throws Exception {
+        doThrow(new IllegalArgumentException("Leeslijst met id 99 bestaat niet"))
+                .when(readingListService).getListById(99L);
+
+        mockMvc.perform(get("/api/reading-lists/{id}", 99L))
+                .andExpect(status().isBadRequest());
+    }
 }

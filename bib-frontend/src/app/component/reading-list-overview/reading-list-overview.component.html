@@ -25,12 +25,15 @@
 
       <!-- Grid of cards -->
       <div class="cards-grid" *ngIf="readingLists.length > 0">
-        <div class="card" *ngFor="let list of readingLists">
+        <div class="card" *ngFor="let list of readingLists" [routerLink]="['/reading-list', list.id]">
           <div class="card-cover">📚</div>
           <div class="card-body">
             <h3 class="card-title">{{ list.name }}</h3>
             <p class="card-author">Leeslijst</p>
-            <button class="btn-delete" (click)="deleteList(list.id); $event.stopPropagation()">Verwijderen</button>
+            <div class="card-actions">
+              <button class="btn-share" (click)="shareList(list.id); $event.stopPropagation()">Delen</button>
+              <button class="btn-delete" (click)="deleteList(list.id); $event.stopPropagation()">Verwijderen</button>
+            </div>
           </div>
         </div>
       </div>
@@ -38,5 +41,5 @@
 
     <!-- Right: purple widgets -->
 
-    </div>
   </div>
+</div>

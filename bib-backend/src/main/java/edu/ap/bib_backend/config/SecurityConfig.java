@@ -27,18 +27,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            // Gebruik globale corsConfig
-            .cors(Customizer.withDefaults()) 
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(devMockRoleFilter, UsernamePasswordAuthenticationFilter.class)
-            .authorizeHttpRequests(auth -> auth
-                // Options preflight doorlaten
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
-                // Test endpoint
-                .requestMatchers("/api/auth/me").permitAll()
-                .anyRequest().authenticated()
-            );
+                .csrf(AbstractHttpConfigurer::disable)
+                // Gebruik globale corsConfig
+                .cors(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(devMockRoleFilter, UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(auth -> auth
+                        // Options preflight doorlaten
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Test endpoint
+                        .requestMatchers("/api/auth/me").permitAll()
+                        .anyRequest().authenticated());
 
         return http.build();
     }
