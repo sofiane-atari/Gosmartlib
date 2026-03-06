@@ -1,11 +1,9 @@
 package edu.ap.bib_backend.jpa.entity;
 
-import org.antlr.v4.runtime.misc.NotNull;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +11,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@Table(name = "labels")
 public class Label {
 
     @Id
@@ -22,14 +21,13 @@ public class Label {
 
     @Column(nullable = false)
     @NotBlank
-    private String description;
-
-    @Column(nullable = false)
-    @NotBlank
     private String color;
+
+    private String description;
 
     public Label() {
     }
+
     public Label(String name, String description, String color) {
         this.name = name;
         this.description = description;

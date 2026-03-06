@@ -51,9 +51,6 @@
       <textarea id="description" class="field-input field-textarea" formControlName="description"
         placeholder="Welke soort boeken vallen onder dit label?" rows="3">
       </textarea>
-      @if (labelForm.get('description')?.invalid && labelForm.get('description')?.touched) {
-      <span class="field-error">Omschrijving is verplicht</span>
-      }
     </div>
 
     @if (error()) {

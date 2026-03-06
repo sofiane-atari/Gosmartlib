@@ -25,7 +25,7 @@ export class CreateLabelComponent {
   labelForm = this.formBuilder.group({
     name: ['', Validators.required],
     color: ['', Validators.required],
-    description: ['', Validators.required],
+    description: [''],
   });
 
   protected onSubmit() {
