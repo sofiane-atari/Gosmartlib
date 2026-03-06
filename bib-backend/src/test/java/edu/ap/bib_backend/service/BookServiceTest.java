@@ -54,7 +54,7 @@ public class BookServiceTest {
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getTitle()).isEqualTo("Test Book");
         assertThat(res.get(0).getAuthor()).isEqualTo("Test Author");
-        assertThat(res.get(0).getISBN()).isEqualTo(1672587);
+        assertThat(res.get(0).getISBN()).isEqualTo("1672587");
         assertThat(res.get(0).getPages()).isEqualTo(324);
         assertThat(res.get(0).getImageUrl())
                 .isEqualTo("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");

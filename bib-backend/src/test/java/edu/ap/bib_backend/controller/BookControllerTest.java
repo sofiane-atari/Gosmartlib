@@ -52,12 +52,12 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$[0].author").value("Test Author"))
                 .andExpect(jsonPath("$[0].isbn").value(1672587))
                 .andExpect(jsonPath("$[0].pages").value(324))
-                .andExpect(jsonPath("$[0].image_url").value(
+                .andExpect(jsonPath("$[0].imageUrl").value(
                         "https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1"))
                 .andExpect(jsonPath("$[0].availability").value("AVAILABLE"))
                 .andExpect(jsonPath("$[0].copies").value(3))
                 .andExpect(jsonPath("$[0].description").value("dede de d e d ed e d e d e de d e d"))
-                .andExpect(jsonPath("$[0].release_year").value(2017));
+                .andExpect(jsonPath("$[0].releaseYear").value(2017));
     }
 
     @Test
@@ -82,10 +82,10 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.author").value("Bekende Auteur"))
                 .andExpect(jsonPath("$.isbn").value(987654321))
                 .andExpect(jsonPath("$.pages").value(250))
-                .andExpect(jsonPath("$.image_url").value("https://example.com/image.jpg"))
+                .andExpect(jsonPath("$.imageUrl").value("https://example.com/image.jpg"))
                 .andExpect(jsonPath("$.availability").value("AVAILABLE"))
                 .andExpect(jsonPath("$.copies").value(5))
-                .andExpect(jsonPath("$.release_year").value(2021));
+                .andExpect(jsonPath("$.releaseYear").value(2021));
     }
 
     @Test
@@ -126,6 +126,7 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.availability").value("AVAILABLE"))
                 .andExpect(jsonPath("$.copies").value(2))
                 .andExpect(jsonPath("$.description").value("Beschrijving hier"))
-                .andExpect(jsonPath("$.release_year").value(2024));
+                .andExpect(jsonPath("$.releaseYear").value(2024))
+                .andExpect(jsonPath("$.imageUrl").value("https://example.com/image.jpg"));
     }
 }
