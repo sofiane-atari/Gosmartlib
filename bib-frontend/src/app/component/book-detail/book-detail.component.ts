@@ -110,23 +110,44 @@ export class BookDetailComponent {
   }
 
   submitReview() {
-    if (!this.newReviewText.trim() || !this.selectedBook?.id) return;
+    const bookId = this.selectedBook?.id;
+
+    if (!this.newReviewText.trim() || !bookId) return;
 
     const newReview: Review = {
       comment: this.newReviewText,
       rating: this.newReviewRating
     };
 
-    this.reviewService.addReviewToBook(this.selectedBook.id, newReview).subscribe({
+    this.reviewService.addReviewToBook(bookId, newReview).subscribe({
       next: (savedReview) => {
         this.reviews.push(savedReview);
         this.newReviewText = '';
         this.newReviewRating = 5;
 
-        this.updateAverage(this.selectedBook!.id);
+        this.updateAverage(bookId);
       },
       error: (err) => console.error('Fout bij opslaan review', err)
     });
+  }
+
+  deleteReview(reviewId?: number){
+
+    if (!reviewId) return;
+
+    if (confirm('Weet je zeker dat je deze review wilt verwijderen?')) {
+
+      this.reviewService.deleteReview(reviewId).subscribe({
+        next: () => {
+          this.reviews = this.reviews.filter(r => r.id !== reviewId);
+
+          if(this.selectedBook?.id){
+            this.updateAverage(this.selectedBook.id)
+          }
+        },
+        error: (err) => console.error('Fout bij verwijderen review', err)
+      })
+    }
   }
 
   increaseQuantity(): void {

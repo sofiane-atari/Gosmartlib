@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.management.RuntimeErrorException;
+
 @Service
 public class ReviewService {
 
@@ -39,6 +41,15 @@ public class ReviewService {
 
     public Double getAverageRating(Long bookId) {
         return rr.getAverageRatingForBook(bookId);
+    }
+
+
+    public void deleteReview(Long reviewId){
+
+        Review review = rr.findById(reviewId)
+        .orElseThrow(() -> new RuntimeException("Review niet gevonden met id: " + reviewId));
+
+        rr.delete(review);
     }
 
     

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Review } from '../../model/review.model';
@@ -22,4 +22,10 @@ export class ReviewService {
   getAverageRating(bookId: number) {
     return this.http.get<number>(`${this.apiUrl}/book/${bookId}/average`);
   }
+
+  deleteReview(reviewId: number){
+    return this.http.delete(`${this.apiUrl}/${reviewId}`);
+  }
+
+
 }

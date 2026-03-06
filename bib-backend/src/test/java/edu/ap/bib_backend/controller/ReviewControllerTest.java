@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @WebMvcTest(ReviewController.class)
 @AutoConfigureMockMvc(addFilters = false) // security filters tijdelijk uit voor pure unit tests
@@ -100,4 +101,21 @@ class ReviewControllerTest {
         result.andExpect(status().isOk())
               .andExpect(content().string("4.2"));
     }
+
+    @Test
+        @DisplayName("Verwijder review - Succes")
+        void whenDeleteReview_givenValidId_thenReturn204() throws Exception {
+        // Arrange
+        Long reviewId = 5L;
+
+        Mockito.doNothing().when(reviewService).deleteReview(reviewId);
+
+        // Act
+        ResultActions result = mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId));
+
+        // Assert
+        result.andExpect(status().isNoContent());
+
+        Mockito.verify(reviewService).deleteReview(reviewId);
+        }
 }

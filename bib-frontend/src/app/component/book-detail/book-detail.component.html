@@ -187,12 +187,18 @@
               @for (review of reviews; track review.id) {
                 <div class="review-card">
                   <div class="review-header">
-                    <strong>Anonieme Lezer</strong>
-                    <div class="stars-display">
-                      @for (star of starsArray; track star) {
-                        <span class="star" [class.filled]="star <= review.rating">★</span>
-                      }
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <strong>Anonieme Lezer</strong>
+                      <div class="stars-display" style="display: flex; gap: 2px;">
+                        @for (star of starsArray; track star) {
+                          <span class="star" [class.filled]="star <= review.rating">★</span>
+                        }
+                      </div>
                     </div>
+                    
+                    <button class="delete-review-btn" (click)="deleteReview(review.id)" title="Review verwijderen">
+                      <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                    </button>
                   </div>
                   <p class="review-text">{{ review.comment }}</p>
                 </div>
