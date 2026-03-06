@@ -22,4 +22,15 @@ export class ReadingListOverviewComponent implements OnInit {
     });
   }
 
+  deleteList(id: number) {
+    this.readingListService.deleteList(id).subscribe({
+      next: () => {
+        this.readingLists = this.readingLists.filter(l => l.id !== id);
+      },
+      error: (err) => {
+        console.error('Fout bij verwijderen van lijst:', err);
+      }
+    });
+  }
+
 }

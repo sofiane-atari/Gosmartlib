@@ -25,9 +25,10 @@ class ReadingListServiceTest {
     @InjectMocks
     private ReadingListService readingListService;
 
+    // createReadingList
+
     @Test
-    void createReadingList_ValidData_ShouldReturnCreatedList() {
-        // Arrange
+    void givenValidName_whenCreateReadingList_thenReturnCreatedList() {
         ReadingListDTO dto = new ReadingListDTO("My Reading List");
 
         ReadingList savedList = new ReadingList();
@@ -36,21 +37,33 @@ class ReadingListServiceTest {
 
         when(readingListRepository.save(any(ReadingList.class))).thenReturn(savedList);
 
-        // Act
         ReadingList result = readingListService.createReadingList(dto);
 
-        // Assert
         assertNotNull(result);
         assertEquals("My Reading List", result.getName());
         verify(readingListRepository).save(any(ReadingList.class));
     }
 
     @Test
-    void createReadingList_EmptyName_ShouldThrowException() {
-        // Arrange
+    void givenNameWithWhitespace_whenCreateReadingList_thenTrimAndSave() {
+        ReadingListDTO dto = new ReadingListDTO("  Mijn Lijst  ");
+
+        ReadingList savedList = new ReadingList();
+        savedList.setId(11L);
+        savedList.setName("Mijn Lijst");
+
+        when(readingListRepository.save(any(ReadingList.class))).thenReturn(savedList);
+
+        ReadingList result = readingListService.createReadingList(dto);
+
+        assertEquals("Mijn Lijst", result.getName());
+        verify(readingListRepository).save(any(ReadingList.class));
+    }
+
+    @Test
+    void givenEmptyName_whenCreateReadingList_thenThrowException() {
         ReadingListDTO dto = new ReadingListDTO("");
 
-        // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.createReadingList(dto));
 
@@ -59,21 +72,65 @@ class ReadingListServiceTest {
     }
 
     @Test
-    void getAllLists_ShouldReturnAllLists() {
-        // Arrange
+    void givenNullName_whenCreateReadingList_thenThrowException() {
+        ReadingListDTO dto = new ReadingListDTO(null);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.createReadingList(dto));
+
+        assertEquals("name mag niet null of leeg zijn", exception.getMessage());
+        verify(readingListRepository, never()).save(any());
+    }
+
+    // getAllLists
+
+    @Test
+    void givenExistingLists_whenGetAllLists_thenReturnAllLists() {
         ReadingList list = new ReadingList();
         list.setId(10L);
         list.setName("Existing List");
 
         when(readingListRepository.findAll()).thenReturn(Collections.singletonList(list));
 
-        // Act
         List<ReadingList> result = readingListService.getAllLists();
 
-        // Assert
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
         assertEquals("Existing List", result.get(0).getName());
         verify(readingListRepository).findAll();
+    }
+
+    @Test
+    void givenNoLists_whenGetAllLists_thenReturnEmptyList() {
+        when(readingListRepository.findAll()).thenReturn(Collections.emptyList());
+
+        List<ReadingList> result = readingListService.getAllLists();
+
+        assertTrue(result.isEmpty());
+        verify(readingListRepository).findAll();
+    }
+
+    // deleteReadingList
+
+    @Test
+    void givenExistingId_whenDeleteReadingList_thenDeleteSuccessfully() {
+        Long id = 10L;
+        when(readingListRepository.existsById(id)).thenReturn(true);
+
+        readingListService.deleteReadingList(id);
+
+        verify(readingListRepository).deleteById(id);
+    }
+
+    @Test
+    void givenNonExistingId_whenDeleteReadingList_thenThrowException() {
+        Long id = 99L;
+        when(readingListRepository.existsById(id)).thenReturn(false);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.deleteReadingList(id));
+
+        assertEquals("Leeslijst met id 99 bestaat niet", exception.getMessage());
+        verify(readingListRepository, never()).deleteById(any());
     }
 }

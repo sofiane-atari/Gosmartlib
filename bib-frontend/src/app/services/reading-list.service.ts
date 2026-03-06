@@ -31,4 +31,8 @@ export class ReadingListService {
   getLists(): Observable<ReadingList[]> {
     return this.http.get<ReadingList[]>(this.apiUrl);
   }
+
+  deleteList(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

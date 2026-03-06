@@ -30,6 +30,7 @@
           <div class="card-body">
             <h3 class="card-title">{{ list.name }}</h3>
             <p class="card-author">Leeslijst</p>
+            <button class="btn-delete" (click)="deleteList(list.id); $event.stopPropagation()">Verwijderen</button>
           </div>
         </div>
       </div>

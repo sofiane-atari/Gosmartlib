@@ -29,4 +29,11 @@ public class ReadingListService {
     public List<ReadingList> getAllLists() {
         return readingListRepository.findAll();
     }
+
+    public void deleteReadingList(Long id) {
+        if (!readingListRepository.existsById(id)) {
+            throw new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet");
+        }
+        readingListRepository.deleteById(id);
+    }
 }
