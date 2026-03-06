@@ -1,6 +1,10 @@
 :host {
     display: flex;
     justify-content: center;
+    align-items: center;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
 }
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -154,11 +158,11 @@
 
 .field-error {
   font-size: 1rem;
-  color: #C53030;
+  color: var(--error-color);
 }
 
 .field-success {
-  color: #16a34a;
+  color: var(--success-color);
   font-size: 0.875rem;
   font-weight: 500;
 }

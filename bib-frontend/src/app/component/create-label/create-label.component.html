@@ -61,7 +61,7 @@
     }
     <!-- Actions -->
     <div class="form-actions">
-      <button type="button" class="btn-secondary">Annuleren</button>
+      <button type="button" (click)="close()" class="btn-secondary">Annuleren</button>
       <button type="submit" class="btn-primary" [disabled]="labelForm.invalid">
         Label aanmaken
       </button>

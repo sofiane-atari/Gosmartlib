@@ -1,0 +1,20 @@
+<div [class.blur-background]="showPopup()">
+  <button class="create-btn" (click)="openPopup()">+ Maak een label aan</button>
+  @if (success()) {
+    <div class="success-message">
+      {{ success() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-message">
+      {{ error() }}
+    </div>
+  }
+</div>
+
+<!-- Popup Overlay -->
+@if (showPopup()) {
+    <app-create-label (labelCreated)="closePopup()" (closeEvent)="closePopup()" (successEvent)="onSuccess($event)" (errorEvent)="onError($event)" />
+}
+
