@@ -1,6 +1,10 @@
 import { Component } from '@angular/core';
 import { AddBookISBNComponent } from "./add-book-isbn/add-book-isbn.component";
 import { AddBookManualComponent } from "./add-book-manual/add-book-manual.component";
+import { Book } from '../../model/book.model';
+import { Availability } from '../../model/enums/availability.enum';
+import { BookService } from '../../services/BookService/book.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-add-book-page',
@@ -12,4 +16,29 @@ import { AddBookManualComponent } from "./add-book-manual/add-book-manual.compon
 export class AddBookPageComponent {
 mode: 'isbn' | 'manual' = 'isbn';
 
+  constructor(private bs: BookService, private rt: Router){}
+  
+    book: Book = {
+    title: '',
+    author: '',
+    pages: 0,
+    imageUrl: '',
+    description: '',
+    releaseYear: new Date().getFullYear(),
+    availability: Availability.AVAILABLE,
+    copies: 1
+  };
+  
+  addBook(event: Book) {
+  const bookToSave = event ?? this.book; // gebruik event als het bestaat, anders fallback
+
+    this.bs.addBook(event).subscribe({
+      next: () => {
+      this.rt.navigate(['/catalog']);
+      },
+      error: (err) => {
+        console.error(err);
+      }
+    });
+  }
 }
