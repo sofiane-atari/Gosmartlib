@@ -125,7 +125,14 @@
                 Rating
               </span>
               @if (reviews.length > 0) {
-                <span class="meta-value">{{ averageRating | number:'1.1-1' }} / 5.0</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div class="stars-display" style="display: flex; gap: 2px; font-size: 1.1rem;">
+                    @for (star of starsArray; track star) {
+                      <span [style.color]="star <= getRoundedAverage() ? '#fbbf24' : '#e2e8f0'">★</span>
+                    }
+                  </div>
+                  <span class="meta-value" style="font-size: 0.9rem;">({{ averageRating | number:'1.1-1' }})</span>
+                </div>
               } @else {
                 <span class="meta-value meta-placeholder">Nog geen beoordelingen</span>
               }

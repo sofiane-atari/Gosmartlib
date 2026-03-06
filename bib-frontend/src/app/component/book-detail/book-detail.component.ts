@@ -98,6 +98,10 @@ export class BookDetailComponent {
     this.newReviewRating = rating;
   }
 
+  getRoundedAverage(): number {
+    return Math.round(this.averageRating);
+  }
+
   updateAverage(bookId: number) {
     this.reviewService.getAverageRating(bookId).subscribe({
       next: (avg) => this.averageRating = avg,
