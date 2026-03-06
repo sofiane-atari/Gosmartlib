@@ -12,7 +12,7 @@ public class BookTest {
     @Test
     void constructor_setsAllFieldsCorrectly() {
         // Arrange
-        Long isbn = 123456789L;
+        String isbn = "123456789";
         String title = "Test Book";
         String author = "Test Author";
         int pages = 300;

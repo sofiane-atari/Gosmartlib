@@ -22,4 +22,7 @@ export class BookService {
   createBookWithoutISBN(book: Book): Observable<Book>{
     return this.http.post<Book>(this.apiUrl, book);
   }
+  getBookByISBN(isbn: string){
+   return this.http.get<Book>(`http://localhost:8080/api/books/isbn/${isbn}`);
+  }
 }

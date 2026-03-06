@@ -41,4 +41,10 @@ public class BookController {
         return ResponseEntity.ok(savedBook);
     }
 
+    @GetMapping("/isbn/{isbn}")
+    public ResponseEntity<BookDTO> getBookByISBN(@PathVariable String isbn) {
+        BookDTO book = bs.fetchBookByISBN(isbn);
+        return ResponseEntity.ok(book);
+    }
+
 }

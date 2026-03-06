@@ -35,11 +35,10 @@ public class BookServiceTest {
     void getAllBooks_returnMappedDTOs() {
 
         Book book = new Book();
-        long ISBN = 1672587;
         book.setId(1L);
         book.setTitle("Test Book");
         book.setAuthor("Test Author");
-        book.setISBN(ISBN);
+        book.setISBN("1672587");
         book.setPages(324);
         book.setImage_url("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
         // Extra velden toevoegen aan de entiteit
@@ -74,7 +73,7 @@ public class BookServiceTest {
         book.setId(1L);
         book.setTitle("Specifiek Boek");
         book.setAuthor("Bekende Auteur");
-        book.setISBN(987654321L);
+        book.setISBN("987654321L");
         book.setPages(250);
         book.setImage_url("https://example.com/image.jpg");
         book.setAvailability(Availability.AVAILABLE);

@@ -1,3 +1,20 @@
-<input type="text" placeholder="ISBN nummer">
+<div class="isbn-search">
+  <input
+    type="text"
+    [(ngModel)]="isbn"
+    placeholder="ISBN nummer"
+  />
 
-<button>Zoek boek</button>
+  <button (click)="searchByISBN()">
+    Zoek boek
+  </button>
+
+  <input type="text" [(ngModel)]="book.title" name="title">
+
+  <input type="text" [(ngModel)]="book.author" name="author">
+
+  <input type="number" [(ngModel)]="book.pages" name="pages">
+
+  <input type="text" [(ngModel)]="book.image_url" name="image_url">
+  
+</div>

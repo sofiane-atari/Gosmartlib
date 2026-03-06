@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { BookService } from '../../../services/BookService/book.service';
 import { FormsModule } from '@angular/forms';
 import { Book } from '../../../model/book.model';
@@ -13,17 +13,9 @@ import { Route, Router } from '@angular/router';
   styleUrl: './add-book-manual.component.css'
 })
 export class AddBookManualComponent {
-  book: Book = {
-    title: '',
-    author: '',
-    pages: 0,
-    image_url: '',
-    description: '',
-    release_year: 0,
-    availability: Availability.AVAILABLE,
-    copies: 0
-  };
+
   availabilityOptions = Object.values(Availability);
+  @Input() book!: Book;
 
 
   constructor(private bs: BookService, private rt: Router){}

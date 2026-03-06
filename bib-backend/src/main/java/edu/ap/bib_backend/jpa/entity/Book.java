@@ -14,7 +14,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long ISBN;
+    private String ISBN;
     private String title;
     private String author;
     private int pages;
@@ -30,7 +30,7 @@ public class Book {
     public Book() {
     }
 
-    public Book(Long ISBN, String title, String author, int pages, String image_url, String description,
+    public Book(String ISBN, String title, String author, int pages, String image_url, String description,
             int release_year, Availability availability, int copies) {
         this.ISBN = ISBN;
         this.title = title;
