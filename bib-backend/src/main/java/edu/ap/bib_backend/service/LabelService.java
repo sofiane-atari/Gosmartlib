@@ -16,6 +16,12 @@ public class LabelService {
     }
 
     public LabelDTO createLabel(LabelDTO labelDTO) {
+        if (labelDTO.name() == null || labelDTO.name().trim().isEmpty()) {
+            throw new IllegalStateException("Labelnaam is verplicht");
+        }
+        if (labelRepository.existsById(labelDTO.name())) {
+            throw new IllegalStateException("De naam van het label is al aangemaakt. Kies een andere naam.");
+        }
         Label label = toLabel(labelDTO);
         labelRepository.save(label);
         return toLabelDTO(label);
