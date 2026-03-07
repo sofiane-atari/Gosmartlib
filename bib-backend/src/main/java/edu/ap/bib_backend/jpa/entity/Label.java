@@ -30,9 +30,9 @@ public class Label {
     public Label() {
     }
 
-    public Label(String name, String description, String color) {
+    public Label(String name,  String color, String description) {
         this.name = name;
-        this.description = description;
         this.color = color;
+        this.description = description;
     }
 }

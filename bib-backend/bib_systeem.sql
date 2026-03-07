@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 8.0.45, for Linux (aarch64)
+-- MySQL dump 10.13  Distrib 8.0.45, for Linux (x86_64)
 --
 -- Host: localhost    Database: bib_systeem
 -- ------------------------------------------------------
@@ -41,6 +41,53 @@ LOCK TABLES `books` WRITE;
 /*!40000 ALTER TABLE `books` DISABLE KEYS */;
 /*!40000 ALTER TABLE `books` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `labels`
+--
+
+DROP TABLE IF EXISTS `labels`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `labels` (
+  `name` varchar(255) NOT NULL,
+  `color` varchar(255) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `labels`
+--
+
+LOCK TABLES `labels` WRITE;
+/*!40000 ALTER TABLE `labels` DISABLE KEYS */;
+/*!40000 ALTER TABLE `labels` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `test_message`
+--
+
+DROP TABLE IF EXISTS `test_message`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `test_message` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `message` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `test_message`
+--
+
+LOCK TABLES `test_message` WRITE;
+/*!40000 ALTER TABLE `test_message` DISABLE KEYS */;
+/*!40000 ALTER TABLE `test_message` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -51,4 +98,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-02 20:13:23
+-- Dump completed on 2026-03-07  2:56:29

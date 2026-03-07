@@ -43,8 +43,8 @@ class LabelControllerTest {
         void createLabel_ShouldCreateLabelWithoutDescription() throws Exception {
                 // Arranage
                 String name = "testLabel";
-                LabelDTO newLabel = new LabelDTO(name, null, "#a75064");
-                LabelDTO savedLabel = new LabelDTO(name, null, "#a75064");
+                LabelDTO newLabel = new LabelDTO(name, "#a75064", null);
+                LabelDTO savedLabel = new LabelDTO(name, "#a75064", null);
 
                 when(labelService.createLabel(any(LabelDTO.class))).thenReturn(savedLabel);
 
@@ -52,7 +52,7 @@ class LabelControllerTest {
                 ResultActions results = mockMvc.perform(post("/api/labels")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper
-                                        .writeValueAsString(newLabel)));
+                                                .writeValueAsString(newLabel)));
 
                 // Act
                 results
@@ -65,8 +65,8 @@ class LabelControllerTest {
         @Test
         void createLabel_WithValidBody_ShouldReturn201WithLocationHeader() throws Exception {
                 // Arrange
-                LabelDTO requestBody = new LabelDTO("urgent", "High priority tasks", "#FF0001");
-                LabelDTO createdLabel = new LabelDTO("urgent", "High priority tasks", "#FF0001");
+                LabelDTO requestBody = new LabelDTO("urgent", "#FF0001", "High priority tasks");
+                LabelDTO createdLabel = new LabelDTO("urgent", "#FF0001", "High priority tasks");
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willReturn(createdLabel);
@@ -87,7 +87,7 @@ class LabelControllerTest {
         @Test
         void createLabel_WithNullName_ShouldReturn400() throws Exception {
                 // Arrange
-                LabelDTO invalidBody = new LabelDTO(null, "Some description", "#FF0001");
+                LabelDTO invalidBody = new LabelDTO(null, "#FF0001", "Some description");
 
                 // Act
                 ResultActions result = mockMvc.perform(post("/api/labels")
@@ -101,8 +101,8 @@ class LabelControllerTest {
         @Test
         void createLabel_WithOptionalFieldsNull_ShouldReturn202() throws Exception {
                 // Arrange
-                LabelDTO requestBody = new LabelDTO("urgent", null, null);
-                LabelDTO createdLabel = new LabelDTO("urgent", null, null);
+                LabelDTO requestBody = new LabelDTO("urgent", "#FF0001", null);
+                LabelDTO createdLabel = new LabelDTO("urgent", "#FF0001", null);
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willReturn(createdLabel);
@@ -115,14 +115,14 @@ class LabelControllerTest {
                 // Assert
                 result.andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.name").value("urgent"))
-                                .andExpect(jsonPath("$.description").isEmpty())
-                                .andExpect(jsonPath("$.color").isEmpty());
+                                .andExpect(jsonPath("$.color").value("#FF0001"))
+                                .andExpect(jsonPath("$.description").isEmpty());
         }
 
         @Test
         void createLabel_WhenServiceThrows_ShouldReturn501() throws Exception {
                 // Arrange
-                LabelDTO requestBody = new LabelDTO("urgent", null, null);
+                LabelDTO requestBody = new LabelDTO("urgent", "#FF0001", null);
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willThrow(new RuntimeException("Unexpected error"));
@@ -140,8 +140,8 @@ class LabelControllerTest {
         @Test
         void createLabel_ShouldCallServiceExactlyOnce() throws Exception {
                 // Arrange
-                LabelDTO requestBody = new LabelDTO("feature", "Feature label", "#01FF00");
-                LabelDTO createdLabel = new LabelDTO("feature", "Feature label", "#01FF00");
+                LabelDTO requestBody = new LabelDTO("feature", "#01FF00", "Feature label");
+                LabelDTO createdLabel = new LabelDTO("feature", "#01FF00", "Feature label");
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willReturn(createdLabel);
