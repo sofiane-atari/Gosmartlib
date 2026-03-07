@@ -12,6 +12,18 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(ResourceAlreadyExistsException.class) 
+    public ResponseEntity<ErrorResponse> handleResourceAlreadyExists(ResourceAlreadyExistsException ex) {
+        int errorCode = 409;
+        List<ErrorDetail> details = new ArrayList<>();
+        ApiError error = new ApiError(errorCode, "Item bestaat al", details);
+
+        details.add(new ErrorDetail(ex.getFieldName(), ex.getMessage()));
+
+        ErrorResponse response = new ErrorResponse(error);
+        return ResponseEntity.status(error.getCode()).body(response);
+    }
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {
         int errorCode = 400;

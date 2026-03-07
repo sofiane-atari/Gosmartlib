@@ -5,6 +5,7 @@ import edu.ap.bib_backend.jpa.entity.Label;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.LabelDTO;
+import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.jpa.repository.LabelRepository;
 import edu.ap.bib_backend.mapper.LabelMapper;
 
@@ -20,7 +21,7 @@ public class LabelService {
 
     public LabelDTO createLabel(LabelDTO labelDTO) {
         if (labelRepository.existsById(labelDTO.name())) {
-            throw new IllegalStateException("De naam van het label is al aangemaakt. Kies een andere naam.");
+            throw new ResourceAlreadyExistsException("name", labelDTO.name(), "Label met de naam '" + labelDTO.name() + "' bestaat al.");
         }
 
         Label label = labelMapper.toEntity(labelDTO);
