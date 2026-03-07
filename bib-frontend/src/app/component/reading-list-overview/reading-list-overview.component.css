@@ -8,7 +8,7 @@
 
 .page {
   font-family: 'Inter', sans-serif;
-  background: var(--fourth-color);
+  background: var(--third-color);
   min-height: 100vh;
   padding: 24px 36px 40px;
 }
