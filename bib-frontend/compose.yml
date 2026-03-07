@@ -11,5 +11,9 @@ services:
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.docker.network=proxy"
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.frontend-spa.errors.status=404"
+      - "traefik.http.middlewares.frontend-spa.errors.service=frontend"
+      - "traefik.http.middlewares.frontend-spa.errors.query=/"
+      - "traefik.http.routers.frontend.middlewares=frontend-spa"
     networks:
       - proxy

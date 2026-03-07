@@ -8,7 +8,7 @@
 
 .page {
   font-family: 'Inter', sans-serif;
-  background: var(--fourth-color);
+  background: var(--sec-light-color);
   min-height: 100vh;
   padding: 24px 36px 40px;
 }
@@ -55,7 +55,7 @@
 
 /* ========== FORM CARD ========== */
 .form-card {
-  background: var(--third-color);
+  background: var(--main-light-color);
   border-radius: 16px;
   padding: 32px 36px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
@@ -71,7 +71,7 @@
 .form-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, var(--fourth-color), var(--secondary-color));
+  background: linear-gradient(135deg, var(--sec-light-color), var(--secondary-color));
   border-radius: 13px;
   display: flex;
   align-items: center;
@@ -124,7 +124,7 @@
 .field-input:focus {
   border-color: var(--main-color);
   box-shadow: 0 0 0 3px rgba(138, 30, 65, 0.1);
-  background: var(--third-color);
+  background: var(--main-light-color);
 }
 
 /* ========== ACTIONS ========== */
@@ -138,7 +138,7 @@
   padding: 11px 22px;
   border: 2px solid #e8e8f0;
   border-radius: 10px;
-  background: var(--third-color);
+  background: var(--main-light-color);
   color: #666;
   font-size: 14px;
   font-weight: 500;
@@ -154,7 +154,7 @@
 .btn-submit {
   padding: 11px 26px;
   background: linear-gradient(135deg, var(--main-color), var(--secondary-color));
-  color: var(--third-color);
+  color: var(--main-light-color);
   border: none;
   border-radius: 10px;
   font-size: 14px;
@@ -179,7 +179,7 @@
   background: linear-gradient(135deg, var(--main-color), var(--secondary-color));
   border-radius: 16px;
   padding: 22px 20px;
-  color: var(--third-color);
+  color: var(--main-light-color);
 }
 
 .widget-title {

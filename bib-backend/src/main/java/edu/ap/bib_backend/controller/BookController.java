@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/books")
-@CrossOrigin(origins = { "https://frontend.localhost/", "https://gosmartlib.be/", "http://localhost:4200/" })
 public class BookController {
     private final BookService bs;
 
