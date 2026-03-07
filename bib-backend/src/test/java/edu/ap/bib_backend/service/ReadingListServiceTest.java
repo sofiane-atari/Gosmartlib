@@ -133,4 +133,33 @@ class ReadingListServiceTest {
         assertEquals("Leeslijst met id 99 bestaat niet", exception.getMessage());
         verify(readingListRepository, never()).deleteById(any());
     }
+
+    // getListById
+
+    @Test
+    void givenExistingId_whenGetListById_thenReturnList() {
+        Long id = 10L;
+        ReadingList list = new ReadingList();
+        list.setId(id);
+        list.setName("Test lijst");
+
+        when(readingListRepository.findById(id)).thenReturn(java.util.Optional.of(list));
+
+        ReadingList result = readingListService.getListById(id);
+
+        assertNotNull(result);
+        assertEquals("Test lijst", result.getName());
+        verify(readingListRepository).findById(id);
+    }
+
+    @Test
+    void givenNonExistingId_whenGetListById_thenThrowException() {
+        Long id = 99L;
+        when(readingListRepository.findById(id)).thenReturn(java.util.Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.getListById(id));
+
+        assertEquals("Leeslijst met id 99 bestaat niet", exception.getMessage());
+    }
 }

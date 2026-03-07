@@ -23,6 +23,11 @@ public class ReadingListController {
         return ResponseEntity.ok(readingListService.getAllLists());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ReadingList> getReadingListById(@PathVariable Long id) {
+        return ResponseEntity.ok(readingListService.getListById(id));
+    }
+
     @PostMapping
     public ResponseEntity<ReadingList> createReadingList(@RequestBody ReadingListDTO dto) {
         ReadingList created = readingListService.createReadingList(dto);

@@ -33,4 +33,11 @@ export class ReadingListOverviewComponent implements OnInit {
     });
   }
 
+  shareList(id: number) {
+    const url = `${window.location.origin}/reading-list/${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link gekopieerd naar klembord!');
+    });
+  }
+
 }

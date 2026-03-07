@@ -142,18 +142,42 @@
   color: #aaa;
 }
 
-.btn-delete {
+
+
+.card-actions {
+  display: flex;
+  gap: 8px;
   margin-top: 10px;
+}
+
+.btn-share,
+.btn-delete {
+  flex: 1;
+  flex-basis: 50%;
+  box-sizing: border-box;
   background: none;
-  border: 1px solid #e0a0a0;
   border-radius: 6px;
-  color: #c0392b;
   font-size: 12px;
   font-family: 'Inter', sans-serif;
-  padding: 5px 10px;
+  padding: 6px 0;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
-  width: 100%;
+  text-align: center;
+}
+
+.btn-share {
+  border: 1px solid #a0c4e0;
+  color: #2980b9;
+}
+
+.btn-share:hover {
+  background: #eaf4fb;
+  border-color: #2980b9;
+}
+
+.btn-delete {
+  border: 1px solid #e0a0a0;
+  color: #c0392b;
 }
 
 .btn-delete:hover {

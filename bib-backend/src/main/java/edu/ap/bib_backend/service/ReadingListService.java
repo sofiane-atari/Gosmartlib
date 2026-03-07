@@ -30,6 +30,11 @@ public class ReadingListService {
         return readingListRepository.findAll();
     }
 
+    public ReadingList getListById(Long id) {
+        return readingListRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet"));
+    }
+
     public void deleteReadingList(Long id) {
         if (!readingListRepository.existsById(id)) {
             throw new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet");
