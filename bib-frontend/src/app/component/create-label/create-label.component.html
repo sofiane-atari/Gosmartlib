@@ -54,7 +54,7 @@
     </div>
 
     @if (error()) {
-    <div class="field-error">{{error()}}</div>
+    <div class="field-error" [innerHTML]="error()"></div>
     }
     @if (success()) {
     <div class="field-success">{{success()}}</div>

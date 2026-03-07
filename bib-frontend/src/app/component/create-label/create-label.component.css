@@ -159,6 +159,16 @@
 .field-error {
   font-size: 1rem;
   color: var(--error-color);
+  line-height: 1;
+}
+
+.field-error ul {
+  margin: 8px 0 0 0;
+  padding-left: 16px;
+}
+
+.field-error li {
+  margin-bottom: 4px;
 }
 
 .field-success {

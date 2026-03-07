@@ -5,5 +5,9 @@ export interface HttpErrorResponseError {
 interface Error {
     code: number;
     message: string;
-    details?: string;
+    details?: ErrorDetail[];
+}
+interface ErrorDetail {
+    field: string;
+    message: string;
 }
