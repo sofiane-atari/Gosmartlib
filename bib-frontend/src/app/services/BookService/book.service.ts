@@ -19,7 +19,10 @@ export class BookService {
   getBookById(id: number): Observable<Book> {
   return this.http.get<Book>(`${this.apiUrl}/${id}`); 
   }
-  createBookWithoutISBN(book: Book): Observable<Book>{
+  addBook(book: Book): Observable<Book>{
     return this.http.post<Book>(this.apiUrl, book);
+  }
+  getBookByISBN(isbn: string){
+   return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
   }
 }

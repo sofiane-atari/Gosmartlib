@@ -2,6 +2,9 @@ include:
   - ./bib-frontend/compose.yml
   - ./bib-backend/compose.yml
 
+volumes:
+  mysql-data:
+
 networks:
   proxy:
     external: true

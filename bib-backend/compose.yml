@@ -7,16 +7,14 @@ services:
       - mysql
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8080
-      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/bib_systeem?allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_DATASOURCE_USERNAME: "${DB_USER}" 
-      SPRING_DATASOURCE_PASSWORD: "${DB_USER_PASS}" 
-      # SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
-      # SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
-      # SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      # SERVER_PORT: 8080
-      # JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      SPRING_PORT: "${SPRING_PORT}"
+      DB_HOST: "${DB_HOST}"
+      DB_NAME: "${DB_NAME}"
+      DB_PORT: "${DB_PORT}"
+      DB_USER: "${DB_USER}" 
+      DB_USER_PASS: "${DB_USER_PASS}" 
+      BOOKS_API_KEY: "${BOOKS_API_KEY}"
+      APP_CORS_ALLOWED_ORIGINS: "${APP_CORS_ALLOWED_ORIGINS}"
 
     labels:
       - "traefik.enable=true"
@@ -31,19 +29,14 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: mysql-db
+    container_name: "${DB_HOST}"
     restart: always
     environment:
-      MYSQL_DATABASE: "bib_systeem"
+      MYSQL_DATABASE: "${DB_NAME}"
       MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASS}"
       MYSQL_USER: "${DB_USER}"
       MYSQL_PASSWORD: "${DB_USER_PASS}"
     volumes:
       - mysql-data:/var/lib/mysql
-    ports:
-      - "3307:3306"
     networks:
       - proxy
-
-volumes:
-  mysql-data:  

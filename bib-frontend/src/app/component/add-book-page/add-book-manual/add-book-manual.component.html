@@ -1,53 +1,62 @@
 <div class="layout">
-
-    <form (ngSubmit)="addBook()" class="book-form">
-      <div class="form-section">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Titel *</label>
-            <input type="text" [(ngModel)]="book.title" name="title" placeholder="Boektitel" required />
-          </div>
-          <div class="form-group">
-            <label>Auteur *</label>
-            <input type="text" [(ngModel)]="book.author" name="author" placeholder="Auteursnaam" required />
-          </div>
+  <form (ngSubmit)="save()" class="book-form">
+    <div class="form-section">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Titel *</label>
+          <input type="text" [(ngModel)]="book.title" name="title" placeholder="Boektitel" required />
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Aantal Pagina's *</label>
-            <input type="number" [(ngModel)]="book.pages" name="pages" placeholder="320" required />
-          </div>
-          <div class="form-group">
-            <label>Jaar *</label>
-            <input type="number" [(ngModel)]="book.release_year" name="release_year" placeholder="2024" required />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Voorraad *</label>
-            <input type="number" [(ngModel)]="book.copies" name="copies" placeholder="1" required />
-          </div>
-          <div class="form-group">
-            <label>Cover URL (optioneel)</label>
-            <input type="text" [(ngModel)]="book.image_url" name="image_url" placeholder="https://..." />
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Beschrijving *</label>
-          <textarea [(ngModel)]="book.description" name="description" placeholder="Een korte beschrijving van het boek..." required></textarea>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Genres * (selecteer minimaal 1)</label>
-          <p class="error-message">Selecteer minimaal één genre</p>
+        <div class="form-group">
+          <label>Auteur *</label>
+          <input type="text" [(ngModel)]="book.author" name="author" placeholder="Auteursnaam" required />
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="submit" class="btn-submit">+ Boek Toevoegen</button>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Aantal Pagina's *</label>
+          <input type="number" [(ngModel)]="book.pages" name="pages" placeholder="320" required />
+        </div>
+        <div class="form-group">
+          <label>Jaar *</label>
+          <input type="number" [(ngModel)]="book.releaseYear" name="release_year" placeholder="2024" required />
+        </div>
       </div>
-    </form>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Voorraad *</label>
+          <input type="number" [(ngModel)]="book.copies" name="copies" placeholder="1" required />
+        </div>
+        <div class="form-group">
+          <label>Beschikbaarheid *</label>
+          <select [(ngModel)]="book.availability" name="availability">
+            <option value="AVAILABLE">Beschikbaar</option>
+            <option value="BORROWED">Uitgeleend</option>
+            <option value="DAMAGED">Beschadigd</option>
+            <option value="LOST">Verloren</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Cover URL (optioneel)</label>
+        <input type="text" [(ngModel)]="book.imageUrl" name="image_url" placeholder="https://..." />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Beschrijving *</label>
+        <textarea [(ngModel)]="book.description" name="description" placeholder="Een korte beschrijving van het boek..." required></textarea>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Genres * (selecteer minimaal 1)</label>
+        <p class="error-message">Selecteer minimaal één genre</p>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">+ Boek Toevoegen</button>
+    </div>
+  </form>
 </div>

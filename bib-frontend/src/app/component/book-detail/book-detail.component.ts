@@ -21,6 +21,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BookService } from '../../services/BookService/book.service';
 import { Availability } from '../../model/enums/availability.enum';
+import { Review } from '../../model/review.model';
+import { ReviewService } from '../../services/Reviews/review.service';
 
 @Component({
   selector: 'app-book-detail',
@@ -54,9 +56,17 @@ export class BookDetailComponent {
     { icon: X, label: 'Sluiten' },
   ];
 
+  //Reviews//
+  reviews: Review[] = [];
+  newReviewText: string = '';
+  newReviewRating: number = 5;
+  starsArray: number[] = [1, 2, 3, 4, 5];
+  averageRating: number = 0;
+
   Availability = Availability;
-  constructor(  private route: ActivatedRoute,
-  private bookService: BookService) {}
+  constructor(private route: ActivatedRoute, private bookService: BookService, private reviewService: ReviewService ) {
+
+  }
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -66,6 +76,8 @@ export class BookDetailComponent {
         this.bookService.getBookById(+id).subscribe(book => {
           this.selectedBook = book;
         });
+
+        this.loadReviews(+id);
       }
     });
   }
@@ -73,7 +85,71 @@ export class BookDetailComponent {
   public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
   selectedBook?: Book;
 
-  
+  loadReviews(bookId: number) {
+    this.reviewService.getReviewsForBook(bookId).subscribe({
+      next: (data) => this.reviews = data,
+      error: (err) => console.error('Fout bij ophalen reviews', err)
+    });
+
+    this.updateAverage(bookId);
+  }
+
+  setRating(rating: number){
+    this.newReviewRating = rating;
+  }
+
+  getRoundedAverage(): number {
+    return Math.round(this.averageRating);
+  }
+
+  updateAverage(bookId: number) {
+    this.reviewService.getAverageRating(bookId).subscribe({
+      next: (avg) => this.averageRating = avg,
+      error: (err) => console.error('Fout bij ophalen gemiddelde', err)
+    });
+  }
+
+  submitReview() {
+    const bookId = this.selectedBook?.id;
+
+    if (!this.newReviewText.trim() || !bookId) return;
+
+    const newReview: Review = {
+      comment: this.newReviewText,
+      rating: this.newReviewRating
+    };
+
+    this.reviewService.addReviewToBook(bookId, newReview).subscribe({
+      next: (savedReview) => {
+        this.reviews.push(savedReview);
+        this.newReviewText = '';
+        this.newReviewRating = 5;
+
+        this.updateAverage(bookId);
+      },
+      error: (err) => console.error('Fout bij opslaan review', err)
+    });
+  }
+
+  deleteReview(reviewId?: number){
+
+    if (!reviewId) return;
+
+    if (confirm('Weet je zeker dat je deze review wilt verwijderen?')) {
+
+      this.reviewService.deleteReview(reviewId).subscribe({
+        next: () => {
+          this.reviews = this.reviews.filter(r => r.id !== reviewId);
+
+          if(this.selectedBook?.id){
+            this.updateAverage(this.selectedBook.id)
+          }
+        },
+        error: (err) => console.error('Fout bij verwijderen review', err)
+      })
+    }
+  }
+
   increaseQuantity(): void {
     if (this.selectedBook) {
       this.selectedBook.copies = (this.selectedBook.copies || 0) + 1;

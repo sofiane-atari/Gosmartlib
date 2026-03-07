@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { BookService } from '../../../services/BookService/book.service';
 import { FormsModule } from '@angular/forms';
 import { Book } from '../../../model/book.model';
@@ -13,29 +13,23 @@ import { Route, Router } from '@angular/router';
   styleUrl: './add-book-manual.component.css'
 })
 export class AddBookManualComponent {
-  book: Book = {
+
+  availabilityOptions = Object.values(Availability);
+    book: Book = {
     title: '',
     author: '',
     pages: 0,
-    image_url: '',
+    imageUrl: '',
     description: '',
-    release_year: 0,
+    releaseYear: new Date().getFullYear(),
     availability: Availability.AVAILABLE,
-    copies: 0
+    copies: 1
   };
-  availabilityOptions = Object.values(Availability);
+  @Output() bookAdded = new EventEmitter<Book>();
 
+  save() {
+    this.bookAdded.emit(this.book);
+  }
 
   constructor(private bs: BookService, private rt: Router){}
-
-  addBook() {
-    this.bs.createBookWithoutISBN(this.book).subscribe({
-      next: () => {
-      this.rt.navigate(['/catalog']);
-      },
-      error: (err) => {
-        console.error(err);
-      }
-    });
-  }
 }

@@ -14,14 +14,18 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long ISBN;
+    private String ISBN;
     private String title;
     private String author;
     private int pages;
-    private String image_url;
     private String description;
-    private int release_year;
     private int copies;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "release_year")
+    private int releaseYear;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -30,16 +34,32 @@ public class Book {
     public Book() {
     }
 
-    public Book(Long ISBN, String title, String author, int pages, String image_url, String description,
+    public Book(String ISBN, String title, String author, int pages, String image_url, String description,
             int release_year, Availability availability, int copies) {
         this.ISBN = ISBN;
         this.title = title;
         this.author = author;
         this.pages = pages;
-        this.image_url = image_url;
+        this.imageUrl = image_url;
         this.description = description;
-        this.release_year = release_year;
+        this.releaseYear = release_year;
         this.availability = availability;
         this.copies = copies;
+    }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", ISBN='" + ISBN + '\'' +
+                ", title='" + title + '\'' +
+                ", author='" + author + '\'' +
+                ", pages=" + pages +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", description='" + description + '\'' +
+                ", releaseYear=" + releaseYear +
+                ", availability=" + availability +
+                ", copies=" + copies +
+                '}';
     }
 }

@@ -35,18 +35,17 @@ public class BookServiceTest {
     void getAllBooks_returnMappedDTOs() {
 
         Book book = new Book();
-        long ISBN = 1672587;
         book.setId(1L);
         book.setTitle("Test Book");
         book.setAuthor("Test Author");
-        book.setISBN(ISBN);
+        book.setISBN("1672587");
         book.setPages(324);
-        book.setImage_url("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
+        book.setImageUrl("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
         // Extra velden toevoegen aan de entiteit
         book.setAvailability(Availability.AVAILABLE);
         book.setCopies(3);
         book.setDescription("dede de d e d ed e d e d e de d e d");
-        book.setRelease_year(2017);
+        book.setReleaseYear(2017);
 
         when(br.findAll()).thenReturn(List.of(book));
 
@@ -55,16 +54,16 @@ public class BookServiceTest {
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getTitle()).isEqualTo("Test Book");
         assertThat(res.get(0).getAuthor()).isEqualTo("Test Author");
-        assertThat(res.get(0).getISBN()).isEqualTo(1672587);
+        assertThat(res.get(0).getISBN()).isEqualTo("1672587");
         assertThat(res.get(0).getPages()).isEqualTo(324);
-        assertThat(res.get(0).getImage_url())
+        assertThat(res.get(0).getImageUrl())
                 .isEqualTo("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
 
         // Assertions voor de nieuwe velden
         assertThat(res.get(0).getAvailability()).isEqualTo(Availability.AVAILABLE);
         assertThat(res.get(0).getCopies()).isEqualTo(3);
         assertThat(res.get(0).getDescription()).isEqualTo("dede de d e d ed e d e d e de d e d");
-        assertThat(res.get(0).getRelease_year()).isEqualTo(2017);
+        assertThat(res.get(0).getReleaseYear()).isEqualTo(2017);
     }
 
     @Test
@@ -74,13 +73,13 @@ public class BookServiceTest {
         book.setId(1L);
         book.setTitle("Specifiek Boek");
         book.setAuthor("Bekende Auteur");
-        book.setISBN(987654321L);
+        book.setISBN("987654321L");
         book.setPages(250);
-        book.setImage_url("https://example.com/image.jpg");
+        book.setImageUrl("https://example.com/image.jpg");
         book.setAvailability(Availability.AVAILABLE);
         book.setCopies(5);
         book.setDescription("Beschrijving van het specifieke boek.");
-        book.setRelease_year(2021);
+        book.setReleaseYear(2021);
 
         // Mock de repository: als er gezocht wordt op ID 1, geef het boek terug
         when(br.findById(1L)).thenReturn(Optional.of(book));
@@ -93,7 +92,7 @@ public class BookServiceTest {
         assertThat(res.getId()).isEqualTo(1L);
         assertThat(res.getTitle()).isEqualTo("Specifiek Boek");
         assertThat(res.getAvailability()).isEqualTo(Availability.AVAILABLE);
-        assertThat(res.getRelease_year()).isEqualTo(2021);
+        assertThat(res.getReleaseYear()).isEqualTo(2021);
     }
 
     @Test
@@ -103,11 +102,11 @@ public class BookServiceTest {
         dto.setTitle("Nieuwe Boek");
         dto.setAuthor("Auteur Test");
         dto.setPages(300);
-        dto.setImage_url("https://example.com/image.jpg");
+        dto.setImageUrl("https://example.com/image.jpg");
         dto.setAvailability(Availability.AVAILABLE);
         dto.setCopies(2);
         dto.setDescription("Beschrijving hier");
-        dto.setRelease_year(2024);
+        dto.setReleaseYear(2024);
 
         // Mock the repository save method
         Book savedBook = new Book();
@@ -115,16 +114,16 @@ public class BookServiceTest {
         savedBook.setTitle(dto.getTitle());
         savedBook.setAuthor(dto.getAuthor());
         savedBook.setPages(dto.getPages());
-        savedBook.setImage_url(dto.getImage_url());
+        savedBook.setImageUrl(dto.getImageUrl());
         savedBook.setAvailability(dto.getAvailability());
         savedBook.setCopies(dto.getCopies());
         savedBook.setDescription(dto.getDescription());
-        savedBook.setRelease_year(dto.getRelease_year());
+        savedBook.setReleaseYear(dto.getReleaseYear());
 
         Mockito.when(br.save(Mockito.any(Book.class))).thenReturn(savedBook);
 
         // Act
-        BookDTO result = bs.createBookWithoutISBN(dto);
+        BookDTO result = bs.addBook(dto);
 
         // Assert
         assertThat(result).isNotNull();
@@ -135,6 +134,7 @@ public class BookServiceTest {
         assertThat(result.getAvailability()).isEqualTo(Availability.AVAILABLE);
         assertThat(result.getCopies()).isEqualTo(2);
         assertThat(result.getDescription()).isEqualTo("Beschrijving hier");
-        assertThat(result.getRelease_year()).isEqualTo(2024);
+        assertThat(result.getReleaseYear()).isEqualTo(2024);
+        assertThat(result.getImageUrl()).isEqualTo("https://example.com/image.jpg");
     }
 }

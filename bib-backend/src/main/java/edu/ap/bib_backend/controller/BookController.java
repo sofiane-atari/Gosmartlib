@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/books")
-@CrossOrigin(origins = { "https://frontend.localhost/", "https://gosmartlib.be/", "http://localhost:4200/" })
 public class BookController {
     private final BookService bs;
 
@@ -36,9 +35,17 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookDTO> addBookWithoutISBN(@RequestBody BookDTO dto) {
-        BookDTO savedBook = bs.createBookWithoutISBN(dto);
+    public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO dto) {
+        System.out.println("Ontvangen in backend: " + dto);
+        BookDTO savedBook = bs.addBook(dto);
+        System.out.println("Opgeslagen boek: " + savedBook);
         return ResponseEntity.ok(savedBook);
+    }
+
+    @GetMapping("/isbn/{isbn}")
+    public ResponseEntity<BookDTO> getBookByISBN(@PathVariable String isbn) {
+        BookDTO book = bs.fetchBookByISBN(isbn);
+        return ResponseEntity.ok(book);
     }
 
 }
