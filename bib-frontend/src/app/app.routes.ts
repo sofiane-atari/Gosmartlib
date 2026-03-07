@@ -7,6 +7,5 @@ export const routes: Routes = [
   { path: 'catalogus', component: BooksComponent },
   { path: '', redirectTo: '/catalogus', pathMatch: 'full' },
 
-  { path: 'labels/create', component: CreateLabelComponent },
   { path: 'labels', component: LabelsListComponent },
 ];
