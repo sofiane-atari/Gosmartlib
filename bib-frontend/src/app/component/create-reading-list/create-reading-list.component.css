@@ -8,7 +8,6 @@
 
 .page {
   font-family: 'Inter', sans-serif;
-  background: var(--sec-light-color);
   min-height: 100vh;
   padding: 24px 36px 40px;
 }
@@ -153,8 +152,8 @@
 
 .btn-submit {
   padding: 11px 26px;
-  background: linear-gradient(135deg, var(--main-color), var(--secondary-color));
-  color: var(--main-light-color);
+  background: linear-gradient(135deg, var(--main-color), var(--sec-color));
+  color: white;
   border: none;
   border-radius: 10px;
   font-size: 14px;
