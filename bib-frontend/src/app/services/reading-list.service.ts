@@ -45,4 +45,12 @@ export class ReadingListService {
   getListById(id: number): Observable<ReadingList> {
     return this.http.get<ReadingList>(`${this.apiUrl}/${id}`);
   }
+
+  addBookToList(listId: number, bookId: number): Observable<ReadingListBook> {
+    return this.http.post<ReadingListBook>(`${this.apiUrl}/${listId}/books`, { bookId });
+  }
+
+  addBookToFavorites(bookId: number): Observable<ReadingListBook> {
+    return this.http.post<ReadingListBook>(`${this.apiUrl}/favorites/books`, { bookId });
+  }
 }
