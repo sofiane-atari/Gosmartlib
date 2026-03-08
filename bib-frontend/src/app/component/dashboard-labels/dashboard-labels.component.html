@@ -1,0 +1,52 @@
+<div class="dashboard-labels">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Label Beheer</h1>
+      <p>Beheer labels en genres voor de boekencatalogus</p>
+    </div>
+    <button class="btn-new" (click)="setPopup('create')">+ Nieuw Label</button>
+  </div>
+
+  <div [class.blur-background]="popUp() !== null">
+    @if (success()) {
+      <div class="success-message">
+        {{ success() }}
+      </div>
+    }
+
+    @if (error()) {
+      <div class="error-message">
+        {{ error() }}
+      </div>
+    }
+
+    @if (popUp() === 'create') {
+      <app-create-label
+        (closeEvent)="closePopup()"
+        (successEvent)="onSuccess($event)"
+        (errorEvent)="onError($event)"
+      />
+    }@else if (popUp() === 'edit') {
+      <div> Not implemented yet </div>
+    }
+  </div>
+
+
+  <!-- StatCards -->
+  <div class="stat-cards">
+    <app-stat-card label="Totaal Labels"      [value]="totalCount()"  variant="total"  />
+    <app-stat-card label="Actieve Labels"     [value]="activeCount()" variant="active" />
+    <app-stat-card label="Ongebruikte Labels" [value]="unusedCount()" variant="unused" />
+  </div>
+
+  <!-- SearchBar -->
+  <app-search-bar (searchChange)="onSearch($event)" />
+
+  <!-- LabelsList -->
+  <app-labels-list
+    [labels]="filteredLabels()"
+  />
+
+</div>
