@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Service
 public class ProfanityFilterService {
@@ -40,7 +41,8 @@ public class ProfanityFilterService {
         String lowerText = text.toLowerCase();
 
         for (String word : bannedWords) {
-            if (lowerText.contains(word)) {
+            String pattern = "\\b" + Pattern.quote(word) + "\\b";
+            if (Pattern.compile(pattern).matcher(lowerText).find()) {
                 return true;
             }
         }

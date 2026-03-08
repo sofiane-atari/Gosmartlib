@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
 
@@ -30,11 +31,13 @@ class ReviewServiceTest {
     private ReviewRepository reviewRepository;
     @Mock
     private BookRepository bookRepository;
+    @Mock
+    private ProfanityFilterService profanityFilterService;
     @InjectMocks
     private ReviewService reviewService;
 
     @Test
-    @DisplayName("Haal reviews op - Succes")
+    @DisplayName("Get reviews - Success")
     void whenGetReviewsForBook_givenValidBookId_thenReturnReviewDTOList() {
         // Arrange
         Long bookId = 1L;
@@ -64,11 +67,11 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("Voeg review toe - Succes")
-    void whenAddReviewToBook_givenValidBookIdAndDTO_thenReturnSavedReviewDTO() {
+    @DisplayName("Add review - Success (No profanity)")
+    void whenAddReviewToBook_givenValidBookIdAndCleanDTO_thenReturnSavedReviewDTO() {
         // Arrange
         Long bookId = 1L;
-        ReviewDTO inputDto = new ReviewDTO(null, "Echt een aanrader", 4);
+        ReviewDTO inputDto = new ReviewDTO(null, "Highly recommended", 4);
         
         Book mockBook = new Book();
         mockBook.setId(bookId);
@@ -76,6 +79,8 @@ class ReviewServiceTest {
         Review savedEntity = new Review(inputDto.getComment(), inputDto.getRating(), mockBook);
         savedEntity.setId(99L);
 
+        // We vertellen de mock dat deze tekst GEEN scheldwoorden bevat
+        Mockito.when(profanityFilterService.containsProfanity(inputDto.getComment())).thenReturn(false);
         Mockito.when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockBook));
         Mockito.when(reviewRepository.save(any(Review.class))).thenReturn(savedEntity);
 
@@ -85,35 +90,54 @@ class ReviewServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(99L, result.getId());
-        assertEquals("Echt een aanrader", result.getComment());
+        assertEquals("Highly recommended", result.getComment());
         assertEquals(4, result.getRating());
 
-        
+        Mockito.verify(profanityFilterService).containsProfanity(inputDto.getComment());
         Mockito.verify(bookRepository).findById(bookId);
         Mockito.verify(reviewRepository).save(any(Review.class));
     }
 
     @Test
-    @DisplayName("Voeg review toe aan onbekend boek - Gooit Exception")
-    void whenAddReviewToBook_givenInvalidBookId_thenThrowRuntimeException() {
+    @DisplayName("Add review - Profanity detected (Throws Exception)")
+    void whenAddReviewToBook_givenProfanity_thenThrowRuntimeException() {
         // Arrange
-        Long invalidBookId = 999L;
-        ReviewDTO inputDto = new ReviewDTO(null, "Dit boek bestaat niet", 1);
-        Mockito.when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());
+        Long bookId = 1L;
+        ReviewDTO inputDto = new ReviewDTO(null, "This book is really shit", 1); 
+        Mockito.when(profanityFilterService.containsProfanity(inputDto.getComment())).thenReturn(true);
 
-        // Act & Assert (Omdat het een exception is, testen we Act en Assert tegelijk)
+        // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            reviewService.addReviewToBook(invalidBookId, inputDto);
+            reviewService.addReviewToBook(bookId, inputDto);
         });
-
-        assertEquals("Boek niet gevonden met id: 999", exception.getMessage());
+        assertEquals("Review contains profanity", exception.getMessage());
         
         
+        Mockito.verify(bookRepository, Mockito.never()).findById(any());
         Mockito.verify(reviewRepository, Mockito.never()).save(any(Review.class));
     }
 
     @Test
-    @DisplayName("Haal gemiddelde rating op - Succes")
+    @DisplayName("Add review to unknown book - Throws Exception")
+    void whenAddReviewToBook_givenInvalidBookId_thenThrowRuntimeException() {
+        // Arrange
+        Long invalidBookId = 999L;
+        ReviewDTO inputDto = new ReviewDTO(null, "This book does not exist", 1);
+
+        Mockito.when(profanityFilterService.containsProfanity(anyString())).thenReturn(false);
+        Mockito.when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            reviewService.addReviewToBook(invalidBookId, inputDto);
+        });
+
+        assertEquals("Didn't find book with id: 999", exception.getMessage());
+        Mockito.verify(reviewRepository, Mockito.never()).save(any(Review.class));
+    }
+
+    @Test
+    @DisplayName("Get average rating - Success")
     void whenGetAverageRating_givenValidBookId_thenReturnAverageValue() {
         // Arrange
         Long bookId = 1L;
@@ -131,7 +155,7 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("Verwijder review - Succes")
+    @DisplayName("Delete review - Succes")
     void whenDeleteReview_givenExistingId_thenDeleteReview() {
         // Arrange
         Long reviewId = 1L;
@@ -160,12 +184,12 @@ class ReviewServiceTest {
             reviewService.deleteReview(reviewId);
         });
 
-        assertEquals("Review niet gevonden met id: 999", exception.getMessage());
+        assertEquals("Didn't find review with id: 999", exception.getMessage());
         Mockito.verify(reviewRepository, Mockito.never()).delete(any());
     }
 
     @Test
-    @DisplayName("Haal reviews op - Geen reviews gevonden retourneert lege lijst")
+    @DisplayName("Get reviews - No reviews found returns empty list")
     void whenGetReviewsForBook_givenBookWithoutReviews_thenReturnEmptyList() {
         // Arrange
         Long bookId = 2L;
@@ -182,11 +206,11 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("Gemiddelde rating - Geen reviews retourneert 0.0")
+    @DisplayName("Get average rating - No reviews returns 0.0")
     void whenGetAverageRating_givenBookWithoutReviews_thenReturnZero() {
         // Arrange
         Long bookId = 3L;
-        // Door de COALESCE in je query retourneert de database 0.0, geen null!
+        
         Mockito.when(reviewRepository.getAverageRatingForBook(bookId)).thenReturn(0.0);
 
         // Act
