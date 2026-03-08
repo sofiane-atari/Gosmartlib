@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./stat-card.component.css'],
 })
 export class StatCardComponent {
-  @Input() label = '';
-  @Input() value: number = 0;
-  @Input() variant: 'total' | 'active' | 'unused' = 'total';
+  label = input('');
+  value = input(0);
+  variant = input<'total' | 'active' | 'unused'>('total');
 }

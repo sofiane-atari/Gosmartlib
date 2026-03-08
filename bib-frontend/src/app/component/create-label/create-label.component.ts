@@ -2,7 +2,7 @@ import { Component, DestroyRef, inject, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Label } from '../../model/label.model';
-import { LabelService } from '../../service/label/label.service';
+import { LabelService } from '../../services/label/label.service';
 import { HttpBackend, HttpErrorResponse } from '@angular/common/http';
 import { HttpErrorResponseError } from '../../error-reponse.model';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -56,7 +56,7 @@ export class CreateLabelComponent {
         error: (err: HttpErrorResponse) => {
           const resErr = err.error as HttpErrorResponseError;
           if (resErr != null) {
-            let errorMessage = resErr.error.message;
+            let errorMessage = `<strong>${resErr.error.message}</strong>`;
             if (resErr.error.details && resErr.error.details.length > 0) {
               errorMessage +=
                 '<ul>' +
@@ -71,7 +71,7 @@ export class CreateLabelComponent {
           } else {
             this.error.set(
               this.sanitizer.bypassSecurityTrustHtml(
-                'Er is een fout opgetreden bij het aanmaken van het label.',
+                '<strong>Er is een fout opgetreden bij het aanmaken van het label.</strong>',
               ),
             );
           }

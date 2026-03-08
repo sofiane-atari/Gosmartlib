@@ -15,6 +15,7 @@ import { LabelsListComponent } from '../labels-list/labels-list.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CreateLabelComponent } from '../create-label/create-label.component';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
+import { PageingOpt } from '../../model/paginated-response.model.ts';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -36,22 +37,26 @@ export class DashboardLabelsComponent {
   private labelService = inject(LabelService);
   private destroyRef = inject(DestroyRef);
 
+  private labelPageOpt: PageingOpt = { pageSize: 20 };
+
   protected success = signal<string | null>(null);
   protected error = signal<string | null>(null);
   protected popUp = signal<PopupState>(null);
 
   public searchQuery = signal('');
 
-  labels = toSignal(this.labelService.getAllLabels(), {
-    initialValue: [],
-  });
+  labels = computed(() => this.response()?.data ?? []);
+
+  response = toSignal(
+    this.labelService.getLabelsByPage({ pagingOpt: this.labelPageOpt }),
+  );
 
   protected totalCount = computed(() => this.labels().length);
   protected activeCount = computed(
-    () => this.labels().filter((l) => l.numberOfBooks! > 0).length,
+    () => this.labels().filter((l) => l.booksCount! > 0).length,
   );
   protected unusedCount = computed(
-    () => this.labels().filter((l) => l.numberOfBooks! === 0).length,
+    () => this.labels().filter((l) => l.booksCount! === 0).length,
   );
 
   protected filteredLabels = computed(() =>
