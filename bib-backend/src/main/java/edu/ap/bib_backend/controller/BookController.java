@@ -1,6 +1,8 @@
 package edu.ap.bib_backend.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -46,6 +48,14 @@ public class BookController {
     public ResponseEntity<BookDTO> getBookByISBN(@PathVariable String isbn) {
         BookDTO book = bs.fetchBookByISBN(isbn);
         return ResponseEntity.ok(book);
+    }
+
+    @GetMapping("/years/range")
+    public ResponseEntity<Map<String, Integer>> getYearRange() {
+        Map<String, Integer> range = new HashMap<>();
+        range.put("min", bs.getMinReleaseYear());
+        range.put("max", bs.getMaxReleaseYear());
+        return ResponseEntity.ok(range);
     }
 
 }

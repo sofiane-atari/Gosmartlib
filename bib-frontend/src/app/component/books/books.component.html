@@ -1,8 +1,66 @@
 <div class="container">
   <h2>Boeken Catalogus</h2>
 
+  <div class="top-filter-bar">
+    
+    <div class="filter-group search-group">
+      <lucide-icon [img]="Search" class="search-icon" [size]="20"></lucide-icon>
+      <input 
+        type="text" 
+        [(ngModel)]="filters.searchTerm" 
+        (input)="applyFilters()" 
+        placeholder="Zoek op titel of auteur..." 
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.availability" (change)="applyFilters()" class="filter-select">
+        <option value="">Alle statussen</option>
+        <option value="AVAILABLE">Beschikbaar</option>
+        <option value="BORROWED">Uitgeleend</option>
+        <option value="DAMAGED">Beschadigd</option>
+        <option value="LOST">Verloren</option>
+      </select>
+    </div>
+
+    <div class="filter-group range-group">
+      <div class="slider-labels">
+        <label>Jaar:</label>
+        <span class="year-display">{{ filters.minYear }} - {{ filters.maxYear }}</span>
+      </div>
+      
+      <div class="sliders-container">
+        <input 
+          type="range" 
+          [(ngModel)]="filters.minYear" 
+          [min]="absoluteMinYear" 
+          [max]="filters.maxYear" 
+          (input)="applyFilters()" 
+          class="year-slider"
+        >
+        <input 
+          type="range" 
+          [(ngModel)]="filters.maxYear" 
+          [min]="filters.minYear" 
+          [max]="absoluteMaxYear" 
+          (input)="applyFilters()" 
+          class="year-slider"
+        >
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.sortBy" (change)="applyFilters()" class="filter-select">
+        <option value="az">Titel: A-Z</option>
+        <option value="za">Titel: Z-A</option>
+        <option value="newest">Nieuwste eerst</option>
+      </select>
+    </div>
+  </div>
+
   <div class="books-grid">
-    @for (book of books; track book.id || $index) {
+    @for (book of filteredBooks; track book.id || $index) {
       <div class="book-card" (click)="toBookDetailPage(book)">
         <div class="book-image">
           <img [src]="book.imageUrl" [alt]="book.title" />
@@ -18,11 +76,21 @@
               <lucide-icon [img]="Book" [size]="16"></lucide-icon>
               {{ book.pages }} pagina's
             </div>
-            <button class="favorite-btn" (click)="toggleFavorite($event, book)">
+            <button class="favorite-btn" (click)="toggleFavorite($event, book)" title="Voeg toe aan favorieten">
               <lucide-icon [img]="Heart" [size]="20"></lucide-icon>
             </button>
           </div>
         </div>
+      </div>
+    }
+    
+    @if (filteredBooks.length === 0) {
+      <div class="empty-state">
+        <lucide-icon [img]="Search" [size]="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-icon>
+        <p>Geen boeken gevonden met deze filters...</p>
+        <button class="reset-btn" (click)="filters.searchTerm = ''; filters.availability = ''; applyFilters()">
+          Wis filters
+        </button>
       </div>
     }
   </div>

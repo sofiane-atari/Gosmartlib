@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -109,6 +110,17 @@ public class BookService {
         dto.setCopies(1);// nog aanpassen
 
         return dto;
+    }
+
+    public Integer getMinReleaseYear() {
+        Integer min = br.findMinReleaseYear();
+        return min != null ? min : 1900; 
+    }
+
+    public Integer getMaxReleaseYear() {
+        Integer max = br.findMaxReleaseYear();
+        int year = LocalDate.now().getYear(); 
+        return max != null ? max : year;     
     }
 
 }

@@ -25,4 +25,8 @@ export class BookService {
   getBookByISBN(isbn: string){
    return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
   }
+
+  getYearRange(): Observable<{min: number, max: number}> {
+    return this.http.get<{min: number, max: number}>(`${this.apiUrl}/years/range`);
+  }
 }
