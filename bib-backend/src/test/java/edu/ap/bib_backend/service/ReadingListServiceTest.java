@@ -2,6 +2,8 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.ReadingListDTO;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
+import edu.ap.bib_backend.jpa.entity.ReadingListBook;
+import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,9 @@ class ReadingListServiceTest {
 
     @Mock
     private ReadingListRepository readingListRepository;
+
+    @Mock
+    private ReadingListBookRepository readingListBookRepository;
 
     @InjectMocks
     private ReadingListService readingListService;
@@ -161,5 +166,107 @@ class ReadingListServiceTest {
                 () -> readingListService.getListById(id));
 
         assertEquals("Leeslijst met id 99 bestaat niet", exception.getMessage());
+    }
+
+    // addBookToList
+
+    @Test
+    void givenValidBookId_whenAddBookToList_thenSaveAndReturn() {
+        Long listId = 1L;
+        Long bookId = 100L;
+        ReadingList list = new ReadingList();
+        list.setId(listId);
+
+        ReadingListBook savedBook = new ReadingListBook();
+        savedBook.setId(10L);
+        savedBook.setReadingList(list);
+        savedBook.setBookId(bookId);
+
+        when(readingListRepository.findById(listId)).thenReturn(java.util.Optional.of(list));
+        when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
+
+        ReadingListBook result = readingListService.addBookToList(listId, bookId);
+
+        assertNotNull(result);
+        assertEquals(bookId, result.getBookId());
+        assertEquals(listId, result.getReadingList().getId());
+        verify(readingListBookRepository).save(any(ReadingListBook.class));
+    }
+
+    @Test
+    void givenBookAlreadyInList_whenAddBookToList_thenThrowException() {
+        Long listId = 1L;
+        Long bookId = 100L;
+        ReadingList list = new ReadingList();
+        list.setId(listId);
+
+        ReadingListBook existingBook = new ReadingListBook();
+        existingBook.setBookId(bookId);
+        list.setBooks(List.of(existingBook));
+
+        when(readingListRepository.findById(listId)).thenReturn(java.util.Optional.of(list));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.addBookToList(listId, bookId));
+
+        assertEquals("Boek zit al in deze leeslijst", exception.getMessage());
+        verify(readingListBookRepository, never()).save(any());
+    }
+
+    @Test
+    void givenNullBookId_whenAddBookToList_thenThrowException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.addBookToList(1L, null));
+
+        assertEquals("Boek ID mag niet null zijn", exception.getMessage());
+    }
+
+    // addBookToFavorites
+
+    @Test
+    void givenFavoritesListExists_whenAddBookToFavorites_thenAddToList() {
+        Long bookId = 100L;
+        ReadingList list = new ReadingList();
+        list.setId(99L);
+        list.setName("Favorieten");
+
+        ReadingListBook savedBook = new ReadingListBook();
+        savedBook.setBookId(bookId);
+        savedBook.setReadingList(list);
+
+        when(readingListRepository.findByNameIgnoreCase("Favorieten")).thenReturn(java.util.Optional.of(list));
+        when(readingListRepository.findById(99L)).thenReturn(java.util.Optional.of(list));
+        when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
+
+        ReadingListBook result = readingListService.addBookToFavorites(bookId);
+
+        assertNotNull(result);
+        assertEquals(bookId, result.getBookId());
+        verify(readingListRepository, never()).save(any());
+        verify(readingListBookRepository).save(any());
+    }
+
+    @Test
+    void givenFavoritesListDoesNotExist_whenAddBookToFavorites_thenCreateListAndAdd() {
+        Long bookId = 100L;
+        ReadingList newList = new ReadingList();
+        newList.setId(100L);
+        newList.setName("Favorieten");
+
+        ReadingListBook savedBook = new ReadingListBook();
+        savedBook.setBookId(bookId);
+        savedBook.setReadingList(newList);
+
+        when(readingListRepository.findByNameIgnoreCase("Favorieten")).thenReturn(java.util.Optional.empty());
+        when(readingListRepository.save(any(ReadingList.class))).thenReturn(newList);
+        when(readingListRepository.findById(100L)).thenReturn(java.util.Optional.of(newList));
+        when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
+
+        ReadingListBook result = readingListService.addBookToFavorites(bookId);
+
+        assertNotNull(result);
+        assertEquals(bookId, result.getBookId());
+        verify(readingListRepository).save(any(ReadingList.class));
+        verify(readingListBookRepository).save(any());
     }
 }

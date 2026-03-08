@@ -1,7 +1,9 @@
 package edu.ap.bib_backend.controller;
 
+import edu.ap.bib_backend.dto.AddBookDTO;
 import edu.ap.bib_backend.dto.ReadingListDTO;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
+import edu.ap.bib_backend.jpa.entity.ReadingListBook;
 import edu.ap.bib_backend.service.ReadingListService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +26,7 @@ public class ReadingListController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReadingList> getReadingListById(@PathVariable Long id) {
+    public ResponseEntity<ReadingList> getReadingListById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(readingListService.getListById(id));
     }
 
@@ -35,9 +37,22 @@ public class ReadingListController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReadingList(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteReadingList(@PathVariable("id") Long id) {
         readingListService.deleteReadingList(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{listId}/books")
+    public ResponseEntity<ReadingListBook> addBookToList(@PathVariable("listId") Long listId,
+            @RequestBody AddBookDTO dto) {
+        ReadingListBook addedBook = readingListService.addBookToList(listId, dto.bookId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(addedBook);
+    }
+
+    @PostMapping("/favorites/books")
+    public ResponseEntity<ReadingListBook> addBookToFavorites(@RequestBody AddBookDTO dto) {
+        ReadingListBook addedBook = readingListService.addBookToFavorites(dto.bookId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(addedBook);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

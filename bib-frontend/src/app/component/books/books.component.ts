@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Book } from '../../model/book.model';
 import { BookService } from '../../services/BookService/book.service';
+import { ReadingListService } from '../../services/reading-list.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -33,23 +34,40 @@ export class BooksComponent implements OnInit {
   readonly Heart = Heart;
 
   icons = [
-  { icon: BookOpen, label: 'Catalogus' },
-  { icon: Heart, label: 'Favorieten' },
+    { icon: BookOpen, label: 'Catalogus' },
+    { icon: Heart, label: 'Favorieten' },
   ]
 
 
   books: Book[] = [];
 
-  constructor(private bs: BookService, private router: Router){}
+  constructor(private bs: BookService, private router: Router, private readingListService: ReadingListService) { }
 
   ngOnInit(): void {
-    this.bs.getBooks().subscribe(data => {this.books = data;});
+    this.bs.getBooks().subscribe(data => { this.books = data; });
   }
 
 
-  toggleFavorite(event: Event, book: Book){}
+  toggleFavorite(event: Event, book: Book) {
+    event.stopPropagation();
+    if (book.id) {
+      this.readingListService.addBookToFavorites(book.id).subscribe({
+        next: () => {
+          alert(`"${book.title}" is toegevoegd aan je Favorieten!`);
+        },
+        error: (err) => {
+          if (err.error === 'Boek zit al in deze leeslijst') {
+            alert(`"${book.title}" staat al in je Favorieten!`);
+          } else {
+            console.error("Fout bij toevoegen aan favorieten", err);
+            alert("Er is een fout opgetreden bij het toevoegen aan favorieten.");
+          }
+        }
+      });
+    }
+  }
 
-  toBookDetailPage(book: Book){
+  toBookDetailPage(book: Book) {
     this.router.navigate(['/book', book.id])
   }
 

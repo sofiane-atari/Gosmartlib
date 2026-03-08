@@ -146,6 +146,71 @@
   margin-bottom: 24px;
 }
 
+/* ========== LIST PICKER DROPDOWN ========== */
+.list-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 260px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #eaeaea;
+  z-index: 100;
+  text-align: left;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+  color: #333;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list-picker-header {
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  color: #666;
+}
+
+.list-picker-items {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.list-picker-item {
+  padding: 12px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: #1a1a2e;
+}
+
+.list-picker-item:hover {
+  background: var(--third-color);
+  color: var(--main-color);
+  font-weight: 500;
+}
+
+.list-picker-empty {
+  padding: 16px;
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+  font-style: italic;
+}
+
 .management-card {
   background: #f8fafc;
   border-radius: 12px;
@@ -422,7 +487,7 @@
 .delete-review-btn {
   background: transparent;
   border: none;
-  color: #94a3b8; 
+  color: #94a3b8;
   cursor: pointer;
   padding: 8px;
   border-radius: 8px;
@@ -433,20 +498,20 @@
 }
 
 .delete-review-btn:hover {
-  background: #fee2e2; 
-  color: #dc2626; 
-  transform: scale(1.05); 
+  background: #fee2e2;
+  color: #dc2626;
+  transform: scale(1.05);
 }
 
 /* Sterren Algemeen */
 .star {
-  color: #e2e8f0; 
+  color: #e2e8f0;
   font-size: 1.25rem;
   transition: color 0.2s ease;
 }
 
 .star.filled {
-  color: #fbbf24; 
+  color: #fbbf24;
 }
 
 /* Nieuwe Review Formulier */

@@ -15,6 +15,7 @@ import {
   Star,
   MessageCircle,
   BookPlus,
+  Bookmark
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +25,8 @@ import { Availability } from '../../model/enums/availability.enum';
 import { Review } from '../../model/review.model';
 import { ReviewService } from '../../services/Reviews/review.service';
 import { ToastService } from '../../services/Toast/toast.service';
+import { ReadingListService, ReadingList } from '../../services/reading-list.service';
+
 
 @Component({
   selector: 'app-book-detail',
@@ -44,6 +47,7 @@ export class BookDetailComponent {
   readonly Star = Star;
   readonly MessageCircle = MessageCircle;
   readonly BookOpen = BookOpen;
+  readonly Bookmark = Bookmark;
   icons = [
     { icon: Library, label: 'Bibliotheek' },
     { icon: Star, label: 'Reviews' },
@@ -64,8 +68,18 @@ export class BookDetailComponent {
   starsArray: number[] = [1, 2, 3, 4, 5];
   averageRating: number = 0;
 
+  // Lists //
+  readingLists: ReadingList[] = [];
+  showListPicker: boolean = false;
+
   Availability = Availability;
-  constructor(private route: ActivatedRoute, private bookService: BookService, private reviewService: ReviewService, private toastService: ToastService ) {
+
+  constructor(
+    private route: ActivatedRoute, 
+    private bookService: BookService, 
+    private readingListService: ReadingListService, 
+    private reviewService: ReviewService, 
+    private toastService: ToastService ) {
 
   }
 
@@ -81,6 +95,8 @@ export class BookDetailComponent {
         this.loadReviews(+id);
       }
     });
+
+    this.loadReadingLists();
   }
 
   public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
@@ -95,7 +111,36 @@ export class BookDetailComponent {
     this.updateAverage(bookId);
   }
 
-  setRating(rating: number){
+  loadReadingLists() {
+    this.readingListService.getLists().subscribe((lists) => {
+      this.readingLists = lists;
+    });
+  }
+
+  toggleListPicker() {
+    this.showListPicker = !this.showListPicker;
+  }
+
+  addBookToList(listId: number) {
+    if (this.selectedBook?.id) {
+      this.readingListService.addBookToList(listId, this.selectedBook.id).subscribe({
+        next: () => {
+          alert(`Boek toegevoegd aan leeslijst!`);
+          this.showListPicker = false;
+        },
+        error: (err) => {
+          if (err.error === 'Boek zit al in deze leeslijst') {
+            alert("Dit boek staat al in deze leeslijst!");
+          } else {
+            console.error("Fout bij toevoegen aan leeslijst", err);
+            alert("Er is een fout opgetreden bij het toevoegen aan de leeslijst.");
+          }
+        }
+      });
+    }
+  }
+
+  setRating(rating: number) {
     this.newReviewRating = rating;
   }
 
@@ -135,7 +180,7 @@ export class BookDetailComponent {
       }
     });
   }
-
+  
   deleteReview(reviewId?: number){
     if (!reviewId) return;
 

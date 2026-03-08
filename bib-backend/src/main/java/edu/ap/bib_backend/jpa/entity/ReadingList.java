@@ -18,7 +18,7 @@ public class ReadingList {
     @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "readingList", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "readingList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ReadingListBook> books;
 
 }
