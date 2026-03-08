@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.jpa.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,11 +15,9 @@ public class ReadingListBook {
     private Long id;
     @ManyToOne
     @JoinColumn(name = "reading_list_id", nullable = false)
+    @JsonIgnore
     private ReadingList readingList;
     @Column(nullable = false)
     private Long bookId;
-
-
-
 
 }

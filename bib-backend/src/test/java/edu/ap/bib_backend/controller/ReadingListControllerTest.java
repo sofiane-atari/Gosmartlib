@@ -137,4 +137,46 @@ class ReadingListControllerTest {
         mockMvc.perform(get("/api/reading-lists/{id}", 99L))
                 .andExpect(status().isBadRequest());
     }
+
+    // POST /api/reading-lists/{listId}/books
+
+    @Test
+    void givenValidData_whenAddBookToList_thenReturnCreated() throws Exception {
+        edu.ap.bib_backend.dto.AddBookDTO dto = new edu.ap.bib_backend.dto.AddBookDTO(100L);
+        ReadingList list = new ReadingList();
+        list.setId(10L);
+        edu.ap.bib_backend.jpa.entity.ReadingListBook savedBook = new edu.ap.bib_backend.jpa.entity.ReadingListBook();
+        savedBook.setId(1L);
+        savedBook.setBookId(100L);
+        savedBook.setReadingList(list);
+
+        when(readingListService.addBookToList(10L, 100L)).thenReturn(savedBook);
+
+        mockMvc.perform(post("/api/reading-lists/{listId}/books", 10L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.bookId").value(100));
+    }
+
+    // POST /api/reading-lists/favorites/books
+
+    @Test
+    void givenValidData_whenAddBookToFavorites_thenReturnCreated() throws Exception {
+        edu.ap.bib_backend.dto.AddBookDTO dto = new edu.ap.bib_backend.dto.AddBookDTO(100L);
+        ReadingList list = new ReadingList();
+        list.setId(99L);
+        edu.ap.bib_backend.jpa.entity.ReadingListBook savedBook = new edu.ap.bib_backend.jpa.entity.ReadingListBook();
+        savedBook.setId(2L);
+        savedBook.setBookId(100L);
+        savedBook.setReadingList(list);
+
+        when(readingListService.addBookToFavorites(100L)).thenReturn(savedBook);
+
+        mockMvc.perform(post("/api/reading-lists/favorites/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.bookId").value(100));
+    }
 }

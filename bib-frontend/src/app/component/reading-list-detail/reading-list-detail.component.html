@@ -18,21 +18,33 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">{{ list.name }}</h1>
-                <p class="page-subtitle">Gedeelde leeslijst</p>
+                <p class="page-subtitle">leeslijst</p>
             </div>
             <button class="btn-secondary" routerLink="/reading-list">← Terug</button>
         </div>
 
-        <div class="books-empty" *ngIf="!list.books || list.books.length === 0">
+        <div class="books-empty" *ngIf="booksInList.length === 0 && list.books && list.books.length > 0">
+            <div class="empty-icon">⏳</div>
+            <p>Boeken laden...</p>
+        </div>
+
+        <div class="books-empty" *ngIf="(!list.books || list.books.length === 0)">
             <div class="empty-icon">📖</div>
             <p>Deze leeslijst bevat nog geen boeken.</p>
         </div>
 
-        <div class="books-grid" *ngIf="list.books && list.books.length > 0">
-            <div class="book-card" *ngFor="let entry of list.books">
-                <div class="book-cover">📗</div>
+        <div class="books-grid" *ngIf="booksInList.length > 0">
+            <div class="book-card" *ngFor="let book of booksInList" (click)="goToBook(book.id)"
+                style="cursor: pointer;">
+                <div class="book-cover">
+                    <!-- Display actual image or fallback -->
+                    <img *ngIf="book.imageUrl" [src]="book.imageUrl" alt="Cover"
+                        style="width: 50%; height: 50%; object-fit: cover; border-radius: inherit;" />
+                    <span *ngIf="!book.imageUrl">📗</span>
+                </div>
                 <div class="book-info">
-                    <p class="book-title">Boek #{{ entry.bookId }}</p>
+                    <p class="book-title">{{ book.title }}</p>
+                    <p class="book-author" style="font-size: 13px; color: #666; margin-top: 4px;">{{ book.author }}</p>
                 </div>
             </div>
         </div>
