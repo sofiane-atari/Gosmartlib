@@ -1,20 +1,19 @@
-<div [class.blur-background]="showPopup()">
-  <button class="create-btn" (click)="openPopup()">+ Maak een label aan</button>
-  @if (success()) {
-    <div class="success-message">
-      {{ success() }}
-    </div>
+<div class="labels-list">
+  <div class="labels-list__header">
+    <span>Label</span>
+    <span>Beschrijving</span>
+    <span>Kleur</span>
+    <span>Boeken</span>
+    <span>Acties</span>
+  </div>
+
+  @for (label of labels(); track $index) {
+    <app-label-card [label]="label" />
   }
 
-  @if (error()) {
-    <div class="error-message">
-      {{ error() }}
+  @if (labels().length === 0) {
+    <div class="labels-list__empty">
+      <p>Geen labels gevonden.</p>
     </div>
   }
 </div>
-
-<!-- Popup Overlay -->
-@if (showPopup()) {
-    <app-create-label (labelCreated)="closePopup()" (closeEvent)="closePopup()" (successEvent)="onSuccess($event)" (errorEvent)="onError($event)" />
-}
-
