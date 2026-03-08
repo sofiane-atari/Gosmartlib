@@ -1,0 +1,12 @@
+<div class="toast-container" *ngIf="toast" [@fade]>
+  <div class="toast" [ngClass]="toast.type">
+    {{ toast.message }}
+
+    <ng-container *ngIf="toast.type === 'confirm'">
+      <div class="confirm-buttons">
+        <button class="btn-yes" (click)="confirm()">Ja</button>
+        <button class="btn-no" (click)="cancel()">Nee</button>
+      </div>
+    </ng-container>
+  </div>
+</div>

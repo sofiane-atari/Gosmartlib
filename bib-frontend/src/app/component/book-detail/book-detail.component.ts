@@ -23,6 +23,7 @@ import { BookService } from '../../services/BookService/book.service';
 import { Availability } from '../../model/enums/availability.enum';
 import { Review } from '../../model/review.model';
 import { ReviewService } from '../../services/Reviews/review.service';
+import { ToastService } from '../../services/Toast/toast.service';
 
 @Component({
   selector: 'app-book-detail',
@@ -64,7 +65,7 @@ export class BookDetailComponent {
   averageRating: number = 0;
 
   Availability = Availability;
-  constructor(private route: ActivatedRoute, private bookService: BookService, private reviewService: ReviewService ) {
+  constructor(private route: ActivatedRoute, private bookService: BookService, private reviewService: ReviewService, private toastService: ToastService ) {
 
   }
 
@@ -88,7 +89,7 @@ export class BookDetailComponent {
   loadReviews(bookId: number) {
     this.reviewService.getReviewsForBook(bookId).subscribe({
       next: (data) => this.reviews = data,
-      error: (err) => console.error('Fout bij ophalen reviews', err)
+      error: (err) => console.error('Problem with loading the reviews', err)
     });
 
     this.updateAverage(bookId);
@@ -105,7 +106,7 @@ export class BookDetailComponent {
   updateAverage(bookId: number) {
     this.reviewService.getAverageRating(bookId).subscribe({
       next: (avg) => this.averageRating = avg,
-      error: (err) => console.error('Fout bij ophalen gemiddelde', err)
+      error: (err) => console.error('Problem with getting average score', err)
     });
   }
 
@@ -126,28 +127,33 @@ export class BookDetailComponent {
         this.newReviewRating = 5;
 
         this.updateAverage(bookId);
+        this.toastService.show('Review succesvol geplaatst!', 'success');
       },
-      error: (err) => console.error('Fout bij opslaan review', err)
+      error: (err) => {
+        console.error('Problem with storing review', err);
+        this.toastService.show('Je review bevat ongepast taalgebruik en is niet geplaatst.', 'error');
+      }
     });
   }
 
   deleteReview(reviewId?: number){
-
     if (!reviewId) return;
 
-    if (confirm('Weet je zeker dat je deze review wilt verwijderen?')) {
-
-      this.reviewService.deleteReview(reviewId).subscribe({
-        next: () => {
-          this.reviews = this.reviews.filter(r => r.id !== reviewId);
-
-          if(this.selectedBook?.id){
-            this.updateAverage(this.selectedBook.id)
-          }
-        },
-        error: (err) => console.error('Fout bij verwijderen review', err)
-      })
-    }
+    this.toastService.showConfirm(
+      'Weet je zeker dat je deze review wilt verwijderen?',
+      () => {
+        this.reviewService.deleteReview(reviewId).subscribe({
+          next: () => {
+            this.reviews = this.reviews.filter(r => r.id !== reviewId);
+            if(this.selectedBook?.id) this.updateAverage(this.selectedBook.id);
+            this.toastService.show('Review verwijderd!', 'success');
+          },
+          error: () => this.toastService.show('Problem with deleting!', 'error')
+        });
+      },
+      () => {
+      }
+    );
   }
 
   increaseQuantity(): void {
