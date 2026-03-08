@@ -6,11 +6,12 @@ import { environment } from '../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { BooksComponent } from './component/books/books.component';
 import { SidebarComponent } from "./component/sidebar/sidebar.component";
+import { ToastComponent } from './component/toast/toast.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, RouterOutlet],
+  imports: [CommonModule, FormsModule, SidebarComponent, RouterOutlet, ToastComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

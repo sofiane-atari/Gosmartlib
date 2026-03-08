@@ -17,10 +17,12 @@ public class ReviewService {
 
     private final ReviewRepository rr;
     private final BookRepository br; 
+    private final ProfanityFilterService ps;
 
-    public ReviewService(ReviewRepository rr, BookRepository br) {
+    public ReviewService(ReviewRepository rr, BookRepository br, ProfanityFilterService ps) {
         this.rr = rr;
         this.br = br;
+        this.ps = ps;
     }
 
     public List<ReviewDTO> getReviewsForBook(Long bookId) {
@@ -30,8 +32,12 @@ public class ReviewService {
     }
 
     public ReviewDTO addReviewToBook(Long bookId, ReviewDTO reviewDTO) {
+        if (ps.containsProfanity(reviewDTO.getComment())) {
+            throw new RuntimeException("Review contains profanity");
+        }
+
         Book book = br.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + bookId));
+                .orElseThrow(() -> new RuntimeException("Didn't find book with id: " + bookId));
         
         Review review = new Review(reviewDTO.getComment(), reviewDTO.getRating(), book);
         Review savedReview = rr.save(review);
@@ -47,7 +53,7 @@ public class ReviewService {
     public void deleteReview(Long reviewId){
 
         Review review = rr.findById(reviewId)
-        .orElseThrow(() -> new RuntimeException("Review niet gevonden met id: " + reviewId));
+        .orElseThrow(() -> new RuntimeException("Didn't find review with id: " + reviewId));
 
         rr.delete(review);
     }
