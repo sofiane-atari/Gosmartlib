@@ -216,12 +216,36 @@
   flex-direction: column;
   gap: 4px;
   margin-top: 4px;
+  padding: 8px 0;
 }
 
 .panel-slider {
   width: 100%;
   accent-color: var(--main-color, #8A1E41);
   cursor: pointer;
+  -webkit-appearance: none;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  outline: none;
+  margin: 8px 0;
+}
+
+.panel-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--main-color, #8A1E41);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.1s ease;
+}
+
+.panel-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
 }
 
 .panel-footer {
@@ -414,7 +438,7 @@
 }
 
 ::ng-deep .star-icon svg {
-  fill: #f59e0b !important;
+  fill: #f59e0b !important;   
   stroke: #f59e0b !important; 
   color: #f59e0b !important;  
 }

@@ -68,17 +68,36 @@ export class BooksComponent implements OnInit {
 
   ngOnInit(): void {
 
+    const savedFilters = localStorage.getItem('bookFilters');
+    let parsedFilters: any = null;
+    if (savedFilters) {
+      parsedFilters = JSON.parse(savedFilters);
+      this.filters = parsedFilters;
+      this.isFilterOpen = true;
+    }
+
     this.bs.getMaxPages().subscribe(max => {
       this.absoluteMaxPages = max;
-      this.filters.maxPages = max;
+      if (!parsedFilters || this.filters.maxPages === null || this.filters.maxPages > max) {
+        this.filters.maxPages = max;
+      }
     })
 
     this.bs.getYearRange().subscribe(range => {
       this.absoluteMinYear = range.min;
       this.absoluteMaxYear = range.max;
       
+      if (!parsedFilters) {
       this.filters.minYear = range.min;
       this.filters.maxYear = range.max;
+    } else {
+      if (this.filters.minYear === null || this.filters.minYear < range.min) {
+        this.filters.minYear = range.min;
+      }
+      if (this.filters.maxYear === null || this.filters.maxYear > range.max) {
+        this.filters.maxYear = range.max;
+      }
+    }
     });
 
     this.bs.getBooks().subscribe(data => { 
@@ -99,6 +118,9 @@ export class BooksComponent implements OnInit {
   }
 
   applyFilters() {
+
+    localStorage.setItem('bookFilters', JSON.stringify(this.filters));
+
     this.filteredBooks = this.books.filter(book => {
       
       const searchMatch = !this.filters.searchTerm || 
@@ -125,6 +147,8 @@ export class BooksComponent implements OnInit {
   }
 
   resetFilters() {
+    localStorage.removeItem('bookFilters');
+
     this.filters.searchTerm = '';
     this.filters.availability = 'Alle Boeken';
     this.filters.minYear = this.absoluteMinYear;
