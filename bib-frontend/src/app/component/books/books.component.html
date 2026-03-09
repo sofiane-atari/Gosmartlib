@@ -14,16 +14,6 @@
       />
     </div>
 
-    <div class="filter-group">
-      <select [(ngModel)]="filters.availability" (change)="applyFilters()" class="filter-select">
-        <option value="">Alle statussen</option>
-        <option value="AVAILABLE">Beschikbaar</option>
-        <option value="BORROWED">Uitgeleend</option>
-        <option value="DAMAGED">Beschadigd</option>
-        <option value="LOST">Verloren</option>
-      </select>
-    </div>
-
     <div class="filter-group range-group">
       <div class="slider-labels">
         <label>Jaar:</label>
@@ -44,6 +34,24 @@
           [(ngModel)]="filters.maxYear" 
           [min]="filters.minYear" 
           [max]="absoluteMaxYear" 
+          (input)="applyFilters()" 
+          class="year-slider"
+        >
+      </div>
+    </div>
+
+    <div class="filter-group range-group">
+      <div class="slider-labels">
+        <label>Max Pagina's:</label>
+        <span class="year-display">{{ filters.maxPages }}</span>
+      </div>
+      
+      <div class="sliders-container">
+        <input 
+          type="range" 
+          [(ngModel)]="filters.maxPages" 
+          [min]="0" 
+          [max]="absoluteMaxPages" 
           (input)="applyFilters()" 
           class="year-slider"
         >
@@ -88,7 +96,7 @@
       <div class="empty-state">
         <lucide-icon [img]="Search" [size]="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-icon>
         <p>Geen boeken gevonden met deze filters...</p>
-        <button class="reset-btn" (click)="filters.searchTerm = ''; filters.availability = ''; applyFilters()">
+        <button class="reset-btn" (click)="resetFilters()">
           Wis filters
         </button>
       </div>

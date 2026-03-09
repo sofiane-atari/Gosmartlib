@@ -123,4 +123,9 @@ public class BookService {
         return max != null ? max : year;     
     }
 
+    public Integer getMaxPages(){
+        Integer max = br.findMaxPages();
+        return max != null ? max : 1500;
+    }
+
 }

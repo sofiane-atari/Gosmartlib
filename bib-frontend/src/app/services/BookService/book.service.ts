@@ -29,4 +29,8 @@ export class BookService {
   getYearRange(): Observable<{min: number, max: number}> {
     return this.http.get<{min: number, max: number}>(`${this.apiUrl}/years/range`);
   }
+
+  getMaxPages(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/pages/max`);
+  }
 }

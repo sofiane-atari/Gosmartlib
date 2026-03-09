@@ -45,18 +45,24 @@ export class BooksComponent implements OnInit {
   filteredBooks: Book[] = [];
   absoluteMinYear: number = 0;
   absoluteMaxYear: number = 0;
+  absoluteMaxPages: number = 0;
 
   filters = {
     searchTerm: '',
-    availability: '',
     minYear: null as number | null,
     maxYear: null as number | null,
+    maxPages: null as number | null,
     sortBy: 'az'
   };
 
   constructor(private bs: BookService, private router: Router, private readingListService: ReadingListService) { }
 
   ngOnInit(): void {
+
+    this.bs.getMaxPages().subscribe(max => {
+      this.absoluteMaxPages = max;
+      this.filters.maxPages = max;
+    })
 
     this.bs.getYearRange().subscribe(range => {
       this.absoluteMinYear = range.min;
@@ -80,19 +86,26 @@ export class BooksComponent implements OnInit {
         book.title.toLowerCase().includes(this.filters.searchTerm.toLowerCase()) || 
         book.author.toLowerCase().includes(this.filters.searchTerm.toLowerCase());
 
-      
-      const availabilityMatch = !this.filters.availability || 
-        book.availability === this.filters.availability;
+      const maxPagesMatch = !this.filters.maxPages || book.pages <= this.filters.maxPages;
 
-      
       const minYearMatch = !this.filters.minYear || book.releaseYear >= this.filters.minYear;
       const maxYearMatch = !this.filters.maxYear || book.releaseYear <= this.filters.maxYear;
 
-      return searchMatch && availabilityMatch && minYearMatch && maxYearMatch;
+      return searchMatch && minYearMatch && maxYearMatch && maxPagesMatch;
     });
 
     
     this.sortBooks();
+  }
+
+  resetFilters() {
+    this.filters.searchTerm = '';
+    this.filters.minYear = this.absoluteMinYear;
+    this.filters.maxYear = this.absoluteMaxYear;
+    this.filters.maxPages = this.absoluteMaxPages;
+    this.filters.sortBy = 'az'; 
+
+    this.applyFilters();
   }
 
   sortBooks() {
