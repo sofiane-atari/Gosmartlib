@@ -51,7 +51,7 @@ public class BookService {
         dto.setCopies(book.getCopies());
         dto.setDescription(book.getDescription());
         dto.setReleaseYear(book.getReleaseYear());
-        dto.setReviewScore(book.getReviewScore());
+        dto.setReviewScore(book.getReviewScore() != null ? book.getReviewScore() : 0.0);
         return dto;
     }
 
