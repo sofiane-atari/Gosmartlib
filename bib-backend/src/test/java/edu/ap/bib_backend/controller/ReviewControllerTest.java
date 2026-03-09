@@ -118,4 +118,30 @@ class ReviewControllerTest {
 
                 Mockito.verify(reviewService).deleteReview(reviewId);
         }
+
+    @Test
+    @DisplayName("rapporteer review - Succes")
+    void whenReportReview_givenValidId_thenReturnReportedReview() throws Exception {
+        // Arrange
+        Long reviewId = 1L;
+
+        ReviewDTO reviewDTO = new ReviewDTO(
+                reviewId,
+                "Good book",
+                4,
+                3
+        );
+
+        Mockito.when(reviewService.reportReview(reviewId)).thenReturn(reviewDTO);
+
+        // Act & Assert
+        mockMvc.perform(post("/reviews/{reviewId}/report", reviewId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.comment").value("Good book"))
+                .andExpect(jsonPath("$.rating").value(4))
+                .andExpect(jsonPath("$.reportCount").value(3));
+
+        Mockito.verify(reviewService).reportReview(reviewId);
+    }
 }
