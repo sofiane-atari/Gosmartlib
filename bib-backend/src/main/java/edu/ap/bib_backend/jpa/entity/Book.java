@@ -1,5 +1,8 @@
 package edu.ap.bib_backend.jpa.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.Setter;
 import lombok.Getter;
@@ -46,6 +49,10 @@ public class Book {
         this.availability = availability;
         this.copies = copies;
     }
+
+    @ManyToMany
+    @JoinTable(name = "book_labels", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "label_name"))
+    private List<Label> labels = new ArrayList<>();
 
     @Override
     public String toString() {

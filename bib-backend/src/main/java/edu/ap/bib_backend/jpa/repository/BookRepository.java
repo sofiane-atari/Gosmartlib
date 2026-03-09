@@ -6,4 +6,3 @@ import edu.ap.bib_backend.jpa.entity.Book;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
 }
-
