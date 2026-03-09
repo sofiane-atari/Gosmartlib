@@ -414,9 +414,9 @@
 }
 
 ::ng-deep .star-icon svg {
-  fill: #f59e0b !important;   /* Kleurt de binnenkant in */
-  stroke: #f59e0b !important; /* Kleurt de rand in */
-  color: #f59e0b !important;  /* Fallback voor de zekerheid */
+  fill: #f59e0b !important;
+  stroke: #f59e0b !important; 
+  color: #f59e0b !important;  
 }
 
 /* =========================================================

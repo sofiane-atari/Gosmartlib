@@ -46,6 +46,7 @@ public class BookServiceTest {
         book.setCopies(3);
         book.setDescription("dede de d e d ed e d e d e de d e d");
         book.setReleaseYear(2017);
+        book.setReviewScore(4.5);
 
         when(br.findAll()).thenReturn(List.of(book));
 
@@ -64,6 +65,7 @@ public class BookServiceTest {
         assertThat(res.get(0).getCopies()).isEqualTo(3);
         assertThat(res.get(0).getDescription()).isEqualTo("dede de d e d ed e d e d e de d e d");
         assertThat(res.get(0).getReleaseYear()).isEqualTo(2017);
+        assertThat(res.get(0).getReviewScore()).isEqualTo(4.5);
     }
 
     @Test
@@ -80,6 +82,7 @@ public class BookServiceTest {
         book.setCopies(5);
         book.setDescription("Beschrijving van het specifieke boek.");
         book.setReleaseYear(2021);
+        book.setReviewScore(3.8);
 
         // Mock de repository: als er gezocht wordt op ID 1, geef het boek terug
         when(br.findById(1L)).thenReturn(Optional.of(book));
@@ -93,6 +96,7 @@ public class BookServiceTest {
         assertThat(res.getTitle()).isEqualTo("Specifiek Boek");
         assertThat(res.getAvailability()).isEqualTo(Availability.AVAILABLE);
         assertThat(res.getReleaseYear()).isEqualTo(2021);
+        assertThat(res.getReviewScore()).isEqualTo(3.8);
     }
 
     @Test
@@ -119,6 +123,7 @@ public class BookServiceTest {
         savedBook.setCopies(dto.getCopies());
         savedBook.setDescription(dto.getDescription());
         savedBook.setReleaseYear(dto.getReleaseYear());
+        savedBook.setReviewScore(0.0);
 
         Mockito.when(br.save(Mockito.any(Book.class))).thenReturn(savedBook);
 
@@ -136,5 +141,6 @@ public class BookServiceTest {
         assertThat(result.getDescription()).isEqualTo("Beschrijving hier");
         assertThat(result.getReleaseYear()).isEqualTo(2024);
         assertThat(result.getImageUrl()).isEqualTo("https://example.com/image.jpg");
+        assertThat(result.getReviewScore()).isEqualTo(0.0);
     }
 }
