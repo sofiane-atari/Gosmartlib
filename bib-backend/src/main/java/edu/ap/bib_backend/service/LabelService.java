@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.LabelDTO;
+import edu.ap.bib_backend.dto.LabelStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
@@ -55,6 +56,15 @@ public class LabelService {
         PaginatedMeta meta = PageMapper.toPaginatedMeta(labels);
 
         return new PageDTO<LabelDTO>(data, meta);
+    }
+
+    public LabelStatsDTO getAllLabelStats() {
+        var labels = labelRepository.findAllIncludeBookCount(null).getContent();
+
+        int unActiveCount = labels.stream().filter(l -> l.getBookCount() <= 0).toList().size();
+        LabelStatsDTO stats = new LabelStatsDTO(labels.size(), unActiveCount);
+
+        return stats;
     }
 
 }
