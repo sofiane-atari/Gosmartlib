@@ -16,7 +16,7 @@ import javax.management.RuntimeErrorException;
 public class ReviewService {
 
     private final ReviewRepository rr;
-    private final BookRepository br; 
+    private final BookRepository br;
     private final ProfanityFilterService ps;
 
     public ReviewService(ReviewRepository rr, BookRepository br, ProfanityFilterService ps) {
@@ -27,7 +27,8 @@ public class ReviewService {
 
     public List<ReviewDTO> getReviewsForBook(Long bookId) {
         return rr.findByBookId(bookId).stream()
-                .map(review -> new ReviewDTO(review.getId(), review.getComment(), review.getRating()))
+                .map(review -> new ReviewDTO(review.getId(), review.getComment(), review.getRating(),
+                        review.getReportCount()))
                 .collect(Collectors.toList());
     }
 
@@ -38,25 +39,35 @@ public class ReviewService {
 
         Book book = br.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Didn't find book with id: " + bookId));
-        
+
         Review review = new Review(reviewDTO.getComment(), reviewDTO.getRating(), book);
         Review savedReview = rr.save(review);
-        
-        return new ReviewDTO(savedReview.getId(), savedReview.getComment(), savedReview.getRating());
+
+        return new ReviewDTO(savedReview.getId(), savedReview.getComment(), savedReview.getRating(),
+                savedReview.getReportCount());
     }
 
     public Double getAverageRating(Long bookId) {
         return rr.getAverageRatingForBook(bookId);
     }
 
-
-    public void deleteReview(Long reviewId){
+    public void deleteReview(Long reviewId) {
 
         Review review = rr.findById(reviewId)
-        .orElseThrow(() -> new RuntimeException("Didn't find review with id: " + reviewId));
+                .orElseThrow(() -> new RuntimeException("Didn't find review with id: " + reviewId));
 
         rr.delete(review);
     }
 
-    
+    public ReviewDTO reportReview(Long reviewId) {
+        Review review = rr.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Didn't find review with id: " + reviewId));
+
+        review.setReportCount(review.getReportCount() + 1);
+        Review savedReview = rr.save(review);
+
+        return new ReviewDTO(savedReview.getId(), savedReview.getComment(), savedReview.getRating(),
+                savedReview.getReportCount());
+    }
+
 }

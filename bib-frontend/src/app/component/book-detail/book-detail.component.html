@@ -224,9 +224,19 @@
                 </div>
               </div>
 
-              <button class="delete-review-btn" (click)="deleteReview(review.id)" title="Review verwijderen">
-                <lucide-angular [img]="Trash2" size="18"></lucide-angular>
-              </button>
+              <div class="review-actions" style="display: flex; gap: 8px;">
+                <button class="delete-review-btn" [disabled]="review.isReported" (click)="reportReview(review)"
+                  [style.opacity]="review.isReported ? '0.5' : '1'"
+                  [title]="review.isReported ? 'Review is al gerapporteerd' : 'Review rapporteren'">
+                  <lucide-angular [img]="Flag" size="18"
+                    [style.color]="review.isReported ? '#f87171' : 'inherit'"></lucide-angular>
+                  <span *ngIf="review.isReported"
+                    style="font-size: 0.8rem; color: #f87171; margin-left: 4px;">Gerapporteerd</span>
+                </button>
+                <button class="delete-review-btn" (click)="deleteReview(review.id)" title="Review verwijderen">
+                  <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                </button>
+              </div>
             </div>
             <p class="review-text">{{ review.comment }}</p>
           </div>

@@ -8,8 +8,8 @@ import { Review } from '../../model/review.model';
 })
 export class ReviewService {
   private http = inject(HttpClient);
-  
-  private apiUrl = `${environment.apiUrl}/reviews`; 
+
+  private apiUrl = `${environment.apiUrl}/reviews`;
 
   getReviewsForBook(bookId: number) {
     return this.http.get<Review[]>(`${this.apiUrl}/book/${bookId}`);
@@ -23,9 +23,12 @@ export class ReviewService {
     return this.http.get<number>(`${this.apiUrl}/book/${bookId}/average`);
   }
 
-  deleteReview(reviewId: number){
+  deleteReview(reviewId: number) {
     return this.http.delete(`${this.apiUrl}/${reviewId}`);
   }
 
+  reportReview(reviewId: number) {
+    return this.http.post<Review>(`${this.apiUrl}/${reviewId}/report`, {});
+  }
 
 }

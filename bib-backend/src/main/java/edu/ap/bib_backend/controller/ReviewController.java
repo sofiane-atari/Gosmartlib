@@ -20,30 +20,36 @@ public class ReviewController {
 
     private final ReviewService rs;
 
-    public ReviewController(ReviewService rs){
+    public ReviewController(ReviewService rs) {
         this.rs = rs;
     }
 
     @GetMapping("/book/{bookId}")
-    public ResponseEntity<List<ReviewDTO>> getReviewsForBook(@PathVariable Long bookId) {
+    public ResponseEntity<List<ReviewDTO>> getReviewsForBook(@PathVariable("bookId") Long bookId) {
         return ResponseEntity.ok(rs.getReviewsForBook(bookId));
     }
 
     @PostMapping("/book/{bookId}")
-    public ResponseEntity<ReviewDTO> addReview(@PathVariable Long bookId, @RequestBody ReviewDTO reviewDTO) {
+    public ResponseEntity<ReviewDTO> addReview(@PathVariable("bookId") Long bookId, @RequestBody ReviewDTO reviewDTO) {
         ReviewDTO savedReview = rs.addReviewToBook(bookId, reviewDTO);
         return ResponseEntity.ok(savedReview);
     }
 
     @GetMapping("/book/{bookId}/average")
-    public ResponseEntity<Double> getAverageRating(@PathVariable Long bookId) {
+    public ResponseEntity<Double> getAverageRating(@PathVariable("bookId") Long bookId) {
         return ResponseEntity.ok(rs.getAverageRating(bookId));
     }
 
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId){
+    public ResponseEntity<Void> deleteReview(@PathVariable("reviewId") Long reviewId) {
         rs.deleteReview(reviewId);
         return ResponseEntity.noContent().build();
     }
-    
+
+    @PostMapping("/{reviewId}/report")
+    public ResponseEntity<ReviewDTO> reportReview(@PathVariable("reviewId") Long reviewId) {
+        ReviewDTO reportedReview = rs.reportReview(reviewId);
+        return ResponseEntity.ok(reportedReview);
+    }
+
 }
