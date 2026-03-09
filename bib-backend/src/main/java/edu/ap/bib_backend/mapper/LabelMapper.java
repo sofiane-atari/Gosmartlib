@@ -5,13 +5,15 @@ import java.util.List;
 
 import edu.ap.bib_backend.dto.LabelDTO;
 import edu.ap.bib_backend.jpa.entity.Label;
+import edu.ap.bib_backend.projection.LabelProjection;
 
 @Mapper(componentModel = "spring")
 public interface LabelMapper {
 
-    LabelDTO toDto(Label label);
+    LabelDTO toDto(LabelProjection label);
 
     Label toEntity(LabelDTO dto);
 
     List<LabelDTO> toDtoList(List<Label> labels);
+
 }
