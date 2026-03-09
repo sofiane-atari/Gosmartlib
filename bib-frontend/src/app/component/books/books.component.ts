@@ -20,7 +20,7 @@ import {
   Star,
   MessageCircle,
   BookPlus,
-  Search
+  Search, SlidersHorizontal
 } from 'lucide-angular';
 
 @Component({
@@ -34,6 +34,8 @@ export class BooksComponent implements OnInit {
   readonly Book = BookPlus;
   readonly Heart = Heart;
   readonly Search = Search;
+  readonly SlidersHorizontal = SlidersHorizontal;
+  readonly X = X;
 
   icons = [
     { icon: BookOpen, label: 'Catalogus' },
@@ -43,12 +45,18 @@ export class BooksComponent implements OnInit {
 
   books: Book[] = [];
   filteredBooks: Book[] = [];
+
   absoluteMinYear: number = 0;
   absoluteMaxYear: number = 0;
   absoluteMaxPages: number = 0;
 
+  isFilterOpen: boolean = false;
+  availableCount: number = 0;
+  borrowedCount: number = 0;
+
   filters = {
     searchTerm: '',
+    availability: 'Alle Boeken',
     minYear: null as number | null,
     maxYear: null as number | null,
     maxPages: null as number | null,
@@ -75,8 +83,18 @@ export class BooksComponent implements OnInit {
     this.bs.getBooks().subscribe(data => { 
       this.books = data; 
       this.filteredBooks = data;
+      this.calculateStats();
       this.applyFilters();
     });
+  }
+
+  toggleFilters() {
+    this.isFilterOpen = !this.isFilterOpen;
+  }
+
+  calculateStats() {
+    this.availableCount = this.books.filter(b => b.availability === 'AVAILABLE').length;
+    this.borrowedCount = this.books.filter(b => b.availability === 'BORROWED').length;
   }
 
   applyFilters() {
@@ -85,13 +103,20 @@ export class BooksComponent implements OnInit {
       const searchMatch = !this.filters.searchTerm || 
         book.title.toLowerCase().includes(this.filters.searchTerm.toLowerCase()) || 
         book.author.toLowerCase().includes(this.filters.searchTerm.toLowerCase());
+      
+      let availabilityMatch = true;
+      if (this.filters.availability === 'Beschikbaar') {
+        availabilityMatch = book.availability === 'AVAILABLE';
+      } else if (this.filters.availability === 'Uitgeleend') {
+        availabilityMatch = book.availability === 'BORROWED';
+      }
 
       const maxPagesMatch = !this.filters.maxPages || book.pages <= this.filters.maxPages;
 
       const minYearMatch = !this.filters.minYear || book.releaseYear >= this.filters.minYear;
       const maxYearMatch = !this.filters.maxYear || book.releaseYear <= this.filters.maxYear;
 
-      return searchMatch && minYearMatch && maxYearMatch && maxPagesMatch;
+      return searchMatch && availabilityMatch && minYearMatch && maxYearMatch && maxPagesMatch;
     });
 
     
@@ -100,6 +125,7 @@ export class BooksComponent implements OnInit {
 
   resetFilters() {
     this.filters.searchTerm = '';
+    this.filters.availability = 'Alle Boeken';
     this.filters.minYear = this.absoluteMinYear;
     this.filters.maxYear = this.absoluteMaxYear;
     this.filters.maxPages = this.absoluteMaxPages;

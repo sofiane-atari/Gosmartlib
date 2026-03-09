@@ -10,139 +10,256 @@
   padding: 20px;
 }
 
-h2 {
-  text-align: center;
-  color: #2c3e50;
-  font-size: 2rem;
-  margin-bottom: 20px;
-  font-weight: 700;
-}
-
-/* --- TOP FILTER BAR STYLES --- */
-.top-filter-bar {
+/* =========================================================
+   1. HERO SEARCH & FILTER KNOP (COMPACTER & DUIDELIJKER)
+   ========================================================= */
+.hero-search-container {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: center;
-  background-color: white;
-  padding: 16px 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
-  border: 1px solid #e5e7eb;
+  gap: 12px; /* Kleinere gap */
+  margin-bottom: 24px;
+  align-items: stretch;
 }
 
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.search-group {
+.hero-search-input-wrapper {
   flex-grow: 1;
   position: relative;
-  min-width: 250px;
+  background: #ffffff; /* Wit maakt het een duidelijk invulveld */
+  border: 1px solid #d1d5db; /* Duidelijke rand toegevoegd */
+  border-radius: 8px; /* Subtielere afronding */
+  display: flex;
+  align-items: center;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); /* Lichte diepte */
 }
 
-.search-input {
+.hero-search-icon {
+  position: absolute;
+  left: 14px;
+  color: #9ca3af; /* lets zachter grijs voor het icoon */
+}
+
+.hero-search-input {
   width: 100%;
-  padding: 10px 10px 10px 40px;
-  border: 1px solid #d1d5db;
+  padding: 12px 12px 12px 42px; /* Minder padding (was 16px) */
+  background: transparent;
+  border: none; /* Rand zit nu op de wrapper */
   border-radius: 8px;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
+  font-size: 0.95rem; /* Kleiner lettertype */
+  color: #1f2937;
   outline: none;
+  transition: all 0.2s ease;
 }
 
-.search-input:focus {
+.hero-search-input-wrapper:focus-within {
   border-color: var(--main-color, #8A1E41);
   box-shadow: 0 0 0 3px rgba(138, 30, 65, 0.1);
 }
 
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-}
-
-.filter-select {
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background-color: #f9fafb;
-  cursor: pointer;
-  font-size: 0.9rem;
-  outline: none;
-  transition: all 0.2s ease;
-  color: #374151;
-  font-weight: 500;
-}
-
-.filter-select:hover {
-  border-color: #9ca3af;
-}
-
-.filter-select:focus {
-  border-color: var(--main-color, #8A1E41);
-}
-
-/* --- SLIDER STYLES --- */
-.range-group {
+.hero-filter-btn {
+  background-color: var(--main-color, #8A1E41);
+  color: white;
+  border: none;
+  padding: 0 18px; /* Minder breed (was 24px) */
+  border-radius: 8px; /* Subtielere afronding */
+  font-size: 0.9rem; /* Kleiner lettertype (was 1rem) */
+  font-weight: 600;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
-  background-color: #f9fafb;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(138, 30, 65, 0.2); /* Zachtere schaduw */
 }
 
-.slider-labels {
+.hero-filter-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(138, 30, 65, 0.3);
+}
+
+/* =========================================================
+   2. CATALOGUS HEADER & BADGES (KLEINER)
+   ========================================================= */
+.catalog-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.9rem;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title-container h1 {
+  font-size: 1.75rem; /* Stuk kleiner (was 2.2rem) */
+  color: #1f2937;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 0.85rem; /* Kleiner */
+}
+
+.quick-stats-badges {
+  display: flex;
+  gap: 10px;
+}
+
+.status-badge {
+  padding: 4px 12px; /* Veel minder padding */
+  border-radius: 6px;
+  font-size: 0.8rem; /* Kleiner */
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-green {
+  background-color: #ecfdf5;
+  color: var(--success-color, #10b981);
+  border: 1px solid #a7f3d0;
+}
+
+.badge-red {
+  background-color: #fef2f2;
+  color: var(--error-color, #ef4444);
+  border: 1px solid #fecaca;
+}
+
+.badge-number {
+  font-weight: 800;
+  font-size: 0.9rem; /* Iets kleiner */
+}
+
+/* =========================================================
+   3. UITKLAPBAAR FILTER PANEEL (COMPACTER)
+   ========================================================= */
+.expandable-filter-panel {
+  background: white;
+  border-radius: 8px; /* Subtieler */
+  padding: 16px 20px; /* Minder padding (was 24px) */
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.panel-header h3 {
+  font-size: 1.05rem; /* Kleiner */
   color: #374151;
 }
 
-.year-display {
-  color: var(--main-color, #8A1E41);
-  background: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  border: 1px solid #e5e7eb;
+.close-panel-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.sliders-container {
+.close-panel-btn:hover {
+  color: #1f2937;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-item label {
+  font-size: 0.8rem; /* Kleiner */
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.filter-item .highlight {
+  color: var(--main-color, #8A1E41);
+  font-weight: 700;
+}
+
+.panel-select {
+  padding: 8px 12px; /* Minder "dikke" dropdowns */
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.9rem; /* Kleiner */
+  color: #374151;
+  outline: none;
+  cursor: pointer;
+}
+
+.panel-select:focus {
+  border-color: var(--main-color, #8A1E41);
+}
+
+.slider-wrapper {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin-top: 4px;
 }
 
-.year-slider {
+.panel-slider {
   width: 100%;
   accent-color: var(--main-color, #8A1E41);
   cursor: pointer;
 }
 
-/* --- BOEKEN GRID & CARDS --- */
+.panel-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 12px;
+}
+
+.clear-filters-text {
+  background: transparent;
+  border: none;
+  color: var(--main-color, #8A1E41);
+  font-weight: 600;
+  font-size: 0.85rem; /* Kleiner */
+  cursor: pointer;
+}
+
+.clear-filters-text:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   4. BOEKEN GRID & CARDS (ELEGANT & COMPACT)
+   ========================================================= */
 .books-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
+  gap: 16px; /* Iets minder ruimte tussen boeken */
 }
 
 .book-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 8px; /* Subtieler */
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -150,14 +267,14 @@ h2 {
 }
 
 .book-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .book-image {
   position: relative;
   width: 100%;
-  height: 190px;
+  height: 170px; /* Hoogte cover ingekort (was 190px) */
   background: #f3f4f6;
 }
 
@@ -168,17 +285,17 @@ h2 {
 }
 
 .book-info {
-  padding: 16px;
+  padding: 12px; /* Minder padding in de kaart */
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
 .book-title {
-  font-size: 1.1rem;
+  font-size: 0.95rem; /* Kleiner (was 1.1rem) */
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -187,17 +304,17 @@ h2 {
 }
 
 .book-author {
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Kleiner */
   color: var(--sec-color, #BC808B);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font-weight: 600;
 }
 
 .book-description {
-  font-size: 0.875rem;
+  font-size: 0.8rem; /* Kleiner */
   color: #6b7280;
-  line-height: 1.5;
-  margin-bottom: 16px;
+  line-height: 1.4;
+  margin-bottom: 12px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -209,17 +326,17 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid #f3f4f6;
 }
 
 .pages {
-  font-size: 0.85rem;
+  font-size: 0.75rem; /* Kleiner */
   color: #6b7280;
   font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .favorite-btn {
@@ -228,7 +345,7 @@ h2 {
   color: #d1d5db;
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: 6px;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -241,13 +358,15 @@ h2 {
   transform: scale(1.1);
 }
 
-/* --- EMPTY STATE --- */
+/* =========================================================
+   5. EMPTY STATE
+   ========================================================= */
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 60px 20px;
+  padding: 40px 20px;
   background: white;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px dashed #cbd5e1;
   color: #64748b;
   display: flex;
@@ -256,18 +375,19 @@ h2 {
 }
 
 .empty-state p {
-  font-size: 1.1rem;
-  margin-bottom: 16px;
+  font-size: 1rem;
+  margin-bottom: 12px;
 }
 
 .reset-btn {
   background-color: var(--main-color, #8A1E41);
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.9rem;
   transition: opacity 0.2s ease;
 }
 
@@ -275,37 +395,31 @@ h2 {
   opacity: 0.9;
 }
 
-/* --- RESPONSIVE DESIGN --- */
-@media (max-width: 768px) {
-  .top-filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .filter-select, .range-group {
-    width: 100%;
-  }
-
-  .books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 16px;
-  }
-
-  h2 {
-    font-size: 2rem;
-  }
-
-  .book-image {
-    height: 200px;
-  }
-}
-
+/* =========================================================
+   6. RESPONSIVE DESIGN
+   ========================================================= */
 @media (max-width: 1024px) {
   .books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   }
 }
 
+@media (max-width: 768px) {
+  .hero-search-container {
+    flex-direction: column;
+  }
+  
+  .hero-filter-btn {
+    padding: 12px;
+    justify-content: center;
+  }
+  
+  .catalog-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
 
 @media (max-width: 600px) {
   .books-grid {
@@ -314,15 +428,6 @@ h2 {
   }
 
   .book-image {
-    height: 160px;
-  }
-  
-  .top-filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .filter-select, .range-group {
-    width: 100%;
+    height: 150px;
   }
 }
