@@ -1,5 +1,7 @@
 package edu.ap.bib_backend.jpa.entity;
 
+import org.hibernate.annotations.Formula;
+
 import jakarta.persistence.*;
 import lombok.Setter;
 import lombok.Getter;
@@ -30,6 +32,9 @@ public class Book {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Availability availability;
+
+    @Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.book_id = id)")
+    private Double reviewScore;
 
     public Book() {
     }

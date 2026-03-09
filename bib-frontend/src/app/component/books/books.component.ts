@@ -36,6 +36,7 @@ export class BooksComponent implements OnInit {
   readonly Search = Search;
   readonly SlidersHorizontal = SlidersHorizontal;
   readonly X = X;
+  readonly Star = Star
 
   icons = [
     { icon: BookOpen, label: 'Catalogus' },
@@ -141,6 +142,8 @@ export class BooksComponent implements OnInit {
       this.filteredBooks.sort((a, b) => b.title.localeCompare(a.title));
     } else if (this.filters.sortBy === 'newest') {
       this.filteredBooks.sort((a, b) => b.releaseYear - a.releaseYear);
+    } else if (this.filters.sortBy === 'rating') {
+      this.filteredBooks.sort((a, b) => (b.reviewScore || 0) - (a.reviewScore || 0));
     }
   }
 

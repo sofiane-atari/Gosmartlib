@@ -49,6 +49,7 @@
             <option value="az">Titel (A-Z)</option>
             <option value="za">Titel (Z-A)</option>
             <option value="newest">Nieuwste eerst</option>
+            <option value="rating">Hoogste rating</option>
           </select>
         </div>
 
@@ -88,6 +89,13 @@
       <div class="book-card" (click)="toBookDetailPage(book)">
         <div class="book-image">
           <img [src]="book.imageUrl" [alt]="book.title" />
+          
+          @if (book.reviewScore && book.reviewScore > 0) {
+            <div class="rating-badge">
+              <lucide-icon [img]="Star" [size]="14" class="star-icon"></lucide-icon>
+              {{ book.reviewScore | number:'1.1-1' }}
+            </div>
+          }
         </div>
 
         <div class="book-info">
