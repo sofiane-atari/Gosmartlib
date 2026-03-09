@@ -10,45 +10,296 @@
   padding: 20px;
 }
 
-h2 {
-  text-align: center;
-  color: #2c3e50;
-  font-size: 2.5rem;
-  margin-bottom: 40px;
+/* =========================================================
+   1. HERO SEARCH & FILTER KNOP (COMPACTER & DUIDELIJKER)
+   ========================================================= */
+.hero-search-container {
+  display: flex;
+  gap: 12px; /* Kleinere gap */
+  margin-bottom: 24px;
+  align-items: stretch;
+}
+
+.hero-search-input-wrapper {
+  flex-grow: 1;
+  position: relative;
+  background: #ffffff; /* Wit maakt het een duidelijk invulveld */
+  border: 1px solid #d1d5db; /* Duidelijke rand toegevoegd */
+  border-radius: 8px; /* Subtielere afronding */
+  display: flex;
+  align-items: center;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); /* Lichte diepte */
+}
+
+.hero-search-icon {
+  position: absolute;
+  left: 14px;
+  color: #9ca3af; /* lets zachter grijs voor het icoon */
+}
+
+.hero-search-input {
+  width: 100%;
+  padding: 12px 12px 12px 42px; /* Minder padding (was 16px) */
+  background: transparent;
+  border: none; /* Rand zit nu op de wrapper */
+  border-radius: 8px;
+  font-size: 0.95rem; /* Kleiner lettertype */
+  color: #1f2937;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.hero-search-input-wrapper:focus-within {
+  border-color: var(--main-color, #8A1E41);
+  box-shadow: 0 0 0 3px rgba(138, 30, 65, 0.1);
+}
+
+.hero-filter-btn {
+  background-color: var(--main-color, #8A1E41);
+  color: white;
+  border: none;
+  padding: 0 18px; /* Minder breed (was 24px) */
+  border-radius: 8px; /* Subtielere afronding */
+  font-size: 0.9rem; /* Kleiner lettertype (was 1rem) */
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(138, 30, 65, 0.2); /* Zachtere schaduw */
+}
+
+.hero-filter-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(138, 30, 65, 0.3);
+}
+
+/* =========================================================
+   2. CATALOGUS HEADER & BADGES (KLEINER)
+   ========================================================= */
+.catalog-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title-container h1 {
+  font-size: 1.75rem; /* Stuk kleiner (was 2.2rem) */
+  color: #1f2937;
+  margin-bottom: 2px;
   font-weight: 700;
 }
 
+.subtitle {
+  color: #6b7280;
+  font-size: 0.85rem; /* Kleiner */
+}
+
+.quick-stats-badges {
+  display: flex;
+  gap: 10px;
+}
+
+.status-badge {
+  padding: 4px 12px; /* Veel minder padding */
+  border-radius: 6px;
+  font-size: 0.8rem; /* Kleiner */
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-green {
+  background-color: #ecfdf5;
+  color: var(--success-color, #10b981);
+  border: 1px solid #a7f3d0;
+}
+
+.badge-red {
+  background-color: #fef2f2;
+  color: var(--error-color, #ef4444);
+  border: 1px solid #fecaca;
+}
+
+.badge-number {
+  font-weight: 800;
+  font-size: 0.9rem; /* Iets kleiner */
+}
+
+/* =========================================================
+   3. UITKLAPBAAR FILTER PANEEL (COMPACTER)
+   ========================================================= */
+.expandable-filter-panel {
+  background: white;
+  border-radius: 8px; /* Subtieler */
+  padding: 16px 20px; /* Minder padding (was 24px) */
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.panel-header h3 {
+  font-size: 1.05rem; /* Kleiner */
+  color: #374151;
+}
+
+.close-panel-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-panel-btn:hover {
+  color: #1f2937;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-item label {
+  font-size: 0.8rem; /* Kleiner */
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.filter-item .highlight {
+  color: var(--main-color, #8A1E41);
+  font-weight: 700;
+}
+
+.panel-select {
+  padding: 8px 12px; /* Minder "dikke" dropdowns */
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.9rem; /* Kleiner */
+  color: #374151;
+  outline: none;
+  cursor: pointer;
+}
+
+.panel-select:focus {
+  border-color: var(--main-color, #8A1E41);
+}
+
+.slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 8px 0;
+}
+
+.panel-slider {
+  width: 100%;
+  accent-color: var(--main-color, #8A1E41);
+  cursor: pointer;
+  -webkit-appearance: none;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  outline: none;
+  margin: 8px 0;
+}
+
+.panel-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--main-color, #8A1E41);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.1s ease;
+}
+
+.panel-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.panel-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 12px;
+}
+
+.clear-filters-text {
+  background: transparent;
+  border: none;
+  color: var(--main-color, #8A1E41);
+  font-weight: 600;
+  font-size: 0.85rem; /* Kleiner */
+  cursor: pointer;
+}
+
+.clear-filters-text:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   4. BOEKEN GRID & CARDS (ELEGANT & COMPACT)
+   ========================================================= */
 .books-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  padding: 0 10px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px; /* Iets minder ruimte tussen boeken */
 }
 
 .book-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 8px; /* Subtieler */
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  border: 1px solid #f3f4f6;
 }
 
 .book-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .book-image {
   position: relative;
   width: 100%;
-  height: 200px;
-  overflow: hidden;
-  background: #f0f0f0;
+  height: 170px; /* Hoogte cover ingekort (was 190px) */
+  background: #f3f4f6;
 }
 
 .book-image img {
@@ -58,17 +309,17 @@ h2 {
 }
 
 .book-info {
-  padding: 16px;
+  padding: 12px; /* Minder padding in de kaart */
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
 .book-title {
-  font-size: 1.125rem;
+  font-size: 0.95rem; /* Kleiner (was 1.1rem) */
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -77,17 +328,17 @@ h2 {
 }
 
 .book-author {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 12px;
-  font-weight: 500;
+  font-size: 0.8rem; /* Kleiner */
+  color: var(--sec-color, #BC808B);
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .book-description {
-  font-size: 0.875rem;
-  color: #4b5563;
-  line-height: 1.5;
-  margin-bottom: 16px;
+  font-size: 0.8rem; /* Kleiner */
+  color: #6b7280;
+  line-height: 1.4;
+  margin-bottom: 12px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -99,12 +350,12 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .pages {
-  font-size: 0.875rem;
+  font-size: 0.75rem; /* Kleiner */
   color: #6b7280;
   font-weight: 500;
   display: flex;
@@ -122,453 +373,109 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
 }
 
 .favorite-btn:hover {
-  color: #ef4444;
-  transform: scale(1.15);
+  color: var(--main-color, #8A1E41);
+  background-color: var(--main-light-color, #FFF5F8);
+  transform: scale(1.1);
 }
 
-.favorite-btn.active {
-  color: #ef4444;
-}
-
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 999;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 700px;
-  max-height: 90vh;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -45%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-}
-
-.close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: white;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 1.25rem;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s ease;
-}
-
-.close-btn:hover {
-  background-color: #f3f4f6;
-}
-
-.modal-header {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-}
-
-.modal-cover {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: brightness(0.7);
-}
-
-.modal-header-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 24px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-
-.modal-title {
-  color: white;
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.modal-author {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
-}
-
-.modal-content {
-  padding: 24px;
-}
-
-.bibliotheekbeheer {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  border: 1px solid #fecaca;
-  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.05);
-}
-
-.beheer-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.beheer-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.beheer-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #7f1d1d;
-}
-
-.beheer-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.control-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.control-group label {
-  display: block;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #7f1d1d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: white;
-  padding: 8px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.qty-btn {
-  width: 34px;
-  height: 34px;
-  border: none;
-  background: linear-gradient(135deg, #fef2f2, #fee2e2);
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #dc2626;
-  transition: all 0.2s ease;
-}
-
-.qty-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  transform: scale(1.05);
-}
-
-.qty-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.qty-input {
-  width: 50px;
-  height: 34px;
+/* =========================================================
+   5. EMPTY STATE
+   ========================================================= */
+.empty-state {
+  grid-column: 1 / -1;
   text-align: center;
-  border: none;
-  background: transparent;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #1f2937;
-  cursor: default;
-}
-
-.exemplaren {
-  font-size: 0.8125rem;
-  color: #6b7280;
-  font-weight: 500;
-  margin-left: 4px;
-}
-
-.status-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.status-icon {
-  position: absolute;
-  left: 12px;
-  color: #10b981;
-  pointer-events: none;
-}
-
-.status-select {
-  width: 100%;
-  height: 38px;
-  padding: 0 36px 0 42px;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  padding: 40px 20px;
   background: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #1f2937;
-  font-weight: 500;
-}
-
-.status-select:hover {
-  border-color: #f87171;
-}
-
-.status-select:focus {
-  outline: none;
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.beheer-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.action-btn {
-  padding: 12px 16px;
-  border: none;
   border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.edit-btn {
-  background: white;
-  color: #7c3aed;
-  border: 2px solid #7c3aed;
-}
-
-.edit-btn:hover {
-  background: #7c3aed;
-  color: white;
-}
-
-.delete-btn {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.delete-btn:hover {
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-}
-
-.book-meta {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-  padding: 20px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.meta-item {
-  text-align: center;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  align-items: center;
 }
 
-.meta-item:hover {
-  background: #f3f4f6;
-  transform: translateY(-2px);
-}
-
-.meta-icon {
-  width: 24px;
-  height: 24px;
-  margin: 0 auto;
-  color: #7c3aed;
-}
-
-.meta-label {
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.meta-value {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.genres-section,
-.review-section,
-.summary-section {
-  margin-bottom: 24px;
-}
-
-.genres-section h4 {
+.empty-state p {
   font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
   margin-bottom: 12px;
 }
 
-.genres-tags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.genre-tag {
+.reset-btn {
+  background-color: var(--main-color, #8A1E41);
+  color: white;
+  border: none;
   padding: 6px 14px;
-  border-radius: 16px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: opacity 0.2s ease;
 }
 
-.genre-tag.fantasy {
-  background: #e0e7ff;
-  color: #4338ca;
+.reset-btn:hover {
+  opacity: 0.9;
 }
 
-.genre-tag.adventure {
-  background: #fce7f3;
-  color: #be185d;
-}
-
-.summary-section h3 {
-  font-size: 1.125rem;
-  font-weight: 700;
+/* --- RATING BADGE --- */
+.rating-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(255, 255, 255, 0.95);
   color: #1f2937;
-  margin-bottom: 16px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 10;
 }
 
-.summary-section p {
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: #4b5563;
-  letter-spacing: 0.3px;
+::ng-deep .star-icon svg {
+  fill: #f59e0b !important;   
+  stroke: #f59e0b !important; 
+  color: #f59e0b !important;  
+}
+
+/* =========================================================
+   6. RESPONSIVE DESIGN
+   ========================================================= */
+@media (max-width: 1024px) {
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
-  .books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 16px;
+  .hero-search-container {
+    flex-direction: column;
   }
+  
+  .hero-filter-btn {
+    padding: 12px;
+    justify-content: center;
+  }
+  
+  .catalog-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
 
-  h2 {
-    font-size: 2rem;
-    margin-bottom: 30px;
+@media (max-width: 600px) {
+  .books-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .book-image {
-    height: 180px;
-  }
-
-  .modal {
-    width: 95%;
-    max-height: 95vh;
-  }
-
-  .modal-content {
-    padding: 16px;
-  }
-
-  .book-meta {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .beheer-controls {
-    grid-template-columns: 1fr;
-  }
-
-  .beheer-actions {
-    grid-template-columns: 1fr;
+    height: 150px;
   }
 }

@@ -20,6 +20,7 @@ import {
   Star,
   MessageCircle,
   BookPlus,
+  Search, SlidersHorizontal
 } from 'lucide-angular';
 
 @Component({
@@ -32,6 +33,10 @@ import {
 export class BooksComponent implements OnInit {
   readonly Book = BookPlus;
   readonly Heart = Heart;
+  readonly Search = Search;
+  readonly SlidersHorizontal = SlidersHorizontal;
+  readonly X = X;
+  readonly Star = Star
 
   icons = [
     { icon: BookOpen, label: 'Catalogus' },
@@ -40,11 +45,126 @@ export class BooksComponent implements OnInit {
 
 
   books: Book[] = [];
+  filteredBooks: Book[] = [];
+
+  absoluteMinYear: number = 0;
+  absoluteMaxYear: number = 0;
+  absoluteMaxPages: number = 0;
+
+  isFilterOpen: boolean = false;
+  availableCount: number = 0;
+  borrowedCount: number = 0;
+
+  filters = {
+    searchTerm: '',
+    availability: 'Alle Boeken',
+    minYear: null as number | null,
+    maxYear: null as number | null,
+    maxPages: null as number | null,
+    sortBy: 'az'
+  };
 
   constructor(private bs: BookService, private router: Router, private readingListService: ReadingListService) { }
 
   ngOnInit(): void {
-    this.bs.getBooks().subscribe(data => { this.books = data; });
+
+    const savedFilters = localStorage.getItem('bookFilters');
+    const parsedFilters = savedFilters ? JSON.parse(savedFilters) : null;
+
+    if (parsedFilters) {
+    this.filters = parsedFilters;
+    this.isFilterOpen = true;
+  }
+
+    this.bs.getMaxPages().subscribe(max => {
+      this.absoluteMaxPages = max;
+      if (!parsedFilters || parsedFilters.maxPages === null) {
+        this.filters.maxPages = max;
+      }
+    })
+
+    this.bs.getYearRange().subscribe(range => {
+      this.absoluteMinYear = range.min;
+      this.absoluteMaxYear = range.max;
+      
+      if (!parsedFilters) {
+        this.filters.minYear = range.min;
+        this.filters.maxYear = range.max;
+      } else {
+        if (this.filters.minYear === null) this.filters.minYear = range.min;
+        if (this.filters.maxYear === null) this.filters.maxYear = range.max;
+      }
+    });
+
+    this.bs.getBooks().subscribe(data => { 
+      this.books = data; 
+      this.filteredBooks = data;
+      this.calculateStats();
+      this.applyFilters();
+    });
+  }
+
+  toggleFilters() {
+    this.isFilterOpen = !this.isFilterOpen;
+  }
+
+  calculateStats() {
+    this.availableCount = this.books.filter(b => b.availability === 'AVAILABLE').length;
+    this.borrowedCount = this.books.filter(b => b.availability === 'BORROWED').length;
+  }
+
+  applyFilters() {
+
+    localStorage.setItem('bookFilters', JSON.stringify(this.filters));
+
+    this.filteredBooks = this.books.filter(book => {
+      
+      const searchMatch = !this.filters.searchTerm || 
+        book.title.toLowerCase().includes(this.filters.searchTerm.toLowerCase()) || 
+        book.author.toLowerCase().includes(this.filters.searchTerm.toLowerCase());
+      
+      let availabilityMatch = true;
+      if (this.filters.availability === 'Beschikbaar') {
+        availabilityMatch = book.availability === 'AVAILABLE';
+      } else if (this.filters.availability === 'Uitgeleend') {
+        availabilityMatch = book.availability === 'BORROWED';
+      }
+
+      const maxPagesMatch = !this.filters.maxPages || book.pages <= this.filters.maxPages;
+
+      const minYearMatch = !this.filters.minYear || book.releaseYear >= this.filters.minYear;
+      const maxYearMatch = !this.filters.maxYear || book.releaseYear <= this.filters.maxYear;
+
+      return searchMatch && availabilityMatch && minYearMatch && maxYearMatch && maxPagesMatch;
+    });
+
+    
+    this.sortBooks();
+  }
+
+  resetFilters() {
+    localStorage.removeItem('bookFilters');
+
+    this.filters.searchTerm = '';
+    this.filters.availability = 'Alle Boeken';
+    this.filters.minYear = this.absoluteMinYear;
+    this.filters.maxYear = this.absoluteMaxYear;
+    this.filters.maxPages = this.absoluteMaxPages;
+    this.filters.sortBy = 'az'; 
+
+    this.applyFilters();
+  }
+
+  sortBooks() {
+    if (this.filters.sortBy === 'az') {
+      this.filteredBooks.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (this.filters.sortBy === 'za') {
+      this.filteredBooks.sort((a, b) => b.title.localeCompare(a.title));
+    } else if (this.filters.sortBy === 'newest') {
+      this.filteredBooks.sort((a, b) => b.releaseYear - a.releaseYear);
+    } else if (this.filters.sortBy === 'rating') {
+      this.filteredBooks.sort((a, b) => (b.reviewScore || 0) - (a.reviewScore || 0));
+    }
   }
 
 

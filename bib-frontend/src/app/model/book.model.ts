@@ -11,4 +11,5 @@ export interface Book {
   releaseYear: number;    
   availability: Availability;
   copies: number;
+  reviewScore?: number;
 }

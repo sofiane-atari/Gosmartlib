@@ -1,6 +1,8 @@
 package edu.ap.bib_backend.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/books")
@@ -47,5 +51,19 @@ public class BookController {
         BookDTO book = bs.fetchBookByISBN(isbn);
         return ResponseEntity.ok(book);
     }
+
+    @GetMapping("/years/range")
+    public ResponseEntity<Map<String, Integer>> getYearRange() {
+        Map<String, Integer> range = new HashMap<>();
+        range.put("min", bs.getMinReleaseYear());
+        range.put("max", bs.getMaxReleaseYear());
+        return ResponseEntity.ok(range);
+    }
+
+    @GetMapping("/pages/max")
+    public ResponseEntity<Integer> getMaxPages() {
+        return ResponseEntity.ok(bs.getMaxPages());
+    }
+    
 
 }
