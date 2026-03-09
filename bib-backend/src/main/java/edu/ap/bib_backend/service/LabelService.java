@@ -42,7 +42,7 @@ public class LabelService {
     }
 
     public PageDTO<LabelDTO> getPage(int page, int pageSize, LabelGetOptions options) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by("name").ascending());
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("name").ascending());
 
         Page<? extends LabelProjection> labels;
 

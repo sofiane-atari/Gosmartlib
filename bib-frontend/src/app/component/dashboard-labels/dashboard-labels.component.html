@@ -49,4 +49,12 @@
     [labels]="filteredLabels()"
   />
 
+  <!-- Paging -->
+  @if (pagingMeta()) {
+    <app-paging
+      [meta]="pagingMeta()!"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+
 </div>

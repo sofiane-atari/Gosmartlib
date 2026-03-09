@@ -6,13 +6,12 @@ import {
   signal,
   input,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Label } from '../../model/label.model';
 
 @Component({
   selector: 'app-label-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './label-card.component.html',
   styleUrls: ['./label-card.component.css'],
 })

@@ -1,0 +1,74 @@
+<nav class="paging" aria-label="Pagination">
+  <div class="paging__info">
+    Pagina {{ meta().currentPage + 1 }} van {{ meta().totalPages }}
+    ({{ meta().totalItems }} items)
+  </div>
+
+  <ul class="paging__controls">
+    <li class="paging__item">
+      <button
+        class="paging__button paging__button--nav"
+        [disabled]="!canGoPrevious"
+        (click)="previousPage()"
+        aria-label="Vorige pagina"
+      >
+        ‹
+      </button>
+    </li>
+
+    @if (meta().currentPage > 3) {
+      <li class="paging__item">
+        <button
+          class="paging__button"
+          (click)="goToPage(0)"
+          aria-label="Ga naar pagina 1"
+        >
+          1
+        </button>
+      </li>
+      @if (meta().currentPage > 4) {
+        <li class="paging__item paging__ellipsis">...</li>
+      }
+    }
+
+    @for (page of pages; track page) {
+      <li class="paging__item">
+        <button
+          class="paging__button"
+          [class.paging__button--active]="page === meta().currentPage"
+          (click)="goToPage(page)"
+          [attr.aria-current]="page === meta().currentPage ? 'page' : null"
+          [attr.aria-label]="'Ga naar pagina ' + (page + 1)"
+        >
+          {{ page + 1 }}
+        </button>
+      </li>
+    }
+
+    @if (lastPage > pages[pages.length - 1]) {
+      @if (lastPage > pages[pages.length - 1] + 1) {
+        <li class="paging__item paging__ellipsis">...</li>
+      }
+      <li class="paging__item">
+        <button
+          class="paging__button"
+          (click)="goToPage(lastPage)"
+          aria-label="Ga naar laatste pagina"
+        >
+          {{ meta().totalPages }}
+        </button>
+      </li>
+    }
+
+    <li class="paging__item">
+      <button
+        class="paging__button paging__button--nav"
+        [disabled]="!canGoNext"
+        (click)="nextPage()"
+        aria-label="Volgende pagina"
+      >
+        ›
+      </button>
+    </li>
+  </ul>
+</nav>

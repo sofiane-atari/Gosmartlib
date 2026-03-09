@@ -1,12 +1,4 @@
-import {
-  Component,
-  computed,
-  inject,
-  signal,
-  DestroyRef,
-  Signal,
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { LabelService } from '../../services/label/label.service';
@@ -15,8 +7,13 @@ import { LabelsListComponent } from '../labels-list/labels-list.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CreateLabelComponent } from '../create-label/create-label.component';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
-import { PageingOpt } from '../../model/paginated-response.model.ts';
-import { ActivatedRoute } from '@angular/router';
+import {
+  PageingOpt,
+  PaginatedResponse,
+} from '../../model/paginated-response.model.ts';
+import { ActivatedRoute, Router } from '@angular/router';
+import { PagingComponent } from '../paging/paging.component';
+import { switchMap } from 'rxjs/operators';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -24,12 +21,12 @@ type PopupState = 'create' | 'edit' | null;
   selector: 'app-dashboard-labels',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     StatCardComponent,
     LabelsListComponent,
     CreateLabelComponent,
     SearchBarComponent,
+    PagingComponent,
   ],
   templateUrl: './dashboard-labels.component.html',
   styleUrls: ['./dashboard-labels.component.css'],
@@ -38,18 +35,7 @@ export class DashboardLabelsComponent {
   private labelService = inject(LabelService);
   private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
-
-  private pageNum = signal(
-    this.route.snapshot.queryParamMap.get('page') as unknown as number ?? 1
-  );
-  private pageSize = signal(
-    this.route.snapshot.queryParamMap.get('pageSize') as unknown as number ?? 20
-  );
-
-  private labelPageOpt: PageingOpt = {
-    page: this.pageNum(),
-    pageSize: this.pageSize(),
-  };
+  private router = inject(Router);
 
   protected success = signal<string | null>(null);
   protected error = signal<string | null>(null);
@@ -57,24 +43,41 @@ export class DashboardLabelsComponent {
 
   public searchQuery = signal('');
 
-  labels = computed(() => this.response()?.data ?? []);
+  // Reactive observable that updates when queryParams change
+  private labels$ = this.route.queryParamMap.pipe(
+    switchMap((queryParams) => {
+      const page = Number(queryParams.get('page')) || 0;
+      const pageSize = Number(queryParams.get('pageSize')) || 20;
 
-  response = toSignal(
-    this.labelService.getLabelsByPage({
-      labelGetOpt: { includeBookCount: true },
-      pagingOpt: this.labelPageOpt,
+      return this.labelService.getLabelsByPage({
+        labelGetOpt: { includeBookCount: true },
+        pagingOpt: { page, pageSize },
+      });
     }),
   );
 
-  protected totalCount = computed(() => this.labels().length);
-  protected activeCount = computed(
+  response = toSignal(this.labels$, {
+    initialValue: {
+      data: [],
+      meta: { currentPage: 0, pageSize: 20, totalItems: 0, totalPages: 0 },
+    } as PaginatedResponse<never>,
+  });
+
+  labels = computed(() => this.response()?.data ?? []);
+
+  pagingMeta = computed(() => this.response()?.meta);
+
+  totalCount = computed(() => this.pagingMeta()?.totalItems ?? 0);
+
+  activeCount = computed(
     () => this.labels().filter((l) => l.booksCount! > 0).length,
   );
-  protected unusedCount = computed(
+
+  unusedCount = computed(
     () => this.labels().filter((l) => l.booksCount! === 0).length,
   );
 
-  protected filteredLabels = computed(() =>
+  filteredLabels = computed(() =>
     this.labels().filter(
       (l) =>
         l.description
@@ -84,8 +87,16 @@ export class DashboardLabelsComponent {
     ),
   );
 
-  public onSearch(query: string) {
+  onSearch(query: string) {
     this.searchQuery.set(query);
+  }
+
+  onPageChange(page: number): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page },
+      queryParamsHandling: 'merge',
+    });
   }
 
   setPopup(popup: PopupState) {
@@ -106,6 +117,7 @@ export class DashboardLabelsComponent {
 
     this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
   }
+
   onError(message: string) {
     this.error.set(message);
   }
