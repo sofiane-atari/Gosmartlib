@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Entity
 @Table(name = "reviews")
 @Getter
@@ -16,6 +15,7 @@ public class Review {
     @Column(length = 1000)
     private String comment;
     private int rating;
+    private int reportCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
@@ -28,5 +28,6 @@ public class Review {
         this.comment = comment;
         this.rating = rating;
         this.book = book;
+        this.reportCount = 0;
     }
 }

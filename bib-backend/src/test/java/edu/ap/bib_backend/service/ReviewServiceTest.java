@@ -23,7 +23,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
-
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
@@ -41,10 +40,9 @@ class ReviewServiceTest {
     void whenGetReviewsForBook_givenValidBookId_thenReturnReviewDTOList() {
         // Arrange
         Long bookId = 1L;
-        Book mockBook = new Book(); 
+        Book mockBook = new Book();
         mockBook.setId(bookId);
 
-        
         Review review1 = new Review("Super boek", 5, mockBook);
         review1.setId(10L);
         Review review2 = new Review("Minder goed", 2, mockBook);
@@ -62,7 +60,7 @@ class ReviewServiceTest {
         assertEquals(10L, result.get(0).getId());
         assertEquals("Super boek", result.get(0).getComment());
         assertEquals(5, result.get(0).getRating());
-        
+
         Mockito.verify(reviewRepository).findByBookId(bookId);
     }
 
@@ -71,8 +69,8 @@ class ReviewServiceTest {
     void whenAddReviewToBook_givenValidBookIdAndCleanDTO_thenReturnSavedReviewDTO() {
         // Arrange
         Long bookId = 1L;
-        ReviewDTO inputDto = new ReviewDTO(null, "Highly recommended", 4);
-        
+        ReviewDTO inputDto = new ReviewDTO(null, "Highly recommended", 4, 0);
+
         Book mockBook = new Book();
         mockBook.setId(bookId);
 
@@ -103,7 +101,7 @@ class ReviewServiceTest {
     void whenAddReviewToBook_givenProfanity_thenThrowRuntimeException() {
         // Arrange
         Long bookId = 1L;
-        ReviewDTO inputDto = new ReviewDTO(null, "This book is really shit", 1); 
+        ReviewDTO inputDto = new ReviewDTO(null, "This book is really shit", 1, 0);
         Mockito.when(profanityFilterService.containsProfanity(inputDto.getComment())).thenReturn(true);
 
         // Act & Assert
@@ -111,8 +109,7 @@ class ReviewServiceTest {
             reviewService.addReviewToBook(bookId, inputDto);
         });
         assertEquals("Review contains profanity", exception.getMessage());
-        
-        
+
         Mockito.verify(bookRepository, Mockito.never()).findById(any());
         Mockito.verify(reviewRepository, Mockito.never()).save(any(Review.class));
     }
@@ -122,7 +119,7 @@ class ReviewServiceTest {
     void whenAddReviewToBook_givenInvalidBookId_thenThrowRuntimeException() {
         // Arrange
         Long invalidBookId = 999L;
-        ReviewDTO inputDto = new ReviewDTO(null, "This book does not exist", 1);
+        ReviewDTO inputDto = new ReviewDTO(null, "This book does not exist", 1, 0);
 
         Mockito.when(profanityFilterService.containsProfanity(anyString())).thenReturn(false);
         Mockito.when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());
@@ -210,7 +207,7 @@ class ReviewServiceTest {
     void whenGetAverageRating_givenBookWithoutReviews_thenReturnZero() {
         // Arrange
         Long bookId = 3L;
-        
+
         Mockito.when(reviewRepository.getAverageRatingForBook(bookId)).thenReturn(0.0);
 
         // Act
@@ -220,5 +217,37 @@ class ReviewServiceTest {
         assertNotNull(result);
         assertEquals(0.0, result);
         Mockito.verify(reviewRepository).getAverageRatingForBook(bookId);
+    }
+
+    @Test
+    @DisplayName("Report review - Existing review increments report count")
+    void whenReportReview_givenExistingReview_thenIncrementReportCount() {
+        // Arrange
+        Long reviewId = 1L;
+
+        Review review = new Review();
+        review.setId(reviewId);
+        review.setComment("Good book");
+        review.setRating(4);
+        review.setReportCount(2);
+
+        Mockito.when(reviewRepository.findById(reviewId))
+                .thenReturn(Optional.of(review));
+
+        Mockito.when(reviewRepository.save(Mockito.any(Review.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        ReviewDTO result = reviewService.reportReview(reviewId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(reviewId, result.getId());
+        assertEquals("Good book", result.getComment());
+        assertEquals(4, result.getRating());
+        assertEquals(3, result.getReportCount()); // incremented
+
+        Mockito.verify(reviewRepository).findById(reviewId);
+        Mockito.verify(reviewRepository).save(review);
     }
 }

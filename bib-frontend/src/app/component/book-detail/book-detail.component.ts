@@ -15,7 +15,8 @@ import {
   Star,
   MessageCircle,
   BookPlus,
-  Bookmark
+  Bookmark,
+  Flag
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -48,6 +49,7 @@ export class BookDetailComponent {
   readonly MessageCircle = MessageCircle;
   readonly BookOpen = BookOpen;
   readonly Bookmark = Bookmark;
+  readonly Flag = Flag;
   icons = [
     { icon: Library, label: 'Bibliotheek' },
     { icon: Star, label: 'Reviews' },
@@ -75,11 +77,11 @@ export class BookDetailComponent {
   Availability = Availability;
 
   constructor(
-    private route: ActivatedRoute, 
-    private bookService: BookService, 
-    private readingListService: ReadingListService, 
-    private reviewService: ReviewService, 
-    private toastService: ToastService ) {
+    private route: ActivatedRoute,
+    private bookService: BookService,
+    private readingListService: ReadingListService,
+    private reviewService: ReviewService,
+    private toastService: ToastService) {
 
   }
 
@@ -180,8 +182,8 @@ export class BookDetailComponent {
       }
     });
   }
-  
-  deleteReview(reviewId?: number){
+
+  deleteReview(reviewId?: number) {
     if (!reviewId) return;
 
     this.toastService.showConfirm(
@@ -190,7 +192,7 @@ export class BookDetailComponent {
         this.reviewService.deleteReview(reviewId).subscribe({
           next: () => {
             this.reviews = this.reviews.filter(r => r.id !== reviewId);
-            if(this.selectedBook?.id) this.updateAverage(this.selectedBook.id);
+            if (this.selectedBook?.id) this.updateAverage(this.selectedBook.id);
             this.toastService.show('Review verwijderd!', 'success');
           },
           error: () => this.toastService.show('Problem with deleting!', 'error')
@@ -198,6 +200,28 @@ export class BookDetailComponent {
       },
       () => {
       }
+    );
+  }
+
+  reportReview(review: Review) {
+    if (!review.id || review.isReported) return;
+
+    this.toastService.showConfirm(
+      'Weet je zeker dat je deze review wilt rapporteren? Onterecht rapporteren kan gevolgen hebben.',
+      () => {
+        this.reviewService.reportReview(review.id!).subscribe({
+          next: () => {
+            review.isReported = true;
+            review.reportCount = (review.reportCount || 0) + 1;
+            this.toastService.show('Review succesvol gerapporteerd.', 'success');
+          },
+          error: (err) => {
+            console.error('Problem with reporting review', err);
+            this.toastService.show('Er liep iets mis bij het rapporteren van deze review.', 'error');
+          }
+        });
+      },
+      () => { }
     );
   }
 

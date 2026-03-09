@@ -1,5 +1,7 @@
 export interface Review {
   id?: number;
   comment: string;
-  rating: number; 
+  rating: number;
+  isReported?: boolean;
+  reportCount?: number;
 }
