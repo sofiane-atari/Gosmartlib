@@ -24,14 +24,14 @@ class LabelServiceTest {
     private LabelRepository labelRepository;
 
     @Mock
-    private LabelMapper labelMapper;  // ← ADD THIS
+    private LabelMapper labelMapper;
 
     @InjectMocks
     private LabelService labelService;
 
     @Test
     void createLabel_ShouldThrowException_WhenLabelNameIsNull() {
-        LabelDTO dto = new LabelDTO(null, "#FF0000", "Some description");
+        LabelDTO dto = LabelDTO.builder().name(null).color("#FF0000").description("Some description").build();
         Label entity = new Label(null, "#FF0000", "Some description");
 
         when(labelMapper.toEntity(dto)).thenReturn(entity);
@@ -47,7 +47,7 @@ class LabelServiceTest {
 
     @Test
     void createLabel_ShouldThrowException_WhenLabelNameIsEmpty() {
-        LabelDTO dto = new LabelDTO("", "#FF0000", "Some description");
+        LabelDTO dto = LabelDTO.builder().name("").color("#FF0000").description("Some description").build();
         Label entity = new Label("", "#FF0000", "Some description");
 
         when(labelMapper.toEntity(dto)).thenReturn(entity);
@@ -63,9 +63,8 @@ class LabelServiceTest {
 
     @Test
     void createLabel_ShouldThrowException_WhenLabelAlreadyExists() {
-        LabelDTO dto = new LabelDTO("Fiction", "#FF0000", "Fiction books");
+        LabelDTO dto = LabelDTO.builder().name("Fiction").color("#FF0000").description("Fiction books").build();
 
-        // existsById returns true → service throws ResourceAlreadyExistsException before mapper
         when(labelRepository.existsById("Fiction")).thenReturn(true);
 
         assertThrows(ResourceAlreadyExistsException.class,
@@ -76,7 +75,7 @@ class LabelServiceTest {
 
     @Test
     void createLabel_ShouldCreateLabelSuccessfully_WhenInputIsValid() {
-        LabelDTO dto = new LabelDTO("Fiction", "#FF0000", "Fiction books");
+        LabelDTO dto = LabelDTO.builder().name("Fiction").color("#FF0000").description("Fiction books").build();
         Label entity = new Label("Fiction", "#FF0000", "Fiction books");
 
         when(labelRepository.existsById("Fiction")).thenReturn(false);
@@ -94,7 +93,7 @@ class LabelServiceTest {
 
     @Test
     void createLabel_ShouldNotCreateLabel_WhenRequestIsInvalid() {
-        LabelDTO dto = new LabelDTO(null, null, null);
+        LabelDTO dto = LabelDTO.builder().build();
         Label entity = new Label(null, null, null);
 
         when(labelMapper.toEntity(dto)).thenReturn(entity);

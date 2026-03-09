@@ -43,20 +43,18 @@ class LabelControllerTest {
         // -------------------------------------------------------
         @Test
         void createLabel_ShouldCreateLabelWithoutDescription() throws Exception {
-                // Arranage
-                String name = "testLabel";
-                LabelDTO newLabel = new LabelDTO(name, "#a75064", null);
-                LabelDTO savedLabel = new LabelDTO(name, "#a75064", null);
+                // Arrange
+                LabelDTO newLabel = LabelDTO.builder().name("testLabel").color("#a75064").build();
+                LabelDTO savedLabel = LabelDTO.builder().name("testLabel").color("#a75064").build();
 
                 when(labelService.createLabel(any(LabelDTO.class))).thenReturn(savedLabel);
 
-                // Assert
+                // Act
                 ResultActions results = mockMvc.perform(post("/api/labels")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper
-                                                .writeValueAsString(newLabel)));
+                                .content(objectMapper.writeValueAsString(newLabel)));
 
-                // Act
+                // Assert
                 results
                                 .andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.name").value(savedLabel.name()))
@@ -67,8 +65,8 @@ class LabelControllerTest {
         @Test
         void createLabel_WithValidBody_ShouldReturn201WithLocationHeader() throws Exception {
                 // Arrange
-                LabelDTO requestBody = new LabelDTO("urgent", "#FF0001", "High priority tasks");
-                LabelDTO createdLabel = new LabelDTO("urgent", "#FF0001", "High priority tasks");
+                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").description("High priority tasks").build();
+                LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001").description("High priority tasks").build();
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willReturn(createdLabel);
@@ -77,6 +75,7 @@ class LabelControllerTest {
                 ResultActions result = mockMvc.perform(post("/api/labels")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
+
                 // Assert
                 result
                                 .andExpect(status().isCreated())
@@ -89,7 +88,7 @@ class LabelControllerTest {
         @Test
         void createLabel_WithNullName_ShouldReturn400() throws Exception {
                 // Arrange
-                LabelDTO invalidBody = new LabelDTO(null, "#FF0001", "Some description");
+                LabelDTO invalidBody = LabelDTO.builder().color("#FF0001").description("Some description").build();
 
                 // Act
                 ResultActions result = mockMvc.perform(post("/api/labels")
@@ -103,8 +102,8 @@ class LabelControllerTest {
         @Test
         void createLabel_WithOptionalFieldsNull_ShouldReturn202() throws Exception {
                 // Arrange
-                LabelDTO requestBody = new LabelDTO("urgent", "#FF0001", null);
-                LabelDTO createdLabel = new LabelDTO("urgent", "#FF0001", null);
+                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").build();
+                LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001").build();
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willReturn(createdLabel);
@@ -124,7 +123,7 @@ class LabelControllerTest {
         @Test
         void createLabel_WhenServiceThrows_ShouldReturn501() throws Exception {
                 // Arrange
-                LabelDTO requestBody = new LabelDTO("urgent", "#FF0001", null);
+                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").build();
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willThrow(new RuntimeException("Unexpected error"));
@@ -142,8 +141,8 @@ class LabelControllerTest {
         @Test
         void createLabel_ShouldCallServiceExactlyOnce() throws Exception {
                 // Arrange
-                LabelDTO requestBody = new LabelDTO("feature", "#01FF00", "Feature label");
-                LabelDTO createdLabel = new LabelDTO("feature", "#01FF00", "Feature label");
+                LabelDTO requestBody = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label").build();
+                LabelDTO createdLabel = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label").build();
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willReturn(createdLabel);
