@@ -11,5 +11,6 @@ export interface PaginatedResponse<T> {
 }
 
 export interface PageingOpt {
-    pageSize: number
+  page: number;
+  pageSize: number;
 }

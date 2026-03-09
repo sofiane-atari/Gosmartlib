@@ -12,7 +12,7 @@
     </span>
   </div>
 
-  <div class="label-card__books">{{ label().booksCount }} boeken</div>
+  <div class="label-card__books">{{ label().booksCount ?? 0 }} boeken</div>
 
   <div class="label-card__actions">
     <button class="action-btn action-btn--edit" title="Bewerken" (click)="onEdit()">

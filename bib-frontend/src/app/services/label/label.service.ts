@@ -40,11 +40,13 @@ export class LabelService {
   ): Observable<PaginatedResponse<Label>> {
     const params = new HttpParams({
       fromObject: {
-        includeBookCount: String(opt.labelGetOpt?.includeBookCount ?? false),
-        page: String(opt.pagingOpt.pageSize),
+        includeBooksCount: String(opt.labelGetOpt?.includeBookCount ?? false),
+        page: String(opt.pagingOpt.page),
+        pageSize: String(opt.pagingOpt.pageSize),
       },
     });
 
+    console.log(params);
     return this.http.get<PaginatedResponse<Label>>(this.url, { params });
   }
 }

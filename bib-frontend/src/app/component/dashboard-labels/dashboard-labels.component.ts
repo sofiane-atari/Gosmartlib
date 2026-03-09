@@ -16,6 +16,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { CreateLabelComponent } from '../create-label/create-label.component';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { PageingOpt } from '../../model/paginated-response.model.ts';
+import { ActivatedRoute } from '@angular/router';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -36,8 +37,19 @@ type PopupState = 'create' | 'edit' | null;
 export class DashboardLabelsComponent {
   private labelService = inject(LabelService);
   private destroyRef = inject(DestroyRef);
+  private route = inject(ActivatedRoute);
 
-  private labelPageOpt: PageingOpt = { pageSize: 20 };
+  private pageNum = signal(
+    this.route.snapshot.queryParamMap.get('page') as unknown as number ?? 1
+  );
+  private pageSize = signal(
+    this.route.snapshot.queryParamMap.get('pageSize') as unknown as number ?? 20
+  );
+
+  private labelPageOpt: PageingOpt = {
+    page: this.pageNum(),
+    pageSize: this.pageSize(),
+  };
 
   protected success = signal<string | null>(null);
   protected error = signal<string | null>(null);
@@ -48,7 +60,10 @@ export class DashboardLabelsComponent {
   labels = computed(() => this.response()?.data ?? []);
 
   response = toSignal(
-    this.labelService.getLabelsByPage({ pagingOpt: this.labelPageOpt }),
+    this.labelService.getLabelsByPage({
+      labelGetOpt: { includeBookCount: true },
+      pagingOpt: this.labelPageOpt,
+    }),
   );
 
   protected totalCount = computed(() => this.labels().length);

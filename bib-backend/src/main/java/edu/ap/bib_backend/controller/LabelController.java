@@ -43,9 +43,9 @@ public class LabelController {
     public ResponseEntity<PageDTO<LabelDTO>> getPage(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(required = false) boolean booksCount) {
+            @RequestParam(required = false) boolean includeBooksCount) {
 
-        PageDTO<LabelDTO> pageDTO = labelService.getPage(page, pageSize, new LabelGetOptions(booksCount));
+        PageDTO<LabelDTO> pageDTO = labelService.getPage(page, pageSize, new LabelGetOptions(includeBooksCount));
 
         return ResponseEntity.ok(pageDTO);
     }
