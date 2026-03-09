@@ -17,11 +17,6 @@ public class Review {
     private int rating;
     private int reportCount = 0;
 
-    // Obsolete field kept here to satisfy existing database column
-    // constraint, preventing Field 'is_reported' doesn't have a default value
-    // exceptions
-    private boolean isReported = false;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
