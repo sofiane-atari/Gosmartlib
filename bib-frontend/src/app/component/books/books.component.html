@@ -65,15 +65,20 @@
         <div class="filter-item">
           <label>Uitgavejaar: <span class="highlight">{{ filters.minYear }} - {{ filters.maxYear }}</span></label>
           <div class="slider-wrapper">
-            <input type="range" [(ngModel)]="filters.minYear" [min]="absoluteMinYear" [max]="filters.maxYear" (input)="applyFilters()" class="panel-slider">
-            <input type="range" [(ngModel)]="filters.maxYear" [min]="filters.minYear" [max]="absoluteMaxYear" (input)="applyFilters()" class="panel-slider">
+            @if(absoluteMaxYear > 0 ){
+              <input type="range" [(ngModel)]="filters.minYear" [min]="absoluteMinYear" [max]="filters.maxYear" (input)="applyFilters()" class="panel-slider">
+              <input type="range" [(ngModel)]="filters.maxYear" [min]="filters.minYear" [max]="absoluteMaxYear" (input)="applyFilters()" class="panel-slider">
+            }
+
           </div>
         </div>
 
         <div class="filter-item">
           <label>Max Pagina's: <span class="highlight">{{ filters.maxPages }}</span></label>
           <div class="slider-wrapper">
-            <input type="range" [(ngModel)]="filters.maxPages" [min]="0" [max]="absoluteMaxPages" (input)="applyFilters()" class="panel-slider">
+            @if(absoluteMaxPages > 0){
+              <input type="range" [(ngModel)]="filters.maxPages" [min]="0" [max]="absoluteMaxPages" (input)="applyFilters()" class="panel-slider">
+            }
           </div>
         </div>
       </div>
@@ -89,7 +94,7 @@
       <div class="book-card" (click)="toBookDetailPage(book)">
         <div class="book-image">
           <img [src]="book.imageUrl" [alt]="book.title" />
-          
+
           @if (book.reviewScore && book.reviewScore > 0) {
             <div class="rating-badge">
               <lucide-icon [img]="Star" [size]="14" class="star-icon"></lucide-icon>

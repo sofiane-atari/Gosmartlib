@@ -69,16 +69,16 @@ export class BooksComponent implements OnInit {
   ngOnInit(): void {
 
     const savedFilters = localStorage.getItem('bookFilters');
-    let parsedFilters: any = null;
-    if (savedFilters) {
-      parsedFilters = JSON.parse(savedFilters);
-      this.filters = parsedFilters;
-      this.isFilterOpen = true;
-    }
+    const parsedFilters = savedFilters ? JSON.parse(savedFilters) : null;
+
+    if (parsedFilters) {
+    this.filters = parsedFilters;
+    this.isFilterOpen = true;
+  }
 
     this.bs.getMaxPages().subscribe(max => {
       this.absoluteMaxPages = max;
-      if (!parsedFilters || this.filters.maxPages === null || this.filters.maxPages > max) {
+      if (!parsedFilters || parsedFilters.maxPages === null) {
         this.filters.maxPages = max;
       }
     })
@@ -88,16 +88,12 @@ export class BooksComponent implements OnInit {
       this.absoluteMaxYear = range.max;
       
       if (!parsedFilters) {
-      this.filters.minYear = range.min;
-      this.filters.maxYear = range.max;
-    } else {
-      if (this.filters.minYear === null || this.filters.minYear < range.min) {
         this.filters.minYear = range.min;
-      }
-      if (this.filters.maxYear === null || this.filters.maxYear > range.max) {
         this.filters.maxYear = range.max;
+      } else {
+        if (this.filters.minYear === null) this.filters.minYear = range.min;
+        if (this.filters.maxYear === null) this.filters.maxYear = range.max;
       }
-    }
     });
 
     this.bs.getBooks().subscribe(data => { 
