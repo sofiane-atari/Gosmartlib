@@ -2,7 +2,7 @@ import { PageingOpt } from './../../model/paginated-response.model.ts';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, Signal, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Label } from '../../model/label.model';
+import { Label, LabelStats } from '../../model/label.model';
 import { Observable } from 'rxjs';
 import { PaginatedResponse } from '../../model/paginated-response.model.ts';
 
@@ -46,7 +46,10 @@ export class LabelService {
       },
     });
 
-    console.log(params);
     return this.http.get<PaginatedResponse<Label>>(this.url, { params });
+  }
+
+  public getLabelStats(): Observable<LabelStats> {
+    return this.http.get<LabelStats>(`${this.url}/_stats`);
   }
 }

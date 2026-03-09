@@ -4,3 +4,7 @@ export interface Label {
   description: string;
   booksCount?: number;
 }
+export interface LabelStats {
+  totalItems: number;
+  unActiveLabels: number;
+}

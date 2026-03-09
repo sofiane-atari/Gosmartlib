@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LabelService } from '../../services/label/label.service';
 import { StatCardComponent } from '../stat-card/stat-card.component';
 import { LabelsListComponent } from '../labels-list/labels-list.component';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { CreateLabelComponent } from '../create-label/create-label.component';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import {
@@ -36,6 +36,7 @@ export class DashboardLabelsComponent {
   private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private refreshTrigger = signal(false);
 
   protected success = signal<string | null>(null);
   protected error = signal<string | null>(null);
@@ -55,29 +56,28 @@ export class DashboardLabelsComponent {
       });
     }),
   );
-
-  response = toSignal(this.labels$, {
-    initialValue: {
-      data: [],
-      meta: { currentPage: 0, pageSize: 20, totalItems: 0, totalPages: 0 },
-    } as PaginatedResponse<never>,
-  });
-
-  labels = computed(() => this.response()?.data ?? []);
-
-  pagingMeta = computed(() => this.response()?.meta);
-
-  totalCount = computed(() => this.pagingMeta()?.totalItems ?? 0);
-
-  activeCount = computed(
-    () => this.labels().filter((l) => l.booksCount! > 0).length,
+  private response = toSignal(
+    toObservable(this.refreshTrigger).pipe(switchMap(() => this.labels$)),
+    {
+      initialValue: {
+        data: [],
+        meta: { currentPage: 0, pageSize: 20, totalItems: 0, totalPages: 0 },
+      } as PaginatedResponse<never>,
+    },
+  );
+  protected stats = toSignal(
+    toObservable(this.refreshTrigger).pipe(
+      switchMap(() => this.labelService.getLabelStats()),
+    ),
+  );
+  protected totalActive = computed(
+    () => (this.stats()?.totalItems ?? 0) - (this.stats()?.unActiveLabels ?? 0),
   );
 
-  unusedCount = computed(
-    () => this.labels().filter((l) => l.booksCount! === 0).length,
-  );
+  protected labels = computed(() => this.response()?.data ?? []);
+  protected pagingMeta = computed(() => this.response()?.meta);
 
-  filteredLabels = computed(() =>
+  protected filteredLabels = computed(() =>
     this.labels().filter(
       (l) =>
         l.description
@@ -109,6 +109,10 @@ export class DashboardLabelsComponent {
 
   onSuccess(message: string) {
     this.success.set(message);
+
+    this.refreshTrigger.set(true);
+    this.refreshTrigger.set(false);
+
     this.closePopup();
 
     const timeoutId = setTimeout(() => {

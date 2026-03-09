@@ -36,9 +36,9 @@
 
   <!-- StatCards -->
   <div class="stat-cards">
-    <app-stat-card label="Totaal Labels"      [value]="totalCount()"  variant="total"  />
-    <app-stat-card label="Actieve Labels"     [value]="activeCount()" variant="active" />
-    <app-stat-card label="Ongebruikte Labels" [value]="unusedCount()" variant="unused" />
+    <app-stat-card label="Totaal Labels"      [value]="stats()?.totalItems ?? 0"  variant="total"  />
+    <app-stat-card label="Actieve Labels"     [value]="totalActive()" variant="active" />
+    <app-stat-card label="Ongebruikte Labels" [value]="stats()?.unActiveLabels ?? 0" variant="unused" />
   </div>
 
   <!-- SearchBar -->
