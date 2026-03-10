@@ -47,13 +47,16 @@ public class LabelService {
 
         Page<? extends LabelProjection> labels;
 
-        if (options.isIncludeBooksCount()) {
-            if (!options.getKeyword().isBlank())
-                labels = labelRepository.searchByNamerOrDescriptionOrColorOrBookCount(options.getKeyword(), pageable);
-            else
-                labels = labelRepository.findAllIncludeBookCount(pageable);
-        } else
+        if (options.isIncludeBookCount() || options.isIncludeBookCount() && options.getBookCount() != null) {
+            labels = labelRepository.findAllFiltered(
+                    options.getSearch(),
+                    options.getBookCount(),
+                    pageable);
+        } else if (!options.getSearch().isBlank()) {
+            labels = labelRepository.searchByNamerOrDescriptionOrColor(options.getSearch(), pageable);
+        } else {
             labels = labelRepository.findAll(pageable);
+        }
 
         List<LabelDTO> data = labels.getContent().stream().map(labelMapper::toDto).toList();
         PaginatedMeta meta = PageMapper.toPaginatedMeta(labels);

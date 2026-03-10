@@ -20,12 +20,24 @@ public interface LabelRepository extends JpaRepository<Label, String> {
     @Query(value = "SELECT l.name as name, l.color as color, l.description as description, " +
             "COUNT(b) as bookCount " +
             "FROM Label l LEFT JOIN l.books b " +
-            "WHERE l.name LIKE %:keyword% " +
-            "OR l.description LIKE %:keyword% " +
-            "OR l.color LIKE %:keyword% " +
-            "GROUP BY l.name, l.color, l.description", countQuery = "SELECT COUNT(l) FROM Label l WHERE l.name LIKE %:keyword% "
+            "WHERE (l.name LIKE %:search% OR l.description LIKE %:search% OR l.color LIKE %:search%) " +
+            "GROUP BY l.name, l.color, l.description " +
+            "HAVING (:bookCount IS NULL OR COUNT(b) = :bookCount)", countQuery = "SELECT COUNT(l) FROM Label l LEFT JOIN l.books b "
                     +
-                    "OR l.description LIKE %:keyword% OR l.color LIKE %:keyword%")
-    Page<LabelWithCount> searchByNamerOrDescriptionOrColorOrBookCount(@Param("keyword") String keyword,
+                    "WHERE (l.name LIKE %:search% OR l.description LIKE %:search% OR l.color LIKE %:search%) " +
+                    "GROUP BY l HAVING (:bookCount IS NULL OR COUNT(b) = :bookCount)")
+    Page<LabelWithCount> findAllFiltered(
+            @Param("search") String search,
+            @Param("bookCount") Integer bookCount,
+            Pageable pageable);
+
+    @Query(value = "SELECT l " +
+            "FROM Label l LEFT JOIN l.books b " +
+            "WHERE l.name LIKE %:search% " +
+            "OR l.description LIKE %:search% " +
+            "OR l.color LIKE %:search% ", countQuery = "SELECT COUNT(l) FROM Label l WHERE l.name LIKE %:search% "
+                    +
+                    "OR l.description LIKE %:search% OR l.color LIKE %:search%")
+    Page<Label> searchByNamerOrDescriptionOrColor(@Param("search") String search,
             Pageable pageable);
 }

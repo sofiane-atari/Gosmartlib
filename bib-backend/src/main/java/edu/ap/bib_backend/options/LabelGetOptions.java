@@ -1,7 +1,5 @@
 package edu.ap.bib_backend.options;
 
-import org.springframework.lang.Nullable;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +11,7 @@ import lombok.Setter;
 @Setter
 public class LabelGetOptions {
 
-    private boolean includeBooksCount = false;
-    private String keyword = "";
+    private boolean includeBookCount = false;
+    private String search = "";
+    private Integer bookCount = null;
 }
