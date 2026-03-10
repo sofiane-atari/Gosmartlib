@@ -225,3 +225,34 @@
 .btn-save:hover {
   background: #6e1733;
 }
+
+/* Filter Row */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #7a5560;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #f0e4e8;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1a0a10;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.18s;
+  width: max(4rem);
+}
+
+.filter-select:focus {
+  border-color: var(--main-color);
+}

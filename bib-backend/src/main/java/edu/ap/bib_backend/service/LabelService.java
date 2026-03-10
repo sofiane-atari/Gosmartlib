@@ -47,7 +47,7 @@ public class LabelService {
 
         Page<? extends LabelProjection> labels;
 
-        if (options.isIncludeBookCount() || options.isIncludeBookCount() && options.getBookCount() != null) {
+        if (options.isIncludeBookCount() || options.getBookCount() != null) {
             labels = labelRepository.findAllFiltered(
                     options.getSearch(),
                     options.getBookCount(),

@@ -5,9 +5,12 @@ import { environment } from '../../../environments/environment';
 import { Label, LabelStats } from '../../model/label.model';
 import { Observable } from 'rxjs';
 import { PaginatedResponse } from '../../model/paginated-response.model.ts';
+import { Search } from 'lucide-angular';
 
 export interface labelGetOpt {
   includeBookCount?: boolean;
+  bookCount?: string;
+  search?: string;
 }
 
 export interface labelGetOptWithPaging {
@@ -38,13 +41,23 @@ export class LabelService {
   public getLabelsByPage(
     opt: labelGetOptWithPaging,
   ): Observable<PaginatedResponse<Label>> {
-    const params = new HttpParams({
+    let params = new HttpParams({
       fromObject: {
-        includeBooksCount: String(opt.labelGetOpt?.includeBookCount ?? false),
+        includeBookCount: String(opt.labelGetOpt?.includeBookCount ?? false), 
         page: String(opt.pagingOpt.page),
         pageSize: String(opt.pagingOpt.pageSize),
       },
     });
+
+    // Add search parameter if provided
+    if (opt.labelGetOpt?.search) {
+      params = params.set('search', opt.labelGetOpt.search);
+    }
+
+    // Add bookCount filter if provided
+    if (opt.labelGetOpt?.bookCount) {
+      params = params.set('bookCount', opt.labelGetOpt.bookCount);
+    }
 
     return this.http.get<PaginatedResponse<Label>>(this.url, { params });
   }

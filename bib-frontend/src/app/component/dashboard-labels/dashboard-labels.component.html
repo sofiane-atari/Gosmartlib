@@ -44,9 +44,20 @@
   <!-- SearchBar -->
   <app-search-bar (searchChange)="onSearch($event)" />
 
+  <!-- BookCount Filter -->
+  <div class="filter-row">
+    <label class="filter-label">Filter op aantal boeken:</label>
+    <input
+      class="filter-select"
+      [value]="bookCountFilter()"
+      placeholder="bijv. 1"
+      (change)="onBookCountFilterChange($any($event.target).value)"
+    />
+  </div>
+
   <!-- LabelsList -->
   <app-labels-list
-    [labels]="filteredLabels()"
+    [labels]="labels()"
   />
 
   <!-- Paging -->

@@ -13,7 +13,8 @@ import {
 } from '../../model/paginated-response.model.ts';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagingComponent } from '../paging/paging.component';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -38,20 +39,47 @@ export class DashboardLabelsComponent {
   private router = inject(Router);
   private refreshTrigger = signal(false);
 
+  // Subject for debounced search
+  private searchSubject = new Subject<string>();
+
   protected success = signal<string | null>(null);
   protected error = signal<string | null>(null);
   protected popUp = signal<PopupState>(null);
 
-  public searchQuery = signal('');
+  // BookCount filter (0 = any, 1+ = has books, -1 = no books)
+  protected bookCountFilter = signal<string>('');
+
+  constructor() {
+    // Set up debounced search - waits 300ms after user stops typing
+    this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((searchQuery: string) => {
+        this.updateSearchQueryParam(searchQuery);
+      });
+  }
+
+  private updateSearchQueryParam(query: string): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { search: query || null, page: 0 },
+      queryParamsHandling: 'merge',
+    });
+  }
 
   // Reactive observable that updates when queryParams change
   private labels$ = this.route.queryParamMap.pipe(
     switchMap((queryParams) => {
       const page = Number(queryParams.get('page')) || 0;
-      const pageSize = Number(queryParams.get('pageSize')) || 20;
+      const pageSize = Number(queryParams.get('pageSize')) || 10;
+      const search = queryParams.get('search') || undefined;
+      const bookCount = queryParams.get('bookCount') || undefined;
 
       return this.labelService.getLabelsByPage({
-        labelGetOpt: { includeBookCount: true },
+        labelGetOpt: {
+          includeBookCount: true,
+          search,
+          bookCount,
+        },
         pagingOpt: { page, pageSize },
       });
     }),
@@ -77,18 +105,18 @@ export class DashboardLabelsComponent {
   protected labels = computed(() => this.response()?.data ?? []);
   protected pagingMeta = computed(() => this.response()?.meta);
 
-  protected filteredLabels = computed(() =>
-    this.labels().filter(
-      (l) =>
-        l.description
-          .toLowerCase()
-          .includes(this.searchQuery().toLowerCase()) ||
-        l.name.toLowerCase().includes(this.searchQuery().toLowerCase()),
-    ),
-  );
+  onSearch(query: string): void {
+    // Push to subject for debouncing
+    this.searchSubject.next(query);
+  }
 
-  onSearch(query: string) {
-    this.searchQuery.set(query);
+  onBookCountFilterChange(bookCount: string): void {
+    this.bookCountFilter.set(bookCount);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { bookCount: bookCount || null, page: 0 },
+      queryParamsHandling: 'merge',
+    });
   }
 
   onPageChange(page: number): void {
