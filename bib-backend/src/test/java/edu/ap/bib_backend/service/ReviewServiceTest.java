@@ -249,8 +249,12 @@ class ReviewServiceTest {
         // Arrange
         Long reviewId = 1L;
 
+        Book book = new Book();
+        book.setId(42L);
+
         Review review = new Review();
         review.setId(reviewId);
+        review.setBook(book);
         review.setComment("Good book");
         review.setRating(4);
         review.setReportCount(2);
