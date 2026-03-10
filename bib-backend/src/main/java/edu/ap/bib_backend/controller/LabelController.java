@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
@@ -46,9 +47,9 @@ public class LabelController {
     public ResponseEntity<PageDTO<LabelDTO>> getPage(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(required = false) boolean includeBooksCount) {
+            @ModelAttribute LabelGetOptions options) {
 
-        PageDTO<LabelDTO> pageDTO = labelService.getPage(page, pageSize, new LabelGetOptions(includeBooksCount));
+        PageDTO<LabelDTO> pageDTO = labelService.getPage(page, pageSize, options);
 
         return ResponseEntity.ok(pageDTO);
     }

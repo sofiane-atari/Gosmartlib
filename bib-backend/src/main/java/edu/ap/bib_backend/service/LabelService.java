@@ -47,9 +47,12 @@ public class LabelService {
 
         Page<? extends LabelProjection> labels;
 
-        if (options.includeBookCount())
-            labels = labelRepository.findAllIncludeBookCount(pageable);
-        else
+        if (options.isIncludeBooksCount()) {
+            if (!options.getKeyword().isBlank())
+                labels = labelRepository.searchByNamerOrDescriptionOrColorOrBookCount(options.getKeyword(), pageable);
+            else
+                labels = labelRepository.findAllIncludeBookCount(pageable);
+        } else
             labels = labelRepository.findAll(pageable);
 
         List<LabelDTO> data = labels.getContent().stream().map(labelMapper::toDto).toList();
@@ -66,5 +69,4 @@ public class LabelService {
 
         return stats;
     }
-
 }
