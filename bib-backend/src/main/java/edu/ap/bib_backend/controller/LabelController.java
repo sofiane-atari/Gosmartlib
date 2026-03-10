@@ -1,9 +1,7 @@
 package edu.ap.bib_backend.controller;
 
 import java.net.URI;
-import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,7 +55,7 @@ public class LabelController {
     // params starting with underscore are preserved params to avoid conflict of a
     // entity with the same name
     @GetMapping("_stats")
-    public ResponseEntity<LabelStatsDTO> getMethodName() {
+    public ResponseEntity<LabelStatsDTO> getLabelStats() {
 
         return ResponseEntity.ok(labelService.getAllLabelStats());
     }

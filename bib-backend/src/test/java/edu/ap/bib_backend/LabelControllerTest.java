@@ -1,5 +1,7 @@
 package edu.ap.bib_backend;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,13 +15,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.ap.bib_backend.controller.LabelController;
 import edu.ap.bib_backend.dto.LabelDTO;
+import edu.ap.bib_backend.dto.LabelStatsDTO;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.PaginatedMeta;
+import edu.ap.bib_backend.options.LabelGetOptions;
 import edu.ap.bib_backend.service.LabelService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.containsString;
@@ -42,7 +50,7 @@ class LabelControllerTest {
         // POST /api/labels - createLabel
         // -------------------------------------------------------
         @Test
-        void createLabel_ShouldCreateLabelWithoutDescription() throws Exception {
+        void givenNoDescription_whenCreateLabel_thenCreateWithoutDescription() throws Exception {
                 // Arrange
                 LabelDTO newLabel = LabelDTO.builder().name("testLabel").color("#a75064").build();
                 LabelDTO savedLabel = LabelDTO.builder().name("testLabel").color("#a75064").build();
@@ -63,10 +71,12 @@ class LabelControllerTest {
         }
 
         @Test
-        void createLabel_WithValidBody_ShouldReturn201WithLocationHeader() throws Exception {
+        void givenValidBody_whenCreateLabel_thenReturn201WithLocationHeader() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").description("High priority tasks").build();
-                LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001").description("High priority tasks").build();
+                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001")
+                                .description("High priority tasks").build();
+                LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001")
+                                .description("High priority tasks").build();
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willReturn(createdLabel);
@@ -86,7 +96,7 @@ class LabelControllerTest {
         }
 
         @Test
-        void createLabel_WithNullName_ShouldReturn400() throws Exception {
+        void givenNullName_whenCreateLabel_thenReturn400() throws Exception {
                 // Arrange
                 LabelDTO invalidBody = LabelDTO.builder().color("#FF0001").description("Some description").build();
 
@@ -100,7 +110,7 @@ class LabelControllerTest {
         }
 
         @Test
-        void createLabel_WithOptionalFieldsNull_ShouldReturn202() throws Exception {
+        void givenOptionalFieldsNull_whenCreateLabel_thenReturn201() throws Exception {
                 // Arrange
                 LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").build();
                 LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001").build();
@@ -121,7 +131,7 @@ class LabelControllerTest {
         }
 
         @Test
-        void createLabel_WhenServiceThrows_ShouldReturn501() throws Exception {
+        void givenServiceThrows_whenCreateLabel_thenReturn501() throws Exception {
                 // Arrange
                 LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").build();
 
@@ -139,10 +149,12 @@ class LabelControllerTest {
         }
 
         @Test
-        void createLabel_ShouldCallServiceExactlyOnce() throws Exception {
+        void givenValidRequest_whenCreateLabel_thenCallServiceOnce() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label").build();
-                LabelDTO createdLabel = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label").build();
+                LabelDTO requestBody = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label")
+                                .build();
+                LabelDTO createdLabel = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label")
+                                .build();
 
                 given(labelService.createLabel(any(LabelDTO.class)))
                                 .willReturn(createdLabel);
@@ -154,5 +166,144 @@ class LabelControllerTest {
 
                 // Assert
                 then(labelService).should(times(1)).createLabel(any(LabelDTO.class));
+        }
+
+        // -------------------------------------------------------
+        // GET /api/labels - getPage
+        // -------------------------------------------------------
+        @Test
+        void givenRequestingFirstPage_whenGetPage_thenReturnLabels() throws Exception {
+                // Arrange
+                LabelDTO label = LabelDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
+                                .build();
+                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(0, 10, 1, 1));
+
+                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/labels"));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data").isArray())
+                                .andExpect(jsonPath("$.data[0].name").value("Fiction"))
+                                .andExpect(jsonPath("$.meta.currentPage").value(0));
+        }
+
+        @Test
+        void givenRequestingSecondPage_whenGetPage_thenReturnLabelsWithPagination() throws Exception {
+                // Arrange
+                LabelDTO label = LabelDTO.builder().name("Non-Fiction").color("#00FF00-F")
+                                .description("Noniction books").build();
+                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(1, 10, 2, 20));
+
+                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/labels")
+                                .param("page", "2"));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data").isArray())
+                                .andExpect(jsonPath("$.data[0].name").value("Non-Fiction"))
+                                .andExpect(jsonPath("$.meta.currentPage").value(1));
+        }
+
+        @Test
+        void givenSearchQuery_whenGetPage_thenPassSearchParameter() throws Exception {
+                // Arrange
+                LabelDTO label = LabelDTO.builder().name("Science").color("#0000FF").description("Science books")
+                                .build();
+                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(0, 10, 1, 1));
+
+                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/labels")
+                                .param("search", "science"));
+
+                // Assert
+                result.andExpect(status().isOk());
+        }
+
+        @Test
+        void givenBookCountParam_whenGetPage_thenPassBookCountFilter() throws Exception {
+                // Arrange
+                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(), new PaginatedMeta(0, 10, 0, 0));
+
+                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/labels")
+                                .param("bookCount", "1"));
+
+                // Assert
+                result.andExpect(status().isOk());
+        }
+
+        @Test
+        void givenNoParams_whenGetPage_thenUseDefaultValues() throws Exception {
+                // Arrange
+                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(), new PaginatedMeta(0, 10, 0, 0));
+
+                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/labels"));
+
+                // Assert
+                result.andExpect(status().isOk());
+        }
+
+        // -------------------------------------------------------
+        // GET /api/labels/_stats - getLabelStats
+        // -------------------------------------------------------
+        @Test
+        void givenLabelsExist_whenGetLabelStats_thenReturnStats() throws Exception {
+                // Arrange
+                LabelStatsDTO stats = new LabelStatsDTO(10, 5);
+
+                given(labelService.getAllLabelStats()).willReturn(stats);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.totalItems").value(10))
+                                .andExpect(jsonPath("$.unActiveLabels").value(5));
+        }
+
+        @Test
+        void givenNoLabels_whenGetLabelStats_thenReturnZeroStats() throws Exception {
+                // Arrange
+                LabelStatsDTO stats = new LabelStatsDTO(0, 0);
+
+                given(labelService.getAllLabelStats()).willReturn(stats);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.totalItems").value(0))
+                                .andExpect(jsonPath("$.unActiveLabels").value(0));
+        }
+
+        @Test
+        void givenAllLabelsHaveBooks_whenGetLabelStats_thenReturnCorrectStats() throws Exception {
+                // Arrange
+                LabelStatsDTO stats = new LabelStatsDTO(5, 0);
+
+                given(labelService.getAllLabelStats()).willReturn(stats);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.totalItems").value(5))
+                                .andExpect(jsonPath("$.unActiveLabels").value(0));
         }
 }
