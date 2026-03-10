@@ -35,13 +35,18 @@
 }
 
 .stat-card__icon--active {
-  background: #eef4ff;
-  color: #3b6ee8;
+  background: var(--sec-light-color);
+  color: var(--main-color);
 }
 
 .stat-card__icon--unused {
-  background: #edfaf2;
+  background: var(--main-light-color);
   color: var(--success-color);
+}
+
+.stat-card__icon--default {
+  background: var(--main-light-color);
+  color: var(--main-color);
 }
 
 .stat-card__label {

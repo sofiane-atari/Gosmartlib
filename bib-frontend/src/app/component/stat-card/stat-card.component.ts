@@ -1,5 +1,7 @@
-import { Component, input } from '@angular/core';
+import { Component, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+export type StatCardVariant = 'total' | 'active' | 'unused' | 'default';
 
 @Component({
   selector: 'app-stat-card',
@@ -11,5 +13,21 @@ import { CommonModule } from '@angular/common';
 export class StatCardComponent {
   label = input('');
   value = input(0);
-  variant = input<'total' | 'active' | 'unused'>('total');
+  variant = input<StatCardVariant>('default');
+
+  // Optional custom colors (overrides variant colors)
+  iconBackground = input<string | null>(null);
+  iconColor = input<string | null>(null);
+
+  // Computed styles for the icon
+  iconStyles = computed(() => {
+    const styles: Record<string, string> = {};
+    if (this.iconBackground()) {
+      styles['background'] = this.iconBackground()!;
+    }
+    if (this.iconColor()) {
+      styles['color'] = this.iconColor()!;
+    }
+    return styles;
+  });
 }
