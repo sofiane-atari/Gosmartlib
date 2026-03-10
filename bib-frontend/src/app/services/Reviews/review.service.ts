@@ -15,6 +15,10 @@ export class ReviewService {
     return this.http.get<Review[]>(`${this.apiUrl}/book/${bookId}`);
   }
 
+  getAllReviews() {
+    return this.http.get<Review[]>(this.apiUrl);
+  }
+
   addReviewToBook(bookId: number, review: Review) {
     return this.http.post<Review>(`${this.apiUrl}/book/${bookId}`, review);
   }

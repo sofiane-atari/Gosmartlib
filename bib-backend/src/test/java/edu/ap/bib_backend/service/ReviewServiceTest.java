@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.ReviewDTO;
-import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.Review;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
@@ -21,7 +20,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
@@ -65,11 +63,37 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("Get all reviews - Success")
+    void whenGetAllReviews_thenReturnReviewDTOList() {
+        // Arrange
+        Book mockBook = new Book();
+        mockBook.setId(1L);
+
+        Review review1 = new Review("Super boek", 5, mockBook);
+        review1.setId(10L);
+        Review review2 = new Review("Minder goed", 2, mockBook);
+        review2.setId(11L);
+
+        List<Review> mockDatabaseList = Arrays.asList(review1, review2);
+        Mockito.when(reviewRepository.findAll()).thenReturn(mockDatabaseList);
+
+        // Act
+        List<ReviewDTO> result = reviewService.getAllReviews();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(10L, result.get(0).getId());
+
+        Mockito.verify(reviewRepository).findAll();
+    }
+
+    @Test
     @DisplayName("Add review - Success (No profanity)")
     void whenAddReviewToBook_givenValidBookIdAndCleanDTO_thenReturnSavedReviewDTO() {
         // Arrange
         Long bookId = 1L;
-        ReviewDTO inputDto = new ReviewDTO(null, "Highly recommended", 4, 0);
+        ReviewDTO inputDto = new ReviewDTO(null, "Highly recommended", 4, 0, null, null, null);
 
         Book mockBook = new Book();
         mockBook.setId(bookId);
@@ -101,7 +125,7 @@ class ReviewServiceTest {
     void whenAddReviewToBook_givenProfanity_thenThrowRuntimeException() {
         // Arrange
         Long bookId = 1L;
-        ReviewDTO inputDto = new ReviewDTO(null, "This book is really shit", 1, 0);
+        ReviewDTO inputDto = new ReviewDTO(null, "This book is really shit", 1, 0, null, null, null);
         Mockito.when(profanityFilterService.containsProfanity(inputDto.getComment())).thenReturn(true);
 
         // Act & Assert
@@ -119,7 +143,7 @@ class ReviewServiceTest {
     void whenAddReviewToBook_givenInvalidBookId_thenThrowRuntimeException() {
         // Arrange
         Long invalidBookId = 999L;
-        ReviewDTO inputDto = new ReviewDTO(null, "This book does not exist", 1, 0);
+        ReviewDTO inputDto = new ReviewDTO(null, "This book does not exist", 1, 0, null, null, null);
 
         Mockito.when(profanityFilterService.containsProfanity(anyString())).thenReturn(false);
         Mockito.when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());
@@ -225,8 +249,12 @@ class ReviewServiceTest {
         // Arrange
         Long reviewId = 1L;
 
+        Book book = new Book();
+        book.setId(42L);
+
         Review review = new Review();
         review.setId(reviewId);
+        review.setBook(book);
         review.setComment("Good book");
         review.setRating(4);
         review.setReportCount(2);

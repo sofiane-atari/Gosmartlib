@@ -1,0 +1,173 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.page-container {
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+    padding: 40px 20px;
+}
+
+.content-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.content-header {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--main-color, #0f172a);
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1.25rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Reviews Section from book-detail */
+.reviews-section {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+}
+
+.empty-state p {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.review-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    /* Slightly reduced margin to fit the link nicely */
+    color: #0f172a;
+}
+
+.book-reference-link {
+    display: inline-block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--main-color, #3b82f6);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.book-reference-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+.review-text {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* Styling voor de vuilbak-knop bij reviews */
+.delete-review-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.delete-review-btn:hover:not(:disabled) {
+    background: var(--main-light-color, #fee2e2);
+    color: var(--error-color, #dc2626);
+    transform: scale(1.05);
+}
+
+/* Sterren Algemeen */
+.star {
+    color: #e2e8f0;
+    font-size: 1.25rem;
+    transition: color 0.2s ease;
+}
+
+.star.filled {
+    color: #fbbf24;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 20px 12px;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .page-subtitle {
+        font-size: 1.125rem;
+    }
+
+    .content-header,
+    .reviews-section {
+        padding: 24px;
+    }
+}

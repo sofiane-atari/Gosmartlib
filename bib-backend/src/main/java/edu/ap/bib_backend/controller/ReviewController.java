@@ -29,6 +29,11 @@ public class ReviewController {
         return ResponseEntity.ok(rs.getReviewsForBook(bookId));
     }
 
+    @GetMapping
+    public ResponseEntity<List<ReviewDTO>> getAllReviews() {
+        return ResponseEntity.ok(rs.getAllReviews());
+    }
+
     @PostMapping("/book/{bookId}")
     public ResponseEntity<ReviewDTO> addReview(@PathVariable("bookId") Long bookId, @RequestBody ReviewDTO reviewDTO) {
         ReviewDTO savedReview = rs.addReviewToBook(bookId, reviewDTO);

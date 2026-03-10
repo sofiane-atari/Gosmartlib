@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.management.RuntimeErrorException;
-
 @Service
 public class ReviewService {
 
@@ -28,7 +26,16 @@ public class ReviewService {
     public List<ReviewDTO> getReviewsForBook(Long bookId) {
         return rr.findByBookId(bookId).stream()
                 .map(review -> new ReviewDTO(review.getId(), review.getComment(), review.getRating(),
-                        review.getReportCount()))
+                        review.getReportCount(), review.getBook().getId(), review.getBook().getTitle(),
+                        review.getBook().getAuthor()))
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewDTO> getAllReviews() {
+        return rr.findAll().stream()
+                .map(review -> new ReviewDTO(review.getId(), review.getComment(), review.getRating(),
+                        review.getReportCount(), review.getBook().getId(), review.getBook().getTitle(),
+                        review.getBook().getAuthor()))
                 .collect(Collectors.toList());
     }
 
@@ -44,7 +51,8 @@ public class ReviewService {
         Review savedReview = rr.save(review);
 
         return new ReviewDTO(savedReview.getId(), savedReview.getComment(), savedReview.getRating(),
-                savedReview.getReportCount());
+                savedReview.getReportCount(), savedReview.getBook().getId(), savedReview.getBook().getTitle(),
+                savedReview.getBook().getAuthor());
     }
 
     public Double getAverageRating(Long bookId) {
@@ -67,7 +75,8 @@ public class ReviewService {
         Review savedReview = rr.save(review);
 
         return new ReviewDTO(savedReview.getId(), savedReview.getComment(), savedReview.getRating(),
-                savedReview.getReportCount());
+                savedReview.getReportCount(), savedReview.getBook().getId(), savedReview.getBook().getTitle(),
+                savedReview.getBook().getAuthor());
     }
 
 }
