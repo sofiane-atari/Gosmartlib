@@ -4,4 +4,7 @@ export interface Review {
   rating: number;
   isReported?: boolean;
   reportCount?: number;
+  bookId?: number;
+  bookTitle?: string;
+  bookAuthor?: string;
 }

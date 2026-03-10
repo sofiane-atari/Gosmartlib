@@ -1,0 +1,58 @@
+<div class="page-container">
+    <div class="content-wrapper">
+        <!-- Header -->
+        <header class="content-header">
+            <div class="title-section">
+                <h1 class="page-title">Mijn Reviews</h1>
+                <p class="page-subtitle">{{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }} geschreven</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="reviews-section">
+                <h2 class="section-title">Reviews</h2>
+
+                @if (reviews.length === 0) {
+                <div class="empty-state">
+                    <lucide-icon [img]="Search" [size]="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-icon>
+                    <p>Nog geen reviews beschikbaar. Je hebt nog geen reviews geschreven over boeken.</p>
+                </div>
+                } @else {
+                <div class="reviews-list">
+                    @for (review of reviews; track review.id) {
+                    <div class="review-card">
+                        <div class="review-header"
+                            style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <strong>Anonieme Lezer</strong>
+                                <div class="stars-display" style="display: flex; gap: 2px;">
+                                    @for (star of starsArray; track star) {
+                                    <span class="star" [class.filled]="star <= review.rating">★</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
+                                <a [routerLink]="['/book', review.bookId]" class="book-reference-link">
+                                    {{ review.bookTitle }} door {{ review.bookAuthor }}
+                                </a>
+
+                                <div class="review-actions" style="display: flex; gap: 8px;">
+                                    <button class="delete-review-btn" (click)="deleteReview(review.id)"
+                                        title="Review verwijderen">
+                                        <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="review-text">{{ review.comment }}</p>
+                    </div>
+                    }
+                </div>
+                }
+            </section>
+        </main>
+
+    </div>
+</div>

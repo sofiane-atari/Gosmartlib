@@ -42,8 +42,8 @@ class ReviewControllerTest {
         void whenGetReviewsForBook_givenValidBookId_thenReturn200AndReviewList() throws Exception {
                 // Arrange
                 Long bookId = 1L;
-                ReviewDTO review1 = new ReviewDTO(1L, "Geweldig boek!", 5, 0);
-                ReviewDTO review2 = new ReviewDTO(2L, "Beetje saai", 3, 0);
+                ReviewDTO review1 = new ReviewDTO(1L, "Geweldig boek!", 5, 0, bookId, "Title 1", "Author 1");
+                ReviewDTO review2 = new ReviewDTO(2L, "Beetje saai", 3, 0, bookId, "Title 1", "Author 1");
                 List<ReviewDTO> mockReviews = Arrays.asList(review1, review2);
 
                 Mockito.when(reviewService.getReviewsForBook(bookId)).thenReturn(mockReviews);
@@ -62,12 +62,35 @@ class ReviewControllerTest {
         }
 
         @Test
+        @DisplayName("Haal alle reviews op - Succes")
+        void whenGetAllReviews_thenReturn200AndReviewList() throws Exception {
+                // Arrange
+                ReviewDTO review1 = new ReviewDTO(1L, "Geweldig boek!", 5, 0, 1L, "Title 1", "Author 1");
+                ReviewDTO review2 = new ReviewDTO(2L, "Beetje saai", 3, 0, 1L, "Title 1", "Author 1");
+                List<ReviewDTO> mockReviews = Arrays.asList(review1, review2);
+
+                Mockito.when(reviewService.getAllReviews()).thenReturn(mockReviews);
+
+                // Act
+                ResultActions result = mockMvc.perform(get("/api/reviews")
+                                .contentType(MediaType.APPLICATION_JSON));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.size()").value(2))
+                                .andExpect(jsonPath("$[0].id").value(1))
+                                .andExpect(jsonPath("$[0].comment").value("Geweldig boek!"))
+                                .andExpect(jsonPath("$[0].rating").value(5))
+                                .andExpect(jsonPath("$[1].comment").value("Beetje saai"));
+        }
+
+        @Test
         @DisplayName("Voeg review toe - Succes")
         void whenAddReview_givenValidReviewDTO_thenReturn200AndSavedReview() throws Exception {
                 // Arrange
                 Long bookId = 1L;
-                ReviewDTO inputReview = new ReviewDTO(null, "Echt een aanrader", 4, 0);
-                ReviewDTO savedReview = new ReviewDTO(99L, "Echt een aanrader", 4, 0);
+                ReviewDTO inputReview = new ReviewDTO(null, "Echt een aanrader", 4, 0, null, null, null);
+                ReviewDTO savedReview = new ReviewDTO(99L, "Echt een aanrader", 4, 0, bookId, "Title", "Author");
 
                 Mockito.when(reviewService.addReviewToBook(eq(bookId), any(ReviewDTO.class)))
                                 .thenReturn(savedReview);
@@ -119,29 +142,31 @@ class ReviewControllerTest {
                 Mockito.verify(reviewService).deleteReview(reviewId);
         }
 
-    @Test
-    @DisplayName("rapporteer review - Succes")
-    void whenReportReview_givenValidId_thenReturnReportedReview() throws Exception {
-        // Arrange
-        Long reviewId = 1L;
+        @Test
+        @DisplayName("rapporteer review - Succes")
+        void whenReportReview_givenValidId_thenReturnReportedReview() throws Exception {
+                // Arrange
+                Long reviewId = 1L;
 
-        ReviewDTO reviewDTO = new ReviewDTO(
-                reviewId,
-                "Good book",
-                4,
-                3
-        );
+                ReviewDTO reviewDTO = new ReviewDTO(
+                                reviewId,
+                                "Good book",
+                                4,
+                                3,
+                                1L,
+                                "Title",
+                                "Author");
 
-        Mockito.when(reviewService.reportReview(reviewId)).thenReturn(reviewDTO);
+                Mockito.when(reviewService.reportReview(reviewId)).thenReturn(reviewDTO);
 
-        // Act & Assert
-        mockMvc.perform(post("/reviews/{reviewId}/report", reviewId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
-                .andExpect(jsonPath("$.comment").value("Good book"))
-                .andExpect(jsonPath("$.rating").value(4))
-                .andExpect(jsonPath("$.reportCount").value(3));
+                // Act & Assert
+                mockMvc.perform(post("/reviews/{reviewId}/report", reviewId))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(reviewId))
+                                .andExpect(jsonPath("$.comment").value("Good book"))
+                                .andExpect(jsonPath("$.rating").value(4))
+                                .andExpect(jsonPath("$.reportCount").value(3));
 
-        Mockito.verify(reviewService).reportReview(reviewId);
-    }
+                Mockito.verify(reviewService).reportReview(reviewId);
+        }
 }
