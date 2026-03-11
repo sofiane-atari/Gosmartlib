@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline
 
 # Kopieer de volledige projectcode en bouw de applicatie
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean -X package -DskipTests
 
 # Gebruik een lichtere JDK-runtime voor de uiteindelijke image
 FROM eclipse-temurin:21-jre

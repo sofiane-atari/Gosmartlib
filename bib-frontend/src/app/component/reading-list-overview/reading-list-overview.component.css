@@ -41,7 +41,7 @@
 
 .btn-primary {
   background: linear-gradient(135deg, var(--main-color), var(--sec-color));
-  color: white;
+  color: var(--main-light-color);
   border: none;
   border-radius: 10px;
   padding: 11px 20px;
@@ -86,7 +86,7 @@
 }
 
 .card-cover {
-  background: linear-gradient(135deg, var(--sec-light-color), var(--secondary-color));
+  background: linear-gradient(135deg, var(--sec-light-color), var(--sec-color));
   height: 140px;
   display: flex;
   align-items: center;

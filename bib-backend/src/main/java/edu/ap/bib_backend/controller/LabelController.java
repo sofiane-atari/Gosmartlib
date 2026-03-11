@@ -9,10 +9,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import edu.ap.bib_backend.dto.LabelDTO;
+import edu.ap.bib_backend.dto.LabelStatsDTO;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.options.LabelGetOptions;
 import edu.ap.bib_backend.service.LabelService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/labels")
@@ -35,4 +41,22 @@ public class LabelController {
         return ResponseEntity.created(location).body(createdLabel);
     }
 
+    @GetMapping
+    public ResponseEntity<PageDTO<LabelDTO>> getPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @ModelAttribute LabelGetOptions options) {
+
+        PageDTO<LabelDTO> pageDTO = labelService.getPage(page, pageSize, options);
+
+        return ResponseEntity.ok(pageDTO);
+    }
+
+    // params starting with underscore are preserved params to avoid conflict of a
+    // entity with the same name
+    @GetMapping("_stats")
+    public ResponseEntity<LabelStatsDTO> getLabelStats() {
+
+        return ResponseEntity.ok(labelService.getAllLabelStats());
+    }
 }

@@ -17,4 +17,3 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     Integer findMaxPages();
 
 }
-
