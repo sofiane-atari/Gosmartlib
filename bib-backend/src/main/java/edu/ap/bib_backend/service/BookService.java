@@ -1,13 +1,16 @@
 package edu.ap.bib_backend.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Availability;
@@ -115,18 +118,36 @@ public class BookService {
 
     public Integer getMinReleaseYear() {
         Integer min = br.findMinReleaseYear();
-        return min != null ? min : 1900; 
+        return min != null ? min : 1900;
     }
 
     public Integer getMaxReleaseYear() {
         Integer max = br.findMaxReleaseYear();
-        int year = LocalDate.now().getYear(); 
-        return max != null ? max : year;     
+        int year = LocalDate.now().getYear();
+        return max != null ? max : year;
     }
 
-    public Integer getMaxPages(){
+    public Integer getMaxPages() {
         Integer max = br.findMaxPages();
         return max != null ? max : 1500;
     }
 
+    public List<BookDTO> getMostReadBooks(int limit) {
+        List<Book> books = br.findMostReadBook(limit);
+
+        if (books.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen uitgeleende boeken gevonden");
+        }
+
+        return mapToDTOList(books);
+    }
+
+    private List<BookDTO> mapToDTOList(List<Book> books) {
+        List<BookDTO> dtos = new ArrayList<>();
+
+        for (Book book : books) 
+            dtos.add(mapToDTO(book));
+
+        return dtos;
+    }
 }

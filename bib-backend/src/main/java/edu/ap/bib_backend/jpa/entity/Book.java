@@ -58,6 +58,11 @@ public class Book {
     @JoinTable(name = "book_labels", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "label_name"))
     private List<Label> labels = new ArrayList<>();
 
+
+    @OneToMany(mappedBy = "book")
+    private List<BookCopy> bookCopies= new ArrayList<>();
+
+
     @Override
     public String toString() {
         return "Book{" +
