@@ -24,6 +24,7 @@ import edu.ap.bib_backend.service.LabelService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doNothing;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -373,5 +375,137 @@ class LabelControllerTest {
 
                 // Assert
                 result.andExpect(status().isInternalServerError());
+        }
+
+        // -------------------------------------------------------
+        // PUT /api/labels/{name} - updateLabel
+        // -------------------------------------------------------
+        @Test
+        void givenValidBody_whenUpdateLabel_thenReturn200() throws Exception {
+                // Arrange
+                String labelName = "Fiction";
+                LabelDTO requestBody = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#00FF00")
+                                .description("Updated fiction description")
+                                .build();
+                LabelDTO updatedLabel = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#00FF00")
+                                .description("Updated fiction description")
+                                .build();
+
+                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+
+                // Act
+                ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.name").value(labelName))
+                                .andExpect(jsonPath("$.color").value("#00FF00"))
+                                .andExpect(jsonPath("$.description").value("Updated fiction description"));
+                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+        }
+
+        @Test
+        void givenNonExistingLabel_whenUpdateLabel_thenReturn404() throws Exception {
+                // Arrange
+                String labelName = "NonExistent";
+                LabelDTO requestBody = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#00FF00")
+                                .description("Some description")
+                                .build();
+
+                when(labelService.update(eq(labelName), any(LabelDTO.class)))
+                                .thenThrow(new ResourceNotFoundException(labelName, "Label not found"));
+
+                // Act
+                ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)));
+
+                // Assert
+                result.andExpect(status().isNotFound());
+                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+        }
+
+        @Test
+        void givenServiceThrows_whenUpdateLabel_thenReturn500() throws Exception {
+                // Arrange
+                String labelName = "Fiction";
+                LabelDTO requestBody = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#00FF00")
+                                .description("Updated description")
+                                .build();
+
+                when(labelService.update(eq(labelName), any(LabelDTO.class)))
+                                .thenThrow(new RuntimeException("Unexpected error"));
+
+                // Act
+                ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)));
+
+                // Assert
+                result.andExpect(status().isInternalServerError())
+                                .andExpect(r -> assertInstanceOf(RuntimeException.class, r.getResolvedException()));
+        }
+
+        @Test
+        void givenValidRequest_whenUpdateLabel_thenCallServiceOnce() throws Exception {
+                // Arrange
+                String labelName = "Science";
+                LabelDTO requestBody = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#0000FF")
+                                .description("Science books")
+                                .build();
+                LabelDTO updatedLabel = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#0000FF")
+                                .description("Science books")
+                                .build();
+
+                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+
+                // Act
+                mockMvc.perform(put("/api/labels/{name}", labelName)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)));
+
+                // Assert
+                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+        }
+
+        @Test
+        void givenUpdateWithNullDescription_whenUpdateLabel_thenReturn200() throws Exception {
+                // Arrange
+                String labelName = "Fiction";
+                LabelDTO requestBody = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#FF0000")
+                                .build();
+                LabelDTO updatedLabel = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#FF0000")
+                                .description(null)
+                                .build();
+
+                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+
+                // Act
+                ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.name").value(labelName))
+                                .andExpect(jsonPath("$.color").value("#FF0000"));
         }
 }

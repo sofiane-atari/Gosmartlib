@@ -363,4 +363,110 @@ class LabelServiceTest {
                 verify(labelRepository, times(1)).findById(labelName);
                 verify(labelRepository, times(1)).deleteById(labelName);
         }
+
+        // ==================== update Tests ====================
+
+        @Test
+        void givenExistingLabel_whenUpdate_thenUpdateSuccessfully() {
+                // Arrange
+                String labelName = "Fiction";
+                LabelDTO inputDTO = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#00FF00")
+                                .description("Updated fiction description")
+                                .build();
+                Label existingLabel = new Label(labelName, "#FF0000", "Original description");
+                Label updatedLabel = new Label(labelName, "#00FF00", "Updated fiction description");
+
+                when(labelRepository.findById(labelName)).thenReturn(Optional.of(existingLabel));
+                when(labelRepository.save(any(Label.class))).thenReturn(updatedLabel);
+                when(labelMapper.toDto(updatedLabel)).thenReturn(inputDTO);
+
+                // Act
+                LabelDTO result = labelService.update(labelName, inputDTO);
+
+                // Assert
+                assertNotNull(result);
+                assertEquals("#00FF00", result.color());
+                assertEquals("Updated fiction description", result.description());
+                verify(labelRepository, times(1)).findById(labelName);
+                verify(labelRepository, times(1)).save(any(Label.class));
+                verify(labelMapper, times(1)).toDto(updatedLabel);
+        }
+
+        @Test
+        void givenNonExistingLabel_whenUpdate_thenThrowException() {
+                // Arrange
+                String labelName = "NonExistent";
+                LabelDTO inputDTO = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#00FF00")
+                                .description("Some description")
+                                .build();
+
+                when(labelRepository.findById(labelName)).thenReturn(Optional.empty());
+
+                // Act
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> labelService.update(labelName, inputDTO));
+
+                // Assert
+                assertNotNull(exception.getMessage());
+                verify(labelRepository, times(1)).findById(labelName);
+                verify(labelRepository, never()).save(any(Label.class));
+        }
+
+        @Test
+        void givenValidInputWithAllFields_whenUpdate_thenUpdateAllFields() {
+                // Arrange
+                String labelName = "Science";
+                LabelDTO inputDTO = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#0000FF")
+                                .description("Science and technology books")
+                                .build();
+                Label existingLabel = new Label(labelName, "#FF0000", "Old description");
+                Label savedLabel = new Label(labelName, "#0000FF", "Science and technology books");
+
+                when(labelRepository.findById(labelName)).thenReturn(Optional.of(existingLabel));
+                when(labelRepository.save(any(Label.class))).thenReturn(savedLabel);
+                when(labelMapper.toDto(savedLabel)).thenReturn(inputDTO);
+
+                // Act
+                LabelDTO result = labelService.update(labelName, inputDTO);
+
+                // Assert
+                assertNotNull(result);
+                assertEquals("#0000FF", result.color());
+                assertEquals("Science and technology books", result.description());
+                verify(labelRepository, times(1)).findById(labelName);
+                verify(labelRepository, times(1)).save(existingLabel);
+        }
+
+        @Test
+        void givenUpdateOnlyColor_whenUpdate_thenUpdateColorOnly() {
+                // Arrange
+                String labelName = "Fiction";
+                LabelDTO inputDTO = LabelDTO.builder()
+                                .name(labelName)
+                                .color("#FFFF00")
+                                .description(null)
+                                .build();
+                Label existingLabel = new Label(labelName, "#FF0000", "Original description");
+                Label savedLabel = new Label(labelName, "#FFFF00", "Original description");
+
+                when(labelRepository.findById(labelName)).thenReturn(Optional.of(existingLabel));
+                when(labelRepository.save(any(Label.class))).thenReturn(savedLabel);
+                when(labelMapper.toDto(savedLabel)).thenReturn(
+                                LabelDTO.builder().name(labelName).color("#FFFF00").description("Original description")
+                                                .build());
+
+                // Act
+                LabelDTO result = labelService.update(labelName, inputDTO);
+
+                // Assert
+                assertNotNull(result);
+                verify(labelRepository, times(1)).findById(labelName);
+                verify(labelRepository, times(1)).save(any(Label.class));
+        }
 }

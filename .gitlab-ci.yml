@@ -53,7 +53,7 @@ deploy:
       EOF
 
     # Run the services
-    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker compose --project-directory $DIR/ build"
+    - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker compose --project-directory $DIR/ build --no-cache"
     - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker compose --project-directory $DIR/ up -d"
 
     # Waiting till the database fully has started
