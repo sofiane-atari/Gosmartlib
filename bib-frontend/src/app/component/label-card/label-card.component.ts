@@ -5,8 +5,15 @@ import {
   EventEmitter,
   signal,
   input,
+  output,
+  inject,
+  DestroyRef,
 } from '@angular/core';
 import { Label } from '../../model/label.model';
+import { LabelService } from '../../services/label/label.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponseError } from '../../error-reponse.model';
 
 @Component({
   selector: 'app-label-card',
@@ -16,11 +23,29 @@ import { Label } from '../../model/label.model';
   styleUrls: ['./label-card.component.css'],
 })
 export class LabelCardComponent {
-  label = input.required<Label>();
+  public label = input.required<Label>();
+
+  public deletedSuccess = output<string>();
+  public deletionError = output<HttpErrorResponseError>();
+
+  private service = inject(LabelService);
+  private destroyRef = inject(DestroyRef);
+
   onEdit() {
     throw new Error('Method not implemented.');
   }
   onDelete() {
-    throw new Error('Method not implemented.');
+    this.service
+      .deleteLabelByName(this.label().name)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.deletedSuccess.emit(
+            `het label met de naam: ${this.label().name} is verwijderd`,
+          );
+        },
+        error: (err: HttpErrorResponse) =>
+          this.deletionError.emit(err?.error as HttpErrorResponseError),
+      });
   }
 }

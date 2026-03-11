@@ -43,7 +43,7 @@ export class LabelService {
   ): Observable<PaginatedResponse<Label>> {
     let params = new HttpParams({
       fromObject: {
-        includeBookCount: String(opt.labelGetOpt?.includeBookCount ?? false), 
+        includeBookCount: String(opt.labelGetOpt?.includeBookCount ?? false),
         page: String(opt.pagingOpt.page),
         pageSize: String(opt.pagingOpt.pageSize),
       },
@@ -64,5 +64,9 @@ export class LabelService {
 
   public getLabelStats(): Observable<LabelStats> {
     return this.http.get<LabelStats>(`${this.url}/_stats`);
+  }
+
+  public deleteLabelByName(name: string) {
+    return this.http.delete<void>(`${this.url}/${encodeURIComponent(name)}`);
   }
 }
