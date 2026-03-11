@@ -1,0 +1,28 @@
+<div class="sidebar-section">
+  <h3 class="sidebar-title">{{ title }}</h3>
+  
+  @if (loading) {
+    <div class="loading-state">
+      <span>Laden...</span>
+    </div>
+  } @else if (books.length === 0) {
+    <div class="empty-state">
+      <p>Geen boeken beschikbaar</p>
+    </div>
+  } @else {
+    <div class="book-list">
+      @for (book of books; track book.id || $index) {
+        <div class="book-item" (click)="navigateToBook(book)">
+          <div class="book-cover">
+            <img [src]="book.imageUrl" [alt]="book.title" />
+          </div>
+          <div class="book-details">
+            <h4 class="book-title">{{ book.title }}</h4>
+            <p class="book-author">{{ book.author }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+

@@ -444,9 +444,42 @@
 }
 
 /* =========================================================
-   6. RESPONSIVE DESIGN
+   MAIN CONTENT WITH SIDEBAR LAYOUT
+   ========================================================= */
+.main-content {
+  display: flex;
+  gap: 24px;
+}
+
+.main-content .books-grid {
+  flex: 1;
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
    ========================================================= */
 @media (max-width: 1024px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    order: -1; /* Show sidebar above books on smaller screens */
+  }
+  
+  .sidebar app-book-list-sidebar {
+    flex: 1;
+  }
+
   .books-grid {
     grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   }
