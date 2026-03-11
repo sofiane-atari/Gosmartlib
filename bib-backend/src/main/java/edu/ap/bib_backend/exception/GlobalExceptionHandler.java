@@ -12,7 +12,7 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceAlreadyExistsException.class) 
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleResourceAlreadyExists(ResourceAlreadyExistsException ex) {
         int errorCode = 409;
         List<ErrorDetail> details = new ArrayList<>();
@@ -53,10 +53,23 @@ public class GlobalExceptionHandler {
             details.add(new ErrorDetail(fieldError.getField(), fieldError.getDefaultMessage()));
         }
 
-        ApiError error = new ApiError(400, "Validation failed", details);
+        ApiError error = new ApiError(400, "Validatie mislukt", details);
         ErrorResponse response = new ErrorResponse(error);
 
         return ResponseEntity.badRequest().body(response);
-        
+
+    }
+
+    // Sends the field that is not found with the custom message send by the thrower
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
+        int errorCode = 404;
+        List<ErrorDetail> details = new ArrayList<>();
+        ApiError error = new ApiError(errorCode, "Item niet gevonden", details);
+
+        details.add(new ErrorDetail(ex.getFieldName(), ex.getMessage()));
+
+        ErrorResponse response = new ErrorResponse(error);
+        return ResponseEntity.status(error.getCode()).body(response);
     }
 }
