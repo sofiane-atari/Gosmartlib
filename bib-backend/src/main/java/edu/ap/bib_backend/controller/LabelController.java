@@ -16,8 +16,10 @@ import edu.ap.bib_backend.service.LabelService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
@@ -58,5 +60,12 @@ public class LabelController {
     public ResponseEntity<LabelStatsDTO> getLabelStats() {
 
         return ResponseEntity.ok(labelService.getAllLabelStats());
+    }
+
+    @DeleteMapping("/{name}")
+    public ResponseEntity<Void> delete(@PathVariable String name) {
+        
+        labelService.deleteById(name);
+        return ResponseEntity.noContent().build();
     }
 }

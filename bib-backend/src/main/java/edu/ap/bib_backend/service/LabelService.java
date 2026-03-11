@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.jpa.entity.Label;
 
+import edu.ap.bib_backend.jpa.repository.ReviewRepository;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import edu.ap.bib_backend.dto.LabelStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.repository.LabelRepository;
 import edu.ap.bib_backend.mapper.LabelMapper;
 import edu.ap.bib_backend.mapper.PageMapper;
@@ -23,12 +25,14 @@ import edu.ap.bib_backend.projection.LabelProjection;
 
 @Service
 public class LabelService {
+    private final ReviewRepository reviewRepository;
     private final LabelRepository labelRepository;
     private final LabelMapper labelMapper;
 
-    public LabelService(LabelRepository labelRepository, LabelMapper labelMapper) {
+    public LabelService(LabelRepository labelRepository, LabelMapper labelMapper, ReviewRepository reviewRepository) {
         this.labelRepository = labelRepository;
         this.labelMapper = labelMapper;
+        this.reviewRepository = reviewRepository;
     }
 
     public LabelDTO createLabel(LabelDTO labelDTO) {
@@ -71,5 +75,12 @@ public class LabelService {
         LabelStatsDTO stats = new LabelStatsDTO(labels.size(), unActiveCount);
 
         return stats;
+    }
+
+    public void deleteById(String name) {
+        Label label = labelRepository.findById(name)
+                .orElseThrow(() -> new ResourceNotFoundException(name, "Deze label bestaat niet en kan niet verwijderd worden"));
+
+        labelRepository.deleteById(name);
     }
 }
