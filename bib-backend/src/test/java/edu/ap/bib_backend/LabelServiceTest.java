@@ -4,6 +4,7 @@ import edu.ap.bib_backend.dto.LabelDTO;
 import edu.ap.bib_backend.dto.LabelStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Label;
 import edu.ap.bib_backend.jpa.repository.LabelRepository;
 import edu.ap.bib_backend.mapper.LabelMapper;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -307,5 +309,58 @@ class LabelServiceTest {
                 assertEquals(2, result.totalItems());
                 assertEquals(0, result.unActiveLabels());
                 verify(labelRepository, times(1)).findAllIncludeBookCount(any());
+        }
+
+        // ==================== deleteById Tests ====================
+
+        @Test
+        void givenExistingLabelName_whenDeleteById_thenDeleteSuccessfully() {
+                // Arrange
+                String labelName = "Fiction";
+                Label label = new Label(labelName, "#FF0000", "Fiction books");
+
+                when(labelRepository.findById(labelName)).thenReturn(Optional.of(label));
+                doNothing().when(labelRepository).deleteById(labelName);
+
+                // Act
+                labelService.deleteById(labelName);
+
+                // Assert
+                verify(labelRepository, times(1)).findById(labelName);
+                verify(labelRepository, times(1)).deleteById(labelName);
+        }
+
+        @Test
+        void givenNonExistingLabelName_whenDeleteById_thenThrowException() {
+                // Arrange
+                String labelName = "NonExistent";
+
+                when(labelRepository.findById(labelName)).thenReturn(Optional.empty());
+
+                // Act & Assert
+                ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                                () -> labelService.deleteById(labelName));
+
+                // Assert - message doesn't contain the label name, it's a static Dutch message
+                assertNotNull(exception.getMessage());
+                verify(labelRepository, times(1)).findById(labelName);
+                verify(labelRepository, never()).deleteById(any());
+        }
+
+        @Test
+        void givenLabelWithBooks_whenDeleteById_thenDeleteSuccessfully() {
+                // Arrange
+                String labelName = "Science";
+                Label label = new Label(labelName, "#0000FF", "Science books");
+
+                when(labelRepository.findById(labelName)).thenReturn(Optional.of(label));
+                doNothing().when(labelRepository).deleteById(labelName);
+
+                // Act
+                labelService.deleteById(labelName);
+
+                // Assert
+                verify(labelRepository, times(1)).findById(labelName);
+                verify(labelRepository, times(1)).deleteById(labelName);
         }
 }

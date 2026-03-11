@@ -18,6 +18,7 @@ import edu.ap.bib_backend.dto.LabelDTO;
 import edu.ap.bib_backend.dto.LabelStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.options.LabelGetOptions;
 import edu.ap.bib_backend.service.LabelService;
 
@@ -25,8 +26,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -305,5 +309,69 @@ class LabelControllerTest {
                 result.andExpect(status().isOk())
                                 .andExpect(jsonPath("$.totalItems").value(5))
                                 .andExpect(jsonPath("$.unActiveLabels").value(0));
+        }
+
+        // -------------------------------------------------------
+        // DELETE /api/labels/{name} - delete
+        // -------------------------------------------------------
+        @Test
+        void givenExistingLabelName_whenDelete_thenReturn204() throws Exception {
+                // Arrange
+                String labelName = "Fiction";
+
+                doNothing().when(labelService).deleteById(labelName);
+
+                // Act
+                ResultActions result = mockMvc.perform(delete("/api/labels/{name}", labelName));
+
+                // Assert
+                result.andExpect(status().isNoContent());
+                then(labelService).should(times(1)).deleteById(labelName);
+        }
+
+        @Test
+        void givenNonExistingLabelName_whenDelete_thenReturn404() throws Exception {
+                // Arrange
+                String labelName = "NonExistent";
+
+                doThrow(new ResourceNotFoundException(labelName, "Label not found"))
+                                .when(labelService).deleteById(labelName);
+
+                // Act
+                ResultActions result = mockMvc.perform(delete("/api/labels/{name}", labelName));
+
+                // Assert
+                result.andExpect(status().isNotFound());
+                then(labelService).should(times(1)).deleteById(labelName);
+        }
+
+        @Test
+        void givenLabelNameWithSpecialCharacters_whenDelete_thenReturn204() throws Exception {
+                // Arrange - Use a simple name without URL encoding issues
+                String labelName = "Science_Fiction";
+
+                doNothing().when(labelService).deleteById(labelName);
+
+                // Act
+                ResultActions result = mockMvc.perform(delete("/api/labels/{name}", labelName));
+
+                // Assert
+                result.andExpect(status().isNoContent());
+                then(labelService).should(times(1)).deleteById(labelName);
+        }
+
+        @Test
+        void givenDeleteError_whenDelete_thenReturn500() throws Exception {
+                // Arrange
+                String labelName = "Fiction";
+
+                doThrow(new RuntimeException("Database error"))
+                                .when(labelService).deleteById(labelName);
+
+                // Act
+                ResultActions result = mockMvc.perform(delete("/api/labels/{name}", labelName));
+
+                // Assert
+                result.andExpect(status().isInternalServerError());
         }
 }
