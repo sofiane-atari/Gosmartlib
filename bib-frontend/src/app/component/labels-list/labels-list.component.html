@@ -7,9 +7,13 @@
     <span>Acties</span>
   </div>
 
-  @for (label of labels(); track $index) {
-    <app-label-card [label]="label" />
-  }
+  <div class="labels-list__content">
+    @for (label of labels(); track $index) {
+      <app-label-card [label]="label" 
+      (deletionError)="deletionError.emit($event)" 
+      (deletedSuccess)="deletedSuccess.emit($event)" />
+    }
+  </div>
 
   @if (labels().length === 0) {
     <div class="labels-list__empty">

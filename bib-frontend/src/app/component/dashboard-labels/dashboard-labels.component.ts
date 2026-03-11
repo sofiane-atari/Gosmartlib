@@ -15,8 +15,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PagingComponent } from '../paging/paging.component';
 import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { HttpErrorResponseError } from '../../error-reponse.model';
 
 type PopupState = 'create' | 'edit' | null;
+
+interface ErrorItem {
+  field: string;
+  message: string;
+}
 
 @Component({
   selector: 'app-dashboard-labels',
@@ -43,7 +49,7 @@ export class DashboardLabelsComponent {
   private searchSubject = new Subject<string>();
 
   protected success = signal<string | null>(null);
-  protected error = signal<string | null>(null);
+  protected errors = signal<ErrorItem[]>([]);
   protected popUp = signal<PopupState>(null);
 
   // BookCount filter (0 = any, 1+ = has books, -1 = no books)
@@ -150,7 +156,37 @@ export class DashboardLabelsComponent {
     this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
   }
 
-  onError(message: string) {
-    this.error.set(message);
+  onError(error: string | HttpErrorResponseError) {
+
+    this.refreshTrigger.set(true);
+    this.refreshTrigger.set(false);
+
+    // Handle string errors from CreateLabelComponent
+    if (typeof error === 'string') {
+      this.errors.set([{ field: 'error', message: error }]);
+      return;
+    }
+
+    // Handle HttpErrorResponseError from LabelsListComponent
+    if (error != null) {
+      const errorItems: ErrorItem[] = [
+        { field: 'message', message: error.error.message },
+      ];
+
+      if (error.error.details && error.error.details.length > 0) {
+        errorItems.push(
+          ...error.error.details.map((d) => ({
+            field: d.field,
+            message: d.message,
+          })),
+        );
+      }
+
+      this.errors.set(errorItems);
+    } else {
+      this.errors.set([
+        { field: 'error', message: 'Er is een fout opgetreden.' },
+      ]);
+    }
   }
 }

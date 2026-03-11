@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { Label } from '../../model/label.model';
 import { LabelCardComponent } from '../label-card/label-card.component';
+import { HttpErrorResponseError } from '../../error-reponse.model';
 
 @Component({
   selector: 'app-labels-list',
@@ -17,5 +18,8 @@ import { LabelCardComponent } from '../label-card/label-card.component';
   styleUrls: ['./labels-list.component.css'],
 })
 export class LabelsListComponent {
-  labels = input<Label[]>([]);
+  public labels = input<Label[]>([]);
+
+  public deletedSuccess = output<string>();
+  public deletionError = output<HttpErrorResponseError>();
 }

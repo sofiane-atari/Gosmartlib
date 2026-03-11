@@ -16,9 +16,11 @@
       </div>
     }
 
-    @if (error()) {
+    @if (errors().length > 0) {
       <div class="error-message">
-        {{ error() }}
+        @for (err of errors(); track err.field) {
+          <p> {{ err.message }}</p>
+        }
       </div>
     }
 
@@ -58,6 +60,8 @@
   <!-- LabelsList -->
   <app-labels-list
     [labels]="labels()"
+    (deletedSuccess)="onSuccess($event)"
+    (deletionError)="onError($event)"
   />
 
   <!-- Paging -->
