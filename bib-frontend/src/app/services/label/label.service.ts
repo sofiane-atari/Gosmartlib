@@ -69,4 +69,11 @@ export class LabelService {
   public deleteLabelByName(name: string) {
     return this.http.delete<void>(`${this.url}/${encodeURIComponent(name)}`);
   }
+
+  public updateLabel(label: Label): Observable<Label> {
+    return this.http.put<Label>(
+      `${this.url}/${encodeURIComponent(label.name)}`,
+      label,
+    );
+  }
 }
