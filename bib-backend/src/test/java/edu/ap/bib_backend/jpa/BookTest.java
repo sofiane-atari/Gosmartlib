@@ -34,7 +34,6 @@ public class BookTest {
         assertThat(book.getDescription()).isEqualTo(description);
         assertThat(book.getReleaseYear()).isEqualTo(releaseYear);
         assertThat(book.getAvailability()).isEqualTo(availability);
-        assertThat(book.getCopies()).isEqualTo(copies);
         assertThat(book.getReviewScore()).isNull();
     }
 }

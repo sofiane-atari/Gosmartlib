@@ -10,4 +10,21 @@
     </p>
   </div>
   </div>
+  <div class="bulk-upload">
+
+  <button class="btn-download" (click)="downloadTemplate()">
+    Download Template
+  </button>
+
+  <input type="file"
+         (change)="onFileSelected($event)"
+         accept=".xlsx"/>
+
+  <button class="btn-submit"
+          (click)="uploadBooks()"
+          [disabled]="!selectedFile">
+    Boeken toevoegen
+  </button>
+
+</div>
 </div>

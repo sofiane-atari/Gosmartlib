@@ -24,7 +24,6 @@ public class Book {
     private String author;
     private int pages;
     private String description;
-    private int copies;
 
     @Column(name = "image_url")
     private String imageUrl;
@@ -60,7 +59,6 @@ public class Book {
         this.description = description;
         this.releaseYear = release_year;
         this.availability = availability;
-        this.copies = copies;
     }
 
     @ManyToMany
@@ -82,7 +80,6 @@ public class Book {
                 ", description='" + description + '\'' +
                 ", releaseYear=" + releaseYear +
                 ", availability=" + availability +
-                ", copies=" + copies +
                 '}';
     }
 }

@@ -2,7 +2,7 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.jpa.entity.*;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
-
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.poi.ss.usermodel.*;
@@ -16,6 +16,7 @@ import java.io.InputStream;
 public class BookBulkService {
     private final BookRepository br;
 
+    @Transactional
     public void importBooks(MultipartFile file) {
         try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
@@ -25,8 +26,11 @@ public class BookBulkService {
 
                 if (rw == null)
                     continue;
+                if (rw.getCell(1) == null)
+                    continue;
 
-                Book book = new Book();
+                Book book = mapRowToBook(rw);
+                br.save(book);
 
             }
         } catch (Exception e) {
@@ -48,7 +52,6 @@ public class BookBulkService {
         String availability = row.getCell(7).getStringCellValue();
         book.setAvailability(Availability.valueOf(availability));
 
-        book.setCopies((int) row.getCell(8).getNumericCellValue());
 
         return book;
     }
