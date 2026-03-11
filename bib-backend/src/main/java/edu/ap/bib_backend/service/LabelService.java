@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import edu.ap.bib_backend.dto.LabelDTO;
 import edu.ap.bib_backend.dto.LabelStatsDTO;
@@ -35,6 +36,7 @@ public class LabelService {
         this.reviewRepository = reviewRepository;
     }
 
+    @Transactional
     public LabelDTO createLabel(LabelDTO labelDTO) {
         if (labelRepository.existsById(labelDTO.name())) {
             throw new ResourceAlreadyExistsException("name", labelDTO.name(),
@@ -77,10 +79,28 @@ public class LabelService {
         return stats;
     }
 
+    @Transactional
     public void deleteById(String name) {
         Label label = labelRepository.findById(name)
-                .orElseThrow(() -> new ResourceNotFoundException(name, "Deze label bestaat niet en kan niet verwijderd worden"));
+                .orElseThrow(() -> new ResourceNotFoundException(name,
+                        "Deze label bestaat niet en kan niet verwijderd worden"));
 
-        labelRepository.deleteById(name);
+        labelRepository.deleteById(label.getName());
+    }
+
+    @Transactional
+    public LabelDTO update(String name, LabelDTO inputDTO) {
+
+        Label label = labelRepository.findById(name)
+                .orElseThrow(() -> new ResourceNotFoundException(name,
+                        "Deze label bestaat niet en kan niet gewijzigd worden"));
+
+        label.setColor(inputDTO.color());
+        label.setDescription(inputDTO.description());
+
+        Label saved = labelRepository.save(label);
+        LabelDTO outputDTO = labelMapper.toDto(saved);
+
+        return outputDTO;
     }
 }

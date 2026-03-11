@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/labels")
@@ -64,8 +65,15 @@ public class LabelController {
 
     @DeleteMapping("/{name}")
     public ResponseEntity<Void> delete(@PathVariable String name) {
-        
+
         labelService.deleteById(name);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{name}")
+    public ResponseEntity<LabelDTO> putMethodName(@PathVariable String name, @Valid @RequestBody LabelDTO inputDTO) {
+
+        LabelDTO outputDTO = labelService.update(name, inputDTO);
+        return ResponseEntity.ok(outputDTO);
     }
 }
