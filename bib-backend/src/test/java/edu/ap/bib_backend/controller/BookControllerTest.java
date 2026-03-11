@@ -132,4 +132,106 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.releaseYear").value(2024))
                 .andExpect(jsonPath("$.imageUrl").value("https://example.com/image.jpg"));
     }
+
+    // ==================== getMostReadBooks Tests ====================
+
+    @Test
+    void givenDefaultLimit_whenGetMostReadBooks_thenReturnThreeBooks() throws Exception {
+        // Arrange
+        BookDTO book1 = new BookDTO();
+        book1.setId(1L);
+        book1.setTitle("Most Read Book 1");
+        book1.setAuthor("Author A");
+        book1.setAvailability(Availability.AVAILABLE);
+
+        BookDTO book2 = new BookDTO();
+        book2.setId(2L);
+        book2.setTitle("Most Read Book 2");
+        book2.setAuthor("Author B");
+        book2.setAvailability(Availability.AVAILABLE);
+
+        BookDTO book3 = new BookDTO();
+        book3.setId(3L);
+        book3.setTitle("Most Read Book 3");
+        book3.setAuthor("Author C");
+        book3.setAvailability(Availability.BORROWED);
+
+        Mockito.when(bs.getMostReadBooks(3)).thenReturn(List.of(book1, book2, book3));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/books/most-read"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Most Read Book 1"))
+                .andExpect(jsonPath("$[1].title").value("Most Read Book 2"))
+                .andExpect(jsonPath("$[2].title").value("Most Read Book 3"));
+    }
+
+    @Test
+    void givenCustomLimit_whenGetMostReadBooks_thenReturnRequestedNumberOfBooks() throws Exception {
+        // Arrange
+        BookDTO book1 = new BookDTO();
+        book1.setId(1L);
+        book1.setTitle("Popular Book");
+
+        Mockito.when(bs.getMostReadBooks(5)).thenReturn(List.of(book1));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/books/most-read")
+                .param("limit", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Popular Book"))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").hasJsonPath());
+    }
+
+    // ==================== getNewestBooks Tests ====================
+
+    @Test
+    void givenDefaultLimit_whenGetNewestBooks_thenReturnThreeBooks() throws Exception {
+        // Arrange
+        BookDTO book1 = new BookDTO();
+        book1.setId(1L);
+        book1.setTitle("Newest Book 1");
+        book1.setAuthor("Author A");
+        book1.setReleaseYear(2024);
+
+        BookDTO book2 = new BookDTO();
+        book2.setId(2L);
+        book2.setTitle("Newest Book 2");
+        book2.setAuthor("Author B");
+        book2.setReleaseYear(2023);
+
+        BookDTO book3 = new BookDTO();
+        book3.setId(3L);
+        book3.setTitle("Newest Book 3");
+        book3.setAuthor("Author C");
+        book3.setReleaseYear(2022);
+
+        Mockito.when(bs.getNewestBooks(3)).thenReturn(List.of(book1, book2, book3));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/books/newest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Newest Book 1"))
+                .andExpect(jsonPath("$[1].title").value("Newest Book 2"))
+                .andExpect(jsonPath("$[2].title").value("Newest Book 3"));
+    }
+
+    @Test
+    void givenCustomLimit_whenGetNewestBooks_thenReturnRequestedNumberOfBooks() throws Exception {
+        // Arrange
+        BookDTO book1 = new BookDTO();
+        book1.setId(1L);
+        book1.setTitle("Recently Added Book");
+
+        Mockito.when(bs.getNewestBooks(10)).thenReturn(List.of(book1));
+
+        // Act & Assert
+        mockMvc.perform(get("/api/books/newest")
+                .param("limit", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Recently Added Book"))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").hasJsonPath());
+    }
 }

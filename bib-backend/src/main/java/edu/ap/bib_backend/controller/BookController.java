@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.controller;
 
-import edu.ap.bib_backend.jpa.repository.BookRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
-    private final BookRepository bookRepository;
     private final BookService bs;
 
-    public BookController(BookService bs, BookRepository bookRepository) {
+    public BookController(BookService bs) {
         this.bs = bs;
-        this.bookRepository = bookRepository;
     }
 
     @GetMapping
