@@ -15,7 +15,13 @@
     <button class="tab-btn"
       [class.active]="mode === 'manual'"
       (click)="mode = 'manual'">
-      Zonder ISBN
+      Manueel
+    </button>
+
+    <button class="tab-btn"
+      [class.active]="mode === 'bulk'"
+      (click)="mode = 'bulk'">
+      Bulk
     </button>
   </div>
 
@@ -26,6 +32,10 @@
   @if(mode === 'manual') {
     <app-add-book-manual (bookAdded)="addBook($event)"></app-add-book-manual>
   }
+  @if(mode === 'bulk') {
+    <app-add-book-bulk></app-add-book-bulk>
+  }
+
   </main>
 
 </div>

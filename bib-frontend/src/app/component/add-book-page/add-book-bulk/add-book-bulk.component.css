@@ -1,0 +1,129 @@
+.info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+
+  background: linear-gradient(135deg, #f8f9fb, #f3f5f8);
+  border: 1px solid #e6e8ec;
+  border-left: 5px solid #8a1e41;
+
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.6rem;
+
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+
+  transition: all 0.2s ease;
+}
+
+.info-banner:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.info-icon {
+  width: 26px;
+  height: 26px;
+  color: #8a1e41;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.info-content p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #4a4f57;
+  line-height: 1.45;
+}
+
+.info-content strong {
+  background: rgba(138, 30, 65, 0.08);
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+/* --- Hint onder de tekstvelden --- */
+.form-footer-hint {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem; /* Aangesloten op de velden */
+  margin-bottom: 1.5rem;
+  padding: 0.6rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border: 1px dashed #e0e0e0; /* Subtiele 'check' look */
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.hint-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  color: #2ecc71; /* Groen voor de 'check' */
+}
+
+/* --- Knop en Zoek Sectie Fixes --- */
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  /* Zorgt dat de knoppen in de search-section goed staan */
+}
+
+.btn-secondary {
+  background: white;
+  color: #8a1e41;
+  border: 1px solid #8a1e41;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+}
+
+.btn-secondary:hover {
+  background: rgba(138, 30, 65, 0.05);
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  /* Geen vertical-align nodig i.c.m. flex op de button */
+}
+
+/* Fix voor de zoeksectie layout met meerdere knoppen */
+.search-section {
+  flex-wrap: wrap;
+}
+.info-icon {
+  color: #8a1e41;
+  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.info-banner {
+  animation: fadeInInfo 0.35s ease;
+}
+
+@keyframes fadeInInfo {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

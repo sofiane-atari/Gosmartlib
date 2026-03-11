@@ -1,4 +1,14 @@
 <div class="layout">
+  <div class="info-banner">
+  <lucide-icon [name]= "InfoIcon" class="info-icon"></lucide-icon>
+  <div class="info-content">
+    <p><strong>Snel boeken toevoegen</strong></p>
+    <p>
+      Voer een 13-cijferig ISBN-nummer in en klik op <strong>"Zoek Gegevens"</strong> om het formulier automatisch te vullen. 
+      Heeft u geen ISBN? Vul dan de titel en auteur in en klik op <strong>"Zoek ISBN"</strong> om het nummer te achterhalen.
+    </p>
+  </div>
+  </div>
   <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
 
     <div class="search-section">

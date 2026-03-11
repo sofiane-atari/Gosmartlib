@@ -1,4 +1,16 @@
 <div class="layout">
+   <div class="info-banner">
+  <lucide-icon [name]="InfoIcon" class="info-icon"></lucide-icon>
+
+  <div class="info-content">
+    <p><strong>Boeken manueel toevoegen</strong></p>
+    <p>
+      Gebruik dit formulier om boeken of items toe te voegen die geen ISBN-nummer hebben.
+      Denk bijvoorbeeld aan <strong>poëziebundels van leerlingen</strong>,
+      <strong>schoolpublicaties</strong> of <strong>tijdschriften en magazines</strong>.
+    </p>
+    </div>
+  </div>
   <form (ngSubmit)="save()" class="book-form">
     <div class="form-section">
       <div class="form-row">

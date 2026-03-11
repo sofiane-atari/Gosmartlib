@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { AddBookISBNComponent } from "./add-book-isbn/add-book-isbn.component";
 import { AddBookManualComponent } from "./add-book-manual/add-book-manual.component";
+import { AddBookBulkComponent } from "./add-book-bulk/add-book-bulk.component"
 import { Book } from '../../model/book.model';
 import { Availability } from '../../model/enums/availability.enum';
 import { BookService } from '../../services/BookService/book.service';
@@ -9,12 +10,12 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-add-book-page',
   standalone: true,
-  imports: [AddBookISBNComponent, AddBookManualComponent],
+  imports: [AddBookISBNComponent, AddBookManualComponent, AddBookBulkComponent],
   templateUrl: './add-book-page.component.html',
   styleUrl: './add-book-page.component.css'
 })
 export class AddBookPageComponent {
-mode: 'isbn' | 'manual' = 'isbn';
+mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
 
   constructor(private bs: BookService, private rt: Router){}
   
