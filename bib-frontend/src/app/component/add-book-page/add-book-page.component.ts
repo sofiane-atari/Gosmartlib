@@ -27,7 +27,6 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
     description: '',
     releaseYear: new Date().getFullYear(),
     availability: Availability.AVAILABLE,
-    copies: 1
   };
   
   addBook(event: Book) {

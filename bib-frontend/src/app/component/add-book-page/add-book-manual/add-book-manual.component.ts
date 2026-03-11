@@ -24,9 +24,8 @@ export class AddBookManualComponent {
     description: '',
     releaseYear: new Date().getFullYear(),
     availability: Availability.AVAILABLE,
-    copies: 1
   };
-  
+
   @Output() bookAdded = new EventEmitter<Book>();
   readonly InfoIcon = Info;
 

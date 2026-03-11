@@ -224,16 +224,4 @@ export class BookDetailComponent {
       () => { }
     );
   }
-
-  increaseQuantity(): void {
-    if (this.selectedBook) {
-      this.selectedBook.copies = (this.selectedBook.copies || 0) + 1;
-    }
-  }
-
-  decreaseQuantity(): void {
-    if (this.selectedBook && (this.selectedBook.copies || 0) > 0) {
-      this.selectedBook.copies = (this.selectedBook.copies || 0) - 1;
-    }
-  }
 }

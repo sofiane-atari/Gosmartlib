@@ -43,7 +43,6 @@ public class BookControllerTest {
         book.setPages(324);
         book.setImageUrl("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
         book.setAvailability(Availability.AVAILABLE);
-        book.setCopies(3);
         book.setDescription("dede de d e d ed e d e d e de d e d");
         book.setReleaseYear(2017);
 
@@ -74,7 +73,6 @@ public class BookControllerTest {
         book.setPages(250);
         book.setImageUrl("https://example.com/image.jpg");
         book.setAvailability(Availability.AVAILABLE);
-        book.setCopies(5);
         book.setReleaseYear(2021);
 
         Mockito.when(bs.getBookById(1L)).thenReturn(book);
@@ -100,7 +98,6 @@ public class BookControllerTest {
         requestDTO.setPages(300);
         requestDTO.setImageUrl("https://example.com/image.jpg");
         requestDTO.setAvailability(Availability.AVAILABLE);
-        requestDTO.setCopies(2);
         requestDTO.setDescription("Beschrijving hier");
         requestDTO.setReleaseYear(2024);
 
@@ -111,7 +108,6 @@ public class BookControllerTest {
         savedDTO.setPages(300);
         savedDTO.setImageUrl("https://example.com/image.jpg");
         savedDTO.setAvailability(Availability.AVAILABLE);
-        savedDTO.setCopies(2);
         savedDTO.setDescription("Beschrijving hier");
         savedDTO.setReleaseYear(2024);
 

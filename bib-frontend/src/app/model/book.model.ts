@@ -10,6 +10,5 @@ export interface Book {
   description: string;
   releaseYear: number;    
   availability: Availability;
-  copies: number;
   reviewScore?: number;
 }

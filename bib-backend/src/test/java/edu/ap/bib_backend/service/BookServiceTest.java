@@ -68,7 +68,6 @@ public class BookServiceTest {
 
         // Assertions voor de nieuwe velden
         assertThat(res.get(0).getAvailability()).isEqualTo(Availability.AVAILABLE);
-        assertThat(res.get(0).getCopies()).isEqualTo(3);
         assertThat(res.get(0).getDescription()).isEqualTo("dede de d e d ed e d e d e de d e d");
         assertThat(res.get(0).getReleaseYear()).isEqualTo(2017);
         assertThat(res.get(0).getReviewScore()).isEqualTo(4.5);
@@ -114,7 +113,6 @@ public class BookServiceTest {
         dto.setPages(300);
         dto.setImageUrl("https://example.com/image.jpg");
         dto.setAvailability(Availability.AVAILABLE);
-        dto.setCopies(2);
         dto.setDescription("Beschrijving hier");
         dto.setReleaseYear(2024);
 
@@ -126,7 +124,6 @@ public class BookServiceTest {
         savedBook.setPages(dto.getPages());
         savedBook.setImageUrl(dto.getImageUrl());
         savedBook.setAvailability(dto.getAvailability());
-        savedBook.setCopies(dto.getCopies());
         savedBook.setDescription(dto.getDescription());
         savedBook.setReleaseYear(dto.getReleaseYear());
         savedBook.setReviewScore(0.0);
@@ -143,7 +140,6 @@ public class BookServiceTest {
         assertThat(result.getAuthor()).isEqualTo("Auteur Test");
         assertThat(result.getPages()).isEqualTo(300);
         assertThat(result.getAvailability()).isEqualTo(Availability.AVAILABLE);
-        assertThat(result.getCopies()).isEqualTo(2);
         assertThat(result.getDescription()).isEqualTo("Beschrijving hier");
         assertThat(result.getReleaseYear()).isEqualTo(2024);
         assertThat(result.getImageUrl()).isEqualTo("https://example.com/image.jpg");
