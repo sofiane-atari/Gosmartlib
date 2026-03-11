@@ -168,7 +168,7 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getError().getCode()).isEqualTo(400);
-        assertThat(response.getBody().getError().getMessage()).isEqualTo("Validation failed");
+        assertThat(response.getBody().getError().getMessage()).isEqualTo("Validatie mislukt");
     }
 
     @Test
@@ -209,5 +209,274 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getBody().getError().getDetails()).hasSize(3);
+    }
+
+    // ==================== ResourceNotFoundException Tests ====================
+
+    @Test
+    void givenResourceNotFoundException_whenHandleResourceNotFound_thenReturn404NotFound() {
+        // Arrange
+        ResourceNotFoundException exception = new ResourceNotFoundException("name", "Fiction");
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleResourceNotFound(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getError().getCode()).isEqualTo(404);
+        assertThat(response.getBody().getError().getMessage()).isEqualTo("Item niet gevonden");
+        assertThat(response.getBody().getError().getDetails()).hasSize(1);
+        assertThat(response.getBody().getError().getDetails().get(0).getField()).isEqualTo("name");
+    }
+
+    @Test
+    void givenResourceNotFoundExceptionWithCustomMessage_whenHandleResourceNotFound_thenReturnCustomMessage() {
+        // Arrange
+        ResourceNotFoundException exception = new ResourceNotFoundException("id", "Book with id 999 not found");
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleResourceNotFound(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage())
+                .isEqualTo("Book with id 999 not found");
+    }
+
+    // ==================== DataIntegrityViolationException Tests
+    // ====================
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithForeignKey_whenHandleDataIntegrityViolation_thenReturn409Conflict() {
+        // Arrange
+        Exception rootCause = new Exception(
+                "Cannot delete or update a parent row: a foreign key constraint fails (`bib_db`.`book`, CONSTRAINT `fk_book_label` FOREIGN KEY (`label_name`) REFERENCES `label` (`name`))");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Foreign key constraint failed", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getError().getCode()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("nog gekoppeld");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithUniqueConstraint_whenHandleDataIntegrityViolation_thenReturn409Conflict() {
+        // Arrange
+        Exception rootCause = new Exception("Duplicate entry 'Fiction' for key 'name'");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Unique constraint failed", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("bestaat al");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithNullValue_whenHandleDataIntegrityViolation_thenReturn409Conflict() {
+        // Arrange
+        Exception rootCause = new Exception("Column 'name' cannot be null");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Null constraint failed", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("verplicht veld");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithTruncatedValue_whenHandleDataIntegrityViolation_thenReturn409Conflict() {
+        // Arrange
+        Exception rootCause = new Exception("Data too long for column 'description' at row 1");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Truncated value", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("te lang");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithUnknownError_whenHandleDataIntegrityViolation_thenReturnGenericMessage() {
+        // Arrange
+        Exception rootCause = new Exception("Some unknown database error");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Unknown error", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("conflict");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithNoRootCause_whenHandleDataIntegrityViolation_thenReturnGenericMessage() {
+        // Arrange
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Unknown error");
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("conflict");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithFkUsingTableName_whenHandleDataIntegrityViolation_thenExtractTableName() {
+        // Arrange
+        Exception rootCause = new Exception(
+                "Cannot delete or update a parent row: a foreign key constraint fails (`bib_db`.`book_labels`, CONSTRAINT `fk_label` FOREIGN KEY (`label_id`) REFERENCES `labels` (`id`))");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Foreign key constraint failed", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        // Should contain extracted table name in the detail message
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("labels");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithDuplicateEmail_whenHandleDataIntegrityViolation_thenExtractFieldAndValue() {
+        // Arrange
+        Exception rootCause = new Exception("Duplicate entry 'test@example.com' for key 'users.email'");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Unique constraint failed", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("test@example.com");
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("email");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithFkUnderscore_whenHandleDataIntegrityViolation_thenReturn409Conflict() {
+        // Arrange
+        Exception rootCause = new Exception("Cannot delete or update parent row: foreign key constraint fk_book_label");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "FK constraint failed", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("nog gekoppeld");
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithUniqueWithoutDuplicate_whenHandleDataIntegrityViolation_thenReturn409Conflict() {
+        // Arrange
+        Exception rootCause = new Exception("Unique constraint failed: value already exists");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Unique constraint failed", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("bestaat al");
+    }
+
+    // ==================== Edge Cases ====================
+
+    @Test
+    void givenResourceAlreadyExistsExceptionWithNullFieldName_whenHandleResourceAlreadyExists_thenReturn409() {
+        // Arrange
+        ResourceAlreadyExistsException exception = new ResourceAlreadyExistsException(null, "Fiction",
+                "Label already exists");
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleResourceAlreadyExists(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody()).isNotNull();
+    }
+
+    @Test
+    void givenIllegalStateExceptionWithNullMessage_whenHandleIllegalState_thenReturn400() {
+        // Arrange
+        IllegalStateException exception = new IllegalStateException((String) null);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleIllegalState(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).isNotNull();
+        // Message can be null for IllegalStateException
+        assertThat(response.getBody().getError().getMessage()).isNull();
+    }
+
+    @Test
+    void givenMethodArgumentNotValidExceptionWithNoFieldErrors_whenHandleMethodArgumentNotValid_thenReturn400()
+            throws Exception {
+        // Arrange
+        BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(new Object(), "testDto");
+        // Don't add any errors
+
+        Method method = TestController.class.getMethod("test");
+        MethodParameter methodParameter = new MethodParameter(method, -1);
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(methodParameter, bindingResult);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleMethodArgumentNotValid(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody().getError().getDetails()).isEmpty();
+    }
+
+    @Test
+    void givenResourceNotFoundExceptionWithNullFieldName_whenHandleResourceNotFound_thenReturn404() {
+        // Arrange
+        ResourceNotFoundException exception = new ResourceNotFoundException(null, "Not found");
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleResourceNotFound(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+        assertThat(response.getBody()).isNotNull();
+    }
+
+    @Test
+    void givenDataIntegrityViolationExceptionWithNotNullRootCause_whenHandleDataIntegrityViolation_thenReturn409() {
+        // Arrange
+        Exception rootCause = new Exception("NOT NULL constraint failed");
+        org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
+                "Constraint failed", rootCause);
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleDataIntegrityViolation(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody().getError().getMessage()).contains("verplicht veld");
     }
 }
