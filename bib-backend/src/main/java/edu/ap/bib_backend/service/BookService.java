@@ -7,13 +7,13 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookDTO;
-import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 
@@ -142,10 +142,15 @@ public class BookService {
         return mapToDTOList(books);
     }
 
+    public List<BookDTO> getNewestBooks(int limit) {
+        List<Book> books = br.findNewestBooks(PageRequest.of(0, limit));
+        return mapToDTOList(books);
+    }
+
     private List<BookDTO> mapToDTOList(List<Book> books) {
         List<BookDTO> dtos = new ArrayList<>();
 
-        for (Book book : books) 
+        for (Book book : books)
             dtos.add(mapToDTO(book));
 
         return dtos;

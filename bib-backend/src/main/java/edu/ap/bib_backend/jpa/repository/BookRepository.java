@@ -1,8 +1,8 @@
 package edu.ap.bib_backend.jpa.repository;
 
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,4 +30,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             LIMIT :limit
             """)
     List<Book> findMostReadBook(@Param("limit") int limit);
+
+    @Query("SELECT b FROM Book b ORDER BY b.addedDate DESC")
+    List<Book> findNewestBooks(Pageable pageable);
 }

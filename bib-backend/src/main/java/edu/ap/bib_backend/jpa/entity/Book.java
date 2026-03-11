@@ -1,6 +1,8 @@
 package edu.ap.bib_backend.jpa.entity;
 
 import org.hibernate.annotations.Formula;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +40,14 @@ public class Book {
     @Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.book_id = id)")
     private Double reviewScore;
 
+    @Column(name = "added_date")
+    private LocalDateTime addedDate;
+
+    @PrePersist
+    protected void onCreate() {
+        addedDate = LocalDateTime.now();
+    }
+
     public Book() {
     }
 
@@ -58,10 +68,8 @@ public class Book {
     @JoinTable(name = "book_labels", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "label_name"))
     private List<Label> labels = new ArrayList<>();
 
-
     @OneToMany(mappedBy = "book")
-    private List<BookCopy> bookCopies= new ArrayList<>();
-
+    private List<BookCopy> bookCopies = new ArrayList<>();
 
     @Override
     public String toString() {
