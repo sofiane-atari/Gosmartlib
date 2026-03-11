@@ -1,12 +1,24 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/RoleAuthorization/auth.service';
 import { FormsModule } from '@angular/forms';
 import { Role } from '../../model/auth.model';
 import {
   LucideAngularModule,
-  Book, Heart, History, Star, UserCircle, Settings,
-  Package, Flag, FileText, Tag, Plus, RotateCcw, LogOut, User
+  Book,
+  Heart,
+  History,
+  Star,
+  UserCircle,
+  Settings,
+  Package,
+  Flag,
+  FileText,
+  Tag,
+  Plus,
+  RotateCcw,
+  LogOut,
+  User,
 } from 'lucide-angular';
 import { School } from 'lucide-angular/src/icons';
 import { Router, RouterModule } from '@angular/router';
@@ -17,10 +29,9 @@ import { routes } from '../../app.routes';
   standalone: true,
   imports: [CommonModule, LucideAngularModule, RouterModule, FormsModule],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+  styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {
-
   readonly PlusIcon = Plus;
   readonly UserIcon = User;
   readonly RotateCcwIcon = RotateCcw;
@@ -28,8 +39,13 @@ export class SidebarComponent {
 
   public authService = inject(AuthService);
 
-  constructor(private router: Router){}
+  // Input for mobile state
+  public mobileOpen = input<boolean>(false);
 
+  // Output for closing sidebar on mobile
+  public sidebarClosed = output<void>();
+
+  constructor(private router: Router) {}
 
   onRoleChange(newRole: string) {
     this.authService.switchRole(newRole as Role);
@@ -49,8 +65,14 @@ export class SidebarComponent {
     { icon: School, label: 'Schoolbeheer', route: '/scholen' },
   ];
 
-  goToAddBook(){
+  goToAddBook() {
     this.router.navigate(['/add-book']);
+    this.closeOnMobile();
   }
 
+  closeOnMobile() {
+    if (this.mobileOpen()) {
+      this.sidebarClosed.emit();
+    }
+  }
 }

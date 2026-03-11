@@ -9,6 +9,7 @@
   flex: 1;
   padding: 3rem;
   overflow-y: auto;
+  transition: padding 0.3s ease;
 }
 
 .content-wrapper {
@@ -64,4 +65,128 @@
   margin: 0;
   color: #6b7280;
   font-size: 0.875rem;
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================= */
+
+/* Tablet Portrait */
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 2rem;
+  }
+  
+  .content-header h1 {
+    font-size: 2rem;
+  }
+}
+
+/* Mobile Landscape */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1.5rem;
+  }
+  
+  .content-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .content-header p {
+    font-size: 1rem;
+  }
+  
+  .grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* Mobile Portrait */
+@media (max-width: 480px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    padding: 1rem;
+    margin-top: 60px; /* Space for mobile header */
+  }
+  
+  .content-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .content-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .content-header p {
+    font-size: 0.875rem;
+  }
+  
+  .grid-container {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+}
+
+/* =========================================================
+   MOBILE MENU TOGGLE & OVERLAY
+   ========================================================= */
+
+/* Hide toggle on desktop */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  background: var(--main-color, #b91c1c);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-menu-toggle svg {
+  display: block;
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 90;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.visible {
+  opacity: 1;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar-overlay {
+    display: block;
+  }
+  
+  .app-container:not(.sidebar-open) .sidebar-overlay {
+    pointer-events: none;
+  }
 }

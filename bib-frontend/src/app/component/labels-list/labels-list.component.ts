@@ -22,4 +22,5 @@ export class LabelsListComponent {
 
   public deletedSuccess = output<string>();
   public deletionError = output<HttpErrorResponseError>();
+  public editLabel = output<Label>();
 }

@@ -1,4 +1,11 @@
-import { Component, computed, inject, signal, DestroyRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  signal,
+  DestroyRef,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { LabelService } from '../../services/label/label.service';
@@ -6,6 +13,7 @@ import { StatCardComponent } from '../stat-card/stat-card.component';
 import { LabelsListComponent } from '../labels-list/labels-list.component';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { CreateLabelComponent } from '../create-label/create-label.component';
+import { UpdateLabelComponent } from '../update-label/update-label.component';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import {
   PageingOpt,
@@ -16,6 +24,7 @@ import { PagingComponent } from '../paging/paging.component';
 import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { HttpErrorResponseError } from '../../error-reponse.model';
+import { Label } from '../../model/label.model';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -32,6 +41,7 @@ interface ErrorItem {
     StatCardComponent,
     LabelsListComponent,
     CreateLabelComponent,
+    UpdateLabelComponent,
     SearchBarComponent,
     PagingComponent,
   ],
@@ -44,6 +54,12 @@ export class DashboardLabelsComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private refreshTrigger = signal(false);
+
+  @ViewChild(UpdateLabelComponent)
+  private updateLabelComponent!: UpdateLabelComponent;
+
+  // Track label being edited
+  protected editingLabel = signal<Label | null>(null);
 
   // Subject for debounced search
   private searchSubject = new Subject<string>();
@@ -141,6 +157,11 @@ export class DashboardLabelsComponent {
     this.setPopup(null);
   }
 
+  onEditLabel(label: Label) {
+    this.editingLabel.set(label);
+    this.setPopup('edit');
+  }
+
   onSuccess(message: string) {
     this.success.set(message);
 
@@ -157,13 +178,19 @@ export class DashboardLabelsComponent {
   }
 
   onError(error: string | HttpErrorResponseError) {
-
     this.refreshTrigger.set(true);
     this.refreshTrigger.set(false);
 
     // Handle string errors from CreateLabelComponent
     if (typeof error === 'string') {
       this.errors.set([{ field: 'error', message: error }]);
+
+      // Auto-dismiss after 5 seconds
+      const timeoutId = setTimeout(() => {
+        this.errors.set([]);
+      }, 5000);
+      this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
+
       return;
     }
 
@@ -183,10 +210,22 @@ export class DashboardLabelsComponent {
       }
 
       this.errors.set(errorItems);
+
+      // Auto-dismiss after 5 seconds
+      const timeoutId = setTimeout(() => {
+        this.errors.set([]);
+      }, 5000);
+      this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
     } else {
       this.errors.set([
         { field: 'error', message: 'Er is een fout opgetreden.' },
       ]);
+
+      // Auto-dismiss after 5 seconds
+      const timeoutId = setTimeout(() => {
+        this.errors.set([]);
+      }, 5000);
+      this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
     }
   }
 }

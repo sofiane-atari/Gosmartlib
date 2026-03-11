@@ -38,3 +38,33 @@
   color: #b08a95;
   font-size: 14px;
 }
+
+/* =========================================================
+   RESPONSIVE STYLES
+   ========================================================= */
+
+/* Tablet Portrait */
+@media (max-width: 1024px) {
+  .labels-list__header {
+    grid-template-columns: 2fr 4fr 1fr 1fr 1fr;
+  }
+}
+
+/* Mobile Landscape */
+@media (max-width: 768px) {
+  .labels-list__header {
+    display: none; /* Hide header on mobile */
+  }
+  
+  .labels-list {
+    border-radius: 8px;
+  }
+}
+
+/* Mobile Portrait */
+@media (max-width: 480px) {
+  .labels-list__empty {
+    padding: 24px 16px;
+    font-size: 13px;
+  }
+}

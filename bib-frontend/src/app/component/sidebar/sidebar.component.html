@@ -1,4 +1,12 @@
-<aside class="sidebar">
+<aside class="sidebar" [class.mobile-open]="mobileOpen()">
+  <!-- Mobile Close Button -->
+  <button class="mobile-close-btn" (click)="closeOnMobile()" aria-label="Close menu">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+
   <div class="sidebar-header">
     <div class="profile-container">
       <div class="avatar">
@@ -24,6 +32,7 @@
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{exact: true}"
                 class="menu-item"
+                (click)="closeOnMobile()"
             >
                 <lucide-icon [name]="item.icon" class="icon-md"></lucide-icon>
                 <span class="menu-label">{{ item.label }}</span>

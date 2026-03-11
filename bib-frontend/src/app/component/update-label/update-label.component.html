@@ -1,0 +1,77 @@
+<div class="label-modal">
+
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="header-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h2>Label bijwerken</h2>
+      <p>Wijzig de gegevens van dit label</p>
+    </div>
+  </div>
+
+  <!-- Preview Badge -->
+  <div class="preview-section">
+    <span class="preview-label">Voorbeeld</span>
+    <div class="label-preview">
+      <span class="preview-dot" [style.background]="labelForm.get('color')?.value || '#BC808B'"></span>
+      <span class="preview-name">{{ labelForm.get('name')?.value || 'Labelnaam' }}</span>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="labelForm" class="label-form" (ngSubmit)="onSubmit()">
+
+    <!-- Label Name -->
+    <div class="field-group">
+      <label class="field-label" for="name">Labelnaam</label>
+      <input id="name" class="field-input" type="text" formControlName="name"
+        placeholder="bijv. Moet lezen, Favoriet, Bezig met lezen…" />
+      @if (labelForm.get('name')?.invalid && labelForm.get('name')?.touched) {
+      <span class="field-error">Labelnaam is verplicht</span>
+      }
+      <span class="field-hint">Naam kan niet worden gewijzigd</span>
+    </div>
+
+    <!-- Color -->
+    <div class="field-group">
+      <label class="field-label" for="color">Kleur</label>
+      <input id="color" class="field-input color-input" type="color" formControlName="color" />
+      @if (labelForm.get('color')?.invalid && labelForm.get('color')?.touched) {
+      <span class="field-error">Kies een kleur</span>
+      }
+    </div>
+
+    <!-- Description -->
+    <div class="field-group">
+      <label class="field-label" for="description">Omschrijving</label>
+      <textarea id="description" class="field-input field-textarea" formControlName="description"
+        placeholder="Welke soort boeken vallen onder dit Label?" rows="3">
+      </textarea>
+    </div>
+
+    @if (errors().length > 0) {
+    <div class="field-error">
+      @for (err of errors(); track err.message) {
+        <p>{{ err.message }}</p>
+      }
+    </div>
+    }
+    @if (success()) {
+    <div class="field-success">{{success()}}</div>
+    }
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="button" (click)="close()" class="btn-secondary">Annuleren</button>
+      <button type="submit" class="btn-primary" [disabled]="labelForm.invalid">
+        Label bijwerken
+      </button>
+    </div>
+
+  </form>
+</div>
+

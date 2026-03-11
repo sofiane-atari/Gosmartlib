@@ -28,13 +28,14 @@ export class LabelCardComponent {
 
   public deletedSuccess = output<string>();
   public deletionError = output<HttpErrorResponseError>();
+  public editLabel = output<Label>();
 
   private service = inject(LabelService);
   private destroyRef = inject(DestroyRef);
   private toastService = inject(ToastService);
 
   onEdit() {
-    throw new Error('Method not implemented.');
+    this.editLabel.emit(this.label());
   }
   onDelete() {
     this.toastService.showConfirm(

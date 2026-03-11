@@ -11,7 +11,8 @@
     @for (label of labels(); track $index) {
       <app-label-card [label]="label" 
       (deletionError)="deletionError.emit($event)" 
-      (deletedSuccess)="deletedSuccess.emit($event)" />
+      (deletedSuccess)="deletedSuccess.emit($event)"
+      (editLabel)="editLabel.emit($event)" />
     }
   </div>
 

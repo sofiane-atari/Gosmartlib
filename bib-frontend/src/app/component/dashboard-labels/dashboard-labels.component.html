@@ -31,7 +31,12 @@
         (errorEvent)="onError($event)"
       />
     }@else if (popUp() === 'edit') {
-      <div> Not implemented yet </div>
+      <app-update-label
+        [label]="editingLabel()"
+        (closeEvent)="closePopup()"
+        (successEvent)="onSuccess($event)"
+        (errorEvent)="onError($event)"
+      />
     }
   </div>
 
@@ -62,6 +67,7 @@
     [labels]="labels()"
     (deletedSuccess)="onSuccess($event)"
     (deletionError)="onError($event)"
+    (editLabel)="onEditLabel($event)"
   />
 
   <!-- Paging -->
