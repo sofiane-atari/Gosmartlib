@@ -18,9 +18,18 @@ export class AddBookISBNComponent {
   isbn: string = "";
   public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
   selectedBook?: Book;
-  @Input() book!: Book;
   @Output() bookAdded = new EventEmitter<Book>();
   readonly InfoIcon = Info;
+
+  book: Book = {
+    title: '',
+    author: '',
+    pages: 0,
+    imageUrl: '',
+    description: '',
+    releaseYear: new Date().getFullYear(),
+    availability: Availability.AVAILABLE,
+  };
 
   constructor(private bs: BookService, private rt: Router){}
 
