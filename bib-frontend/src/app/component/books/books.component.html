@@ -1,13 +1,13 @@
 <div class="container">
-  
+
   <div class="hero-search-container">
     <div class="hero-search-input-wrapper">
       <lucide-icon [img]="Search" class="hero-search-icon" [size]="20"></lucide-icon>
-      <input 
-        type="text" 
-        [(ngModel)]="filters.searchTerm" 
-        (input)="applyFilters()" 
-        placeholder="Zoek op titel of auteur..." 
+      <input
+        type="text"
+        [(ngModel)]="filters.searchTerm"
+        (input)="applyFilters()"
+        placeholder="Zoek op titel of auteur..."
         class="hero-search-input"
       />
     </div>
@@ -22,7 +22,7 @@
       <h1>Boeken Catalogus</h1>
       <span class="subtitle">{{ filteredBooks().length }} boeken gevonden</span>
     </div>
-    
+
     <div class="quick-stats-badges">
       <div class="status-badge badge-green">
         <span class="badge-number">{{ availableCount }}</span> Beschikbaar
@@ -91,7 +91,7 @@
 
   <div class="main-content">
     <div class="books-grid">
-      @for (book of filteredBooks(); track book.id || $index) {
+      @for (book of pagedBooks(); track book.id || $index) {
         <div class="book-card" (click)="toBookDetailPage(book)">
           <div class="book-image">
             <img [src]="book.imageUrl" [alt]="book.title" />
@@ -121,7 +121,7 @@
           </div>
         </div>
       }
-      
+
       @if (filteredBooks().length === 0) {
         <div class="empty-state">
           <lucide-icon [img]="Search" [size]="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-icon>
@@ -134,17 +134,24 @@
     </div>
 
     <aside class="sidebar">
-      <app-book-list-sidebar 
+      <app-book-list-sidebar
         title="Meest Gelezen"
         [books]="mostReadBooks()"
         [loading]="mostReadLoading()"
       ></app-book-list-sidebar>
 
-      <app-book-list-sidebar 
+      <app-book-list-sidebar
         title="Nieuwste"
         [books]="newestBooks()"
         [loading]="newestLoading()"
       ></app-book-list-sidebar>
     </aside>
   </div>
+
+  @if (pagingMeta().totalPages > 1) {
+    <app-paging
+      [meta]="pagingMeta()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
 </div>
