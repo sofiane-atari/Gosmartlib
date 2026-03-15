@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/books")
@@ -48,6 +50,20 @@ public class BookBulkController {
     @PostMapping("/upload/validate")
     public ResponseEntity<FileValidationResult> validate(@RequestParam("file") MultipartFile file) throws IOException {
         return ResponseEntity.ok(bbs.validateBooks(file));
+    }
+
+    // Step 2: SSE validation
+    @GetMapping("/upload/validate-stream/{tempFileId}")
+    public SseEmitter validateStream(@PathVariable String tempFileId) {
+        File file = bbs.getTempFile(tempFileId);
+        return bbs.validateBooksStream(file);
+    }
+
+    // Step 1: Upload file → returns temp ID
+    @PostMapping("/upload/temp")
+    public ResponseEntity<String> uploadTempFile(@RequestParam("file") MultipartFile file) throws IOException {
+        String tempFileId = bbs.storeTempFile(file);
+        return ResponseEntity.ok(tempFileId);
     }
 
 }

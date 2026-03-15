@@ -5,6 +5,7 @@ import { BookService } from '../../../services/BookService/book.service';
 import { ToastService } from '../../../services/Toast/toast.service';
 import { FileValidationError } from '../../../model/FileValidationError';
 import { FileValidationResult } from '../../../model/FileValidationResult';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-add-book-bulk',
@@ -19,7 +20,8 @@ export class AddBookBulkComponent {
   progress = 0;
   errors: FileValidationError[] = [];
   validating = false;
-  url: string = "http://localhost:8080/api/books/template";
+  url: string = "${environment.apiUrl}/bookstemplate";
+  apiUrl: string = `${environment.apiUrl}/books`;
 
 
   constructor(private http: HttpClient, private bs: BookService, private ts: ToastService){}
@@ -33,27 +35,45 @@ export class AddBookBulkComponent {
     this.progress = 0;
     this.errors = [];
   }
-  validate(){
-    if (!this.selectedFile) {
-      this.ts.show('Geen bestand geselecteerd', 'error' );
+  async startValidation(file: File) {
+
+    // Step 1: upload file and get temp ID
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const tempFileId = await this.http.post(
+      `${this.apiUrl}/upload/temp`,
+      formData,
+      { responseType: 'text' } // <-- important!
+    ).toPromise();    
+    
+    // Step 2: SSE validation
+
+    if (!tempFileId) {
+      this.ts.show('Kan tijdelijk bestand niet ophalen', 'error');
+      this.validating = false;
       return;
     }
+    const sse = this.bs.validateBooksStream(tempFileId);
 
-    this.validating = true;
-    
-    this.bs.validateFile(this.selectedFile).subscribe({
-      next: (res: FileValidationResult) => {
-        this.progress = 100;
-        this.errors = res.errors;
-        this.ts.show(`Validatie compleet : ${res.validRows} valide, ${res.invalidRows} errors`, 'success');
-      },
-      error: (err) => {
-        console.error(err);
-        this.ts.show(err.error?.message || 'Validatie gefailed', 'error');
-        this.progress = 0;
-      },
-      complete: () => (this.validating = false),
+    sse.addEventListener("progress", (event: any) => {
+      const data = JSON.parse(event.data);
+      this.progress = data.progress;
+      if (data.errors?.length) this.errors.push(...data.errors);
     });
+
+    sse.addEventListener("complete", () => {
+      this.validating = false;
+      this.progress = 100;
+      sse.close();
+    });
+
+    sse.onerror = (err) => {
+      console.error(err);
+      this.ts.show("Validation failed", "error");
+      this.validating = false;
+      sse.close();
+    };
   }
 
   uploadBooks() {

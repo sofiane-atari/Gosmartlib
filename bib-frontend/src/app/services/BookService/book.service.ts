@@ -51,9 +51,8 @@ export class BookService {
     return this.http.post(`${this.apiUrl}/upload`, formData)
   }
 
-  validateFile(file: File): Observable<FileValidationResult> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<FileValidationResult>(`${this.apiUrl}/upload/validate`, formData);
+  validateBooksStream(tempFileId: string): EventSource {
+    return new EventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`);
   }
+
 }

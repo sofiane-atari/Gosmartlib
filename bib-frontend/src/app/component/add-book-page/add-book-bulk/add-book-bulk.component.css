@@ -117,6 +117,20 @@
   animation: fadeInInfo 0.35s ease;
 }
 
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #eee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.3s ease;
+}
+
 @keyframes fadeInInfo {
   from {
     opacity: 0;

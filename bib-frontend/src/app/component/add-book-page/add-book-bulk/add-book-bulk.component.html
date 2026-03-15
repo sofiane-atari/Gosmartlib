@@ -23,7 +23,7 @@
 
   <!-- Validate File Button -->
   <button class="btn-validate"
-          (click)="validate()"
+          (click)="startValidation(selectedFile!)"
           [disabled]="!selectedFile || validating">
     Controleer Bestand
   </button>
@@ -44,6 +44,16 @@
       <span>{{progress}}%</span>
     </div>
   }
+
+    @if(selectedFile){
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress" [style.width.%]="progress"></div>
+        </div>
+        <span>{{progress}}%</span>
+      </div>
+    }
+
 
     <!-- Validation Errors -->
   @if(errors.length > 0){
