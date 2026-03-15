@@ -117,18 +117,69 @@
   animation: fadeInInfo 0.35s ease;
 }
 
-.progress-bar {
+.progress-container {
   width: 100%;
-  height: 20px;
-  background: #eee;
+  background-color: #e0e0e0; /* lichtgrijze achtergrond */
   border-radius: 8px;
+  height: 25px;
+  margin: 10px 0;
+  position: relative;
   overflow: hidden;
 }
-
-.progress-fill {
+.progress-bar {
+  width: 100%;
   height: 100%;
-  background: #4caf50;
-  transition: width 0.3s ease;
+  border-radius: 8px;
+  background-color: #e0e0e0; /* zelfde als container */
+}
+/* Progress Fill */
+.progress {
+  height: 100%;
+  background-color: #4caf50; /* groene balk */
+  width: 0%; /* start op 0% */
+  transition: width 0.3s ease-in-out; /* animatie van de groei */
+  border-radius: 8px 0 0 8px; /* ronde linkerkant */
+}
+
+/* Animated stripes to show loading */
+.progress::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.15) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  animation: moveStripes 1s linear infinite;
+}
+
+/* Stripe animation */
+@keyframes moveStripes {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 40px 0;
+  }
+}
+
+/* Progress Text */
+.progress-container span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+  font-size: 14px;
+  color: #fff;
+  line-height: 25px;
+  z-index: 1;
 }
 
 @keyframes fadeInInfo {

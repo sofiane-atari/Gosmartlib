@@ -54,7 +54,7 @@ public class BookBulkController {
 
     // Step 2: SSE validation
     @GetMapping("/upload/validate-stream/{tempFileId}")
-    public SseEmitter validateStream(@PathVariable String tempFileId) {
+    public SseEmitter validateStream(@PathVariable String tempFileId) throws IOException {
         File file = bbs.getTempFile(tempFileId);
         return bbs.validateBooksStream(file);
     }

@@ -44,17 +44,6 @@
       <span>{{progress}}%</span>
     </div>
   }
-
-    @if(selectedFile){
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="progress" [style.width.%]="progress"></div>
-        </div>
-        <span>{{progress}}%</span>
-      </div>
-    }
-
-
     <!-- Validation Errors -->
   @if(errors.length > 0){
     <div class="validation-errors">
