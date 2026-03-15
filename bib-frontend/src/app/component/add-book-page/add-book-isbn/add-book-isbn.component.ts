@@ -28,7 +28,6 @@ export class AddBookISBNComponent {
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
-    availability: Availability.AVAILABLE,
   };
 
   constructor(private bs: BookService, private rt: Router){}

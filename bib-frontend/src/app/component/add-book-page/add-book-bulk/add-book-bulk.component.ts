@@ -37,8 +37,6 @@ export class AddBookBulkComponent {
         this.selectedFile = null;
       },
       error: (err) => {
-        console.error("Upload failed:", err);
-        alert("Error uploading file. Check the console for details.");
       }
     });
   }

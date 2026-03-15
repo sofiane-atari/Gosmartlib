@@ -21,7 +21,7 @@ public class BookBulkService {
         try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
 
-            for (int i = 1; i < sheet.getLastRowNum(); i++) {
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row rw = sheet.getRow(i);
 
                 if (rw == null)
@@ -40,18 +40,15 @@ public class BookBulkService {
 
     private Book mapRowToBook(Row row) {
         Book book = new Book();
+        DataFormatter formatter = new DataFormatter();
 
-        book.setISBN(row.getCell(0).getStringCellValue());
-        book.setTitle(row.getCell(1).getStringCellValue());
-        book.setAuthor(row.getCell(2).getStringCellValue());
-        book.setPages((int) row.getCell(3).getNumericCellValue());
-        book.setDescription(row.getCell(4).getStringCellValue());
-        book.setImageUrl(row.getCell(5).getStringCellValue());
-        book.setReleaseYear((int) row.getCell(6).getNumericCellValue());
-
-        String availability = row.getCell(7).getStringCellValue();
-        book.setAvailability(Availability.valueOf(availability));
-
+        book.setISBN(formatter.formatCellValue(row.getCell(0)));
+        book.setTitle(formatter.formatCellValue(row.getCell(1)));
+        book.setAuthor(formatter.formatCellValue(row.getCell(2)));
+        book.setPages(Integer.parseInt(formatter.formatCellValue(row.getCell(3))));
+        book.setDescription(formatter.formatCellValue(row.getCell(4)));
+        book.setImageUrl(formatter.formatCellValue(row.getCell(5)));
+        book.setReleaseYear(Integer.parseInt(formatter.formatCellValue(row.getCell(6))));
 
         return book;
     }

@@ -23,7 +23,6 @@ export class AddBookManualComponent {
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
-    availability: Availability.AVAILABLE,
   };
 
   @Output() bookAdded = new EventEmitter<Book>();

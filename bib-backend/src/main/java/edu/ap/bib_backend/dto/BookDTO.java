@@ -17,14 +17,13 @@ public class BookDTO {
     private String imageUrl;
     private String description;
     private int releaseYear;
-    private Availability availability;
     private double reviewScore;
 
     public BookDTO() {
     }
 
     public BookDTO(Long id, String ISBN, String title, String author, int pages, String image_url, String description,
-            int release_year, Availability availability, double reviewScore) {
+            int release_year, double reviewScore) {
         this.id = id;
         this.ISBN = ISBN;
         this.title = title;
@@ -33,7 +32,6 @@ public class BookDTO {
         this.imageUrl = image_url;
         this.description = description;
         this.releaseYear = release_year;
-        this.availability = availability;
         this.reviewScore = reviewScore;
     }
 
@@ -48,7 +46,6 @@ public class BookDTO {
                 ", imageUrl='" + imageUrl + '\'' +
                 ", description='" + description + '\'' +
                 ", releaseYear=" + releaseYear +
-                ", availability=" + availability +
                 ", reviewScore=" + reviewScore +
                 '}';
     }

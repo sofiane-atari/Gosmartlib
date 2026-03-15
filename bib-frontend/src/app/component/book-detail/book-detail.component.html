@@ -19,9 +19,9 @@
         </div>
       </div>
 
-      <div class="availability-badge" [class.available]="selectedBook.availability === Availability.AVAILABLE">
+      <!-- <div class="availability-badge" [class.available]="selectedBook.availability === Availability.AVAILABLE">
         {{ selectedBook.availability }}
-      </div>
+      </div> -->
     </aside>
 
     <!-- Main Content -->
@@ -39,7 +39,7 @@
       <section class="management-section">
         <h2 class="section-title">Bibliotheekbeheer</h2>
 
-        <div class="management-grid">
+        <!-- <div class="management-grid">
           <div class="management-card">
             <label class="card-label">Beschikbaarheid</label>
             <select [(ngModel)]="selectedBook.availability" name="availability" class="status-select">
@@ -49,7 +49,7 @@
               <option value="LOST">Verloren</option>
             </select>
           </div>
-        </div>
+        </div> -->
 
         <div class="action-buttons">
           <button class="action-btn primary" style="position: relative;" (click)="toggleListPicker()">

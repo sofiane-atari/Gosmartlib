@@ -3,8 +3,10 @@ package edu.ap.bib_backend.jpa.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -26,6 +28,10 @@ public class BookCopy {
     @ManyToOne
     @JoinColumn(name = "book_id") // FK stored in book_copies table
     private Book book;
+
+    // @Enumerated(EnumType.STRING)
+    // @Column(nullable = false)
+    // private Availability availability;
 
     @OneToMany(mappedBy = "copy")
     private List<BookLoan> loans = new ArrayList<>();

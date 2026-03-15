@@ -50,7 +50,6 @@ public class BookService {
         dto.setISBN(book.getISBN());
         dto.setPages(book.getPages());
         dto.setImageUrl(book.getImageUrl());
-        dto.setAvailability(book.getAvailability());
         dto.setDescription(book.getDescription());
         dto.setReleaseYear(book.getReleaseYear());
         dto.setReviewScore(book.getReviewScore() != null ? book.getReviewScore() : 0.0);
@@ -66,7 +65,6 @@ public class BookService {
         book.setISBN(dto.getISBN());
         book.setPages(dto.getPages());
         book.setImageUrl(dto.getImageUrl());
-        book.setAvailability(dto.getAvailability());
         book.setDescription(dto.getDescription());
         book.setReleaseYear(dto.getReleaseYear());
 
