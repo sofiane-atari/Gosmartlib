@@ -16,15 +16,48 @@
     Download Template
   </button>
 
+  <!-- input File Button -->
   <input type="file"
          (change)="onFileSelected($event)"
          accept=".xlsx"/>
 
+  <!-- Validate File Button -->
+  <button class="btn-validate"
+          (click)="validate()"
+          [disabled]="!selectedFile || validating">
+    Controleer Bestand
+  </button>
+
+  <!-- Upload Books Button -->
   <button class="btn-submit"
           (click)="uploadBooks()"
-          [disabled]="!selectedFile">
+          [disabled]="!selectedFile || errors.length > 0">
     Boeken toevoegen
   </button>
 
-</div>
+  <!-- Progress Bar -->
+  @if(selectedFile){
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress" [style.width.%]="progress"></div>
+      </div>
+      <span>{{progress}}%</span>
+    </div>
+  }
+
+    <!-- Validation Errors -->
+  @if(errors.length > 0){
+    <div class="validation-errors">
+      <h4>Gevonden fouten:</h4>
+      <ul>
+        @for (error of errors; track $index) {
+        <li>
+          Rij {{error.row}}, {{error.field}}: {{error.message}}
+        </li>
+      }
+      </ul>
+    </div>
+  }
+
+  </div>
 </div>

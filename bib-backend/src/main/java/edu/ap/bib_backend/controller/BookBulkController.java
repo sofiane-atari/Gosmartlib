@@ -1,11 +1,13 @@
 package edu.ap.bib_backend.controller;
 
+import edu.ap.bib_backend.dto.FileValidationResult;
 import edu.ap.bib_backend.service.BookBulkService;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.springframework.core.io.ClassPathResource;
@@ -41,6 +43,11 @@ public class BookBulkController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=books_template.xlsx")
                 .body(file);
+    }
+
+    @PostMapping("/upload/validate")
+    public ResponseEntity<FileValidationResult> validate(@RequestParam("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(bbs.validateBooks(file));
     }
 
 }

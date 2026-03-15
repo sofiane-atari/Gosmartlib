@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.jpa.repository;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,11 @@ import org.springframework.data.repository.query.Param;
 import edu.ap.bib_backend.jpa.entity.Book;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
+
+    boolean existsByISBN(String isbn);
+
+    @Query("SELECT b.ISBN FROM Book b")
+    List<String> findAllIsbns();
 
     @Query("SELECT MIN(b.releaseYear) FROM Book b")
     Integer findMinReleaseYear();
