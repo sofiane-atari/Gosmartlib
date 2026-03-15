@@ -24,6 +24,12 @@ public class BookBulkController {
 
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadBooks(@RequestParam("file") MultipartFile file) {
+        if (!file.getOriginalFilename().endsWith(".xlsx")) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("message", "Only excel files are supported"));
+        }
+
         bbs.importBooks(file);
         return ResponseEntity.ok(Map.of("message", "Books uploaded successfully"));
     }
