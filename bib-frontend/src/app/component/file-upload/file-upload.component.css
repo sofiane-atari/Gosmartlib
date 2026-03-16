@@ -1,0 +1,63 @@
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #e0e0e0;
+  border-radius: 4px;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.upload-zone:hover {
+  border-color: #bc808b;
+  background: #fefefe;
+}
+
+/* Drag-over state */
+.upload-zone.drag-over {
+  border-color: #8a1e41;
+  background: rgba(138, 30, 65, 0.02);
+  transform: scale(1.01);
+}
+
+/* File selected state */
+.upload-zone.has-file {
+  border-color: #2ecc71;
+  border-style: solid;
+  background: rgba(46, 204, 113, 0.02);
+}
+
+.upload-icon-container {
+  color: #999;
+  margin-bottom: 0.8rem;
+  display: flex;
+  justify-content: center;
+}
+
+.has-file .upload-icon-container {
+  color: #2ecc71;
+}
+
+.upload-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.2rem;
+  word-break: break-all;
+}
+
+.upload-sub {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+/* Input verbergen maar functioneel houden */
+input[type="file"] {
+  display: none;
+}

@@ -5,11 +5,13 @@ import { BookService } from '../../../services/BookService/book.service';
 import { ToastService } from '../../../services/Toast/toast.service';
 import { FileValidationError } from '../../../model/FileValidationError';
 import { environment } from '../../../../environments/environment';
+import { FileUploadComponent } from '../../file-upload/file-upload.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-add-book-bulk',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, FileUploadComponent, CommonModule],
   templateUrl: './add-book-bulk.component.html',
   styleUrl: './add-book-bulk.component.css'
 })
@@ -38,34 +40,16 @@ export class AddBookBulkComponent {
     window.open(this.templateUrl);
   }
 
+  handleFileChange(file: File | null) {
+    this.selectedFile = file;
+    this.progress = 0;
+    this.errors = [];
+  }
+
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) this.setFile(file);
-  }
-
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver = true;
-  }
-
-  onDragLeave(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver = false;
-  }
-
-  onDrop(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragOver = false;
-    const file = event.dataTransfer?.files[0];
-    if (file && file.name.endsWith('.xlsx')) {
-      this.setFile(file);
-    } else {
-      this.ts.show('Alleen .xlsx bestanden zijn toegestaan', 'error');
-    }
   }
 
   private setFile(file: File) {

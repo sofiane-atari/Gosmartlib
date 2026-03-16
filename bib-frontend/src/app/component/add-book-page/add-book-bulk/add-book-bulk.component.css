@@ -13,7 +13,7 @@
   max-width: 100%;
 }
 
-/* ── Info Banner (Exact zoals voorbeeld) ─────────────────── */
+/* ── Info Banner ────────────────────────────────────────── */
 .info-banner {
   display: flex;
   align-items: flex-start;
@@ -51,7 +51,7 @@
   color: #8a1e41;
 }
 
-/* ── Stappenplan & Labels ────────────────────────────────── */
+/* ── Stappenplan ────────────────────────────────────────── */
 .section-label {
   font-size: 0.7rem;
   font-weight: 600;
@@ -106,55 +106,7 @@
   margin: 1.2rem 0;
 }
 
-/* ── Upload Zone (Gecentreerd) ───────────────────────────── */
-.upload-zone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed #e0e0e0;
-  border-radius: 4px;
-  padding: 2.5rem 1rem;
-  text-align: center;
-  cursor: pointer;
-  background: #f9f9f9;
-  transition: all 0.2s ease;
-}
-
-.upload-zone:hover {
-  border-color: #bc808b;
-}
-
-.upload-zone.has-file {
-  border-color: #2ecc71;
-  border-style: solid;
-  background: rgba(46, 204, 113, 0.02);
-}
-
-.upload-icon-container {
-  color: #999;
-  margin-bottom: 0.8rem;
-  display: flex;
-  justify-content: center;
-}
-
-.has-file .upload-icon-container {
-  color: #2ecc71;
-}
-
-.upload-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.2rem;
-}
-
-.upload-sub {
-  font-size: 0.75rem;
-  color: #999;
-}
-
-/* ── Buttons (Zelfde als jouw formulier) ─────────────────── */
+/* ── Buttons ────────────────────────────────────────────── */
 .form-actions {
   display: flex;
   gap: 0.75rem;
@@ -163,65 +115,18 @@
 
 .btn-secondary,
 .btn-submit {
-  /* Gebruik flexbox om icoon en tekst naast elkaar te zetten */
   display: inline-flex;
-
-  /* Belangrijkste stap: lijn alles in de knop verticaal in het midden uit */
   align-items: center;
-
-  /* Zorg dat de inhoud gecentreerd blijft binnen de knop */
   justify-content: center;
-
-  /* Ruimte tussen het icoontje en de tekst */
   gap: 8px;
-
-  /* Jouw gewenste compacte styling */
   padding: 0.5rem 1rem;
   font-size: 0.8rem;
   font-weight: 600;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-
-  /* Voorkom dat extra regelhoogte de uitlijning verstoort */
   line-height: 1;
-
-  /* Voorkom dat tekst over meerdere regels springt */
   white-space: nowrap;
-}
-
-.btn-icon,
-lucide-icon,
-.btn-secondary svg,
-.btn-submit svg,
-:host ::ng-deep lucide-icon svg {
-  /* Specifiek voor Angular component encapsulatie */
-
-  /* Maak de icoontjes kleiner (14px of 16px is ideaal voor deze knopmaat) */
-  width: 14px !important;
-  height: 14px !important;
-
-  /* Voorkom dat het icoon zich als tekst gedraagt en op de baseline rust */
-  display: block;
-
-  /* Zorg dat het icoon niet wordt platgedrukt als de tekst lang is */
-  flex-shrink: 0;
-
-  /* Soms heeft het SVG-bestand zelf een interne padding die de uitlijning verstoort */
-  margin: 0;
-  padding: 0;
-}
-
-lucide-icon {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  line-height: 0 !important; /* Voorkom dat de wrapper div hoogte toevoegt */
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: rgba(138, 30, 65, 0.05);
-  transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -233,23 +138,39 @@ lucide-icon {
 .btn-submit {
   background: #8a1e41;
   color: #fff5f8;
-  border: 1px solid #8a1e41; /* Zorg dat de hoogte gelijk is aan de secondary btn */
+  border: 1px solid #8a1e41;
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(138, 30, 65, 0.05);
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #bc808b; /* Iets lichtere kleur bij hover zoals in je voorbeeld */
+  background: #bc808b;
   border-color: #bc808b;
-  transform: translateY(-1px);
-}
-.btn-secondary span,
-.btn-submit span {
-  display: inline-block;
 }
 
 .btn-submit:disabled,
 .btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Icon centering fix */
+lucide-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+:host ::ng-deep lucide-icon svg {
+  width: 14px !important;
+  height: 14px !important;
 }
 
 /* ── Progress Bar ────────────────────────────────────────── */
@@ -283,7 +204,7 @@ lucide-icon {
   transition: width 0.3s ease;
 }
 
-/* ── Errors (Compact & clean) ────────────────────────────── */
+/* ── Errors ─────────────────────────────────────────────── */
 .errors-box {
   margin-top: 1rem;
   border: 1px solid #fadbd8;
@@ -320,7 +241,7 @@ lucide-icon {
   color: #444;
 }
 
-/* ── Animations ──────────────────────────────────────────── */
+/* ── Animations & Media ──────────────────────────────────── */
 @keyframes fadeInInfo {
   from {
     opacity: 0;
@@ -333,15 +254,14 @@ lucide-icon {
 }
 
 @media (max-width: 768px) {
-  .btn-secondary,
-  .btn-submit {
-    width: 100%;
-    justify-content: center;
-  }
   .step-row {
     grid-template-columns: 1fr;
   }
   .form-actions {
     flex-direction: column;
+  }
+  .btn-secondary,
+  .btn-submit {
+    width: 100%;
   }
 }
