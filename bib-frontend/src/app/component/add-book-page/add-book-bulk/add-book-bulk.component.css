@@ -1,37 +1,40 @@
+/* ── Layout & Basis ───────────────────────────────────────── */
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: white;
+  padding: 1.5rem 2rem;
+}
+
+.bulk-content {
+  flex: 1;
+  max-width: 100%;
+}
+
+/* ── Info Banner (Exact zoals voorbeeld) ─────────────────── */
 .info-banner {
   display: flex;
   align-items: flex-start;
   gap: 0.9rem;
-
   background: linear-gradient(135deg, #f8f9fb, #f3f5f8);
   border: 1px solid #e6e8ec;
   border-left: 5px solid #8a1e41;
-
   padding: 1rem 1.1rem;
   margin-bottom: 1.6rem;
-
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-
-  transition: all 0.2s ease;
-}
-
-.info-banner:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  animation: fadeInInfo 0.35s ease;
 }
 
 .info-icon {
-  width: 26px;
-  height: 26px;
+  width: 20px;
+  height: 20px;
   color: #8a1e41;
   flex-shrink: 0;
   margin-top: 3px;
-}
-
-.info-content {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  margin-right: 12px;
 }
 
 .info-content p {
@@ -45,143 +48,279 @@
   background: rgba(138, 30, 65, 0.08);
   padding: 2px 5px;
   border-radius: 4px;
+  color: #8a1e41;
 }
 
-/* --- Hint onder de tekstvelden --- */
-.form-footer-hint {
-  display: flex;
-  align-items: center;
-  margin-top: 0.5rem; /* Aangesloten op de velden */
-  margin-bottom: 1.5rem;
-  padding: 0.6rem;
-  background-color: #f9f9f9;
+/* ── Stappenplan & Labels ────────────────────────────────── */
+.section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.step-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.step-item {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
   border-radius: 4px;
-  border: 1px dashed #e0e0e0; /* Subtiele 'check' look */
-  font-size: 0.8rem;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.step-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8a1e41;
+  background: rgba(138, 30, 65, 0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+  width: fit-content;
+}
+
+.step-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.step-desc {
+  font-size: 0.75rem;
   color: #666;
+  line-height: 1.4;
 }
 
-.hint-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
-  color: #2ecc71; /* Groen voor de 'check' */
+.divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 1.2rem 0;
 }
 
-/* --- Knop en Zoek Sectie Fixes --- */
-.button-group {
+/* ── Upload Zone (Gecentreerd) ───────────────────────────── */
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #e0e0e0;
+  border-radius: 4px;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: all 0.2s ease;
+}
+
+.upload-zone:hover {
+  border-color: #bc808b;
+}
+
+.upload-zone.has-file {
+  border-color: #2ecc71;
+  border-style: solid;
+  background: rgba(46, 204, 113, 0.02);
+}
+
+.upload-icon-container {
+  color: #999;
+  margin-bottom: 0.8rem;
+  display: flex;
+  justify-content: center;
+}
+
+.has-file .upload-icon-container {
+  color: #2ecc71;
+}
+
+.upload-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.2rem;
+}
+
+.upload-sub {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+/* ── Buttons (Zelfde als jouw formulier) ─────────────────── */
+.form-actions {
   display: flex;
   gap: 0.75rem;
-  /* Zorgt dat de knoppen in de search-section goed staan */
+  padding: 1rem 0;
+}
+
+.btn-secondary,
+.btn-submit {
+  /* Gebruik flexbox om icoon en tekst naast elkaar te zetten */
+  display: inline-flex;
+
+  /* Belangrijkste stap: lijn alles in de knop verticaal in het midden uit */
+  align-items: center;
+
+  /* Zorg dat de inhoud gecentreerd blijft binnen de knop */
+  justify-content: center;
+
+  /* Ruimte tussen het icoontje en de tekst */
+  gap: 8px;
+
+  /* Jouw gewenste compacte styling */
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  /* Voorkom dat extra regelhoogte de uitlijning verstoort */
+  line-height: 1;
+
+  /* Voorkom dat tekst over meerdere regels springt */
+  white-space: nowrap;
+}
+
+.btn-icon,
+lucide-icon,
+.btn-secondary svg,
+.btn-submit svg,
+:host ::ng-deep lucide-icon svg {
+  /* Specifiek voor Angular component encapsulatie */
+
+  /* Maak de icoontjes kleiner (14px of 16px is ideaal voor deze knopmaat) */
+  width: 14px !important;
+  height: 14px !important;
+
+  /* Voorkom dat het icoon zich als tekst gedraagt en op de baseline rust */
+  display: block;
+
+  /* Zorg dat het icoon niet wordt platgedrukt als de tekst lang is */
+  flex-shrink: 0;
+
+  /* Soms heeft het SVG-bestand zelf een interne padding die de uitlijning verstoort */
+  margin: 0;
+  padding: 0;
+}
+
+lucide-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 0 !important; /* Voorkom dat de wrapper div hoogte toevoegt */
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(138, 30, 65, 0.05);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   background: white;
   color: #8a1e41;
   border: 1px solid #8a1e41;
-  padding: 0.6rem 1.2rem;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
 }
 
-.btn-secondary:hover {
-  background: rgba(138, 30, 65, 0.05);
+.btn-submit {
+  background: #8a1e41;
+  color: #fff5f8;
+  border: 1px solid #8a1e41; /* Zorg dat de hoogte gelijk is aan de secondary btn */
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #bc808b; /* Iets lichtere kleur bij hover zoals in je voorbeeld */
+  border-color: #bc808b;
   transform: translateY(-1px);
 }
-
-.btn-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 6px;
-  /* Geen vertical-align nodig i.c.m. flex op de button */
+.btn-secondary span,
+.btn-submit span {
+  display: inline-block;
 }
 
-/* Fix voor de zoeksectie layout met meerdere knoppen */
-.search-section {
-  flex-wrap: wrap;
-}
-.info-icon {
-  color: #8a1e41;
-  margin-right: 12px;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  margin-top: 3px;
-}
-.info-banner {
-  animation: fadeInInfo 0.35s ease;
+.btn-submit:disabled,
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.progress-container {
-  width: 100%;
-  background-color: #e0e0e0; /* lichtgrijze achtergrond */
-  border-radius: 8px;
-  height: 25px;
-  margin: 10px 0;
-  position: relative;
+/* ── Progress Bar ────────────────────────────────────────── */
+.progress-wrap {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.progress-track {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 10px;
   overflow: hidden;
 }
+
 .progress-bar {
-  width: 100%;
   height: 100%;
-  border-radius: 8px;
-  background-color: #e0e0e0; /* zelfde als container */
-}
-/* Progress Fill */
-.progress {
-  height: 100%;
-  background-color: #4caf50; /* groene balk */
-  width: 0%; /* start op 0% */
-  transition: width 0.3s ease-in-out; /* animatie van de groei */
-  border-radius: 8px 0 0 8px; /* ronde linkerkant */
+  background: #8a1e41;
+  transition: width 0.3s ease;
 }
 
-/* Animated stripes to show loading */
-.progress::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0.15) 10px,
-    transparent 10px,
-    transparent 20px
-  );
-  animation: moveStripes 1s linear infinite;
+/* ── Errors (Compact & clean) ────────────────────────────── */
+.errors-box {
+  margin-top: 1rem;
+  border: 1px solid #fadbd8;
+  border-radius: 4px;
+  background: #fdf2f2;
+  padding: 1rem;
 }
 
-/* Stripe animation */
-@keyframes moveStripes {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 40px 0;
-  }
+.errors-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e74c3c;
+  margin-bottom: 0.8rem;
 }
 
-/* Progress Text */
-.progress-container span {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: bold;
-  font-size: 14px;
-  color: #fff;
-  line-height: 25px;
-  z-index: 1;
+.errors-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
+.errors-list li {
+  font-size: 0.8rem;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border-left: 3px solid #e74c3c;
+  color: #444;
+}
+
+/* ── Animations ──────────────────────────────────────────── */
 @keyframes fadeInInfo {
   from {
     opacity: 0;
@@ -190,5 +329,19 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .btn-secondary,
+  .btn-submit {
+    width: 100%;
+    justify-content: center;
+  }
+  .step-row {
+    grid-template-columns: 1fr;
+  }
+  .form-actions {
+    flex-direction: column;
   }
 }

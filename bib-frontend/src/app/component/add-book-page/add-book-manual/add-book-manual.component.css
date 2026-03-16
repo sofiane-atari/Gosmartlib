@@ -14,13 +14,16 @@ body {
   background: #f5f5f5;
 }
 
-/* Container Layout */
 .layout {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   width: 100%;
-  background: white; /* Wit zodat het formulier duidelijk leesbaar is */
-  flex-direction: column; /* stack elements vertically */
+  background: white;
+
+  /* Dit zorgt voor de witruimte aan de zijkanten van de hele pagina */
+  padding: 1.5rem 2rem;
+  box-sizing: border-box; /* Belangrijk: voorkomt dat de pagina te breed wordt door padding */
 }
 
 /* Formulier Structuur */
@@ -194,11 +197,21 @@ body {
 }
 
 .info-content strong {
-  background: rgba(138, 30, 65, 0.08);
-  padding: 2px 5px;
-  border-radius: 4px;
-}
+  /* De rode kleur voor de letters */
+  color: #8a1e41;
 
+  /* Het subtiele roze achtergrondje */
+  background: rgba(138, 30, 65, 0.08);
+
+  /* Padding zorgt dat het achtergrondje niet strak op de letters zit */
+  padding: 2px 6px;
+
+  /* Ronde hoekjes voor een moderne look */
+  border-radius: 4px;
+
+  /* Optioneel: iets dikker maken voor nadruk */
+  font-weight: 700;
+}
 /* --- Hint onder de tekstvelden --- */
 .form-footer-hint {
   display: flex;

@@ -1,62 +1,116 @@
 <div class="layout">
   <div class="info-banner">
-  <lucide-icon [name]= "InfoIcon" class="info-icon"></lucide-icon>
-  <div class="info-content">
-    <p><strong>Boeken in bulk toevoegen</strong></p>
-    <p>
-      Download eerst het <strong>Excel-template</strong> en vul de vereiste velden in met de gegevens van de boeken.
-      Upload daarna het ingevulde bestand en klik op <strong>"Boeken toevoegen"</strong> om alle boeken
-      tegelijk aan de bibliotheek toe te voegen.
-    </p>
+    <lucide-icon [img]="InfoIcon" class="info-icon"></lucide-icon>
+    <div class="info-content">
+      <p><strong>Boeken in bulk toevoegen</strong></p>
+      <p>
+        Download het <strong>Excel-template</strong> en vul de gegevens in. Upload het bestand en klik 
+        altijd eerst op <strong>"Controleer Bestand"</strong>. Mochten er <strong>fouten</strong> gevonden worden, 
+        los deze dan op in het Excel-bestand en upload het opnieuw. Pas als het bestand volledig is 
+        gevalideerd, kun je op <strong>"Boeken toevoegen"</strong> klikken.
+      </p>
+    </div>
   </div>
-  </div>
-  <div class="bulk-upload">
 
-  <button class="btn-download" (click)="downloadTemplate()">
-    Download Template
-  </button>
-
-  <!-- input File Button -->
-  <input type="file"
-         (change)="onFileSelected($event)"
-         accept=".xlsx"/>
-
-  <!-- Validate File Button -->
-  <button class="btn-validate"
-          (click)="startValidation(selectedFile!)"
-          [disabled]="!selectedFile || validating">
-    Controleer Bestand
-  </button>
-
-  <!-- Upload Books Button -->
-  <button class="btn-submit"
-          (click)="uploadBooks()"
-          [disabled]="!selectedFile || errors.length > 0">
-    Boeken toevoegen
-  </button>
-
-  <!-- Progress Bar -->
-  @if(selectedFile){
-    <div class="progress-container">
-      <div class="progress-bar">
-        <div class="progress" [style.width.%]="progress"></div>
+  <div class="bulk-content">
+    <div class="form-section">
+      <div class="section-label">Stappenplan</div>
+      <div class="step-row">
+        <div class="step-item">
+          <span class="step-num">Stap 1</span>
+          <span class="step-title">Download template</span>
+          <span class="step-desc">Haal het Excel-bestand op met de juiste kolommen.</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">Stap 2</span>
+          <span class="step-title">Vul in & upload</span>
+          <span class="step-desc">Voeg gegevens toe en sleep het bestand naar de zone.</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">Stap 3</span>
+          <span class="step-title">Controleer & voeg toe</span>
+          <span class="step-desc">Valideer het bestand en verwerk de boeken.</span>
+        </div>
       </div>
-      <span>{{progress}}%</span>
-    </div>
-  }
-    <!-- Validation Errors -->
-  @if(errors.length > 0){
-    <div class="validation-errors">
-      <h4>Gevonden fouten:</h4>
-      <ul>
-        @for (error of errors; track $index) {
-        <li>
-          Rij {{error.row}}, {{error.field}}: {{error.message}}
-        </li>
-      }
-      </ul>
-    </div>
-  }
 
+      <hr class="divider">
+
+      <label
+        for="fileInput"
+        class="upload-zone"
+        [class.has-file]="selectedFile"
+        [class.drag-over]="isDragOver"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <div class="upload-icon-container">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="upload-label">
+          {{ selectedFile ? selectedFile.name : 'Sleep een bestand hierheen of klik om te uploaden' }}
+        </div>
+        <div class="upload-sub">Excel bestanden (.xlsx) — max. 10 MB</div>
+      </label>
+
+      <input type="file" id="fileInput" accept=".xlsx" (change)="onFileSelected($event)" hidden>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="downloadTemplate()">
+          <lucide-icon [img]="DownloadIcon" class="btn-icon"></lucide-icon>
+          Download Template
+        </button>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="startValidation(selectedFile!)"
+          [disabled]="!selectedFile || validating"
+        >
+          <lucide-icon [img]="CheckIcon" class="btn-icon"></lucide-icon>
+          {{ validating ? 'Bezig...' : 'Controleer Bestand' }}
+        </button>
+
+        <button
+          type="button"
+          class="btn-submit"
+          (click)="uploadBooks()"
+          [disabled]="!selectedFile || errors.length > 0 || validating"
+        >
+          <lucide-icon [img]="PlusIcon" class="btn-icon"></lucide-icon>
+          Boeken toevoegen
+        </button>
+      </div>
+
+      @if (selectedFile && (progress > 0 || validating)) {
+        <div class="progress-wrap">
+          <div class="progress-header">
+            <span>{{ validating ? 'Bestand controleren...' : progress === 100 ? 'Bestand verwerkt' : 'Bezig met uploaden...' }}</span>
+            <span class="progress-percentage">{{ progress }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar" [style.width.%]="progress"></div>
+          </div>
+        </div>
+      }
+
+      @if (errors.length > 0) {
+        <div class="errors-box">
+          <div class="errors-title">
+            <lucide-icon [img]="InfoIcon" class="error-icon"></lucide-icon>
+            Gevonden validatiefouten
+          </div>
+          <ul class="errors-list">
+            @for (error of errors; track $index) {
+              <li><strong>Rij {{ error.row }}, {{ error.field }}:</strong> {{ error.message }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
   </div>
 </div>

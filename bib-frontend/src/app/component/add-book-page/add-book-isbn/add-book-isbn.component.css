@@ -1,9 +1,13 @@
 .layout {
   display: flex;
-  flex-direction: column; /* stack elements vertically */
+  flex-direction: column;
   min-height: 100vh;
   width: 100%;
   background: white;
+
+  /* Dit zorgt voor de witruimte aan de zijkanten van de hele pagina */
+  padding: 1.5rem 2rem;
+  box-sizing: border-box; /* Belangrijk: voorkomt dat de pagina te breed wordt door padding */
 }
 
 .book-form {
@@ -287,11 +291,21 @@
 }
 
 .info-content strong {
-  background: rgba(138, 30, 65, 0.08);
-  padding: 2px 5px;
-  border-radius: 4px;
-}
+  /* De rode kleur voor de letters */
+  color: #8a1e41;
 
+  /* Het subtiele roze achtergrondje */
+  background: rgba(138, 30, 65, 0.08);
+
+  /* Padding zorgt dat het achtergrondje niet strak op de letters zit */
+  padding: 2px 6px;
+
+  /* Ronde hoekjes voor een moderne look */
+  border-radius: 4px;
+
+  /* Optioneel: iets dikker maken voor nadruk */
+  font-weight: 700;
+}
 /* --- Hint onder de tekstvelden --- */
 .form-footer-hint {
   display: flex;
@@ -374,22 +388,19 @@
 }
 @media (max-width: 768px) {
   .book-form {
-    padding: 1rem; /* Was 1.5rem */
+    padding: 1rem;
   }
 
   .image-preview-container {
     width: 100%;
-    height: 200px; /* Was 250px */
+    height: 200px;
   }
 
   .form-row {
-    gap: 1rem; /* Was 1.5rem */
+    gap: 1rem;
   }
 
   .genre-grid {
-    grid-template-columns: repeat(
-      auto-fill,
-      minmax(100px, 1fr)
-    ); /* Was 120px */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
 }
