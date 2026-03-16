@@ -47,11 +47,6 @@ public class BookBulkController {
                 .body(file);
     }
 
-    @PostMapping("/upload/validate")
-    public ResponseEntity<FileValidationResult> validate(@RequestParam("file") MultipartFile file) throws IOException {
-        return ResponseEntity.ok(bbs.validateBooks(file));
-    }
-
     // Step 2: SSE validation
     @GetMapping("/upload/validate-stream/{tempFileId}")
     public SseEmitter validateStream(@PathVariable String tempFileId) throws IOException {

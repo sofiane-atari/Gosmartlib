@@ -20,8 +20,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Year;
 import java.util.UUID;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,51 +49,6 @@ public class BookBulkService {
     }
 
     @Transactional
-    public FileValidationResult validateBooks(MultipartFile file) {
-
-        List<FileValidationError> errors = new ArrayList<>();
-
-        Set<String> existingIsbns = new HashSet<>(br.findAllIsbns());
-        Set<String> seenIsbns = new HashSet<>();
-
-        int validRows = 0;
-
-        try (
-                InputStream is = file.getInputStream();
-                Workbook wb = WorkbookFactory.create(is)) {
-
-            Sheet sheet = wb.getSheetAt(0);
-            DataFormatter formatter = new DataFormatter();
-
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-
-                Row row = sheet.getRow(i);
-                if (row == null)
-                    continue;
-
-                List<FileValidationError> rowErrors = validateRow(row, i, formatter, existingIsbns, seenIsbns);
-
-                if (rowErrors.isEmpty()) {
-                    validRows++;
-                } else {
-                    errors.addAll(rowErrors);
-                }
-            }
-
-            int totalRows = sheet.getLastRowNum();
-
-            return new FileValidationResult(
-                    totalRows,
-                    validRows,
-                    errors.size(),
-                    errors);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to validate books: " + e.getMessage());
-        }
-    }
-
-    @Transactional
     public void importBooks(MultipartFile file) {
         try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
@@ -112,8 +70,22 @@ public class BookBulkService {
         }
     }
 
+    private boolean isRowEmpty(Row row, DataFormatter formatter) {
+        if (row == null)
+            return true;
+
+        for (int i = 0; i <= 6; i++) { // jouw 7 kolommen
+            Cell cell = row.getCell(i);
+            String value = formatter.formatCellValue(cell).trim();
+            if (!value.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public SseEmitter validateBooksStream(File file) {
-        SseEmitter emitter = new SseEmitter();
+        SseEmitter emitter = new SseEmitter(0L);
 
         new Thread(() -> {
             try (InputStream is = new FileInputStream(file); Workbook wb = WorkbookFactory.create(is)) {
@@ -127,7 +99,7 @@ public class BookBulkService {
 
                 for (int i = 1; i <= totalRows; i++) {
                     Row row = sheet.getRow(i);
-                    if (row == null)
+                    if (row == null || isRowEmpty(row, formatter))
                         continue;
 
                     List<FileValidationError> rowErrors = validateRow(row, i, formatter, existingIsbns, seenIsbns);
@@ -168,27 +140,69 @@ public class BookBulkService {
         String imageUrl = formatter.formatCellValue(row.getCell(5)).trim();
         String yearStr = formatter.formatCellValue(row.getCell(6)).trim();
 
-        if (isbn.isEmpty())
-            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "ISBN is empty"));
-        else if (existingIsbns.contains(isbn))
-            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "Duplicate ISBN in database"));
-        else if (seenIsbns.contains(isbn))
-            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "Duplicate ISBN in uploaded file"));
-        else
+        // ISBN
+        if (isbn.isEmpty()) {
+            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "ISBN is leeg"));
+        } else if (!isbn.matches("\\d{13}")) {
+            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "ISBN moet 13 cijfers bevatten"));
+        } else if (existingIsbns.contains(isbn)) {
+            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "Duplicaat ISBN in database"));
+        } else if (seenIsbns.contains(isbn)) {
+            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "Duplicaat ISBN in bestand"));
+        } else {
             seenIsbns.add(isbn);
+        }
 
+        // Title
         if (title.isEmpty())
-            rowErrors.add(new FileValidationError(rowNumber, "Title", "Title is empty"));
+            rowErrors.add(new FileValidationError(rowNumber, "Title", "Titel is leeg"));
+
+        // Author
         if (author.isEmpty())
-            rowErrors.add(new FileValidationError(rowNumber, "Author", "Author is empty"));
-        if (pagesStr.isEmpty())
-            rowErrors.add(new FileValidationError(rowNumber, "Pages", "Pages is empty"));
+            rowErrors.add(new FileValidationError(rowNumber, "Author", "Auteur is leeg"));
+
+        // Pages
+        if (pagesStr.isEmpty()) {
+            rowErrors.add(new FileValidationError(rowNumber, "Pages", "Pagina's is leeg"));
+        } else {
+            try {
+                int pages = Integer.parseInt(pagesStr);
+                if (pages <= 0)
+                    rowErrors.add(new FileValidationError(rowNumber, "Pages", "Pagina's moeten meer dan 0 zijn"));
+            } catch (NumberFormatException e) {
+                rowErrors.add(new FileValidationError(rowNumber, "Pages", "Pagina's moet een nummer zijn"));
+            }
+        }
+
+        // Description
         if (description.isEmpty())
-            rowErrors.add(new FileValidationError(rowNumber, "Description", "Description is empty"));
-        if (imageUrl.isEmpty())
-            rowErrors.add(new FileValidationError(rowNumber, "ImageUrl", "Image URL is empty"));
-        if (yearStr.isEmpty())
-            rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Release year is empty"));
+            rowErrors.add(new FileValidationError(rowNumber, "Description", "Descriptie is leeg"));
+
+        // Image URL
+        if (imageUrl.isEmpty()) {
+            rowErrors.add(new FileValidationError(rowNumber, "ImageUrl", "Image URL is leeg"));
+        } else {
+            try {
+                new URL(imageUrl);
+            } catch (MalformedURLException e) {
+                rowErrors.add(new FileValidationError(rowNumber, "ImageUrl", "Invalide URL formaat"));
+            }
+        }
+
+        // Release Year
+        if (yearStr.isEmpty()) {
+            rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Uitgave jaar is leeg"));
+        } else {
+            try {
+                int year = Integer.parseInt(yearStr);
+                int currentYear = Year.now().getValue();
+
+                if (year < 1000 || year > currentYear)
+                    rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Invalide jaar"));
+            } catch (NumberFormatException e) {
+                rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Uitgave jaar moet een nummer zijn"));
+            }
+        }
 
         return rowErrors;
     }
