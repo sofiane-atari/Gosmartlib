@@ -57,7 +57,6 @@
   color: #999;
 }
 
-/* Input verbergen maar functioneel houden */
 input[type="file"] {
   display: none;
 }

@@ -1,9 +1,9 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.FileValidationError;
-import edu.ap.bib_backend.dto.FileValidationResult;
 import edu.ap.bib_backend.dto.ValidationProgress;
 import edu.ap.bib_backend.jpa.entity.*;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,14 +26,17 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class BookBulkService {
     private final BookRepository br;
+    private final BookCopyRepository bcr;
     private final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
 
     // Save uploaded file temporarily and return a temp file ID
@@ -52,6 +55,7 @@ public class BookBulkService {
     public void importBooks(MultipartFile file) {
         try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
+            Map<String, Book> importedBooks = new HashMap<>();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row rw = sheet.getRow(i);
@@ -61,8 +65,32 @@ public class BookBulkService {
                 if (rw.getCell(1) == null)
                     continue;
 
-                Book book = mapRowToBook(rw);
-                br.save(book);
+                DataFormatter formatter = new DataFormatter();
+                String isbn = formatter.formatCellValue(rw.getCell(0)).trim();
+                Book book;
+
+                // check eerst of boek al in deze import zit
+                if (importedBooks.containsKey(isbn)) {
+                    book = importedBooks.get(isbn);
+                } else {
+                    Book existingBook = br.findByISBN(isbn);
+
+                    if (existingBook != null) {
+
+                        book = existingBook;
+
+                    } else {
+                        book = mapRowToBook(rw);
+                        book = br.save(book);
+                        importedBooks.put(isbn, book);
+                    }
+
+                }
+                // altijd een BookCopy maken
+                BookCopy copy = new BookCopy();
+                copy.setBook(book);
+
+                bcr.save(copy);
 
             }
         } catch (Exception e) {
@@ -145,10 +173,6 @@ public class BookBulkService {
             rowErrors.add(new FileValidationError(rowNumber, "ISBN", "ISBN is leeg"));
         } else if (!isbn.matches("\\d{13}")) {
             rowErrors.add(new FileValidationError(rowNumber, "ISBN", "ISBN moet 13 cijfers bevatten"));
-        } else if (existingIsbns.contains(isbn)) {
-            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "Duplicaat ISBN in database"));
-        } else if (seenIsbns.contains(isbn)) {
-            rowErrors.add(new FileValidationError(rowNumber, "ISBN", "Duplicaat ISBN in bestand"));
         } else {
             seenIsbns.add(isbn);
         }
