@@ -1,6 +1,6 @@
 package edu.ap.bib_backend.jpa.entity;
 
-public enum Role {
+public enum Role{
     STUDENT,
     TEACHER,
     LIBRARIAN,

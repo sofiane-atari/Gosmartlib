@@ -5,6 +5,8 @@ import java.util.List;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -22,4 +24,8 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<BookLoan> loans= new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private RoleEntity role;
 }
