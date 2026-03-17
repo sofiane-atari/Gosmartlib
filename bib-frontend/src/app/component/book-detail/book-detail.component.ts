@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { Book } from '../../model/book.model';
 import {
   LucideAngularModule,
@@ -19,6 +19,7 @@ import {
   Flag
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BookService } from '../../services/BookService/book.service';
@@ -27,6 +28,7 @@ import { Review } from '../../model/review.model';
 import { ReviewService } from '../../services/Reviews/review.service';
 import { ToastService } from '../../services/Toast/toast.service';
 import { ReadingListService, ReadingList } from '../../services/reading-list.service';
+import { BookPreview } from '../../model/book-preview.model';
 
 
 @Component({
@@ -74,6 +76,13 @@ export class BookDetailComponent {
   readingLists: ReadingList[] = [];
   showListPicker: boolean = false;
 
+  // Preview //
+  public readonly previewState = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  public readonly previewData = signal<BookPreview | null>(null);
+  public readonly previewErrorMessage = signal<string>('');
+  public readonly embeddedPreviewUrl = signal<SafeResourceUrl | null>(null);
+  public readonly previewFallbackUrl = signal<string | null>(null);
+
   Availability = Availability;
 
   constructor(
@@ -81,7 +90,8 @@ export class BookDetailComponent {
     private bookService: BookService,
     private readingListService: ReadingListService,
     private reviewService: ReviewService,
-    private toastService: ToastService) {
+    private toastService: ToastService,
+    private sanitizer: DomSanitizer) {
 
   }
 
@@ -235,5 +245,122 @@ export class BookDetailComponent {
     if (this.selectedBook && (this.selectedBook.copies || 0) > 0) {
       this.selectedBook.copies = (this.selectedBook.copies || 0) - 1;
     }
+  }
+
+  public loadPreview(): void {
+    const isbn = this.getSelectedBookIsbn();
+
+    if (!isbn) {
+      this.previewState.set('error');
+      this.previewErrorMessage.set('Geen geldig ISBN beschikbaar voor dit boek.');
+      this.previewData.set(null);
+      this.embeddedPreviewUrl.set(null);
+      this.previewFallbackUrl.set(null);
+      this.scrollToPreviewSection();
+      return;
+    }
+
+    this.previewState.set('loading');
+    this.previewErrorMessage.set('');
+    this.embeddedPreviewUrl.set(null);
+    this.previewFallbackUrl.set(null);
+
+    this.bookService.getBookPreviewByISBN(isbn).subscribe({
+      next: (preview) => {
+        this.previewData.set(preview);
+
+        const safeFallback = this.isSafeExternalUrl(preview.detailsUrl)
+          ? preview.detailsUrl
+          : null;
+
+        const safeEmbed = this.toSafeResourceUrl(preview.embedUrl);
+        if (safeEmbed) {
+          this.embeddedPreviewUrl.set(safeEmbed);
+          this.previewFallbackUrl.set(safeFallback);
+          this.previewState.set('ready');
+          this.scrollToPreviewSection();
+          return;
+        }
+
+        const safePreview = this.isSafeExternalUrl(preview.previewUrl)
+          ? preview.previewUrl
+          : null;
+
+        if (safePreview) {
+          this.previewFallbackUrl.set(safePreview);
+          this.previewState.set('ready');
+          this.scrollToPreviewSection();
+          return;
+        }
+
+        if (safeFallback) {
+          this.previewFallbackUrl.set(safeFallback);
+          this.previewState.set('ready');
+          this.scrollToPreviewSection();
+          return;
+        }
+
+        this.previewState.set('error');
+        this.previewErrorMessage.set('Er is geen veilige preview-link beschikbaar.');
+        this.scrollToPreviewSection();
+      },
+      error: (err) => {
+        console.error('Problem with loading preview', err);
+        this.previewData.set(null);
+        this.embeddedPreviewUrl.set(null);
+        this.previewFallbackUrl.set(null);
+        this.previewState.set('error');
+        const backendMessage = typeof err?.error?.message === 'string' ? err.error.message : null;
+        this.previewErrorMessage.set(backendMessage || 'Preview kon niet geladen worden. Probeer later opnieuw.');
+        this.scrollToPreviewSection();
+      }
+    });
+  }
+
+  private getSelectedBookIsbn(): string | null {
+    const normalizedBook = this.selectedBook as Book & { isbn?: string };
+    const isbn = this.selectedBook?.ISBN?.trim() || normalizedBook?.isbn?.trim();
+    return isbn && isbn.length > 0 ? isbn : null;
+  }
+
+  private isSafeExternalUrl(url: string | null | undefined): url is string {
+    if (!url) {
+      return false;
+    }
+
+    try {
+      const parsed = new URL(url);
+      const isHttps = parsed.protocol === 'https:';
+      const host = parsed.hostname.toLowerCase();
+      const allowedHost = host === 'openlibrary.org'
+        || host.endsWith('.openlibrary.org')
+        || host === 'archive.org'
+        || host.endsWith('.archive.org');
+
+      return isHttps && allowedHost;
+    } catch {
+      return false;
+    }
+  }
+
+  private toSafeResourceUrl(url: string | null | undefined): SafeResourceUrl | null {
+    if (!this.isSafeExternalUrl(url)) {
+      return null;
+    }
+
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  public closeEmbeddedPreview(): void {
+    this.embeddedPreviewUrl.set(null);
+  }
+
+  private scrollToPreviewSection(): void {
+    setTimeout(() => {
+      document.getElementById('preview-feedback-section')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 0);
   }
 }

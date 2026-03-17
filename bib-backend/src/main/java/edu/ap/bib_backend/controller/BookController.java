@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.service.BookService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,6 +49,11 @@ public class BookController {
     public ResponseEntity<BookDTO> getBookByISBN(@PathVariable String isbn) {
         BookDTO book = bs.fetchBookByISBN(isbn);
         return ResponseEntity.ok(book);
+    }
+
+    @GetMapping("/isbn/{isbn}/preview")
+    public ResponseEntity<BookPreviewDTO> getBookPreviewByISBN(@PathVariable String isbn) {
+        return ResponseEntity.ok(bs.fetchPreviewByISBN(isbn));
     }
 
     @GetMapping("/years/range")

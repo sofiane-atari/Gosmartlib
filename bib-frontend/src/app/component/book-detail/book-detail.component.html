@@ -76,6 +76,10 @@
         </div>
 
         <div class="action-buttons">
+          <button class="action-btn secondary" (click)="loadPreview()">
+            <lucide-icon [img]="BookOpen" [size]="18" style="margin-right: 8px;"></lucide-icon>
+            <span>Preview</span>
+          </button>
           <button class="action-btn primary" style="position: relative;" (click)="toggleListPicker()">
             <lucide-icon [img]="Bookmark" [size]="18" style="margin-right: 8px;"></lucide-icon>
             <span>Aan leeslijst toevoegen</span>
@@ -273,6 +277,56 @@
             <span>Plaats Review</span>
           </button>
         </div>
+      </section>
+
+      <!-- Preview Feedback -->
+      <section id="preview-feedback-section" class="preview-feedback-section">
+        @if (previewState() === 'loading') {
+        <p class="preview-feedback">Preview wordt geladen...</p>
+        }
+
+        @if (previewState() === 'error') {
+        <p class="preview-feedback preview-error">{{ previewErrorMessage() }}</p>
+        }
+
+        @if (previewState() === 'ready' && previewData(); as preview) {
+        <div class="preview-feedback">
+          <p>{{ preview.message }}</p>
+        </div>
+
+        @if (embeddedPreviewUrl(); as safeEmbedUrl) {
+        <div class="embedded-preview-wrapper">
+          <iframe
+            class="embedded-preview-frame"
+            [src]="safeEmbedUrl"
+            title="Boek preview"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox">
+          </iframe>
+
+          <div class="embedded-preview-actions">
+            @if (previewFallbackUrl(); as fallbackUrl) {
+            <a class="action-btn secondary preview-link" [href]="fallbackUrl" target="_blank" rel="noopener noreferrer">
+              Open extern
+            </a>
+            }
+            <button class="action-btn secondary" type="button" (click)="closeEmbeddedPreview()">
+              Sluit preview
+            </button>
+          </div>
+          <p class="preview-hint">Als de embedded viewer leeg blijft, gebruik dan 'Open extern'.</p>
+        </div>
+        } @else {
+          @if (previewFallbackUrl(); as fallbackUrl) {
+          <a class="action-btn secondary preview-link" [href]="fallbackUrl" target="_blank" rel="noopener noreferrer">
+            Preview openen
+          </a>
+          } @else {
+          <p class="preview-feedback preview-error">Er is geen veilige previewlink beschikbaar.</p>
+          }
+        }
+        }
       </section>
 
     </main>
