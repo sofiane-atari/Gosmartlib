@@ -23,6 +23,11 @@ public class SmartschoolOAuth2UserService
         implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final RoleService roleService;
+
+    public SmartschoolOAuth2UserService(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -47,10 +52,15 @@ public class SmartschoolOAuth2UserService
 
         Map<String, Object> attributes = response.getBody();
 
+       String role = getUserRole((String) attributes.get("userID")); 
+ 
         return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_STUDENT")),
+                Collections.singleton(new SimpleGrantedAuthority(role)),
                 attributes,
-                "userID"   // attribute that identifies the user
+                "userID"
         );
+    }
+    public String getUserRole(String userId) {
+        return "ROLE_" + roleService.getUserRole(userId).name();
     }
 }

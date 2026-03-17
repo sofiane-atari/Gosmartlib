@@ -21,4 +21,6 @@ body {
   --sec-light-color: #EAD3C1;
   --error-color: #ad4440;
   --success-color: #4c9a4c;
+
+  --main-font: 'calibri', sans-serif;
 }
