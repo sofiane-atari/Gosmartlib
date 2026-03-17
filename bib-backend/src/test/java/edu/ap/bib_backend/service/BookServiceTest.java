@@ -20,10 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookDTO;
-import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
-import edu.ap.bib_backend.service.BookService;
 
 @ExtendWith(MockitoExtension.class)
 public class BookServiceTest {
@@ -48,8 +46,6 @@ public class BookServiceTest {
         book.setPages(324);
         book.setImageUrl("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
         // Extra velden toevoegen aan de entiteit
-        book.setAvailability(Availability.AVAILABLE);
-        book.setCopies(3);
         book.setDescription("dede de d e d ed e d e d e de d e d");
         book.setReleaseYear(2017);
         book.setReviewScore(4.5);
@@ -67,8 +63,6 @@ public class BookServiceTest {
                 .isEqualTo("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
 
         // Assertions voor de nieuwe velden
-        assertThat(res.get(0).getAvailability()).isEqualTo(Availability.AVAILABLE);
-        assertThat(res.get(0).getCopies()).isEqualTo(3);
         assertThat(res.get(0).getDescription()).isEqualTo("dede de d e d ed e d e d e de d e d");
         assertThat(res.get(0).getReleaseYear()).isEqualTo(2017);
         assertThat(res.get(0).getReviewScore()).isEqualTo(4.5);
@@ -84,8 +78,6 @@ public class BookServiceTest {
         book.setISBN("987654321L");
         book.setPages(250);
         book.setImageUrl("https://example.com/image.jpg");
-        book.setAvailability(Availability.AVAILABLE);
-        book.setCopies(5);
         book.setDescription("Beschrijving van het specifieke boek.");
         book.setReleaseYear(2021);
         book.setReviewScore(3.8);
@@ -100,7 +92,6 @@ public class BookServiceTest {
         assertThat(res).isNotNull();
         assertThat(res.getId()).isEqualTo(1L);
         assertThat(res.getTitle()).isEqualTo("Specifiek Boek");
-        assertThat(res.getAvailability()).isEqualTo(Availability.AVAILABLE);
         assertThat(res.getReleaseYear()).isEqualTo(2021);
         assertThat(res.getReviewScore()).isEqualTo(3.8);
     }
@@ -113,8 +104,6 @@ public class BookServiceTest {
         dto.setAuthor("Auteur Test");
         dto.setPages(300);
         dto.setImageUrl("https://example.com/image.jpg");
-        dto.setAvailability(Availability.AVAILABLE);
-        dto.setCopies(2);
         dto.setDescription("Beschrijving hier");
         dto.setReleaseYear(2024);
 
@@ -125,8 +114,6 @@ public class BookServiceTest {
         savedBook.setAuthor(dto.getAuthor());
         savedBook.setPages(dto.getPages());
         savedBook.setImageUrl(dto.getImageUrl());
-        savedBook.setAvailability(dto.getAvailability());
-        savedBook.setCopies(dto.getCopies());
         savedBook.setDescription(dto.getDescription());
         savedBook.setReleaseYear(dto.getReleaseYear());
         savedBook.setReviewScore(0.0);
@@ -142,8 +129,6 @@ public class BookServiceTest {
         assertThat(result.getTitle()).isEqualTo("Nieuwe Boek");
         assertThat(result.getAuthor()).isEqualTo("Auteur Test");
         assertThat(result.getPages()).isEqualTo(300);
-        assertThat(result.getAvailability()).isEqualTo(Availability.AVAILABLE);
-        assertThat(result.getCopies()).isEqualTo(2);
         assertThat(result.getDescription()).isEqualTo("Beschrijving hier");
         assertThat(result.getReleaseYear()).isEqualTo(2024);
         assertThat(result.getImageUrl()).isEqualTo("https://example.com/image.jpg");
@@ -163,8 +148,6 @@ public class BookServiceTest {
         newestBook.setAuthor("Author C");
         newestBook.setISBN("333");
         newestBook.setPages(200);
-        newestBook.setAvailability(Availability.AVAILABLE);
-        newestBook.setCopies(1);
         newestBook.setReleaseYear(2024);
 
         Book middleBook = new Book();
@@ -173,8 +156,6 @@ public class BookServiceTest {
         middleBook.setAuthor("Author B");
         middleBook.setISBN("222");
         middleBook.setPages(250);
-        middleBook.setAvailability(Availability.AVAILABLE);
-        middleBook.setCopies(2);
         middleBook.setReleaseYear(2023);
 
         Book oldestBook = new Book();
@@ -183,8 +164,6 @@ public class BookServiceTest {
         oldestBook.setAuthor("Author A");
         oldestBook.setISBN("111");
         oldestBook.setPages(300);
-        oldestBook.setAvailability(Availability.AVAILABLE);
-        oldestBook.setCopies(3);
         oldestBook.setReleaseYear(2022);
 
         List<Book> books = List.of(newestBook, middleBook, oldestBook);
@@ -254,8 +233,6 @@ public class BookServiceTest {
         mostReadBook.setAuthor("Popular Author");
         mostReadBook.setISBN("111");
         mostReadBook.setPages(400);
-        mostReadBook.setAvailability(Availability.AVAILABLE);
-        mostReadBook.setCopies(5);
         mostReadBook.setReleaseYear(2020);
 
         Book secondBook = new Book();
@@ -264,8 +241,6 @@ public class BookServiceTest {
         secondBook.setAuthor("Author B");
         secondBook.setISBN("222");
         secondBook.setPages(300);
-        secondBook.setAvailability(Availability.AVAILABLE);
-        secondBook.setCopies(3);
         secondBook.setReleaseYear(2021);
 
         Book thirdBook = new Book();
@@ -274,8 +249,6 @@ public class BookServiceTest {
         thirdBook.setAuthor("Author C");
         thirdBook.setISBN("333");
         thirdBook.setPages(250);
-        thirdBook.setAvailability(Availability.BORROWED);
-        thirdBook.setCopies(2);
         thirdBook.setReleaseYear(2022);
 
         List<Book> books = List.of(mostReadBook, secondBook, thirdBook);

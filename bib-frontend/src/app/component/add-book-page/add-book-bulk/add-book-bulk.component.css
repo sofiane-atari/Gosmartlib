@@ -1,0 +1,303 @@
+/* ── Layout & Basis ───────────────────────────────────────── */
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: white;
+  padding: 1.5rem 2rem;
+}
+
+.bulk-content {
+  flex: 1;
+  max-width: 100%;
+}
+
+/* ── Info Banner ────────────────────────────────────────── */
+.info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  background: linear-gradient(135deg, #f8f9fb, #f3f5f8);
+  border: 1px solid #e6e8ec;
+  border-left: 5px solid #8a1e41;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.6rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  animation: fadeInInfo 0.35s ease;
+}
+
+.info-icon {
+  width: 26px;
+  height: 26px;
+  color: #8a1e41;
+  flex-shrink: 0;
+  margin-top: 3px;
+  margin-right: 12px;
+}
+
+.info-content p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #4a4f57;
+  line-height: 1.45;
+}
+
+.info-content strong {
+  background: rgba(138, 30, 65, 0.08);
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: #8a1e41;
+}
+
+/* ── Stappenplan ────────────────────────────────────────── */
+.section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.step-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.step-item {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.step-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8a1e41;
+  background: rgba(138, 30, 65, 0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+  width: fit-content;
+}
+
+.step-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.step-desc {
+  font-size: 0.75rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 1.2rem 0;
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
+.btn-secondary,
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.btn-secondary {
+  background: white;
+  color: #8a1e41;
+  border: 1px solid #8a1e41;
+}
+
+.btn-submit {
+  background: #8a1e41;
+  color: #fff5f8;
+  border: 1px solid #8a1e41;
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(138, 30, 65, 0.05);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #bc808b;
+  border-color: #bc808b;
+}
+
+.btn-submit:disabled,
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icon centering fix */
+lucide-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+:host ::ng-deep lucide-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+/* ── Progress Bar ────────────────────────────────────────── */
+.progress-wrap {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.progress-track {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #8a1e41;
+  transition: width 0.3s ease;
+}
+
+/* ── Errors ─────────────────────────────────────────────── */
+.errors-box {
+  margin-top: 1rem;
+  border: 1px solid #fadbd8;
+  border-radius: 4px;
+  background: #fdf2f2;
+  padding: 1rem;
+}
+
+.errors-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e74c3c;
+  margin-bottom: 0.8rem;
+}
+
+.errors-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.errors-list li {
+  font-size: 0.8rem;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border-left: 3px solid #e74c3c;
+  color: #444;
+}
+.success-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, #f8fbf8, #f1f7f2);
+  border: 1px solid #dfe9e1;
+  border-left: 5px solid #2e7d32;
+  padding: 1rem 1.1rem;
+  margin-top: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  animation: fadeInInfo 0.35s ease;
+}
+
+.success-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.success-icon {
+  width: 22px;
+  height: 22px;
+  color: #2e7d32;
+  flex-shrink: 0;
+}
+
+.success-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #4a4f57;
+  line-height: 1.45;
+}
+
+/* ── Animations & Media ──────────────────────────────────── */
+@keyframes fadeInInfo {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .step-row {
+    grid-template-columns: 1fr;
+  }
+  .form-actions {
+    flex-direction: column;
+  }
+  .btn-secondary,
+  .btn-submit {
+    width: 100%;
+  }
+}

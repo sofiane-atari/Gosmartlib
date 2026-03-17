@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Book } from '../../model/book.model';
 import { environment } from '../../../environments/environment';
+import { FileValidationResult } from '../../model/FileValidationResult';
 
 @Injectable({
   providedIn: 'root',
@@ -42,4 +43,16 @@ export class BookService {
   getNewestBooks(limit: number = 3): Observable<Book[]> {
     return this.http.get<Book[]>(`${this.apiUrl}/newest?limit=${limit}`);
   }
+
+  uploadBooks(file: File): Observable<any>{
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return this.http.post(`${this.apiUrl}/upload`, formData)
+  }
+
+  validateBooksStream(tempFileId: string): EventSource {
+    return new EventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`);
+  }
+
 }

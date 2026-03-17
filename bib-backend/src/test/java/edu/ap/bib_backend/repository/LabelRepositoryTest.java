@@ -10,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
-import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.Label;
 import edu.ap.bib_backend.jpa.repository.LabelRepository;
@@ -45,7 +44,6 @@ class LabelRepositoryTest {
 
         Book book = new Book();
         book.setTitle("Test Book");
-        book.setAvailability(Availability.AVAILABLE);
 
         // Add to both sides of the relationship (owning side is Book.labels)
         book.getLabels().add(label);

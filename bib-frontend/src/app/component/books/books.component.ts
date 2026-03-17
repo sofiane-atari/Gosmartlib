@@ -134,7 +134,7 @@ export class BooksComponent implements OnInit {
     this.bookService.getBooks().subscribe((data) => {
       this.books.set(data);
       this.filteredBooks.set(data);
-      this.calculateStats();
+      // this.calculateStats();
       this.applyFilters();
     });
   }
@@ -167,15 +167,15 @@ export class BooksComponent implements OnInit {
     this.isFilterOpen = !this.isFilterOpen;
   }
 
-  calculateStats() {
-    const booksArray = this.books();
-    this.availableCount = booksArray.filter(
-      (b) => b.availability === 'AVAILABLE',
-    ).length;
-    this.borrowedCount = booksArray.filter(
-      (b) => b.availability === 'BORROWED',
-    ).length;
-  }
+  // calculateStats() {
+  //   const booksArray = this.books();
+  //   this.availableCount = booksArray.filter(
+  //     (b) => b.availability === 'AVAILABLE',
+  //   ).length;
+  //   this.borrowedCount = booksArray.filter(
+  //     (b) => b.availability === 'BORROWED',
+  //   ).length;
+  // }
 
   applyFilters() {
     localStorage.setItem('bookFilters', JSON.stringify(this.filters));
@@ -192,11 +192,11 @@ export class BooksComponent implements OnInit {
           .includes(this.filters.searchTerm.toLowerCase());
 
       let availabilityMatch = true;
-      if (this.filters.availability === 'Beschikbaar') {
-        availabilityMatch = book.availability === 'AVAILABLE';
-      } else if (this.filters.availability === 'Uitgeleend') {
-        availabilityMatch = book.availability === 'BORROWED';
-      }
+      // if (this.filters.availability === 'Beschikbaar') {
+      //   availabilityMatch = book.availability === 'AVAILABLE';
+      // } else if (this.filters.availability === 'Uitgeleend') {
+      //   availabilityMatch = book.availability === 'BORROWED';
+      // }
 
       const maxPagesMatch =
         !this.filters.maxPages || book.pages <= this.filters.maxPages;

@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.jpa.entity;
 
 import org.hibernate.annotations.Formula;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,18 +23,16 @@ public class Book {
     private String title;
     private String author;
     private int pages;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
-    private int copies;
 
     @Column(name = "image_url")
     private String imageUrl;
 
     @Column(name = "release_year")
     private int releaseYear;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Availability availability;
 
     @Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.book_id = id)")
     private Double reviewScore;
@@ -52,7 +49,7 @@ public class Book {
     }
 
     public Book(String ISBN, String title, String author, int pages, String image_url, String description,
-            int release_year, Availability availability, int copies) {
+            int release_year, int copies) {
         this.ISBN = ISBN;
         this.title = title;
         this.author = author;
@@ -60,8 +57,6 @@ public class Book {
         this.imageUrl = image_url;
         this.description = description;
         this.releaseYear = release_year;
-        this.availability = availability;
-        this.copies = copies;
     }
 
     @ManyToMany
@@ -82,8 +77,6 @@ public class Book {
                 ", imageUrl='" + imageUrl + '\'' +
                 ", description='" + description + '\'' +
                 ", releaseYear=" + releaseYear +
-                ", availability=" + availability +
-                ", copies=" + copies +
                 '}';
     }
 }
