@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.service.AuthService;
 import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.TokenStorageService;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
@@ -24,10 +26,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtService jwtService;
+    private final TokenStorageService tokenStorageService;
 
-    public AuthController(AuthService authService, JwtService jwtService) {
+    public AuthController(AuthService authService, JwtService jwtService, TokenStorageService tokenStorageService) {
         this.authService = authService;
         this.jwtService = jwtService;
+        this.tokenStorageService = tokenStorageService;
     }
 
     @GetMapping("/me")
@@ -38,12 +42,34 @@ public class AuthController {
     @GetMapping("/callback")
     public ResponseEntity<?> callback(@AuthenticationPrincipal OAuth2User principal,
             HttpServletResponse response) {
-        String username = principal.getAttribute("username");
-        String roles = principal.getAuthorities().toString();
 
-        String jwt = jwtService.generateToken(username, roles);
+        // Extract user ID from Smartschool (only ID, no PII)
+        String userId = principal.getAttribute("userID");
+
+        // Extract role from authorities set by SmartschoolOAuth2UserService
+        String role = principal.getAuthorities()
+                .stream()
+                .map(auth -> auth.getAuthority())
+                .findFirst()
+                .orElse("ROLE_USER");
+
+        // Generate JWT token
+        String jwt = jwtService.generateToken(userId, role);
+
+        // Store token in Redis with user ID key (no personal data)
+        tokenStorageService.storeToken(userId, jwt);
+
+        // Store role metadata for quick reference
+        tokenStorageService.storeUserMetadata(userId, role);
 
         return ResponseEntity.ok(Map.of("token", jwt));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@AuthenticationPrincipal OAuth2User principal) {
+        String userId = principal.getAttribute("userID");
+        tokenStorageService.revokeToken(userId);
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
 }
