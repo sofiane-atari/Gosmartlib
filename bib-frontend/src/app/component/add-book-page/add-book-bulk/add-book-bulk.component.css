@@ -240,6 +240,42 @@ lucide-icon {
   border-left: 3px solid #e74c3c;
   color: #444;
 }
+.success-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, #f8fbf8, #f1f7f2);
+  border: 1px solid #dfe9e1;
+  border-left: 5px solid #2e7d32;
+  padding: 1rem 1.1rem;
+  margin-top: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  animation: fadeInInfo 0.35s ease;
+}
+
+.success-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.success-icon {
+  width: 22px;
+  height: 22px;
+  color: #2e7d32;
+  flex-shrink: 0;
+}
+
+.success-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #4a4f57;
+  line-height: 1.45;
+}
 
 /* ── Animations & Media ──────────────────────────────────── */
 @keyframes fadeInInfo {

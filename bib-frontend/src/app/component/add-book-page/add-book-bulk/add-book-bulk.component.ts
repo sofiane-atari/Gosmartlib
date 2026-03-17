@@ -20,6 +20,8 @@ export class AddBookBulkComponent {
   readonly DownloadIcon = Download;
   readonly CheckIcon = CheckSquare;
   readonly PlusIcon = Plus;
+  validationCompleted = false;
+  validationSucceeded = false;
 
   selectedFile: File | null = null;
   progress = 0;
@@ -42,8 +44,10 @@ export class AddBookBulkComponent {
 
   handleFileChange(file: File | null) {
     this.selectedFile = file;
-    this.progress = 0;
     this.errors = [];
+    this.validationCompleted = false;
+    this.validationSucceeded = false;
+    this.progress = 0;
   }
 
   onFileSelected(event: Event) {
@@ -56,12 +60,15 @@ export class AddBookBulkComponent {
     this.selectedFile = file;
     this.progress = 0;
     this.errors = [];
+    this.validationCompleted = false;
+    this.validationSucceeded = false;
   }
 
   async startValidation(file: File) {
     this.validating = true;
+    this.validationCompleted = false;
+    this.validationSucceeded = false;
     this.errors = [];
-    this.progress = 0;
 
     const formData = new FormData();
     formData.append('file', file);
@@ -89,6 +96,8 @@ export class AddBookBulkComponent {
     sse.addEventListener('complete', () => {
       this.validating = false;
       this.progress = 100;
+      this.validationCompleted = true;
+      this.validationSucceeded = this.errors.length === 0;
       sse.close();
     });
 
@@ -96,6 +105,8 @@ export class AddBookBulkComponent {
       console.error(err);
       this.ts.show('Validatie mislukt', 'error');
       this.validating = false;
+      this.validationCompleted = true;
+      this.validationSucceeded = false;
       sse.close();
     };
   }
@@ -112,6 +123,8 @@ export class AddBookBulkComponent {
         this.selectedFile = null;
         this.progress = 0;
         this.errors = [];
+        this.validationCompleted = false;
+        this.validationSucceeded = false;
       },
       error: (err) => {
         console.error(err);

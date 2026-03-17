@@ -65,7 +65,7 @@
           type="button"
           class="btn-submit"
           (click)="uploadBooks()"
-          [disabled]="!selectedFile || errors.length > 0 || validating"
+          [disabled]="!selectedFile || validating || !validationCompleted || !validationSucceeded"
         >
           <lucide-icon [img]="PlusIcon" class="btn-icon"></lucide-icon>
           Boeken toevoegen
@@ -95,6 +95,17 @@
               <li><strong>Rij {{ error.row }}, {{ error.field }}:</strong> {{ error.message }}</li>
             }
           </ul>
+        </div>
+      }
+      @if (validationCompleted && validationSucceeded && errors.length === 0) {
+        <div class="success-box">
+          <div class="success-title">
+            <lucide-icon [img]="CheckIcon" class="success-icon"></lucide-icon>
+            Bestand succesvol gecontroleerd
+          </div>
+          <p class="success-text">
+            Er zijn geen fouten gevonden. De boeken kunnen toegevoegd worden.
+          </p>
         </div>
       }
     </div>
