@@ -1,0 +1,19 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          smartschool:
+            client-id: ${SMART_SCHOOL_CLIENT_ID}
+            client-secret: ${SMART_SCHOOL_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: "${BASE_URL}/login/oauth2/code/smartschool"
+            scope: fulluserinfo # or: userinfo fulluserinfo groupinfo
+            client-name: Smartschool
+
+        provider:
+          smartschool:
+            authorization-uri: https://oauth.smartschool.be/OAuth
+            token-uri: https://oauth.smartschool.be/OAuth/token
+            user-info-uri: https://oauth.smartschool.be/Api/V1/userinfo
+            user-name-attribute: userID # adjust to actual field returned
