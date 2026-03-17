@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { Book } from '../../model/book.model';
 import { BookService } from '../../services/BookService/book.service';
 import { ReadingListService } from '../../services/reading-list.service';
@@ -24,6 +24,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-angular';
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
+import { PagingComponent } from '../paging/paging.component';
 
 @Component({
   selector: 'app-books',
@@ -33,6 +34,7 @@ import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar
     CommonModule,
     LucideAngularModule,
     BookListSidebarComponent,
+    PagingComponent,
   ],
   templateUrl: './books.component.html',
   styleUrl: './books.component.css',
@@ -73,6 +75,27 @@ export class BooksComponent implements OnInit {
     maxPages: null as number | null,
     sortBy: 'az',
   };
+
+  private readonly pageSize = signal<number>(10);
+  protected readonly currentPage = signal<number>(0);
+
+  protected readonly pagingMeta = computed(() => {
+    const totalItems = this.filteredBooks().length;
+    const pageSize = this.pageSize();
+    const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
+
+    return {
+      currentPage: this.currentPage(),
+      pageSize,
+      totalItems,
+      totalPages,
+    };
+  });
+
+  protected readonly pagedBooks = computed(() => {
+    const start = this.currentPage() * this.pageSize();
+    return this.filteredBooks().slice(start, start + this.pageSize());
+  });
 
   ngOnInit(): void {
     const savedFilters = localStorage.getItem('bookFilters');
@@ -194,6 +217,7 @@ export class BooksComponent implements OnInit {
 
     this.filteredBooks.set(filtered);
     this.sortBooks();
+    this.currentPage.set(0);
   }
 
   resetFilters() {
@@ -223,6 +247,7 @@ export class BooksComponent implements OnInit {
     }
 
     this.filteredBooks.set(filteredArray);
+    this.ensureCurrentPageInRange();
   }
 
   toggleFavorite(event: Event, book: Book) {
@@ -248,5 +273,22 @@ export class BooksComponent implements OnInit {
 
   toBookDetailPage(book: Book) {
     this.router.navigate(['/book', book.id]);
+  }
+
+  protected onPageChange(page: number): void {
+    this.currentPage.set(page);
+  }
+
+  private ensureCurrentPageInRange(): void {
+    const meta = this.pagingMeta();
+
+    if (meta.totalPages === 0) {
+      this.currentPage.set(0);
+      return;
+    }
+
+    if (this.currentPage() > meta.totalPages - 1) {
+      this.currentPage.set(meta.totalPages - 1);
+    }
   }
 }
