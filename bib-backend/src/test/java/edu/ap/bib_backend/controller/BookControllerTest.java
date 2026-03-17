@@ -54,7 +54,6 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$[0].pages").value(324))
                 .andExpect(jsonPath("$[0].imageUrl").value(
                         "https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1"))
-                .andExpect(jsonPath("$[0].copies").value(3))
                 .andExpect(jsonPath("$[0].description").value("dede de d e d ed e d e d e de d e d"))
                 .andExpect(jsonPath("$[0].releaseYear").value(2017));
     }
@@ -80,7 +79,6 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.isbn").value(987654321))
                 .andExpect(jsonPath("$.pages").value(250))
                 .andExpect(jsonPath("$.imageUrl").value("https://example.com/image.jpg"))
-                .andExpect(jsonPath("$.copies").value(5))
                 .andExpect(jsonPath("$.releaseYear").value(2021));
     }
 
@@ -115,7 +113,6 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.title").value("Nieuwe Boek"))
                 .andExpect(jsonPath("$.author").value("Auteur Test"))
                 .andExpect(jsonPath("$.pages").value(300))
-                .andExpect(jsonPath("$.copies").value(2))
                 .andExpect(jsonPath("$.description").value("Beschrijving hier"))
                 .andExpect(jsonPath("$.releaseYear").value(2024))
                 .andExpect(jsonPath("$.imageUrl").value("https://example.com/image.jpg"));
@@ -218,5 +215,58 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$[0].title").value("Recently Added Book"))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").hasJsonPath());
+    }
+
+    @Test
+    void getBookByISBN_returnsJSONBook() throws Exception {
+        BookDTO book = new BookDTO();
+        book.setId(1L);
+        book.setTitle("ISBN Boek");
+        book.setAuthor("Auteur X");
+        book.setISBN("9781234567890");
+        book.setPages(280);
+        book.setImageUrl("https://example.com/book.jpg");
+        book.setDescription("Beschrijving van het boek");
+        book.setReleaseYear(2022);
+
+        Mockito.when(bs.fetchBookByISBN("9781234567890")).thenReturn(book);
+
+        mockMvc.perform(get("/api/books/isbn/9781234567890"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("ISBN Boek"))
+                .andExpect(jsonPath("$.author").value("Auteur X"))
+                .andExpect(jsonPath("$.isbn").value("9781234567890"))
+                .andExpect(jsonPath("$.pages").value(280))
+                .andExpect(jsonPath("$.imageUrl").value("https://example.com/book.jpg"))
+                .andExpect(jsonPath("$.description").value("Beschrijving van het boek"))
+                .andExpect(jsonPath("$.releaseYear").value(2022));
+
+        Mockito.verify(bs).fetchBookByISBN("9781234567890");
+    }
+
+    @Test
+    void getYearRange_returnsMinAndMaxYear() throws Exception {
+        Mockito.when(bs.getMinReleaseYear()).thenReturn(1950);
+        Mockito.when(bs.getMaxReleaseYear()).thenReturn(2024);
+
+        mockMvc.perform(get("/api/books/years/range"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.min").value(1950))
+                .andExpect(jsonPath("$.max").value(2024));
+
+        Mockito.verify(bs).getMinReleaseYear();
+        Mockito.verify(bs).getMaxReleaseYear();
+    }
+
+    @Test
+    void getMaxPages_returnsMaxPages() throws Exception {
+        Mockito.when(bs.getMaxPages()).thenReturn(1200);
+
+        mockMvc.perform(get("/api/books/pages/max"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("1200"));
+
+        Mockito.verify(bs).getMaxPages();
     }
 }

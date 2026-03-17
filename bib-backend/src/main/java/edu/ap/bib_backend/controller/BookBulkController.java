@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.controller;
 
-import edu.ap.bib_backend.dto.FileValidationResult;
 import edu.ap.bib_backend.service.BookBulkService;
 
 import lombok.RequiredArgsConstructor;
