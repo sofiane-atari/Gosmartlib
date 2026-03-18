@@ -7,7 +7,7 @@ spring:
             client-id: ${SMART_SCHOOL_CLIENT_ID}
             client-secret: ${SMART_SCHOOL_CLIENT_SECRET}
             authorization-grant-type: authorization_code
-            redirect-uri: "${BASE_URL}/login/oauth2/code/smartschool"
+            redirect-uri: "https://${BASE_URL}/api/login/oauth2/code/smartschool"
             scope: fulluserinfo # or: userinfo fulluserinfo groupinfo
             client-name: Smartschool
 
@@ -15,8 +15,8 @@ spring:
           smartschool:
             authorization-uri: https://oauth.smartschool.be/OAuth
             token-uri: https://oauth.smartschool.be/OAuth/token
-            user-info-uri: https://oauth.smartschool.be/Api/V1/userinfo
+            user-info-uri: https://oauth.smartschool.be/Api/V1/fulluserinfo
             user-name-attribute: userID # adjust to actual field returned
 jwt:
-  secret: your-very-long-secret-key-at-least-256-bits-long-replace-this
+  secret: ${JWT_SECRET}
   expiration: 3600000
