@@ -19,7 +19,7 @@
 
   <div class="catalog-header-section">
     <div class="title-container">
-      <h1>Boeken Catalogus</h1>
+      <h1>Boeken catalogus</h1>
       <span class="subtitle">{{ filteredBooks().length }} boeken gevonden</span>
     </div>
 
@@ -36,7 +36,7 @@
   @if (isFilterOpen) {
     <div class="expandable-filter-panel">
       <div class="panel-header">
-        <h3>Geavanceerd Zoeken</h3>
+        <h3>Geavanceerd zoeken</h3>
         <button class="close-panel-btn" (click)="toggleFilters()">
           <lucide-icon [img]="X" [size]="20"></lucide-icon>
         </button>
@@ -56,9 +56,8 @@
         <div class="filter-item">
           <label>Beschikbaarheid</label>
           <select [(ngModel)]="filters.availability" (change)="applyFilters()" class="panel-select">
-            <option value="Alle Boeken">Alle Boeken</option>
+            <option value="Alle Boeken">Alle boeken</option>
             <option value="Beschikbaar">Beschikbaar</option>
-            <option value="Uitgeleend">Uitgeleend</option>
           </select>
         </div>
 

@@ -5,6 +5,8 @@ import { ReadingListService } from '../../services/reading-list.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { BookFilters } from '../../model/bookFilter.model';
+import { ToastService } from '../../services/Toast/toast.service';
 import {
   LucideAngularModule,
   Heart,
@@ -50,6 +52,7 @@ export class BooksComponent implements OnInit {
   private readonly bookService = inject(BookService);
   private readonly router = inject(Router);
   private readonly readingListService = inject(ReadingListService);
+  private readonly toastService = inject(ToastService)
 
   // Signals for reactive state
   books = signal<Book[]>([]);
@@ -67,12 +70,12 @@ export class BooksComponent implements OnInit {
   availableCount: number = 0;
   borrowedCount: number = 0;
 
-  filters = {
+  filters: BookFilters = {
     searchTerm: '',
     availability: 'Alle Boeken',
-    minYear: null as number | null,
-    maxYear: null as number | null,
-    maxPages: null as number | null,
+    minYear: null,
+    maxYear: null,
+    maxPages: null,
     sortBy: 'az',
   };
 
@@ -98,8 +101,7 @@ export class BooksComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const savedFilters = localStorage.getItem('bookFilters');
-    const parsedFilters = savedFilters ? JSON.parse(savedFilters) : null;
+    const parsedFilters: BookFilters | null = this.getSavedFilters();
 
     if (parsedFilters) {
       this.filters = parsedFilters;
@@ -194,17 +196,16 @@ export class BooksComponent implements OnInit {
       let availabilityMatch = true;
       if (this.filters.availability === 'Beschikbaar') {
         availabilityMatch = book.availability === 'AVAILABLE';
-      } else if (this.filters.availability === 'Uitgeleend') {
-        availabilityMatch = book.availability === 'BORROWED';
       }
 
       const maxPagesMatch =
-        !this.filters.maxPages || book.pages <= this.filters.maxPages;
+        this.filters.maxPages === null || book.pages <= this.filters.maxPages;
 
       const minYearMatch =
-        !this.filters.minYear || book.releaseYear >= this.filters.minYear;
+        this.filters.minYear === null || book.releaseYear >= this.filters.minYear;
+
       const maxYearMatch =
-        !this.filters.maxYear || book.releaseYear <= this.filters.maxYear;
+        this.filters.maxYear === null || book.releaseYear <= this.filters.maxYear;
 
       return (
         searchMatch &&
@@ -252,22 +253,42 @@ export class BooksComponent implements OnInit {
 
   toggleFavorite(event: Event, book: Book) {
     event.stopPropagation();
-    if (book.id) {
-      this.readingListService.addBookToFavorites(book.id).subscribe({
-        next: () => {
-          alert(`"${book.title}" is toegevoegd aan je Favorieten!`);
-        },
-        error: (err) => {
-          if (err.error === 'Boek zit al in deze leeslijst') {
-            alert(`"${book.title}" staat al in je Favorieten!`);
-          } else {
-            console.error('Fout bij toevoegen aan favorieten', err);
-            alert(
-              'Er is een fout opgetreden bij het toevoegen aan favorieten.',
-            );
-          }
-        },
-      });
+
+    if (!book.id) {
+      this.toastService.show('Het boek kon niet aan favorieten worden toegevoegd.', 'error');
+      return;
+    }
+    this.readingListService.addBookToFavorites(book.id).subscribe({
+
+      next: () => {
+         this.toastService.show(`"${book.title}" is toegevoegd aan je Favorieten!`, "success")
+       },
+      error: (err) => {
+         if (err.error === 'Boek zit al in deze leeslijst') {
+          this.toastService.show(`"${book.title}" staat al in je favorieten.`, 'error');
+        } else {
+          console.error('Fout bij toevoegen aan favorieten', err);
+          this.toastService.show(
+            'Er is een fout opgetreden bij het toevoegen aan favorieten.',
+            'error',
+          );
+        }
+       },
+    }); 
+  }
+
+  private getSavedFilters(): BookFilters | null {
+    const savedFilters: string | null = localStorage.getItem('bookFilters');
+
+    if (!savedFilters) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(savedFilters) as BookFilters;
+    } catch {
+      localStorage.removeItem('bookFilters');
+      return null;
     }
   }
 
