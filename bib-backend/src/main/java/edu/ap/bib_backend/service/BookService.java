@@ -16,8 +16,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Value;
 
 import java.net.URLEncoder;
@@ -29,11 +34,14 @@ public class BookService {
 
     private final BookRepository br;
     private final RestTemplate restTemplate;
+    private final BookCopyRepository bcr;
 
     public BookService(
             BookRepository repo,
+            BookCopyRepository bcr,
             @Value("${google.books.api.key}") String googleBooksApiKey) {
         this.br = repo;
+        this.bcr = bcr;
         this.restTemplate = new RestTemplate();
         this.googleBooksApiKey = googleBooksApiKey;
     }
@@ -45,13 +53,28 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public BookDTO addBook(BookDTO dto) {
-        System.out.println("Ontvangen DTO: " + dto);
-        Book book = mapToEntity(dto);
-        System.out.println("Mapped entity: " + book);
-        Book saved = br.save(book);
-        System.out.println("Saved entity: " + saved);
-        return mapToDTO(saved);
+        String normalizedIsbn = normalizeIsbn(dto.getISBN());
+        dto.setISBN(normalizedIsbn);
+
+        Book book = br.findByISBN(normalizedIsbn);
+
+        if (book == null) {
+            book = mapToEntity(dto);
+            book = br.save(book);
+        }
+
+        BookCopy copy = new BookCopy();
+        copy.setBook(book);
+        copy.setAvailability(Availability.AVAILABLE);
+        bcr.save(copy);
+
+        return mapToDTO(book);
+    }
+
+    private String normalizeIsbn(String isbn) {
+        return isbn == null ? null : isbn.replace("-", "").replace(" ", "").trim();
     }
 
     private BookDTO mapToDTO(Book book) {
