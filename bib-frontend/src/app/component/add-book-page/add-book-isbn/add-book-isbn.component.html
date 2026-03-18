@@ -1,16 +1,18 @@
 <div class="layout">
   <div class="info-banner">
-  <lucide-icon [name]= "InfoIcon" class="info-icon"></lucide-icon>
-  <div class="info-content">
-    <p><strong>Snel boeken toevoegen</strong></p>
-    <p>
-      Voer een 13-cijferig ISBN-nummer in en klik op <strong>"Zoek Gegevens"</strong> om het formulier automatisch te vullen. 
-      Heeft u geen ISBN? Vul dan de titel en auteur in en klik op <strong>"Zoek ISBN"</strong> om het nummer te achterhalen.
-    </p>
+    <lucide-icon [name]="InfoIcon" class="info-icon"></lucide-icon>
+    <div class="info-content">
+      <p><strong>Snel boeken toevoegen</strong></p>
+      <p>
+        Voer een 13-cijferig ISBN-nummer in en klik op <strong>"Zoek gegevens"</strong>
+        om het formulier automatisch te vullen.
+        Heeft u geen ISBN? Vul dan de titel, auteur en het jaar in en klik op
+        <strong>"Zoek op titel"</strong> om mogelijke boeken te vinden.
+      </p>
+    </div>
   </div>
-  </div>
-  <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
 
+  <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
     <div class="search-section">
       <input
         type="text"
@@ -24,7 +26,7 @@
       </button>
     </div>
 
-    <hr class="divider"/>
+    <hr class="divider" />
 
     <div class="form-section">
       <div class="content-wrapper">
@@ -36,17 +38,18 @@
                 type="text"
                 [(ngModel)]="book.title"
                 name="title"
-                placeholder="Boektitel"
+                placeholder="Titel"
                 required
               />
             </div>
+
             <div class="form-group">
               <label>Auteur *</label>
               <input
                 type="text"
                 [(ngModel)]="book.author"
                 name="author"
-                placeholder="Auteursnaam"
+                placeholder="Auteur"
                 required
               />
             </div>
@@ -63,6 +66,7 @@
                 required
               />
             </div>
+
             <div class="form-group">
               <label>Jaar *</label>
               <input
@@ -73,6 +77,12 @@
                 required
               />
             </div>
+          </div>
+
+          <div class="form-row">
+            <button type="button" class="btn-search" (click)="searchByTitleAuthorYear()">
+              Zoek op titel
+            </button>
           </div>
 
           <div class="form-group full-width">
@@ -88,7 +98,7 @@
 
         <div class="image-preview-container">
           @if (book.imageUrl) {
-            <img [src]="book.imageUrl" alt="Book cover" class="preview-image">
+            <img [src]="book.imageUrl" alt="Book cover" class="preview-image" />
           } @else {
             <div class="preview-placeholder">
               <p>Cover afbeelding</p>
@@ -96,6 +106,49 @@
           }
         </div>
       </div>
+
+      @if (isLoading) {
+        <p class="status-message">Bezig met zoeken...</p>
+      }
+
+      @if (showCandidates && candidates.length > 0) {
+        <div class="candidate-section">
+          <h3>Kies een boek</h3>
+
+          <div class="candidate-list">
+            @for (candidate of candidates; track candidate.isbn13) {
+              <div class="candidate-card">
+                <div class="candidate-image">
+                  @if (candidate.imageUrl) {
+                    <img [src]="candidate.imageUrl" [alt]="candidate.title" />
+                  } @else {
+                    <div class="preview-placeholder small">
+                      <p>Geen cover</p>
+                    </div>
+                  }
+                </div>
+
+                <div class="candidate-info">
+                  <p><strong>{{ candidate.title }}</strong></p>
+                  <p>{{ candidate.author }}</p>
+                  <p>Jaar: {{ candidate.releaseYear ?? '-' }}</p>
+                  <p>ISBN-13: {{ candidate.isbn13 }}</p>
+                </div>
+
+                <div class="candidate-actions">
+                  <button
+                    type="button"
+                    class="btn-submit"
+                    (click)="selectCandidate(candidate)"
+                  >
+                    Kies dit boek
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
 
       <div class="form-group full-width">
         <label>Beschrijving *</label>
@@ -109,7 +162,8 @@
 
       <div class="form-group full-width">
         <label>Genres * (selecteer minimaal 1)</label>
-        <!-- <div class="genre-grid">
+        <!--
+        <div class="genre-grid">
           @for (genre of availableGenres; track genre) {
             <label class="genre-chip" [class.selected]="isGenreSelected(genre)">
               <input
@@ -121,11 +175,12 @@
             </label>
           }
         </div>
+
         @if (book.genres.length === 0) {
           <p class="error-message">Selecteer minimaal één genre</p>
-        } -->
+        }
+        -->
       </div>
-
     </div>
 
     <div class="form-actions">

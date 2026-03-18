@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { Download, CheckSquare, Plus, Info, LucideAngularModule } from 'lucide-angular';
 import { BookService } from '../../../services/BookService/book.service';
 import { ToastService } from '../../../services/Toast/toast.service';
-import { FileValidationError } from '../../../model/FileValidationError';
+import { FileValidationError } from '../../../model/fileValidationError';
 import { environment } from '../../../../environments/environment';
 import { FileUploadComponent } from '../../file-upload/file-upload.component';
 import { CommonModule } from '@angular/common';

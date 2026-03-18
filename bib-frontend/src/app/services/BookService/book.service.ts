@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Book } from '../../model/book.model';
 import { environment } from '../../../environments/environment';
 import { FileValidationResult } from '../../model/FileValidationResult';
+import { BookCandidate } from '../../model/book-candidate.model';
 
 @Injectable({
   providedIn: 'root',
@@ -53,6 +54,24 @@ export class BookService {
 
   validateBooksStream(tempFileId: string): EventSource {
     return new EventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`);
+  }
+  
+  searchBookCandidates(title: string, author: string, releaseYear: number): Observable<BookCandidate[]> {
+    return this.http.get<BookCandidate[]>(`${this.apiUrl}/search`, {
+      params: {
+        title,
+        author,
+        releaseYear
+      }
+    });
+  }
+
+  selectBook(isbn13: string): Observable<Book> {
+    return this.http.post<Book>(`${this.apiUrl}/select`, null, {
+      params: {
+        isbn13
+      }
+    });
   }
 
 }
