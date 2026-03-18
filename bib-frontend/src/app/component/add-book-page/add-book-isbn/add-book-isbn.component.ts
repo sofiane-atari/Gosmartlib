@@ -18,10 +18,11 @@ import { ToastService } from '../../../services/Toast/toast.service';
 })
 export class AddBookISBNComponent {
   isbn: string = "";
-  public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
   selectedBook?: Book;
   @Output() bookAdded = new EventEmitter<Book>();
   readonly InfoIcon = Info;
+  readonly PlusIcon = Plus;
+
 
   candidates: BookCandidate[] = [];
   showCandidates = false;
@@ -41,14 +42,35 @@ export class AddBookISBNComponent {
   save() {
     this.bookAdded.emit(this.book);
   }
+  searchBookData() {
+  const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
+
+    if (normalizedIsbn.length === 13) {
+      this.isbn = normalizedIsbn;
+      this.searchByISBN();
+      return;
+    }
+
+    if (
+      this.book.title?.trim() &&
+      this.book.author?.trim() &&
+      this.book.releaseYear
+    ) {
+      this.searchByTitleAuthorYear();
+      return;
+    }
+
+    this.ts.show('Vul een ISBN in of vul titel, auteur en jaar in.', 'error');
+  }
   
   searchByISBN() {
 
     this.showCandidates = false;
     this.candidates = [];
+    const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
 
-    if (!this.isbn || this.isbn.trim().length === 0) {
-      this.ts.show('Geef eerst een ISBN in.');
+    if (normalizedIsbn.length !== 13) {
+      this.ts.show('ISBN moet uit 13 cijfers bestaan.', 'error');
       return;
     }
 
@@ -56,9 +78,10 @@ export class AddBookISBNComponent {
     this.bs.getBookByISBN(this.isbn).subscribe({
       next: (data) => {
         this.book = data;
+        this.ts.show('Boek gevonden.');
       },
       error: (err) => {
-        this.ts.show('Geen boek gevonden op basis van ISBN.');
+        this.ts.show('Geen boek gevonden op basis van ISBN.', 'error');
       }
     });
   }
@@ -68,7 +91,7 @@ export class AddBookISBNComponent {
     this.candidates = [];
 
     if (!this.book.title?.trim() || !this.book.author?.trim() || !this.book.releaseYear) {
-      this.ts.show('Vul titel, auteur en jaar in om te zoeken.');
+      this.ts.show('Vul titel, auteur en jaar in om te zoeken.', 'error');
       return;
     }
 
@@ -85,7 +108,7 @@ export class AddBookISBNComponent {
         this.isLoading = false;
 
         if (results.length === 0) {
-          this.ts.show('Geen boek gevonden.');
+          this.ts.show('Geen boek gevonden.', 'error');
           return;
         }
 
@@ -93,7 +116,7 @@ export class AddBookISBNComponent {
       },
       error: () => {
         this.isLoading = false;
-        this.ts.show('Geen boek gevonden voor titel, auteur en jaar.');
+        this.ts.show('Geen boek gevonden', 'error');
       }
     });
   }
@@ -108,12 +131,10 @@ export class AddBookISBNComponent {
         this.showCandidates = false;
         this.candidates = [];
         this.isLoading = false;
-
-        this.ts.show('Boek geselecteerd. Controleer de gegevens en klik daarna op "Boek Toevoegen".');
       },
       error: () => {
         this.isLoading = false;
-        this.ts.show('Kon het gekozen boek niet ophalen.');
+        this.ts.show('Kon het gekozen boek niet ophalen.', 'error');
       }
     });
   }

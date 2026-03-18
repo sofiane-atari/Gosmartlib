@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Book } from '../../../model/book.model';
 import { Availability } from '../../../model/enums/availability.enum';
 import { Route, Router } from '@angular/router';
-import { Info, LucideAngularModule } from "lucide-angular";
+import { Info, LucideAngularModule, Plus } from "lucide-angular";
 
 @Component({
   selector: 'app-add-book-manual',
@@ -14,7 +14,7 @@ import { Info, LucideAngularModule } from "lucide-angular";
   styleUrl: './add-book-manual.component.css'
 })
 export class AddBookManualComponent {
-
+  readonly PlusIcon = Plus;
   availabilityOptions = Object.values(Availability);
     book: Book = {
     title: '',
