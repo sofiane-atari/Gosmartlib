@@ -318,23 +318,10 @@
               sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox">
             </iframe>
 
-            <div class="embedded-preview-actions">
-              @if (previewFallbackUrl(); as fallbackUrl) {
-              <a class="action-btn secondary preview-link" [href]="fallbackUrl" target="_blank" rel="noopener noreferrer">
-                Open extern
-              </a>
-              }
-            </div>
-            <p class="preview-hint">Als de embedded viewer leeg blijft, gebruik dan 'Open extern'.</p>
+
+
           </div>
-          } @else {
-            @if (previewFallbackUrl(); as fallbackUrl) {
-            <a class="action-btn secondary preview-link" [href]="fallbackUrl" target="_blank" rel="noopener noreferrer">
-              Preview openen
-            </a>
-            } @else {
-            <p class="preview-feedback preview-error">Er is geen veilige previewlink beschikbaar.</p>
-            }
+
           }
           }
         </div>

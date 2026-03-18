@@ -208,7 +208,7 @@ public class BookService {
         boolean previewAvailable = previewUrl != null || embedUrl != null;
         String message = previewAvailable
                 ? "Preview beschikbaar"
-                : "Geen preview beschikbaar, je kan wel de boekpagina openen";
+                : "Geen preview beschikbaar";
 
         return new BookPreviewDTO(previewAvailable, previewUrl, detailsUrl, message, embedUrl);
     }
