@@ -82,6 +82,7 @@ export class BookDetailComponent {
   public readonly previewErrorMessage = signal<string>('');
   public readonly embeddedPreviewUrl = signal<SafeResourceUrl | null>(null);
   public readonly previewFallbackUrl = signal<string | null>(null);
+  public readonly isPreviewModalOpen = signal<boolean>(false);
 
   Availability = Availability;
 
@@ -250,13 +251,14 @@ export class BookDetailComponent {
   public loadPreview(): void {
     const isbn = this.getSelectedBookIsbn();
 
+    this.isPreviewModalOpen.set(true);
+
     if (!isbn) {
       this.previewState.set('error');
       this.previewErrorMessage.set('Geen geldig ISBN beschikbaar voor dit boek.');
       this.previewData.set(null);
       this.embeddedPreviewUrl.set(null);
       this.previewFallbackUrl.set(null);
-      this.scrollToPreviewSection();
       return;
     }
 
@@ -278,7 +280,6 @@ export class BookDetailComponent {
           this.embeddedPreviewUrl.set(safeEmbed);
           this.previewFallbackUrl.set(safeFallback);
           this.previewState.set('ready');
-          this.scrollToPreviewSection();
           return;
         }
 
@@ -289,20 +290,17 @@ export class BookDetailComponent {
         if (safePreview) {
           this.previewFallbackUrl.set(safePreview);
           this.previewState.set('ready');
-          this.scrollToPreviewSection();
           return;
         }
 
         if (safeFallback) {
           this.previewFallbackUrl.set(safeFallback);
           this.previewState.set('ready');
-          this.scrollToPreviewSection();
           return;
         }
 
         this.previewState.set('error');
         this.previewErrorMessage.set('Er is geen veilige preview-link beschikbaar.');
-        this.scrollToPreviewSection();
       },
       error: (err) => {
         console.error('Problem with loading preview', err);
@@ -312,7 +310,6 @@ export class BookDetailComponent {
         this.previewState.set('error');
         const backendMessage = typeof err?.error?.message === 'string' ? err.error.message : null;
         this.previewErrorMessage.set(backendMessage || 'Preview kon niet geladen worden. Probeer later opnieuw.');
-        this.scrollToPreviewSection();
       }
     });
   }
@@ -351,16 +348,8 @@ export class BookDetailComponent {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
-  public closeEmbeddedPreview(): void {
+  public closePreviewModal(): void {
+    this.isPreviewModalOpen.set(false);
     this.embeddedPreviewUrl.set(null);
-  }
-
-  private scrollToPreviewSection(): void {
-    setTimeout(() => {
-      document.getElementById('preview-feedback-section')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }, 0);
   }
 }

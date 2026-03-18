@@ -131,6 +131,18 @@
   gap: 8px;
 }
 
+/* Reader Actions Section */
+.reader-actions-section {
+  display: contents;
+}
+
+.reader-actions-section .action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 5px;
+}
+
 /* Management Section */
 .management-section {
   background: white;
@@ -198,8 +210,8 @@
 }
 
 .list-picker-item:hover {
-  background: var(--third-color);
-  color: var(--main-color);
+  background: #eef2ff;
+  color: #1d4ed8;
   font-weight: 500;
 }
 
@@ -629,6 +641,36 @@
   font-size: 0.9rem;
 }
 
+/* Preview Modal */
+.preview-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+}
+
+.preview-modal {
+  width: min(1000px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.preview-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 @media (max-width: 1024px) {
   .detail-wrapper {
     grid-template-columns: 1fr;
@@ -691,5 +733,14 @@
 
   .embedded-preview-actions {
     flex-direction: column;
+  }
+
+  .preview-modal-overlay {
+    padding: 12px;
+  }
+
+  .preview-modal {
+    max-height: 95vh;
+    padding: 16px;
   }
 }
