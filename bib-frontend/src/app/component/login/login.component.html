@@ -1,0 +1,53 @@
+<div class="login-container">
+  <!-- Header Section -->
+  <div class="login-header">
+    <h1>Welcome to GoSmartLib</h1>
+    <p>Your school's digital library management system</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="login-content">
+    <!-- Info Box -->
+    <div class="info-box">
+      <h2>Sign in with your school account</h2>
+      <p>Access your reading lists, book reviews, and more using your Smartschool credentials.</p>
+    </div>
+
+    <!-- Smartschool SSO Button -->
+    <button
+      class="smartschool-sso-btn"
+      (click)="initiateSmartschoolSSO()"
+      [disabled]="isLoading()"
+      type="button"
+      aria-label="Sign in with Smartschool"
+    >
+      <!-- Smartschool S Logo -->
+      <span class="smartschool-logo">S</span>
+
+      <!-- Divider -->
+      <span class="divider"></span>
+
+      <!-- Text Container -->
+      <span class="button-text">
+        <span class="loading-text" *ngIf="isLoading()">Redirecting...</span>
+        <span *ngIf="!isLoading()">Smartschool</span>
+      </span>
+    </button>
+
+    <!-- Loading Indicator -->
+    @if (isLoading()) {
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Redirecting to Smartschool login...</p>
+      </div>
+    }
+  </div>
+
+  <!-- Footer Section -->
+  <div class="login-footer">
+    <p>
+      <strong>Privacy Notice:</strong> We only store your Smartschool user ID for authentication.
+      Your personal information is never stored locally.
+    </p>
+  </div>
+</div>
