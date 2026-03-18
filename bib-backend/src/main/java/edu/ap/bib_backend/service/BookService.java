@@ -18,18 +18,24 @@ import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.net.URLEncoder;
 
 @Service
 public class BookService {
 
+    private String googleBooksApiKey;
+
     private final BookRepository br;
     private final RestTemplate restTemplate;
 
-    public BookService(BookRepository repo) {
+    public BookService(
+            BookRepository repo,
+            @Value("${google.books.api.key}") String googleBooksApiKey) {
         this.br = repo;
         this.restTemplate = new RestTemplate();
+        this.googleBooksApiKey = googleBooksApiKey;
     }
 
     public List<BookDTO> getAllBooks() {
@@ -171,7 +177,9 @@ public class BookService {
                 + encodedTitle
                 + "+inauthor:"
                 + encodedAuthor
-                + "&printType=books&maxResults=20";
+                + "&printType=books"
+                + "&maxResults=20"
+                + "&key=" + googleBooksApiKey;
 
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
