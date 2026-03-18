@@ -6,6 +6,7 @@ body {
   height: 100%;
   width: 100%;
   box-sizing: border-box;
+  font-family: var(--main-font);
 }
 
 *,
@@ -21,4 +22,5 @@ body {
   --sec-light-color: #EAD3C1;
   --error-color: #ad4440;
   --success-color: #4c9a4c;
+  --main-font: 'Calibri'
 }

@@ -1,39 +1,45 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthUserDto, Role } from '../../model/auth.model';
-
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly http = inject(HttpClient);
+  private url = `${environment.apiUrl}/auth/me`
 
-  private http = inject(HttpClient);
-  
-  // Signal om de huidige gebruiker globaal beschikbaar te maken
-  public currentUser = signal<AuthUserDto | null>(null);
-  
-  // De geselecteerde mock rol (om mee te sturen naar de backend)
-  public activeMockRole = signal<Role>((localStorage.getItem('mockRole') as Role) || 'STUDENT'); 
+  public readonly currentUser = signal<AuthUserDto | null>(null);
+  public readonly isLoading = signal(false);
 
-  // Haal de gebruiker op van de backend
-  public fetchCurrentUser() {
-    this.http.get<AuthUserDto>('http://localhost:8080/api/auth/me').subscribe({
-      next: (user) => this.currentUser.set(user),
-      error: (err) => console.error('Fout bij ophalen gebruiker', err)
+  public readonly activeMockRole = signal<Role>(
+    (localStorage.getItem('mockRole') as Role) || 'STUDENT'
+  );
+
+  public fetchCurrentUser(onError?: () => void): void {
+    this.isLoading.set(true);
+
+    this.http.get<AuthUserDto>(this.url).subscribe({
+      next: (user: AuthUserDto) => {
+        this.currentUser.set(user);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.currentUser.set(null);
+        this.isLoading.set(false);
+        onError?.();
+      }
     });
   }
 
-  // Methode om van rol te wisselen in de UI
-  public switchRole(role: Role) {
+  public switchRole(role: Role, onError?: () => void): void {
     this.activeMockRole.set(role);
-    localStorage.setItem('mockRole', role)
-    this.fetchCurrentUser();
+    localStorage.setItem('mockRole', role);
+    this.fetchCurrentUser(onError);
   }
 
   public hasRole(role: Role): boolean {
     return this.currentUser()?.role === role;
   }
-
-
 }

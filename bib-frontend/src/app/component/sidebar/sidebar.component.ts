@@ -56,7 +56,7 @@ export class SidebarComponent {
     { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },
     { icon: History, label: 'Geschiedenis', route: '/historiek' },
     { icon: Star, label: 'Mijn Reviews', route: '/reviews' },
-    { icon: UserCircle, label: 'Mijn Account', route: '/account' },
+    { icon: UserCircle, label: 'Mijn Account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/instellingen' },
     { icon: Package, label: 'BookBox', route: '/bookbox' },
     { icon: Flag, label: 'Rapporteer', route: '/gerapporteerd' },

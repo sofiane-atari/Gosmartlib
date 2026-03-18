@@ -1,0 +1,131 @@
+<div class="profile-page">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Mijn Account</h1>
+      <p>Bekijk je profielgegevens en bibliotheekactiviteit</p>
+    </div>
+  </div>
+
+  @if (authService.isLoading()) {
+    <section class="profile-panel profile-panel--state">
+      <p>Profiel laden...</p>
+    </section>
+  } @else if (profile()) {
+    <section class="profile-hero">
+      <div class="profile-avatar">
+        {{ getInitials(profile()?.name) }}
+      </div>
+
+      <div class="profile-hero__content">
+        <h2>{{ profile()?.name }}</h2>
+        <p>{{ getRoleLabel(profile()?.role) }}</p>
+      </div>
+    </section>
+
+    <section class="stat-cards">
+      @for (stat of stats(); track stat.label) {
+        <article class="profile-stat-card" [ngClass]="'profile-stat-card--' + stat.variant">
+          <div class="profile-stat-card__icon">
+            @if (stat.variant === 'borrowed') {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5A2.5 2.5 0 0 0 17.5 16H4z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M8 7h8M8 10h8M8 13h5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                />
+              </svg>
+            } @else if (stat.variant === 'active') {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5A2.5 2.5 0 0 0 17.5 16H4z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M12 7v6m0 0-2.5-2.5M12 13l2.5-2.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            } @else if (stat.variant === 'favorite') {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M12 20s-6.5-4.2-8.5-7.2A5.2 5.2 0 0 1 12 6.5a5.2 5.2 0 0 1 8.5 6.3C18.5 15.8 12 20 12 20z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            } @else {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            }
+          </div>
+
+          <strong class="profile-stat-card__value">{{ stat.value }}</strong>
+          <span class="profile-stat-card__label">{{ stat.label }}</span>
+        </article>
+      }
+    </section>
+
+    <section class="profile-panel">
+      <h2>Persoonlijke Informatie</h2>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Voornaam</span>
+        <span class="profile-info-row__value">{{ getFirstName(profile()?.name) }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Naam</span>
+        <span class="profile-info-row__value">{{ getLastName(profile()?.name) }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">E-mail</span>
+        <span class="profile-info-row__value">{{ profile()?.email ?? 'Nog niet beschikbaar' }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">School</span>
+        <span class="profile-info-row__value">{{ profile()?.schoolName ?? 'Nog niet beschikbaar' }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Functie</span>
+        <span class="profile-info-row__value">{{ getRoleLabel(profile()?.role) }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Smartschool-ID</span>
+        <span class="profile-info-row__value">{{ profile()?.smartschoolId ?? 'Nog niet gekoppeld' }}</span>
+      </div>
+    </section>
+  } @else {
+    <section class="profile-panel profile-panel--state">
+      <p>Er is geen profielinformatie beschikbaar.</p>
+    </section>
+  }
+</div>

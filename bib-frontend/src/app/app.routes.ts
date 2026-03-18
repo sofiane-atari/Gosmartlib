@@ -7,6 +7,7 @@ import { AddBookPageComponent } from './component/add-book-page/add-book-page.co
 import { ReadingListDetailComponent } from './component/reading-list-detail/reading-list-detail.component';
 import { MyReviewsComponent } from './component/my-reviews/my-reviews.component';
 import { DashboardLabelsComponent } from './component/dashboard-labels/dashboard-labels.component';
+import { ProfileComponent } from './component/profile/profile.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -18,4 +19,5 @@ export const routes: Routes = [
   { path: 'reading-list/:id', component: ReadingListDetailComponent },
   { path: 'add-book', component: AddBookPageComponent },
   { path: 'reviews', component: MyReviewsComponent },
+  { path: 'profile', component: ProfileComponent}
 ];
