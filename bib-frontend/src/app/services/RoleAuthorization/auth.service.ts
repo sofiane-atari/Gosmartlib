@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthUserDto, Role } from '../../model/auth.model';
+import { environment } from '../../../environments/environment';
 
 
 @Injectable({
@@ -18,7 +19,7 @@ export class AuthService {
 
   // Haal de gebruiker op van de backend
   public fetchCurrentUser() {
-    this.http.get<AuthUserDto>('http://localhost:8080/api/auth/me').subscribe({
+    this.http.get<AuthUserDto>(`${environment.apiUrl}/auth/me`).subscribe({
       next: (user) => this.currentUser.set(user),
       error: (err) => console.error('Fout bij ophalen gebruiker', err)
     });
