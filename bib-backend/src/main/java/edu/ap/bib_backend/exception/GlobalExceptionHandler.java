@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.validation.FieldError;
 
 import java.util.ArrayList;
@@ -34,8 +35,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(error.getCode()).body(response);
     }
 
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+        int errorCode = ex.getStatusCode().value();
+        List<ErrorDetail> details = new ArrayList<>();
+        String message = ex.getReason() != null ? ex.getReason() : "Er is een fout opgetreden";
+        ApiError error = new ApiError(errorCode, message, details);
+
+        ErrorResponse response = new ErrorResponse(error);
+        return ResponseEntity.status(errorCode).body(response);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
+        ResponseStatusException nestedResponseStatus = findNestedResponseStatusException(ex);
+        if (nestedResponseStatus != null) {
+            return handleResponseStatus(nestedResponseStatus);
+        }
+
         int errorCode = 500;
         List<ErrorDetail> details = new ArrayList<>();
         ApiError error = new ApiError(errorCode, ex.getMessage(), details);
@@ -143,5 +160,16 @@ public class GlobalExceptionHandler {
         } catch (Exception ignored) {
         }
         return "Een van de ingevoerde waarden bestaat al in het systeem. Gebruik een unieke waarde.";
+    }
+
+    private ResponseStatusException findNestedResponseStatusException(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof ResponseStatusException responseStatusException) {
+                return responseStatusException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 }

@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { Book } from '../../model/book.model';
 import { BookService } from '../../services/BookService/book.service';
 import { ReadingListService } from '../../services/reading-list.service';
+import { ToastService } from '../../services/Toast/toast.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -50,6 +51,7 @@ export class BooksComponent implements OnInit {
   private readonly bookService = inject(BookService);
   private readonly router = inject(Router);
   private readonly readingListService = inject(ReadingListService);
+  private readonly toastService = inject(ToastService);
 
   // Signals for reactive state
   books = signal<Book[]>([]);
@@ -255,15 +257,16 @@ export class BooksComponent implements OnInit {
     if (book.id) {
       this.readingListService.addBookToFavorites(book.id).subscribe({
         next: () => {
-          alert(`"${book.title}" is toegevoegd aan je Favorieten!`);
+          this.toastService.show(`"${book.title}" is toegevoegd aan je Favorieten!`, 'success');
         },
-        error: (err) => {
+        error: (err: any) => {
           if (err.error === 'Boek zit al in deze leeslijst') {
-            alert(`"${book.title}" staat al in je Favorieten!`);
+            this.toastService.show(`"${book.title}" staat al in je Favorieten!`, 'error');
           } else {
             console.error('Fout bij toevoegen aan favorieten', err);
-            alert(
+            this.toastService.show(
               'Er is een fout opgetreden bij het toevoegen aan favorieten.',
+              'error'
             );
           }
         },

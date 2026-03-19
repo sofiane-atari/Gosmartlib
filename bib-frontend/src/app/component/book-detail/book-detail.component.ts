@@ -138,15 +138,16 @@ export class BookDetailComponent {
     if (this.selectedBook?.id) {
       this.readingListService.addBookToList(listId, this.selectedBook.id).subscribe({
         next: () => {
-          alert(`Boek toegevoegd aan leeslijst!`);
+
+          this.toastService.show(`Boek toegevoegd aan leeslijst!`, 'success');
           this.showListPicker = false;
         },
-        error: (err) => {
+        error: (err: any) => {
           if (err.error === 'Boek zit al in deze leeslijst') {
-            alert("Dit boek staat al in deze leeslijst!");
+            this.toastService.show("Dit boek staat al in deze leeslijst!", 'error');
           } else {
             console.error("Fout bij toevoegen aan leeslijst", err);
-            alert("Er is een fout opgetreden bij het toevoegen aan de leeslijst.");
+            this.toastService.show("Er is een fout opgetreden bij het toevoegen aan de leeslijst.", 'error');
           }
         }
       });

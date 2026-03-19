@@ -85,7 +85,7 @@ public class BookService {
     }
 
     public BookDTO fetchBookByISBN(String isbn) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = createRestTemplate();
 
         String url = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data";
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
@@ -162,7 +162,7 @@ public class BookService {
     public BookPreviewDTO fetchPreviewByISBN(String rawIsbn) {
         String normalizedIsbn = normalizeAndValidateIsbn(rawIsbn);
 
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = createRestTemplate();
         String requestUrl = UriComponentsBuilder
                 .fromUriString("https://openlibrary.org/api/books")
                 .queryParam("bibkeys", "ISBN:" + normalizedIsbn)
@@ -379,5 +379,9 @@ public class BookService {
 
         String trimmed = rawOcaid.trim();
         return trimmed.matches("^[A-Za-z0-9._-]{1,120}$") ? trimmed : null;
+    }
+
+    protected RestTemplate createRestTemplate() {
+        return new RestTemplate();
     }
 }

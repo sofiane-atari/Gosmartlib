@@ -7,14 +7,18 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.BookPreviewDTO;
+import edu.ap.bib_backend.exception.GlobalExceptionHandler;
 import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.service.BookService;
 
@@ -24,13 +28,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @WebMvcTest(BookController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(TestSecurityConfig.class)
+@Import({ TestSecurityConfig.class, GlobalExceptionHandler.class })
 public class BookControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private BookService bs;
 
     @Test
@@ -233,5 +237,43 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$[0].title").value("Recently Added Book"))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").hasJsonPath());
+    }
+
+    // ==================== getBookPreviewByISBN Tests ====================
+
+    @Test
+    void given_valid_isbn_when_get_book_preview_by_isbn_then_return_preview_payload() throws Exception {
+        String isbn = "9780306406157";
+        BookPreviewDTO preview = new BookPreviewDTO(
+                true,
+                "https://archive.org/details/samplebook",
+                "https://openlibrary.org/books/OL1M",
+                "Preview beschikbaar",
+                "https://archive.org/embed/samplebook");
+
+        Mockito.when(bs.fetchPreviewByISBN(isbn)).thenReturn(preview);
+
+        mockMvc.perform(get("/api/books/isbn/{isbn}/preview", isbn))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.previewAvailable").value(true))
+                .andExpect(jsonPath("$.previewUrl").value("https://archive.org/details/samplebook"))
+                .andExpect(jsonPath("$.detailsUrl").value("https://openlibrary.org/books/OL1M"))
+                .andExpect(jsonPath("$.embedUrl").value("https://archive.org/embed/samplebook"))
+                .andExpect(jsonPath("$.message").value("Preview beschikbaar"));
+
+        Mockito.verify(bs, Mockito.times(1)).fetchPreviewByISBN(isbn);
+    }
+
+    @Test
+    void given_unknown_isbn_when_get_book_preview_by_isbn_then_return_not_found_status() throws Exception {
+        String isbn = "9780306406157";
+
+        Mockito.when(bs.fetchPreviewByISBN(isbn))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen boek gevonden voor dit ISBN"));
+
+        mockMvc.perform(get("/api/books/isbn/{isbn}/preview", isbn))
+                .andExpect(status().isNotFound());
+
+        Mockito.verify(bs, Mockito.times(1)).fetchPreviewByISBN(isbn);
     }
 }

@@ -3,11 +3,13 @@ package edu.ap.bib_backend.service;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.doReturn;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -17,13 +19,15 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
-import edu.ap.bib_backend.service.BookService;
 
 @ExtendWith(MockitoExtension.class)
 public class BookServiceTest {
@@ -38,7 +42,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void getAllBooks_returnMappedDTOs() {
+    void given_books_exist_when_get_all_books_then_return_mapped_dtos() {
 
         Book book = new Book();
         book.setId(1L);
@@ -75,7 +79,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void getBookById_returnsMappedDTO() {
+    void given_existing_book_id_when_get_book_by_id_then_return_mapped_dto() {
         // Arrange
         Book book = new Book();
         book.setId(1L);
@@ -106,7 +110,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void createBookWithoutISBN_savesAndReturnsDTO() {
+    void given_book_dto_without_isbn_when_create_book_then_save_and_return_dto() {
         // Arrange
         BookDTO dto = new BookDTO();
         dto.setTitle("Nieuwe Boek");
@@ -153,7 +157,7 @@ public class BookServiceTest {
     // ==================== getNewestBooks Tests ====================
 
     @Test
-    void givenBooksExist_whenGetNewestBooks_thenReturnNewestBooksOrderedByAddedDate() {
+    void given_books_exist_when_get_newest_books_then_return_ordered_books() {
         // Arrange
         int limit = 3;
 
@@ -211,7 +215,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void givenDefaultLimit_whenGetNewestBooks_thenReturnThreeBooks() {
+    void given_default_limit_when_get_newest_books_then_return_three_books() {
         // Arrange
         int defaultLimit = 3;
 
@@ -244,7 +248,7 @@ public class BookServiceTest {
     // ==================== getMostReadBooks Tests ====================
 
     @Test
-    void givenBooksExist_whenGetMostReadBooks_thenReturnMostReadBooks() {
+    void given_books_exist_when_get_most_read_books_then_return_books() {
         // Arrange
         int limit = 3;
 
@@ -302,7 +306,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void givenNoBooksExist_whenGetMostReadBooks_thenThrowException() {
+    void given_no_books_exist_when_get_most_read_books_then_throw_exception() {
         // Arrange
         int limit = 3;
 
@@ -319,7 +323,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void givenCustomLimit_whenGetMostReadBooks_thenReturnRequestedNumberOfBooks() {
+    void given_custom_limit_when_get_most_read_books_then_return_requested_number_of_books() {
         // Arrange
         int limit = 5;
 
@@ -343,5 +347,183 @@ public class BookServiceTest {
         assertThat(result).hasSize(2);
 
         verify(br, times(1)).findMostReadBook(limit);
+    }
+
+    @Test
+    void given_missing_book_id_when_get_book_by_id_then_throw_runtime_exception() {
+        when(br.findById(99L)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> bs.getBookById(99L));
+
+        assertThat(exception.getMessage()).isEqualTo("Boek niet gevonden met id: 99");
+    }
+
+    @Test
+    void given_null_min_release_year_when_get_min_release_year_then_use_default_1900() {
+        when(br.findMinReleaseYear()).thenReturn(null);
+
+        Integer result = bs.getMinReleaseYear();
+
+        assertThat(result).isEqualTo(1900);
+    }
+
+    @Test
+    void given_null_max_release_year_when_get_max_release_year_then_use_current_year() {
+        when(br.findMaxReleaseYear()).thenReturn(null);
+
+        Integer result = bs.getMaxReleaseYear();
+
+        assertThat(result).isEqualTo(LocalDate.now().getYear());
+    }
+
+    @Test
+    void given_null_max_pages_when_get_max_pages_then_use_default_1500() {
+        when(br.findMaxPages()).thenReturn(null);
+
+        Integer result = bs.getMaxPages();
+
+        assertThat(result).isEqualTo(1500);
+    }
+
+    @Test
+    void given_invalid_isbn_when_fetch_preview_by_isbn_then_throw_bad_request() {
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> bs.fetchPreviewByISBN("abc"));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(exception.getReason()).isEqualTo("Ongeldig ISBN-formaat");
+    }
+
+    @Test
+    void given_api_call_failure_when_fetch_preview_by_isbn_then_throw_service_unavailable() {
+        BookService service = Mockito.spy(new BookService(br));
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        doReturn(restTemplate).when(service).createRestTemplate();
+
+        when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(Map.class)))
+                .thenThrow(new RuntimeException("temporary network issue"));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> service.fetchPreviewByISBN("9780306406157"));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(exception.getReason()).isEqualTo("Preview tijdelijk niet beschikbaar");
+    }
+
+    @Test
+    void given_empty_response_when_fetch_preview_by_isbn_then_throw_not_found() {
+        BookService service = Mockito.spy(new BookService(br));
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        doReturn(restTemplate).when(service).createRestTemplate();
+
+        when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(Map.class))).thenReturn(Map.of());
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> service.fetchPreviewByISBN("9780306406157"));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(exception.getReason()).isEqualTo("Geen boek gevonden voor dit ISBN");
+    }
+
+    @Test
+    void given_response_without_matching_isbn_when_fetch_preview_by_isbn_then_throw_not_found() {
+        BookService service = Mockito.spy(new BookService(br));
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        doReturn(restTemplate).when(service).createRestTemplate();
+
+        when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(Map.class)))
+                .thenReturn(Map.of("ISBN:1111111111", Map.of("title", "other")));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> service.fetchPreviewByISBN("9780306406157"));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(exception.getReason()).isEqualTo("Geen boek gevonden voor dit ISBN");
+    }
+
+    @Test
+    void given_relative_details_and_preview_url_when_fetch_preview_by_isbn_then_return_available_preview() {
+        BookService service = Mockito.spy(new BookService(br));
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        doReturn(restTemplate).when(service).createRestTemplate();
+
+        Map<String, Object> response = Map.of(
+                "ISBN:9780306406157", Map.of(
+                        "url", "/books/OL1M",
+                        "preview_url", "https://archive.org/details/samplebook"));
+
+        when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(Map.class))).thenReturn(response);
+
+        BookPreviewDTO result = service.fetchPreviewByISBN("978-0-306-40615-7");
+
+        assertThat(result.isPreviewAvailable()).isTrue();
+        assertThat(result.getPreviewUrl()).isEqualTo("https://archive.org/details/samplebook");
+        assertThat(result.getDetailsUrl()).isEqualTo("https://openlibrary.org/books/OL1M");
+        assertThat(result.getEmbedUrl()).isEqualTo("https://archive.org/embed/samplebook");
+        assertThat(result.getMessage()).isEqualTo("Preview beschikbaar");
+    }
+
+    @Test
+    void given_only_ebook_preview_url_when_fetch_preview_by_isbn_then_use_ebook_preview() {
+        BookService service = Mockito.spy(new BookService(br));
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        doReturn(restTemplate).when(service).createRestTemplate();
+
+        Map<String, Object> response = Map.of(
+                "ISBN:123456789X", Map.of(
+                        "url", "https://openlibrary.org/books/OL2M",
+                        "ebooks", List.of(Map.of("preview_url", "https://archive.org/details/ebook-preview"))));
+
+        when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(Map.class))).thenReturn(response);
+
+        BookPreviewDTO result = service.fetchPreviewByISBN("123456789x");
+
+        assertThat(result.isPreviewAvailable()).isTrue();
+        assertThat(result.getPreviewUrl()).isEqualTo("https://archive.org/details/ebook-preview");
+        assertThat(result.getEmbedUrl()).isEqualTo("https://archive.org/embed/ebook-preview");
+        assertThat(result.getMessage()).isEqualTo("Preview beschikbaar");
+    }
+
+    @Test
+    void given_invalid_details_host_when_fetch_preview_by_isbn_then_fall_back_to_safe_openlibrary_url() {
+        BookService service = Mockito.spy(new BookService(br));
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        doReturn(restTemplate).when(service).createRestTemplate();
+
+        Map<String, Object> response = Map.of(
+                "ISBN:9780306406157", Map.of(
+                        "url", "https://evil.example.com/steal",
+                        "preview_url", "http://archive.org/details/not-https"));
+
+        when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(Map.class))).thenReturn(response);
+
+        BookPreviewDTO result = service.fetchPreviewByISBN("9780306406157");
+
+        assertThat(result.isPreviewAvailable()).isFalse();
+        assertThat(result.getPreviewUrl()).isNull();
+        assertThat(result.getEmbedUrl()).isNull();
+        assertThat(result.getDetailsUrl()).isEqualTo("https://openlibrary.org/isbn/9780306406157");
+        assertThat(result.getMessage()).isEqualTo("Geen preview beschikbaar");
+    }
+
+    @Test
+    void given_ocaid_in_identifiers_when_fetch_preview_by_isbn_then_build_embed_url() {
+        BookService service = Mockito.spy(new BookService(br));
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        doReturn(restTemplate).when(service).createRestTemplate();
+
+        Map<String, Object> response = Map.of(
+                "ISBN:9780306406157", Map.of(
+                        "url", "https://openlibrary.org/books/OL3M",
+                        "identifiers", Map.of("ocaid", List.of("my_archive_id"))));
+
+        when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(Map.class))).thenReturn(response);
+
+        BookPreviewDTO result = service.fetchPreviewByISBN("9780306406157");
+
+        assertThat(result.isPreviewAvailable()).isTrue();
+        assertThat(result.getPreviewUrl()).isNull();
+        assertThat(result.getEmbedUrl()).isEqualTo("https://archive.org/embed/my_archive_id");
+        assertThat(result.getMessage()).isEqualTo("Preview beschikbaar");
     }
 }
