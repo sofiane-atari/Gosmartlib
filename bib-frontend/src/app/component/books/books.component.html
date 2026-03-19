@@ -5,8 +5,8 @@
       <lucide-icon [img]="Search" class="hero-search-icon" [size]="20"></lucide-icon>
       <input
         type="text"
-        [(ngModel)]="filters.searchTerm"
-        (input)="applyFilters()"
+        [ngModel]="filters().searchTerm"
+        (ngModelChange)="updateSearchTerm($event)"
         placeholder="Zoek op titel of auteur..."
         class="hero-search-input"
       />
@@ -25,15 +25,15 @@
 
     <div class="quick-stats-badges">
       <div class="status-badge badge-green">
-        <span class="badge-number">{{ availableCount }}</span> Beschikbaar
+        <span class="badge-number">{{ availableCount() }}</span> Beschikbaar
       </div>
       <div class="status-badge badge-red">
-        <span class="badge-number">{{ borrowedCount }}</span> Uitgeleend
+        <span class="badge-number">{{ borrowedCount() }}</span> Uitgeleend
       </div>
     </div>
   </div>
 
-  @if (isFilterOpen) {
+  @if (isFilterOpen()) {
     <div class="expandable-filter-panel">
       <div class="panel-header">
         <h3>Geavanceerd zoeken</h3>
@@ -45,7 +45,8 @@
       <div class="panel-grid">
         <div class="filter-item">
           <label>Sorteer op</label>
-          <select [(ngModel)]="filters.sortBy" (change)="applyFilters()" class="panel-select">
+          <select [ngModel]="filters().sortBy"
+                  (ngModelChange)="updateSortBy($event)" class="panel-select">
             <option value="az">Titel (A-Z)</option>
             <option value="za">Titel (Z-A)</option>
             <option value="newest">Nieuwste eerst</option>
@@ -55,28 +56,19 @@
 
         <div class="filter-item">
           <label>Beschikbaarheid</label>
-          <select [(ngModel)]="filters.availability" (change)="applyFilters()" class="panel-select">
+          <select 
+          [ngModel]="filters().availability"
+          (ngModelChange)="updateAvailability($event)" class="panel-select">
             <option value="Alle Boeken">Alle boeken</option>
             <option value="Beschikbaar">Beschikbaar</option>
           </select>
         </div>
 
         <div class="filter-item">
-          <label>Uitgavejaar: <span class="highlight">{{ filters.minYear }} - {{ filters.maxYear }}</span></label>
+          <label>Max Pagina's: <span class="highlight">{{ filters().maxPages }}</span></label>
           <div class="slider-wrapper">
-            @if(absoluteMaxYear > 0 ){
-              <input type="range" [(ngModel)]="filters.minYear" [min]="absoluteMinYear" [max]="filters.maxYear" (input)="applyFilters()" class="panel-slider">
-              <input type="range" [(ngModel)]="filters.maxYear" [min]="filters.minYear" [max]="absoluteMaxYear" (input)="applyFilters()" class="panel-slider">
-            }
-
-          </div>
-        </div>
-
-        <div class="filter-item">
-          <label>Max Pagina's: <span class="highlight">{{ filters.maxPages }}</span></label>
-          <div class="slider-wrapper">
-            @if(absoluteMaxPages > 0){
-              <input type="range" [(ngModel)]="filters.maxPages" [min]="0" [max]="absoluteMaxPages" (input)="applyFilters()" class="panel-slider">
+            @if(absoluteMaxPages() > 0){
+              <input type="range" [min]="0" [max]="absoluteMaxPages()" [ngModel]="filters().maxPages"(ngModelChange)="updateMaxPages($event)" class="panel-slider">
             }
           </div>
         </div>

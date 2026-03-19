@@ -50,14 +50,6 @@ public class BookController {
         return ResponseEntity.ok(book);
     }
 
-    @GetMapping("/years/range")
-    public ResponseEntity<Map<String, Integer>> getYearRange() {
-        Map<String, Integer> range = new HashMap<>();
-        range.put("min", bs.getMinReleaseYear());
-        range.put("max", bs.getMaxReleaseYear());
-        return ResponseEntity.ok(range);
-    }
-
     @GetMapping("/pages/max")
     public ResponseEntity<Integer> getMaxPages() {
         return ResponseEntity.ok(bs.getMaxPages());

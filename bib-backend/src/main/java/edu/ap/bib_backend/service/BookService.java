@@ -116,17 +116,6 @@ public class BookService {
         return dto;
     }
 
-    public Integer getMinReleaseYear() {
-        Integer min = br.findMinReleaseYear();
-        return min != null ? min : 1900;
-    }
-
-    public Integer getMaxReleaseYear() {
-        Integer max = br.findMaxReleaseYear();
-        int year = LocalDate.now().getYear();
-        return max != null ? max : year;
-    }
-
     public Integer getMaxPages() {
         Integer max = br.findMaxPages();
         return max != null ? max : 1500;

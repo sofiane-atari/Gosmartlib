@@ -11,11 +11,6 @@ import edu.ap.bib_backend.jpa.entity.Book;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
 
-    @Query("SELECT MIN(b.releaseYear) FROM Book b")
-    Integer findMinReleaseYear();
-
-    @Query("SELECT MAX(b.releaseYear) FROM Book b")
-    Integer findMaxReleaseYear();
 
     @Query("SELECT MAX(b.pages) FROM Book b")
     Integer findMaxPages();
