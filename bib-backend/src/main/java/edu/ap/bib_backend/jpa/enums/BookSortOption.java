@@ -4,5 +4,7 @@ public enum BookSortOption {
     AZ,
     ZA,
     NEWEST,
-    RATING
+    RATING,
+    AUTHOR_AZ,
+    AUTHOR_ZA
 }

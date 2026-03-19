@@ -14,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -25,6 +26,7 @@ import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 
+
 @Service
 public class BookService {
 
@@ -34,6 +36,7 @@ public class BookService {
         br = repo;
     }
 
+    @Transactional(readOnly = true)
     public List<BookDTO> getAllBooks() {
         return br.findAll()
                 .stream()
@@ -41,6 +44,7 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public BookDTO addBook(BookDTO dto) {
         System.out.println("Ontvangen DTO: " + dto);
         Book book = mapToEntity(dto);
@@ -83,6 +87,7 @@ public class BookService {
         return book;
     }
 
+    @Transactional(readOnly = true)
     public BookDTO getBookById(Long id) {
         return br.findById(id)
                 .map(book -> mapToDTO(book)) // Zet Book om naar BookDTO
@@ -124,16 +129,19 @@ public class BookService {
         return dto;
     }
 
+    @Transactional(readOnly = true)
     public Integer getMaxPages() {
         Integer max = br.findMaxPages();
         return max != null ? max : 1500;
     }
 
+    @Transactional(readOnly = true)
     public Integer getMinPages() {
         Integer min = br.findMinPages();
         return min != null ? min : 0;
     }
 
+    @Transactional(readOnly = true)
     public List<BookDTO> getMostReadBooks(int limit) {
         List<Book> books = br.findMostReadBook(limit);
 
@@ -144,6 +152,7 @@ public class BookService {
         return mapToDTOList(books);
     }
 
+    @Transactional(readOnly = true)
     public List<BookDTO> getNewestBooks(int limit) {
         List<Book> books = br.findNewestBooks(PageRequest.of(0, limit));
         return mapToDTOList(books);
@@ -158,6 +167,7 @@ public class BookService {
         return dtos;
     }
 
+    @Transactional(readOnly = true)
     public Page<BookDTO> getFilteredBooks(
         String searchTerm,
         BookAvailabilityFilter availabilityFilter,
@@ -231,6 +241,8 @@ public class BookService {
             case ZA -> Sort.by("title").descending();
             case NEWEST -> Sort.by("releaseYear").descending();
             case RATING -> Sort.by("reviewScore").descending();
+            case AUTHOR_AZ -> Sort.by("author").ascending();
+            case AUTHOR_ZA -> Sort.by("author").descending();
         };
     }
 }

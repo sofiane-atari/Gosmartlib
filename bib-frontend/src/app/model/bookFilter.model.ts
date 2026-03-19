@@ -1,4 +1,4 @@
-export type BookSortOption = 'AZ' | 'ZA' | 'NEWEST' | 'RATING';
+export type BookSortOption = 'AZ' | 'ZA' | 'NEWEST' | 'RATING' | 'AUTHOR_AZ' | 'AUTHOR_ZA';
 export type BookAvailabilityFilter = 'ALL' | 'AVAILABLE';
 
 export interface BookFilters {
