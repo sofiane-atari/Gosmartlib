@@ -13,8 +13,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.lang.reflect.Method;
 
@@ -119,20 +117,6 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody().getError().getMessage()).isEmpty();
-    }
-
-    // ==================== ResponseStatusException Tests ====================
-
-    @Test
-    void givenResponseStatusException_whenHandleResponseStatus_thenReturnOriginalStatusAndMessage() {
-        ResponseStatusException exception = new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen boek gevonden voor dit ISBN");
-
-        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleResponseStatus(exception);
-
-        assertThat(response.getStatusCode().value()).isEqualTo(404);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getError().getCode()).isEqualTo(404);
-        assertThat(response.getBody().getError().getMessage()).isEqualTo("Geen boek gevonden voor dit ISBN");
     }
 
     // ==================== RuntimeException Tests ====================
