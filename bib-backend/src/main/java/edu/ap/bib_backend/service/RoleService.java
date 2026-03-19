@@ -15,7 +15,7 @@ public class RoleService {
     }
    
     public Role getUserRole(String userId) {
-        return userRepository.findById(Long.parseLong(userId))
+        return userRepository.findById(userId)
                 .map(user -> user.getRole().getRole())
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }

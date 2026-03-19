@@ -19,7 +19,7 @@ import lombok.Setter;
 public class User {
 
     @Id
-    private Long id;
+    private String id;
 
 
     @OneToMany(mappedBy = "user")

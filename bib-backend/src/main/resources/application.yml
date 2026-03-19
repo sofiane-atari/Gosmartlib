@@ -14,10 +14,16 @@ spring:
 
         provider:
           smartschool:
-            authorization-uri: https://aphogeschool.smartschool.be/OAuth
-            token-uri: https://aphogeschool.smartschool.be/OAuth/token
-            user-info-uri: https://aphogeschool.smartschool.be/Api/V1/fulluserinfo
+            authorization-uri: https://oauth.smartschool.be/OAuth
+            token-uri: https://oauth.smartschool.be/OAuth/index/token
+            user-info-uri: https://oauth.smartschool.be/Api/V1/fulluserinfo
             user-name-attribute: userID # adjust to actual field returned
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web.client: DEBUG
+    org.springframework.security.oauth2: TRACE

@@ -12,6 +12,12 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import edu.ap.bib_backend.jpa.entity.Role;
+import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
+
 import java.util.Map;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,9 +30,15 @@ public class SmartschoolOAuth2UserService
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final RoleService roleService;
+    private final UserRepository userRepository;
+    private final RoleEntityRepository roleEntityRepository;
 
-    public SmartschoolOAuth2UserService(RoleService roleService) {
+    public SmartschoolOAuth2UserService(RoleService roleService, 
+                                         UserRepository userRepository,
+                                         RoleEntityRepository roleEntityRepository) {
         this.roleService = roleService;
+        this.userRepository = userRepository;
+        this.roleEntityRepository = roleEntityRepository;
     }
 
     @Override
@@ -52,15 +64,44 @@ public class SmartschoolOAuth2UserService
 
         Map<String, Object> attributes = response.getBody();
 
-       String role = getUserRole((String) attributes.get("userID")); 
- 
+        String userId = (String) attributes.get("userID");
+        String basisrol = (String) attributes.get("basisrol");
+
+        String roleString = getOrCreateUserRole(userId, basisrol);
+
         return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority(role)),
+                Collections.singleton(new SimpleGrantedAuthority(roleString)),
                 attributes,
                 "userID"
         );
     }
-    public String getUserRole(String userId) {
-        return "ROLE_" + roleService.getUserRole(userId).name();
+
+    private String getOrCreateUserRole(String userId, String basisrol) {
+        return userRepository.findById(userId)
+                .map(user -> "ROLE_" + user.getRole().getRole().name())
+                .orElseGet(() -> {
+                    Role mappedRole = mapDutchRole(basisrol);
+
+                    RoleEntity roleEntity = roleEntityRepository.findByRole(mappedRole)
+                            .orElseThrow(() -> new RuntimeException("Role not found: " + mappedRole));
+
+                    User newUser = new User();
+                    newUser.setId(userId);
+                    newUser.setRole(roleEntity);
+                    userRepository.save(newUser);
+
+                    return "ROLE_" + mappedRole.name();
+                });
+    }
+
+    private Role mapDutchRole(String basisrol) {
+        if (basisrol == null) return Role.STUDENT;
+        return switch (basisrol.toLowerCase()) {
+            case "leerling"     -> Role.STUDENT;
+            case "leerkracht"   -> Role.TEACHER;
+            case "directie"     -> Role.ADMIN;
+            case "bibliothecaris" -> Role.LIBRARIAN;
+            default             -> Role.STUDENT;
+        };
     }
 }

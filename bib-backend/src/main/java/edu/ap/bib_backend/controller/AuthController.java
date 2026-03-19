@@ -1,9 +1,12 @@
 package edu.ap.bib_backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 
+import java.io.IOException;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -30,6 +33,9 @@ public class AuthController {
     private final JwtService jwtService;
     private final TokenStorageService tokenStorageService;
 
+    @Value("${FRONTEND_REDIRECT_URL}")
+    private String frontendRedirectUrl;
+
     public AuthController(AuthService authService, JwtService jwtService, TokenStorageService tokenStorageService) {
         this.authService = authService;
         this.jwtService = jwtService;
@@ -52,8 +58,8 @@ public class AuthController {
     }
 
     @GetMapping("/callback")
-    public ResponseEntity<?> callback(@AuthenticationPrincipal OAuth2User principal,
-            HttpServletResponse response) {
+    public void callback(@AuthenticationPrincipal OAuth2User principal,
+            HttpServletResponse response) throws IOException {
 
         // Extract user ID from Smartschool (only ID, no PII)
         String userId = principal.getAttribute("userID");
@@ -63,7 +69,7 @@ public class AuthController {
                 .stream()
                 .map(auth -> auth.getAuthority())
                 .findFirst()
-                .orElse("ROLE_USER");
+                .orElseThrow(() -> new IllegalArgumentException("No role found for user"));
 
         // Generate JWT token
         String jwt = jwtService.generateToken(userId, role);
@@ -74,7 +80,7 @@ public class AuthController {
         // Store role metadata for quick reference
         tokenStorageService.storeUserMetadata(userId, role);
 
-        return ResponseEntity.ok(Map.of("token", jwt));
+        response.sendRedirect(frontendRedirectUrl + "?oauth-success=true&token=" + jwt);
     }
 
     @PostMapping("/logout")
