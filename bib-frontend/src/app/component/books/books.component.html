@@ -20,7 +20,7 @@
   <div class="catalog-header-section">
     <div class="title-container">
       <h1>Boeken catalogus</h1>
-      <span class="subtitle">{{ filteredBooks().length }} boeken gevonden</span>
+      <span class="subtitle">{{ pagingMeta().totalItems }} boeken gevonden</span>
     </div>
 
     <div class="quick-stats-badges">
@@ -47,10 +47,10 @@
           <label>Sorteer op</label>
           <select [ngModel]="filters().sortBy"
                   (ngModelChange)="updateSortBy($event)" class="panel-select">
-            <option value="az">Titel (A-Z)</option>
-            <option value="za">Titel (Z-A)</option>
-            <option value="newest">Nieuwste eerst</option>
-            <option value="rating">Hoogste rating</option>
+            <option value="AZ">Titel (A-Z)</option>
+            <option value="ZA">Titel (Z-A)</option>
+            <option value="NEWEST">Nieuwste eerst</option>
+            <option value="RATING">Hoogste rating</option>
           </select>
         </div>
 
@@ -59,8 +59,8 @@
           <select 
           [ngModel]="filters().availability"
           (ngModelChange)="updateAvailability($event)" class="panel-select">
-            <option value="Alle Boeken">Alle boeken</option>
-            <option value="Beschikbaar">Beschikbaar</option>
+            <option value="ALL">Alle boeken</option>
+            <option value="AVAILABLE">Beschikbaar</option>
           </select>
         </div>
 
@@ -95,8 +95,13 @@
   }
 
   <div class="main-content">
-    <div class="books-grid">
-      @for (book of pagedBooks(); track book.id || $index) {
+    @if (catalogLoading()) {
+      <div class="empty-state">
+        <p>Boeken laden...</p>
+      </div>
+    } @else {
+      <div class="books-grid">
+      @for (book of books(); track book.id || $index) {
         <div class="book-card" (click)="toBookDetailPage(book)">
           <div class="book-image">
             <img [src]="book.imageUrl" [alt]="book.title" />
@@ -127,7 +132,7 @@
         </div>
       }
 
-      @if (filteredBooks().length === 0) {
+      @if (!catalogLoading() && pagingMeta().totalItems === 0) {
         <div class="empty-state">
           <lucide-icon [img]="Search" [size]="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-icon>
           <p>Geen boeken gevonden met deze filters...</p>
@@ -137,6 +142,8 @@
         </div>
       }
     </div>
+    }
+    
 
     <aside class="sidebar">
       <app-book-list-sidebar

@@ -4,11 +4,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
+import edu.ap.bib_backend.jpa.enums.BookSortOption;
+import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.service.BookService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +33,32 @@ public class BookController {
     @GetMapping
     public List<BookDTO> getAllBooks() {
         return bs.getAllBooks();
+    }
+
+    @GetMapping("/catalog")
+    public PageDTO<BookDTO> getFilteredBooks(
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) BookAvailabilityFilter availability,
+            @RequestParam(required = false) Integer minPages,
+            @RequestParam(required = false) Integer maxPages,
+            @RequestParam(required = false) BookSortOption sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<BookDTO> bookPage = bs.getFilteredBooks(
+                searchTerm,
+                availability,
+                minPages,
+                maxPages,
+                page,
+                size,
+                sortBy
+        );
+
+        return new PageDTO<>(
+                bookPage.getContent(),
+                PageMapper.toPaginatedMeta(bookPage)
+        );
     }
 
     @GetMapping("/{id}")

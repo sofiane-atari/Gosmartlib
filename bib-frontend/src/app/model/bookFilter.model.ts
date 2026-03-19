@@ -1,5 +1,5 @@
-export type BookSortOption = 'az' | 'za' | 'newest' | 'rating';
-export type BookAvailabilityFilter = 'Alle Boeken' | 'Beschikbaar';
+export type BookSortOption = 'AZ' | 'ZA' | 'NEWEST' | 'RATING';
+export type BookAvailabilityFilter = 'ALL' | 'AVAILABLE';
 
 export interface BookFilters {
   searchTerm: string;

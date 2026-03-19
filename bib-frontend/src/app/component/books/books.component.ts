@@ -19,6 +19,7 @@ import {
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
 import { PagingComponent } from '../paging/paging.component';
 import { min } from 'rxjs';
+import { PaginatedResponse } from '../../model/paginated-response.model.ts';
 
 @Component({
   selector: 'app-books',
@@ -47,24 +48,27 @@ export class BooksComponent implements OnInit {
   private readonly toastService = inject(ToastService);
 
   books = signal<Book[]>([]);
-  mostReadBooks = signal<Book[]>([]);
-  newestBooks = signal<Book[]>([]);
-  mostReadLoading = signal<boolean>(true);
-  newestLoading = signal<boolean>(true);
-  absoluteMaxPages = signal<number>(0);
-  absoluteMinPages = signal<number>(0)
+  protected readonly pagingMeta = signal({
+    currentPage: 0,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 0,
+  });
 
-  constructor() {
-    effect(() => {
-      localStorage.setItem('bookFilters', JSON.stringify(this.filters()));
-      localStorage.setItem('isFilterOpen', JSON.stringify(this.isFilterOpen()));
-    });
+  protected readonly catalogLoading = signal(false);
 
+  protected readonly mostReadBooks = signal<Book[]>([]);
+  protected readonly newestBooks = signal<Book[]>([]);
+  protected readonly mostReadLoading = signal(true);
+  protected readonly newestLoading = signal(true);
 
-  }
+  protected readonly absoluteMaxPages = signal(0);
+  protected readonly absoluteMinPages = signal(0);
 
   protected readonly isFilterOpen = signal(false);
-  
+  protected readonly currentPage = signal(0);
+  private readonly pageSize = signal(10);
+
   protected readonly availableCount = computed(() =>
     this.books().filter((book: Book) => book.availability === 'AVAILABLE').length,
   );
@@ -73,15 +77,22 @@ export class BooksComponent implements OnInit {
     this.books().filter((book: Book) => book.availability === 'BORROWED').length,
   );
 
+  constructor() {
+    effect(() => {
+      localStorage.setItem('bookFilters', JSON.stringify(this.filters()));
+      localStorage.setItem('isFilterOpen', JSON.stringify(this.isFilterOpen()));
+    });
+  }
+  
   protected readonly filters = signal<BookFilters>({
     searchTerm: '',
-    availability: 'Alle Boeken',
+    availability: 'ALL',
     minPages: null,
     maxPages: null,
-    sortBy: 'az',
+    sortBy: 'AZ',
   });
 
-  protected readonly filteredBooks = computed(() => {
+  /*protected readonly filteredBooks = computed(() => {
     const booksArray = this.books();
     const currentFilters = this.filters();
 
@@ -114,12 +125,10 @@ export class BooksComponent implements OnInit {
     }
 
     return filtered;
-  });
+  });*/
 
-  private readonly pageSize = signal<number>(10);
-  protected readonly currentPage = signal<number>(0);
 
-  protected readonly pagingMeta = computed(() => {
+  /*protected readonly pagingMeta = computed(() => {
     const totalItems = this.filteredBooks().length;
     const pageSize = this.pageSize();
     const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
@@ -135,7 +144,7 @@ export class BooksComponent implements OnInit {
   protected readonly pagedBooks = computed(() => {
     const start = this.currentPage() * this.pageSize();
     return this.filteredBooks().slice(start, start + this.pageSize());
-  });
+  });*/
 
   ngOnInit(): void {
     const parsedFilters: BookFilters | null = this.getSavedFilters();
@@ -151,11 +160,72 @@ export class BooksComponent implements OnInit {
       this.isFilterOpen.set(false);
     }
 
-    this.loadBooks(parsedFilters);
+    this.loadFilterBounds();
+    this.loadCatalogBooks();
     this.loadSidebarBooks();
   }
 
-  private loadBooks(parsedFilters: BookFilters | null): void {
+  private loadCatalogBooks(): void {
+    this.catalogLoading.set(true);
+
+    const filters: BookFilters = this.filters();
+
+    this.bookService.getFilteredBooks(
+      filters.searchTerm,
+      filters.availability,
+      filters.minPages,
+      filters.maxPages,
+      this.currentPage(),
+      this.pageSize(),
+      filters.sortBy,
+    ).subscribe({
+      next: (response: PaginatedResponse<Book>) => {
+        this.books.set(response.data);
+        this.pagingMeta.set(response.meta);
+        this.catalogLoading.set(false);
+      },
+      error: () => {
+        this.catalogLoading.set(false);
+        this.toastService.show('De catalogus kon niet worden geladen.', 'error');
+      },
+    });
+  }
+
+  private loadFilterBounds(): void {
+    this.bookService.getMaxPages().subscribe({
+      next: (max: number) => {
+        this.absoluteMaxPages.set(max);
+
+        if (this.filters().maxPages === null) {
+          this.filters.update((current: BookFilters) => ({
+            ...current,
+            maxPages: max,
+          }));
+        }
+      },
+      error: () => {
+        this.toastService.show('Maximum aantal pagina’s kon niet worden geladen.', 'error');
+      },
+    });
+
+    this.bookService.getMinPages().subscribe({
+      next: (min: number) => {
+        this.absoluteMinPages.set(min);
+
+        if (this.filters().minPages === null) {
+          this.filters.update((current: BookFilters) => ({
+            ...current,
+            minPages: min,
+          }));
+        }
+      },
+      error: () => {
+        this.toastService.show('Minimum aantal pagina’s kon niet worden geladen.', 'error');
+      },
+    });
+  }
+
+  /* private loadBooks(parsedFilters: BookFilters | null): void {
     this.bookService.getMaxPages().subscribe((max) => {
       this.absoluteMaxPages.set(max);
       if (!parsedFilters || parsedFilters.maxPages === null) {
@@ -173,7 +243,7 @@ export class BooksComponent implements OnInit {
     this.bookService.getBooks().subscribe((data) => {
       this.books.set(data);
     });
-  }
+  } */
 
   private loadSidebarBooks(): void {
     this.bookService.getMostReadBooks(3).subscribe({
@@ -208,6 +278,7 @@ export class BooksComponent implements OnInit {
       searchTerm,
     }));
     this.currentPage.set(0);
+    this.loadCatalogBooks();
   }
 
   public updateAvailability(availability: BookFilters['availability']): void {
@@ -216,6 +287,7 @@ export class BooksComponent implements OnInit {
       availability,
     }));
     this.currentPage.set(0);
+    this.loadCatalogBooks();
   }
 
   public updateSortBy(sortBy: BookFilters['sortBy']): void {
@@ -224,6 +296,7 @@ export class BooksComponent implements OnInit {
       sortBy,
     }));
     this.currentPage.set(0);
+    this.loadCatalogBooks();
   }
 
   public updateMaxPages(event: Event): void {
@@ -242,6 +315,7 @@ export class BooksComponent implements OnInit {
       maxPages: newMax,
     }));
     this.currentPage.set(0);
+    this.loadCatalogBooks();
   }
 
    public updateMinPages(event: Event): void {
@@ -260,6 +334,7 @@ export class BooksComponent implements OnInit {
       minPages: newMin,
     }));
     this.currentPage.set(0);
+    this.loadCatalogBooks();
   }
 
   resetFilters(): void {
@@ -267,10 +342,10 @@ export class BooksComponent implements OnInit {
 
     this.filters.set({
       searchTerm: '',
-      availability: 'Alle Boeken',
+      availability: 'ALL',
       minPages: this.absoluteMinPages(),
       maxPages: this.absoluteMaxPages(),
-      sortBy: 'az',
+      sortBy: 'AZ',
     });
     this.currentPage.set(0);
   }
@@ -321,5 +396,6 @@ export class BooksComponent implements OnInit {
 
   public onPageChange(page: number): void {
     this.currentPage.set(page);
+    this.loadCatalogBooks();
   }
 }

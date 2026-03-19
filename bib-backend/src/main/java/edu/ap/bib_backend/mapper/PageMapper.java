@@ -10,7 +10,7 @@ public class PageMapper {
         return new PaginatedMeta(
                 page.getNumber(), // currentPage
                 page.getSize(), // pageSize
-                (int) page.getTotalElements(), // totalItems
+                page.getTotalElements(), // totalItems
                 page.getTotalPages() // totalPages
         );
     }
