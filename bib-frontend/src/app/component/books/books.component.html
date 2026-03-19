@@ -5,7 +5,7 @@
       <lucide-icon [img]="Search" class="hero-search-icon" [size]="20"></lucide-icon>
       <input
         type="text"
-        [ngModel]="filters().searchTerm"
+        [ngModel]="searchInput()"
         (ngModelChange)="updateSearchTerm($event)"
         placeholder="Zoek op titel of auteur..."
         class="hero-search-input"
