@@ -11,8 +11,8 @@
     </p>
     </div>
   </div>
-  <form (ngSubmit)="save()" class="book-form">
-    <div class="form-section">
+    <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
+      <div class="form-section">
       <div class="form-row">
         <div class="form-group">
           <label>Titel *</label>
@@ -57,9 +57,10 @@
     </div>
 
     <div class="form-actions">
-      <button type="button" class="btn-submit">         
+      <button type="submit" class="btn-submit" [disabled]="!bookForm.form.valid">
         <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-          Boek Toevoegen</button>
+        Boek Toevoegen
+      </button>
     </div>
   </form>
 </div>

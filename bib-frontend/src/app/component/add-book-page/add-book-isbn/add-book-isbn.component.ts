@@ -7,11 +7,12 @@ import { Availability } from '../../../model/enums/availability.enum';
 import { CheckCircle, Info, LucideAngularModule, Plus, Search } from "lucide-angular";
 import { BookCandidate } from '../../../model/book-candidate.model';
 import { ToastService } from '../../../services/Toast/toast.service';
+import { LoadingOverlayComponent } from "../../shared/loading-overlay/loading-overlay.component";
 
 @Component({
   selector: 'app-add-book-isbn',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule],
+  imports: [FormsModule, LucideAngularModule, LoadingOverlayComponent],
   templateUrl: './add-book-isbn.component.html',
   styleUrl: './add-book-isbn.component.css'
   
@@ -44,7 +45,7 @@ export class AddBookISBNComponent {
   }
   searchBookData() {
   const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
-
+  this.isLoading = true;
     if (normalizedIsbn.length === 13) {
       this.isbn = normalizedIsbn;
       this.searchByISBN();
@@ -78,9 +79,11 @@ export class AddBookISBNComponent {
     this.bs.getBookByISBN(this.isbn).subscribe({
       next: (data) => {
         this.book = data;
+        this.isLoading = false;
         this.ts.show('Boek gevonden.');
       },
       error: (err) => {
+        this.isLoading = false;
         this.ts.show('Geen boek gevonden op basis van ISBN.', 'error');
       }
     });
@@ -103,14 +106,20 @@ export class AddBookISBNComponent {
       this.book.releaseYear
     ).subscribe({
       next: (results: BookCandidate[]) => {
-        this.candidates = results;
-        this.showCandidates = true;
-        this.isLoading = false;
-
         if (results.length === 0) {
+          this.isLoading = false;
           this.ts.show('Geen boek gevonden.', 'error');
           return;
         }
+
+        if (results.length === 1) {
+          this.ts.show('1 boek gevonden. Gegevens worden automatisch ingevuld.');
+          this.selectCandidate(results[0]);
+          return;
+        }
+        this.candidates = results;
+        this.showCandidates = true;
+        this.isLoading = false;
 
         this.ts.show(`${results.length} boek(en) gevonden.`);
       },
@@ -131,6 +140,7 @@ export class AddBookISBNComponent {
         this.showCandidates = false;
         this.candidates = [];
         this.isLoading = false;
+        this.ts.show('Boekgegevens ingevuld.');
       },
       error: () => {
         this.isLoading = false;

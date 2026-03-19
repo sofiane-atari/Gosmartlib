@@ -1,0 +1,65 @@
+.overlay-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* Dim de achtergrond */
+  backdrop-filter: blur(2px); /* Optioneel: vervaag achtergrond */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* Zorg dat het overal bovenop ligt */
+  animation: fadeIn 0.2s ease-out;
+}
+
+.loader-card {
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* De Spinner Animatie */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #8a1e41; /* Jouw bordeaux kleur */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loader-card p {
+  margin: 0;
+  font-weight: 700;
+  color: #333;
+  font-size: 1rem;
+}
+
+.sub-text {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

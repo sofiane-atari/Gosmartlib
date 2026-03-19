@@ -110,24 +110,43 @@ body {
 .form-actions {
   display: flex;
   gap: 0.75rem;
-  padding: 1rem 0 0;
+  padding: 1rem 0;
+  margin-top: 1.5rem;
 }
 
 .btn-submit {
-  background: #8a1e41;
-  color: #fff5f8;
-  border: none;
-  padding: 0.6rem 1.5rem; /* Slimmer button */
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.6rem 1.5rem; /* Iets meer ademruimte */
+  font-size: 0.85rem;
   font-weight: 700;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.85rem;
+  line-height: 1;
+  white-space: nowrap;
+
+  /* Kleuren uit je eerste voorbeeld */
+  background: #8a1e41;
+  color: #fff5f8;
+  border: 1px solid #8a1e41;
 }
 
-.btn-submit:hover {
+.btn-submit:hover:not(:disabled) {
   background: #bc808b;
+  border-color: #bc808b;
   transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(138, 30, 65, 0.2);
+}
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-icon {
+  width: 16px;
+  height: 16px;
 }
 /* Dit zorgt ervoor dat de Cover URL, Beschrijving en Genres de hele breedte pakken */
 .form-group.full-width {
