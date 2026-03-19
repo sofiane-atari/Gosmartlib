@@ -121,6 +121,11 @@ public class BookService {
         return max != null ? max : 1500;
     }
 
+    public Integer getMinPages() {
+        Integer min = br.findMinPages();
+        return min != null ? min : 0;
+    }
+
     public List<BookDTO> getMostReadBooks(int limit) {
         List<Book> books = br.findMostReadBook(limit);
 

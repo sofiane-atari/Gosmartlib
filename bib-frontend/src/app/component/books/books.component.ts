@@ -18,6 +18,7 @@ import {
 } from 'lucide-angular';
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
 import { PagingComponent } from '../paging/paging.component';
+import { min } from 'rxjs';
 
 @Component({
   selector: 'app-books',
@@ -51,6 +52,7 @@ export class BooksComponent implements OnInit {
   mostReadLoading = signal<boolean>(true);
   newestLoading = signal<boolean>(true);
   absoluteMaxPages = signal<number>(0);
+  absoluteMinPages = signal<number>(0)
 
   constructor() {
     effect(() => {
@@ -74,6 +76,7 @@ export class BooksComponent implements OnInit {
   protected readonly filters = signal<BookFilters>({
     searchTerm: '',
     availability: 'Alle Boeken',
+    minPages: null,
     maxPages: null,
     sortBy: 'az',
   });
@@ -93,10 +96,10 @@ export class BooksComponent implements OnInit {
         availabilityMatch = book.availability === 'AVAILABLE';
       }
 
-      const maxPagesMatch =
-        currentFilters.maxPages === null || book.pages <= currentFilters.maxPages;
+      const minPagesMatch = currentFilters.minPages === null || book.pages >= currentFilters.minPages;
+      const maxPagesMatch = currentFilters.maxPages === null || book.pages <= currentFilters.maxPages;
 
-      return searchMatch && availabilityMatch && maxPagesMatch;
+      return searchMatch && availabilityMatch && minPagesMatch && maxPagesMatch;
     });
 
     const sortBy = currentFilters.sortBy;
@@ -156,10 +159,14 @@ export class BooksComponent implements OnInit {
     this.bookService.getMaxPages().subscribe((max) => {
       this.absoluteMaxPages.set(max);
       if (!parsedFilters || parsedFilters.maxPages === null) {
-        this.filters.update((current: BookFilters) => ({
-          ...current,
-          maxPages: max,
-        }));
+        this.filters.update((c) => ({ ...c, maxPages: max }));
+      }
+    });
+
+    this.bookService.getMinPages().subscribe((min) => {
+      this.absoluteMinPages.set(min);
+      if (!parsedFilters || parsedFilters.minPages === null) {
+        this.filters.update((c) => ({ ...c, minPages: min }));
       }
     });
 
@@ -219,10 +226,38 @@ export class BooksComponent implements OnInit {
     this.currentPage.set(0);
   }
 
-  public updateMaxPages(maxPages: number): void {
+  public updateMaxPages(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let newMax = Number(input.value);
+    
+    const currentMin = this.filters().minPages ?? this.absoluteMinPages();
+
+    if (newMax < currentMin) {
+      newMax = currentMin;
+      input.value = String(newMax); 
+    }
+
     this.filters.update((current: BookFilters) => ({
       ...current,
-      maxPages: Number(maxPages),
+      maxPages: newMax,
+    }));
+    this.currentPage.set(0);
+  }
+
+   public updateMinPages(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let newMin = Number(input.value);
+    
+    const currentMax = this.filters().maxPages ?? this.absoluteMaxPages();
+
+    if (newMin > currentMax) {
+      newMin = currentMax;
+      input.value = String(newMin); 
+    }
+
+    this.filters.update((current: BookFilters) => ({
+      ...current,
+      minPages: newMin,
     }));
     this.currentPage.set(0);
   }
@@ -233,6 +268,7 @@ export class BooksComponent implements OnInit {
     this.filters.set({
       searchTerm: '',
       availability: 'Alle Boeken',
+      minPages: this.absoluteMinPages(),
       maxPages: this.absoluteMaxPages(),
       sortBy: 'az',
     });

@@ -65,10 +65,24 @@
         </div>
 
         <div class="filter-item">
-          <label>Max Pagina's: <span class="highlight">{{ filters().maxPages }}</span></label>
-          <div class="slider-wrapper">
-            @if(absoluteMaxPages() > 0){
-              <input type="range" [min]="0" [max]="absoluteMaxPages()" [ngModel]="filters().maxPages"(ngModelChange)="updateMaxPages($event)" class="panel-slider">
+          <label>Pagina's: <span class="highlight">{{ filters().minPages }} - {{ filters().maxPages }}</span></label>
+          <div class="multi-slider-wrapper">
+            <div class="multi-slider-track"></div>
+            
+            @if(absoluteMaxPages() > 0) {
+              <input type="range" 
+                    [min]="absoluteMinPages()"
+                    [max]="absoluteMaxPages()"
+                    [value]="filters().minPages !== null ? filters().minPages : absoluteMinPages()"
+                    (input)="updateMinPages($event)" 
+                    class="multi-slider min-slider">
+                    
+              <input type="range" 
+                    [min]="absoluteMinPages()"
+                    [max]="absoluteMaxPages()"
+                    [value]="filters().maxPages !== null ? filters().maxPages : absoluteMaxPages()"
+                    (input)="updateMaxPages($event)" 
+                    class="multi-slider max-slider">
             }
           </div>
         </div>

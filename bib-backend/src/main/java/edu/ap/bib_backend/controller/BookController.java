@@ -55,6 +55,11 @@ public class BookController {
         return ResponseEntity.ok(bs.getMaxPages());
     }
 
+    @GetMapping("/pages/min")
+    public ResponseEntity<Integer> getMinPages() {
+        return ResponseEntity.ok(bs.getMinPages());
+    }
+
     @GetMapping("/most-read")
     public ResponseEntity<List<BookDTO>> getMostReadBooks(
             @RequestParam(defaultValue = "3", required = false) int limit) {

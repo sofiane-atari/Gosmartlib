@@ -29,6 +29,10 @@ export class BookService {
     return this.http.get<number>(`${this.apiUrl}/pages/max`);
   }
 
+  getMinPages(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/pages/min`);
+  }
+
   getMostReadBooks(limit: number = 3): Observable<Book[]> {
     return this.http.get<Book[]>(`${this.apiUrl}/most-read?limit=${limit}`);
   }

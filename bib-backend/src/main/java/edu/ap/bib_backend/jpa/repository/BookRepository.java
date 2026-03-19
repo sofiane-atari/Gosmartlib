@@ -15,6 +15,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("SELECT MAX(b.pages) FROM Book b")
     Integer findMaxPages();
 
+    @Query("SELECT MIN(b.pages) FROM Book b")
+    Integer findMinPages();
+
     @Query("""
             SELECT b FROM Book b
             JOIN b.bookCopies bc
