@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/api/labels")
+@RequestMapping("/labels")
 public class LabelController {
 
     private final LabelService labelService;
