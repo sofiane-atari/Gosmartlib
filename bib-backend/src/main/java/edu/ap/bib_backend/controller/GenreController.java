@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.controller;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import edu.ap.bib_backend.dto.LabelDTO;
-import edu.ap.bib_backend.dto.LabelStatsDTO;
+import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.dto.GenreStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.options.LabelGetOptions;
-import edu.ap.bib_backend.service.LabelService;
+import edu.ap.bib_backend.service.GenreService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,19 +25,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/api/labels")
-public class LabelController {
+@RequestMapping("/api/genres")
+public class GenreController {
 
-    private final LabelService labelService;
+    private final GenreService genreService;
 
-    public LabelController(LabelService labelService) {
-        this.labelService = labelService;
+    public GenreController(GenreService genreService) {
+        this.genreService = genreService;
     }
 
     @PostMapping
-    public ResponseEntity<LabelDTO> createLabel(@Valid @RequestBody LabelDTO entity) {
+    public ResponseEntity<GenreDTO> createLabel(@Valid @RequestBody GenreDTO entity) {
 
-        LabelDTO createdLabel = labelService.createLabel(entity);
+        GenreDTO createdLabel = genreService.createLabel(entity);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{name}")
                 .buildAndExpand(createdLabel.name()).toUri();
@@ -45,35 +46,40 @@ public class LabelController {
     }
 
     @GetMapping
-    public ResponseEntity<PageDTO<LabelDTO>> getPage(
+    public ResponseEntity<PageDTO<GenreDTO>> getPage(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @ModelAttribute LabelGetOptions options) {
 
-        PageDTO<LabelDTO> pageDTO = labelService.getPage(page, pageSize, options);
+        PageDTO<GenreDTO> pageDTO = genreService.getPage(page, pageSize, options);
 
         return ResponseEntity.ok(pageDTO);
+    }
+
+    @GetMapping("/all")
+    public List<GenreDTO> getAllGenres() {
+        return genreService.getAllGenres();
     }
 
     // params starting with underscore are preserved params to avoid conflict of a
     // entity with the same name
     @GetMapping("_stats")
-    public ResponseEntity<LabelStatsDTO> getLabelStats() {
+    public ResponseEntity<GenreStatsDTO> getLabelStats() {
 
-        return ResponseEntity.ok(labelService.getAllLabelStats());
+        return ResponseEntity.ok(genreService.getAllGenreStats());
     }
 
     @DeleteMapping("/{name}")
     public ResponseEntity<Void> delete(@PathVariable String name) {
 
-        labelService.deleteById(name);
+        genreService.deleteById(name);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{name}")
-    public ResponseEntity<LabelDTO> putMethodName(@PathVariable String name, @Valid @RequestBody LabelDTO inputDTO) {
+    public ResponseEntity<GenreDTO> putMethodName(@PathVariable String name, @Valid @RequestBody GenreDTO inputDTO) {
 
-        LabelDTO outputDTO = labelService.update(name, inputDTO);
+        GenreDTO outputDTO = genreService.update(name, inputDTO);
         return ResponseEntity.ok(outputDTO);
     }
 }

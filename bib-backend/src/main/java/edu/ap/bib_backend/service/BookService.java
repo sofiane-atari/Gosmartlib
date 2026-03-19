@@ -19,8 +19,10 @@ import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
+import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -35,14 +37,16 @@ public class BookService {
     private final BookRepository br;
     private final RestTemplate restTemplate;
     private final BookCopyRepository bcr;
+    private final GenreRepository gr;
 
     public BookService(
             BookRepository repo,
-            BookCopyRepository bcr,
+            BookCopyRepository bcr, GenreRepository gr,
             @Value("${google.books.api.key}") String googleBooksApiKey) {
         this.br = repo;
         this.bcr = bcr;
         this.restTemplate = new RestTemplate();
+        this.gr = gr;
         this.googleBooksApiKey = googleBooksApiKey;
     }
 
@@ -80,30 +84,52 @@ public class BookService {
     private BookDTO mapToDTO(Book book) {
         BookDTO dto = new BookDTO();
         dto.setId(book.getId());
+        dto.setISBN(book.getISBN());
         dto.setTitle(book.getTitle());
         dto.setAuthor(book.getAuthor());
-        dto.setISBN(book.getISBN());
         dto.setPages(book.getPages());
         dto.setImageUrl(book.getImageUrl());
         dto.setDescription(book.getDescription());
         dto.setReleaseYear(book.getReleaseYear());
-        dto.setReviewScore(book.getReviewScore() != null ? book.getReviewScore() : 0.0);
+        dto.setReviewScore(book.getReviewScore());
+        dto.setAddedDate(book.getAddedDate());
+        dto.setGenres(
+                book.getGenres().stream()
+                        .map(Genre::getName)
+                        .toList());
         return dto;
     }
 
     private Book mapToEntity(BookDTO dto) {
         Book book = new Book();
-
-        book.setId(dto.getId());
+        book.setISBN(dto.getISBN());
         book.setTitle(dto.getTitle());
         book.setAuthor(dto.getAuthor());
-        book.setISBN(dto.getISBN());
         book.setPages(dto.getPages());
         book.setImageUrl(dto.getImageUrl());
         book.setDescription(dto.getDescription());
         book.setReleaseYear(dto.getReleaseYear());
-
+        book.setGenres(mapGenres(dto.getGenres()));
         return book;
+    }
+
+    private List<Genre> mapGenres(List<String> genreNames) {
+        if (genreNames == null) {
+            return new ArrayList<>();
+        }
+
+        return genreNames.stream()
+                .map(String::trim)
+                .filter(name -> !name.isBlank())
+                .distinct()
+                .map(name -> gr.findById(name).orElseGet(() -> {
+                    Genre genre = new Genre();
+                    genre.setName(name);
+                    genre.setColor("#808080");
+                    genre.setDescription(null);
+                    return gr.save(genre);
+                }))
+                .toList();
     }
 
     public BookDTO getBookById(Long id) {

@@ -1,10 +1,10 @@
-export interface Label {
+export interface Genre {
   name: string;
   color: string;
   description: string;
   booksCount?: number;
 }
-export interface LabelStats {
+export interface GenreStats {
   totalItems: number;
   unActiveLabels: number;
 }

@@ -1,10 +1,10 @@
-import { PageingOpt } from './../../model/paginated-response.model.ts';
+import { PageingOpt } from '../../model/paginated-response.model.ts.js';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, Signal, signal } from '@angular/core';
-import { environment } from '../../../environments/environment';
-import { Label, LabelStats } from '../../model/label.model';
+import { environment } from '../../../environments/environment.js';
+import { Genre, GenreStats } from '../../model/genre.model.js';
 import { Observable } from 'rxjs';
-import { PaginatedResponse } from '../../model/paginated-response.model.ts';
+import { PaginatedResponse } from '../../model/paginated-response.model.ts.js';
 import { Search } from 'lucide-angular';
 
 export interface labelGetOpt {
@@ -21,26 +21,20 @@ export interface labelGetOptWithPaging {
 @Injectable({
   providedIn: 'root',
 })
-export class LabelService {
+export class GenreService {
   private http = inject(HttpClient);
-  private url = `${environment.apiUrl}/labels`;
+  private url = `${environment.apiUrl}/genres`;
 
-  public createLabel(label: Label): Observable<Label> {
-    return this.http.post<Label>(this.url, label);
+  public createLabel(genre: Genre): Observable<Genre> {
+    return this.http.post<Genre>(this.url, genre);
   }
-  public getLabels(opt?: labelGetOpt): Observable<Label[]> {
-    const params = new HttpParams({
-      fromObject: {
-        includeBookCount: String(opt?.includeBookCount),
-      },
-    });
-
-    return this.http.get<Label[]>(this.url, { params });
+  getLabels() {
+    return this.http.get<Genre[]>(`${this.url}/all`);
   }
 
   public getLabelsByPage(
     opt: labelGetOptWithPaging,
-  ): Observable<PaginatedResponse<Label>> {
+  ): Observable<PaginatedResponse<Genre>> {
     let params = new HttpParams({
       fromObject: {
         includeBookCount: String(opt.labelGetOpt?.includeBookCount ?? false),
@@ -59,19 +53,19 @@ export class LabelService {
       params = params.set('bookCount', opt.labelGetOpt.bookCount);
     }
 
-    return this.http.get<PaginatedResponse<Label>>(this.url, { params });
+    return this.http.get<PaginatedResponse<Genre>>(this.url, { params });
   }
 
-  public getLabelStats(): Observable<LabelStats> {
-    return this.http.get<LabelStats>(`${this.url}/_stats`);
+  public getLabelStats(): Observable<GenreStats> {
+    return this.http.get<GenreStats>(`${this.url}/_stats`);
   }
 
   public deleteLabelByName(name: string) {
     return this.http.delete<void>(`${this.url}/${encodeURIComponent(name)}`);
   }
 
-  public updateLabel(label: Label): Observable<Label> {
-    return this.http.put<Label>(
+  public updateLabel(label: Genre): Observable<Genre> {
+    return this.http.put<Genre>(
       `${this.url}/${encodeURIComponent(label.name)}`,
       label,
     );

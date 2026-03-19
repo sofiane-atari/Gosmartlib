@@ -60,8 +60,8 @@ public class Book {
     }
 
     @ManyToMany
-    @JoinTable(name = "book_labels", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "label_name"))
-    private List<Label> labels = new ArrayList<>();
+    @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "genre_name"))
+    private List<Genre> genres = new ArrayList<>();
 
     @OneToMany(mappedBy = "book")
     private List<BookCopy> bookCopies = new ArrayList<>();

@@ -144,9 +144,14 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.btn-icon {
+.btn-submit .btn-icon {
   width: 16px;
   height: 16px;
+  /* Verplaats het icoon 1 of 2 pixels omhoog zonder de tekst te beïnvloeden */
+  transform: translateY(-5px);
+
+  /* Alternatieve methode als translateY niet bevalt: */
+  /* margin-bottom: 2px; */
 }
 /* Dit zorgt ervoor dat de Cover URL, Beschrijving en Genres de hele breedte pakken */
 .form-group.full-width {

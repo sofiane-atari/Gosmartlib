@@ -11,23 +11,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import edu.ap.bib_backend.jpa.entity.Book;
-import edu.ap.bib_backend.jpa.entity.Label;
-import edu.ap.bib_backend.jpa.repository.LabelRepository;
-import edu.ap.bib_backend.projection.LabelWithCount;
+import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.projection.GenreWithCount;
 
 @DataJpaTest
 @ActiveProfiles("test")
 class LabelRepositoryTest {
 
     @Autowired
-    private LabelRepository labelRepository;
+    private GenreRepository labelRepository;
 
     @Autowired
     private TestEntityManager entityManager;
 
     // Helper to create test data
-    private Label createLabel(String name, String color, String description) {
-        Label label = new Label();
+    private Genre createLabel(String name, String color, String description) {
+        Genre label = new Genre();
         label.setName(name);
         label.setColor(color);
         label.setDescription(description);
@@ -40,20 +40,20 @@ class LabelRepositoryTest {
     void findAllIncludeBookCount_shouldReturnLabelsWithCorrectCount() {
 
         // Arrange
-        Label label = createLabel("Fiction", "#FF0000", "Fiction books");
+        Genre label = createLabel("Fiction", "#FF0000", "Fiction books");
 
         Book book = new Book();
         book.setTitle("Test Book");
 
         // Add to both sides of the relationship (owning side is Book.labels)
-        book.getLabels().add(label);
+        book.getGenres().add(label);
         label.getBooks().add(book);
 
         entityManager.persistAndFlush(book);
         entityManager.persistAndFlush(label);
 
         // Act
-        Page<LabelWithCount> result = labelRepository.findAllIncludeBookCount(PageRequest.of(0, 10));
+        Page<GenreWithCount> result = labelRepository.findAllIncludeBookCount(PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -68,7 +68,7 @@ class LabelRepositoryTest {
         createLabel("Empty", "#0000FF", "No books here");
 
         // Act
-        Page<LabelWithCount> result = labelRepository.findAllIncludeBookCount(PageRequest.of(0, 10));
+        Page<GenreWithCount> result = labelRepository.findAllIncludeBookCount(PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent().get(0).getBookCount()).isEqualTo(0);
@@ -84,7 +84,7 @@ class LabelRepositoryTest {
         createLabel("Fiction", "#FF0000", "Fiction stuff");
 
         // Act
-        Page<LabelWithCount> result = labelRepository.findAllFiltered("Sci", null, PageRequest.of(0, 10));
+        Page<GenreWithCount> result = labelRepository.findAllFiltered("Sci", null, PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -99,7 +99,7 @@ class LabelRepositoryTest {
         createLabel("Label2", "#FF0000", "Other text");
 
         // Act
-        Page<LabelWithCount> result = labelRepository.findAllFiltered("Unique", null, PageRequest.of(0, 10));
+        Page<GenreWithCount> result = labelRepository.findAllFiltered("Unique", null, PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -113,7 +113,7 @@ class LabelRepositoryTest {
         createLabel("EmptyLabel", "#0000FF", "no books");
 
         // Act
-        Page<LabelWithCount> result = labelRepository.findAllFiltered("", 0, PageRequest.of(0, 10));
+        Page<GenreWithCount> result = labelRepository.findAllFiltered("", 0, PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent())
@@ -127,7 +127,7 @@ class LabelRepositoryTest {
         createLabel("Fiction", "#FF0000", "desc");
 
         // Act
-        Page<LabelWithCount> result = labelRepository.findAllFiltered("NOMATCH", null, PageRequest.of(0, 10));
+        Page<GenreWithCount> result = labelRepository.findAllFiltered("NOMATCH", null, PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).isEmpty();
@@ -143,7 +143,7 @@ class LabelRepositoryTest {
         createLabel("Romance", "#FFC0CB", "Love stories");
 
         // Act
-        Page<Label> result = labelRepository.searchByNamerOrDescriptionOrColor("Hor", PageRequest.of(0, 10));
+        Page<Genre> result = labelRepository.searchByNamerOrDescriptionOrColor("Hor", PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -158,7 +158,7 @@ class LabelRepositoryTest {
         createLabel("Label2", "#FF0000", "other desc");
 
         // Act
-        Page<Label> result = labelRepository.searchByNamerOrDescriptionOrColor("#00008B", PageRequest.of(0, 10));
+        Page<Genre> result = labelRepository.searchByNamerOrDescriptionOrColor("#00008B", PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -171,7 +171,7 @@ class LabelRepositoryTest {
         createLabel("Label1", "#FF0000", "very unique desc");
 
         // Act
-        Page<Label> result = labelRepository.searchByNamerOrDescriptionOrColor("unique", PageRequest.of(0, 10));
+        Page<Genre> result = labelRepository.searchByNamerOrDescriptionOrColor("unique", PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -185,7 +185,7 @@ class LabelRepositoryTest {
         createLabel("B", "#0000FF", "desc");
 
         // Act
-        Page<Label> result = labelRepository.searchByNamerOrDescriptionOrColor("", PageRequest.of(0, 10));
+        Page<Genre> result = labelRepository.searchByNamerOrDescriptionOrColor("", PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(2);

@@ -1,8 +1,8 @@
 import { Component, DestroyRef, inject, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Label } from '../../model/label.model';
-import { LabelService } from '../../services/label/label.service';
+import { Genre } from '../../model/genre.model';
+import { GenreService } from '../../services/genre/genre.service';
 import { HttpBackend, HttpErrorResponse } from '@angular/common/http';
 import { HttpErrorResponseError } from '../../error-reponse.model';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -16,7 +16,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 })
 export class CreateLabelComponent {
   private formBuilder = inject(FormBuilder);
-  private service = inject(LabelService);
+  private service = inject(GenreService);
   private destroyRef = inject(DestroyRef);
   private sanitizer = inject(DomSanitizer);
 
@@ -44,7 +44,7 @@ export class CreateLabelComponent {
         name: this.labelForm.value.name,
         color: this.labelForm.value.color,
         description: this.labelForm.value.description,
-      } as Label)
+      } as Genre)
 
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

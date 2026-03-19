@@ -6,6 +6,8 @@ import { Book } from '../../model/book.model';
 import { Availability } from '../../model/enums/availability.enum';
 import { BookService } from '../../services/BookService/book.service';
 import { Router } from '@angular/router';
+import { GenreService } from '../../services/genre/genre.service';
+import { Genre } from '../../model/genre.model';
 
 @Component({
   selector: 'app-add-book-page',
@@ -16,8 +18,10 @@ import { Router } from '@angular/router';
 })
 export class AddBookPageComponent {
 mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
+  genres: string[] = [];
+  isLoadingGenres = false;
 
-  constructor(private bs: BookService, private rt: Router){}
+  constructor(private bs: BookService, private rt: Router, private gs: GenreService){}
   
     book: Book = {
     title: '',
@@ -26,12 +30,30 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
+    genres: []
   };
-  
+
+  ngOnInit(): void {
+    this.loadGenres();
+  }
+
+  loadGenres(): void {
+    this.isLoadingGenres = true;
+
+    this.gs.getLabels().subscribe({
+      next: (labels: Genre[]) => {
+        this.genres = labels.map(label => label.name);
+        this.isLoadingGenres = false;
+      },
+      error: (err) => {
+        this.isLoadingGenres = false;
+      }
+    });
+  }
   addBook(event: Book) {
   const bookToSave = event ?? this.book; // gebruik event als het bestaat, anders fallback
 
-    this.bs.addBook(event).subscribe({
+    this.bs.addBook(bookToSave).subscribe({
       next: () => {
       this.rt.navigate(['/catalog']);
       },

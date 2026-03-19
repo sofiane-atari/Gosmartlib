@@ -9,8 +9,8 @@ import {
   inject,
   DestroyRef,
 } from '@angular/core';
-import { Label } from '../../model/label.model';
-import { LabelService } from '../../services/label/label.service';
+import { Genre } from '../../model/genre.model';
+import { GenreService } from '../../services/genre/genre.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpErrorResponseError } from '../../error-reponse.model';
@@ -24,13 +24,13 @@ import { ToastService } from '../../services/Toast/toast.service';
   styleUrls: ['./label-card.component.css'],
 })
 export class LabelCardComponent {
-  public label = input.required<Label>();
+  public label = input.required<Genre>();
 
   public deletedSuccess = output<string>();
   public deletionError = output<HttpErrorResponseError>();
-  public editLabel = output<Label>();
+  public editLabel = output<Genre>();
 
-  private service = inject(LabelService);
+  private service = inject(GenreService);
   private destroyRef = inject(DestroyRef);
   private toastService = inject(ToastService);
 

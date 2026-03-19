@@ -1,17 +1,17 @@
 package edu.ap.bib_backend;
 
-import edu.ap.bib_backend.dto.LabelDTO;
-import edu.ap.bib_backend.dto.LabelStatsDTO;
+import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.dto.GenreStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
-import edu.ap.bib_backend.jpa.entity.Label;
-import edu.ap.bib_backend.jpa.repository.LabelRepository;
-import edu.ap.bib_backend.mapper.LabelMapper;
+import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.mapper.GenreMapper;
 import edu.ap.bib_backend.options.LabelGetOptions;
-import edu.ap.bib_backend.projection.LabelProjection;
-import edu.ap.bib_backend.projection.LabelWithCount;
-import edu.ap.bib_backend.service.LabelService;
+import edu.ap.bib_backend.projection.GenreProjection;
+import edu.ap.bib_backend.projection.GenreWithCount;
+import edu.ap.bib_backend.service.GenreService;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,24 +35,24 @@ import static org.mockito.Mockito.*;
 class LabelServiceTest {
 
         @Mock
-        private LabelRepository labelRepository;
+        private GenreRepository labelRepository;
 
         @Mock
-        private LabelMapper labelMapper;
+        private GenreMapper genreMapper;
 
         @InjectMocks
-        private LabelService labelService;
+        private GenreService labelService;
 
         // ==================== createLabel Tests ====================
 
         @Test
         void givenNullName_whenCreateLabel_thenThrowException() {
                 // Arrange
-                LabelDTO dto = LabelDTO.builder().name(null).color("#FF0000").description("Some description").build();
-                Label entity = new Label(null, "#FF0000", "Some description");
+                GenreDTO dto = GenreDTO.builder().name(null).color("#FF0000").description("Some description").build();
+                Genre entity = new Genre(null, "#FF0000", "Some description");
 
-                when(labelMapper.toEntity(dto)).thenReturn(entity);
-                when(labelRepository.save(any(Label.class)))
+                when(genreMapper.toEntity(dto)).thenReturn(entity);
+                when(labelRepository.save(any(Genre.class)))
                                 .thenThrow(new IllegalArgumentException("Label name must not be null"));
 
                 // Act
@@ -61,17 +61,17 @@ class LabelServiceTest {
 
                 // Assert
                 assertEquals("Label name must not be null", exception.getMessage());
-                verify(labelRepository, times(1)).save(any(Label.class));
+                verify(labelRepository, times(1)).save(any(Genre.class));
         }
 
         @Test
         void givenEmptyName_whenCreateLabel_thenThrowException() {
                 // Arrange
-                LabelDTO dto = LabelDTO.builder().name("").color("#FF0000").description("Some description").build();
-                Label entity = new Label("", "#FF0000", "Some description");
+                GenreDTO dto = GenreDTO.builder().name("").color("#FF0000").description("Some description").build();
+                Genre entity = new Genre("", "#FF0000", "Some description");
 
-                when(labelMapper.toEntity(dto)).thenReturn(entity);
-                when(labelRepository.save(any(Label.class)))
+                when(genreMapper.toEntity(dto)).thenReturn(entity);
+                when(labelRepository.save(any(Genre.class)))
                                 .thenThrow(new IllegalArgumentException("Label name must not be empty"));
 
                 // Act
@@ -80,13 +80,13 @@ class LabelServiceTest {
 
                 // Assert
                 assertEquals("Label name must not be empty", exception.getMessage());
-                verify(labelRepository, times(1)).save(any(Label.class));
+                verify(labelRepository, times(1)).save(any(Genre.class));
         }
 
         @Test
         void givenExistingLabel_whenCreateLabel_thenThrowException() {
                 // Arrange
-                LabelDTO dto = LabelDTO.builder().name("Fiction").color("#FF0000").description("Fiction books").build();
+                GenreDTO dto = GenreDTO.builder().name("Fiction").color("#FF0000").description("Fiction books").build();
 
                 when(labelRepository.existsById("Fiction")).thenReturn(true);
 
@@ -95,21 +95,21 @@ class LabelServiceTest {
                                 () -> labelService.createLabel(dto));
 
                 // Assert
-                verify(labelRepository, never()).save(any(Label.class));
+                verify(labelRepository, never()).save(any(Genre.class));
         }
 
         @Test
         void givenValidInput_whenCreateLabel_thenCreateSuccessfully() {
                 // Arrange
-                LabelDTO dto = LabelDTO.builder().name("Fiction").color("#FF0000").description("Fiction books").build();
-                Label entity = new Label("Fiction", "#FF0000", "Fiction books");
+                GenreDTO dto = GenreDTO.builder().name("Fiction").color("#FF0000").description("Fiction books").build();
+                Genre entity = new Genre("Fiction", "#FF0000", "Fiction books");
 
                 when(labelRepository.existsById("Fiction")).thenReturn(false);
-                when(labelMapper.toEntity(dto)).thenReturn(entity);
-                when(labelMapper.toDto(entity)).thenReturn(dto);
+                when(genreMapper.toEntity(dto)).thenReturn(entity);
+                when(genreMapper.toDto(entity)).thenReturn(dto);
 
                 // Act
-                LabelDTO result = labelService.createLabel(dto);
+                GenreDTO result = labelService.createLabel(dto);
 
                 // Assert
                 assertNotNull(result);
@@ -122,11 +122,11 @@ class LabelServiceTest {
         @Test
         void givenInvalidRequest_whenCreateLabel_thenThrowException() {
                 // Arrange
-                LabelDTO dto = LabelDTO.builder().build();
-                Label entity = new Label(null, null, null);
+                GenreDTO dto = GenreDTO.builder().build();
+                Genre entity = new Genre(null, null, null);
 
-                when(labelMapper.toEntity(dto)).thenReturn(entity);
-                when(labelRepository.save(any(Label.class)))
+                when(genreMapper.toEntity(dto)).thenReturn(entity);
+                when(labelRepository.save(any(Genre.class)))
                                 .thenThrow(new ConstraintViolationException("Validation failed", null));
 
                 // Act
@@ -134,7 +134,7 @@ class LabelServiceTest {
                                 () -> labelService.createLabel(dto));
 
                 // Assert
-                verify(labelRepository, times(1)).save(any(Label.class));
+                verify(labelRepository, times(1)).save(any(Genre.class));
         }
 
         // ==================== getPage Tests ====================
@@ -146,16 +146,16 @@ class LabelServiceTest {
                 int pageSize = 10;
                 LabelGetOptions options = new LabelGetOptions();
 
-                Label label = new Label("Test", "#FF0000", "Test description");
-                Page<Label> labelPage = new PageImpl<>(List.of(label),
+                Genre label = new Genre("Test", "#FF0000", "Test description");
+                Page<Genre> labelPage = new PageImpl<>(List.of(label),
                                 org.springframework.data.domain.PageRequest.of(page, pageSize), 1);
 
                 when(labelRepository.findAll(any(Pageable.class))).thenReturn(labelPage);
-                when(labelMapper.toDto(any(Label.class))).thenReturn(
-                                LabelDTO.builder().name("Test").color("#FF0000").description("Test desc").build());
+                when(genreMapper.toDto(any(Genre.class))).thenReturn(
+                                GenreDTO.builder().name("Test").color("#FF0000").description("Test desc").build());
 
                 // Act
-                PageDTO<LabelDTO> result = labelService.getPage(page, pageSize, options);
+                PageDTO<GenreDTO> result = labelService.getPage(page, pageSize, options);
 
                 // Assert
                 assertNotNull(result);
@@ -172,16 +172,16 @@ class LabelServiceTest {
                 LabelGetOptions options = new LabelGetOptions();
                 options.setIncludeBookCount(true);
 
-                LabelWithCount projection = mock(LabelWithCount.class);
-                Page<LabelWithCount> labelPage = new PageImpl<>(List.of(projection),
+                GenreWithCount projection = mock(GenreWithCount.class);
+                Page<GenreWithCount> labelPage = new PageImpl<>(List.of(projection),
                                 org.springframework.data.domain.PageRequest.of(page, pageSize), 1);
 
                 when(labelRepository.findAllFiltered(any(), any(), any(Pageable.class))).thenReturn(labelPage);
-                when(labelMapper.toDto(any(LabelProjection.class))).thenReturn(
-                                LabelDTO.builder().name("Test").color("#FF0000").description("Test desc").build());
+                when(genreMapper.toDto(any(GenreProjection.class))).thenReturn(
+                                GenreDTO.builder().name("Test").color("#FF0000").description("Test desc").build());
 
                 // Act
-                PageDTO<LabelDTO> result = labelService.getPage(page, pageSize, options);
+                PageDTO<GenreDTO> result = labelService.getPage(page, pageSize, options);
 
                 // Assert
                 assertNotNull(result);
@@ -198,18 +198,18 @@ class LabelServiceTest {
                 LabelGetOptions options = new LabelGetOptions();
                 options.setSearch("fiction");
 
-                Label label = new Label("Fiction", "#FF0000", "Fiction books");
-                Page<Label> labelPage = new PageImpl<>(List.of(label),
+                Genre label = new Genre("Fiction", "#FF0000", "Fiction books");
+                Page<Genre> labelPage = new PageImpl<>(List.of(label),
                                 org.springframework.data.domain.PageRequest.of(page, pageSize), 1);
 
                 when(labelRepository.searchByNamerOrDescriptionOrColor(eq("fiction"), any(Pageable.class)))
                                 .thenReturn(labelPage);
-                when(labelMapper.toDto(any(Label.class))).thenReturn(
-                                LabelDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
+                when(genreMapper.toDto(any(Genre.class))).thenReturn(
+                                GenreDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
                                                 .build());
 
                 // Act
-                PageDTO<LabelDTO> result = labelService.getPage(page, pageSize, options);
+                PageDTO<GenreDTO> result = labelService.getPage(page, pageSize, options);
 
                 // Assert
                 assertNotNull(result);
@@ -225,16 +225,16 @@ class LabelServiceTest {
                 LabelGetOptions options = new LabelGetOptions();
                 options.setBookCount(1);
 
-                LabelWithCount projection = mock(LabelWithCount.class);
-                Page<LabelWithCount> labelPage = new PageImpl<>(List.of(projection),
+                GenreWithCount projection = mock(GenreWithCount.class);
+                Page<GenreWithCount> labelPage = new PageImpl<>(List.of(projection),
                                 org.springframework.data.domain.PageRequest.of(page, pageSize), 1);
 
                 when(labelRepository.findAllFiltered(any(), eq(1), any(Pageable.class))).thenReturn(labelPage);
-                when(labelMapper.toDto(any(LabelProjection.class))).thenReturn(
-                                LabelDTO.builder().name("Test").color("#FF0000").description("Test desc").build());
+                when(genreMapper.toDto(any(GenreProjection.class))).thenReturn(
+                                GenreDTO.builder().name("Test").color("#FF0000").description("Test desc").build());
 
                 // Act
-                PageDTO<LabelDTO> result = labelService.getPage(page, pageSize, options);
+                PageDTO<GenreDTO> result = labelService.getPage(page, pageSize, options);
 
                 // Assert
                 assertNotNull(result);
@@ -247,21 +247,21 @@ class LabelServiceTest {
         @Test
         void givenLabelsExist_whenGetAllLabelStats_thenReturnCorrectStats() {
                 // Arrange
-                LabelWithCount label1 = mock(LabelWithCount.class);
-                LabelWithCount label2 = mock(LabelWithCount.class);
-                LabelWithCount label3 = mock(LabelWithCount.class);
+                GenreWithCount label1 = mock(GenreWithCount.class);
+                GenreWithCount label2 = mock(GenreWithCount.class);
+                GenreWithCount label3 = mock(GenreWithCount.class);
 
                 when(label1.getBookCount()).thenReturn(5);
                 when(label2.getBookCount()).thenReturn(0);
                 when(label3.getBookCount()).thenReturn(0);
 
-                List<LabelWithCount> labels = List.of(label1, label2, label3);
-                Page<LabelWithCount> labelPage = new PageImpl<>(labels);
+                List<GenreWithCount> labels = List.of(label1, label2, label3);
+                Page<GenreWithCount> labelPage = new PageImpl<>(labels);
 
                 when(labelRepository.findAllIncludeBookCount(any())).thenReturn(labelPage);
 
                 // Act
-                LabelStatsDTO result = labelService.getAllLabelStats();
+                GenreStatsDTO result = labelService.getAllGenreStats();
 
                 // Assert
                 assertNotNull(result);
@@ -273,12 +273,12 @@ class LabelServiceTest {
         @Test
         void givenNoLabels_whenGetAllLabelStats_thenReturnZeroStats() {
                 // Arrange
-                Page<LabelWithCount> emptyPage = new PageImpl<>(Collections.emptyList());
+                Page<GenreWithCount> emptyPage = new PageImpl<>(Collections.emptyList());
 
                 when(labelRepository.findAllIncludeBookCount(any())).thenReturn(emptyPage);
 
                 // Act
-                LabelStatsDTO result = labelService.getAllLabelStats();
+                GenreStatsDTO result = labelService.getAllGenreStats();
 
                 // Assert
                 assertNotNull(result);
@@ -290,19 +290,19 @@ class LabelServiceTest {
         @Test
         void givenAllLabelsHaveBooks_whenGetAllLabelStats_thenReturnCorrectStats() {
                 // Arrange
-                LabelWithCount label1 = mock(LabelWithCount.class);
-                LabelWithCount label2 = mock(LabelWithCount.class);
+                GenreWithCount label1 = mock(GenreWithCount.class);
+                GenreWithCount label2 = mock(GenreWithCount.class);
 
                 when(label1.getBookCount()).thenReturn(10);
                 when(label2.getBookCount()).thenReturn(5);
 
-                List<LabelWithCount> labels = List.of(label1, label2);
-                Page<LabelWithCount> labelPage = new PageImpl<>(labels);
+                List<GenreWithCount> labels = List.of(label1, label2);
+                Page<GenreWithCount> labelPage = new PageImpl<>(labels);
 
                 when(labelRepository.findAllIncludeBookCount(any())).thenReturn(labelPage);
 
                 // Act
-                LabelStatsDTO result = labelService.getAllLabelStats();
+                GenreStatsDTO result = labelService.getAllGenreStats();
 
                 // Assert
                 assertNotNull(result);
@@ -317,7 +317,7 @@ class LabelServiceTest {
         void givenExistingLabelName_whenDeleteById_thenDeleteSuccessfully() {
                 // Arrange
                 String labelName = "Fiction";
-                Label label = new Label(labelName, "#FF0000", "Fiction books");
+                Genre label = new Genre(labelName, "#FF0000", "Fiction books");
 
                 when(labelRepository.findById(labelName)).thenReturn(Optional.of(label));
                 doNothing().when(labelRepository).deleteById(labelName);
@@ -351,7 +351,7 @@ class LabelServiceTest {
         void givenLabelWithBooks_whenDeleteById_thenDeleteSuccessfully() {
                 // Arrange
                 String labelName = "Science";
-                Label label = new Label(labelName, "#0000FF", "Science books");
+                Genre label = new Genre(labelName, "#0000FF", "Science books");
 
                 when(labelRepository.findById(labelName)).thenReturn(Optional.of(label));
                 doNothing().when(labelRepository).deleteById(labelName);
@@ -370,35 +370,35 @@ class LabelServiceTest {
         void givenExistingLabel_whenUpdate_thenUpdateSuccessfully() {
                 // Arrange
                 String labelName = "Fiction";
-                LabelDTO inputDTO = LabelDTO.builder()
+                GenreDTO inputDTO = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#00FF00")
                                 .description("Updated fiction description")
                                 .build();
-                Label existingLabel = new Label(labelName, "#FF0000", "Original description");
-                Label updatedLabel = new Label(labelName, "#00FF00", "Updated fiction description");
+                Genre existingLabel = new Genre(labelName, "#FF0000", "Original description");
+                Genre updatedLabel = new Genre(labelName, "#00FF00", "Updated fiction description");
 
                 when(labelRepository.findById(labelName)).thenReturn(Optional.of(existingLabel));
-                when(labelRepository.save(any(Label.class))).thenReturn(updatedLabel);
-                when(labelMapper.toDto(updatedLabel)).thenReturn(inputDTO);
+                when(labelRepository.save(any(Genre.class))).thenReturn(updatedLabel);
+                when(genreMapper.toDto(updatedLabel)).thenReturn(inputDTO);
 
                 // Act
-                LabelDTO result = labelService.update(labelName, inputDTO);
+                GenreDTO result = labelService.update(labelName, inputDTO);
 
                 // Assert
                 assertNotNull(result);
                 assertEquals("#00FF00", result.color());
                 assertEquals("Updated fiction description", result.description());
                 verify(labelRepository, times(1)).findById(labelName);
-                verify(labelRepository, times(1)).save(any(Label.class));
-                verify(labelMapper, times(1)).toDto(updatedLabel);
+                verify(labelRepository, times(1)).save(any(Genre.class));
+                verify(genreMapper, times(1)).toDto(updatedLabel);
         }
 
         @Test
         void givenNonExistingLabel_whenUpdate_thenThrowException() {
                 // Arrange
                 String labelName = "NonExistent";
-                LabelDTO inputDTO = LabelDTO.builder()
+                GenreDTO inputDTO = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#00FF00")
                                 .description("Some description")
@@ -413,27 +413,27 @@ class LabelServiceTest {
                 // Assert
                 assertNotNull(exception.getMessage());
                 verify(labelRepository, times(1)).findById(labelName);
-                verify(labelRepository, never()).save(any(Label.class));
+                verify(labelRepository, never()).save(any(Genre.class));
         }
 
         @Test
         void givenValidInputWithAllFields_whenUpdate_thenUpdateAllFields() {
                 // Arrange
                 String labelName = "Science";
-                LabelDTO inputDTO = LabelDTO.builder()
+                GenreDTO inputDTO = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#0000FF")
                                 .description("Science and technology books")
                                 .build();
-                Label existingLabel = new Label(labelName, "#FF0000", "Old description");
-                Label savedLabel = new Label(labelName, "#0000FF", "Science and technology books");
+                Genre existingLabel = new Genre(labelName, "#FF0000", "Old description");
+                Genre savedLabel = new Genre(labelName, "#0000FF", "Science and technology books");
 
                 when(labelRepository.findById(labelName)).thenReturn(Optional.of(existingLabel));
-                when(labelRepository.save(any(Label.class))).thenReturn(savedLabel);
-                when(labelMapper.toDto(savedLabel)).thenReturn(inputDTO);
+                when(labelRepository.save(any(Genre.class))).thenReturn(savedLabel);
+                when(genreMapper.toDto(savedLabel)).thenReturn(inputDTO);
 
                 // Act
-                LabelDTO result = labelService.update(labelName, inputDTO);
+                GenreDTO result = labelService.update(labelName, inputDTO);
 
                 // Assert
                 assertNotNull(result);
@@ -447,26 +447,26 @@ class LabelServiceTest {
         void givenUpdateOnlyColor_whenUpdate_thenUpdateColorOnly() {
                 // Arrange
                 String labelName = "Fiction";
-                LabelDTO inputDTO = LabelDTO.builder()
+                GenreDTO inputDTO = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#FFFF00")
                                 .description(null)
                                 .build();
-                Label existingLabel = new Label(labelName, "#FF0000", "Original description");
-                Label savedLabel = new Label(labelName, "#FFFF00", "Original description");
+                Genre existingLabel = new Genre(labelName, "#FF0000", "Original description");
+                Genre savedLabel = new Genre(labelName, "#FFFF00", "Original description");
 
                 when(labelRepository.findById(labelName)).thenReturn(Optional.of(existingLabel));
-                when(labelRepository.save(any(Label.class))).thenReturn(savedLabel);
-                when(labelMapper.toDto(savedLabel)).thenReturn(
-                                LabelDTO.builder().name(labelName).color("#FFFF00").description("Original description")
+                when(labelRepository.save(any(Genre.class))).thenReturn(savedLabel);
+                when(genreMapper.toDto(savedLabel)).thenReturn(
+                                GenreDTO.builder().name(labelName).color("#FFFF00").description("Original description")
                                                 .build());
 
                 // Act
-                LabelDTO result = labelService.update(labelName, inputDTO);
+                GenreDTO result = labelService.update(labelName, inputDTO);
 
                 // Assert
                 assertNotNull(result);
                 verify(labelRepository, times(1)).findById(labelName);
-                verify(labelRepository, times(1)).save(any(Label.class));
+                verify(labelRepository, times(1)).save(any(Genre.class));
         }
 }

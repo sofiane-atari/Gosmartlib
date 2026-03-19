@@ -1,6 +1,6 @@
 package edu.ap.bib_backend.service;
 
-import edu.ap.bib_backend.jpa.entity.Label;
+import edu.ap.bib_backend.jpa.entity.Genre;
 
 import edu.ap.bib_backend.jpa.repository.ReviewRepository;
 import java.util.List;
@@ -12,94 +12,101 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import edu.ap.bib_backend.dto.LabelDTO;
-import edu.ap.bib_backend.dto.LabelStatsDTO;
+import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.dto.GenreStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
-import edu.ap.bib_backend.jpa.repository.LabelRepository;
-import edu.ap.bib_backend.mapper.LabelMapper;
+import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.mapper.GenreMapper;
 import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.options.LabelGetOptions;
-import edu.ap.bib_backend.projection.LabelProjection;
+import edu.ap.bib_backend.projection.GenreProjection;
 
 @Service
-public class LabelService {
+public class GenreService {
     private final ReviewRepository reviewRepository;
-    private final LabelRepository labelRepository;
-    private final LabelMapper labelMapper;
+    private final GenreRepository genreRepository;
+    private final GenreMapper genreMapper;
 
-    public LabelService(LabelRepository labelRepository, LabelMapper labelMapper, ReviewRepository reviewRepository) {
-        this.labelRepository = labelRepository;
-        this.labelMapper = labelMapper;
+    public GenreService(GenreRepository labelRepository, GenreMapper genreMapper, ReviewRepository reviewRepository) {
+        this.genreRepository = labelRepository;
+        this.genreMapper = genreMapper;
         this.reviewRepository = reviewRepository;
     }
 
     @Transactional
-    public LabelDTO createLabel(LabelDTO labelDTO) {
-        if (labelRepository.existsById(labelDTO.name())) {
+    public GenreDTO createLabel(GenreDTO labelDTO) {
+        if (genreRepository.existsById(labelDTO.name())) {
             throw new ResourceAlreadyExistsException("name", labelDTO.name(),
                     "Label met de naam '" + labelDTO.name() + "' bestaat al.");
         }
 
-        Label label = labelMapper.toEntity(labelDTO);
-        labelRepository.save(label);
-        return labelMapper.toDto(label);
+        Genre label = genreMapper.toEntity(labelDTO);
+        genreRepository.save(label);
+        return genreMapper.toDto(label);
     }
 
-    public PageDTO<LabelDTO> getPage(int page, int pageSize, LabelGetOptions options) {
+    public PageDTO<GenreDTO> getPage(int page, int pageSize, LabelGetOptions options) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("name").ascending());
 
-        Page<? extends LabelProjection> labels;
+        Page<? extends GenreProjection> labels;
 
         if (options.isIncludeBookCount() || options.getBookCount() != null) {
-            labels = labelRepository.findAllFiltered(
+            labels = genreRepository.findAllFiltered(
                     options.getSearch(),
                     options.getBookCount(),
                     pageable);
         } else if (!options.getSearch().isBlank()) {
-            labels = labelRepository.searchByNamerOrDescriptionOrColor(options.getSearch(), pageable);
+            labels = genreRepository.searchByNamerOrDescriptionOrColor(options.getSearch(), pageable);
         } else {
-            labels = labelRepository.findAll(pageable);
+            labels = genreRepository.findAll(pageable);
         }
 
-        List<LabelDTO> data = labels.getContent().stream().map(labelMapper::toDto).toList();
+        List<GenreDTO> data = labels.getContent().stream().map(genreMapper::toDto).toList();
         PaginatedMeta meta = PageMapper.toPaginatedMeta(labels);
 
-        return new PageDTO<LabelDTO>(data, meta);
+        return new PageDTO<GenreDTO>(data, meta);
     }
 
-    public LabelStatsDTO getAllLabelStats() {
-        var labels = labelRepository.findAllIncludeBookCount(null).getContent();
+    public List<GenreDTO> getAllGenres() {
+        return genreRepository.findAll(Sort.by("name").ascending())
+                .stream()
+                .map(genreMapper::toDto)
+                .toList();
+    }
+
+    public GenreStatsDTO getAllGenreStats() {
+        var labels = genreRepository.findAllIncludeBookCount(null).getContent();
 
         int unActiveCount = labels.stream().filter(l -> l.getBookCount() <= 0).toList().size();
-        LabelStatsDTO stats = new LabelStatsDTO(labels.size(), unActiveCount);
+        GenreStatsDTO stats = new GenreStatsDTO(labels.size(), unActiveCount);
 
         return stats;
     }
 
     @Transactional
     public void deleteById(String name) {
-        Label label = labelRepository.findById(name)
+        Genre label = genreRepository.findById(name)
                 .orElseThrow(() -> new ResourceNotFoundException(name,
                         "Deze label bestaat niet en kan niet verwijderd worden"));
 
-        labelRepository.deleteById(label.getName());
+        genreRepository.deleteById(label.getName());
     }
 
     @Transactional
-    public LabelDTO update(String name, LabelDTO inputDTO) {
+    public GenreDTO update(String name, GenreDTO inputDTO) {
 
-        Label label = labelRepository.findById(name)
+        Genre label = genreRepository.findById(name)
                 .orElseThrow(() -> new ResourceNotFoundException(name,
                         "Deze label bestaat niet en kan niet gewijzigd worden"));
 
         label.setColor(inputDTO.color());
         label.setDescription(inputDTO.description());
 
-        Label saved = labelRepository.save(label);
-        LabelDTO outputDTO = labelMapper.toDto(saved);
+        Genre saved = genreRepository.save(label);
+        GenreDTO outputDTO = genreMapper.toDto(saved);
 
         return outputDTO;
     }

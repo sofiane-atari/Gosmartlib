@@ -16,7 +16,7 @@ class LabelProjectionTest {
     @Test
     void givenLabelProjectionImplementation_whenGetName_thenReturnName() {
         // Arrange - Anonymous implementation of LabelProjection
-        LabelProjection projection = new LabelProjection() {
+        GenreProjection projection = new GenreProjection() {
             @Override
             public String getName() {
                 return "Fiction";

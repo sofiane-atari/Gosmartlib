@@ -9,8 +9,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Label } from '../../model/label.model';
-import { LabelService } from '../../services/label/label.service';
+import { Genre } from '../../model/genre.model';
+import { GenreService } from '../../services/genre/genre.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpErrorResponseError } from '../../error-reponse.model';
 
@@ -27,11 +27,11 @@ interface DisplayError {
 })
 export class UpdateLabelComponent {
   private formBuilder = inject(FormBuilder);
-  private service = inject(LabelService);
+  private service = inject(GenreService);
   private destroyRef = inject(DestroyRef);
 
   // Input for the label to edit
-  public label = input<Label | null>(null);
+  public label = input<Genre | null>(null);
 
   public closeEvent = output<void>();
   public labelUpdated = output<void>();
@@ -58,7 +58,7 @@ export class UpdateLabelComponent {
     });
   }
 
-  setLabel(label: Label) {
+  setLabel(label: Genre) {
     this.originalName = label.name;
     this.labelForm.patchValue({
       name: label.name,
@@ -83,7 +83,7 @@ export class UpdateLabelComponent {
       return;
     }
 
-    const labelData: Label = {
+    const labelData: Genre = {
       name: this.label()!.name,
       color: this.labelForm.value.color!,
       description: this.labelForm.value.description || '',

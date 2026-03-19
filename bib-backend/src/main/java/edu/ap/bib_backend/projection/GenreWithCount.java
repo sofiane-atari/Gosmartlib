@@ -1,6 +1,6 @@
 package edu.ap.bib_backend.projection;
 
-public interface LabelWithCount extends LabelProjection {
+public interface GenreWithCount extends GenreProjection {
     String getName();
 
     String getColor();

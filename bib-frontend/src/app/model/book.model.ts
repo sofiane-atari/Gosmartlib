@@ -8,4 +8,5 @@ export interface Book {
   description: string;
   releaseYear: number;    
   reviewScore?: number;
+  genres: string[];
 }

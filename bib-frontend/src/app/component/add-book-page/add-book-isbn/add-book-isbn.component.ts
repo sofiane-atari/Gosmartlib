@@ -21,6 +21,7 @@ export class AddBookISBNComponent {
   isbn: string = "";
   selectedBook?: Book;
   @Output() bookAdded = new EventEmitter<Book>();
+  @Input() genres: string[] = [];
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
 
@@ -36,11 +37,29 @@ export class AddBookISBNComponent {
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
+    genres: []
   };
 
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
+  toggleGenre(genre: string) {
+    if (this.book.genres.includes(genre)) {
+      this.book.genres = this.book.genres.filter(g => g !== genre);
+    } else {
+      this.book.genres.push(genre);
+    }
+  }
 
+  isGenreSelected(genre: string): boolean {
+    return this.book.genres.includes(genre);
+  }
+  
   save() {
+
+    if (this.book.genres.length === 0) {
+      this.ts.show('Selecteer minstens 1 genre', 'error')
+      return;
+    }
+
     this.bookAdded.emit(this.book);
   }
   searchBookData() {

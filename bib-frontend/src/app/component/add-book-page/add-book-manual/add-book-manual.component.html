@@ -1,18 +1,19 @@
 <div class="layout">
-   <div class="info-banner">
-  <lucide-icon [name]="InfoIcon" class="info-icon"></lucide-icon>
+  <div class="info-banner">
+    <lucide-icon [name]="InfoIcon" class="info-icon"></lucide-icon>
 
-  <div class="info-content">
-    <p><strong>Boeken manueel toevoegen</strong></p>
-    <p>
-      Gebruik dit formulier om boeken of items toe te voegen die geen ISBN-nummer hebben.
-      Denk bijvoorbeeld aan <strong>poëziebundels van leerlingen</strong>,
-      <strong>schoolpublicaties</strong> of <strong>tijdschriften en magazines</strong>.
-    </p>
+    <div class="info-content">
+      <p><strong>Boeken manueel toevoegen</strong></p>
+      <p>
+        Gebruik dit formulier om boeken of items toe te voegen die geen ISBN-nummer hebben.
+        Denk bijvoorbeeld aan <strong>poëziebundels van leerlingen</strong>,
+        <strong>schoolpublicaties</strong> of <strong>tijdschriften en magazines</strong>.
+      </p>
     </div>
   </div>
-    <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
-      <div class="form-section">
+
+  <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
+    <div class="form-section">
       <div class="form-row">
         <div class="form-group">
           <label>Titel *</label>
@@ -31,33 +32,48 @@
         </div>
         <div class="form-group">
           <label>Jaar *</label>
-          <input type="number" [(ngModel)]="book.releaseYear" name="release_year" placeholder="2024" required />
+          <input type="number" [(ngModel)]="book.releaseYear" name="releaseYear" placeholder="2024" required />
         </div>
       </div>
 
       <div class="form-group full-width">
         <label>Cover URL (optioneel)</label>
-        <input type="text" [(ngModel)]="book.imageUrl" name="image_url" placeholder="https://..." />
+        <input type="text" [(ngModel)]="book.imageUrl" name="imageUrl" placeholder="https://..." />
       </div>
 
       <div class="form-group full-width description-field">
-          <label>Beschrijving *</label>
-          <textarea
-            [(ngModel)]="book.description"
-            name="description"
-            placeholder="Een korte beschrijving van het boek..."
-            required
-          ></textarea>
+        <label>Beschrijving *</label>
+        <textarea
+          [(ngModel)]="book.description"
+          name="description"
+          placeholder="Een korte beschrijving van het boek..."
+          required
+        ></textarea>
       </div>
 
       <div class="form-group full-width genre-section">
         <label>Genres * (selecteer minimaal 1)</label>
-        <div class="genre-grid"></div>
+        <div class="genre-grid">
+          @for (genre of genres; track $index) {
+          <label class="genre-option">
+            <input
+              type="checkbox"
+              [checked]="isGenreSelected(genre)"
+              (change)="toggleGenre(genre)"
+            />
+            <span>{{ genre }}</span>
+          </label>
+        }
+        </div>
       </div>
     </div>
 
     <div class="form-actions">
-      <button type="submit" class="btn-submit" [disabled]="!bookForm.form.valid">
+      <button
+        type="submit"
+        class="btn-submit"
+        [disabled]="!bookForm.form.valid || book.genres.length === 0"
+      >
         <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
         Boek Toevoegen
       </button>

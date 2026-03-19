@@ -53,7 +53,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/reviews/**").permitAll()
                         .requestMatchers("/api/books/**").permitAll()
-                        .requestMatchers("/api/labels/**").permitAll()
+                        .requestMatchers("/api/genres/**").permitAll()
 
                         // Alle andere endpoints vereisen authenticatie
                         .anyRequest().authenticated());

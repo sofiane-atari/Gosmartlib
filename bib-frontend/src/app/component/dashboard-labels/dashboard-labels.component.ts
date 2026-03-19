@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { LabelService } from '../../services/label/label.service';
+import { GenreService } from '../../services/genre/genre.service';
 import { StatCardComponent } from '../stat-card/stat-card.component';
 import { LabelsListComponent } from '../labels-list/labels-list.component';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -24,7 +24,7 @@ import { PagingComponent } from '../paging/paging.component';
 import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { HttpErrorResponseError } from '../../error-reponse.model';
-import { Label } from '../../model/label.model';
+import { Genre } from '../../model/genre.model';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -49,7 +49,7 @@ interface ErrorItem {
   styleUrls: ['./dashboard-labels.component.css'],
 })
 export class DashboardLabelsComponent {
-  private labelService = inject(LabelService);
+  private labelService = inject(GenreService);
   private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -59,7 +59,7 @@ export class DashboardLabelsComponent {
   private updateLabelComponent!: UpdateLabelComponent;
 
   // Track label being edited
-  protected editingLabel = signal<Label | null>(null);
+  protected editingLabel = signal<Genre | null>(null);
 
   // Subject for debounced search
   private searchSubject = new Subject<string>();
@@ -157,7 +157,7 @@ export class DashboardLabelsComponent {
     this.setPopup(null);
   }
 
-  onEditLabel(label: Label) {
+  onEditLabel(label: Genre) {
     this.editingLabel.set(label);
     this.setPopup('edit');
   }

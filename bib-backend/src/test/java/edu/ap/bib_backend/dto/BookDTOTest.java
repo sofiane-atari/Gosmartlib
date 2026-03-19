@@ -3,6 +3,9 @@ package edu.ap.bib_backend.dto;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +22,9 @@ public class BookDTOTest {
                 "https://example.com/image.jpg",
                 "Beschrijving",
                 2022,
-                4.5);
+                4.5,
+                LocalDateTime.now(),
+                List.of("Roman", "Thriller"));
 
         assertEquals(1L, book.getId());
         assertEquals("9781234567890", book.getISBN()); // let op: getter blijft getISBN()
@@ -45,7 +50,9 @@ public class BookDTOTest {
                 "https://example.com/image.jpg",
                 "Beschrijving",
                 2022,
-                4.5);
+                4.5,
+                LocalDateTime.now(),
+                List.of("Roman", "Thriller"));
 
         String json = mapper.writeValueAsString(book);
 

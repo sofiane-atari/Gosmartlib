@@ -6,7 +6,7 @@ import {
   output,
   input,
 } from '@angular/core';
-import { Label } from '../../model/label.model';
+import { Genre } from '../../model/genre.model';
 import { LabelCardComponent } from '../label-card/label-card.component';
 import { HttpErrorResponseError } from '../../error-reponse.model';
 
@@ -18,9 +18,9 @@ import { HttpErrorResponseError } from '../../error-reponse.model';
   styleUrls: ['./labels-list.component.css'],
 })
 export class LabelsListComponent {
-  public labels = input<Label[]>([]);
+  public labels = input<Genre[]>([]);
 
   public deletedSuccess = output<string>();
   public deletionError = output<HttpErrorResponseError>();
-  public editLabel = output<Label>();
+  public editLabel = output<Genre>();
 }

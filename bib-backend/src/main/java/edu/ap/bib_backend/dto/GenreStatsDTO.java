@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
 @Builder
-public record LabelStatsDTO(
+public record GenreStatsDTO(
         @JsonProperty("totalItems") int totalItems,
         @JsonProperty("unActiveLabels") int unActiveLabels) {
 }

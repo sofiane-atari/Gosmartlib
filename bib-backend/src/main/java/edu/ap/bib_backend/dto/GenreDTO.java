@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
-public record LabelDTO(
+public record GenreDTO(
         @JsonProperty("name") @NotBlank(message = "Labelnaam is mag niet leeg zijn") @NotNull(message = "Labelnaam is verplicht") String name,
         @JsonProperty("color") @HexColor(message = "Ongeldige hexkleur") @NotBlank(message = "Labelkleur is mag niet leeg zijn") @NotNull(message = "Labelkleur is verplicht") String color,
         @JsonProperty("description") String description,

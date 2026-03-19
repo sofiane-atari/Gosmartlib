@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.ap.bib_backend.annotation.HexColor;
-import edu.ap.bib_backend.projection.LabelProjection;
+import edu.ap.bib_backend.projection.GenreProjection;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,8 +17,8 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name = "labels")
-public class Label implements LabelProjection{
+@Table(name = "genres")
+public class Genre implements GenreProjection {
 
     @Id
     @Column(nullable = false)
@@ -32,13 +32,13 @@ public class Label implements LabelProjection{
 
     private String description;
 
-    @ManyToMany(mappedBy = "labels")
+    @ManyToMany(mappedBy = "genres")
     private List<Book> books = new ArrayList<>();
 
-    public Label() {
+    public Genre() {
     }
 
-    public Label(String name, String color, String description) {
+    public Genre(String name, String color, String description) {
         this.name = name;
         this.color = color;
         this.description = description;

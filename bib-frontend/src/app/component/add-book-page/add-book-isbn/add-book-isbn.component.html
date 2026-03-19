@@ -173,11 +173,21 @@
         </div>
       }
 
-      <!-- <div class="form-group full-width genre-section">
+      <div class="form-group full-width genre-section">
         <label>Genres * (selecteer minimaal 1)</label>
         <div class="genre-grid">
-          </div>
-      </div> -->
+          @for (genre of genres; track $index) {
+          <label class="genre-option">
+            <input
+              type="checkbox"
+              [checked]="isGenreSelected(genre)"
+              (change)="toggleGenre(genre)"
+            />
+            <span>{{ genre }}</span>
+          </label>
+        }
+        </div>
+      </div>
 
       <div class="form-actions">
         <button type="submit" class="btn-submit" [disabled]="bookForm.invalid">

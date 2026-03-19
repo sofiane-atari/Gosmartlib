@@ -13,14 +13,14 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.ap.bib_backend.controller.LabelController;
-import edu.ap.bib_backend.dto.LabelDTO;
-import edu.ap.bib_backend.dto.LabelStatsDTO;
+import edu.ap.bib_backend.controller.GenreController;
+import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.dto.GenreStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.options.LabelGetOptions;
-import edu.ap.bib_backend.service.LabelService;
+import edu.ap.bib_backend.service.GenreService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-@WebMvcTest(LabelController.class)
+@WebMvcTest(GenreController.class)
 @Import(TestSecurityConfig.class)
 class LabelControllerTest {
 
@@ -50,7 +50,7 @@ class LabelControllerTest {
         private ObjectMapper objectMapper;
 
         @MockitoBean
-        private LabelService labelService;
+        private GenreService labelService;
 
         // -------------------------------------------------------
         // POST /api/labels - createLabel
@@ -58,10 +58,10 @@ class LabelControllerTest {
         @Test
         void givenNoDescription_whenCreateLabel_thenCreateWithoutDescription() throws Exception {
                 // Arrange
-                LabelDTO newLabel = LabelDTO.builder().name("testLabel").color("#a75064").build();
-                LabelDTO savedLabel = LabelDTO.builder().name("testLabel").color("#a75064").build();
+                GenreDTO newLabel = GenreDTO.builder().name("testLabel").color("#a75064").build();
+                GenreDTO savedLabel = GenreDTO.builder().name("testLabel").color("#a75064").build();
 
-                when(labelService.createLabel(any(LabelDTO.class))).thenReturn(savedLabel);
+                when(labelService.createLabel(any(GenreDTO.class))).thenReturn(savedLabel);
 
                 // Act
                 ResultActions results = mockMvc.perform(post("/api/labels")
@@ -79,12 +79,12 @@ class LabelControllerTest {
         @Test
         void givenValidBody_whenCreateLabel_thenReturn201WithLocationHeader() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001")
+                GenreDTO requestBody = GenreDTO.builder().name("urgent").color("#FF0001")
                                 .description("High priority tasks").build();
-                LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001")
+                GenreDTO createdLabel = GenreDTO.builder().name("urgent").color("#FF0001")
                                 .description("High priority tasks").build();
 
-                given(labelService.createLabel(any(LabelDTO.class)))
+                given(labelService.createLabel(any(GenreDTO.class)))
                                 .willReturn(createdLabel);
 
                 // Act
@@ -104,7 +104,7 @@ class LabelControllerTest {
         @Test
         void givenNullName_whenCreateLabel_thenReturn400() throws Exception {
                 // Arrange
-                LabelDTO invalidBody = LabelDTO.builder().color("#FF0001").description("Some description").build();
+                GenreDTO invalidBody = GenreDTO.builder().color("#FF0001").description("Some description").build();
 
                 // Act
                 ResultActions result = mockMvc.perform(post("/api/labels")
@@ -118,10 +118,10 @@ class LabelControllerTest {
         @Test
         void givenOptionalFieldsNull_whenCreateLabel_thenReturn201() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").build();
-                LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001").build();
+                GenreDTO requestBody = GenreDTO.builder().name("urgent").color("#FF0001").build();
+                GenreDTO createdLabel = GenreDTO.builder().name("urgent").color("#FF0001").build();
 
-                given(labelService.createLabel(any(LabelDTO.class)))
+                given(labelService.createLabel(any(GenreDTO.class)))
                                 .willReturn(createdLabel);
 
                 // Act
@@ -139,9 +139,9 @@ class LabelControllerTest {
         @Test
         void givenServiceThrows_whenCreateLabel_thenReturn501() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").build();
+                GenreDTO requestBody = GenreDTO.builder().name("urgent").color("#FF0001").build();
 
-                given(labelService.createLabel(any(LabelDTO.class)))
+                given(labelService.createLabel(any(GenreDTO.class)))
                                 .willThrow(new RuntimeException("Unexpected error"));
 
                 // Act
@@ -157,12 +157,12 @@ class LabelControllerTest {
         @Test
         void givenValidRequest_whenCreateLabel_thenCallServiceOnce() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label")
+                GenreDTO requestBody = GenreDTO.builder().name("feature").color("#01FF00").description("Feature label")
                                 .build();
-                LabelDTO createdLabel = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label")
+                GenreDTO createdLabel = GenreDTO.builder().name("feature").color("#01FF00").description("Feature label")
                                 .build();
 
-                given(labelService.createLabel(any(LabelDTO.class)))
+                given(labelService.createLabel(any(GenreDTO.class)))
                                 .willReturn(createdLabel);
 
                 // Act
@@ -171,7 +171,7 @@ class LabelControllerTest {
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
-                then(labelService).should(times(1)).createLabel(any(LabelDTO.class));
+                then(labelService).should(times(1)).createLabel(any(GenreDTO.class));
         }
 
         // -------------------------------------------------------
@@ -180,9 +180,9 @@ class LabelControllerTest {
         @Test
         void givenRequestingFirstPage_whenGetPage_thenReturnLabels() throws Exception {
                 // Arrange
-                LabelDTO label = LabelDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
+                GenreDTO label = GenreDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
                                 .build();
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(0, 10, 1, 1));
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(0, 10, 1, 1));
 
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
@@ -199,9 +199,9 @@ class LabelControllerTest {
         @Test
         void givenRequestingSecondPage_whenGetPage_thenReturnLabelsWithPagination() throws Exception {
                 // Arrange
-                LabelDTO label = LabelDTO.builder().name("Non-Fiction").color("#00FF00-F")
+                GenreDTO label = GenreDTO.builder().name("Non-Fiction").color("#00FF00-F")
                                 .description("Noniction books").build();
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(1, 10, 2, 20));
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(1, 10, 2, 20));
 
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
@@ -219,9 +219,9 @@ class LabelControllerTest {
         @Test
         void givenSearchQuery_whenGetPage_thenPassSearchParameter() throws Exception {
                 // Arrange
-                LabelDTO label = LabelDTO.builder().name("Science").color("#0000FF").description("Science books")
+                GenreDTO label = GenreDTO.builder().name("Science").color("#0000FF").description("Science books")
                                 .build();
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(0, 10, 1, 1));
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(0, 10, 1, 1));
 
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
@@ -236,7 +236,7 @@ class LabelControllerTest {
         @Test
         void givenBookCountParam_whenGetPage_thenPassBookCountFilter() throws Exception {
                 // Arrange
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(), new PaginatedMeta(0, 10, 0, 0));
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(), new PaginatedMeta(0, 10, 0, 0));
 
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
@@ -251,7 +251,7 @@ class LabelControllerTest {
         @Test
         void givenNoParams_whenGetPage_thenUseDefaultValues() throws Exception {
                 // Arrange
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(), new PaginatedMeta(0, 10, 0, 0));
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(), new PaginatedMeta(0, 10, 0, 0));
 
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
@@ -268,9 +268,9 @@ class LabelControllerTest {
         @Test
         void givenLabelsExist_whenGetLabelStats_thenReturnStats() throws Exception {
                 // Arrange
-                LabelStatsDTO stats = new LabelStatsDTO(10, 5);
+                GenreStatsDTO stats = new GenreStatsDTO(10, 5);
 
-                given(labelService.getAllLabelStats()).willReturn(stats);
+                given(labelService.getAllGenreStats()).willReturn(stats);
 
                 // Act
                 ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
@@ -284,9 +284,9 @@ class LabelControllerTest {
         @Test
         void givenNoLabels_whenGetLabelStats_thenReturnZeroStats() throws Exception {
                 // Arrange
-                LabelStatsDTO stats = new LabelStatsDTO(0, 0);
+                GenreStatsDTO stats = new GenreStatsDTO(0, 0);
 
-                given(labelService.getAllLabelStats()).willReturn(stats);
+                given(labelService.getAllGenreStats()).willReturn(stats);
 
                 // Act
                 ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
@@ -300,9 +300,9 @@ class LabelControllerTest {
         @Test
         void givenAllLabelsHaveBooks_whenGetLabelStats_thenReturnCorrectStats() throws Exception {
                 // Arrange
-                LabelStatsDTO stats = new LabelStatsDTO(5, 0);
+                GenreStatsDTO stats = new GenreStatsDTO(5, 0);
 
-                given(labelService.getAllLabelStats()).willReturn(stats);
+                given(labelService.getAllGenreStats()).willReturn(stats);
 
                 // Act
                 ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
@@ -384,18 +384,18 @@ class LabelControllerTest {
         void givenValidBody_whenUpdateLabel_thenReturn200() throws Exception {
                 // Arrange
                 String labelName = "Fiction";
-                LabelDTO requestBody = LabelDTO.builder()
+                GenreDTO requestBody = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#00FF00")
                                 .description("Updated fiction description")
                                 .build();
-                LabelDTO updatedLabel = LabelDTO.builder()
+                GenreDTO updatedLabel = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#00FF00")
                                 .description("Updated fiction description")
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+                when(labelService.update(eq(labelName), any(GenreDTO.class))).thenReturn(updatedLabel);
 
                 // Act
                 ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
@@ -407,20 +407,20 @@ class LabelControllerTest {
                                 .andExpect(jsonPath("$.name").value(labelName))
                                 .andExpect(jsonPath("$.color").value("#00FF00"))
                                 .andExpect(jsonPath("$.description").value("Updated fiction description"));
-                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+                then(labelService).should(times(1)).update(eq(labelName), any(GenreDTO.class));
         }
 
         @Test
         void givenNonExistingLabel_whenUpdateLabel_thenReturn404() throws Exception {
                 // Arrange
                 String labelName = "NonExistent";
-                LabelDTO requestBody = LabelDTO.builder()
+                GenreDTO requestBody = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#00FF00")
                                 .description("Some description")
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class)))
+                when(labelService.update(eq(labelName), any(GenreDTO.class)))
                                 .thenThrow(new ResourceNotFoundException(labelName, "Label not found"));
 
                 // Act
@@ -430,20 +430,20 @@ class LabelControllerTest {
 
                 // Assert
                 result.andExpect(status().isNotFound());
-                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+                then(labelService).should(times(1)).update(eq(labelName), any(GenreDTO.class));
         }
 
         @Test
         void givenServiceThrows_whenUpdateLabel_thenReturn500() throws Exception {
                 // Arrange
                 String labelName = "Fiction";
-                LabelDTO requestBody = LabelDTO.builder()
+                GenreDTO requestBody = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#00FF00")
                                 .description("Updated description")
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class)))
+                when(labelService.update(eq(labelName), any(GenreDTO.class)))
                                 .thenThrow(new RuntimeException("Unexpected error"));
 
                 // Act
@@ -460,18 +460,18 @@ class LabelControllerTest {
         void givenValidRequest_whenUpdateLabel_thenCallServiceOnce() throws Exception {
                 // Arrange
                 String labelName = "Science";
-                LabelDTO requestBody = LabelDTO.builder()
+                GenreDTO requestBody = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#0000FF")
                                 .description("Science books")
                                 .build();
-                LabelDTO updatedLabel = LabelDTO.builder()
+                GenreDTO updatedLabel = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#0000FF")
                                 .description("Science books")
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+                when(labelService.update(eq(labelName), any(GenreDTO.class))).thenReturn(updatedLabel);
 
                 // Act
                 mockMvc.perform(put("/api/labels/{name}", labelName)
@@ -479,24 +479,24 @@ class LabelControllerTest {
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
-                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+                then(labelService).should(times(1)).update(eq(labelName), any(GenreDTO.class));
         }
 
         @Test
         void givenUpdateWithNullDescription_whenUpdateLabel_thenReturn200() throws Exception {
                 // Arrange
                 String labelName = "Fiction";
-                LabelDTO requestBody = LabelDTO.builder()
+                GenreDTO requestBody = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#FF0000")
                                 .build();
-                LabelDTO updatedLabel = LabelDTO.builder()
+                GenreDTO updatedLabel = GenreDTO.builder()
                                 .name(labelName)
                                 .color("#FF0000")
                                 .description(null)
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+                when(labelService.update(eq(labelName), any(GenreDTO.class))).thenReturn(updatedLabel);
 
                 // Act
                 ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
