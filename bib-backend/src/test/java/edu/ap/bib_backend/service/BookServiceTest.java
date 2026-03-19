@@ -20,8 +20,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.service.BookService;
 
 @ExtendWith(MockitoExtension.class)
 public class BookServiceTest {
