@@ -18,7 +18,7 @@ import { Genre } from '../../model/genre.model';
 })
 export class AddBookPageComponent {
 mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
-  genres: string[] = [];
+  genres: Genre[] = [];
   isLoadingGenres = false;
 
   constructor(private bs: BookService, private rt: Router, private gs: GenreService){}
@@ -42,7 +42,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
 
     this.gs.getLabels().subscribe({
       next: (labels: Genre[]) => {
-        this.genres = labels.map(label => label.name);
+        this.genres = labels;
         this.isLoadingGenres = false;
       },
       error: (err) => {

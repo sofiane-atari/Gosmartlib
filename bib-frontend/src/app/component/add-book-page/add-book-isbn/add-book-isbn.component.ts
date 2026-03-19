@@ -8,6 +8,7 @@ import { CheckCircle, Info, LucideAngularModule, Plus, Search } from "lucide-ang
 import { BookCandidate } from '../../../model/book-candidate.model';
 import { ToastService } from '../../../services/Toast/toast.service';
 import { LoadingOverlayComponent } from "../../shared/loading-overlay/loading-overlay.component";
+import { Genre } from '../../../model/genre.model';
 
 @Component({
   selector: 'app-add-book-isbn',
@@ -21,7 +22,7 @@ export class AddBookISBNComponent {
   isbn: string = "";
   selectedBook?: Book;
   @Output() bookAdded = new EventEmitter<Book>();
-  @Input() genres: string[] = [];
+  @Input() genres: Genre[] = [];
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
 
@@ -41,16 +42,17 @@ export class AddBookISBNComponent {
   };
 
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
-  toggleGenre(genre: string) {
-    if (this.book.genres.includes(genre)) {
-      this.book.genres = this.book.genres.filter(g => g !== genre);
+  
+  toggleGenre(genreName: string) {
+    if (this.book.genres.includes(genreName)) {
+      this.book.genres = this.book.genres.filter(g => g !== genreName);
     } else {
-      this.book.genres.push(genre);
+      this.book.genres.push(genreName);
     }
   }
 
-  isGenreSelected(genre: string): boolean {
-    return this.book.genres.includes(genre);
+  isGenreSelected(genreName: string): boolean {
+    return this.book.genres.includes(genreName);
   }
   
   save() {

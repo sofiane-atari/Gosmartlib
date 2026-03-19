@@ -6,6 +6,7 @@ import { Availability } from '../../../model/enums/availability.enum';
 import { Route, Router } from '@angular/router';
 import { Info, LucideAngularModule, Plus } from "lucide-angular";
 import { ToastService } from '../../../services/Toast/toast.service';
+import { Genre } from '../../../model/genre.model';
 
 @Component({
   selector: 'app-add-book-manual',
@@ -28,20 +29,20 @@ export class AddBookManualComponent {
   };
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
 
-  @Input() genres: string[] = [];
+  @Input() genres: Genre[] = [];
   @Output() bookAdded = new EventEmitter<Book>();
   readonly InfoIcon = Info;
 
-  toggleGenre(genre: string) {
-    if (this.book.genres.includes(genre)) {
-      this.book.genres = this.book.genres.filter(g => g !== genre);
+  toggleGenre(genreName: string) {
+    if (this.book.genres.includes(genreName)) {
+      this.book.genres = this.book.genres.filter(g => g !== genreName);
     } else {
-      this.book.genres.push(genre);
+      this.book.genres.push(genreName);
     }
   }
 
-  isGenreSelected(genre: string): boolean {
-    return this.book.genres.includes(genre);
+  isGenreSelected(genreName: string): boolean {
+    return this.book.genres.includes(genreName);
   }
 
   save() {

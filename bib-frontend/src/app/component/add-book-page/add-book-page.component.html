@@ -25,10 +25,6 @@
       </button>
     </div>
 
-    @if (isLoadingGenres) {
-      <p>Genres laden...</p>
-    }
-
     @if (!isLoadingGenres && mode === 'isbn') {
       <app-add-book-isbn
         [genres]="genres"

@@ -136,6 +136,54 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+.genre-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.genre-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Formaat: Compact */
+  padding: 6px 12px;
+  min-width: 60px;
+  max-width: 150px; /* Voorkomt dat één genre te breed wordt */
+  height: 32px;
+
+  border-radius: 100px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.genre-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  /* Tekstbeveiliging: zorgt dat tekst er niet uitvalt */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.genre-option:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.95);
+}
+
+.genre-option.selected {
+  /* Een iets dikkere border als hij geselecteerd is */
+  border-width: 1.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
 
 .form-group.full-width {
   grid-column: 1 / -1;

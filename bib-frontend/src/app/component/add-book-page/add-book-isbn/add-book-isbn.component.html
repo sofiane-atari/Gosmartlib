@@ -176,16 +176,18 @@
       <div class="form-group full-width genre-section">
         <label>Genres * (selecteer minimaal 1)</label>
         <div class="genre-grid">
-          @for (genre of genres; track $index) {
-          <label class="genre-option">
-            <input
-              type="checkbox"
-              [checked]="isGenreSelected(genre)"
-              (change)="toggleGenre(genre)"
-            />
-            <span>{{ genre }}</span>
-          </label>
-        }
+          @for (genre of genres; track genre.name) {
+            <div 
+              class="genre-option"
+              [class.selected]="isGenreSelected(genre.name)"
+              [style.background-color]="isGenreSelected(genre.name) ? genre.color + '33' : '#f5f5f5'"
+              [style.color]="isGenreSelected(genre.name) ? genre.color : '#666'"
+              [style.border-color]="isGenreSelected(genre.name) ? genre.color + '66' : '#e0e0e0'"
+              (click)="toggleGenre(genre.name)"
+            >
+              <span class="genre-text">{{ genre.name }}</span>
+            </div>
+          }
         </div>
       </div>
 
