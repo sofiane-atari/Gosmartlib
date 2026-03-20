@@ -9,6 +9,7 @@ import { environment } from '../../../environments/environment';
 export class AuthService {
   private static readonly TOKEN_STORAGE_KEY = 'authToken';
   private static readonly TOKEN_EXPIRY_STORAGE_KEY = 'authTokenExpiry';
+  private static readonly FALLBACK_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
 
   private readonly http = inject(HttpClient);
   private tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -72,19 +73,27 @@ export class AuthService {
   }
 
   public storeToken(token: string): boolean {
-    const expiresAt = this.extractTokenExpiry(token);
-
-    if (!expiresAt || Date.now() >= expiresAt) {
+    const normalizedToken = this.normalizeToken(token);
+    if (!normalizedToken) {
       this.clearToken();
       return false;
     }
 
-    localStorage.setItem(AuthService.TOKEN_STORAGE_KEY, token);
+    const expiresAt =
+      this.extractTokenExpiry(normalizedToken) ??
+      Date.now() + AuthService.FALLBACK_TOKEN_LIFETIME_MS;
+
+    if (Date.now() >= expiresAt) {
+      this.clearToken();
+      return false;
+    }
+
+    localStorage.setItem(AuthService.TOKEN_STORAGE_KEY, normalizedToken);
     localStorage.setItem(
       AuthService.TOKEN_EXPIRY_STORAGE_KEY,
       expiresAt.toString(),
     );
-    this.token.set(token);
+    this.token.set(normalizedToken);
     this.tokenExpiryEpochMs.set(expiresAt);
     this.scheduleTokenExpiry(expiresAt);
 
@@ -169,5 +178,19 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  private normalizeToken(token: string): string | null {
+    const trimmedToken = token.trim();
+    if (!trimmedToken) {
+      return null;
+    }
+
+    if (trimmedToken.toLowerCase().startsWith('bearer ')) {
+      const bearerToken = trimmedToken.slice(7).trim();
+      return bearerToken || null;
+    }
+
+    return trimmedToken;
   }
 }

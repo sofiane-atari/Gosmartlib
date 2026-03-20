@@ -46,6 +46,10 @@ export const routes: Routes = [
   },
   { path: 'reviews', component: MyReviewsComponent, canActivate: [authGuard] },
   { path: 'login', component: LoginComponent, canActivate: [publicOnlyGuard] },
+  {
+    path: 'oauth2/callback/smartschool',
+    component: SmartschoolCallbackComponent,
+  },
   { path: 'smartschool-callback', component: SmartschoolCallbackComponent },
   { path: '**', redirectTo: '/catalog' },
 ];

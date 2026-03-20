@@ -13,9 +13,8 @@ export class SmartschoolCallbackComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
-  ngOnInit(): void {
-    const queryParams = new URLSearchParams(window.location.search);
-    const token = queryParams.get('token');
+  public ngOnInit(): void {
+    const token = this.resolveTokenFromUrl();
 
     if (!token || !this.authService.storeToken(token)) {
       this.router.navigate(['/login']);
@@ -24,5 +23,19 @@ export class SmartschoolCallbackComponent implements OnInit {
 
     this.authService.fetchCurrentUser();
     this.router.navigate(['/catalog']);
+  }
+
+  private resolveTokenFromUrl(): string | null {
+    const queryParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(
+      window.location.hash.replace(/^#/, ''),
+    );
+
+    return (
+      queryParams.get('token') ??
+      queryParams.get('access_token') ??
+      hashParams.get('token') ??
+      hashParams.get('access_token')
+    );
   }
 }
