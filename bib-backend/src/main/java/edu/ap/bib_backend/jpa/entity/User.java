@@ -21,11 +21,10 @@ public class User {
     @Id
     private String id;
 
-
     @OneToMany(mappedBy = "user")
-    private List<BookLoan> loans= new ArrayList<>();
+    private List<BookLoan> loans = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
 }

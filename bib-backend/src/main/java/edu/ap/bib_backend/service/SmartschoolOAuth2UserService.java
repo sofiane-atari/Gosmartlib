@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.service;
 
-
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,26 +18,25 @@ import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import java.util.Collections;
 
 @Service
-public class SmartschoolOAuth2UserService 
+public class SmartschoolOAuth2UserService
         implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final UserService userService;
     private final RoleService roleService;
-    private final UserRepository userRepository;
-    private final RoleEntityRepository roleEntityRepository;
 
-    public SmartschoolOAuth2UserService(RoleService roleService, 
-                                         UserRepository userRepository,
-                                         RoleEntityRepository roleEntityRepository) {
+    public SmartschoolOAuth2UserService(
+            UserService userService,
+            RoleService roleService) {
+        this.userService = userService;
         this.roleService = roleService;
-        this.userRepository = userRepository;
-        this.roleEntityRepository = roleEntityRepository;
     }
 
     @Override
@@ -59,49 +57,25 @@ public class SmartschoolOAuth2UserService
                 userInfoEndpoint,
                 HttpMethod.GET,
                 entity,
-                Map.class
-        );
+                Map.class);
 
         Map<String, Object> attributes = response.getBody();
 
         String userId = (String) attributes.get("userID");
         String basisrol = (String) attributes.get("basisrol");
 
-        String roleString = getOrCreateUserRole(userId, basisrol);
+        User user = userService.getUser(userId)
+                .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol)));
+
+        String roleString = getOAuthUserRole(user.getRole().getRole());
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority(roleString)),
                 attributes,
-                "userID"
-        );
+                "userID");
     }
 
-    private String getOrCreateUserRole(String userId, String basisrol) {
-        return userRepository.findById(userId)
-                .map(user -> "ROLE_" + user.getRole().getRole().name())
-                .orElseGet(() -> {
-                    Role mappedRole = mapDutchRole(basisrol);
-
-                    RoleEntity roleEntity = roleEntityRepository.findByRole(mappedRole)
-                            .orElseThrow(() -> new RuntimeException("Role not found: " + mappedRole));
-
-                    User newUser = new User();
-                    newUser.setId(userId);
-                    newUser.setRole(roleEntity);
-                    userRepository.save(newUser);
-
-                    return "ROLE_" + mappedRole.name();
-                });
-    }
-
-    private Role mapDutchRole(String basisrol) {
-        if (basisrol == null) return Role.STUDENT;
-        return switch (basisrol.toLowerCase()) {
-            case "leerling"     -> Role.STUDENT;
-            case "leerkracht"   -> Role.TEACHER;
-            case "directie"     -> Role.ADMIN;
-            case "bibliothecaris" -> Role.LIBRARIAN;
-            default             -> Role.STUDENT;
-        };
+    private String getOAuthUserRole(Role role) {
+        return "ROLE_" + role.name();
     }
 }
