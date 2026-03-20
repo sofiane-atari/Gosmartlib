@@ -1,8 +1,5 @@
 package edu.ap.bib_backend.controller;
 
-import lombok.RequiredArgsConstructor;
-import lombok.val;
-
 import java.io.IOException;
 import java.util.Map;
 
@@ -80,7 +77,7 @@ public class AuthController {
         // Store role metadata for quick reference
         tokenStorageService.storeUserMetadata(userId, role);
 
-        response.sendRedirect(frontendRedirectUrl + "?oauth-success=true&token=" + jwt);
+        response.sendRedirect(frontendRedirectUrl + "?token=" + jwt);
     }
 
     @PostMapping("/logout")
