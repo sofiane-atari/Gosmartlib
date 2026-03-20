@@ -1,11 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LoginService } from '../../services/login.service';
+import { SmartschoolButtonComponent } from '../smartschool-button/smartschool-button.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SmartschoolButtonComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -15,7 +16,6 @@ export class LoginComponent {
   public readonly isLoading = this.isLoadingSignal.asReadonly();
 
   private readonly loginService = inject(LoginService);
-
 
   /**
    * Initiates Smartschool OAuth2 flow
