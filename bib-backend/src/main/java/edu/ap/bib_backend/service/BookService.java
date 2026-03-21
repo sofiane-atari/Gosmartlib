@@ -3,8 +3,10 @@ package edu.ap.bib_backend.service;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -18,15 +20,19 @@ import org.springframework.web.util.UriComponentsBuilder;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.Label;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.LabelRepository;
 
 @Service
 public class BookService {
 
     private final BookRepository br;
+    private final LabelRepository lr;
 
-    public BookService(BookRepository repo) {
+    public BookService(BookRepository repo, LabelRepository labelRepository) {
         br = repo;
+        lr = labelRepository;
     }
 
     public List<BookDTO> getAllBooks() {
@@ -56,6 +62,7 @@ public class BookService {
         dto.setDescription(book.getDescription());
         dto.setReleaseYear(book.getReleaseYear());
         dto.setReviewScore(book.getReviewScore() != null ? book.getReviewScore() : 0.0);
+        dto.setLabels(book.getLabels().stream().map(Label::getName).toList());
         return dto;
     }
 
@@ -152,6 +159,95 @@ public class BookService {
             dtos.add(mapToDTO(book));
 
         return dtos;
+    }
+
+    public List<BookDTO> getRelatedBooks(Long bookId, int limit) {
+        br.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + bookId));
+
+        int safeLimit = Math.max(1, limit);
+        List<Book> relatedBooks = br.findRelatedBooks(bookId, PageRequest.of(0, safeLimit));
+        return mapToDTOList(relatedBooks);
+    }
+
+    public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit) {
+        br.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + bookId));
+
+        int safeLimit = Math.max(1, Math.min(limit, 50)); // Max 50 voor performance
+        List<Object[]> results = br.findRelatedBooksWithScore(bookId, PageRequest.of(0, safeLimit));
+
+        return results.stream()
+                .map(row -> (Book) row[0])
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public BookDTO assignLabels(Long bookId, List<String> labels) {
+        Book book = br.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + bookId));
+
+        Set<String> requestedLabels = labels == null
+                ? Set.of()
+                : labels.stream()
+                        .filter(label -> label != null && !label.isBlank())
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        List<Label> labelEntities = requestedLabels.isEmpty()
+                ? List.of()
+                : lr.findAllById(requestedLabels);
+
+        if (labelEntities.size() != requestedLabels.size()) {
+            Set<String> foundNames = labelEntities.stream().map(Label::getName).collect(Collectors.toSet());
+            List<String> missing = requestedLabels.stream().filter(label -> !foundNames.contains(label)).toList();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Onbekende labels: " + String.join(", ", missing));
+        }
+
+        book.setLabels(new ArrayList<>(labelEntities));
+        Book saved = br.save(book);
+        return mapToDTO(saved);
+    }
+
+    public BookDTO updateBook(Long id, BookDTO dto) {
+        Book book = br.findById(id)
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
+
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthor());
+        book.setISBN(dto.getISBN());
+        book.setPages(dto.getPages());
+        book.setImageUrl(dto.getImageUrl());
+        book.setDescription(dto.getDescription());
+        book.setReleaseYear(dto.getReleaseYear());
+
+        Book updatedBook = br.save(book);
+        return mapToDTO(updatedBook);
+    }
+
+    public void deleteBook(Long id) {
+        if (!br.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Boek niet gevonden met id: " + id);
+        }
+
+        br.deleteById(id);
+    }
+
+    public BookDTO fetchBookByIdWithFallback(Long id) {
+        BookDTO dto = getBookById(id);
+
+        if (dto.getImageUrl() == null || dto.getImageUrl().isBlank()) {
+            Book book = br.findById(id).orElseThrow();
+            String isbn = book.getISBN();
+            if (isbn != null) {
+                BookDTO fetchedByIsbn = fetchBookByISBN(isbn);
+                if (fetchedByIsbn.getImageUrl() != null) {
+                    dto.setImageUrl(fetchedByIsbn.getImageUrl());
+                }
+            }
+        }
+
+        return dto;
     }
 
     public BookPreviewDTO fetchPreviewByISBN(String rawIsbn) {

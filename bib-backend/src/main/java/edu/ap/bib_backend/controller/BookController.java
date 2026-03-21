@@ -14,6 +14,7 @@ import edu.ap.bib_backend.service.BookService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -35,6 +36,27 @@ public class BookController {
     public ResponseEntity<BookDTO> getBookById(@PathVariable("id") Long id) {
         BookDTO book = bs.getBookById(id);
         return ResponseEntity.ok(book);
+    }
+
+    @GetMapping("/{id}/related")
+    public ResponseEntity<List<BookDTO>> getRelatedBooks(
+            @PathVariable("id") Long id,
+            @RequestParam(defaultValue = "3", required = false) int limit) {
+        return ResponseEntity.ok(bs.getRelatedBooks(id, limit));
+    }
+
+    @GetMapping("/{id}/related-carousel")
+    public ResponseEntity<List<BookDTO>> getRelatedBooksCarousel(
+            @PathVariable("id") Long id,
+            @RequestParam(defaultValue = "10", required = false) int limit) {
+        return ResponseEntity.ok(bs.getRelatedBooksCarousel(id, limit));
+    }
+
+    @PutMapping("/{id}/labels")
+    public ResponseEntity<BookDTO> assignLabels(
+            @PathVariable("id") Long id,
+            @RequestBody List<String> labels) {
+        return ResponseEntity.ok(bs.assignLabels(id, labels));
     }
 
     @PostMapping

@@ -176,12 +176,76 @@
 
       <!-- Genres -->
       <section class="genres-section">
-        <h2 class="section-title">Genres</h2>
+        <h2 class="section-title">Labels</h2>
         <div class="genres-tags">
-          <span class="genre-tag">Fantasy</span>
-          <span class="genre-tag">Avontuur</span>
-          <span class="genre-tag">Klassiek</span>
+          @if (selectedBook.labels?.length) {
+          @for (label of selectedBook.labels; track label) {
+          <span class="genre-tag">{{ label }}</span>
+          }
+          } @else {
+          <span class="meta-value meta-placeholder">Geen labels toegewezen</span>
+          }
         </div>
+      </section>
+
+      <!-- Gerelateerde boeken -->
+      <section class="genres-section">
+        <h2 class="section-title">Gerelateerde boeken</h2>
+        @if (relatedBooks.length > 0) {
+        <div class="related-books-grid">
+          @for (book of relatedBooks; track book.id) {
+          <button class="related-book-card" type="button" (click)="openRelatedBook(book.id)">
+            <img class="related-book-cover" [src]="book.imageUrl" [alt]="book.title" />
+            <span class="related-book-title">{{ book.title }}</span>
+          </button>
+          }
+        </div>
+        } @else {
+        <div class="empty-state">
+          <p>Geen gerelateerde boeken gevonden.</p>
+        </div>
+        }
+      </section>
+
+      <!-- Gerelateerde boeken Carrousel -->
+      <section class="genres-section">
+        <div class="carousel-header">
+          <h2 class="section-title">Meer boeken met dezelfde labels</h2>
+          @if (relatedBooksCarousel.length > 0) {
+          <div class="carousel-controls">
+            <button class="carousel-btn prev" (click)="scrollCarousel('left')" type="button" title="Vorige">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <button class="carousel-btn next" (click)="scrollCarousel('right')" type="button" title="Volgende">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+          }
+        </div>
+
+        @if (relatedBooksCarousel.length > 0) {
+        <div class="related-books-carousel-wrapper">
+          <div class="related-books-carousel-container">
+            @for (book of relatedBooksCarousel; track book.id) {
+            <button class="carousel-book-card" type="button" (click)="openRelatedBook(book.id)">
+              <img class="carousel-book-cover" [src]="book.imageUrl" [alt]="book.title" />
+              <span class="carousel-book-title">{{ book.title }}</span>
+              <span class="carousel-book-author">{{ book.author }}</span>
+            </button>
+            }
+          </div>
+        </div>
+        } @else {
+        <div class="empty-state">
+          <p>Geen gerelateerde boeken gevonden.</p>
+        </div>
+        }
       </section>
 
       <!-- Reviews -->

@@ -21,7 +21,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BookService } from '../../services/BookService/book.service';
 import { Availability } from '../../model/enums/availability.enum';
 import { Review } from '../../model/review.model';
@@ -86,8 +86,13 @@ export class BookDetailComponent {
 
   Availability = Availability;
 
+  // Related Books //
+  relatedBooks: Book[] = [];
+  relatedBooksCarousel: Book[] = [];
+
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private bookService: BookService,
     private readingListService: ReadingListService,
     private reviewService: ReviewService,
@@ -101,15 +106,55 @@ export class BookDetailComponent {
       const id = params.get('id');
 
       if (id) {
-        this.bookService.getBookById(+id).subscribe(book => {
+        const numericBookId = +id;
+
+        this.bookService.getBookById(numericBookId).subscribe(book => {
           this.selectedBook = book;
         });
 
-        this.loadReviews(+id);
+        this.loadRelatedBooks(numericBookId);
+        this.loadRelatedBooksCarousel(numericBookId);
+        this.loadReviews(numericBookId);
       }
     });
 
     this.loadReadingLists();
+  }
+
+  private loadRelatedBooks(bookId: number) {
+    this.bookService.getRelatedBooks(bookId, 3).subscribe({
+      next: (books) => {
+        this.relatedBooks = books;
+      },
+      error: (err) => {
+        console.error('Problem with loading related books', err);
+        this.relatedBooks = [];
+      }
+    });
+  }
+
+  private loadRelatedBooksCarousel(bookId: number) {
+    this.bookService.getRelatedBooksCarousel(bookId, 10).subscribe({
+      next: (books) => {
+        this.relatedBooksCarousel = books;
+      },
+      error: (err) => {
+        console.error('Problem with loading carousel books', err);
+        this.relatedBooksCarousel = [];
+      }
+    });
+  }
+
+  scrollCarousel(direction: 'left' | 'right') {
+    const carousel = document.querySelector('.related-books-carousel-container');
+    if (!carousel) return;
+
+    const scrollAmount = 240; // 90px kaart + 16px gap + wat padding
+    if (direction === 'left') {
+      carousel.scrollLeft -= scrollAmount;
+    } else {
+      carousel.scrollLeft += scrollAmount;
+    }
   }
 
   public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
@@ -341,5 +386,13 @@ export class BookDetailComponent {
   public closePreviewModal(): void {
     this.isPreviewModalOpen.set(false);
     this.embeddedPreviewUrl.set(null);
+  }
+
+  openRelatedBook(bookId?: number) {
+    if (!bookId) {
+      return;
+    }
+
+    this.router.navigate(['/book', bookId]);
   }
 }

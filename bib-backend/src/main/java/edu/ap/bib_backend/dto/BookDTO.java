@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.dto;
 
-import edu.ap.bib_backend.jpa.entity.Availability;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,7 @@ public class BookDTO {
     private String description;
     private int releaseYear;
     private double reviewScore;
+    private List<String> labels;
 
     public BookDTO() {
     }
@@ -47,6 +49,7 @@ public class BookDTO {
                 ", description='" + description + '\'' +
                 ", releaseYear=" + releaseYear +
                 ", reviewScore=" + reviewScore +
+                ", labels=" + labels +
                 '}';
     }
 }
