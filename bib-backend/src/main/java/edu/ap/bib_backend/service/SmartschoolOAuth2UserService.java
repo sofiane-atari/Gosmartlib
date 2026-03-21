@@ -12,13 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import edu.ap.bib_backend.jpa.entity.Role;
-import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
 
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
