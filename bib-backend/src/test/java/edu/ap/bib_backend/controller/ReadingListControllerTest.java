@@ -25,158 +25,158 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class ReadingListControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private ReadingListService readingListService;
+        @MockitoBean
+        private ReadingListService readingListService;
 
-    // GET /api/reading-lists
+        // GET /reading-lists
 
-    @Test
-    void givenExistingLists_whenGetAllReadingLists_thenReturnOkWithLists() throws Exception {
-        ReadingList list = new ReadingList();
-        list.setId(10L);
-        list.setName("Test List");
+        @Test
+        void givenExistingLists_whenGetAllReadingLists_thenReturnOkWithLists() throws Exception {
+                ReadingList list = new ReadingList();
+                list.setId(10L);
+                list.setName("Test List");
 
-        when(readingListService.getAllLists()).thenReturn(Collections.singletonList(list));
+                when(readingListService.getAllLists()).thenReturn(Collections.singletonList(list));
 
-        mockMvc.perform(get("/api/reading-lists"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Test List"))
-                .andExpect(jsonPath("$[0].id").value(10));
-    }
+                mockMvc.perform(get("/reading-lists"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].name").value("Test List"))
+                                .andExpect(jsonPath("$[0].id").value(10));
+        }
 
-    @Test
-    void givenNoLists_whenGetAllReadingLists_thenReturnEmptyArray() throws Exception {
-        when(readingListService.getAllLists()).thenReturn(List.of());
+        @Test
+        void givenNoLists_whenGetAllReadingLists_thenReturnEmptyArray() throws Exception {
+                when(readingListService.getAllLists()).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/reading-lists"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
-    }
+                mockMvc.perform(get("/reading-lists"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$").isArray())
+                                .andExpect(jsonPath("$").isEmpty());
+        }
 
-    // POST /api/reading-lists
+        // POST /reading-lists
 
-    @Test
-    void givenValidDTO_whenCreateReadingList_thenReturnCreated() throws Exception {
-        ReadingListDTO dto = new ReadingListDTO("New List");
-        ReadingList savedList = new ReadingList();
-        savedList.setId(10L);
-        savedList.setName("New List");
+        @Test
+        void givenValidDTO_whenCreateReadingList_thenReturnCreated() throws Exception {
+                ReadingListDTO dto = new ReadingListDTO("New List");
+                ReadingList savedList = new ReadingList();
+                savedList.setId(10L);
+                savedList.setName("New List");
 
-        when(readingListService.createReadingList(any(ReadingListDTO.class))).thenReturn(savedList);
+                when(readingListService.createReadingList(any(ReadingListDTO.class))).thenReturn(savedList);
 
-        mockMvc.perform(post("/api/reading-lists")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("New List"))
-                .andExpect(jsonPath("$.id").value(10));
-    }
+                mockMvc.perform(post("/reading-lists")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.name").value("New List"))
+                                .andExpect(jsonPath("$.id").value(10));
+        }
 
-    @Test
-    void givenEmptyName_whenCreateReadingList_thenReturnBadRequest() throws Exception {
-        ReadingListDTO dto = new ReadingListDTO("");
+        @Test
+        void givenEmptyName_whenCreateReadingList_thenReturnBadRequest() throws Exception {
+                ReadingListDTO dto = new ReadingListDTO("");
 
-        when(readingListService.createReadingList(any(ReadingListDTO.class)))
-                .thenThrow(new IllegalArgumentException("name mag niet null of leeg zijn"));
+                when(readingListService.createReadingList(any(ReadingListDTO.class)))
+                                .thenThrow(new IllegalArgumentException("name mag niet null of leeg zijn"));
 
-        mockMvc.perform(post("/api/reading-lists")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-    }
+                mockMvc.perform(post("/reading-lists")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto)))
+                                .andExpect(status().isBadRequest());
+        }
 
-    // DELETE /api/reading-lists/{id}
+        // DELETE /reading-lists/{id}
 
-    @Test
-    void givenExistingId_whenDeleteReadingList_thenReturnNoContent() throws Exception {
-        doNothing().when(readingListService).deleteReadingList(10L);
+        @Test
+        void givenExistingId_whenDeleteReadingList_thenReturnNoContent() throws Exception {
+                doNothing().when(readingListService).deleteReadingList(10L);
 
-        mockMvc.perform(delete("/api/reading-lists/{id}", 10L))
-                .andExpect(status().isNoContent());
+                mockMvc.perform(delete("/reading-lists/{id}", 10L))
+                                .andExpect(status().isNoContent());
 
-        verify(readingListService).deleteReadingList(10L);
-    }
+                verify(readingListService).deleteReadingList(10L);
+        }
 
-    @Test
-    void givenNonExistingId_whenDeleteReadingList_thenReturnBadRequest() throws Exception {
-        doThrow(new IllegalArgumentException("Leeslijst met id 99 bestaat niet"))
-                .when(readingListService).deleteReadingList(99L);
+        @Test
+        void givenNonExistingId_whenDeleteReadingList_thenReturnBadRequest() throws Exception {
+                doThrow(new IllegalArgumentException("Leeslijst met id 99 bestaat niet"))
+                                .when(readingListService).deleteReadingList(99L);
 
-        mockMvc.perform(delete("/api/reading-lists/{id}", 99L))
-                .andExpect(status().isBadRequest());
-    }
+                mockMvc.perform(delete("/reading-lists/{id}", 99L))
+                                .andExpect(status().isBadRequest());
+        }
 
-    // GET /api/reading-lists/{id}
+        // GET /reading-lists/{id}
 
-    @Test
-    void givenExistingId_whenGetReadingListById_thenReturnOk() throws Exception {
-        ReadingList list = new ReadingList();
-        list.setId(10L);
-        list.setName("Gedeelde lijst");
+        @Test
+        void givenExistingId_whenGetReadingListById_thenReturnOk() throws Exception {
+                ReadingList list = new ReadingList();
+                list.setId(10L);
+                list.setName("Gedeelde lijst");
 
-        when(readingListService.getListById(10L)).thenReturn(list);
+                when(readingListService.getListById(10L)).thenReturn(list);
 
-        mockMvc.perform(get("/api/reading-lists/{id}", 10L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(10))
-                .andExpect(jsonPath("$.name").value("Gedeelde lijst"));
-    }
+                mockMvc.perform(get("/reading-lists/{id}", 10L))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(10))
+                                .andExpect(jsonPath("$.name").value("Gedeelde lijst"));
+        }
 
-    @Test
-    void givenNonExistingId_whenGetReadingListById_thenReturnBadRequest() throws Exception {
-        doThrow(new IllegalArgumentException("Leeslijst met id 99 bestaat niet"))
-                .when(readingListService).getListById(99L);
+        @Test
+        void givenNonExistingId_whenGetReadingListById_thenReturnBadRequest() throws Exception {
+                doThrow(new IllegalArgumentException("Leeslijst met id 99 bestaat niet"))
+                                .when(readingListService).getListById(99L);
 
-        mockMvc.perform(get("/api/reading-lists/{id}", 99L))
-                .andExpect(status().isBadRequest());
-    }
+                mockMvc.perform(get("/reading-lists/{id}", 99L))
+                                .andExpect(status().isBadRequest());
+        }
 
-    // POST /api/reading-lists/{listId}/books
+        // POST /reading-lists/{listId}/books
 
-    @Test
-    void givenValidData_whenAddBookToList_thenReturnCreated() throws Exception {
-        edu.ap.bib_backend.dto.AddBookDTO dto = new edu.ap.bib_backend.dto.AddBookDTO(100L);
-        ReadingList list = new ReadingList();
-        list.setId(10L);
-        edu.ap.bib_backend.jpa.entity.ReadingListBook savedBook = new edu.ap.bib_backend.jpa.entity.ReadingListBook();
-        savedBook.setId(1L);
-        savedBook.setBookId(100L);
-        savedBook.setReadingList(list);
+        @Test
+        void givenValidData_whenAddBookToList_thenReturnCreated() throws Exception {
+                edu.ap.bib_backend.dto.AddBookDTO dto = new edu.ap.bib_backend.dto.AddBookDTO(100L);
+                ReadingList list = new ReadingList();
+                list.setId(10L);
+                edu.ap.bib_backend.jpa.entity.ReadingListBook savedBook = new edu.ap.bib_backend.jpa.entity.ReadingListBook();
+                savedBook.setId(1L);
+                savedBook.setBookId(100L);
+                savedBook.setReadingList(list);
 
-        when(readingListService.addBookToList(10L, 100L)).thenReturn(savedBook);
+                when(readingListService.addBookToList(10L, 100L)).thenReturn(savedBook);
 
-        mockMvc.perform(post("/api/reading-lists/{listId}/books", 10L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.bookId").value(100));
-    }
+                mockMvc.perform(post("/reading-lists/{listId}/books", 10L)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.bookId").value(100));
+        }
 
-    // POST /api/reading-lists/favorites/books
+        // POST /reading-lists/favorites/books
 
-    @Test
-    void givenValidData_whenAddBookToFavorites_thenReturnCreated() throws Exception {
-        edu.ap.bib_backend.dto.AddBookDTO dto = new edu.ap.bib_backend.dto.AddBookDTO(100L);
-        ReadingList list = new ReadingList();
-        list.setId(99L);
-        edu.ap.bib_backend.jpa.entity.ReadingListBook savedBook = new edu.ap.bib_backend.jpa.entity.ReadingListBook();
-        savedBook.setId(2L);
-        savedBook.setBookId(100L);
-        savedBook.setReadingList(list);
+        @Test
+        void givenValidData_whenAddBookToFavorites_thenReturnCreated() throws Exception {
+                edu.ap.bib_backend.dto.AddBookDTO dto = new edu.ap.bib_backend.dto.AddBookDTO(100L);
+                ReadingList list = new ReadingList();
+                list.setId(99L);
+                edu.ap.bib_backend.jpa.entity.ReadingListBook savedBook = new edu.ap.bib_backend.jpa.entity.ReadingListBook();
+                savedBook.setId(2L);
+                savedBook.setBookId(100L);
+                savedBook.setReadingList(list);
 
-        when(readingListService.addBookToFavorites(100L)).thenReturn(savedBook);
+                when(readingListService.addBookToFavorites(100L)).thenReturn(savedBook);
 
-        mockMvc.perform(post("/api/reading-lists/favorites/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.bookId").value(100));
-    }
+                mockMvc.perform(post("/reading-lists/favorites/books")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.bookId").value(100));
+        }
 }
