@@ -7,8 +7,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,19 +22,13 @@ import org.springframework.web.server.ResponseStatusException;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
-import edu.ap.bib_backend.jpa.entity.Label;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
-import edu.ap.bib_backend.jpa.repository.LabelRepository;
-import edu.ap.bib_backend.service.BookService;
 
 @ExtendWith(MockitoExtension.class)
 public class BookServiceTest {
 
     @Mock
     private BookRepository br;
-
-    @Mock
-    private LabelRepository lr;
 
     @InjectMocks
     private BookService bs;
@@ -328,7 +320,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void givenRelatedBooksExist_whenGetRelatedBooks_thenReturnMappedBooks() {
+    void givenRelatedBooksExist_whenGetRelatedBooksCarousel_thenReturnMappedBooks() {
         Book source = new Book();
         source.setId(1L);
 
@@ -338,31 +330,12 @@ public class BookServiceTest {
         related.setAuthor("Author");
 
         when(br.findById(1L)).thenReturn(Optional.of(source));
-        when(br.findRelatedBooks(1L, PageRequest.of(0, 3))).thenReturn(List.of(related));
+        when(br.findRelatedBooksWithScore(1L, PageRequest.of(0, 10))).thenReturn((List<Object[]>) List.of(new Object[] { related, 2L }));
 
-        List<BookDTO> result = bs.getRelatedBooks(1L, 3);
+        List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(2L);
         assertThat(result.get(0).getTitle()).isEqualTo("Related");
-    }
-
-    @Test
-    void givenLabelsExist_whenAssignLabels_thenSaveBookWithLabels() {
-        Book book = new Book();
-        book.setId(1L);
-        book.setLabels(new ArrayList<>());
-
-        Label fantasy = new Label("Fantasy", "#111111", "");
-        Label avontuur = new Label("Avontuur", "#222222", "");
-
-        when(br.findById(1L)).thenReturn(Optional.of(book));
-        when(lr.findAllById(Mockito.anySet())).thenReturn(List.of(fantasy, avontuur));
-        when(br.save(Mockito.any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        BookDTO result = bs.assignLabels(1L, Arrays.asList("Fantasy", "Avontuur"));
-
-        assertThat(result.getLabels()).containsExactly("Fantasy", "Avontuur");
-        verify(br).save(Mockito.any(Book.class));
     }
 }

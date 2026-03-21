@@ -708,6 +708,9 @@
   position: relative;
   overflow: hidden;
   border-radius: 8px;
+  /* Beperk breedte tot 6 boeken max zichtbaar */
+  /* Berekening: (breedte boek 110px * 6) + (gap 12px * 5) + (padding 4px * 2) */
+  max-width: calc((110px * 6) + (12px * 5) + 8px);
 }
 
 .related-books-carousel-container {
