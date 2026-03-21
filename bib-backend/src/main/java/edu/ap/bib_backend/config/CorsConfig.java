@@ -23,10 +23,6 @@ public class CorsConfig {
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("Authorization", "Content-Type", "X-Mock-Role")
                         .allowCredentials(true);
-                        // .allowPrivateNetwork(true)
-                        // .exposedHeaders("Access-Control-Allow-Private-Network")
-                        // .allowedOrigins("https://frontend-yazan.gosmartlib.be");
-
             }
         };
     }

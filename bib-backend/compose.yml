@@ -19,6 +19,7 @@ services:
       SMART_SCHOOL_CLIENT_ID: "${SMART_SCHOOL_CLIENT_ID}"
       SMART_SCHOOL_CLIENT_SECRET: "${SMART_SCHOOL_CLIENT_SECRET}"
       JWT_SECRET: "${JWT_SECRET}"
+      FRONTEND_REDIRECT_URL: "${FRONTEND_REDIRECT_URL}"
 
     labels:
       - "traefik.enable=true"
