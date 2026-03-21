@@ -86,8 +86,7 @@ export class BookDetailComponent {
 
   Availability = Availability;
 
-  // Related Books //
-  relatedBooks: Book[] = [];
+  // Related Books Carousel //
   relatedBooksCarousel: Book[] = [];
 
   constructor(
@@ -112,25 +111,12 @@ export class BookDetailComponent {
           this.selectedBook = book;
         });
 
-        this.loadRelatedBooks(numericBookId);
         this.loadRelatedBooksCarousel(numericBookId);
         this.loadReviews(numericBookId);
       }
     });
 
     this.loadReadingLists();
-  }
-
-  private loadRelatedBooks(bookId: number) {
-    this.bookService.getRelatedBooks(bookId, 3).subscribe({
-      next: (books) => {
-        this.relatedBooks = books;
-      },
-      error: (err) => {
-        console.error('Problem with loading related books', err);
-        this.relatedBooks = [];
-      }
-    });
   }
 
   private loadRelatedBooksCarousel(bookId: number) {
