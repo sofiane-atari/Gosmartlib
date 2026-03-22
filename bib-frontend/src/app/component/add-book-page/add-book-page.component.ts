@@ -51,11 +51,12 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
     });
   }
   addBook(event: Book) {
-  const bookToSave = event ?? this.book; // gebruik event als het bestaat, anders fallback
+    const bookToSave = event ?? this.book;
 
     this.bs.addBook(bookToSave).subscribe({
       next: () => {
-      this.rt.navigate(['/catalog']);
+        localStorage.removeItem('bookFilters');
+        this.rt.navigate(['/catalog']);
       },
       error: (err) => {
         console.error(err);

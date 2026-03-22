@@ -63,7 +63,11 @@ public class BookService {
         String normalizedIsbn = normalizeIsbn(dto.getISBN());
         dto.setISBN(normalizedIsbn);
 
-        Book book = br.findByISBN(normalizedIsbn);
+        Book book = null;
+
+        if (normalizedIsbn != null && !normalizedIsbn.isBlank()) {
+            book = br.findByISBN(normalizedIsbn);
+        }
 
         if (book == null) {
             book = mapToEntity(dto);

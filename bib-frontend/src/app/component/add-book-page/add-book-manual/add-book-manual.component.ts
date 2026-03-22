@@ -54,5 +54,6 @@ export class AddBookManualComponent {
     }
     this.bookAdded.emit(this.book);
   }
+  
 
 }
