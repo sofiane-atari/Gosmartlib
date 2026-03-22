@@ -167,11 +167,18 @@
       <!-- Genres -->
       <section class="genres-section">
         <h2 class="section-title">Genres</h2>
-        <div class="genres-tags">
-          <span class="genre-tag">Fantasy</span>
-          <span class="genre-tag">Avontuur</span>
-          <span class="genre-tag">Klassiek</span>
-        </div>
+
+        @if ((selectedBook?.genres ?? []).length > 0) {
+          <div class="genres-tags">
+            @for (genre of selectedBook?.genres ?? []; track genre.name) {
+              <span class="genre-tag" [style.backgroundColor]="genre.color">
+                {{ genre.name }}
+              </span>
+            }
+          </div>
+        } @else {
+          <span class="meta-value meta-placeholder">Geen genres beschikbaar</span>
+        }
       </section>
 
       <!-- Reviews -->

@@ -23,13 +23,13 @@ public class BookDTO {
     private double reviewScore;
     private LocalDateTime addedDate;
 
-    private List<String> genres = new ArrayList<>();
+    private List<GenreDTO> genres = new ArrayList<>();
 
     public BookDTO() {
     }
 
     public BookDTO(Long id, String ISBN, String title, String author, int pages, String image_url, String description,
-            int release_year, double reviewScore, LocalDateTime addedDate, List<String> genres) {
+            int release_year, double reviewScore, LocalDateTime addedDate, List<GenreDTO> genres) {
         this.id = id;
         this.ISBN = ISBN;
         this.title = title;

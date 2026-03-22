@@ -43,16 +43,18 @@ export class AddBookISBNComponent {
 
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
   
-  toggleGenre(genreName: string) {
-    if (this.book.genres.includes(genreName)) {
-      this.book.genres = this.book.genres.filter(g => g !== genreName);
+  toggleGenre(genre: Genre) {
+    const exists = this.book.genres.some(g => g.name === genre.name);
+
+    if (exists) {
+      this.book.genres = this.book.genres.filter(g => g.name !== genre.name);
     } else {
-      this.book.genres.push(genreName);
+      this.book.genres.push(genre);
     }
   }
 
-  isGenreSelected(genreName: string): boolean {
-    return this.book.genres.includes(genreName);
+  isGenreSelected(genre: Genre): boolean {
+    return this.book.genres.some(g => g.name  === genre.name);
   }
   
   save() {

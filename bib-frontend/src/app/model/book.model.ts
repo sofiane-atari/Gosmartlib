@@ -1,3 +1,5 @@
+import { Genre } from "./genre.model";
+
 export interface Book {
   id?: number;
   ISBN?: string;
@@ -8,5 +10,5 @@ export interface Book {
   description: string;
   releaseYear: number;    
   reviewScore?: number;
-  genres: string[];
+  genres: Genre[];
 }

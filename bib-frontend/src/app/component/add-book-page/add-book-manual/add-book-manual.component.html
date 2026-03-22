@@ -88,11 +88,11 @@
           @for (genre of genres; track genre.name) {
             <div 
               class="genre-option"
-              [class.selected]="isGenreSelected(genre.name)"
-              [style.background-color]="isGenreSelected(genre.name) ? genre.color + '33' : '#f5f5f5'"
-              [style.color]="isGenreSelected(genre.name) ? genre.color : '#666'"
-              [style.border-color]="isGenreSelected(genre.name) ? genre.color + '66' : '#e0e0e0'"
-              (click)="toggleGenre(genre.name)"
+              [class.selected]="isGenreSelected(genre)"
+              [style.background-color]="isGenreSelected(genre) ? genre.color + '33' : '#f5f5f5'"
+              [style.color]="isGenreSelected(genre) ? genre.color : '#666'"
+              [style.border-color]="isGenreSelected(genre) ? genre.color + '66' : '#e0e0e0'"
+              (click)="toggleGenre(genre)"
             >
               <span class="genre-text">{{ genre.name }}</span>
             </div>

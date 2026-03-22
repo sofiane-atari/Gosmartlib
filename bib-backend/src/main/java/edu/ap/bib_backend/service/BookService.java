@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -95,9 +96,18 @@ public class BookService {
         dto.setAddedDate(book.getAddedDate());
         dto.setGenres(
                 book.getGenres().stream()
-                        .map(Genre::getName)
+                        .map(this::mapGenreToDTO)
                         .toList());
         return dto;
+    }
+
+    private GenreDTO mapGenreToDTO(Genre genre) {
+        return GenreDTO.builder()
+                .name(genre.getName())
+                .color(genre.getColor())
+                .description(genre.getDescription())
+                .bookCount(null)
+                .build();
     }
 
     private Book mapToEntity(BookDTO dto) {
@@ -109,26 +119,21 @@ public class BookService {
         book.setImageUrl(dto.getImageUrl());
         book.setDescription(dto.getDescription());
         book.setReleaseYear(dto.getReleaseYear());
-        book.setGenres(mapGenres(dto.getGenres()));
+        book.setGenres(mapGenresFromDTO(dto.getGenres()));
         return book;
     }
 
-    private List<Genre> mapGenres(List<String> genreNames) {
-        if (genreNames == null) {
+    private List<Genre> mapGenresFromDTO(List<GenreDTO> genres) {
+        if (genres == null) {
             return new ArrayList<>();
         }
 
-        return genreNames.stream()
-                .map(String::trim)
-                .filter(name -> !name.isBlank())
+        return genres.stream()
+                .filter(dto -> dto.name() != null && !dto.name().isBlank())
+                .map(dto -> dto.name().trim())
                 .distinct()
-                .map(name -> gr.findById(name).orElseGet(() -> {
-                    Genre genre = new Genre();
-                    genre.setName(name);
-                    genre.setColor("#808080");
-                    genre.setDescription(null);
-                    return gr.save(genre);
-                }))
+                .map(name -> gr.findById(name)
+                        .orElseThrow(() -> new IllegalArgumentException("Genre bestaat niet: " + name)))
                 .toList();
     }
 
