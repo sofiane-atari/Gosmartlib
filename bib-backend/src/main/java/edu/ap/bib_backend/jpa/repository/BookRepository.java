@@ -40,4 +40,18 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     @Query("SELECT b FROM Book b ORDER BY b.addedDate DESC")
     List<Book> findNewestBooks(Pageable pageable);
+
+
+
+    @Query("""
+            SELECT relatedBook, COUNT(sourceGenre) as sharedGenreCount
+            FROM Book sourceBook
+            JOIN sourceBook.genres sourceGenre
+            JOIN sourceGenre.books relatedBook
+            WHERE sourceBook.id = :bookId
+              AND relatedBook.id <> :bookId
+            GROUP BY relatedBook
+            ORDER BY COUNT(sourceGenre) DESC, RAND()
+            """)
+    List<Object[]> findRelatedBooksWithScore(@Param("bookId") Long bookId, Pageable pageable);
 }

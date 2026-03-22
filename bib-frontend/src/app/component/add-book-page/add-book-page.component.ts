@@ -40,9 +40,9 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
   loadGenres(): void {
     this.isLoadingGenres = true;
 
-    this.gs.getLabels().subscribe({
-      next: (labels: Genre[]) => {
-        this.genres = labels;
+    this.gs.getGenres().subscribe({
+      next: (genres: Genre[]) => {
+        this.genres = genres;
         this.isLoadingGenres = false;
       },
       error: (err) => {

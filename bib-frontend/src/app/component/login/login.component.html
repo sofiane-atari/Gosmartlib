@@ -1,0 +1,40 @@
+<div class="login-container">
+  <!-- Header Section -->
+  <div class="login-header">
+    <p class="login-eyebrow">GoSmartLib</p>
+    <h1>Slim en veilig bibliotheekbeheer</h1>
+    <p class="login-subtitle">Alles wat je nodig hebt voor leeslijsten, recensies en opvolging op één plek.</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="login-content">
+    <!-- Info Box -->
+    <div class="info-box">
+      <h2>Meld je aan met je schoolaccount</h2>
+      <p>Krijg toegang tot je leeslijsten, boekrecensies en meer met je Smartschool-account.</p>
+    </div>
+
+    <!-- Smartschool SSO Button -->
+    <app-smartschool-button
+      [loading]="isLoading()"
+      [disabled]="isLoading()"
+      (buttonClick)="initiateSmartschoolSSO()"
+    ></app-smartschool-button>
+
+    <!-- Loading Indicator -->
+    @if (isLoading()) {
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Je wordt doorgestuurd naar Smartschool...</p>
+      </div>
+    }
+  </div>
+
+  <!-- Footer Section -->
+  <div class="login-footer">
+    <p>
+      <strong>Privacyverklaring:</strong> We bewaren alleen je Smartschool-gebruikers-ID voor authenticatie.
+      Je persoonlijke gegevens worden nooit lokaal opgeslagen.
+    </p>
+  </div>
+</div>

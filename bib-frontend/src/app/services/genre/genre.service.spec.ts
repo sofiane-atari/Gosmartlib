@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { GenreService } from './genre.service';
 
-describe('LabelService', () => {
+describe('GenreService', () => {
   let service: GenreService;
 
   beforeEach(() => {

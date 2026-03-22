@@ -1,20 +1,19 @@
-import { PageingOpt } from '../../model/paginated-response.model.ts.js';
+import { PageingOpt } from '../../model/paginated-response.model.ts';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable, Signal, signal } from '@angular/core';
-import { environment } from '../../../environments/environment.js';
-import { Genre, GenreStats } from '../../model/genre.model.js';
+import { inject, Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
+import { Genre, GenreStats } from '../../model/genre.model';
 import { Observable } from 'rxjs';
-import { PaginatedResponse } from '../../model/paginated-response.model.ts.js';
-import { Search } from 'lucide-angular';
+import { PaginatedResponse } from '../../model/paginated-response.model.ts';
 
-export interface labelGetOpt {
+export interface genreGetOpt {
   includeBookCount?: boolean;
   bookCount?: string;
   search?: string;
 }
 
-export interface labelGetOptWithPaging {
-  labelGetOpt?: labelGetOpt;
+export interface genreGetOptWithPaging {
+  genreGetOpt?: genreGetOpt;
   pagingOpt: PageingOpt;
 }
 
@@ -25,49 +24,49 @@ export class GenreService {
   private http = inject(HttpClient);
   private url = `${environment.apiUrl}/genres`;
 
-  public createLabel(genre: Genre): Observable<Genre> {
+  public createGenre(genre: Genre): Observable<Genre> {
     return this.http.post<Genre>(this.url, genre);
   }
-  getLabels() {
+  getGenres() {
     return this.http.get<Genre[]>(`${this.url}/all`);
   }
 
-  public getLabelsByPage(
-    opt: labelGetOptWithPaging,
+  public getGenresByPage(
+    opt: genreGetOptWithPaging,
   ): Observable<PaginatedResponse<Genre>> {
     let params = new HttpParams({
       fromObject: {
-        includeBookCount: String(opt.labelGetOpt?.includeBookCount ?? false),
+        includeBookCount: String(opt.genreGetOpt?.includeBookCount ?? false),
         page: String(opt.pagingOpt.page),
         pageSize: String(opt.pagingOpt.pageSize),
       },
     });
 
     // Add search parameter if provided
-    if (opt.labelGetOpt?.search) {
-      params = params.set('search', opt.labelGetOpt.search);
+    if (opt.genreGetOpt?.search) {
+      params = params.set('search', opt.genreGetOpt.search);
     }
 
     // Add bookCount filter if provided
-    if (opt.labelGetOpt?.bookCount) {
-      params = params.set('bookCount', opt.labelGetOpt.bookCount);
+    if (opt.genreGetOpt?.bookCount) {
+      params = params.set('bookCount', opt.genreGetOpt.bookCount);
     }
 
     return this.http.get<PaginatedResponse<Genre>>(this.url, { params });
   }
 
-  public getLabelStats(): Observable<GenreStats> {
+  public getGenreStats(): Observable<GenreStats> {
     return this.http.get<GenreStats>(`${this.url}/_stats`);
   }
 
-  public deleteLabelByName(name: string) {
+  public deleteGenreByName(name: string) {
     return this.http.delete<void>(`${this.url}/${encodeURIComponent(name)}`);
   }
 
-  public updateLabel(label: Genre): Observable<Genre> {
+  public updateGenre(genre: Genre): Observable<Genre> {
     return this.http.put<Genre>(
-      `${this.url}/${encodeURIComponent(label.name)}`,
-      label,
+      `${this.url}/${encodeURIComponent(genre.name)}`,
+      genre,
     );
   }
 }

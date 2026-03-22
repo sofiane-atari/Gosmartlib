@@ -22,7 +22,6 @@ import {
 } from 'lucide-angular';
 import { School } from 'lucide-angular/src/icons';
 import { Router, RouterModule } from '@angular/router';
-import { routes } from '../../app.routes';
 
 @Component({
   selector: 'app-sidebar',
@@ -45,9 +44,9 @@ export class SidebarComponent {
   // Output for closing sidebar on mobile
   public sidebarClosed = output<void>();
 
-  constructor(private router: Router) {}
+  public constructor(private readonly router: Router) {}
 
-  onRoleChange(newRole: string) {
+  public onRoleChange(newRole: string): void {
     this.authService.switchRole(newRole as Role);
   }
 
@@ -61,16 +60,22 @@ export class SidebarComponent {
     { icon: Package, label: 'BookBox', route: '/bookbox' },
     { icon: Flag, label: 'Rapporteer', route: '/gerapporteerd' },
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
-    { icon: Tag, label: 'Labelbeheer', route: '/labels' },
+    { icon: Tag, label: 'Labelbeheer', route: '/genre' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen' },
   ];
 
-  goToAddBook() {
+  public goToAddBook(): void {
     this.router.navigate(['/add-book']);
     this.closeOnMobile();
   }
 
-  closeOnMobile() {
+  public logout(): void {
+    this.authService.clearToken();
+    this.closeOnMobile();
+    this.router.navigate(['/login']);
+  }
+
+  public closeOnMobile(): void {
     if (this.mobileOpen()) {
       this.sidebarClosed.emit();
     }

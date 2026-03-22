@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +47,7 @@ public class BookControllerTest {
 
         Mockito.when(bs.getAllBooks()).thenReturn(List.of(book));
 
-        mockMvc.perform(get("/api/books"))
+        mockMvc.perform(get("/books"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Test Book"))
                 .andExpect(jsonPath("$[0].author").value("Test Author"))
@@ -72,7 +73,7 @@ public class BookControllerTest {
 
         Mockito.when(bs.getBookById(1L)).thenReturn(book);
 
-        mockMvc.perform(get("/api/books/1"))
+        mockMvc.perform(get("/books/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Specifiek Boek"))
                 .andExpect(jsonPath("$.author").value("Bekende Auteur"))
@@ -105,7 +106,7 @@ public class BookControllerTest {
         Mockito.when(bs.addBook(Mockito.any(BookDTO.class))).thenReturn(savedDTO);
 
         // Act & Assert
-        mockMvc.perform(post("/api/books")
+        mockMvc.perform(post("/books")
                 .contentType("application/json")
                 .content(new ObjectMapper().writeValueAsString(requestDTO)))
                 .andExpect(status().isOk())
@@ -141,7 +142,7 @@ public class BookControllerTest {
         Mockito.when(bs.getMostReadBooks(3)).thenReturn(List.of(book1, book2, book3));
 
         // Act & Assert
-        mockMvc.perform(get("/api/books/most-read"))
+        mockMvc.perform(get("/books/most-read"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Most Read Book 1"))
                 .andExpect(jsonPath("$[1].title").value("Most Read Book 2"))
@@ -158,7 +159,7 @@ public class BookControllerTest {
         Mockito.when(bs.getMostReadBooks(5)).thenReturn(List.of(book1));
 
         // Act & Assert
-        mockMvc.perform(get("/api/books/most-read")
+        mockMvc.perform(get("/books/most-read")
                 .param("limit", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Popular Book"))
@@ -192,7 +193,7 @@ public class BookControllerTest {
         Mockito.when(bs.getNewestBooks(3)).thenReturn(List.of(book1, book2, book3));
 
         // Act & Assert
-        mockMvc.perform(get("/api/books/newest"))
+        mockMvc.perform(get("/books/newest"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Newest Book 1"))
                 .andExpect(jsonPath("$[1].title").value("Newest Book 2"))
@@ -209,7 +210,7 @@ public class BookControllerTest {
         Mockito.when(bs.getNewestBooks(10)).thenReturn(List.of(book1));
 
         // Act & Assert
-        mockMvc.perform(get("/api/books/newest")
+        mockMvc.perform(get("/books/newest")
                 .param("limit", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Recently Added Book"))
@@ -231,7 +232,7 @@ public class BookControllerTest {
 
         Mockito.when(bs.fetchBookByISBN("9781234567890")).thenReturn(book);
 
-        mockMvc.perform(get("/api/books/isbn/9781234567890"))
+        mockMvc.perform(get("/books/isbn/9781234567890"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").value("ISBN Boek"))
@@ -250,7 +251,7 @@ public class BookControllerTest {
         Mockito.when(bs.getMinReleaseYear()).thenReturn(1950);
         Mockito.when(bs.getMaxReleaseYear()).thenReturn(2024);
 
-        mockMvc.perform(get("/api/books/years/range"))
+        mockMvc.perform(get("/books/years/range"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.min").value(1950))
                 .andExpect(jsonPath("$.max").value(2024));
@@ -263,7 +264,7 @@ public class BookControllerTest {
     void getMaxPages_returnsMaxPages() throws Exception {
         Mockito.when(bs.getMaxPages()).thenReturn(1200);
 
-        mockMvc.perform(get("/api/books/pages/max"))
+        mockMvc.perform(get("/books/pages/max"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("1200"));
 

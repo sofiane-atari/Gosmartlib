@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Book } from '../../model/book.model';
+import { BookPreview } from '../../model/book-preview.model';
 import { environment } from '../../../environments/environment';
 import { FileValidationResult } from '../../model/FileValidationResult';
 import { BookCandidate } from '../../model/book-candidate.model';
@@ -25,6 +26,10 @@ export class BookService {
   }
   getBookByISBN(isbn: string) {
     return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
+  }
+
+  getBookPreviewByISBN(isbn: string): Observable<BookPreview> {
+    return this.http.get<BookPreview>(`${this.apiUrl}/isbn/${isbn}/preview`);
   }
 
   getYearRange(): Observable<{ min: number; max: number }> {
@@ -74,4 +79,9 @@ export class BookService {
     });
   }
 
+
+
+  getRelatedBooksCarousel(bookId: number, limit: number = 10): Observable<Book[]> {
+    return this.http.get<Book[]>(`${this.apiUrl}/${bookId}/related-carousel?limit=${limit}`);
+  }
 }

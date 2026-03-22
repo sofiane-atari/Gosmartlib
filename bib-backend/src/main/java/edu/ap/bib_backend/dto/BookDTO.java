@@ -55,6 +55,7 @@ public class BookDTO {
                 ", description='" + description + '\'' +
                 ", releaseYear=" + releaseYear +
                 ", reviewScore=" + reviewScore +
+                ", genres=" + genres +
                 '}';
     }
 }

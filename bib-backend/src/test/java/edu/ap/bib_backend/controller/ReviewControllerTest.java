@@ -49,7 +49,7 @@ class ReviewControllerTest {
                 Mockito.when(reviewService.getReviewsForBook(bookId)).thenReturn(mockReviews);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/reviews/book/{bookId}", bookId)
+                ResultActions result = mockMvc.perform(get("/reviews/book/{bookId}", bookId)
                                 .contentType(MediaType.APPLICATION_JSON));
 
                 // Assert
@@ -72,7 +72,7 @@ class ReviewControllerTest {
                 Mockito.when(reviewService.getAllReviews()).thenReturn(mockReviews);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/reviews")
+                ResultActions result = mockMvc.perform(get("/reviews")
                                 .contentType(MediaType.APPLICATION_JSON));
 
                 // Assert
@@ -96,7 +96,7 @@ class ReviewControllerTest {
                                 .thenReturn(savedReview);
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/api/reviews/book/{bookId}", bookId)
+                ResultActions result = mockMvc.perform(post("/reviews/book/{bookId}", bookId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(inputReview)));
 
@@ -117,7 +117,7 @@ class ReviewControllerTest {
                 Mockito.when(reviewService.getAverageRating(bookId)).thenReturn(mockAverage);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/reviews/book/{bookId}/average", bookId)
+                ResultActions result = mockMvc.perform(get("/reviews/book/{bookId}/average", bookId)
                                 .contentType(MediaType.APPLICATION_JSON));
 
                 // Assert
@@ -134,7 +134,7 @@ class ReviewControllerTest {
                 Mockito.doNothing().when(reviewService).deleteReview(reviewId);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/api/reviews/{reviewId}", reviewId));
+                ResultActions result = mockMvc.perform(delete("/reviews/{reviewId}", reviewId));
 
                 // Assert
                 result.andExpect(status().isNoContent());
@@ -160,7 +160,7 @@ class ReviewControllerTest {
                 Mockito.when(reviewService.reportReview(reviewId)).thenReturn(reviewDTO);
 
                 // Act & Assert
-                mockMvc.perform(post("/api/reviews/{reviewId}/report", reviewId))
+                mockMvc.perform(post("/reviews/{reviewId}/report", reviewId))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").value(reviewId))
                                 .andExpect(jsonPath("$.comment").value("Good book"))

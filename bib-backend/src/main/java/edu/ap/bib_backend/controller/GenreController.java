@@ -12,7 +12,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.GenreStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
-import edu.ap.bib_backend.options.LabelGetOptions;
+import edu.ap.bib_backend.options.GenreGetOptions;
 import edu.ap.bib_backend.service.GenreService;
 import jakarta.validation.Valid;
 
@@ -25,8 +25,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/api/genres")
+@RequestMapping("/genres")
 public class GenreController {
+
 
     private final GenreService genreService;
 
@@ -35,21 +36,21 @@ public class GenreController {
     }
 
     @PostMapping
-    public ResponseEntity<GenreDTO> createLabel(@Valid @RequestBody GenreDTO entity) {
+    public ResponseEntity<GenreDTO> createGenre(@Valid @RequestBody GenreDTO entity) {
 
-        GenreDTO createdLabel = genreService.createLabel(entity);
+        GenreDTO createdGenre = genreService.createGenre(entity);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{name}")
-                .buildAndExpand(createdLabel.name()).toUri();
+                .buildAndExpand(createdGenre.name()).toUri();
 
-        return ResponseEntity.created(location).body(createdLabel);
+        return ResponseEntity.created(location).body(createdGenre);
     }
 
     @GetMapping
     public ResponseEntity<PageDTO<GenreDTO>> getPage(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @ModelAttribute LabelGetOptions options) {
+            @ModelAttribute GenreGetOptions options) {
 
         PageDTO<GenreDTO> pageDTO = genreService.getPage(page, pageSize, options);
 
@@ -64,7 +65,7 @@ public class GenreController {
     // params starting with underscore are preserved params to avoid conflict of a
     // entity with the same name
     @GetMapping("_stats")
-    public ResponseEntity<GenreStatsDTO> getLabelStats() {
+    public ResponseEntity<GenreStatsDTO> getGenreStats() {
 
         return ResponseEntity.ok(genreService.getAllGenreStats());
     }

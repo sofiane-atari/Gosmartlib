@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
@@ -630,5 +633,27 @@ class BookServiceTest {
                     assertThat(rse.getStatusCode().value()).isEqualTo(404);
                     assertThat(rse.getReason()).isEqualTo("Geen boek gevonden voor ISBN: 9781234567890");
                 });
+    }
+
+    @Test
+    void givenRelatedBooksExist_whenGetRelatedBooksCarousel_thenReturnMappedBooks() {
+        Book source = new Book();
+        source.setId(1L);
+
+        Book related = new Book();
+        related.setId(2L);
+        related.setTitle("Related");
+        related.setAuthor("Author");
+
+        List<Object[]> relatedBooks = new ArrayList<>();
+        relatedBooks.add(new Object[]{ related, 2L });
+
+        when(br.findById(1L)).thenReturn(Optional.of(source));
+        when(br.findRelatedBooksWithScore(1L, PageRequest.of(0, 10))).thenReturn(relatedBooks);
+        List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(2L);
+        assertThat(result.get(0).getTitle()).isEqualTo("Related");
     }
 }

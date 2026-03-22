@@ -1,0 +1,24 @@
+<div class="labels-list">
+  <div class="labels-list__header">
+    <span>Genre</span>
+    <span>Beschrijving</span>
+    <span>Kleur</span>
+    <span>Boeken</span>
+    <span>Acties</span>
+  </div>
+
+  <div class="labels-list__content">
+    @for (genre of genres(); track $index) {
+      <app-genre-card [genre]="genre" 
+      (deletionError)="deletionError.emit($event)" 
+      (deletedSuccess)="deletedSuccess.emit($event)"
+      (editGenre)="editGenre.emit($event)" />
+    }
+  </div>
+
+  @if (genres().length === 0) {
+    <div class="labels-list__empty">
+      <p>Geen genres gevonden.</p>
+    </div>
+  }
+</div>

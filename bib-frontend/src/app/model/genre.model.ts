@@ -6,5 +6,5 @@ export interface Genre {
 }
 export interface GenreStats {
   totalItems: number;
-  unActiveLabels: number;
+  unActiveGenres: number;
 }

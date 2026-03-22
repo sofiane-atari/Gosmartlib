@@ -6,16 +6,50 @@ import { BookDetailComponent } from './component/book-detail/book-detail.compone
 import { AddBookPageComponent } from './component/add-book-page/add-book-page.component';
 import { ReadingListDetailComponent } from './component/reading-list-detail/reading-list-detail.component';
 import { MyReviewsComponent } from './component/my-reviews/my-reviews.component';
-import { DashboardLabelsComponent } from './component/dashboard-labels/dashboard-labels.component';
+import { DashboardGenresComponent } from './component/dashboard-genres/dashboard-genres.component';
+import { LoginComponent } from './component/login/login.component';
+import { SmartschoolCallbackComponent } from './component/smartschool-callback/smartschool-callback.component';
+import { authGuard, publicOnlyGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
-  { path: 'catalog', component: BooksComponent },
-  { path: 'book/:id', component: BookDetailComponent },
-  { path: 'labels', component: DashboardLabelsComponent },
-  { path: 'reading-list', component: ReadingListOverviewComponent },
-  { path: 'reading-list/create', component: CreateReadingListComponent },
-  { path: 'reading-list/:id', component: ReadingListDetailComponent },
-  { path: 'add-book', component: AddBookPageComponent },
-  { path: 'reviews', component: MyReviewsComponent },
+  { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
+  {
+    path: 'book/:id',
+    component: BookDetailComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'genres',
+    component: DashboardGenresComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'reading-list',
+    component: ReadingListOverviewComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'reading-list/create',
+    component: CreateReadingListComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'reading-list/:id',
+    component: ReadingListDetailComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'add-book',
+    component: AddBookPageComponent,
+    canActivate: [authGuard],
+  },
+  { path: 'reviews', component: MyReviewsComponent, canActivate: [authGuard] },
+  { path: 'login', component: LoginComponent, canActivate: [publicOnlyGuard] },
+  {
+    path: 'oauth2/callback/smartschool',
+    component: SmartschoolCallbackComponent,
+  },
+  { path: 'smartschool-callback', component: SmartschoolCallbackComponent },
+  { path: '**', redirectTo: '/catalog' },
 ];

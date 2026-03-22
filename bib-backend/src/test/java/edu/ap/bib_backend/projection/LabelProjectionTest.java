@@ -4,18 +4,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Unit tests for LabelProjection and LabelWithCount to achieve good coverage.
- * Since these are interfaces with default methods, we test them using anonymous
- * implementations.
- */
-class LabelProjectionTest {
+class GenreProjectionTest {
 
-    // ==================== LabelProjection Tests ====================
 
     @Test
-    void givenLabelProjectionImplementation_whenGetName_thenReturnName() {
-        // Arrange - Anonymous implementation of LabelProjection
+    void givenGenreProjectionImplementation_whenGetName_thenReturnName() {
+        // Arrange - Anonymous implementation of GenreProjection
         GenreProjection projection = new GenreProjection() {
             @Override
             public String getName() {

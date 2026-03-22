@@ -7,5 +7,5 @@ import lombok.Builder;
 @Builder
 public record GenreStatsDTO(
         @JsonProperty("totalItems") int totalItems,
-        @JsonProperty("unActiveLabels") int unActiveLabels) {
+        @JsonProperty("unActiveGenres") int unActiveGenres) {
 }
