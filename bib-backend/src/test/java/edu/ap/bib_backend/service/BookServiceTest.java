@@ -7,6 +7,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -329,9 +330,11 @@ public class BookServiceTest {
         related.setTitle("Related");
         related.setAuthor("Author");
 
-        when(br.findById(1L)).thenReturn(Optional.of(source));
-        when(br.findRelatedBooksWithScore(1L, PageRequest.of(0, 10))).thenReturn((List<Object[]>) List.of(new Object[] { related, 2L }));
+        List<Object[]> relatedBooks = new ArrayList<>();
+        relatedBooks.add(new Object[]{ related, 2L });
 
+        when(br.findById(1L)).thenReturn(Optional.of(source));
+        when(br.findRelatedBooksWithScore(1L, PageRequest.of(0, 10))).thenReturn(relatedBooks);
         List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10);
 
         assertThat(result).hasSize(1);
