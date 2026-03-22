@@ -40,7 +40,7 @@ class GlobalExceptionHandlerTest {
     void givenResourceAlreadyExistsException_whenHandleResourceAlreadyExists_thenReturn409Conflict() {
         // Arrange
         ResourceAlreadyExistsException exception = new ResourceAlreadyExistsException("name", "Fiction",
-                "Label met de naam 'Fiction' bestaat al.");
+                "genre met de naam 'Fiction' bestaat al.");
 
         // Act
         ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleResourceAlreadyExists(exception);
@@ -251,7 +251,7 @@ class GlobalExceptionHandlerTest {
     void givenDataIntegrityViolationExceptionWithForeignKey_whenHandleDataIntegrityViolation_thenReturn409Conflict() {
         // Arrange
         Exception rootCause = new Exception(
-                "Cannot delete or update a parent row: a foreign key constraint fails (`bib_db`.`book`, CONSTRAINT `fk_book_label` FOREIGN KEY (`label_name`) REFERENCES `label` (`name`))");
+                "Cannot delete or update a parent row: a foreign key constraint fails (`bib_db`.`book`, CONSTRAINT `fk_book_genre` FOREIGN KEY (`genre_name`) REFERENCES `genre` (`name`))");
         org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
                 "Foreign key constraint failed", rootCause);
 
@@ -343,7 +343,7 @@ class GlobalExceptionHandlerTest {
     void givenDataIntegrityViolationExceptionWithFkUsingTableName_whenHandleDataIntegrityViolation_thenExtractTableName() {
         // Arrange
         Exception rootCause = new Exception(
-                "Cannot delete or update a parent row: a foreign key constraint fails (`bib_db`.`book_labels`, CONSTRAINT `fk_label` FOREIGN KEY (`label_id`) REFERENCES `labels` (`id`))");
+                "Cannot delete or update a parent row: a foreign key constraint fails (`bib_db`.`book_genres`, CONSTRAINT `fk_genre` FOREIGN KEY (`genre_id`) REFERENCES `genres` (`id`))");
         org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
                 "Foreign key constraint failed", rootCause);
 
@@ -353,7 +353,7 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(409);
         // Should contain extracted table name in the detail message
-        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("labels");
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("genres");
     }
 
     @Test
@@ -375,7 +375,7 @@ class GlobalExceptionHandlerTest {
     @Test
     void givenDataIntegrityViolationExceptionWithFkUnderscore_whenHandleDataIntegrityViolation_thenReturn409Conflict() {
         // Arrange
-        Exception rootCause = new Exception("Cannot delete or update parent row: foreign key constraint fk_book_label");
+        Exception rootCause = new Exception("Cannot delete or update parent row: foreign key constraint fk_book_genre");
         org.springframework.dao.DataIntegrityViolationException exception = new org.springframework.dao.DataIntegrityViolationException(
                 "FK constraint failed", rootCause);
 
@@ -408,7 +408,7 @@ class GlobalExceptionHandlerTest {
     void givenResourceAlreadyExistsExceptionWithNullFieldName_whenHandleResourceAlreadyExists_thenReturn409() {
         // Arrange
         ResourceAlreadyExistsException exception = new ResourceAlreadyExistsException(null, "Fiction",
-                "Label already exists");
+                "Genre already exists");
 
         // Act
         ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleResourceAlreadyExists(exception);

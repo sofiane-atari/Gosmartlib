@@ -6,7 +6,6 @@ import edu.ap.bib_backend.security.DevMockRoleFilter;
 
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +58,6 @@ public class SecurityConfig {
                 this.devMockRoleFilter = devMockRoleFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
         }
-
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
@@ -85,7 +83,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/books/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                 Role.LIBRARIAN.name(), Role.ADMIN.name())
-                                                .requestMatchers("/labels/**")
+                                                .requestMatchers("/genres/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.ADMIN.name())
                                                 .anyRequest().authenticated())
 

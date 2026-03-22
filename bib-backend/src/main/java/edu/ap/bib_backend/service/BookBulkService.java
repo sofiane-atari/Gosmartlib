@@ -41,8 +41,6 @@ public class BookBulkService {
 
     // Save uploaded file temporarily and return a temp file ID
     public String storeTempFile(MultipartFile file) throws IOException {
-        Files.createDirectories(tempDir);
-
         String tempFileId = UUID.randomUUID().toString() + ".xlsx";
         Path target = tempDir.resolve(tempFileId);
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);

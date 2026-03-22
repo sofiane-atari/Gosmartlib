@@ -9,18 +9,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.dto.BookDTO;
-import edu.ap.bib_backend.dto.BookPreviewDTO;
-import edu.ap.bib_backend.exception.GlobalExceptionHandler;
-import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.service.BookService;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -60,8 +55,6 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$[0].pages").value(324))
                 .andExpect(jsonPath("$[0].imageUrl").value(
                         "https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1"))
-                .andExpect(jsonPath("$[0].availability").value("AVAILABLE"))
-                .andExpect(jsonPath("$[0].copies").value(3))
                 .andExpect(jsonPath("$[0].description").value("dede de d e d ed e d e d e de d e d"))
                 .andExpect(jsonPath("$[0].releaseYear").value(2017));
     }
@@ -87,8 +80,6 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.isbn").value(987654321))
                 .andExpect(jsonPath("$.pages").value(250))
                 .andExpect(jsonPath("$.imageUrl").value("https://example.com/image.jpg"))
-                .andExpect(jsonPath("$.availability").value("AVAILABLE"))
-                .andExpect(jsonPath("$.copies").value(5))
                 .andExpect(jsonPath("$.releaseYear").value(2021));
     }
 
@@ -123,8 +114,6 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.title").value("Nieuwe Boek"))
                 .andExpect(jsonPath("$.author").value("Auteur Test"))
                 .andExpect(jsonPath("$.pages").value(300))
-                .andExpect(jsonPath("$.availability").value("AVAILABLE"))
-                .andExpect(jsonPath("$.copies").value(2))
                 .andExpect(jsonPath("$.description").value("Beschrijving hier"))
                 .andExpect(jsonPath("$.releaseYear").value(2024))
                 .andExpect(jsonPath("$.imageUrl").value("https://example.com/image.jpg"));
@@ -243,7 +232,7 @@ public class BookControllerTest {
 
         Mockito.when(bs.fetchBookByISBN("9781234567890")).thenReturn(book);
 
-        mockMvc.perform(get("/api/books/isbn/9781234567890"))
+        mockMvc.perform(get("/books/isbn/9781234567890"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").value("ISBN Boek"))
@@ -262,7 +251,7 @@ public class BookControllerTest {
         Mockito.when(bs.getMinReleaseYear()).thenReturn(1950);
         Mockito.when(bs.getMaxReleaseYear()).thenReturn(2024);
 
-        mockMvc.perform(get("/api/books/years/range"))
+        mockMvc.perform(get("/books/years/range"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.min").value(1950))
                 .andExpect(jsonPath("$.max").value(2024));
@@ -275,7 +264,7 @@ public class BookControllerTest {
     void getMaxPages_returnsMaxPages() throws Exception {
         Mockito.when(bs.getMaxPages()).thenReturn(1200);
 
-        mockMvc.perform(get("/api/books/pages/max"))
+        mockMvc.perform(get("/books/pages/max"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("1200"));
 

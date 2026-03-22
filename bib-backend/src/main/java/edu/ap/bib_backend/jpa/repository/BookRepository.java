@@ -44,14 +44,14 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
 
     @Query("""
-            SELECT relatedBook, COUNT(sourceLabel) as sharedLabelCount
+            SELECT relatedBook, COUNT(sourceGenre) as sharedGenreCount
             FROM Book sourceBook
-            JOIN sourceBook.labels sourceLabel
-            JOIN sourceLabel.books relatedBook
+            JOIN sourceBook.genres sourceGenre
+            JOIN sourceGenre.books relatedBook
             WHERE sourceBook.id = :bookId
               AND relatedBook.id <> :bookId
             GROUP BY relatedBook
-            ORDER BY COUNT(sourceLabel) DESC, RAND()
+            ORDER BY COUNT(sourceGenre) DESC, RAND()
             """)
     List<Object[]> findRelatedBooksWithScore(@Param("bookId") Long bookId, Pageable pageable);
 }

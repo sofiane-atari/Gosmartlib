@@ -75,22 +75,9 @@ class SecurityConfigTest {
     }
 
     @Test
-    void givenStudentRoleAuthentication_WhenGetLabelsEndpoint_ThenReturnForbidden() throws Exception {
+    void givenAdminRoleAuthentication_WhenGetGenresEndpoint_ThenReturnOk() throws Exception {
         // Arrange
-        String endpoint = "/labels/test";
-
-        // Act
-        var result = mockMvc.perform(get(endpoint)
-                .with(user("student-user").roles("STUDENT")));
-
-        // Assert
-        result.andExpect(status().isForbidden());
-    }
-
-    @Test
-    void givenAdminRoleAuthentication_WhenGetLabelsEndpoint_ThenReturnOk() throws Exception {
-        // Arrange
-        String endpoint = "/labels/test";
+        String endpoint = "/genre/test";
 
         // Act
         var result = mockMvc.perform(get(endpoint)

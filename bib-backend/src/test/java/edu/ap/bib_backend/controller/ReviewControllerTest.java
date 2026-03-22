@@ -160,7 +160,7 @@ class ReviewControllerTest {
                 Mockito.when(reviewService.reportReview(reviewId)).thenReturn(reviewDTO);
 
                 // Act & Assert
-                mockMvc.perform(post("/api/reviews/{reviewId}/report", reviewId))
+                mockMvc.perform(post("/reviews/{reviewId}/report", reviewId))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").value(reviewId))
                                 .andExpect(jsonPath("$.comment").value("Good book"))

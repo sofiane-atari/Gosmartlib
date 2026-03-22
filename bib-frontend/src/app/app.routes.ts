@@ -6,7 +6,7 @@ import { BookDetailComponent } from './component/book-detail/book-detail.compone
 import { AddBookPageComponent } from './component/add-book-page/add-book-page.component';
 import { ReadingListDetailComponent } from './component/reading-list-detail/reading-list-detail.component';
 import { MyReviewsComponent } from './component/my-reviews/my-reviews.component';
-import { DashboardLabelsComponent } from './component/dashboard-labels/dashboard-labels.component';
+import { DashboardGenresComponent } from './component/dashboard-genres/dashboard-genres.component';
 import { LoginComponent } from './component/login/login.component';
 import { SmartschoolCallbackComponent } from './component/smartschool-callback/smartschool-callback.component';
 import { authGuard, publicOnlyGuard } from './guards/auth.guard';
@@ -20,8 +20,8 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'labels',
-    component: DashboardLabelsComponent,
+    path: 'genres',
+    component: DashboardGenresComponent,
     canActivate: [authGuard],
   },
   {

@@ -3,9 +3,13 @@ package edu.ap.bib_backend.dto;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class BookDTOTest {
     @Test
@@ -19,7 +23,11 @@ public class BookDTOTest {
                 "https://example.com/image.jpg",
                 "Beschrijving",
                 2022,
-                4.5);
+                4.5,
+                LocalDateTime.now(),
+                List.of(
+                        new GenreDTO("Roman", "#8B5CF6", "Literaire fictie", null),
+                        new GenreDTO("Thriller", "#EF4444", "Spannend verhaal", null)));
 
         assertEquals(1L, book.getId());
         assertEquals("9781234567890", book.getISBN()); // let op: getter blijft getISBN()
@@ -35,6 +43,7 @@ public class BookDTOTest {
     @Test
     void bookDTO_ShouldSerializeCorrectlyToJson() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
 
         BookDTO book = new BookDTO(
                 1L,
@@ -45,7 +54,11 @@ public class BookDTOTest {
                 "https://example.com/image.jpg",
                 "Beschrijving",
                 2022,
-                4.5);
+                4.5,
+                LocalDateTime.now(),
+                List.of(
+                        new GenreDTO("Roman", "#8B5CF6", "Literaire fictie", null),
+                        new GenreDTO("Thriller", "#EF4444", "Spannend verhaal", null)));
 
         String json = mapper.writeValueAsString(book);
 

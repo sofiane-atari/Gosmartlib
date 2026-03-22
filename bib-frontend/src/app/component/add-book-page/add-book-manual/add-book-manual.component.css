@@ -1,19 +1,3 @@
-/* Basis Reset & Fonts */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body {
-  width: 100%;
-  height: 100%;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f5f5f5;
-}
-
 .layout {
   display: flex;
   flex-direction: column;
@@ -26,49 +10,198 @@ body {
   box-sizing: border-box; /* Belangrijk: voorkomt dat de pagina te breed wordt door padding */
 }
 
-/* Formulier Structuur */
 .book-form {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 2rem;
+  padding: 1.5rem 2rem; /* Was 2.5rem 3rem */
+}
+
+.form-title {
+  color: #333;
+  font-size: 1.4rem; /* Was 1.8rem */
+  font-weight: 700;
+  margin-bottom: 1.2rem; /* Was 2rem */
+}
+
+.search-section {
+  display: flex;
+  gap: 0.75rem; /* Was 1rem */
+  margin-bottom: 1rem; /* Was 1.5rem */
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.6rem; /* Was 0.9rem */
+  border: 1px solid #e0e0e0;
+  border-radius: 4px; /* Was 6px */
+  font-size: 0.85rem; /* Was 0.95rem */
+  background: #f9f9f9;
+  color: #333;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #8a1e41;
+  background: white;
+  box-shadow: 0 0 0 2px rgba(138, 30, 65, 0.1); /* Was 3px */
+}
+
+.search-input:hover {
+  border-color: #bc808b;
+}
+
+.btn-search {
+  background: #f9f9f9;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  padding: 0.6rem 1.2rem; /* Was 0.9rem 1.5rem */
+  border-radius: 4px; /* Was 6px */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem; /* Was 0.95rem */
+}
+
+.btn-search:hover {
+  background: #8a1e41;
+  color: white;
+  border-color: #8a1e41;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(138, 30, 65, 0.2); /* Was 4px 12px */
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 1.2rem 0; /* Was 2rem 0 */
 }
 
 .form-section {
   max-width: 100%;
 }
 
-/* Grid Layout voor rijen met 2 kolommen */
+.content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 220px; /* Was 280px */
+  gap: 1.5rem; /* Was 2rem */
+  align-items: stretch;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Belangrijk voor uitlijning */
+}
+
+.description-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.2rem;
+}
+
+.description-field textarea {
+  flex: 1; /* Zorgt dat het tekstveld zelf naar beneden rekt */
+  min-height: 100px; /* Voorkomt dat hij té klein wordt op kleine schermen */
+  resize: none; /* Optioneel: voorkomt dat gebruikers de layout kapot trekken */
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.2rem; /* Was 2rem */
+  margin-bottom: 1.2rem; /* Was 2rem */
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
 }
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
 
-/* Input over de volledige breedte (voor textarea) */
+.btn-submit:hover:not(:disabled) {
+  background: #bc808b;
+  border-color: #bc808b;
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.genre-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.genre-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Formaat: Compact */
+  padding: 6px 12px;
+  min-width: 60px;
+  max-width: 150px; /* Voorkomt dat één genre te breed wordt */
+  height: 32px;
+
+  border-radius: 100px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.genre-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  /* Tekstbeveiliging: zorgt dat tekst er niet uitvalt */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.genre-option:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.95);
+}
+
+.genre-option.selected {
+  /* Een iets dikkere border als hij geselecteerd is */
+  border-width: 1.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
 .form-group.full-width {
   grid-column: 1 / -1;
 }
 
-/* Labels */
 .form-group label {
   color: #333;
   font-weight: 600;
-  margin-bottom: 0.3rem;
-  font-size: 0.8rem;
+  margin-bottom: 0.3rem; /* Was 0.6rem */
+  font-size: 0.8rem; /* Was 0.9rem */
 }
 
-/* Input & Textarea Styling */
 .form-group input,
-.form-group textarea {
-  padding: 0.6rem 0.8rem; /* Was 0.9rem */
+.form-group textarea,
+.form-group select {
+  padding: 0.6rem; /* Was 0.9rem */
   border: 1px solid #e0e0e0;
-  border-radius: 4px; /* Slightly sharper corners for "tiny" look */
+  border-radius: 4px; /* Was 6px */
   font-size: 0.85rem; /* Was 0.95rem */
   background: #f9f9f9;
   color: #333;
@@ -81,78 +214,137 @@ body {
   color: #999;
 }
 
-/* Focus states */
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
   border-color: #8a1e41;
   background: white;
-  box-shadow: 0 0 0 3px rgba(138, 30, 65, 0.1);
+  box-shadow: 0 0 0 2px rgba(138, 30, 65, 0.1); /* Was 3px */
 }
 
 .form-group input:hover,
-.form-group textarea:hover {
+.form-group textarea:hover,
+.form-group select:hover {
   border-color: #bc808b;
 }
 
 .form-group textarea {
   resize: vertical;
-  min-height: 80px;
-}
-/* Error Message */
-.error-message {
-  color: #e74c3c;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
+  min-height: 80px; /* Was 120px */
 }
 
-/* Acties & Knoppen */
+.form-group select {
+  cursor: pointer;
+}
+
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Was 140px */
+  gap: 0.5rem; /* Was 0.75rem */
+  margin-top: 0.3rem; /* Was 0.5rem */
+}
+
+.genre-chip {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.8rem; /* Was 0.65rem 1rem */
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px; /* Was 6px */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.genre-section {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.5rem; /* Zelfde afstand als boven de beschrijving */
+}
+
+/* Zorg dat het label van de genres ook de juiste spacing heeft */
+.genre-section label {
+  display: block;
+  margin-bottom: 0.8rem; /* Ruimte tussen label en de grid met chips */
+  font-weight: 600;
+  color: #333;
+  font-size: 0.8rem;
+}
+
+.genre-chip input[type="checkbox"] {
+  margin: 0;
+  margin-right: 0.4rem; /* Was 0.5rem */
+  cursor: pointer;
+  width: 14px; /* Was 16px */
+  height: 14px; /* Was 16px */
+}
+
+.genre-chip span {
+  font-size: 0.8rem; /* Was 0.9rem */
+  color: #333;
+  font-weight: 500;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 0.75rem; /* Was 0.85rem */
+  margin-top: 0.3rem; /* Was 0.5rem */
+}
+
+.image-preview-container {
+  width: 220px; /* Was 280px */
+  height: 330px; /* Was 420px */
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px; /* Was 6px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: sticky;
+  top: 1.5rem; /* Was 2.5rem */
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px; /* Was 6px */
+}
+
+.preview-placeholder {
+  color: #999;
+  text-align: center;
+  font-size: 0.8rem; /* Was 0.9rem */
+  padding: 0.8rem; /* Was 1rem */
+}
+
 .form-actions {
   display: flex;
   gap: 0.75rem;
-  padding: 1rem 0 0;
+  padding: 1rem 0;
 }
 
 .btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  white-space: nowrap;
+
   background: #8a1e41;
   color: #fff5f8;
-  border: none;
-  padding: 0.6rem 1.5rem; /* Slimmer button */
-  border-radius: 4px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.85rem;
+  border: 1px solid #8a1e41;
 }
 
-.btn-submit:hover {
-  background: #bc808b;
-  transform: translateY(-1px);
-}
-/* Dit zorgt ervoor dat de Cover URL, Beschrijving en Genres de hele breedte pakken */
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-/* Dit zorgt ervoor dat de dropdown (Beschikbaarheid) dezelfde kleine schaal heeft als de inputs */
-.form-group select {
-  padding: 0.6rem; /* Compacte hoogte */
-  border: 1px solid #e0e0e0;
-  border-radius: 4px; /* Kleine hoekjes */
-  font-size: 0.85rem; /* Kleiner lettertype */
-  background: #f9f9f9;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s ease;
-}
-
-/* De rij waar Voorraad en Beschikbaarheid nu samen in staan */
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.2rem; /* Compacte ruimte tussen de twee velden */
-  margin-bottom: 1.2rem;
-}
 .info-banner {
   display: flex;
   align-items: flex-start;
@@ -259,13 +451,6 @@ body {
   transform: translateY(-1px);
 }
 
-.btn-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 6px;
-  /* Geen vertical-align nodig i.c.m. flex op de button */
-}
-
 /* Fix voor de zoeksectie layout met meerdere knoppen */
 .search-section {
   flex-wrap: wrap;
@@ -281,6 +466,187 @@ body {
 .info-banner {
   animation: fadeInInfo 0.35s ease;
 }
+/* ── Sectie Titel (Stappenplan tekst bovenin) ── */
+.section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Grid Layout (Zet de 3 stappen naast elkaar) ── */
+.step-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ── Individueel Stap Item (Het grijze blokje) ── */
+.step-item {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* ── Stap Nummer (Het kleine bordeaux labeltje) ── */
+.step-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8a1e41;
+  background: rgba(138, 30, 65, 0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+  width: fit-content;
+}
+
+/* ── Titels en Beschrijvingen binnen de stap ── */
+.step-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.step-desc {
+  font-size: 0.75rem;
+  color: #666;
+  line-height: 1.4;
+} /* Kandidaten Sectie */
+.candidate-section {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.candidate-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Grid layout voor cards naast elkaar */
+.candidate-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+/* Individuele kandidaat card */
+.candidate-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.candidate-card:hover {
+  border-color: #8a1e41;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(138, 30, 65, 0.15);
+}
+
+.candidate-card:active {
+  transform: translateY(-2px);
+}
+
+/* Cover afbeelding */
+.candidate-image {
+  width: 100%;
+  height: 200px;
+  background: #f3f3f3;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.candidate-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-placeholder.small {
+  color: #999;
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+/* Informatie sectie */
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.candidate-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.3;
+}
+
+.candidate-title strong {
+  color: #333;
+  font-size: 0.85rem;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.candidate-author {
+  color: #8a1e41;
+  font-weight: 500;
+}
+
+.candidate-year,
+.candidate-isbn {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+/* Mobiele aanpassing */
+@media (max-width: 768px) {
+  .candidate-list {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .candidate-image {
+    height: 160px;
+  }
+}
+
+/* ── Mobiele weergave (Zorgt dat stappen onder elkaar komen op kleine schermen) ── */
+@media (max-width: 768px) {
+  .step-row {
+    grid-template-columns: 1fr;
+  }
+}
 
 @keyframes fadeInInfo {
   from {
@@ -294,22 +660,81 @@ body {
 }
 @media (max-width: 768px) {
   .book-form {
-    padding: 1rem; /* Was 1.5rem */
+    padding: 1rem;
   }
 
   .image-preview-container {
     width: 100%;
-    height: 200px; /* Was 250px */
+    height: 200px;
   }
 
   .form-row {
-    gap: 1rem; /* Was 1.5rem */
+    gap: 1rem;
   }
 
   .genre-grid {
-    grid-template-columns: repeat(
-      auto-fill,
-      minmax(100px, 1fr)
-    ); /* Was 120px */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.2rem;
+  }
+  /* ── Buttons (Nu in de bordeauxrode stijl van de handmatige pagina) ── */
+  .btn-submit {
+    background: #8a1e41;
+    color: #fff5f8;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #8a1e41;
+    border: 1px solid #8a1e41;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-submit:hover:not(:disabled) {
+    background: #bc808b;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(138, 30, 65, 0.2);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: rgba(138, 30, 65, 0.05);
+    transform: translateY(-1px);
+  }
+
+  /* ── Spacing Fixes voor de Bulk Pagina ── */
+  .errors-box,
+  .success-box {
+    margin-top: 1.5rem; /* Zelfde margin als de genres/beschrijving */
+  }
+
+  .errors-title,
+  .success-title {
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  /* Zorg dat de File Upload zone ook de bordeaux focus krijgt */
+  app-file-upload:focus-within {
+    border-color: #8a1e41;
   }
 }

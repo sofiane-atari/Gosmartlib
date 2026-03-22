@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.service.BookService;
@@ -86,5 +87,20 @@ public class BookController {
     public ResponseEntity<List<BookDTO>> getNewestBooks(
             @RequestParam(defaultValue = "3", required = false) int limit) {
         return ResponseEntity.ok(bs.getNewestBooks(limit));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BookCandidateDTO>> searchBookCandidates(
+            @RequestParam String title,
+            @RequestParam String author,
+            @RequestParam Integer releaseYear) {
+        List<BookCandidateDTO> candidates = bs.searchBookCandidates(title, author, releaseYear);
+        return ResponseEntity.ok(candidates);
+    }
+
+    @PostMapping("/select")
+    public ResponseEntity<BookDTO> selectBook(@RequestParam String isbn13) {
+        BookDTO book = bs.fetchBookByISBN(isbn13);
+        return ResponseEntity.ok(book);
     }
 }

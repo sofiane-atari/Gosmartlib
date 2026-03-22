@@ -13,14 +13,14 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.ap.bib_backend.controller.LabelController;
-import edu.ap.bib_backend.dto.LabelDTO;
-import edu.ap.bib_backend.dto.LabelStatsDTO;
+import edu.ap.bib_backend.controller.GenreController;
+import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.dto.GenreStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
-import edu.ap.bib_backend.options.LabelGetOptions;
-import edu.ap.bib_backend.service.LabelService;
+import edu.ap.bib_backend.options.GenreGetOptions;
+import edu.ap.bib_backend.service.GenreService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -39,9 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-@WebMvcTest(LabelController.class)
+@WebMvcTest(GenreController.class)
 @Import(TestSecurityConfig.class)
-class LabelControllerTest {
+class GenreControllerTest {
 
         @Autowired
         private MockMvc mockMvc;
@@ -50,64 +50,65 @@ class LabelControllerTest {
         private ObjectMapper objectMapper;
 
         @MockitoBean
-        private LabelService labelService;
+        private GenreService genreService;
 
         // -------------------------------------------------------
-        // POST /labels - createLabel
+        // POST /api/genres - createGenre
         // -------------------------------------------------------
         @Test
-        void givenNoDescription_whenCreateLabel_thenCreateWithoutDescription() throws Exception {
+        void givenNoDescription_whenCreateGenre_thenCreateWithoutDescription() throws Exception {
                 // Arrange
-                LabelDTO newLabel = LabelDTO.builder().name("testLabel").color("#a75064").build();
-                LabelDTO savedLabel = LabelDTO.builder().name("testLabel").color("#a75064").build();
+                GenreDTO newGenre = GenreDTO.builder().name("testGenre").color("#a75064").build();
+                GenreDTO savedGenre = GenreDTO.builder().name("testGenre").color("#a75064").build();
 
-                when(labelService.createLabel(any(LabelDTO.class))).thenReturn(savedLabel);
+                when(genreService.createGenre(any(GenreDTO.class))).thenReturn(savedGenre);
 
                 // Act
-                ResultActions results = mockMvc.perform(post("/labels")
+                ResultActions results = mockMvc.perform(post("/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(newLabel)));
+                                .content(objectMapper.writeValueAsString(newGenre)));
 
                 // Assert
                 results
                                 .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.name").value(savedLabel.name()))
-                                .andExpect(jsonPath("$.color").value(savedLabel.color()))
-                                .andExpect(jsonPath("$.description").value(savedLabel.description()));
+                                .andExpect(jsonPath("$.name").value(savedGenre.name()))
+                                .andExpect(jsonPath("$.color").value(savedGenre.color()))
+                                .andExpect(jsonPath("$.description").value(savedGenre.description()));
         }
 
         @Test
-        void givenValidBody_whenCreateLabel_thenReturn201WithLocationHeader() throws Exception {
+        void givenValidBody_whenCreateGenre_thenReturn201WithLocationHeader() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001")
+                GenreDTO requestBody = GenreDTO.builder().name("urgent").color("#FF0001")
                                 .description("High priority tasks").build();
-                LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001")
+                GenreDTO createdGenre = GenreDTO.builder().name("urgent").color("#FF0001")
                                 .description("High priority tasks").build();
 
-                given(labelService.createLabel(any(LabelDTO.class)))
-                                .willReturn(createdLabel);
+                given(genreService.createGenre(any(GenreDTO.class)))
+                                .willReturn(createdGenre);
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/labels")
+
+                ResultActions result = mockMvc.perform(post("/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
                 result
                                 .andExpect(status().isCreated())
-                                .andExpect(header().string("Location", containsString("/labels/urgent")))
+                                .andExpect(header().string("Location", containsString("/genres/urgent")))
                                 .andExpect(jsonPath("$.name").value("urgent"))
                                 .andExpect(jsonPath("$.description").value("High priority tasks"))
                                 .andExpect(jsonPath("$.color").value("#FF0001"));
         }
 
         @Test
-        void givenNullName_whenCreateLabel_thenReturn400() throws Exception {
+        void givenNullName_whenCreateGenre_thenReturn400() throws Exception {
                 // Arrange
-                LabelDTO invalidBody = LabelDTO.builder().color("#FF0001").description("Some description").build();
+                GenreDTO invalidBody = GenreDTO.builder().color("#FF0001").description("Some description").build();
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/labels")
+                ResultActions result = mockMvc.perform(post("/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidBody)));
 
@@ -116,16 +117,17 @@ class LabelControllerTest {
         }
 
         @Test
-        void givenOptionalFieldsNull_whenCreateLabel_thenReturn201() throws Exception {
+        void givenOptionalFieldsNull_whenCreateGenre_thenReturn201() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").build();
-                LabelDTO createdLabel = LabelDTO.builder().name("urgent").color("#FF0001").build();
+                GenreDTO requestBody = GenreDTO.builder().name("urgent").color("#FF0001").build();
+                GenreDTO createdGenre = GenreDTO.builder().name("urgent").color("#FF0001").build();
 
-                given(labelService.createLabel(any(LabelDTO.class)))
-                                .willReturn(createdLabel);
+                given(
+                        genreService.createGenre(any(GenreDTO.class)))
+                                .willReturn(createdGenre);
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/labels")
+                ResultActions result = mockMvc.perform(post("/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -137,15 +139,15 @@ class LabelControllerTest {
         }
 
         @Test
-        void givenServiceThrows_whenCreateLabel_thenReturn501() throws Exception {
+        void givenServiceThrows_whenCreateGenre_thenReturn501() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("urgent").color("#FF0001").build();
+                GenreDTO requestBody = GenreDTO.builder().name("urgent").color("#FF0001").build();
 
-                given(labelService.createLabel(any(LabelDTO.class)))
+                given(genreService.createGenre(any(GenreDTO.class)))
                                 .willThrow(new RuntimeException("Unexpected error"));
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/labels")
+                ResultActions result = mockMvc.perform(post("/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -155,39 +157,39 @@ class LabelControllerTest {
         }
 
         @Test
-        void givenValidRequest_whenCreateLabel_thenCallServiceOnce() throws Exception {
+        void givenValidRequest_whenCreateGenre_thenCallServiceOnce() throws Exception {
                 // Arrange
-                LabelDTO requestBody = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label")
+                GenreDTO requestBody = GenreDTO.builder().name("feature").color("#01FF00").description("Feature genre")
                                 .build();
-                LabelDTO createdLabel = LabelDTO.builder().name("feature").color("#01FF00").description("Feature label")
+                GenreDTO createdGenre = GenreDTO.builder().name("feature").color("#01FF00").description("Feature genre")
                                 .build();
 
-                given(labelService.createLabel(any(LabelDTO.class)))
-                                .willReturn(createdLabel);
+                given(genreService.createGenre(any(GenreDTO.class)))
+                                .willReturn(createdGenre);
 
                 // Act
-                mockMvc.perform(post("/labels")
+                mockMvc.perform(post("/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
-                then(labelService).should(times(1)).createLabel(any(LabelDTO.class));
+                then(genreService).should(times(1)).createGenre(any(GenreDTO.class));
         }
 
         // -------------------------------------------------------
-        // GET /labels - getPage
+        // GET /genres - getPage
         // -------------------------------------------------------
         @Test
-        void givenRequestingFirstPage_whenGetPage_thenReturnLabels() throws Exception {
+        void givenRequestingFirstPage_whenGetPage_thenReturnGenres() throws Exception {
                 // Arrange
-                LabelDTO label = LabelDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
+                GenreDTO genre = GenreDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
                                 .build();
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(0, 10, 1, 1));
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(genre), new PaginatedMeta(0, 10, 1, 1));
 
-                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+                given(genreService.getPage(anyInt(), anyInt(), any(GenreGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/labels"));
+                ResultActions result = mockMvc.perform(get("/genres"));
 
                 // Assert
                 result.andExpect(status().isOk())
@@ -197,16 +199,16 @@ class LabelControllerTest {
         }
 
         @Test
-        void givenRequestingSecondPage_whenGetPage_thenReturnLabelsWithPagination() throws Exception {
+        void givenRequestingSecondPage_whenGetPage_thenReturnGenresWithPagination() throws Exception {
                 // Arrange
-                LabelDTO label = LabelDTO.builder().name("Non-Fiction").color("#00FF00-F")
-                                .description("Noniction books").build();
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(1, 10, 2, 20));
+                GenreDTO genre = GenreDTO.builder().name("Non-Fiction").color("#00FF00")
+                                .description("Non-fiction books").build();
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(genre), new PaginatedMeta(1, 10, 2, 20));
 
-                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+                given(genreService.getPage(anyInt(), anyInt(), any(GenreGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/labels")
+                ResultActions result = mockMvc.perform(get("/genres")
                                 .param("page", "2"));
 
                 // Assert
@@ -219,14 +221,14 @@ class LabelControllerTest {
         @Test
         void givenSearchQuery_whenGetPage_thenPassSearchParameter() throws Exception {
                 // Arrange
-                LabelDTO label = LabelDTO.builder().name("Science").color("#0000FF").description("Science books")
+                GenreDTO genre = GenreDTO.builder().name("Science").color("#0000FF").description("Science books")
                                 .build();
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(label), new PaginatedMeta(0, 10, 1, 1));
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(genre), new PaginatedMeta(0, 10, 1, 1));
 
-                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+                given(genreService.getPage(anyInt(), anyInt(), any(GenreGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/labels")
+                ResultActions result = mockMvc.perform(get("/genres")
                                 .param("search", "science"));
 
                 // Assert
@@ -236,12 +238,15 @@ class LabelControllerTest {
         @Test
         void givenBookCountParam_whenGetPage_thenPassBookCountFilter() throws Exception {
                 // Arrange
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(), new PaginatedMeta(0, 10, 0, 0));
+                GenreDTO genre = GenreDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
+                                .build();
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(genre), new PaginatedMeta(0, 10, 1, 1));
 
-                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+                given(genreService.getPage(anyInt(), anyInt(), any(GenreGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/labels")
+
+                ResultActions result = mockMvc.perform(get("/genres")
                                 .param("bookCount", "1"));
 
                 // Assert
@@ -251,203 +256,207 @@ class LabelControllerTest {
         @Test
         void givenNoParams_whenGetPage_thenUseDefaultValues() throws Exception {
                 // Arrange
-                PageDTO<LabelDTO> pageDTO = new PageDTO<>(List.of(), new PaginatedMeta(0, 10, 0, 0));
+                GenreDTO genre = GenreDTO.builder().name("Fiction").color("#FF0000").description("Fiction books")
+                                .build();
+                PageDTO<GenreDTO> pageDTO = new PageDTO<>(List.of(genre), new PaginatedMeta(0, 10, 1, 1));
 
-                given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
+                given(genreService.getPage(anyInt(), anyInt(), any(GenreGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/labels"));
+                ResultActions result = mockMvc.perform(get("/genres"));
 
                 // Assert
                 result.andExpect(status().isOk());
         }
 
         // -------------------------------------------------------
-        // GET /labels/_stats - getLabelStats
+        // GET /genres/_stats - getGenreStats
         // -------------------------------------------------------
         @Test
-        void givenLabelsExist_whenGetLabelStats_thenReturnStats() throws Exception {
+        void givenGenresExist_whenGetGenreStats_thenReturnStats() throws Exception {
                 // Arrange
-                LabelStatsDTO stats = new LabelStatsDTO(10, 5);
+                GenreStatsDTO stats = new GenreStatsDTO(10, 5);
 
-                given(labelService.getAllLabelStats()).willReturn(stats);
+                given(genreService.getAllGenreStats()).willReturn(stats);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/labels/_stats"));
+                ResultActions result = mockMvc.perform(get("/genres/_stats"));
 
                 // Assert
                 result.andExpect(status().isOk())
                                 .andExpect(jsonPath("$.totalItems").value(10))
-                                .andExpect(jsonPath("$.unActiveLabels").value(5));
+                                .andExpect(jsonPath("$.unActiveGenres").value(5));
         }
 
         @Test
-        void givenNoLabels_whenGetLabelStats_thenReturnZeroStats() throws Exception {
+        void givenNoGenres_whenGetGenreStats_thenReturnZeroStats() throws Exception {
                 // Arrange
-                LabelStatsDTO stats = new LabelStatsDTO(0, 0);
+                GenreStatsDTO stats = new GenreStatsDTO(0, 0);
 
-                given(labelService.getAllLabelStats()).willReturn(stats);
+                given(genreService.getAllGenreStats()).willReturn(stats);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/labels/_stats"));
+                ResultActions result = mockMvc.perform(get("/genres/_stats"));
 
                 // Assert
                 result.andExpect(status().isOk())
                                 .andExpect(jsonPath("$.totalItems").value(0))
-                                .andExpect(jsonPath("$.unActiveLabels").value(0));
+                                .andExpect(jsonPath("$.unActiveGenres").value(0));
         }
 
         @Test
-        void givenAllLabelsHaveBooks_whenGetLabelStats_thenReturnCorrectStats() throws Exception {
+        void givenAllGenresHaveBooks_whenGetGenreStats_thenReturnCorrectStats() throws Exception {
                 // Arrange
-                LabelStatsDTO stats = new LabelStatsDTO(5, 0);
+                GenreStatsDTO stats = new GenreStatsDTO(5, 0);
 
-                given(labelService.getAllLabelStats()).willReturn(stats);
+                given(genreService.getAllGenreStats()).willReturn(stats);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/labels/_stats"));
+                ResultActions result = mockMvc.perform(get("/genres/_stats"));
 
                 // Assert
                 result.andExpect(status().isOk())
                                 .andExpect(jsonPath("$.totalItems").value(5))
-                                .andExpect(jsonPath("$.unActiveLabels").value(0));
+                                .andExpect(jsonPath("$.unActiveGenres").value(0));
         }
 
         // -------------------------------------------------------
-        // DELETE /labels/{name} - delete
+        // DELETE /genres/{name} - delete
         // -------------------------------------------------------
         @Test
-        void givenExistingLabelName_whenDelete_thenReturn204() throws Exception {
+        void givenExistingGenreName_whenDelete_thenReturn204() throws Exception {
                 // Arrange
-                String labelName = "Fiction";
+                String genreName = "Fiction";
 
-                doNothing().when(labelService).deleteById(labelName);
+                doNothing().when(genreService).deleteById(genreName);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/labels/{name}", labelName));
+    ResultActions result = mockMvc.perform(delete("/genres/{name}", genreName));
 
                 // Assert
                 result.andExpect(status().isNoContent());
-                then(labelService).should(times(1)).deleteById(labelName);
+                then(genreService).should(times(1)).deleteById(genreName);
         }
 
         @Test
-        void givenNonExistingLabelName_whenDelete_thenReturn404() throws Exception {
+        void givenNonExistingGenreName_whenDelete_thenReturn404() throws Exception {
                 // Arrange
-                String labelName = "NonExistent";
+                String genreName = "NonExistent";
 
-                doThrow(new ResourceNotFoundException(labelName, "Label not found"))
-                                .when(labelService).deleteById(labelName);
+                doThrow(new ResourceNotFoundException(genreName, "Genre not found"))
+                                .when(genreService).deleteById(genreName);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/labels/{name}", labelName));
+
+                ResultActions result = mockMvc.perform(delete("/genres/{name}", genreName));
+
 
                 // Assert
                 result.andExpect(status().isNotFound());
-                then(labelService).should(times(1)).deleteById(labelName);
+                then(genreService).should(times(1)).deleteById(genreName);
         }
 
         @Test
-        void givenLabelNameWithSpecialCharacters_whenDelete_thenReturn204() throws Exception {
+        void givenGenreNameWithSpecialCharacters_whenDelete_thenReturn204() throws Exception {
                 // Arrange - Use a simple name without URL encoding issues
-                String labelName = "Science_Fiction";
+                String genreName = "Science_Fiction";
 
-                doNothing().when(labelService).deleteById(labelName);
+                doNothing().when(genreService).deleteById(genreName);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/labels/{name}", labelName));
+                ResultActions result = mockMvc.perform(delete("/genres/{name}", genreName));
 
                 // Assert
                 result.andExpect(status().isNoContent());
-                then(labelService).should(times(1)).deleteById(labelName);
+                then(genreService).should(times(1)).deleteById(genreName);
         }
 
         @Test
         void givenDeleteError_whenDelete_thenReturn500() throws Exception {
                 // Arrange
-                String labelName = "Fiction";
+                String genreName = "Fiction";
 
                 doThrow(new RuntimeException("Database error"))
-                                .when(labelService).deleteById(labelName);
+                                .when(genreService).deleteById(genreName);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/labels/{name}", labelName));
+                ResultActions result = mockMvc.perform(delete("/genres/{name}", genreName));
 
                 // Assert
                 result.andExpect(status().isInternalServerError());
         }
 
         // -------------------------------------------------------
-        // PUT /labels/{name} - updateLabel
+        // PUT /genres/{name} - updateGenre
         // -------------------------------------------------------
         @Test
-        void givenValidBody_whenUpdateLabel_thenReturn200() throws Exception {
+        void givenValidBody_whenUpdateGenre_thenReturn200() throws Exception {
                 // Arrange
-                String labelName = "Fiction";
-                LabelDTO requestBody = LabelDTO.builder()
-                                .name(labelName)
+                String genreName = "Fiction";
+                GenreDTO requestBody = GenreDTO.builder()
+                                .name(genreName)
                                 .color("#00FF00")
                                 .description("Updated fiction description")
                                 .build();
-                LabelDTO updatedLabel = LabelDTO.builder()
-                                .name(labelName)
+                GenreDTO updatedGenre = GenreDTO.builder()
+                                .name(genreName)
                                 .color("#00FF00")
                                 .description("Updated fiction description")
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+                when(genreService.update(eq(genreName), any(GenreDTO.class))).thenReturn(updatedGenre);
 
                 // Act
-                ResultActions result = mockMvc.perform(put("/labels/{name}", labelName)
+                ResultActions result = mockMvc.perform(put("/genres/{name}", genreName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
                 result.andExpect(status().isOk())
-                                .andExpect(jsonPath("$.name").value(labelName))
+                                .andExpect(jsonPath("$.name").value(genreName))
                                 .andExpect(jsonPath("$.color").value("#00FF00"))
                                 .andExpect(jsonPath("$.description").value("Updated fiction description"));
-                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+                then(genreService).should(times(1)).update(eq(genreName), any(GenreDTO.class));
         }
 
         @Test
-        void givenNonExistingLabel_whenUpdateLabel_thenReturn404() throws Exception {
+        void givenNonExistingGenre_whenUpdateGenre_thenReturn404() throws Exception {
                 // Arrange
-                String labelName = "NonExistent";
-                LabelDTO requestBody = LabelDTO.builder()
-                                .name(labelName)
+                String genreName = "NonExistent";
+                GenreDTO requestBody = GenreDTO.builder()
+                                .name(genreName)
                                 .color("#00FF00")
                                 .description("Some description")
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class)))
-                                .thenThrow(new ResourceNotFoundException(labelName, "Label not found"));
+                when(genreService.update(eq(genreName), any(GenreDTO.class)))
+                                .thenThrow(new ResourceNotFoundException(genreName, "Genre not found"));
 
                 // Act
-                ResultActions result = mockMvc.perform(put("/labels/{name}", labelName)
+                ResultActions result = mockMvc.perform(put("/genres/{name}", genreName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
                 result.andExpect(status().isNotFound());
-                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+                then(genreService).should(times(1)).update(eq(genreName), any(GenreDTO.class));
         }
 
         @Test
-        void givenServiceThrows_whenUpdateLabel_thenReturn500() throws Exception {
+        void givenServiceThrows_whenUpdateGenre_thenReturn500() throws Exception {
                 // Arrange
-                String labelName = "Fiction";
-                LabelDTO requestBody = LabelDTO.builder()
-                                .name(labelName)
+                String genreName = "Fiction";
+                GenreDTO requestBody = GenreDTO.builder()
+                                .name(genreName)
                                 .color("#00FF00")
                                 .description("Updated description")
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class)))
+                when(genreService.update(eq(genreName), any(GenreDTO.class)))
                                 .thenThrow(new RuntimeException("Unexpected error"));
 
                 // Act
-                ResultActions result = mockMvc.perform(put("/labels/{name}", labelName)
+                ResultActions result = mockMvc.perform(put("/genres/{name}", genreName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -457,55 +466,55 @@ class LabelControllerTest {
         }
 
         @Test
-        void givenValidRequest_whenUpdateLabel_thenCallServiceOnce() throws Exception {
+        void givenValidRequest_whenUpdateGenre_thenCallServiceOnce() throws Exception {
                 // Arrange
-                String labelName = "Science";
-                LabelDTO requestBody = LabelDTO.builder()
-                                .name(labelName)
+                String genreName = "Science";
+                GenreDTO requestBody = GenreDTO.builder()
+                                .name(genreName)
                                 .color("#0000FF")
                                 .description("Science books")
                                 .build();
-                LabelDTO updatedLabel = LabelDTO.builder()
-                                .name(labelName)
+                GenreDTO updatedGenre = GenreDTO.builder()
+                                .name(genreName)
                                 .color("#0000FF")
                                 .description("Science books")
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+                when(genreService.update(eq(genreName), any(GenreDTO.class))).thenReturn(updatedGenre);
 
                 // Act
-                mockMvc.perform(put("/labels/{name}", labelName)
+                mockMvc.perform(put("/genres/{name}", genreName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
-                then(labelService).should(times(1)).update(eq(labelName), any(LabelDTO.class));
+                then(genreService).should(times(1)).update(eq(genreName), any(GenreDTO.class));
         }
 
         @Test
-        void givenUpdateWithNullDescription_whenUpdateLabel_thenReturn200() throws Exception {
+        void givenUpdateWithNullDescription_whenUpdateGenre_thenReturn200() throws Exception {
                 // Arrange
-                String labelName = "Fiction";
-                LabelDTO requestBody = LabelDTO.builder()
-                                .name(labelName)
+                String genreName = "Fiction";
+                GenreDTO requestBody = GenreDTO.builder()
+                                .name(genreName)
                                 .color("#FF0000")
                                 .build();
-                LabelDTO updatedLabel = LabelDTO.builder()
-                                .name(labelName)
+                GenreDTO updatedGenre = GenreDTO.builder()
+                                .name(genreName)
                                 .color("#FF0000")
                                 .description(null)
                                 .build();
 
-                when(labelService.update(eq(labelName), any(LabelDTO.class))).thenReturn(updatedLabel);
+                when(genreService.update(eq(genreName), any(GenreDTO.class))).thenReturn(updatedGenre);
 
                 // Act
-                ResultActions result = mockMvc.perform(put("/labels/{name}", labelName)
+                ResultActions result = mockMvc.perform(put("/genres/{name}", genreName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
                 result.andExpect(status().isOk())
-                                .andExpect(jsonPath("$.name").value(labelName))
+                                .andExpect(jsonPath("$.name").value(genreName))
                                 .andExpect(jsonPath("$.color").value("#FF0000"));
         }
 }

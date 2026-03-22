@@ -60,7 +60,7 @@ export class SidebarComponent {
     { icon: Package, label: 'BookBox', route: '/bookbox' },
     { icon: Flag, label: 'Rapporteer', route: '/gerapporteerd' },
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
-    { icon: Tag, label: 'Labelbeheer', route: '/labels' },
+    { icon: Tag, label: 'Labelbeheer', route: '/genre' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen' },
   ];
 

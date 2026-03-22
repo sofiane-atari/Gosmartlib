@@ -176,16 +176,18 @@
 
       <!-- Genres -->
       <section class="genres-section">
-        <h2 class="section-title">Labels</h2>
-        <div class="genres-tags">
-          @if (selectedBook.labels?.length) {
-          @for (label of selectedBook.labels; track label) {
-          <span class="genre-tag">{{ label }}</span>
-          }
-          } @else {
-          <span class="meta-value meta-placeholder">Geen labels toegewezen</span>
-          }
-        </div>
+        <h2 class="section-title">Genres</h2>
+        @if ((selectedBook?.genres ?? []).length > 0) {
+          <div class="genres-tags">
+            @for (genre of selectedBook?.genres ?? []; track genre.name) {
+              <span class="genre-tag" [style.backgroundColor]="genre.color">
+                {{ genre.name }}
+              </span>
+            }
+          </div>
+        } @else {
+          <span class="meta-value meta-placeholder">Geen genres beschikbaar</span>
+        }
       </section>
 
       <!-- Gerelateerde boeken Carrousel -->

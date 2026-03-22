@@ -28,12 +28,12 @@ public class BookCopy {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "book_id") // FK stored in book_copies table
+    @JoinColumn(name = "book_id")
     private Book book;
 
-    // @Enumerated(EnumType.STRING)
-    // @Column(nullable = false)
-    // private Availability availability;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Availability availability;
 
     @OneToMany(mappedBy = "copy")
     private List<BookLoan> loans = new ArrayList<>();
