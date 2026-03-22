@@ -91,7 +91,7 @@ public class BookService {
         dto.setImageUrl(book.getImageUrl());
         dto.setDescription(book.getDescription());
         dto.setReleaseYear(book.getReleaseYear());
-        dto.setReviewScore(book.getReviewScore());
+        dto.setReviewScore(book.getReviewScore() != null ? book.getReviewScore() : 0.0);
         dto.setAddedDate(book.getAddedDate());
         dto.setGenres(
                 book.getGenres().stream()
