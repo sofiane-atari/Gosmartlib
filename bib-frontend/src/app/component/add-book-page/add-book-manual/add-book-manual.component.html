@@ -12,6 +12,37 @@
     </div>
   </div>
 
+  <div class="form-section">
+    <div class="section-label">Stappenplan</div>
+    <div class="step-row">
+      <div class="step-item">
+        <span class="step-num">Stap 1</span>
+        <span class="step-title">Vul de basisgegevens in</span>
+        <span class="step-desc">
+          Vul titel, auteur, aantal pagina's en jaar van het boek in.
+        </span>
+      </div>
+
+      <div class="step-item">
+        <span class="step-num">Stap 2</span>
+        <span class="step-title">Voeg extra info toe</span>
+        <span class="step-desc">
+          Voeg eventueel een cover URL toe en schrijf een korte beschrijving.
+        </span>
+      </div>
+
+      <div class="step-item">
+        <span class="step-num">Stap 3</span>
+        <span class="step-title">Kies genres en voeg toe</span>
+        <span class="step-desc">
+          Selecteer minstens één genre en klik daarna op "Boek Toevoegen".
+        </span>
+      </div>
+    </div>
+
+    <hr class="divider" />
+  </div>
+
   <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
     <div class="form-section">
       <div class="form-row">
