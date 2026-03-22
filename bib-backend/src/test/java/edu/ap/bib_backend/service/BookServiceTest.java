@@ -23,7 +23,6 @@ import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
-import edu.ap.bib_backend.service.BookService;
 
 @ExtendWith(MockitoExtension.class)
 public class BookServiceTest {
@@ -318,5 +317,25 @@ public class BookServiceTest {
         assertThat(result).hasSize(2);
 
         verify(br, times(1)).findMostReadBook(limit);
+    }
+
+    @Test
+    void givenRelatedBooksExist_whenGetRelatedBooksCarousel_thenReturnMappedBooks() {
+        Book source = new Book();
+        source.setId(1L);
+
+        Book related = new Book();
+        related.setId(2L);
+        related.setTitle("Related");
+        related.setAuthor("Author");
+
+        when(br.findById(1L)).thenReturn(Optional.of(source));
+        when(br.findRelatedBooksWithScore(1L, PageRequest.of(0, 10))).thenReturn((List<Object[]>) List.of(new Object[] { related, 2L }));
+
+        List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(2L);
+        assertThat(result.get(0).getTitle()).isEqualTo("Related");
     }
 }

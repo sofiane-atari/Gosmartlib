@@ -18,6 +18,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.Label;
+
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 
 @Service
@@ -56,6 +58,7 @@ public class BookService {
         dto.setDescription(book.getDescription());
         dto.setReleaseYear(book.getReleaseYear());
         dto.setReviewScore(book.getReviewScore() != null ? book.getReviewScore() : 0.0);
+        dto.setLabels(book.getLabels().stream().map(Label::getName).toList());
         return dto;
     }
 
@@ -153,6 +156,22 @@ public class BookService {
 
         return dtos;
     }
+
+
+
+    public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit) {
+        br.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + bookId));
+
+        int safeLimit = Math.max(1, Math.min(limit, 50)); // Max 50 voor performance
+        List<Object[]> results = br.findRelatedBooksWithScore(bookId, PageRequest.of(0, safeLimit));
+
+        return results.stream()
+                .map(row -> (Book) row[0])
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
 
     public BookPreviewDTO fetchPreviewByISBN(String rawIsbn) {
         String normalizedIsbn = normalizeAndValidateIsbn(rawIsbn);

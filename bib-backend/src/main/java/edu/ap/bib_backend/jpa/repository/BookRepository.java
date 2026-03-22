@@ -1,8 +1,6 @@
 package edu.ap.bib_backend.jpa.repository;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,4 +40,18 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     @Query("SELECT b FROM Book b ORDER BY b.addedDate DESC")
     List<Book> findNewestBooks(Pageable pageable);
+
+
+
+    @Query("""
+            SELECT relatedBook, COUNT(sourceLabel) as sharedLabelCount
+            FROM Book sourceBook
+            JOIN sourceBook.labels sourceLabel
+            JOIN sourceLabel.books relatedBook
+            WHERE sourceBook.id = :bookId
+              AND relatedBook.id <> :bookId
+            GROUP BY relatedBook
+            ORDER BY COUNT(sourceLabel) DESC, RAND()
+            """)
+    List<Object[]> findRelatedBooksWithScore(@Param("bookId") Long bookId, Pageable pageable);
 }

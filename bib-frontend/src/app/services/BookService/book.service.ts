@@ -60,4 +60,9 @@ export class BookService {
     return new EventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`);
   }
 
+
+
+  getRelatedBooksCarousel(bookId: number, limit: number = 10): Observable<Book[]> {
+    return this.http.get<Book[]>(`${this.apiUrl}/${bookId}/related-carousel?limit=${limit}`);
+  }
 }

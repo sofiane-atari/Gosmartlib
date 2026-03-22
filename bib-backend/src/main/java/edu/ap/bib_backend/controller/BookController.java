@@ -37,6 +37,15 @@ public class BookController {
         return ResponseEntity.ok(book);
     }
 
+
+    @GetMapping("/{id}/related-carousel")
+    public ResponseEntity<List<BookDTO>> getRelatedBooksCarousel(
+            @PathVariable("id") Long id,
+            @RequestParam(defaultValue = "10", required = false) int limit) {
+        return ResponseEntity.ok(bs.getRelatedBooksCarousel(id, limit));
+    }
+
+
     @PostMapping
     public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO dto) {
         BookDTO savedBook = bs.addBook(dto);
