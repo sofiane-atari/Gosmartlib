@@ -42,12 +42,14 @@ public class BookService {
 
     public BookService(
             BookRepository repo,
-            BookCopyRepository bcr, GenreRepository gr,
+            BookCopyRepository bcr,
+            GenreRepository gr,
+            RestTemplate restTemplate,
             @Value("${google.books.api.key}") String googleBooksApiKey) {
         this.br = repo;
         this.bcr = bcr;
-        this.restTemplate = new RestTemplate();
         this.gr = gr;
+        this.restTemplate = restTemplate;
         this.googleBooksApiKey = googleBooksApiKey;
     }
 

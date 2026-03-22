@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @WebMvcTest(GenreController.class)
 @Import(TestSecurityConfig.class)
-class LabelControllerTest {
+class GenreControllerTest {
 
         @Autowired
         private MockMvc mockMvc;
@@ -53,7 +53,7 @@ class LabelControllerTest {
         private GenreService labelService;
 
         // -------------------------------------------------------
-        // POST /api/labels - createLabel
+        // POST /api/genres - createLabel
         // -------------------------------------------------------
         @Test
         void givenNoDescription_whenCreateLabel_thenCreateWithoutDescription() throws Exception {
@@ -64,7 +64,7 @@ class LabelControllerTest {
                 when(labelService.createLabel(any(GenreDTO.class))).thenReturn(savedLabel);
 
                 // Act
-                ResultActions results = mockMvc.perform(post("/api/labels")
+                ResultActions results = mockMvc.perform(post("/api/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(newLabel)));
 
@@ -88,14 +88,14 @@ class LabelControllerTest {
                                 .willReturn(createdLabel);
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/api/labels")
+                ResultActions result = mockMvc.perform(post("/api/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
                 // Assert
                 result
                                 .andExpect(status().isCreated())
-                                .andExpect(header().string("Location", containsString("/api/labels/urgent")))
+                                .andExpect(header().string("Location", containsString("/api/genres/urgent")))
                                 .andExpect(jsonPath("$.name").value("urgent"))
                                 .andExpect(jsonPath("$.description").value("High priority tasks"))
                                 .andExpect(jsonPath("$.color").value("#FF0001"));
@@ -107,7 +107,7 @@ class LabelControllerTest {
                 GenreDTO invalidBody = GenreDTO.builder().color("#FF0001").description("Some description").build();
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/api/labels")
+                ResultActions result = mockMvc.perform(post("/api/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidBody)));
 
@@ -125,7 +125,7 @@ class LabelControllerTest {
                                 .willReturn(createdLabel);
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/api/labels")
+                ResultActions result = mockMvc.perform(post("/api/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -145,7 +145,7 @@ class LabelControllerTest {
                                 .willThrow(new RuntimeException("Unexpected error"));
 
                 // Act
-                ResultActions result = mockMvc.perform(post("/api/labels")
+                ResultActions result = mockMvc.perform(post("/api/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -166,7 +166,7 @@ class LabelControllerTest {
                                 .willReturn(createdLabel);
 
                 // Act
-                mockMvc.perform(post("/api/labels")
+                mockMvc.perform(post("/api/genres")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -175,7 +175,7 @@ class LabelControllerTest {
         }
 
         // -------------------------------------------------------
-        // GET /api/labels - getPage
+        // GET /api/genres - getPage
         // -------------------------------------------------------
         @Test
         void givenRequestingFirstPage_whenGetPage_thenReturnLabels() throws Exception {
@@ -187,7 +187,7 @@ class LabelControllerTest {
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/labels"));
+                ResultActions result = mockMvc.perform(get("/api/genres"));
 
                 // Assert
                 result.andExpect(status().isOk())
@@ -206,7 +206,7 @@ class LabelControllerTest {
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/labels")
+                ResultActions result = mockMvc.perform(get("/api/genres")
                                 .param("page", "2"));
 
                 // Assert
@@ -226,7 +226,7 @@ class LabelControllerTest {
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/labels")
+                ResultActions result = mockMvc.perform(get("/api/genres")
                                 .param("search", "science"));
 
                 // Assert
@@ -241,7 +241,7 @@ class LabelControllerTest {
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/labels")
+                ResultActions result = mockMvc.perform(get("/api/genres")
                                 .param("bookCount", "1"));
 
                 // Assert
@@ -256,14 +256,14 @@ class LabelControllerTest {
                 given(labelService.getPage(anyInt(), anyInt(), any(LabelGetOptions.class))).willReturn(pageDTO);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/labels"));
+                ResultActions result = mockMvc.perform(get("/api/genres"));
 
                 // Assert
                 result.andExpect(status().isOk());
         }
 
         // -------------------------------------------------------
-        // GET /api/labels/_stats - getLabelStats
+        // GET /api/genres/_stats - getLabelStats
         // -------------------------------------------------------
         @Test
         void givenLabelsExist_whenGetLabelStats_thenReturnStats() throws Exception {
@@ -273,7 +273,7 @@ class LabelControllerTest {
                 given(labelService.getAllGenreStats()).willReturn(stats);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
+                ResultActions result = mockMvc.perform(get("/api/genres/_stats"));
 
                 // Assert
                 result.andExpect(status().isOk())
@@ -289,7 +289,7 @@ class LabelControllerTest {
                 given(labelService.getAllGenreStats()).willReturn(stats);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
+                ResultActions result = mockMvc.perform(get("/api/genres/_stats"));
 
                 // Assert
                 result.andExpect(status().isOk())
@@ -305,7 +305,7 @@ class LabelControllerTest {
                 given(labelService.getAllGenreStats()).willReturn(stats);
 
                 // Act
-                ResultActions result = mockMvc.perform(get("/api/labels/_stats"));
+                ResultActions result = mockMvc.perform(get("/api/genres/_stats"));
 
                 // Assert
                 result.andExpect(status().isOk())
@@ -314,7 +314,7 @@ class LabelControllerTest {
         }
 
         // -------------------------------------------------------
-        // DELETE /api/labels/{name} - delete
+        // DELETE /api/genres/{name} - delete
         // -------------------------------------------------------
         @Test
         void givenExistingLabelName_whenDelete_thenReturn204() throws Exception {
@@ -324,7 +324,7 @@ class LabelControllerTest {
                 doNothing().when(labelService).deleteById(labelName);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/api/labels/{name}", labelName));
+                ResultActions result = mockMvc.perform(delete("/api/genres/{name}", labelName));
 
                 // Assert
                 result.andExpect(status().isNoContent());
@@ -340,7 +340,7 @@ class LabelControllerTest {
                                 .when(labelService).deleteById(labelName);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/api/labels/{name}", labelName));
+                ResultActions result = mockMvc.perform(delete("/api/genres/{name}", labelName));
 
                 // Assert
                 result.andExpect(status().isNotFound());
@@ -355,7 +355,7 @@ class LabelControllerTest {
                 doNothing().when(labelService).deleteById(labelName);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/api/labels/{name}", labelName));
+                ResultActions result = mockMvc.perform(delete("/api/genres/{name}", labelName));
 
                 // Assert
                 result.andExpect(status().isNoContent());
@@ -371,14 +371,14 @@ class LabelControllerTest {
                                 .when(labelService).deleteById(labelName);
 
                 // Act
-                ResultActions result = mockMvc.perform(delete("/api/labels/{name}", labelName));
+                ResultActions result = mockMvc.perform(delete("/api/genres/{name}", labelName));
 
                 // Assert
                 result.andExpect(status().isInternalServerError());
         }
 
         // -------------------------------------------------------
-        // PUT /api/labels/{name} - updateLabel
+        // PUT /api/genres/{name} - updateLabel
         // -------------------------------------------------------
         @Test
         void givenValidBody_whenUpdateLabel_thenReturn200() throws Exception {
@@ -398,7 +398,7 @@ class LabelControllerTest {
                 when(labelService.update(eq(labelName), any(GenreDTO.class))).thenReturn(updatedLabel);
 
                 // Act
-                ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
+                ResultActions result = mockMvc.perform(put("/api/genres/{name}", labelName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -424,7 +424,7 @@ class LabelControllerTest {
                                 .thenThrow(new ResourceNotFoundException(labelName, "Label not found"));
 
                 // Act
-                ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
+                ResultActions result = mockMvc.perform(put("/api/genres/{name}", labelName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -447,7 +447,7 @@ class LabelControllerTest {
                                 .thenThrow(new RuntimeException("Unexpected error"));
 
                 // Act
-                ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
+                ResultActions result = mockMvc.perform(put("/api/genres/{name}", labelName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -474,7 +474,7 @@ class LabelControllerTest {
                 when(labelService.update(eq(labelName), any(GenreDTO.class))).thenReturn(updatedLabel);
 
                 // Act
-                mockMvc.perform(put("/api/labels/{name}", labelName)
+                mockMvc.perform(put("/api/genres/{name}", labelName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -499,7 +499,7 @@ class LabelControllerTest {
                 when(labelService.update(eq(labelName), any(GenreDTO.class))).thenReturn(updatedLabel);
 
                 // Act
-                ResultActions result = mockMvc.perform(put("/api/labels/{name}", labelName)
+                ResultActions result = mockMvc.perform(put("/api/genres/{name}", labelName)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(requestBody)));
 
