@@ -21,11 +21,6 @@ public class TokenStorageService {
      * Value: JWT token
      */
 
-    /* 
-    public void storeToken(String userId, String jwtToken) {
-        String key = "token:userId:" + userId;
-        redisTemplate.opsForValue().set(key, jwtToken, TOKEN_EXPIRY_HOURS, TimeUnit.HOURS);
-    }*/
     public void storeToken(String userId, String jwtToken) {
         redisTemplate.opsForValue().set(
             buildJwtKey(userId),
@@ -37,23 +32,14 @@ public class TokenStorageService {
 
     /**
      * Retrieve JWT token by user ID
-     
-    public String getToken(String userId) {
-        String key = "token:userId:" + userId;
-        return redisTemplate.opsForValue().get(key);
-    }*/
-
+     */
     public String getToken(String userId) {
         return redisTemplate.opsForValue().get(buildJwtKey(userId));
     }
 
     /**
      * Check if user has an active token session
-     
-    public boolean hasActiveToken(String userId) {
-        String key = "token:userId:" + userId;
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
-    }*/
+     */
 
     public boolean hasActiveToken(String userId) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(buildJwtKey(userId)));
@@ -61,11 +47,7 @@ public class TokenStorageService {
 
     /**
      * Revoke token by user ID (logout)
-     
-    public void revokeToken(String userId) {
-        String key = "token:userId:" + userId;
-        redisTemplate.delete(key);
-    }*/
+     */
 
     public void revokeToken(String userId) {
         redisTemplate.delete(buildJwtKey(userId));
@@ -76,11 +58,7 @@ public class TokenStorageService {
      * Store additional user metadata (e.g., role) without PII
      * Key format: "user:userId:{userId}"
      * Value: serialized role info
-     
-    public void storeUserMetadata(String userId, String role) {
-        String key = "user:metadata:" + userId;
-        redisTemplate.opsForValue().set(key, role, TOKEN_EXPIRY_HOURS, TimeUnit.HOURS);
-    }*/
+     */
 
     public void storeUserMetadata(String userId, String role) {
         redisTemplate.opsForValue().set(
@@ -91,23 +69,13 @@ public class TokenStorageService {
         );
     }
 
-    /* 
-    public void removeUserMetadata(String userId) {
-        String key = "user:metadata:" + userId;
-        redisTemplate.delete(key);
-    }*/
-
     public void removeUserMetadata(String userId) {
         redisTemplate.delete(buildRoleKey(userId));
     }
 
     /**
      * Retrieve user role by user ID
-     
-    public String getUserRole(String userId) {
-        String key = "user:metadata:" + userId;
-        return redisTemplate.opsForValue().get(key);
-    }*/
+     */
 
     public String getUserRole(String userId) {
         return redisTemplate.opsForValue().get(buildRoleKey(userId));

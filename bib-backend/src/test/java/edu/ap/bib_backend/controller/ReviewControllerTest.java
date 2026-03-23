@@ -2,7 +2,11 @@ package edu.ap.bib_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.dto.ReviewDTO;
+import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.ReviewService;
+import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
+import edu.ap.bib_backend.service.TokenStorageService;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -36,6 +40,15 @@ class ReviewControllerTest {
 
         @MockBean
         private ReviewService reviewService;
+
+        @MockBean
+        private JwtService jwtService;
+
+        @MockBean
+        private TokenStorageService tokenStorageService;
+
+        @MockBean
+        private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
 
         @Test
         @DisplayName("Haal reviews op - Succes")

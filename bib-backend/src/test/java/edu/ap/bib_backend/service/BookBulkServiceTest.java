@@ -11,13 +11,15 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,11 +32,18 @@ class BookBulkServiceTest {
     private BookBulkService service;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         br = mock(BookRepository.class);
         bcr = mock(BookCopyRepository.class);
         service = new BookBulkService(br, bcr);
+
+
+        Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
+        if (!Files.exists(tempDir)) {
+            Files.createDirectories(tempDir);
+        }
     }
+
 
     @Test
     @DisplayName("storeTempFile moet een temp file opslaan en id teruggeven")
@@ -56,11 +65,18 @@ class BookBulkServiceTest {
 
     @Test
     @DisplayName("getTempFile moet correct temp file pad teruggeven")
-    void getTempFile_ShouldReturnFile() {
+    void getTempFile_ShouldReturnFile() throws IOException {
+        // Maak eerst even een nep-bestand aan zodat we zeker weten dat het bestaat
+        Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
+        File dummyFile = new File(tempDir.toFile(), "abc.xlsx");
+        dummyFile.createNewFile();
+
         File file = service.getTempFile("abc.xlsx");
 
         assertNotNull(file);
         assertTrue(file.getName().contains("abc.xlsx"));
+        
+        dummyFile.delete();
     }
 
     @Test
@@ -120,9 +136,72 @@ class BookBulkServiceTest {
         assertNotNull(emitter);
     }
 
+
+    @Test
+    @DisplayName("importBooks moet lege rijen negeren")
+    void importBooks_ShouldSkipEmptyRows() throws Exception {
+        // Maak een excel met een lege rij
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            Sheet sheet = workbook.createSheet("Books");
+            Row header = sheet.createRow(0);
+            header.createCell(0).setCellValue("ISBN");
+            header.createCell(1).setCellValue("Title");
+
+            // Rij 1 is expres helemaal leeg
+            sheet.createRow(1);
+
+            workbook.write(out);
+
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "books_empty.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    out.toByteArray());
+
+            // Act
+            service.importBooks(file);
+
+            // Assert: Er mag helemaal niks worden opgeslagen
+            verify(br, never()).save(any(Book.class));
+            verify(bcr, never()).save(any(BookCopy.class));
+        }
+    }
+
+    @Test
+    @DisplayName("importBooks moet RuntimeException gooien als repository faalt")
+    void importBooks_ShouldThrowException_WhenRepositoryFails() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "books.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                createValidWorkbookBytes());
+
+        when(br.findByISBN(anyString())).thenThrow(new IllegalArgumentException("Database disconnect"));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> service.importBooks(file));
+        assertTrue(exception.getMessage().contains("gefailed om boeken te importeren"));
+    }
+
+    @Test
+    @DisplayName("importBooks moet exception gooien bij een ongeldig (corrupt) excel bestand")
+    void importBooks_ShouldThrowException_WhenFileIsCorrupt() {
+        MockMultipartFile corruptFile = new MockMultipartFile(
+                "file",
+                "corrupt.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "dit is geen geldige excel data".getBytes());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> service.importBooks(corruptFile));
+        assertTrue(exception.getMessage().contains("gefailed om boeken te importeren"));
+    }
+
+
     private byte[] createValidWorkbookBytes() throws IOException {
         try (Workbook workbook = new XSSFWorkbook();
-                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             Sheet sheet = workbook.createSheet("Books");
 

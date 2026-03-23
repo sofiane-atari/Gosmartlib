@@ -25,6 +25,7 @@ class TokenStorageServiceTest {
     @Mock
     private ValueOperations<String, String> valueOperations;
 
+
     @Test
     void givenUserIdAndJwtToken_WhenStoreToken_ThenStoreTokenWithExpectedKeyAndExpiry() {
         // Arrange
@@ -38,7 +39,7 @@ class TokenStorageServiceTest {
 
         // Assert
         verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).set("token:userId:user-1", token, 24, TimeUnit.HOURS);
+        verify(valueOperations, times(1)).set("auth:jwt:user:user-1", token, 24, TimeUnit.HOURS);
     }
 
     @Test
@@ -48,7 +49,7 @@ class TokenStorageServiceTest {
         String userId = "user-2";
         String expectedToken = "stored-token";
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("token:userId:user-2")).thenReturn(expectedToken);
+        when(valueOperations.get("auth:jwt:user:user-2")).thenReturn(expectedToken);
 
         // Act
         String result = tokenStorageService.getToken(userId);
@@ -56,7 +57,7 @@ class TokenStorageServiceTest {
         // Assert
         assertEquals(expectedToken, result);
         verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).get("token:userId:user-2");
+        verify(valueOperations, times(1)).get("auth:jwt:user:user-2");
     }
 
     @Test
@@ -64,14 +65,14 @@ class TokenStorageServiceTest {
         // Arrange
         TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
         String userId = "user-3";
-        when(redisTemplate.hasKey("token:userId:user-3")).thenReturn(true);
+        when(redisTemplate.hasKey("auth:jwt:user:user-3")).thenReturn(true);
 
         // Act
         boolean result = tokenStorageService.hasActiveToken(userId);
 
         // Assert
         assertTrue(result);
-        verify(redisTemplate, times(1)).hasKey("token:userId:user-3");
+        verify(redisTemplate, times(1)).hasKey("auth:jwt:user:user-3");
     }
 
     @Test
@@ -79,14 +80,14 @@ class TokenStorageServiceTest {
         // Arrange
         TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
         String userId = "user-4";
-        when(redisTemplate.hasKey("token:userId:user-4")).thenReturn(null);
+        when(redisTemplate.hasKey("auth:jwt:user:user-4")).thenReturn(null);
 
         // Act
         boolean result = tokenStorageService.hasActiveToken(userId);
 
         // Assert
         assertFalse(result);
-        verify(redisTemplate, times(1)).hasKey("token:userId:user-4");
+        verify(redisTemplate, times(1)).hasKey("auth:jwt:user:user-4");
     }
 
     @Test
@@ -99,7 +100,8 @@ class TokenStorageServiceTest {
         tokenStorageService.revokeToken(userId);
 
         // Assert
-        verify(redisTemplate, times(1)).delete("token:userId:user-5");
+        verify(redisTemplate, times(1)).delete("auth:jwt:user:user-5");
+        verify(redisTemplate, times(1)).delete("smartschool:access:user:user-5");
     }
 
     @Test
@@ -115,7 +117,7 @@ class TokenStorageServiceTest {
 
         // Assert
         verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).set("user:metadata:user-6", role, 24, TimeUnit.HOURS);
+        verify(valueOperations, times(1)).set("auth:role:user:user-6", role, 24, TimeUnit.HOURS);
     }
 
     @Test
@@ -125,7 +127,8 @@ class TokenStorageServiceTest {
         String userId = "user-7";
         String expectedRole = "ROLE_LIBRARIAN";
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("user:metadata:user-7")).thenReturn(expectedRole);
+
+        when(valueOperations.get("auth:role:user:user-7")).thenReturn(expectedRole);
 
         // Act
         String result = tokenStorageService.getUserRole(userId);
@@ -133,6 +136,67 @@ class TokenStorageServiceTest {
         // Assert
         assertEquals(expectedRole, result);
         verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).get("user:metadata:user-7");
+        verify(valueOperations, times(1)).get("auth:role:user:user-7");
+    }
+
+
+    @Test
+    void givenUserId_WhenRemoveUserMetadata_ThenDeleteRoleKey() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+        String userId = "user-8";
+
+        // Act
+        tokenStorageService.removeUserMetadata(userId);
+
+        // Assert
+        verify(redisTemplate, times(1)).delete("auth:role:user:user-8");
+    }
+
+    @Test
+    void givenUserIdAndToken_WhenStoreSmartschoolAccessToken_ThenStoreWithExpectedKeyAndExpiry() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+        String userId = "user-9";
+        String token = "smartschool-token-abc";
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+
+        // Act
+        tokenStorageService.storeSmartschoolAccessToken(userId, token);
+
+        // Assert
+        verify(redisTemplate, times(1)).opsForValue();
+        verify(valueOperations, times(1)).set("smartschool:access:user:user-9", token, 55, TimeUnit.MINUTES);
+    }
+
+    @Test
+    void givenStoredSmartschoolToken_WhenGetSmartschoolAccessToken_ThenReturnTokenValue() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+        String userId = "user-10";
+        String expectedToken = "smartschool-token-xyz";
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("smartschool:access:user:user-10")).thenReturn(expectedToken);
+
+        // Act
+        String result = tokenStorageService.getSmartschoolAccessToken(userId);
+
+        // Assert
+        assertEquals(expectedToken, result);
+        verify(redisTemplate, times(1)).opsForValue();
+        verify(valueOperations, times(1)).get("smartschool:access:user:user-10");
+    }
+
+    @Test
+    void givenUserId_WhenRemoveSmartschoolAccessToken_ThenDeleteTokenKey() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+        String userId = "user-11";
+
+        // Act
+        tokenStorageService.removeSmartschoolAccessToken(userId);
+
+        // Assert
+        verify(redisTemplate, times(1)).delete("smartschool:access:user:user-11");
     }
 }

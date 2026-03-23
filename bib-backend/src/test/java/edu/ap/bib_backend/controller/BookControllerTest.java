@@ -9,14 +9,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.ap.bib_backend.TestSecurityConfig;
+import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.BookPreviewDTO;
+import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
+import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.service.BookService;
+import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
+import edu.ap.bib_backend.service.TokenStorageService;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -32,6 +40,224 @@ public class BookControllerTest {
 
     @MockBean
     private BookService bs;
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private TokenStorageService tokenStorageService;
+
+    @MockBean
+    private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
+    //
+
+
+
+    @Test
+    void givenFilters_whenGetFilteredBooks_thenReturnsPagedResult() throws Exception {
+        // Arrange
+        BookDTO book = new BookDTO();
+        book.setId(1L);
+        book.setTitle("Harry Potter");
+        book.setAuthor("J.K. Rowling");
+        book.setPages(350);
+
+        Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of(book));
+
+        Mockito.when(bs.getFilteredBooks(
+                "Harry",
+                BookAvailabilityFilter.ALL,
+                100,
+                500,
+                0,
+                10,
+                BookSortOption.AZ
+        )).thenReturn(page);
+
+        // Act & Assert
+        mockMvc.perform(get("/books/catalog")
+                .param("searchTerm", "Harry")
+                .param("availability", "ALL")
+                .param("minPages", "100")
+                .param("maxPages", "500")
+                .param("sortBy", "AZ")
+                .param("page", "0")
+                .param("size", "10"))
+                .andExpect(status().isOk())
+                // FIXED: Changed $.content to $.data
+                .andExpect(jsonPath("$.data[0].title").value("Harry Potter"))
+                .andExpect(jsonPath("$.data[0].author").value("J.K. Rowling"))
+                .andExpect(jsonPath("$.data[0].pages").value(350))
+                .andExpect(jsonPath("$.meta").exists());
+
+        Mockito.verify(bs).getFilteredBooks(
+                "Harry",
+                BookAvailabilityFilter.ALL,
+                100,
+                500,
+                0,
+                10,
+                BookSortOption.AZ
+        );
+    }
+
+    @Test
+    void givenNoFilters_whenGetFilteredBooks_thenReturnsPagedResultWithDefaultParams() throws Exception {
+        // Arrange
+        Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of());
+
+        Mockito.when(bs.getFilteredBooks(
+                null,
+                null,
+                null,
+                null,
+                0,
+                10,
+                null
+        )).thenReturn(page);
+
+        // Act & Assert
+        mockMvc.perform(get("/books/catalog"))
+                .andExpect(status().isOk())
+                // FIXED: Changed $.content to $.data
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.meta").exists());
+
+        Mockito.verify(bs).getFilteredBooks(
+                null,
+                null,
+                null,
+                null,
+                0,
+                10,
+                null
+        );
+    }
+
+
+    @Test
+void givenBookIdAndLimit_whenGetRelatedBooksCarousel_thenReturnsListOfRelatedBooks() throws Exception {
+    // Arrange
+    BookDTO related1 = new BookDTO();
+    related1.setId(2L);
+    related1.setTitle("Related Book 1");
+
+    BookDTO related2 = new BookDTO();
+    related2.setId(3L);
+    related2.setTitle("Related Book 2");
+
+    Mockito.when(bs.getRelatedBooksCarousel(1L, 5))
+            .thenReturn(List.of(related1, related2));
+
+    // Act & Assert
+    mockMvc.perform(get("/books/1/related-carousel")
+            .param("limit", "5"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].title").value("Related Book 1"))
+            .andExpect(jsonPath("$[1].title").value("Related Book 2"));
+
+    Mockito.verify(bs).getRelatedBooksCarousel(1L, 5);
+}
+
+@Test
+void givenBookId_whenGetRelatedBooksCarousel_thenReturnsListWithDefaultLimit() throws Exception {
+    // Arrange
+    BookDTO related = new BookDTO();
+    related.setId(2L);
+    related.setTitle("Default Related Book");
+
+    Mockito.when(bs.getRelatedBooksCarousel(1L, 10))
+            .thenReturn(List.of(related));
+
+    // Act & Assert
+    mockMvc.perform(get("/books/1/related-carousel"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].title").value("Default Related Book"));
+
+    Mockito.verify(bs).getRelatedBooksCarousel(1L, 10);
+}
+
+
+@Test
+void givenMinPagesExists_whenGetMinPages_thenReturnsMinPages() throws Exception {
+    // Arrange
+    Mockito.when(bs.getMinPages()).thenReturn(42);
+
+    // Act & Assert
+    mockMvc.perform(get("/books/pages/min"))
+            .andExpect(status().isOk())
+            .andExpect(content().string("42"));
+
+    Mockito.verify(bs).getMinPages();
+}
+
+@Test
+void givenSearchParameters_whenSearchBookCandidates_thenReturnsCandidateList() throws Exception {
+    // Arrange
+    BookCandidateDTO candidate = new BookCandidateDTO();
+    candidate.setTitle("Candidate Book");
+    candidate.setAuthor("Candidate Author");
+    candidate.setReleaseYear(2020);
+
+    Mockito.when(bs.searchBookCandidates("Dune", "Frank Herbert", 1965))
+            .thenReturn(List.of(candidate));
+
+    // Act & Assert
+    mockMvc.perform(get("/books/search")
+            .param("title", "Dune")
+            .param("author", "Frank Herbert")
+            .param("releaseYear", "1965"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].title").value("Candidate Book"))
+            .andExpect(jsonPath("$[0].author").value("Candidate Author"))
+            .andExpect(jsonPath("$[0].releaseYear").value(2020));
+
+    Mockito.verify(bs).searchBookCandidates("Dune", "Frank Herbert", 1965);
+}
+
+@Test
+void givenIsbn13_whenSelectBook_thenReturnsBookByIsbn13() throws Exception {
+    // Arrange
+    BookDTO book = new BookDTO();
+    book.setId(9L);
+    book.setTitle("Selected Book");
+    book.setAuthor("Selected Author");
+    book.setISBN("9789999999999");
+
+    Mockito.when(bs.fetchBookByISBN("9789999999999")).thenReturn(book);
+
+    // Act & Assert
+    mockMvc.perform(post("/books/select")
+            .param("isbn13", "9789999999999"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(9))
+            .andExpect(jsonPath("$.title").value("Selected Book"))
+            .andExpect(jsonPath("$.author").value("Selected Author"))
+            .andExpect(jsonPath("$.isbn").value("9789999999999"));
+
+    Mockito.verify(bs).fetchBookByISBN("9789999999999");
+}
+
+@Test
+void givenMissingReleaseYear_whenSearchBookCandidates_thenReturnsBadRequest() throws Exception {
+    // Arrange
+
+    // Act & Assert
+    mockMvc.perform(get("/books/search")
+            .param("title", "Dune")
+            .param("author", "Frank Herbert"))
+            .andExpect(status().isBadRequest());
+}
+
+@Test
+void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception {
+    // Arrange
+
+    // Act & Assert
+    mockMvc.perform(post("/books/select"))
+            .andExpect(status().isBadRequest());
+}
+
 
     @Test
     void getAllBooks_returnJSONList() throws Exception {
