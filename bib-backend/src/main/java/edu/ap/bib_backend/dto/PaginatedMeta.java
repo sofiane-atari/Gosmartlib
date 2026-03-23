@@ -7,7 +7,7 @@ public record PaginatedMeta(
 
         @JsonProperty("pageSize") int pageSize,
 
-        @JsonProperty("totalItems") int totalItems,
+        @JsonProperty("totalItems") long totalItems,
 
         @JsonProperty("totalPages") int totalPages) {
 

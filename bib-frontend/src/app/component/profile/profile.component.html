@@ -1,0 +1,77 @@
+<div class="profile-page">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Mijn account</h1>
+      <p>Bekijk je profielgegevens en bibliotheekactiviteit</p>
+    </div>
+  </div>
+
+  @if (authService.isLoading()) {
+    <section class="profile-panel profile-panel--state">
+      <p>Profiel laden...</p>
+    </section>
+  } @else if (profileVm()) {
+    <section class="profile-panel">
+      <h2>Persoonlijke informatie</h2>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Voornaam</span>
+        <span class="profile-info-row__value">{{ profileVm()?.firstName }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Familienaam</span>
+        <span class="profile-info-row__value">{{ profileVm()?.lastName }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Volledige naam</span>
+        <span class="profile-info-row__value">{{ profileVm()?.fullName }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">E-mail</span>
+        <span class="profile-info-row__value">{{ profileVm()?.email }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Functie</span>
+        <span class="profile-info-row__value">{{ profileVm()?.roleLabel }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Smartschool-ID</span>
+        <span class="profile-info-row__value">{{ profileVm()?.smartschoolId }}</span>
+      </div>
+    </section>
+
+    <section class="profile-panel">
+      <h2>Schoolcontext</h2>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Smartschool-platform</span>
+        <span class="profile-info-row__value">{{ profileVm()?.platform }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Klas / groep</span>
+        <span class="profile-info-row__value">{{ profileVm()?.primaryGroupName }}</span>
+      </div>
+
+      <div class="profile-info-row">
+        <span class="profile-info-row__label">Bovenliggende groepen</span>
+        <span class="profile-info-row__value">
+          @if ((profileVm()?.parentGroupNames?.length ?? 0) > 0) {
+            {{ profileVm()?.parentGroupNames?.join(' • ') }}
+          } @else {
+            Nog niet beschikbaar
+          }
+        </span>
+      </div>
+    </section>
+  } @else {
+    <section class="profile-panel profile-panel--state">
+      <p>Er is geen profielinformatie beschikbaar.</p>
+    </section>
+  }
+</div>

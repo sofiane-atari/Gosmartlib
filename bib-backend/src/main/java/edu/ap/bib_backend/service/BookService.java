@@ -4,14 +4,17 @@ import java.nio.charset.StandardCharsets;
 
 import java.net.URI;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -21,15 +24,18 @@ import org.springframework.web.util.UriComponentsBuilder;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
-import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
+import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -110,6 +116,10 @@ public class BookService {
                 book.getGenres().stream()
                         .map(this::mapGenreToDTO)
                         .toList());
+                        dto.setTotalCopies(book.getBookCopies().size());
+        dto.setAvailableCopies((int) book.getBookCopies().stream()
+            .filter(copy -> copy.getAvailability() == Availability.AVAILABLE)
+            .count());
         return dto;
     }
 
@@ -370,24 +380,20 @@ public class BookService {
         return null;
     }
 
-    public Integer getMinReleaseYear() {
-        Integer min = br.findMinReleaseYear();
-        return min != null ? min : 1900;
-    }
 
-    public Integer getMaxReleaseYear() {
-        Integer max = br.findMaxReleaseYear();
-        int year = LocalDate.now().getYear();
-        return max != null ? max : year;
-    }
 
     public Integer getMaxPages() {
         Integer max = br.findMaxPages();
         return max != null ? max : 1500;
     }
 
+    public Integer getMinPages() {
+        Integer min = br.findMinPages();
+        return min != null ? min : 0;
+    }
+
     public List<BookDTO> getMostReadBooks(int limit) {
-        List<Book> books = br.findMostReadBook(limit);
+        List<Book> books = br.findMostReadBook(PageRequest.of(0, limit));
 
         if (books.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen uitgeleende boeken gevonden");
@@ -647,5 +653,83 @@ public class BookService {
 
     protected RestTemplate createRestTemplate() {
         return new RestTemplate();
+    }
+
+    public Page<BookDTO> getFilteredBooks(
+        String searchTerm,
+        BookAvailabilityFilter availabilityFilter,
+        Integer minPages,
+        Integer maxPages,
+        int page,
+        int size,
+        BookSortOption sortBy
+    ) {
+        String normalizedSearchTerm = normalizeSearchTerm(searchTerm);
+        int validatedPage = validatePage(page);
+        int validatedSize = validateSize(size);
+        validatePageRange(minPages, maxPages);
+
+        Availability availability = mapAvailabilityFilter(availabilityFilter);
+        Sort sort = mapSort(sortBy);
+        Pageable pageable = PageRequest.of(validatedPage, validatedSize, sort);
+
+        Specification<Book> specification = BookSpecification.withFilters(
+                normalizedSearchTerm,
+                availability,
+                minPages,
+                maxPages
+        );
+
+        Page<Book> bookPage = br.findAll(specification, pageable);
+        return bookPage.map(this::mapToDTO);
+    }
+
+    private String normalizeSearchTerm(String searchTerm) {
+    if (searchTerm == null || searchTerm.isBlank()) {
+        return null;
+    }
+
+    return searchTerm.trim();
+    }
+
+    private int validatePage(int page) {
+        return Math.max(page, 0);
+    }
+
+    private int validateSize(int size) {
+        return Math.min(Math.max(size, 1), 50);
+    }
+
+    private void validatePageRange(Integer minPages, Integer maxPages) {
+        if (minPages != null && maxPages != null && minPages > maxPages) {
+            throw new IllegalArgumentException("minPages mag niet groter zijn dan maxPages.");
+        }
+    }
+
+    private Availability mapAvailabilityFilter(BookAvailabilityFilter availabilityFilter) {
+        if (availabilityFilter == null || availabilityFilter == BookAvailabilityFilter.ALL) {
+            return null;
+        }
+
+        if (availabilityFilter == BookAvailabilityFilter.AVAILABLE) {
+            return Availability.AVAILABLE;
+        }
+
+        return null;
+    }
+
+    private Sort mapSort(BookSortOption sortBy) {
+        if (sortBy == null) {
+            return Sort.by("title").ascending();
+        }
+
+        return switch (sortBy) {
+            case AZ -> Sort.by("title").ascending();
+            case ZA -> Sort.by("title").descending();
+            case NEWEST -> Sort.by("releaseYear").descending();
+            case RATING -> Sort.by("reviewScore").descending();
+            case AUTHOR_AZ -> Sort.by("author").ascending();
+            case AUTHOR_ZA -> Sort.by("author").descending();
+        };
     }
 }

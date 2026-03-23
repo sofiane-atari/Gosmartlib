@@ -46,16 +46,12 @@ export class SidebarComponent {
 
   public constructor(private readonly router: Router) {}
 
-  public onRoleChange(newRole: string): void {
-    this.authService.switchRole(newRole as Role);
-  }
-
   menuItems = [
     { icon: Book, label: 'Catalogus', route: '/catalog' },
     { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },
     { icon: History, label: 'Geschiedenis', route: '/historiek' },
     { icon: Star, label: 'Mijn Reviews', route: '/reviews' },
-    { icon: UserCircle, label: 'Mijn Account', route: '/account' },
+    { icon: UserCircle, label: 'Mijn Account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/instellingen' },
     { icon: Package, label: 'BookBox', route: '/bookbox' },
     { icon: Flag, label: 'Rapporteer', route: '/gerapporteerd' },

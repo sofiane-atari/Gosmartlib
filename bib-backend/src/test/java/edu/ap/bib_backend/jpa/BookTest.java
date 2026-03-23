@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.enums.Availability;
 
 public class BookTest {
 

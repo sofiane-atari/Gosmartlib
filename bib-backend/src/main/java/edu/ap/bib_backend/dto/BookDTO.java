@@ -23,6 +23,9 @@ public class BookDTO {
     private double reviewScore;
     private LocalDateTime addedDate;
 
+    private int totalCopies;
+    private int availableCopies;
+
     private List<GenreDTO> genres = new ArrayList<>();
 
     public BookDTO() {

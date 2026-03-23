@@ -23,13 +23,10 @@ export class AuthService {
     ),
   );
 
-  // Signal om de huidige gebruiker globaal beschikbaar te maken
-  public currentUser = signal<AuthUserDto | null>(null);
+  public readonly currentUser = signal<AuthUserDto | null>(null);
+  public readonly isLoading = signal(false);
 
-  // De geselecteerde mock rol (om mee te sturen naar de backend)
-  public activeMockRole = signal<Role>(
-    (localStorage.getItem('mockRole') as Role) || 'STUDENT',
-  );
+  
 
   public isAuthenticated = computed(() => {
     const authToken = this.token();
@@ -52,20 +49,23 @@ export class AuthService {
   // Haal de gebruiker op van de backend
   public fetchCurrentUser(): void {
     if (!this.isAuthenticated()) {
+      this.currentUser.set(null);
       return;
     }
 
-    this.http.get<AuthUserDto>(`${environment.apiUrl}/auth/me`).subscribe({
-      next: (user) => this.currentUser.set(user),
-      error: (err) => console.error('Fout bij ophalen gebruiker', err),
-    });
-  }
+    this.isLoading.set(true);
 
-  // Methode om van rol te wisselen in de UI
-  public switchRole(role: Role) {
-    this.activeMockRole.set(role);
-    localStorage.setItem('mockRole', role);
-    this.fetchCurrentUser();
+    this.http.get<AuthUserDto>(`${environment.apiUrl}/auth/me`).subscribe({
+      next: (user) => {
+        this.currentUser.set(user);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Fout bij ophalen gebruiker', err);
+        this.currentUser.set(null);
+        this.isLoading.set(false);
+      },
+    });
   }
 
   public hasRole(role: Role): boolean {

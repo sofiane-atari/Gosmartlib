@@ -34,7 +34,7 @@ public class Book {
     @Column(name = "release_year")
     private int releaseYear;
 
-    @Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.book_id = id)")
+    //@Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.book_id = id)")
     private Double reviewScore;
 
     @Column(name = "added_date")

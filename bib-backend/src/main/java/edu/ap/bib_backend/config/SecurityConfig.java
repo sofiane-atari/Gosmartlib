@@ -1,9 +1,7 @@
 package edu.ap.bib_backend.config;
 
 import edu.ap.bib_backend.interceptor.LoggingInterceptor;
-import edu.ap.bib_backend.jpa.entity.Role;
-import edu.ap.bib_backend.security.DevMockRoleFilter;
-
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 
 import java.util.ArrayList;
@@ -50,12 +48,12 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 public class SecurityConfig {
 
         private final SmartschoolOAuth2UserService smartschoolOAuth2UserService;
-        private final DevMockRoleFilter devMockRoleFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-        public SecurityConfig(DevMockRoleFilter devMockRoleFilter,
+        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter ,
                         SmartschoolOAuth2UserService smartschoolOAuth2UserService) {
 
-                this.devMockRoleFilter = devMockRoleFilter;
+                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
         }
         @Bean
@@ -72,11 +70,12 @@ public class SecurityConfig {
                                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
                                 // Dev mock filter (still active in non-prod)
-                                .addFilterBefore(devMockRoleFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                                .requestMatchers("/auth/me").permitAll()
+                                                .requestMatchers("/auth/error", "/oauth2/**", "/login/**", "/auth/callback").permitAll()
+                                                .requestMatchers("/auth/me", "/auth/logout").authenticated()
                                                 .requestMatchers("/reviews/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                 Role.LIBRARIAN.name(), Role.ADMIN.name())

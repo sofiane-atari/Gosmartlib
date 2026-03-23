@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, signal, inject, computed, effect } from '@angular/core';
 import { Book } from '../../model/book.model';
 import { BookService } from '../../services/BookService/book.service';
 import { ReadingListService } from '../../services/reading-list.service';
@@ -6,37 +6,28 @@ import { ToastService } from '../../services/Toast/toast.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { BookFilters } from '../../model/bookFilter.model';
+import { DestroyRef } from '@angular/core';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   LucideAngularModule,
   Heart,
-  BookOpen,
   X,
-  Library,
-  Minus,
-  Plus,
-  CheckCircle,
-  Edit2,
-  Trash2,
-  Calendar,
   Star,
-  MessageCircle,
   BookPlus,
   Search,
   SlidersHorizontal,
 } from 'lucide-angular';
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
 import { PagingComponent } from '../paging/paging.component';
+import { PaginatedResponse } from '../../model/paginated-response.model.ts';
 
 @Component({
   selector: 'app-books',
   standalone: true,
-  imports: [
-    FormsModule,
-    CommonModule,
-    LucideAngularModule,
-    BookListSidebarComponent,
-    PagingComponent,
-  ],
+  imports: [ FormsModule, CommonModule, LucideAngularModule, BookListSidebarComponent, PagingComponent],
   templateUrl: './books.component.html',
   styleUrl: './books.component.css',
 })
@@ -52,97 +43,165 @@ export class BooksComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly readingListService = inject(ReadingListService);
   private readonly toastService = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef)
 
-  // Signals for reactive state
   books = signal<Book[]>([]);
-  filteredBooks = signal<Book[]>([]);
-  mostReadBooks = signal<Book[]>([]);
-  newestBooks = signal<Book[]>([]);
-  mostReadLoading = signal<boolean>(true);
-  newestLoading = signal<boolean>(true);
-
-  absoluteMinYear: number = 0;
-  absoluteMaxYear: number = 0;
-  absoluteMaxPages: number = 0;
-
-  isFilterOpen: boolean = false;
-  availableCount: number = 0;
-  borrowedCount: number = 0;
-
-  filters = {
-    searchTerm: '',
-    availability: 'Alle Boeken',
-    minYear: null as number | null,
-    maxYear: null as number | null,
-    maxPages: null as number | null,
-    sortBy: 'az',
-  };
-
-  private readonly pageSize = signal<number>(10);
-  protected readonly currentPage = signal<number>(0);
-
-  protected readonly pagingMeta = computed(() => {
-    const totalItems = this.filteredBooks().length;
-    const pageSize = this.pageSize();
-    const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
-
-    return {
-      currentPage: this.currentPage(),
-      pageSize,
-      totalItems,
-      totalPages,
-    };
+  protected readonly pagingMeta = signal({
+    currentPage: 0,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 0,
   });
 
-  protected readonly pagedBooks = computed(() => {
-    const start = this.currentPage() * this.pageSize();
-    return this.filteredBooks().slice(start, start + this.pageSize());
+  protected readonly catalogLoading = signal(false);
+
+  protected readonly mostReadBooks = signal<Book[]>([]);
+  protected readonly newestBooks = signal<Book[]>([]);
+  protected readonly mostReadLoading = signal(true);
+  protected readonly newestLoading = signal(true);
+  private readonly searchSubject = new Subject<string>();
+  private readonly pageRangeSubject = new Subject<void>();
+  protected readonly searchInput = signal('');
+
+  protected readonly absoluteMaxPages = signal(0);
+  protected readonly absoluteMinPages = signal(0);
+
+  protected readonly isFilterOpen = signal(false);
+  protected readonly currentPage = signal(0);
+  private readonly pageSize = signal(10);
+
+  
+  protected readonly availableCount = computed(() =>
+    this.books().filter((book: Book) => (book.availableCopies ?? 0) > 0).length,
+  );
+
+  protected readonly borrowedCount = computed(() =>
+    this.books().filter((book: Book) => (book.totalCopies ?? 0) > 0 && (book.availableCopies ?? 0) === 0).length,
+  );
+  
+
+  constructor() {
+    effect(() => {
+      localStorage.setItem('bookFilters', JSON.stringify(this.filters()));
+      localStorage.setItem('isFilterOpen', JSON.stringify(this.isFilterOpen()));
+    });
+
+    this.pageRangeSubject
+    .pipe(
+      debounceTime(400),
+      takeUntilDestroyed(this.destroyRef),
+    )
+    .subscribe(() => {
+      this.currentPage.set(0);
+      this.loadCatalogBooks();
+    });
+
+    this.searchSubject
+    .pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef),
+    )
+    .subscribe((searchTerm: string) => {
+      this.filters.update((current: BookFilters) => ({
+        ...current,
+        searchTerm,
+      }));
+
+      this.currentPage.set(0);
+      this.loadCatalogBooks();
+    });
+  }
+  
+  protected readonly filters = signal<BookFilters>({
+    searchTerm: '',
+    availability: 'ALL',
+    minPages: null,
+    maxPages: null,
+    sortBy: 'AZ',
   });
 
   ngOnInit(): void {
-    const savedFilters = localStorage.getItem('bookFilters');
-    const parsedFilters = savedFilters ? JSON.parse(savedFilters) : null;
+    const parsedFilters: BookFilters | null = this.getSavedFilters();
+    const savedPanelState = localStorage.getItem('isFilterOpen')
 
     if (parsedFilters) {
-      this.filters = parsedFilters;
-      this.isFilterOpen = true;
+      this.filters.set(parsedFilters);
+      this.searchInput.set(parsedFilters.searchTerm)
     }
 
-    this.loadBooks(parsedFilters);
+    if (savedPanelState === 'true') {
+      this.isFilterOpen.set(true);
+    } else {
+      this.isFilterOpen.set(false);
+    }
+
+    this.loadFilterBounds();
+    this.loadCatalogBooks();
     this.loadSidebarBooks();
   }
 
-  private loadBooks(parsedFilters: any): void {
-    this.bookService.getMaxPages().subscribe((max) => {
-      this.absoluteMaxPages = max;
-      if (!parsedFilters || parsedFilters.maxPages === null) {
-        this.filters.maxPages = max;
-      }
+  private loadCatalogBooks(): void {
+    this.catalogLoading.set(true);
+
+    const filters: BookFilters = this.filters();
+
+    this.bookService.getFilteredBooks(
+      filters.searchTerm,
+      filters.availability,
+      filters.minPages,
+      filters.maxPages,
+      this.currentPage(),
+      this.pageSize(),
+      filters.sortBy,
+    ).subscribe({
+      next: (response: PaginatedResponse<Book>) => {
+        this.books.set(response.data);
+        this.pagingMeta.set(response.meta);
+        this.catalogLoading.set(false);
+      },
+      error: () => {
+        this.catalogLoading.set(false);
+        this.toastService.show('De catalogus kon niet worden geladen.', 'error');
+      },
+    });
+  }
+
+  private loadFilterBounds(): void {
+    this.bookService.getMaxPages().subscribe({
+      next: (max: number) => {
+        this.absoluteMaxPages.set(max);
+
+        if (this.filters().maxPages === null) {
+          this.filters.update((current: BookFilters) => ({
+            ...current,
+            maxPages: max,
+          }));
+        }
+      },
+      error: () => {
+        this.toastService.show('Maximum aantal pagina’s kon niet worden geladen.', 'error');
+      },
     });
 
-    this.bookService.getYearRange().subscribe((range) => {
-      this.absoluteMinYear = range.min;
-      this.absoluteMaxYear = range.max;
+    this.bookService.getMinPages().subscribe({
+      next: (min: number) => {
+        this.absoluteMinPages.set(min);
 
-      if (!parsedFilters) {
-        this.filters.minYear = range.min;
-        this.filters.maxYear = range.max;
-      } else {
-        if (this.filters.minYear === null) this.filters.minYear = range.min;
-        if (this.filters.maxYear === null) this.filters.maxYear = range.max;
-      }
-    });
-
-    this.bookService.getBooks().subscribe((data) => {
-      this.books.set(data);
-      this.filteredBooks.set(data);
-      // this.calculateStats();
-      this.applyFilters();
+        if (this.filters().minPages === null) {
+          this.filters.update((current: BookFilters) => ({
+            ...current,
+            minPages: min,
+          }));
+        }
+      },
+      error: () => {
+        this.toastService.show('Minimum aantal pagina’s kon niet worden geladen.', 'error');
+      },
     });
   }
 
   private loadSidebarBooks(): void {
-    // Load most read books
     this.bookService.getMostReadBooks(3).subscribe({
       next: (books) => {
         this.mostReadBooks.set(books);
@@ -153,7 +212,7 @@ export class BooksComponent implements OnInit {
       },
     });
 
-    // Load newest books
+    
     this.bookService.getNewestBooks(3).subscribe({
       next: (books) => {
         this.newestBooks.set(books);
@@ -165,133 +224,128 @@ export class BooksComponent implements OnInit {
     });
   }
 
-  toggleFilters() {
-    this.isFilterOpen = !this.isFilterOpen;
+  public toggleFilters() {
+    this.isFilterOpen.update((current: boolean) => !current);
   }
 
-  // calculateStats() {
-  //   const booksArray = this.books();
-  //   this.availableCount = booksArray.filter(
-  //     (b) => b.availability === 'AVAILABLE',
-  //   ).length;
-  //   this.borrowedCount = booksArray.filter(
-  //     (b) => b.availability === 'BORROWED',
-  //   ).length;
-  // }
+  public updateSearchTerm(searchTerm: string): void {
+    this.searchInput.set(searchTerm)
+    this.searchSubject.next(searchTerm);
+  }
 
-  applyFilters() {
-    localStorage.setItem('bookFilters', JSON.stringify(this.filters));
-
-    const booksArray = this.books();
-    const filtered = booksArray.filter((book) => {
-      const searchMatch =
-        !this.filters.searchTerm ||
-        book.title
-          .toLowerCase()
-          .includes(this.filters.searchTerm.toLowerCase()) ||
-        book.author
-          .toLowerCase()
-          .includes(this.filters.searchTerm.toLowerCase());
-
-      let availabilityMatch = true;
-      // if (this.filters.availability === 'Beschikbaar') {
-      //   availabilityMatch = book.availability === 'AVAILABLE';
-      // } else if (this.filters.availability === 'Uitgeleend') {
-      //   availabilityMatch = book.availability === 'BORROWED';
-      // }
-
-      const maxPagesMatch =
-        !this.filters.maxPages || book.pages <= this.filters.maxPages;
-
-      const minYearMatch =
-        !this.filters.minYear || book.releaseYear >= this.filters.minYear;
-      const maxYearMatch =
-        !this.filters.maxYear || book.releaseYear <= this.filters.maxYear;
-
-      return (
-        searchMatch &&
-        availabilityMatch &&
-        minYearMatch &&
-        maxYearMatch &&
-        maxPagesMatch
-      );
-    });
-
-    this.filteredBooks.set(filtered);
-    this.sortBooks();
+  public updateAvailability(availability: BookFilters['availability']): void {
+    this.filters.update((current: BookFilters) => ({
+      ...current,
+      availability,
+    }));
     this.currentPage.set(0);
+    this.loadCatalogBooks();
   }
 
-  resetFilters() {
-    localStorage.removeItem('bookFilters');
-
-    this.filters.searchTerm = '';
-    this.filters.availability = 'Alle Boeken';
-    this.filters.minYear = this.absoluteMinYear;
-    this.filters.maxYear = this.absoluteMaxYear;
-    this.filters.maxPages = this.absoluteMaxPages;
-    this.filters.sortBy = 'az';
-
-    this.applyFilters();
+  public updateSortBy(sortBy: BookFilters['sortBy']): void {
+    this.filters.update((current: BookFilters) => ({
+      ...current,
+      sortBy,
+    }));
+    this.currentPage.set(0);
+    this.loadCatalogBooks();
   }
 
-  sortBooks() {
-    const filteredArray = [...this.filteredBooks()];
+  public updateMaxPages(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let newMax = Number(input.value);
+    
+    const currentMin = this.filters().minPages ?? this.absoluteMinPages();
 
-    if (this.filters.sortBy === 'az') {
-      filteredArray.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (this.filters.sortBy === 'za') {
-      filteredArray.sort((a, b) => b.title.localeCompare(a.title));
-    } else if (this.filters.sortBy === 'newest') {
-      filteredArray.sort((a, b) => b.releaseYear - a.releaseYear);
-    } else if (this.filters.sortBy === 'rating') {
-      filteredArray.sort((a, b) => (b.reviewScore || 0) - (a.reviewScore || 0));
+    if (newMax < currentMin) {
+      newMax = currentMin;
+      input.value = String(newMax); 
     }
 
-    this.filteredBooks.set(filteredArray);
-    this.ensureCurrentPageInRange();
+    this.filters.update((current: BookFilters) => ({
+      ...current,
+      maxPages: newMax,
+    }));
+    this.pageRangeSubject.next();
   }
 
-  toggleFavorite(event: Event, book: Book) {
+   public updateMinPages(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let newMin = Number(input.value);
+    
+    const currentMax = this.filters().maxPages ?? this.absoluteMaxPages();
+
+    if (newMin > currentMax) {
+      newMin = currentMax;
+      input.value = String(newMin); 
+    }
+
+    this.filters.update((current: BookFilters) => ({
+      ...current,
+      minPages: newMin,
+    }));
+    this.pageRangeSubject.next();
+  }
+
+  resetFilters(): void {
+    this.filters.set({
+      searchTerm: '',
+      availability: 'ALL',
+      minPages: this.absoluteMinPages(),
+      maxPages: this.absoluteMaxPages(),
+      sortBy: 'AZ',
+    });
+    this.searchInput.set('')
+    this.currentPage.set(0);
+    this.loadCatalogBooks();
+  }
+
+  public toggleFavorite(event: Event, book: Book) {
     event.stopPropagation();
-    if (book.id) {
-      this.readingListService.addBookToFavorites(book.id).subscribe({
-        next: () => {
-          this.toastService.show(`"${book.title}" is toegevoegd aan je Favorieten!`, 'success');
-        },
-        error: (err: any) => {
-          if (err.error === 'Boek zit al in deze leeslijst') {
-            this.toastService.show(`"${book.title}" staat al in je Favorieten!`, 'error');
-          } else {
-            console.error('Fout bij toevoegen aan favorieten', err);
-            this.toastService.show(
-              'Er is een fout opgetreden bij het toevoegen aan favorieten.',
-              'error'
-            );
-          }
-        },
-      });
+
+    if (!book.id) {
+      this.toastService.show('Het boek kon niet aan favorieten worden toegevoegd.', 'error');
+      return;
+    }
+    this.readingListService.addBookToFavorites(book.id).subscribe({
+      next: () => {
+        this.toastService.show(`"${book.title}" is toegevoegd aan je Favorieten!`, 'success');
+      },
+      error: (err) => {
+        if (err.error === 'Boek zit al in deze leeslijst') {
+          this.toastService.show(`"${book.title}" staat al in je favorieten.`, 'error');
+        } else {
+          console.error('Fout bij toevoegen aan favorieten', err);
+          this.toastService.show(
+            'Er is een fout opgetreden bij het toevoegen aan favorieten.',
+            'error',
+          );
+        }
+      },
+    });
+  }
+
+  private getSavedFilters(): BookFilters | null {
+    const savedFilters: string | null = localStorage.getItem('bookFilters');
+
+    if (!savedFilters) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(savedFilters) as BookFilters;
+    } catch {
+      localStorage.removeItem('bookFilters');
+      return null;
     }
   }
 
-  toBookDetailPage(book: Book) {
+  public toBookDetailPage(book: Book) {
     this.router.navigate(['/book', book.id]);
   }
 
-  protected onPageChange(page: number): void {
+  public onPageChange(page: number): void {
     this.currentPage.set(page);
-  }
-
-  private ensureCurrentPageInRange(): void {
-    const meta = this.pagingMeta();
-
-    if (meta.totalPages === 0) {
-      this.currentPage.set(0);
-      return;
-    }
-
-    if (this.currentPage() > meta.totalPages - 1) {
-      this.currentPage.set(meta.totalPages - 1);
-    }
+    this.loadCatalogBooks();
   }
 }

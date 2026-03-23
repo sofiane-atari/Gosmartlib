@@ -21,6 +21,8 @@ import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.options.GenreGetOptions;
 import edu.ap.bib_backend.service.GenreService;
+import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.TokenStorageService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -51,6 +53,12 @@ class GenreControllerTest {
 
     @MockitoBean
     private GenreService genreService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private TokenStorageService tokenStorageService;
 
     // -------------------------------------------------------
     // POST /api/genres - createGenre
@@ -262,6 +270,40 @@ class GenreControllerTest {
 
         // Assert
         result.andExpect(status().isOk());
+    }
+
+    // -------------------------------------------------------
+    // GET /genres/all - getAllGenres (NIEUW TOEGEVOEGD)
+    // -------------------------------------------------------
+    @Test
+    void givenGenresExist_whenGetAllGenres_thenReturnList() throws Exception {
+        // Arrange
+        GenreDTO genre1 = GenreDTO.builder().name("Fiction").color("#FF0000").build();
+        GenreDTO genre2 = GenreDTO.builder().name("Science").color("#00FF00").build();
+        
+        given(genreService.getAllGenres()).willReturn(List.of(genre1, genre2));
+
+        // Act
+        ResultActions result = mockMvc.perform(get("/genres/all"));
+
+        // Assert
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$[0].name").value("Fiction"))
+                .andExpect(jsonPath("$[1].name").value("Science"));
+    }
+
+    @Test
+    void givenNoGenres_whenGetAllGenres_thenReturnEmptyList() throws Exception {
+        // Arrange
+        given(genreService.getAllGenres()).willReturn(List.of());
+
+        // Act
+        ResultActions result = mockMvc.perform(get("/genres/all"));
+
+        // Assert
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(0));
     }
 
     // -------------------------------------------------------

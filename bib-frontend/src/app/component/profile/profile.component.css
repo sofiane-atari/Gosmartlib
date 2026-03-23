@@ -1,0 +1,208 @@
+/* --- CONTAINER --- */
+.profile-page {
+  max-width: 900px; /* Verkleind voor betere focus */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Compacter */
+  padding: 20px;
+}
+
+/* --- HEADER --- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.page-header__text h1 {
+  font-size: 22px; /* Verkleind */
+  font-weight: 700;
+  color: #1a0a10;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.page-header__text p {
+  font-size: 13px; /* Verkleind */
+  color: #7a5560;
+  margin-top: 2px;
+}
+
+/* --- HERO / AVATAR SECTIE --- */
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.05);
+}
+
+.profile-avatar {
+  width: 64px; /* Verkleind van 92px */
+  height: 64px; /* Verkleind van 92px */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--main-color), #b54569);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.profile-hero__content h2 {
+  margin: 0;
+  font-size: 20px; /* Verkleind */
+  font-weight: 700;
+  color: #1a0a10;
+}
+
+.profile-hero__content p {
+  margin-top: 2px;
+  font-size: 14px;
+  color: #7a5560;
+}
+
+/* --- STAT CARDS --- */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.profile-stat-card {
+  min-height: 130px; /* Compacter */
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease;
+}
+
+.profile-stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.profile-stat-card__icon {
+  width: 28px;
+  height: 28px;
+  opacity: 0.9;
+}
+
+.profile-stat-card__value {
+  display: block;
+  font-size: 28px; 
+  font-weight: 600; 
+  line-height: 1;
+  margin-top: 8px;
+}
+
+.profile-stat-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  opacity: 0.8;
+}
+
+/* --- KLEUREN (GEKOPPELD AAN HUISSTIJL) --- */
+.profile-stat-card--borrowed {
+  background-color: var(--main-light-color);
+  color: var(--main-color);
+}
+
+.profile-stat-card--active {
+  background-color: #eaf1f7; 
+  color: #2e5f8a;
+}
+
+.profile-stat-card--favorite {
+  background-color: #fff5f5; 
+  color: var(--error-color);
+}
+
+.profile-stat-card--review {
+  background-color: var(--sec-light-color);
+  color: #855d3e;
+}
+
+/* --- INFORMATIE PANEEL --- */
+.profile-panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #f0e4e8;
+  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.04);
+}
+
+.profile-panel h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--main-color);
+  border-bottom: 2px solid var(--main-light-color);
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+.profile-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8f8f8;
+}
+
+.profile-info-row:last-child {
+  border-bottom: none;
+}
+
+.profile-info-row__label {
+  font-size: 13px;
+  color: #7a5560;
+  font-weight: 500;
+}
+
+.profile-info-row__value {
+  font-size: 13px;
+  color: #1a0a10;
+  font-weight: 600;
+  background: #fcfcfc;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1024px) {
+  .stat-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-hero {
+    padding: 16px;
+  }
+  
+  .profile-stat-card__value {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-info-row {
+    flex-direction: row;
+  }
+}

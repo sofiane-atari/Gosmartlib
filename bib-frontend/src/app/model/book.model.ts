@@ -10,5 +10,7 @@ export interface Book {
   description: string;
   releaseYear: number;
   reviewScore?: number;
+  totalCopies?: number;
+  availableCopies?: number;
   genres: Genre[];
 }
