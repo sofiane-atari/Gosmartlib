@@ -144,9 +144,9 @@ export class CreateLoanComponent {
     this.loansService
       .createLoan({
         id: 0,
-        userid: user.id,
+        userId: user.id,
         booksId: bookIds,
-        LoanReturnDate: new Date(returnDate),
+        returnDate: new Date(returnDate),
       })
       .subscribe({
         next: () => {

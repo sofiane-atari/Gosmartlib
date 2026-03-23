@@ -22,7 +22,7 @@ public class User {
     private String id;
 
     @OneToMany(mappedBy = "user")
-    private List<BookLoan> loans = new ArrayList<>();
+    private List<Loan> loans = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)

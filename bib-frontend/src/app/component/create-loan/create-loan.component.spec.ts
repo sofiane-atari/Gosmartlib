@@ -21,7 +21,7 @@ describe('CreateLoanComponent', () => {
     userServiceSpy.getUsers.and.returnValue(of([]));
     bookServiceSpy.getBooks.and.returnValue(of([]));
     loansServiceSpy.createLoan.and.returnValue(
-      of({ id: 1, userid: 1, booksId: [], LoanReturnDate: new Date() }),
+      of({ id: 1, userId: 1, booksId: [], returnDate: new Date() }),
     );
 
     await TestBed.configureTestingModule({

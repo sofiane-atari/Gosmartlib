@@ -37,5 +37,5 @@ public class BookCopy {
     private Availability availability;
 
     @OneToMany(mappedBy = "copy")
-    private List<BookLoan> loans = new ArrayList<>();
+    private List<Loan> loans = new ArrayList<>();
 }

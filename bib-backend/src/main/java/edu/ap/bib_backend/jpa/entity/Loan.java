@@ -1,8 +1,14 @@
 package edu.ap.bib_backend.jpa.entity;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -12,14 +18,18 @@ import lombok.Setter;
 @Setter
 @Getter
 @Table(name = "book_loans")
-public class BookLoan {
+public class Loan {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "book_copy_id") // FK stored in book_loans table
-    private BookCopy copy;
+    private LocalDate loanDate;
+    private LocalDate returnDate; 
+
+    @ManyToMany
+    @JoinColumn(name = "book_copy_id")
+    private List<BookCopy> copies;
 
     @ManyToOne
     @JoinColumn(name = "user_id") 
