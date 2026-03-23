@@ -222,7 +222,7 @@ void givenIsbn13_whenSelectBook_thenReturnsBookByIsbn13() throws Exception {
     book.setId(9L);
     book.setTitle("Selected Book");
     book.setAuthor("Selected Author");
-    book.setISBN("9789999999999");
+    book.setIsbn("9789999999999");
 
     Mockito.when(bs.fetchBookByISBN("9789999999999")).thenReturn(book);
 
@@ -265,7 +265,7 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
         book.setId(1L);
         book.setTitle("Test Book");
         book.setAuthor("Test Author");
-        book.setISBN("1672587");
+        book.setIsbn("1672587");
         book.setPages(324);
         book.setImageUrl("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
         book.setDescription("dede de d e d ed e d e d e de d e d");
@@ -292,7 +292,7 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
         book.setId(1L);
         book.setTitle("Specifiek Boek");
         book.setAuthor("Bekende Auteur");
-        book.setISBN("987654321");
+        book.setIsbn("987654321");
         book.setPages(250);
         book.setImageUrl("https://example.com/image.jpg");
         book.setReleaseYear(2021);
@@ -450,7 +450,7 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
         book.setId(1L);
         book.setTitle("ISBN Boek");
         book.setAuthor("Auteur X");
-        book.setISBN("9781234567890");
+        book.setIsbn("9781234567890");
         book.setPages(280);
         book.setImageUrl("https://example.com/book.jpg");
         book.setDescription("Beschrijving van het boek");

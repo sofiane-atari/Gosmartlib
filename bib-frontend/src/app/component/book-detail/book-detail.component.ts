@@ -29,12 +29,13 @@ import { ReviewService } from '../../services/Reviews/review.service';
 import { ToastService } from '../../services/Toast/toast.service';
 import { ReadingListService, ReadingList } from '../../services/reading-list.service';
 import { BookPreview } from '../../model/book-preview.model';
+import { RouterLink } from '@angular/router';
 
 
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [LucideAngularModule, CommonModule, FormsModule],
+  imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css'
 })
@@ -337,7 +338,7 @@ export class BookDetailComponent {
 
   private getSelectedBookIsbn(): string | null {
     const normalizedBook = this.selectedBook as Book & { isbn?: string };
-    const isbn = this.selectedBook?.ISBN?.trim() || normalizedBook?.isbn?.trim();
+    const isbn = this.selectedBook?.isbn?.trim() || normalizedBook?.isbn?.trim();
     return isbn && isbn.length > 0 ? isbn : null;
   }
 
@@ -374,11 +375,19 @@ export class BookDetailComponent {
     this.embeddedPreviewUrl.set(null);
   }
 
-  openRelatedBook(bookId?: number) {
+  public openRelatedBook(bookId?: number) {
     if (!bookId) {
       return;
     }
 
     this.router.navigate(['/book', bookId]);
+  }
+
+  public goToEditPage(bookId?: number){
+    if (!bookId) {
+      return;
+    }
+
+    this.router.navigate(['/books', bookId, 'edit']);
   }
 }

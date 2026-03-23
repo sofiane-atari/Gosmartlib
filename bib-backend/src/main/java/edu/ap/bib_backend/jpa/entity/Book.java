@@ -19,7 +19,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String ISBN;
+    private String isbn;
     private String title;
     private String author;
     private int pages;
@@ -34,7 +34,7 @@ public class Book {
     @Column(name = "release_year")
     private int releaseYear;
 
-    //@Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.book_id = id)")
+    @Formula("(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.book_id = id)")
     private Double reviewScore;
 
     @Column(name = "added_date")
@@ -48,9 +48,9 @@ public class Book {
     public Book() {
     }
 
-    public Book(String ISBN, String title, String author, int pages, String image_url, String description,
+    public Book(String isbn, String title, String author, int pages, String image_url, String description,
             int release_year, int copies) {
-        this.ISBN = ISBN;
+        this.isbn = isbn;
         this.title = title;
         this.author = author;
         this.pages = pages;
@@ -70,7 +70,7 @@ public class Book {
     public String toString() {
         return "Book{" +
                 "id=" + id +
-                ", ISBN='" + ISBN + '\'' +
+                ", ISBN='" + isbn + '\'' +
                 ", title='" + title + '\'' +
                 ", author='" + author + '\'' +
                 ", pages=" + pages +

@@ -74,6 +74,10 @@ public class SecurityConfig {
 
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                // misschien voor even BESPREKEN
+                                                .requestMatchers("/books/template").permitAll()
+                                                .requestMatchers("/books/upload/validate-stream/**").permitAll()
+                                                ///////////////////////////////////
                                                 .requestMatchers("/auth/error", "/oauth2/**", "/login/**", "/auth/callback").permitAll()
                                                 .requestMatchers("/auth/me", "/auth/logout").authenticated()
                                                 .requestMatchers("/reviews/**")

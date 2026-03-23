@@ -1,0 +1,137 @@
+<div class="layout">
+  <div class="info-banner">
+    <lucide-icon [name]="infoIcon" class="info-icon"></lucide-icon>
+
+    <div class="info-content">
+      <p><strong>Boekgegevens bewerken</strong></p>
+      <p>
+        Pas hier de gegevens van een bestaand boek aan.
+        Werk de <strong>basisgegevens</strong>, <strong>beschrijving</strong>
+        en <strong>genres</strong> bij en sla daarna je wijzigingen op.
+      </p>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="section-label">Stappenplan</div>
+
+    <div class="step-row">
+      <div class="step-item">
+        <span class="step-num">Stap 1</span>
+        <span class="step-title">Controleer de basisgegevens</span>
+        <span class="step-desc">
+          Pas titel, auteur, aantal pagina's, ISBN en jaar aan indien nodig.
+        </span>
+      </div>
+
+      <div class="step-item">
+        <span class="step-num">Stap 2</span>
+        <span class="step-title">Werk extra info bij</span>
+        <span class="step-desc">
+          Controleer de cover URL en pas de beschrijving aan waar nodig.
+        </span>
+      </div>
+
+      <div class="step-item">
+        <span class="step-num">Stap 3</span>
+        <span class="step-title">Kies de juiste genres</span>
+        <span class="step-desc">
+          Selecteer minstens één genre en klik daarna op "Boek Opslaan".
+        </span>
+      </div>
+    </div>
+
+    <hr class="divider" />
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-box">
+      <p>Boek laden...</p>
+    </div>
+  } @else {
+    <form class="book-form" [formGroup]="form" (ngSubmit)="save()">
+      @if (errorMessage()) {
+        <div class="error-box">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="title">Titel *</label>
+            <input id="title" type="text" formControlName="title" placeholder="Titel" />
+          </div>
+
+          <div class="form-group">
+            <label for="author">Auteur *</label>
+            <input id="author" type="text" formControlName="author" placeholder="Auteur" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="isbn">ISBN</label>
+            <input id="isbn" type="text" formControlName="isbn" placeholder="978..." />
+          </div>
+
+          <div class="form-group">
+            <label for="releaseYear">Jaar *</label>
+            <input id="releaseYear" type="number" formControlName="releaseYear" placeholder="2024" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pages">Aantal Pagina's *</label>
+            <input id="pages" type="number" formControlName="pages" placeholder="320" />
+          </div>
+
+          <div class="form-group">
+            <label for="imageUrl">Cover URL</label>
+            <input id="imageUrl" type="text" formControlName="imageUrl" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="form-group full-width description-field">
+          <label for="description">Beschrijving *</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            placeholder="Een korte beschrijving van het boek..."
+          ></textarea>
+        </div>
+
+        <div class="form-group full-width genre-section">
+          <label>Genres * (selecteer minimaal 1)</label>
+
+          <div class="genre-grid">
+            @for (genre of allGenres(); track genre.name) {
+              <div
+                class="genre-option"
+                [class.selected]="isGenreSelected(genre)"
+                [style.background-color]="isGenreSelected(genre) ? genre.color + '33' : '#f5f5f5'"
+                [style.color]="isGenreSelected(genre) ? genre.color : '#666'"
+                [style.border-color]="isGenreSelected(genre) ? genre.color + '66' : '#e0e0e0'"
+                (click)="toggleGenre(genre)"
+              >
+                <span class="genre-text">{{ genre.name }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit" [disabled]="isSubmitDisabled()">
+          <lucide-icon [name]="saveIcon" class="btn-icon"></lucide-icon>
+          @if (isSaving()) {
+            Boek Opslaan...
+          } @else {
+            Boek Opslaan
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

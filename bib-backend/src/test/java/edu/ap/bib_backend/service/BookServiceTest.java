@@ -84,7 +84,7 @@ class BookServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(0).getISBN()).isEqualTo("9781234567890");
+        assertThat(result.get(0).getIsbn()).isEqualTo("9781234567890");
         assertThat(result.get(0).getTitle()).isEqualTo("Test Boek");
         assertThat(result.get(0).getAuthor()).isEqualTo("Auteur X");
         assertThat(result.get(0).getPages()).isEqualTo(300);
@@ -142,7 +142,7 @@ class BookServiceTest {
     void givenExistingISBN_whenAddBook_thenNormalizeAndReuseExistingBook() {
         // Given
         BookDTO dto = new BookDTO();
-        dto.setISBN("978-1 234567890");
+        dto.setIsbn("978-1 234567890");
         dto.setTitle("Bestaand Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -159,18 +159,18 @@ class BookServiceTest {
                 3.5,
                 List.of());
 
-        given(br.findByISBN("9781234567890")).willReturn(existingBook);
+        given(br.findByIsbn("9781234567890")).willReturn(existingBook);
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // When
         BookDTO result = bs.addBook(dto);
 
         // Then
-        assertThat(dto.getISBN()).isEqualTo("9781234567890");
+        assertThat(dto.getIsbn()).isEqualTo("9781234567890");
         assertThat(result.getId()).isEqualTo(5L);
-        assertThat(result.getISBN()).isEqualTo("9781234567890");
+        assertThat(result.getIsbn()).isEqualTo("9781234567890");
 
-        then(br).should().findByISBN("9781234567890");
+        then(br).should().findByIsbn("9781234567890");
         then(br).should(never()).save(any(Book.class));
         then(bcr).should().save(any(BookCopy.class));
     }
@@ -626,7 +626,7 @@ class BookServiceTest {
         BookDTO result = bs.fetchBookByISBN("9781234567890");
 
         // Then
-        assertThat(result.getISBN()).isEqualTo("9781234567890");
+        assertThat(result.getIsbn()).isEqualTo("9781234567890");
         assertThat(result.getTitle()).isEqualTo("Test Boek");
         assertThat(result.getAuthor()).isEqualTo("Auteur X");
         assertThat(result.getPages()).isEqualTo(321);
@@ -695,7 +695,7 @@ class BookServiceTest {
 
         Book book = new Book();
         book.setId(id);
-        book.setISBN(isbn);
+        book.setIsbn(isbn);
         book.setTitle(title);
         book.setAuthor(author);
         book.setPages(pages);

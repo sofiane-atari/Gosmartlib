@@ -2,7 +2,7 @@ import { Genre } from "./genre.model";
 
 export interface Book {
   id?: number;
-  ISBN?: string;
+  isbn?: string;
   title: string;
   author: string;
   pages: number;

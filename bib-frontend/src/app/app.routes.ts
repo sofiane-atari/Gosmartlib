@@ -11,6 +11,7 @@ import { DashboardGenresComponent } from './component/dashboard-genres/dashboard
 import { LoginComponent } from './component/login/login.component';
 import { SmartschoolCallbackComponent } from './component/smartschool-callback/smartschool-callback.component';
 import { authGuard, publicOnlyGuard } from './guards/auth.guard';
+import { BookEditPageComponent } from './component/book-edit-page/book-edit-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -19,6 +20,11 @@ export const routes: Routes = [
   {
     path: 'book/:id',
     component: BookDetailComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'books/:id/edit',
+    component: BookEditPageComponent,
     canActivate: [authGuard],
   },
   {
