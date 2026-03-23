@@ -1,0 +1,30 @@
+a {
+  display: inline-block;
+  padding: 12px 28px;
+  background-color: var(--main-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-family: var(--main-font);
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 2px solid var(--main-color);
+  cursor: pointer;
+}
+
+a:hover {
+  background-color: var(--sec-color);
+  border-color: var(--main-color);
+  color: white;
+}
+
+a:active {
+  transform: scale(0.98);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+a:focus {
+  outline: 2px solid var(--main-light-color);
+  outline-offset: 2px;
+}

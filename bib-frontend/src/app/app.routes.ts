@@ -11,6 +11,8 @@ import { DashboardGenresComponent } from './component/dashboard-genres/dashboard
 import { LoginComponent } from './component/login/login.component';
 import { SmartschoolCallbackComponent } from './component/smartschool-callback/smartschool-callback.component';
 import { authGuard, publicOnlyGuard } from './guards/auth.guard';
+import { BookManagementComponent } from './component/book-management/book-management.component';
+import { CreateLoanComponent } from './component/create-loan/create-loan.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -53,6 +55,9 @@ export const routes: Routes = [
     component: SmartschoolCallbackComponent,
   },
   { path: 'smartschool-callback', component: SmartschoolCallbackComponent },
+  { path: 'books-management', component: BookManagementComponent },
+  { path: 'loans/create', component: CreateLoanComponent},
+
   { path: '**', redirectTo: '/catalog' },
 
 ];

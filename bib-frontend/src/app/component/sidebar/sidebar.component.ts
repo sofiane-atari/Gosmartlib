@@ -58,6 +58,7 @@ export class SidebarComponent {
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
     { icon: Tag, label: 'Labelbeheer', route: '/genre' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen' },
+    { icon: Book, label: 'Boekbeheer', route: '/books-management' },
   ];
 
   public goToAddBook(): void {
