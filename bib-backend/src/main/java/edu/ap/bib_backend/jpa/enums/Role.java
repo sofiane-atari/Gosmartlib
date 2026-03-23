@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.jpa.entity;
+package edu.ap.bib_backend.jpa.enums;
 
 public enum Role{
     STUDENT,

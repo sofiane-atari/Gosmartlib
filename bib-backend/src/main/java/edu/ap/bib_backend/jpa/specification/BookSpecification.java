@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
+import edu.ap.bib_backend.jpa.enums.Availability;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 

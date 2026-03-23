@@ -1,8 +1,7 @@
 package edu.ap.bib_backend.config;
 
 import edu.ap.bib_backend.interceptor.LoggingInterceptor;
-import edu.ap.bib_backend.jpa.entity.Role;
-
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 
 import java.util.ArrayList;
@@ -75,7 +74,8 @@ public class SecurityConfig {
 
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                                .requestMatchers("/auth/me").permitAll()
+                                                .requestMatchers("/auth/error", "/oauth2/**", "/login/**", "/auth/callback").permitAll()
+                                                .requestMatchers("/auth/me", "/auth/logout").authenticated()
                                                 .requestMatchers("/reviews/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                 Role.LIBRARIAN.name(), Role.ADMIN.name())

@@ -1,6 +1,18 @@
 package edu.ap.bib_backend.dto;
 
-import edu.ap.bib_backend.jpa.entity.Role;
+import java.util.List;
 
-public record AuthUserDto(String id, String name, Role role) {
-} 
+import edu.ap.bib_backend.jpa.enums.Role;
+
+public record AuthUserDto(
+    String id,
+    String firstName,
+    String lastName,
+    String fullName,
+    Role role,
+    String email,
+    String smartschoolId,
+    String platform,
+    String primaryGroupName,
+    List<String> parentGroupNames
+) {}

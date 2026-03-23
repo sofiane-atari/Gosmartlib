@@ -3,19 +3,12 @@ import {
   Component,
   computed,
   inject,
-  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { AuthService } from '../../services/RoleAuthorization/auth.service';
-import { ToastService } from '../../services/Toast/toast.service';
 import { AuthUserDto, Role } from '../../model/auth.model';
-
-interface ProfileStat {
-  label: string;
-  value: number;
-  variant: 'borrowed' | 'active' | 'favorite' | 'review';
-}
+import { ProfileViewModel } from '../../model/profileView.model';
 
 @Component({
   selector: 'app-profile',
@@ -25,42 +18,31 @@ interface ProfileStat {
   styleUrl: './profile.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent {
   protected readonly authService = inject(AuthService);
-  private readonly toastService = inject(ToastService);
 
   protected readonly profile = computed<AuthUserDto | null>(() =>
     this.authService.currentUser(),
   );
 
-  protected readonly stats = computed<ProfileStat[]>(() => [
-    {
-      label: 'Totaal Uitgeleend',
-      value: 47,
-      variant: 'borrowed',
-    },
-    {
-      label: 'Nu Uitgeleend',
-      value: 2,
-      variant: 'active',
-    },
-    {
-      label: 'Favorieten',
-      value: 2,
-      variant: 'favorite',
-    },
-    {
-      label: 'Reviews Geschreven',
-      value: 12,
-      variant: 'review',
-    },
-  ]);
+  protected readonly profileVm = computed<ProfileViewModel | null>(() => {
+    const profile = this.profile();
+    if (!profile) {
+      return null;
+    }
 
-   public ngOnInit(): void {
-  //   if (!this.authService.currentUser()) {
-  //     this.loadProfile();
-  //   }
-   }
+    return {
+      firstName: profile.firstName ?? '-',
+      lastName: profile.lastName ?? '-',
+      fullName: profile.fullName ?? '-',
+      roleLabel: this.getRoleLabel(profile.role),
+      email: profile.email ?? 'Nog niet beschikbaar',
+      smartschoolId: profile.smartschoolId ?? profile.id,
+      platform: profile.platform ?? 'Nog niet beschikbaar',
+      primaryGroupName: profile.primaryGroupName ?? 'Nog niet beschikbaar',
+      parentGroupNames: profile.parentGroupNames ?? [],
+    };
+  });
 
   protected getRoleLabel(role: Role | undefined): string {
     switch (role) {
@@ -76,47 +58,4 @@ export class ProfileComponent implements OnInit {
         return 'Onbekende rol';
     }
   }
-
-  protected getInitials(fullName: string | undefined): string {
-    if (!fullName?.trim()) {
-      return '--';
-    }
-
-    const parts: string[] = fullName.trim().split(/\s+/);
-    const firstInitial: string = parts[0]?.charAt(0).toUpperCase() ?? '';
-    const lastInitial: string =
-      parts.length > 1
-        ? parts[parts.length - 1].charAt(0).toUpperCase()
-        : '';
-
-    return `${firstInitial}${lastInitial}`;
-  }
-
-  protected getFirstName(fullName: string | undefined): string {
-    if (!fullName?.trim()) {
-      return '-';
-    }
-
-    return fullName.trim().split(/\s+/)[0] ?? '-';
-  }
-
-  protected getLastName(fullName: string | undefined): string {
-    if (!fullName?.trim()) {
-      return '-';
-    }
-
-    const parts: string[] = fullName.trim().split(/\s+/);
-
-    if (parts.length < 2) {
-      return '-';
-    }
-
-    return parts.slice(1).join(' ');
-  }
-
-  // private loadProfile(): void {
-  //   this.authService.fetchCurrentUser(() => {
-  //     this.toastService.show('Het profiel kon niet worden geladen.', 'error');
-  //   });
-  // }
 }

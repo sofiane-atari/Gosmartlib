@@ -1,8 +1,8 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
-import edu.ap.bib_backend.jpa.entity.Role;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class UserServiceTest {
         User mockUser = new User();
         mockUser.setId(existingUserId);
         RoleEntity mockRole = new RoleEntity();
-        mockRole.setRole(edu.ap.bib_backend.jpa.entity.Role.STUDENT);
+        mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
         mockUser.setRole(mockRole);
         when(userRepository.findById(existingUserId)).thenReturn(Optional.of(mockUser));
 
@@ -84,7 +84,7 @@ class UserServiceTest {
         // Arrange
         String newUserId = "newuser";
         RoleEntity mockRole = new RoleEntity();
-        mockRole.setRole(edu.ap.bib_backend.jpa.entity.Role.STUDENT);
+        mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
         when(userRepository.existsById(newUserId)).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
@@ -109,7 +109,7 @@ class UserServiceTest {
         // Arrange
         String existingUserId = "existinguser";
         RoleEntity mockRole = new RoleEntity();
-        mockRole.setRole(edu.ap.bib_backend.jpa.entity.Role.STUDENT);
+        mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
         when(userRepository.existsById(existingUserId)).thenReturn(true);
 
         // Act & Assert
@@ -125,7 +125,7 @@ class UserServiceTest {
         // Arrange
         String nullUserId = null;
         RoleEntity mockRole = new RoleEntity();
-        mockRole.setRole(edu.ap.bib_backend.jpa.entity.Role.STUDENT);
+        mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
         when(userRepository.existsById(null)).thenReturn(false);
         when(userRepository.save(any(User.class)))
                 .thenThrow(new IllegalArgumentException("Cannot save User with null id"));

@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.jpa.entity;
 
+import edu.ap.bib_backend.jpa.enums.Role;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

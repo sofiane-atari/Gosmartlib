@@ -23,8 +23,8 @@ export class AuthService {
     ),
   );
 
-  // Signal om de huidige gebruiker globaal beschikbaar te maken
-  public currentUser = signal<AuthUserDto | null>(null);
+  public readonly currentUser = signal<AuthUserDto | null>(null);
+  public readonly isLoading = signal(false);
 
   
 
@@ -49,12 +49,22 @@ export class AuthService {
   // Haal de gebruiker op van de backend
   public fetchCurrentUser(): void {
     if (!this.isAuthenticated()) {
+      this.currentUser.set(null);
       return;
     }
 
+    this.isLoading.set(true);
+
     this.http.get<AuthUserDto>(`${environment.apiUrl}/auth/me`).subscribe({
-      next: (user) => this.currentUser.set(user),
-      error: (err) => console.error('Fout bij ophalen gebruiker', err),
+      next: (user) => {
+        this.currentUser.set(user);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Fout bij ophalen gebruiker', err);
+        this.currentUser.set(null);
+        this.isLoading.set(false);
+      },
     });
   }
 

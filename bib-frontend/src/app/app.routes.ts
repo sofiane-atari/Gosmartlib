@@ -14,7 +14,7 @@ import { authGuard, publicOnlyGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
-  { path: 'profile', component: ProfileComponent},
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard]},
   { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
   {
     path: 'book/:id',

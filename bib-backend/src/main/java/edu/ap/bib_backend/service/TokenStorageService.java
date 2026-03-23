@@ -8,7 +8,8 @@ import java.util.concurrent.TimeUnit;
 public class TokenStorageService {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final int TOKEN_EXPIRY_HOURS = 24;
+    private final int JWT_EXPIRY_HOURS = 24;
+    private static final long SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES = 55;
 
     public TokenStorageService(RedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -19,50 +20,125 @@ public class TokenStorageService {
      * Key format: "token:userId:{userId}"
      * Value: JWT token
      */
+
+    /* 
     public void storeToken(String userId, String jwtToken) {
         String key = "token:userId:" + userId;
         redisTemplate.opsForValue().set(key, jwtToken, TOKEN_EXPIRY_HOURS, TimeUnit.HOURS);
+    }*/
+    public void storeToken(String userId, String jwtToken) {
+        redisTemplate.opsForValue().set(
+            buildJwtKey(userId),
+            jwtToken,
+            JWT_EXPIRY_HOURS,
+            TimeUnit.HOURS
+        );
     }
 
     /**
      * Retrieve JWT token by user ID
-     */
+     
     public String getToken(String userId) {
         String key = "token:userId:" + userId;
         return redisTemplate.opsForValue().get(key);
+    }*/
+
+    public String getToken(String userId) {
+        return redisTemplate.opsForValue().get(buildJwtKey(userId));
     }
 
     /**
      * Check if user has an active token session
-     */
+     
     public boolean hasActiveToken(String userId) {
         String key = "token:userId:" + userId;
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    }*/
+
+    public boolean hasActiveToken(String userId) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(buildJwtKey(userId)));
     }
 
     /**
      * Revoke token by user ID (logout)
-     */
+     
     public void revokeToken(String userId) {
         String key = "token:userId:" + userId;
         redisTemplate.delete(key);
+    }*/
+
+    public void revokeToken(String userId) {
+        redisTemplate.delete(buildJwtKey(userId));
+        redisTemplate.delete(buildSmartschoolAccessTokenKey(userId));
     }
 
     /**
      * Store additional user metadata (e.g., role) without PII
      * Key format: "user:userId:{userId}"
      * Value: serialized role info
-     */
+     
     public void storeUserMetadata(String userId, String role) {
         String key = "user:metadata:" + userId;
         redisTemplate.opsForValue().set(key, role, TOKEN_EXPIRY_HOURS, TimeUnit.HOURS);
+    }*/
+
+    public void storeUserMetadata(String userId, String role) {
+        redisTemplate.opsForValue().set(
+            buildRoleKey(userId),
+            role,
+            JWT_EXPIRY_HOURS,
+            TimeUnit.HOURS
+        );
+    }
+
+    /* 
+    public void removeUserMetadata(String userId) {
+        String key = "user:metadata:" + userId;
+        redisTemplate.delete(key);
+    }*/
+
+    public void removeUserMetadata(String userId) {
+        redisTemplate.delete(buildRoleKey(userId));
     }
 
     /**
      * Retrieve user role by user ID
-     */
+     
     public String getUserRole(String userId) {
         String key = "user:metadata:" + userId;
         return redisTemplate.opsForValue().get(key);
+    }*/
+
+    public String getUserRole(String userId) {
+        return redisTemplate.opsForValue().get(buildRoleKey(userId));
+    }
+
+    public void storeSmartschoolAccessToken(String userId, String accessToken) {
+        redisTemplate.opsForValue().set(
+            buildSmartschoolAccessTokenKey(userId),
+            accessToken,
+            SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES,
+            TimeUnit.MINUTES
+        );
+    }
+
+    public String getSmartschoolAccessToken(String userId) {
+        return redisTemplate.opsForValue().get(buildSmartschoolAccessTokenKey(userId));
+    }
+
+    public void removeSmartschoolAccessToken(String userId) {
+        redisTemplate.delete(buildSmartschoolAccessTokenKey(userId));
+    }
+
+    private String buildJwtKey(String userId) {
+        return "auth:jwt:user:" + userId;
+    }
+
+    private String buildRoleKey(String userId) {
+        return "auth:role:user:" + userId;
+    }
+
+    private String buildSmartschoolAccessTokenKey(String userId) {
+        return "smartschool:access:user:" + userId;
     }
 }
