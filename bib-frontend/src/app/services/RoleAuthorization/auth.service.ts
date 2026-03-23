@@ -26,10 +26,7 @@ export class AuthService {
   // Signal om de huidige gebruiker globaal beschikbaar te maken
   public currentUser = signal<AuthUserDto | null>(null);
 
-  // De geselecteerde mock rol (om mee te sturen naar de backend)
-  public activeMockRole = signal<Role>(
-    (localStorage.getItem('mockRole') as Role) || 'STUDENT',
-  );
+  
 
   public isAuthenticated = computed(() => {
     const authToken = this.token();
@@ -59,13 +56,6 @@ export class AuthService {
       next: (user) => this.currentUser.set(user),
       error: (err) => console.error('Fout bij ophalen gebruiker', err),
     });
-  }
-
-  // Methode om van rol te wisselen in de UI
-  public switchRole(role: Role) {
-    this.activeMockRole.set(role);
-    localStorage.setItem('mockRole', role);
-    this.fetchCurrentUser();
   }
 
   public hasRole(role: Role): boolean {

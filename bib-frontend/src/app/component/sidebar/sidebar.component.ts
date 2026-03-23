@@ -46,10 +46,6 @@ export class SidebarComponent {
 
   public constructor(private readonly router: Router) {}
 
-  public onRoleChange(newRole: string): void {
-    this.authService.switchRole(newRole as Role);
-  }
-
   menuItems = [
     { icon: Book, label: 'Catalogus', route: '/catalog' },
     { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },

@@ -49,21 +49,19 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 public class SecurityConfig {
 
         private final SmartschoolOAuth2UserService smartschoolOAuth2UserService;
-        //
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
-        
 
-        public SecurityConfig(SmartschoolOAuth2UserService smartschoolOAuth2UserService,
-                                JwtAuthenticationFilter jwtAuthenticationFilter) {
-                this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
+        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter ,
+                        SmartschoolOAuth2UserService smartschoolOAuth2UserService) {
+
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-                }
+                this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
+        }
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .cors(Customizer.withDefaults())
-                                
 
                                 // ⚠️ OAuth2 Authorization Code flow needs a session to store the
                                 // 'state' parameter during the redirect. We relax STATELESS here
@@ -72,12 +70,12 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
-                                
+                                // Dev mock filter (still active in non-prod)
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                                 .requestMatchers("/auth/me").permitAll()
-                                                
                                                 .requestMatchers("/reviews/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                 Role.LIBRARIAN.name(), Role.ADMIN.name())
@@ -97,9 +95,7 @@ public class SecurityConfig {
                                                 .userInfoEndpoint(userInfo -> userInfo
                                                                 .userService(smartschoolOAuth2UserService))
                                                 .defaultSuccessUrl("/auth/callback", true)
-                                                .failureUrl("/auth/error"))
-                                //
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                                                .failureUrl("/auth/error"));
 
                 return http.build();
         }

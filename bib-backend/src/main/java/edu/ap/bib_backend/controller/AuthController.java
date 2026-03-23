@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
-import edu.ap.bib_backend.service.AuthService;
+import edu.ap.bib_backend.jpa.entity.Role;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,22 +26,33 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthService authService;
     private final JwtService jwtService;
     private final TokenStorageService tokenStorageService;
 
     @Value("${FRONTEND_REDIRECT_URL}")
     private String frontendRedirectUrl;
 
-    public AuthController(AuthService authService, JwtService jwtService, TokenStorageService tokenStorageService) {
-        this.authService = authService;
+    public AuthController(JwtService jwtService, TokenStorageService tokenStorageService) {
         this.jwtService = jwtService;
         this.tokenStorageService = tokenStorageService;
     }
 
     @GetMapping("/me")
-    public AuthUserDto me() {
-        return authService.getCurrentUser();
+    public AuthUserDto me(@AuthenticationPrincipal OAuth2User principal) {
+        if (principal == null) {
+            return null; // or throw an exception if you prefer
+        }
+
+        String userId = principal.getAttribute("userID");
+        String name = principal.getAttribute("name");
+        String role = principal.getAuthorities()
+                .stream()
+                .map(auth -> auth.getAuthority())
+                .findFirst()
+                .orElse("ROLE_USER"); // default role if none found
+
+        return new AuthUserDto(userId, name,
+                role.startsWith("ROLE_") ? Role.valueOf(role.substring(5)) : Role.valueOf(role));
     }
 
     @GetMapping("/error")

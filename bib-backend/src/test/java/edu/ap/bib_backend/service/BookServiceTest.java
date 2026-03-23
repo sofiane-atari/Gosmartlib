@@ -274,7 +274,7 @@ class BookServiceTest {
     }
 
     @Test
-    void getMostReadBooks_whenBooksExist_returnsMappedDTOs() {
+        void getMostReadBooks_whenBooksExist_returnsMappedDTOs() {
         Book book = createBook(
                 1L,
                 "9781234567890",
@@ -287,26 +287,26 @@ class BookServiceTest {
                 4.0,
                 List.of());
 
-        when(br.findMostReadBook(5)).thenReturn(List.of(book));
+        when(br.findMostReadBook(PageRequest.of(0, 5))).thenReturn(List.of(book));
 
         List<BookDTO> result = bs.getMostReadBooks(5);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("Populair Boek");
-    }
+        }
 
-    @Test
-    void getMostReadBooks_whenEmpty_throwsNotFound() {
-        when(br.findMostReadBook(5)).thenReturn(List.of());
+        @Test
+        void getMostReadBooks_whenEmpty_throwsNotFound() {
+        when(br.findMostReadBook(PageRequest.of(0, 5))).thenReturn(List.of());
 
         assertThatThrownBy(() -> bs.getMostReadBooks(5))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(ex -> {
-                    ResponseStatusException rse = (ResponseStatusException) ex;
-                    assertThat(rse.getStatusCode().value()).isEqualTo(404);
-                    assertThat(rse.getReason()).isEqualTo("Geen uitgeleende boeken gevonden");
+                        ResponseStatusException rse = (ResponseStatusException) ex;
+                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
+                        assertThat(rse.getReason()).isEqualTo("Geen uitgeleende boeken gevonden");
                 });
-    }
+        }
 
     @Test
     void getNewestBooks_returnsMappedDTOs() {
