@@ -12,11 +12,11 @@ import edu.ap.bib_backend.jpa.entity.Book;
 
 public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
 
-    boolean existsByISBN(String isbn);
+    boolean existsByIsbn(String isbn);
 
-    Book findByISBN(String isbn);
+    Book findByIsbn(String isbn);
 
-    @Query("SELECT b.ISBN FROM Book b")
+    @Query("SELECT b.isbn FROM Book b")
     List<String> findAllIsbns();
 
     @Query("SELECT MAX(b.pages) FROM Book b")

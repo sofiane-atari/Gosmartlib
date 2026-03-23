@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.net.URLEncoder;
 
 @Service
+@Transactional
 public class BookService {
 
     private String googleBooksApiKey;
@@ -65,6 +66,7 @@ public class BookService {
         this.googleBooksApiKey = googleBooksApiKey;
     }
 
+    @Transactional
     public List<BookDTO> getAllBooks() {
         return br.findAll()
                 .stream()
@@ -74,13 +76,13 @@ public class BookService {
 
     @Transactional
     public BookDTO addBook(BookDTO dto) {
-        String normalizedIsbn = normalizeIsbn(dto.getISBN());
-        dto.setISBN(normalizedIsbn);
+        String normalizedIsbn = normalizeIsbn(dto.getIsbn());
+        dto.setIsbn(normalizedIsbn);
 
         Book book = null;
 
         if (normalizedIsbn != null && !normalizedIsbn.isBlank()) {
-            book = br.findByISBN(normalizedIsbn);
+            book = br.findByIsbn(normalizedIsbn);
         }
 
         if (book == null) {
@@ -96,6 +98,37 @@ public class BookService {
         return mapToDTO(book);
     }
 
+    @Transactional
+    public BookDTO updateBook(Long id, BookDTO dto) {
+        Book book = br.findById(id)
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
+
+        String normalizedIsbn = normalizeIsbn(dto.getIsbn());
+
+        if (normalizedIsbn != null && !normalizedIsbn.isBlank()) {
+            Book existingBookWithIsbn = br.findByIsbn(normalizedIsbn);
+
+            if (existingBookWithIsbn != null && !existingBookWithIsbn.getId().equals(id)) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Er bestaat al een ander boek met ISBN: " + normalizedIsbn
+                );
+            }
+        }
+
+        book.setIsbn(normalizedIsbn);
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthor());
+        book.setPages(dto.getPages());
+        book.setImageUrl(dto.getImageUrl());
+        book.setDescription(dto.getDescription());
+        book.setReleaseYear(dto.getReleaseYear());
+        book.setGenres(mapGenresFromDTO(dto.getGenres()));
+
+        Book updatedBook = br.save(book);
+        return mapToDTO(updatedBook);
+    }
+
     private String normalizeIsbn(String isbn) {
         return isbn == null ? null : isbn.replace("-", "").replace(" ", "").trim();
     }
@@ -103,7 +136,7 @@ public class BookService {
     private BookDTO mapToDTO(Book book) {
         BookDTO dto = new BookDTO();
         dto.setId(book.getId());
-        dto.setISBN(book.getISBN());
+        dto.setIsbn(book.getIsbn());
         dto.setTitle(book.getTitle());
         dto.setAuthor(book.getAuthor());
         dto.setPages(book.getPages());
@@ -116,7 +149,7 @@ public class BookService {
                 book.getGenres().stream()
                         .map(this::mapGenreToDTO)
                         .toList());
-                        dto.setTotalCopies(book.getBookCopies().size());
+        dto.setTotalCopies(book.getBookCopies().size());
         dto.setAvailableCopies((int) book.getBookCopies().stream()
             .filter(copy -> copy.getAvailability() == Availability.AVAILABLE)
             .count());
@@ -134,7 +167,7 @@ public class BookService {
 
     private Book mapToEntity(BookDTO dto) {
         Book book = new Book();
-        book.setISBN(dto.getISBN());
+        book.setIsbn(dto.getIsbn());
         book.setTitle(dto.getTitle());
         book.setAuthor(dto.getAuthor());
         book.setPages(dto.getPages());
@@ -156,9 +189,10 @@ public class BookService {
                 .distinct()
                 .map(name -> gr.findById(name)
                         .orElseThrow(() -> new IllegalArgumentException("Genre bestaat niet: " + name)))
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
+    @Transactional
     public BookDTO getBookById(Long id) {
         return br.findById(id)
                 .map(book -> mapToDTO(book)) // Zet Book om naar BookDTO
@@ -182,7 +216,7 @@ public class BookService {
         }
 
         BookDTO dto = new BookDTO();
-        dto.setISBN(isbn);
+        dto.setIsbn(isbn);
         dto.setTitle((String) bookData.get("title"));
         dto.setReleaseYear(extractYearFromOpenLibraryDate((String) bookData.get("publish_date")));
 
@@ -392,6 +426,7 @@ public class BookService {
         return min != null ? min : 0;
     }
 
+    @Transactional
     public List<BookDTO> getMostReadBooks(int limit) {
         List<Book> books = br.findMostReadBook(PageRequest.of(0, limit));
 
@@ -402,6 +437,7 @@ public class BookService {
         return mapToDTOList(books);
     }
 
+    @Transactional
     public List<BookDTO> getNewestBooks(int limit) {
         List<Book> books = br.findNewestBooks(PageRequest.of(0, limit));
         return mapToDTOList(books);

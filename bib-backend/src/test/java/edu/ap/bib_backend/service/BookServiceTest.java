@@ -84,7 +84,7 @@ class BookServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(0).getISBN()).isEqualTo("9781234567890");
+        assertThat(result.get(0).getIsbn()).isEqualTo("9781234567890");
         assertThat(result.get(0).getTitle()).isEqualTo("Test Boek");
         assertThat(result.get(0).getAuthor()).isEqualTo("Auteur X");
         assertThat(result.get(0).getPages()).isEqualTo(300);
@@ -142,7 +142,7 @@ class BookServiceTest {
     void givenExistingISBN_whenAddBook_thenNormalizeAndReuseExistingBook() {
         // Given
         BookDTO dto = new BookDTO();
-        dto.setISBN("978-1 234567890");
+        dto.setIsbn("978-1 234567890");
         dto.setTitle("Bestaand Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -159,18 +159,18 @@ class BookServiceTest {
                 3.5,
                 List.of());
 
-        given(br.findByISBN("9781234567890")).willReturn(existingBook);
+        given(br.findByIsbn("9781234567890")).willReturn(existingBook);
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // When
         BookDTO result = bs.addBook(dto);
 
         // Then
-        assertThat(dto.getISBN()).isEqualTo("9781234567890");
+        assertThat(dto.getIsbn()).isEqualTo("9781234567890");
         assertThat(result.getId()).isEqualTo(5L);
-        assertThat(result.getISBN()).isEqualTo("9781234567890");
+        assertThat(result.getIsbn()).isEqualTo("9781234567890");
 
-        then(br).should().findByISBN("9781234567890");
+        then(br).should().findByIsbn("9781234567890");
         then(br).should(never()).save(any(Book.class));
         then(bcr).should().save(any(BookCopy.class));
     }
@@ -626,7 +626,7 @@ class BookServiceTest {
         BookDTO result = bs.fetchBookByISBN("9781234567890");
 
         // Then
-        assertThat(result.getISBN()).isEqualTo("9781234567890");
+        assertThat(result.getIsbn()).isEqualTo("9781234567890");
         assertThat(result.getTitle()).isEqualTo("Test Boek");
         assertThat(result.getAuthor()).isEqualTo("Auteur X");
         assertThat(result.getPages()).isEqualTo(321);
@@ -680,6 +680,120 @@ class BookServiceTest {
         assertThat(result.get(0).getTitle()).isEqualTo("Related");
     }
 
+    @Test
+    @DisplayName("Given valid data, When updateBook is called, Then return updated DTO")
+    void givenValidData_whenUpdateBook_thenReturnUpdatedDTO() {
+        // Arrange
+        Long bookId = 1L;
+        Book existingBook = createBook(bookId, "9780000000000", "Oud", "Oud", 100, null, null, 2000, 0.0, new ArrayList<>());
+        existingBook.setBookCopies(new ArrayList<>()); // Voorkom nullpointer in mapToDTO
+
+        BookDTO updateDto = new BookDTO();
+        updateDto.setIsbn("978-1234567890"); // Met streepje om normalizeIsbn te testen
+        updateDto.setTitle("Nieuwe Titel");
+        updateDto.setAuthor("Nieuwe Auteur");
+        updateDto.setPages(250);
+        updateDto.setGenres(new ArrayList<>());
+
+        Book savedBook = createBook(bookId, "9781234567890", "Nieuwe Titel", "Nieuwe Auteur", 250, null, null, 2000, 0.0, new ArrayList<>());
+        savedBook.setBookCopies(new ArrayList<>());
+
+        given(br.findById(bookId)).willReturn(Optional.of(existingBook));
+        given(br.findByIsbn("9781234567890")).willReturn(null); // ISBN is nog niet in gebruik
+        given(br.save(any(Book.class))).willReturn(savedBook);
+
+        // Act
+        BookDTO result = bs.updateBook(bookId, updateDto);
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(bookId);
+        assertThat(result.getTitle()).isEqualTo("Nieuwe Titel");
+        assertThat(result.getIsbn()).isEqualTo("9781234567890"); // Gecontroleerd op normalisatie
+        
+        then(br).should().findById(bookId);
+        then(br).should().findByIsbn("9781234567890");
+        then(br).should().save(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Given same ISBN as before, When updateBook is called, Then update successfully")
+    void givenSameIsbnAsBefore_whenUpdateBook_thenUpdateSuccessfully() {
+        // Arrange
+        Long bookId = 2L;
+        String isbn = "9781111111111";
+        
+        Book existingBook = createBook(bookId, isbn, "Titel", "Auteur", 100, null, null, 2000, 0.0, new ArrayList<>());
+        existingBook.setBookCopies(new ArrayList<>());
+        
+        BookDTO updateDto = new BookDTO();
+        updateDto.setIsbn(isbn); // Hetzelfde ISBN
+        updateDto.setTitle("Geüpdatete Titel");
+        updateDto.setGenres(new ArrayList<>());
+
+        given(br.findById(bookId)).willReturn(Optional.of(existingBook));
+        // findByIsbn geeft hetzelfde boek terug (zelfde ID), dus dit mag!
+        given(br.findByIsbn(isbn)).willReturn(existingBook); 
+        given(br.save(any(Book.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        BookDTO result = bs.updateBook(bookId, updateDto);
+
+        // Assert
+        assertThat(result.getTitle()).isEqualTo("Geüpdatete Titel");
+        then(br).should().save(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Given ISBN belonging to another book, When updateBook is called, Then throw BadRequest Exception")
+    void givenIsbnBelongingToAnotherBook_whenUpdateBook_thenThrowBadRequestException() {
+        // Arrange
+        Long currentBookId = 3L;
+        Long otherBookId = 4L;
+        String duplicateIsbn = "9789999999999";
+
+        Book currentBook = createBook(currentBookId, "9783333333333", "Titel", "Auteur", 100, null, null, 2000, 0.0, new ArrayList<>());
+        
+        // Een ander boek heeft dit ISBN al in de database staan
+        Book otherBookWithSameIsbn = createBook(otherBookId, duplicateIsbn, "Ander Boek", "Ander", 200, null, null, 2010, 0.0, new ArrayList<>());
+
+        BookDTO updateDto = new BookDTO();
+        updateDto.setIsbn(duplicateIsbn);
+        
+        given(br.findById(currentBookId)).willReturn(Optional.of(currentBook));
+        given(br.findByIsbn(duplicateIsbn)).willReturn(otherBookWithSameIsbn);
+
+        // Act & Assert
+        assertThatThrownBy(() -> bs.updateBook(currentBookId, updateDto))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(ex -> {
+                    ResponseStatusException rse = (ResponseStatusException) ex;
+                    assertThat(rse.getStatusCode().value()).isEqualTo(400); // BAD_REQUEST
+                    assertThat(rse.getReason()).contains("Er bestaat al een ander boek met ISBN");
+                });
+
+        then(br).should(never()).save(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Given non-existing book ID, When updateBook is called, Then throw RuntimeException")
+    void givenNonExistingBookId_whenUpdateBook_thenThrowException() {
+        // Arrange
+        Long invalidId = 99L;
+        BookDTO updateDto = new BookDTO();
+        updateDto.setTitle("Ghost Book");
+
+        given(br.findById(invalidId)).willReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> bs.updateBook(invalidId, updateDto))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Boek niet gevonden met id: 99");
+
+        then(br).should(never()).findByIsbn(any());
+        then(br).should(never()).save(any());
+    }
+
 
     private Book createBook(
             Long id,
@@ -695,7 +809,7 @@ class BookServiceTest {
 
         Book book = new Book();
         book.setId(id);
-        book.setISBN(isbn);
+        book.setIsbn(isbn);
         book.setTitle(title);
         book.setAuthor(author);
         book.setPages(pages);

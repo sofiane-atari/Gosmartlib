@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.validation.FieldError;
 
 import java.util.ArrayList;
@@ -68,6 +69,26 @@ public class GlobalExceptionHandler {
         ApiError error = new ApiError(errorCode, "Item niet gevonden", details);
 
         details.add(new ErrorDetail(ex.getFieldName(), ex.getMessage()));
+
+        ErrorResponse response = new ErrorResponse(error);
+        return ResponseEntity.status(error.getCode()).body(response);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        int errorCode = 400;
+        List<ErrorDetail> details = new ArrayList<>();
+        ApiError error = new ApiError(errorCode, ex.getMessage(), details);
+
+        ErrorResponse response = new ErrorResponse(error);
+        return ResponseEntity.status(error.getCode()).body(response);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+        int errorCode = ex.getStatusCode().value();
+        List<ErrorDetail> details = new ArrayList<>();
+        ApiError error = new ApiError(errorCode, ex.getReason(), details);
 
         ErrorResponse response = new ErrorResponse(error);
         return ResponseEntity.status(error.getCode()).body(response);

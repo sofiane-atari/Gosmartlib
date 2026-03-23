@@ -25,7 +25,7 @@ public class BookTest {
         Book book = new Book(isbn, title, author, pages, imageUrl, description, releaseYear, copies);
 
         // Assert
-        assertThat(book.getISBN()).isEqualTo(isbn);
+        assertThat(book.getIsbn()).isEqualTo(isbn);
         assertThat(book.getTitle()).isEqualTo(title);
         assertThat(book.getAuthor()).isEqualTo(author);
         assertThat(book.getPages()).isEqualTo(pages);

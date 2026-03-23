@@ -159,7 +159,7 @@ export class AddBookISBNComponent {
     this.bs.selectBook(candidate.isbn13).subscribe({
       next: (selectedBook: Book) => {
         this.book = selectedBook;
-        this.isbn = selectedBook.ISBN ?? candidate.isbn13;
+        this.isbn = selectedBook.isbn ?? candidate.isbn13;
         this.showCandidates = false;
         this.candidates = [];
         this.isLoading = false;

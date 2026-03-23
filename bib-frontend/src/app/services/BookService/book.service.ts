@@ -62,6 +62,11 @@ export class BookService {
   addBook(book: Book): Observable<Book> {
     return this.http.post<Book>(this.apiUrl, book);
   }
+
+  public updateBook(id: number, book: Book): Observable<Book> {
+    return this.http.put<Book>(`${this.apiUrl}/${id}`, book);
+  }
+  
   getBookByISBN(isbn: string) {
     return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
   }
