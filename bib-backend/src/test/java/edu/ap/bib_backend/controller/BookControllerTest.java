@@ -29,6 +29,7 @@ import edu.ap.bib_backend.service.TokenStorageService;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 @WebMvcTest(BookController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -481,5 +482,62 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
                 .andExpect(content().string("1200"));
 
         Mockito.verify(bs).getMaxPages();
+    }
+
+
+    @Test
+    void givenValidRequest_whenUpdateBook_thenReturnUpdatedBook() throws Exception {
+        // Arrange
+        Long bookId = 1L;
+        BookDTO requestDto = new BookDTO();
+        requestDto.setTitle("Geüpdatet Boek");
+        requestDto.setAuthor("Nieuwe Auteur");
+        requestDto.setPages(400);
+
+        BookDTO updatedDto = new BookDTO();
+        updatedDto.setId(bookId);
+        updatedDto.setTitle("Geüpdatet Boek");
+        updatedDto.setAuthor("Nieuwe Auteur");
+        updatedDto.setPages(400);
+
+        Mockito.when(bs.updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class)))
+               .thenReturn(updatedDto);
+
+        // Act
+        var result = mockMvc.perform(put("/books/{id}", bookId)
+                .contentType("application/json")
+                .content(new ObjectMapper().writeValueAsString(requestDto)));
+
+        // Assert
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("Geüpdatet Boek"))
+                .andExpect(jsonPath("$.author").value("Nieuwe Auteur"))
+                .andExpect(jsonPath("$.pages").value(400));
+
+        Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class));
+    }
+
+    @Test
+    void givenNonExistingBook_whenUpdateBook_thenReturn500() throws Exception {
+        // Arrange
+        Long bookId = 99L;
+        BookDTO requestDto = new BookDTO();
+        requestDto.setTitle("Spook Boek");
+
+        Mockito.when(bs.updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class)))
+               .thenThrow(new RuntimeException("Boek niet gevonden met id: 99"));
+
+        // Act
+        var result = mockMvc.perform(put("/books/{id}", bookId)
+                .contentType("application/json")
+                .content(new ObjectMapper().writeValueAsString(requestDto)));
+
+        // Assert
+        result.andExpect(status().isInternalServerError())
+                .andExpect(r -> org.junit.jupiter.api.Assertions.assertInstanceOf(RuntimeException.class, r.getResolvedException()))
+                .andExpect(r -> org.junit.jupiter.api.Assertions.assertEquals("Boek niet gevonden met id: 99", r.getResolvedException().getMessage()));
+
+        Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class));
     }
 }
