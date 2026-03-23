@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.jpa.entity;
 
-import org.hibernate.annotations.Formula;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

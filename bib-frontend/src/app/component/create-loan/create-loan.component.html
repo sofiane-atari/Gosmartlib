@@ -1,0 +1,126 @@
+<section class="loan-container">
+	<h1>Lening aanmaken</h1>
+
+	@if (errorMessage()) {
+		<p class="message error">{{ errorMessage() }}</p>
+	}
+
+	@if (successMessage()) {
+		<p class="message success">{{ successMessage() }}</p>
+	}
+
+	<div class="panel">
+		<h2>1. Kies een gebruiker</h2>
+
+		<div class="search-row">
+			<label for="userSearch">Zoek gebruiker</label>
+			<input
+				id="userSearch"
+				type="text"
+				[value]="userSearch()"
+				(input)="onUserSearchChange($event)"
+				placeholder="Typ voornaam en/of achternaam"
+			/>
+			<button type="button" (click)="searchUsers()">Zoeken</button>
+		</div>
+
+		@if (isLoadingUsers()) {
+			<p class="hint">Gebruikers worden geladen...</p>
+		} @else {
+			<div class="list">
+				@for (user of users(); track trackByUserId($index, user)) {
+					<button
+						type="button"
+						class="list-item"
+						[class.active]="selectedUser()?.id === user.id"
+						(click)="selectUser(user)"
+					>
+						<span class="list-item-title">{{ user.firstName }} {{ user.lastName }}</span>
+						<span class="list-item-subtitle">Klas: {{ user.class }}</span>
+					</button>
+				} @empty {
+					<p class="hint">Geen gebruikers gevonden.</p>
+				}
+			</div>
+		}
+	</div>
+
+	<div class="panel">
+		<h2>2. Zoek en selecteer boeken</h2>
+
+		@if (!selectedUser()) {
+			<p class="hint">Selecteer eerst een gebruiker om boeken te zoeken.</p>
+		} @else {
+			<div class="selected-user">
+				<span>
+					Geselecteerde gebruiker: <strong>{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }}</strong>
+				</span>
+				<button type="button" (click)="clearSelectedUser()">Gebruiker wissen</button>
+			</div>
+
+			<div class="search-row">
+				<label for="bookSearch">Zoek boek</label>
+				<input
+					id="bookSearch"
+					type="text"
+					[value]="bookSearch()"
+					(input)="onBookSearchChange($event)"
+					placeholder="Zoek op titel, auteur of ISBN"
+				/>
+			</div>
+
+			@if (isLoadingBooks()) {
+				<p class="hint">Boeken worden geladen...</p>
+			} @else {
+				<div class="list">
+					@for (book of filteredBooks(); track trackByBookId($index, book)) {
+						<div class="list-item book-item">
+							<div>
+								<span class="list-item-title">{{ book.title }}</span>
+								<span class="list-item-subtitle">{{ book.author }} · Beschikbaar: {{ book.availableCopies ?? 0 }}</span>
+							</div>
+							<button
+								type="button"
+								[disabled]="(book.availableCopies ?? 0) < 1"
+								(click)="addBook(book)"
+							>
+								Selecteren
+							</button>
+						</div>
+					} @empty {
+						<p class="hint">Geen beschikbare boeken gevonden voor deze zoekterm.</p>
+					}
+				</div>
+			}
+		}
+	</div>
+
+	<div class="panel">
+		<h2>3. Geselecteerde boeken en einddatum</h2>
+
+		<form [formGroup]="loanForm" (ngSubmit)="createLoan()" class="loan-form">
+			<label for="returnDate">Terugbrengdatum</label>
+			<input id="returnDate" type="date" formControlName="returnDate" />
+
+			<div class="selected-books">
+				<h3>Geselecteerde boeken</h3>
+				@for (book of selectedBooks(); track trackByBookId($index, book)) {
+					<div class="selected-book-row">
+						<span>{{ book.title }} - {{ book.author }}</span>
+						<button type="button" (click)="removeBook(book.id)">Verwijderen</button>
+					</div>
+				} @empty {
+					<p class="hint">Nog geen boeken geselecteerd.</p>
+				}
+			</div>
+
+			<button type="submit" [disabled]="isSubmitting() || !selectedUser() || selectedBooks().length === 0">
+				@if (isSubmitting()) {
+					Lening wordt aangemaakt...
+				} @else {
+					Lening aanmaken
+				}
+			</button>
+		</form>
+	</div>
+</section>
