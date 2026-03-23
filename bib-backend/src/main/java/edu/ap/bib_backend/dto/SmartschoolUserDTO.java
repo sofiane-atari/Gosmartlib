@@ -1,0 +1,43 @@
+package edu.ap.bib_backend.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record SmartschoolUserDTO(
+        @JsonProperty("userID") String userId,
+        @JsonProperty("name") String name,
+        @JsonProperty("surname") String surname,
+        @JsonProperty("fullname") String fullName,
+        @JsonProperty("username") String userName,
+        @JsonProperty("extranames") String extraNames,
+        @JsonProperty("initials") String initials,
+        @JsonProperty("nickname") String nickName,
+        @JsonProperty("sex") String sex,
+        @JsonProperty("birthday") String birthday,
+        @JsonProperty("birthplace") String birthPlace,
+        @JsonProperty("birthcountry") String birthCountry,
+        @JsonProperty("street") String street,
+        @JsonProperty("streetnr") Integer streetNumber,
+        @JsonProperty("busnr") String busNumber,
+        @JsonProperty("postalCode") Integer postalCode,
+        @JsonProperty("location") String location,
+        @JsonProperty("country") String country,
+        @JsonProperty("email") String email,
+        @JsonProperty("website") String website,
+        @JsonProperty("mobilePhone") String mobilePhone,
+        @JsonProperty("homePhone") String homePhone,
+        @JsonProperty("fax") String fax,
+        @JsonProperty("im") String instantMessaging,
+        @JsonProperty("stamboeknummer") String registrationNumber,
+        @JsonProperty("koppelingsveldschoolagenda") String schoolAgendaLinkField,
+        @JsonProperty("internalnumber") Integer internalNumber,
+        @JsonProperty("basisrol") String basicRole,
+        @JsonProperty("status") String status,
+        @JsonProperty("sorteerveld") String sortField,
+        @JsonProperty("platform") String platform,
+        @JsonProperty("isMainAccount") Integer isMainAccount,
+        @JsonProperty("isCoAccount") Integer isCoAccount,
+        @JsonProperty("nrCoAccount") Integer coAccountCount,
+        @JsonProperty("actualUserName") String actualUserName,
+        @JsonProperty("actualUserSurname") String actualUserSurname,
+        @JsonProperty("typeCoAccount") String coAccountType) {
+}

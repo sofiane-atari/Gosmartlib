@@ -1,12 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, ɵEmptyOutletComponent } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../environments/environment';
+import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { BooksComponent } from './component/books/books.component';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { ToastComponent } from './component/toast/toast.component';
+import { AuthService } from './services/RoleAuthorization/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -22,8 +20,7 @@ import { ToastComponent } from './component/toast/toast.component';
   styleUrl: './app.component.css',
 })
 export class AppComponent {
-  http = inject(HttpClient);
-  private baseUrl = `${environment.apiUrl}/hello`;
+  protected readonly authService = inject(AuthService);
 
   // Signal to track sidebar visibility on mobile
   protected isSidebarOpen = signal(false);
@@ -43,5 +40,11 @@ export class AppComponent {
 
   closeSidebar() {
     this.isSidebarOpen.set(false);
+  }
+
+  public constructor() {
+    if (this.authService.isAuthenticated()) {
+      this.authService.fetchCurrentUser();
+    }
   }
 }

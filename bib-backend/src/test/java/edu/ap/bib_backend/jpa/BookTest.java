@@ -19,11 +19,10 @@ public class BookTest {
         String imageUrl = "https://example.com/image.jpg";
         String description = "This is a test book";
         int releaseYear = 2023;
-        Availability availability = Availability.AVAILABLE;
         int copies = 5;
 
         // Act
-        Book book = new Book(isbn, title, author, pages, imageUrl, description, releaseYear, availability, copies);
+        Book book = new Book(isbn, title, author, pages, imageUrl, description, releaseYear, copies);
 
         // Assert
         assertThat(book.getISBN()).isEqualTo(isbn);
@@ -33,8 +32,6 @@ public class BookTest {
         assertThat(book.getImageUrl()).isEqualTo(imageUrl);
         assertThat(book.getDescription()).isEqualTo(description);
         assertThat(book.getReleaseYear()).isEqualTo(releaseYear);
-        assertThat(book.getAvailability()).isEqualTo(availability);
-        assertThat(book.getCopies()).isEqualTo(copies);
         assertThat(book.getReviewScore()).isNull();
     }
 }

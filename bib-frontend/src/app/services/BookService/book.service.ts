@@ -2,9 +2,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Book } from '../../model/book.model';
+import { BookPreview } from '../../model/book-preview.model';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../model/paginated-response.model.ts';
 import { BookAvailabilityFilter, BookSortOption } from '../../model/bookFilter.model';
+import { FileValidationResult } from '../../model/FileValidationResult';
+import { BookCandidate } from '../../model/book-candidate.model';
+
 
 @Injectable({
   providedIn: 'root',
@@ -62,6 +66,10 @@ export class BookService {
     return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
   }
 
+  getBookPreviewByISBN(isbn: string): Observable<BookPreview> {
+    return this.http.get<BookPreview>(`${this.apiUrl}/isbn/${isbn}/preview`);
+  }
+
   getMaxPages(): Observable<number> {
     return this.http.get<number>(`${this.apiUrl}/pages/max`);
   }
@@ -76,5 +84,40 @@ export class BookService {
 
   getNewestBooks(limit: number = 3): Observable<Book[]> {
     return this.http.get<Book[]>(`${this.apiUrl}/newest?limit=${limit}`);
+  }
+
+  uploadBooks(file: File): Observable<any>{
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return this.http.post(`${this.apiUrl}/upload`, formData)
+  }
+
+  validateBooksStream(tempFileId: string): EventSource {
+    return new EventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`);
+  }
+  
+  searchBookCandidates(title: string, author: string, releaseYear: number): Observable<BookCandidate[]> {
+    return this.http.get<BookCandidate[]>(`${this.apiUrl}/search`, {
+      params: {
+        title,
+        author,
+        releaseYear
+      }
+    });
+  }
+
+  selectBook(isbn13: string): Observable<Book> {
+    return this.http.post<Book>(`${this.apiUrl}/select`, null, {
+      params: {
+        isbn13
+      }
+    });
+  }
+
+
+
+  getRelatedBooksCarousel(bookId: number, limit: number = 10): Observable<Book[]> {
+    return this.http.get<Book[]>(`${this.apiUrl}/${bookId}/related-carousel?limit=${limit}`);
   }
 }

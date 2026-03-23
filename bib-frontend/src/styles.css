@@ -16,11 +16,12 @@ body {
 }
 
 :root {
-  --main-color: #8A1E41;
+  --main-color: #8a1e41;
   --sec-color: #c4a3a8;
-  --main-light-color: #FFF5F8;
-  --sec-light-color: #EAD3C1;
+  --main-light-color: #fff5f8;
+  --sec-light-color: #ead3c1;
   --error-color: #ad4440;
   --success-color: #4c9a4c;
-  --main-font: 'Calibri'
+  --main-font: 'calibri', sans-serif;
 }
+

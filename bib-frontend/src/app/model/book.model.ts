@@ -1,4 +1,4 @@
-import { Availability } from "./enums/availability.enum";
+import { Genre } from "./genre.model";
 
 export interface Book {
   id?: number;
@@ -6,10 +6,11 @@ export interface Book {
   title: string;
   author: string;
   pages: number;
-  imageUrl: string;       
+  imageUrl: string;
   description: string;
-  releaseYear: number;    
-  availability: Availability;
-  copies: number;
+  releaseYear: number;
   reviewScore?: number;
+  totalCopies?: number;
+  availableCopies?: number;
+  genres: Genre[];
 }

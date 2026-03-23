@@ -7,6 +7,8 @@ import org.springframework.data.jpa.domain.Specification;
 
 import edu.ap.bib_backend.jpa.entity.Availability;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 
 public final class BookSpecification {
@@ -40,7 +42,9 @@ public final class BookSpecification {
             }
 
             if (availability != null) {
-                predicates.add(criteriaBuilder.equal(root.get("availability"), availability));
+                Join<Book, BookCopy> bookCopyJoin = root.join("bookCopies");
+                predicates.add(criteriaBuilder.equal(bookCopyJoin.get("availability"), availability));
+                query.distinct(true);
             }
 
             if (minPages != null) {

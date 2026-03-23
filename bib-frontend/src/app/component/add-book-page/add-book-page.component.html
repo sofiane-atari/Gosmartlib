@@ -2,30 +2,45 @@
   <main class="main-content full-page">
     <div class="content-header">
       <h1>Boek Toevoegen</h1>
-      <div class="tab-buttons">
-      </div>
+      <div class="tab-buttons"></div>
     </div>
-  <div class="tabs">
-    <button class="tab-btn active"
-      [class.active]="mode === 'isbn'"
-      (click)="mode = 'isbn'">
-      Met ISBN
-    </button>
 
-    <button class="tab-btn"
-      [class.active]="mode === 'manual'"
-      (click)="mode = 'manual'">
-      Zonder ISBN
-    </button>
-  </div>
+    <div class="tabs">
+      <button class="tab-btn"
+        [class.active]="mode === 'isbn'"
+        (click)="mode = 'isbn'">
+        Met ISBN
+      </button>
 
-  @if(mode === 'isbn') {
-    <app-add-book-isbn (bookAdded)="addBook($event)"></app-add-book-isbn>
-  }
+      <button class="tab-btn"
+        [class.active]="mode === 'manual'"
+        (click)="mode = 'manual'">
+        Manueel
+      </button>
 
-  @if(mode === 'manual') {
-    <app-add-book-manual (bookAdded)="addBook($event)"></app-add-book-manual>
-  }
+      <button class="tab-btn"
+        [class.active]="mode === 'bulk'"
+        (click)="mode = 'bulk'">
+        Bulk
+      </button>
+    </div>
+
+    @if (!isLoadingGenres && mode === 'isbn') {
+      <app-add-book-isbn
+        [genres]="genres"
+        (bookAdded)="addBook($event)">
+      </app-add-book-isbn>
+    }
+
+    @if (!isLoadingGenres && mode === 'manual') {
+      <app-add-book-manual
+        [genres]="genres"
+        (bookAdded)="addBook($event)">
+      </app-add-book-manual>
+    }
+
+    @if (mode === 'bulk') {
+      <app-add-book-bulk></app-add-book-bulk>
+    }
   </main>
-
 </div>

@@ -1,6 +1,9 @@
 package edu.ap.bib_backend.dto;
 
-import edu.ap.bib_backend.jpa.entity.Availability;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,15 +20,19 @@ public class BookDTO {
     private String imageUrl;
     private String description;
     private int releaseYear;
-    private Availability availability;
-    private int copies;
     private double reviewScore;
+    private LocalDateTime addedDate;
+
+    private int totalCopies;
+    private int availableCopies;
+
+    private List<GenreDTO> genres = new ArrayList<>();
 
     public BookDTO() {
     }
 
     public BookDTO(Long id, String ISBN, String title, String author, int pages, String image_url, String description,
-            int release_year, Availability availability, int copies, double reviewScore) {
+            int release_year, double reviewScore, LocalDateTime addedDate, List<GenreDTO> genres) {
         this.id = id;
         this.ISBN = ISBN;
         this.title = title;
@@ -34,9 +41,9 @@ public class BookDTO {
         this.imageUrl = image_url;
         this.description = description;
         this.releaseYear = release_year;
-        this.availability = availability;
-        this.copies = copies;
         this.reviewScore = reviewScore;
+        this.addedDate = addedDate;
+        this.genres = genres;
     }
 
     @Override
@@ -50,9 +57,8 @@ public class BookDTO {
                 ", imageUrl='" + imageUrl + '\'' +
                 ", description='" + description + '\'' +
                 ", releaseYear=" + releaseYear +
-                ", availability=" + availability +
-                ", copies=" + copies +
                 ", reviewScore=" + reviewScore +
+                ", genres=" + genres +
                 '}';
     }
 }

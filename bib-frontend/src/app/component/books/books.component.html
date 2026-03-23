@@ -23,6 +23,7 @@
       <span class="subtitle">{{ pagingMeta().totalItems }} boeken gevonden</span>
     </div>
 
+    
     <div class="quick-stats-badges">
       <div class="status-badge badge-green">
         <span class="badge-number">{{ availableCount() }}</span> Beschikbaar
@@ -30,7 +31,7 @@
       <div class="status-badge badge-red">
         <span class="badge-number">{{ borrowedCount() }}</span> Uitgeleend
       </div>
-    </div>
+    </div> 
   </div>
 
   @if (isFilterOpen()) {
@@ -148,8 +149,8 @@
     
 
     <aside class="sidebar">
-      <app-book-list-sidebar
-        title="Meest Gelezen"
+      <app-book-list-sidebar 
+        title="Meest gelezen"
         [books]="mostReadBooks()"
         [loading]="mostReadLoading()"
       ></app-book-list-sidebar>

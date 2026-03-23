@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReadingListService, ReadingList } from '../../services/reading-list.service';
+import { ToastService } from '../../services/Toast/toast.service';
 
 @Component({
   selector: 'app-reading-list-overview',
@@ -14,7 +15,10 @@ export class ReadingListOverviewComponent implements OnInit {
 
   readingLists: ReadingList[] = [];
 
-  constructor(private readingListService: ReadingListService) { }
+  constructor(
+    private readingListService: ReadingListService,
+    private toastService: ToastService
+  ) { }
 
   ngOnInit() {
     this.readingListService.getLists().subscribe(lists => {
@@ -36,7 +40,7 @@ export class ReadingListOverviewComponent implements OnInit {
   shareList(id: number) {
     const url = `${window.location.origin}/reading-list/${id}`;
     navigator.clipboard.writeText(url).then(() => {
-      alert('Link gekopieerd naar klembord!');
+      this.toastService.show('Link gekopieerd naar klembord!', 'success');
     });
   }
 

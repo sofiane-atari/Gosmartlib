@@ -1,0 +1,81 @@
+<div class="dashboard-labels">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Genre Beheer</h1>
+      <p>Beheer genres en genres voor de boekencatalogus</p>
+    </div>
+    <button class="btn-new" (click)="setPopup('create')">+ Nieuw Genre</button>
+  </div>
+
+  <div [class.blur-background]="popUp() !== null">
+    @if (success()) {
+      <div class="success-message">
+        {{ success() }}
+      </div>
+    }
+
+    @if (errors().length > 0) {
+      <div class="error-message">
+        @for (err of errors(); track err.field) {
+          <p> {{ err.message }}</p>
+        }
+      </div>
+    }
+
+    @if (popUp() === 'create') {
+      <app-create-genre
+        (closeEvent)="closePopup()"
+        (successEvent)="onSuccess($event)"
+        (errorEvent)="onError($event)"
+      />
+    }@else if (popUp() === 'edit') {
+      <app-update-genre
+        [genre]="editingGenre()"
+        (closeEvent)="closePopup()"
+        (successEvent)="onSuccess($event)"
+        (errorEvent)="onError($event)"
+      />
+    }
+  </div>
+
+
+  <!-- StatCards -->
+  <div class="stat-cards">
+    <app-stat-card label="Totaal Labels"      [value]="stats()?.totalItems ?? 0"  variant="total"  />
+    <app-stat-card label="Actieve Labels"     [value]="totalActive()" variant="active" />
+    <app-stat-card label="Ongebruikte Labels" [value]="stats()?.unActiveGenres ?? 0" variant="unused" />
+  </div>
+
+  <!-- SearchBar -->
+  <app-search-bar (searchChange)="onSearch($event)" />
+
+  <!-- BookCount Filter -->
+  <div class="filter-row">
+    <label class="filter-label">Filter op aantal boeken:</label>
+    <input
+      class="filter-select"
+      [value]="bookCountFilter()"
+      placeholder="bijv. 1"
+      (change)="onBookCountFilterChange($any($event.target).value)"
+    />
+  </div>
+
+  <!-- LabelsList -->
+  <app-genres-list
+    [genres]="genres()"
+    (deletedSuccess)="onSuccess($event)"
+    (deletionError)="onError($event)"
+    (editGenre)="onEditGenre($event)"
+  />
+
+  <!-- Paging -->
+  @if (pagingMeta()) {
+    <app-paging
+      [meta]="pagingMeta()!"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+
+</div>

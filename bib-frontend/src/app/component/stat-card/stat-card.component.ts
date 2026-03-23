@@ -11,7 +11,7 @@ export type StatCardVariant = 'total' | 'active' | 'unused' | 'default';
   styleUrls: ['./stat-card.component.css'],
 })
 export class StatCardComponent {
-  label = input('');
+  genre = input('');
   value = input(0);
   variant = input<StatCardVariant>('default');
 

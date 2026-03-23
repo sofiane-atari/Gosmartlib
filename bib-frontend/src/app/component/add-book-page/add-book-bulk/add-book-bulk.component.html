@@ -1,0 +1,113 @@
+<div class="layout">
+  <div class="info-banner">
+    <lucide-icon [img]="InfoIcon" class="info-icon"></lucide-icon>
+    <div class="info-content">
+      <p><strong>Boeken in bulk toevoegen</strong></p>
+      <p>
+        Download het <strong>Excel-template</strong> en vul de gegevens in. Upload het bestand en klik 
+        altijd eerst op <strong>"Controleer Bestand"</strong>. Mochten er <strong>fouten</strong> gevonden worden, 
+        los deze dan op in het Excel-bestand en upload het opnieuw. Pas als het bestand volledig is 
+        gevalideerd, kun je op <strong>"Boeken toevoegen"</strong> klikken.
+      </p>
+    </div>
+  </div>
+
+  <div class="bulk-content">
+    <div class="form-section">
+      <div class="section-label">Stappenplan</div>
+      <div class="step-row">
+        <div class="step-item">
+          <span class="step-num">Stap 1</span>
+          <span class="step-title">Download template</span>
+          <span class="step-desc">Haal het Excel-bestand op met de juiste kolommen.</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">Stap 2</span>
+          <span class="step-title">Vul in & upload</span>
+          <span class="step-desc">Voeg gegevens toe en sleep het bestand naar de zone.</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">Stap 3</span>
+          <span class="step-title">Controleer & voeg toe</span>
+          <span class="step-desc">Valideer het bestand en verwerk de boeken.</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <hr class="divider">
+
+      <app-file-upload 
+        [selectedFile]="selectedFile"
+        (fileChanged)="handleFileChange($event)"
+      >
+      </app-file-upload>
+
+      <input type="file" id="fileInput" accept=".xlsx" (change)="onFileSelected($event)" hidden>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="downloadTemplate()">
+          <lucide-icon [img]="DownloadIcon" class="btn-icon"></lucide-icon>
+          Download Template
+        </button>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="startValidation(selectedFile!)"
+          [disabled]="!selectedFile || validating"
+        >
+          <lucide-icon [img]="CheckIcon" class="btn-icon"></lucide-icon>
+          {{ validating ? 'Bezig...' : 'Controleer Bestand' }}
+        </button>
+
+        <button
+          type="button"
+          class="btn-submit"
+          (click)="uploadBooks()"
+          [disabled]="!selectedFile || validating || !validationCompleted || !validationSucceeded"
+        >
+          <lucide-icon [img]="PlusIcon" class="btn-icon"></lucide-icon>
+          Boeken toevoegen
+        </button>
+      </div>
+
+      @if (selectedFile && (progress > 0 || validating)) {
+        <div class="progress-wrap">
+          <div class="progress-header">
+            <span>{{ validating ? 'Bestand controleren...' : progress === 100 ? 'Bestand verwerkt' : 'Bezig met uploaden...' }}</span>
+            <span class="progress-percentage">{{ progress }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar" [style.width.%]="progress"></div>
+          </div>
+        </div>
+      }
+
+      @if (errors.length > 0) {
+        <div class="errors-box">
+          <div class="errors-title">
+            <lucide-icon [img]="InfoIcon" class="error-icon"></lucide-icon>
+            Gevonden validatiefouten
+          </div>
+          <ul class="errors-list">
+            @for (error of errors; track $index) {
+              <li><strong>Rij {{ error.row }}, {{ error.field }}:</strong> {{ error.message }}</li>
+            }
+          </ul>
+        </div>
+      }
+      @if (validationCompleted && validationSucceeded && errors.length === 0) {
+        <div class="success-box">
+          <div class="success-title">
+            <lucide-icon [img]="CheckIcon" class="success-icon"></lucide-icon>
+            Bestand succesvol gecontroleerd
+          </div>
+          <p class="success-text">
+            Er zijn geen fouten gevonden. De boeken kunnen toegevoegd worden.
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

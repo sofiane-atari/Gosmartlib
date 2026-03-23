@@ -15,7 +15,7 @@ import edu.ap.bib_backend.dto.ReviewDTO;
 import edu.ap.bib_backend.service.ReviewService;
 
 @RestController
-@RequestMapping("/api/reviews")
+@RequestMapping("/reviews")
 public class ReviewController {
 
     private final ReviewService rs;

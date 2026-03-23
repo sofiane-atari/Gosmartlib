@@ -1,22 +1,27 @@
 import { Component } from '@angular/core';
 import { AddBookISBNComponent } from "./add-book-isbn/add-book-isbn.component";
 import { AddBookManualComponent } from "./add-book-manual/add-book-manual.component";
+import { AddBookBulkComponent } from "./add-book-bulk/add-book-bulk.component"
 import { Book } from '../../model/book.model';
 import { Availability } from '../../model/enums/availability.enum';
 import { BookService } from '../../services/BookService/book.service';
 import { Router } from '@angular/router';
+import { GenreService } from '../../services/genre/genre.service';
+import { Genre } from '../../model/genre.model';
 
 @Component({
   selector: 'app-add-book-page',
   standalone: true,
-  imports: [AddBookISBNComponent, AddBookManualComponent],
+  imports: [AddBookISBNComponent, AddBookManualComponent, AddBookBulkComponent],
   templateUrl: './add-book-page.component.html',
   styleUrl: './add-book-page.component.css'
 })
 export class AddBookPageComponent {
-mode: 'isbn' | 'manual' = 'isbn';
+mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
+  genres: Genre[] = [];
+  isLoadingGenres = false;
 
-  constructor(private bs: BookService, private rt: Router){}
+  constructor(private bs: BookService, private rt: Router, private gs: GenreService){}
   
     book: Book = {
     title: '',
@@ -25,16 +30,33 @@ mode: 'isbn' | 'manual' = 'isbn';
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
-    availability: Availability.AVAILABLE,
-    copies: 1
+    genres: []
   };
-  
-  addBook(event: Book) {
-  const bookToSave = event ?? this.book; // gebruik event als het bestaat, anders fallback
 
-    this.bs.addBook(event).subscribe({
+  ngOnInit(): void {
+    this.loadGenres();
+  }
+
+  loadGenres(): void {
+    this.isLoadingGenres = true;
+
+    this.gs.getGenres().subscribe({
+      next: (genres: Genre[]) => {
+        this.genres = genres;
+        this.isLoadingGenres = false;
+      },
+      error: (err) => {
+        this.isLoadingGenres = false;
+      }
+    });
+  }
+  addBook(event: Book) {
+    const bookToSave = event ?? this.book;
+
+    this.bs.addBook(bookToSave).subscribe({
       next: () => {
-      this.rt.navigate(['/catalog']);
+        localStorage.removeItem('bookFilters');
+        this.rt.navigate(['/catalog']);
       },
       error: (err) => {
         console.error(err);

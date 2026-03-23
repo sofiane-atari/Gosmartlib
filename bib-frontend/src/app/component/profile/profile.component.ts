@@ -56,11 +56,11 @@ export class ProfileComponent implements OnInit {
     },
   ]);
 
-  public ngOnInit(): void {
-    if (!this.authService.currentUser()) {
-      this.loadProfile();
-    }
-  }
+   public ngOnInit(): void {
+  //   if (!this.authService.currentUser()) {
+  //     this.loadProfile();
+  //   }
+   }
 
   protected getRoleLabel(role: Role | undefined): string {
     switch (role) {
@@ -114,9 +114,9 @@ export class ProfileComponent implements OnInit {
     return parts.slice(1).join(' ');
   }
 
-  private loadProfile(): void {
-    this.authService.fetchCurrentUser(() => {
-      this.toastService.show('Het profiel kon niet worden geladen.', 'error');
-    });
-  }
+  // private loadProfile(): void {
+  //   this.authService.fetchCurrentUser(() => {
+  //     this.toastService.show('Het profiel kon niet worden geladen.', 'error');
+  //   });
+  // }
 }

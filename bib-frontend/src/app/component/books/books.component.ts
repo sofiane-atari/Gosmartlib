@@ -2,11 +2,11 @@ import { Component, OnInit, signal, inject, computed, effect } from '@angular/co
 import { Book } from '../../model/book.model';
 import { BookService } from '../../services/BookService/book.service';
 import { ReadingListService } from '../../services/reading-list.service';
+import { ToastService } from '../../services/Toast/toast.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { BookFilters } from '../../model/bookFilter.model';
-import { ToastService } from '../../services/Toast/toast.service';
 import { DestroyRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -70,13 +70,15 @@ export class BooksComponent implements OnInit {
   protected readonly currentPage = signal(0);
   private readonly pageSize = signal(10);
 
+  
   protected readonly availableCount = computed(() =>
-    this.books().filter((book: Book) => book.availability === 'AVAILABLE').length,
+    this.books().filter((book: Book) => (book.availableCopies ?? 0) > 0).length,
   );
 
   protected readonly borrowedCount = computed(() =>
-    this.books().filter((book: Book) => book.availability === 'BORROWED').length,
+    this.books().filter((book: Book) => (book.totalCopies ?? 0) > 0 && (book.availableCopies ?? 0) === 0).length,
   );
+  
 
   constructor() {
     effect(() => {

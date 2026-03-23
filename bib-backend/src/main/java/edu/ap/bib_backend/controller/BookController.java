@@ -7,11 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.mapper.PageMapper;
+import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.service.BookService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
-@RequestMapping("/api/books")
+@RequestMapping("/books")
 public class BookController {
     private final BookService bs;
 
@@ -65,11 +67,18 @@ public class BookController {
         return ResponseEntity.ok(book);
     }
 
+
+    @GetMapping("/{id}/related-carousel")
+    public ResponseEntity<List<BookDTO>> getRelatedBooksCarousel(
+            @PathVariable("id") Long id,
+            @RequestParam(defaultValue = "10", required = false) int limit) {
+        return ResponseEntity.ok(bs.getRelatedBooksCarousel(id, limit));
+    }
+
+
     @PostMapping
     public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO dto) {
-        System.out.println("Ontvangen in backend: " + dto);
         BookDTO savedBook = bs.addBook(dto);
-        System.out.println("Opgeslagen boek: " + savedBook);
         return ResponseEntity.ok(savedBook);
     }
 
@@ -78,6 +87,12 @@ public class BookController {
         BookDTO book = bs.fetchBookByISBN(isbn);
         return ResponseEntity.ok(book);
     }
+
+    @GetMapping("/isbn/{isbn}/preview")
+    public ResponseEntity<BookPreviewDTO> getBookPreviewByISBN(@PathVariable String isbn) {
+        return ResponseEntity.ok(bs.fetchPreviewByISBN(isbn));
+    }
+
 
     @GetMapping("/pages/max")
     public ResponseEntity<Integer> getMaxPages() {
@@ -99,5 +114,20 @@ public class BookController {
     public ResponseEntity<List<BookDTO>> getNewestBooks(
             @RequestParam(defaultValue = "3", required = false) int limit) {
         return ResponseEntity.ok(bs.getNewestBooks(limit));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BookCandidateDTO>> searchBookCandidates(
+            @RequestParam String title,
+            @RequestParam String author,
+            @RequestParam Integer releaseYear) {
+        List<BookCandidateDTO> candidates = bs.searchBookCandidates(title, author, releaseYear);
+        return ResponseEntity.ok(candidates);
+    }
+
+    @PostMapping("/select")
+    public ResponseEntity<BookDTO> selectBook(@RequestParam String isbn13) {
+        BookDTO book = bs.fetchBookByISBN(isbn13);
+        return ResponseEntity.ok(book);
     }
 }
