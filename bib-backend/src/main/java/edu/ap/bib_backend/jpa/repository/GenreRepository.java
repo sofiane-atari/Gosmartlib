@@ -3,6 +3,8 @@ package edu.ap.bib_backend.jpa.repository;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.projection.GenreWithCount;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface GenreRepository extends JpaRepository<Genre, String> {
+        Optional<Genre> findByName(String name);
 
         Page<Genre> findAll(Pageable pageable);
 

@@ -8,6 +8,8 @@ import { BookService } from '../../services/BookService/book.service';
 import { Router } from '@angular/router';
 import { GenreService } from '../../services/genre/genre.service';
 import { Genre } from '../../model/genre.model';
+import { ReadingLevelsService } from '../../services/ReadingLevels/reading-levels.service';
+import { ReadingLevel } from '../../model/readingLevel.model';
 
 @Component({
   selector: 'app-add-book-page',
@@ -19,9 +21,11 @@ import { Genre } from '../../model/genre.model';
 export class AddBookPageComponent {
 mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
   genres: Genre[] = [];
+  readingLevels: ReadingLevel[] = [];
   isLoadingGenres = false;
+  isLoadingReadingLevels = false;
 
-  constructor(private bs: BookService, private rt: Router, private gs: GenreService){}
+  constructor(private bs: BookService, private rt: Router, private gs: GenreService, private rls: ReadingLevelsService){}
   
     book: Book = {
     title: '',
@@ -30,13 +34,28 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
-    genres: []
+    genres: [],
+    readingLevel: undefined 
   };
 
   ngOnInit(): void {
     this.loadGenres();
+    this.loadReadingLevels();
   }
 
+  loadReadingLevels(): void {
+    this.isLoadingReadingLevels = true;
+
+    this.rls.getAll().subscribe({
+      next: (rl: ReadingLevel[]) => {
+        this.readingLevels = rl;
+        this.isLoadingReadingLevels = false;
+      },
+      error: (err) => {
+        this.isLoadingReadingLevels = false;
+      }
+    });
+  }
   loadGenres(): void {
     this.isLoadingGenres = true;
 

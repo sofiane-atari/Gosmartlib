@@ -110,7 +110,8 @@
             </div>
           </div>
 
-          <div class="form-group full-width">
+         <div class="form-row">
+          <div class="form-group">
             <label>Cover URL (optioneel)</label>
             <input
               type="text"
@@ -119,6 +120,26 @@
               placeholder="https://..."
             />
           </div>
+
+          <div class="form-group">
+            <label for="readingLevel">Leesniveau</label>
+              <select [(ngModel)]="book.readingLevel" name="readingLevel">
+                <option [ngValue]="undefined">Kies een niveau</option>
+                
+                @for (level of readingLevels; track level.niveauName) {
+                  <option [ngValue]="level">
+                    {{ level.niveauName }}
+                  </option>
+                }
+              </select>
+
+              @if (book.readingLevel) {
+                <p class="reading-level-description">
+                  {{ book.readingLevel.description }}
+                </p>
+              }
+          </div>
+        </div>
 
           <div class="form-group full-width description-field">
             <label>Beschrijving *</label>

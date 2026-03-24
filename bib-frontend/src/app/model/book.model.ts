@@ -1,4 +1,5 @@
 import { Genre } from "./genre.model";
+import { ReadingLevel } from "./readingLevel.model";
 
 export interface Book {
   id?: number;
@@ -13,4 +14,5 @@ export interface Book {
   totalCopies?: number;
   availableCopies?: number;
   genres: Genre[];
+  readingLevel?: ReadingLevel;
 }

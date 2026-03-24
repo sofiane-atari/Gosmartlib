@@ -3,7 +3,9 @@ package edu.ap.bib_backend.jpa.entity;
 import org.hibernate.annotations.Formula;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.*;
 import lombok.Setter;
@@ -60,11 +62,16 @@ public class Book {
     }
 
     @ManyToMany
-    @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "genre_name"))
-    private List<Genre> genres = new ArrayList<>();
+    @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "genre_name"), uniqueConstraints = @UniqueConstraint(columnNames = {
+            "book_id", "genre_name" }))
+    private Set<Genre> genres = new HashSet<>();
 
     @OneToMany(mappedBy = "book")
     private List<BookCopy> bookCopies = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "reading_level_id")
+    private ReadingLevel readingLevel;
 
     @Override
     public String toString() {

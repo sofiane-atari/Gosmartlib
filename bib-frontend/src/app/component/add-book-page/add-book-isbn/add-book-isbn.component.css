@@ -122,6 +122,9 @@
 .form-group {
   display: flex;
   flex-direction: column;
+  position: relative;
+  /* We reserveren hier alvast de ruimte voor de tekst die eventueel komt */
+  margin-bottom: 2rem;
 }
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-1px);
@@ -235,7 +238,32 @@
 }
 
 .form-group select {
-  cursor: pointer;
+  width: 100%;
+  margin-bottom: 0; /* Geen margin hier, dat doet de container al */
+}
+
+.reading-level-description {
+  /* Positionering: haalt het uit de layout-stroom (voorkomt verschuiven) */
+  position: absolute;
+  /* Plak het aan de onderkant van de form-group container */
+  top: 100%;
+  left: 0;
+
+  /* Styling: Grijs, Schuin, Calibri */
+  font-family: "Calibri", sans-serif;
+  font-size: 0.8rem;
+  color: #888; /* Grijs */
+  font-style: italic; /* Schuin */
+
+  /* Layout: Geen achtergrond of borders meer */
+  background: none;
+  border: none;
+  padding: 4px 0; /* Lijn het uit met de linkerkant van de select */
+  margin: 0;
+  width: 100%;
+
+  /* Zorg dat het niet over de input valt, maar er net onder begint */
+  transform: translateY(2px);
 }
 
 .genre-grid {

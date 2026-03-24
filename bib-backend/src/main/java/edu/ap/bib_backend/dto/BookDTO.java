@@ -28,6 +28,8 @@ public class BookDTO {
 
     private List<GenreDTO> genres = new ArrayList<>();
 
+    private ReadingLevelDTO readingLevel;
+
     public BookDTO() {
     }
 
@@ -59,6 +61,7 @@ public class BookDTO {
                 ", releaseYear=" + releaseYear +
                 ", reviewScore=" + reviewScore +
                 ", genres=" + genres +
+                ", readingLevel=" + readingLevel +
                 '}';
     }
 }
