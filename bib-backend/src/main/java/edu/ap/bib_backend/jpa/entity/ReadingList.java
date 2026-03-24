@@ -27,4 +27,9 @@ public class ReadingList {
     @OneToMany(mappedBy = "readingList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ReadingListBook> books;
 
+    @Column(name = "class_code")
+    private String classCode;
+
+    @Column(name = "is_class_list", nullable = false)
+    private Boolean isClassList = false;
 }

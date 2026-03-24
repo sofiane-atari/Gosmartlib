@@ -62,10 +62,19 @@ export class ReadingListDetailComponent implements OnInit {
         });
     }
 
+    isClassList(): boolean {
+        return this.list?.isClassList === true;
+    }
+
     removeBookFromList(bookId: number | undefined, event: MouseEvent) {
         event.stopPropagation();
 
         if (!this.list?.id || !bookId) {
+            return;
+        }
+
+        if (this.isClassList()) {
+            this.toastService.show('Boeken uit de klassikale leeslijst kunnen niet verwijderd worden', 'error');
             return;
         }
 

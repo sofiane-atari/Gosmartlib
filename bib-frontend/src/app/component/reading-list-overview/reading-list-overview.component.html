@@ -36,7 +36,7 @@
                 <p class="card-author">Leeslijst</p>
                 <div class="card-actions">
                   <button class="btn-share" (click)="shareList(list.id); $event.stopPropagation()">Delen</button>
-                  @if (!isFavoritesList(list)) {
+                  @if (canDeleteList(list)) {
                     <button class="btn-delete" (click)="deleteList(list); $event.stopPropagation()">Verwijderen</button>
                   }
                 </div>

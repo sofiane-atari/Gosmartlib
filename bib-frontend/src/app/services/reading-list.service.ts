@@ -11,6 +11,8 @@ export interface ReadingListBook {
 export interface ReadingList {
   id: number;
   name: string;
+  classCode?: string;
+  isClassList?: boolean;
   books?: ReadingListBook[];
 }
 

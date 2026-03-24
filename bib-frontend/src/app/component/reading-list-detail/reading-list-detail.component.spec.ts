@@ -76,4 +76,23 @@ describe('ReadingListDetailComponent', () => {
     expect(component.list.books?.length).toBe(0);
     expect(toastServiceSpy.show).toHaveBeenCalledWith('Boek verwijderd uit leeslijst', 'success');
   });
+
+  it('should block removing books from class list', () => {
+    component.list = {
+      id: 10,
+      name: '3 economie',
+      isClassList: true,
+      books: [{ id: 1, bookId: 200 }]
+    };
+
+    const event = new MouseEvent('click');
+    spyOn(event, 'stopPropagation');
+
+    component.removeBookFromList(200, event);
+
+    expect(event.stopPropagation).toHaveBeenCalled();
+    expect(toastServiceSpy.showConfirm).not.toHaveBeenCalled();
+    expect(readingListServiceSpy.removeBookFromList).not.toHaveBeenCalled();
+    expect(toastServiceSpy.show).toHaveBeenCalledWith('Boeken uit de klassikale leeslijst kunnen niet verwijderd worden', 'error');
+  });
 });

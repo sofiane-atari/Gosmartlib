@@ -7,6 +7,7 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.*;
 class ReadingListServiceTest {
 
     private static final String USER_ID = "user-1";
+    private static final String CLASS_CODE = "2aICT";
 
     @Mock
     private ReadingListRepository readingListRepository;
@@ -99,30 +101,55 @@ class ReadingListServiceTest {
 
     // getAllLists
 
+    @BeforeEach
+    void setUp() {
+        lenient().when(userRepository.findById(USER_ID)).thenReturn(Optional.of(makeUser()));
+    }
+
     @Test
     void givenExistingLists_whenGetAllLists_thenReturnAllLists() {
         ReadingList list = new ReadingList();
         list.setId(10L);
         list.setName("Existing List");
 
-        when(readingListRepository.findAllByUser_Id(USER_ID)).thenReturn(Collections.singletonList(list));
+        ReadingList classList = new ReadingList();
+        classList.setId(20L);
+        classList.setName("2 aICT");
+        classList.setIsClassList(true);
+
+        when(readingListRepository.findByClassCodeAndIsClassListTrue(CLASS_CODE)).thenReturn(Optional.of(classList));
+        when(readingListRepository.findVisibleForUser(USER_ID, CLASS_CODE)).thenReturn(Collections.singletonList(list));
 
         List<ReadingList> result = readingListService.getAllLists(USER_ID);
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
         assertEquals("Existing List", result.get(0).getName());
-        verify(readingListRepository).findAllByUser_Id(USER_ID);
+        verify(readingListRepository).findVisibleForUser(USER_ID, CLASS_CODE);
     }
 
     @Test
     void givenNoLists_whenGetAllLists_thenReturnEmptyList() {
-        when(readingListRepository.findAllByUser_Id(USER_ID)).thenReturn(Collections.emptyList());
+        when(readingListRepository.findByClassCodeAndIsClassListTrue(CLASS_CODE)).thenReturn(Optional.of(new ReadingList()));
+        when(readingListRepository.findVisibleForUser(USER_ID, CLASS_CODE)).thenReturn(Collections.emptyList());
 
         List<ReadingList> result = readingListService.getAllLists(USER_ID);
 
         assertTrue(result.isEmpty());
-        verify(readingListRepository).findAllByUser_Id(USER_ID);
+        verify(readingListRepository).findVisibleForUser(USER_ID, CLASS_CODE);
+    }
+
+    @Test
+    void givenMissingClassList_whenGetAllLists_thenCreateClassList() {
+        when(readingListRepository.findByClassCodeAndIsClassListTrue(CLASS_CODE)).thenReturn(Optional.empty());
+        when(readingListRepository.findVisibleForUser(USER_ID, CLASS_CODE)).thenReturn(Collections.emptyList());
+
+        readingListService.getAllLists(USER_ID);
+
+        verify(readingListRepository).save(argThat(list ->
+                Boolean.TRUE.equals(list.getIsClassList())
+                        && CLASS_CODE.equals(list.getClassCode())
+                        && "2 aICT".equals(list.getName())));
     }
 
     // deleteReadingList
@@ -133,7 +160,7 @@ class ReadingListServiceTest {
         ReadingList list = new ReadingList();
         list.setId(id);
         list.setName("Gewone lijst");
-        when(readingListRepository.findByIdAndUser_Id(id, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListRepository.findVisibleById(id, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
 
         readingListService.deleteReadingList(USER_ID, id);
 
@@ -146,19 +173,35 @@ class ReadingListServiceTest {
         ReadingList list = new ReadingList();
         list.setId(id);
         list.setName("Favorieten");
-        when(readingListRepository.findByIdAndUser_Id(id, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListRepository.findVisibleById(id, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.deleteReadingList(USER_ID, id));
 
-        assertEquals("De leeslijst 'Favorieten' kan niet verwijderd worden", exception.getMessage());
+        assertEquals("Deze leeslijst kan niet verwijderd worden", exception.getMessage());
+        verify(readingListRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void givenClassList_whenDeleteReadingList_thenThrowException() {
+        Long id = 12L;
+        ReadingList list = new ReadingList();
+        list.setId(id);
+        list.setName("3 economie");
+        list.setIsClassList(true);
+        when(readingListRepository.findVisibleById(id, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.deleteReadingList(USER_ID, id));
+
+        assertEquals("Deze leeslijst kan niet verwijderd worden", exception.getMessage());
         verify(readingListRepository, never()).deleteById(any());
     }
 
     @Test
     void givenNonExistingId_whenDeleteReadingList_thenThrowException() {
         Long id = 99L;
-        when(readingListRepository.findByIdAndUser_Id(id, USER_ID)).thenReturn(Optional.empty());
+        when(readingListRepository.findVisibleById(id, USER_ID, CLASS_CODE)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.deleteReadingList(USER_ID, id));
@@ -176,19 +219,19 @@ class ReadingListServiceTest {
         list.setId(id);
         list.setName("Test lijst");
 
-        when(readingListRepository.findByIdAndUser_Id(id, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListRepository.findVisibleById(id, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
 
         ReadingList result = readingListService.getListById(USER_ID, id);
 
         assertNotNull(result);
         assertEquals("Test lijst", result.getName());
-        verify(readingListRepository).findByIdAndUser_Id(id, USER_ID);
+        verify(readingListRepository).findVisibleById(id, USER_ID, CLASS_CODE);
     }
 
     @Test
     void givenNonExistingId_whenGetListById_thenThrowException() {
         Long id = 99L;
-        when(readingListRepository.findByIdAndUser_Id(id, USER_ID)).thenReturn(Optional.empty());
+        when(readingListRepository.findVisibleById(id, USER_ID, CLASS_CODE)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.getListById(USER_ID, id));
@@ -210,7 +253,7 @@ class ReadingListServiceTest {
         savedBook.setReadingList(list);
         savedBook.setBookId(bookId);
 
-        when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
         when(readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId)).thenReturn(false);
         when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
 
@@ -229,7 +272,7 @@ class ReadingListServiceTest {
         ReadingList list = new ReadingList();
         list.setId(listId);
 
-        when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
         when(readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId)).thenReturn(true);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
@@ -261,7 +304,7 @@ class ReadingListServiceTest {
         savedBook.setReadingList(list);
 
         when(readingListRepository.findByNameIgnoreCaseAndUser_Id("Favorieten", USER_ID)).thenReturn(Optional.of(list));
-        when(readingListRepository.findByIdAndUser_Id(99L, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListRepository.findVisibleById(99L, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
         when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
 
         ReadingListBook result = readingListService.addBookToFavorites(USER_ID, bookId);
@@ -284,9 +327,8 @@ class ReadingListServiceTest {
         savedBook.setReadingList(newList);
 
         when(readingListRepository.findByNameIgnoreCaseAndUser_Id("Favorieten", USER_ID)).thenReturn(Optional.empty());
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(makeUser()));
         when(readingListRepository.save(any(ReadingList.class))).thenReturn(newList);
-        when(readingListRepository.findByIdAndUser_Id(100L, USER_ID)).thenReturn(Optional.of(newList));
+        when(readingListRepository.findVisibleById(100L, USER_ID, CLASS_CODE)).thenReturn(Optional.of(newList));
         when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
 
         ReadingListBook result = readingListService.addBookToFavorites(USER_ID, bookId);
@@ -307,7 +349,7 @@ class ReadingListServiceTest {
         ReadingList list = new ReadingList();
         list.setId(listId);
 
-        when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
         when(readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId)).thenReturn(1);
 
         readingListService.removeBookFromList(USER_ID, listId, bookId);
@@ -323,7 +365,7 @@ class ReadingListServiceTest {
         ReadingList list = new ReadingList();
         list.setId(listId);
 
-        when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE)).thenReturn(Optional.of(list));
         when(readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId)).thenReturn(0);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
@@ -335,16 +377,27 @@ class ReadingListServiceTest {
     }
 
     @Test
-    void givenNullBookId_whenRemoveBookFromList_thenThrowException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> readingListService.removeBookFromList(USER_ID, 10L, null));
+    void givenClassList_whenRemoveBookFromList_thenThrowException() {
+        Long listId = 10L;
+        Long bookId = 100L;
 
-        assertEquals("Boek ID mag niet null zijn", exception.getMessage());
+        ReadingList classList = new ReadingList();
+        classList.setId(listId);
+        classList.setIsClassList(true);
+
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE)).thenReturn(Optional.of(classList));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.removeBookFromList(USER_ID, listId, bookId));
+
+        assertEquals("Boeken uit de klassikale leeslijst kunnen niet verwijderd worden", exception.getMessage());
+        verify(readingListBookRepository, never()).deleteAllByReadingListIdAndBookId(anyLong(), anyLong());
     }
 
     private User makeUser() {
         User user = new User();
         user.setId(USER_ID);
+        user.setClassCode(CLASS_CODE);
         return user;
     }
 }

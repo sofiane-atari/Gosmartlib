@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,8 +15,10 @@ import org.springframework.web.client.RestTemplate;
 import edu.ap.bib_backend.jpa.entity.Role;
 import edu.ap.bib_backend.jpa.entity.User;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import java.util.Collections;
@@ -27,6 +30,8 @@ public class SmartschoolOAuth2UserService
     private final RestTemplate restTemplate = new RestTemplate();
     private final UserService userService;
     private final RoleService roleService;
+
+    private static final String FALLBACK_CLASS_CODE = "GENERAL";
 
     public SmartschoolOAuth2UserService(
             UserService userService,
@@ -44,24 +49,36 @@ public class SmartschoolOAuth2UserService
                 .getUserInfoEndpoint()
                 .getUri();
 
+        String accessToken = userRequest.getAccessToken().getTokenValue();
+
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userRequest.getAccessToken().getTokenValue());
+        headers.setBearerAuth(accessToken);
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
+        ResponseEntity<?> userInfoResponse = restTemplate.exchange(
                 userInfoEndpoint,
                 HttpMethod.GET,
                 entity,
                 Map.class);
+        Map<String, Object> attributes = toStringObjectMap(userInfoResponse.getBody() instanceof Map<?, ?> map ? map : null);
 
-        Map<String, Object> attributes = response.getBody();
+        String userId = requireStringAttribute(attributes, "userID");
+        String basisrol = requireStringAttribute(attributes, "basisrol");
+        String classCode = resolveClassCode(attributes);
 
-        String userId = (String) attributes.get("userID");
-        String basisrol = (String) attributes.get("basisrol");
+        if (FALLBACK_CLASS_CODE.equalsIgnoreCase(classCode)) {
+            String groupInfoClassCode = resolveClassCodeFromGroupInfo(userInfoEndpoint, accessToken);
+            if (groupInfoClassCode != null) {
+                classCode = groupInfoClassCode;
+            }
+        }
+
+        final String resolvedClassCode = classCode;
 
         User user = userService.getUser(userId)
-                .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol)));
+                .map(existingUser -> userService.saveWithClassCodeIfChanged(existingUser, resolvedClassCode))
+                .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol), resolvedClassCode));
 
         String roleString = getOAuthUserRole(user.getRole().getRole());
 
@@ -73,5 +90,130 @@ public class SmartschoolOAuth2UserService
 
     private String getOAuthUserRole(Role role) {
         return "ROLE_" + role.name();
+    }
+
+    private String resolveClassCode(Map<String, Object> attributes) {
+        String[] candidateKeys = {
+                "klas", "class", "classCode", "className", "classname",
+                "klasnaam", "stamboekgroep", "groep", "group", "groupName", "groups", "klassen"
+        };
+
+        for (String key : candidateKeys) {
+            String resolved = extractClassValue(attributes.get(key));
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+
+        return FALLBACK_CLASS_CODE;
+    }
+
+    private String extractClassValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof String str) {
+            String trimmed = str.trim();
+            return trimmed.isEmpty() ? null : trimmed;
+        }
+
+        if (value instanceof Map<?, ?> mapValue) {
+            String[] nestedKeys = { "name", "naam", "code", "id", "groupName", "className" };
+            for (String nestedKey : nestedKeys) {
+                Object nested = mapValue.get(nestedKey);
+                String resolved = extractClassValue(nested);
+                if (resolved != null) {
+                    return resolved;
+                }
+            }
+            return null;
+        }
+
+        if (value instanceof Iterable<?> items) {
+            for (Object item : items) {
+                String resolved = extractClassValue(item);
+                if (resolved != null) {
+                    return resolved;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Map<String, Object> toStringObjectMap(Map<?, ?> source) {
+        Map<String, Object> result = new HashMap<>();
+        if (source == null) {
+            return result;
+        }
+
+        for (Map.Entry<?, ?> entry : source.entrySet()) {
+            if (entry.getKey() instanceof String key) {
+                result.put(key, entry.getValue());
+            }
+        }
+        return result;
+    }
+
+    private String requireStringAttribute(Map<String, Object> attributes, String key) {
+        Object value = attributes.get(key);
+        if (value instanceof String str && !str.isBlank()) {
+            return str;
+        }
+
+        throw new OAuth2AuthenticationException(new OAuth2Error("invalid_user_info"),
+                "Smartschool user info mist veld: " + key);
+    }
+
+    private String resolveClassCodeFromGroupInfo(String userInfoEndpoint, String accessToken) {
+        String groupInfoEndpoint = toGroupInfoEndpoint(userInfoEndpoint);
+        if (groupInfoEndpoint == null) {
+            return null;
+        }
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            ResponseEntity<?> groupInfoResponse = restTemplate.exchange(
+                    groupInfoEndpoint,
+                    HttpMethod.GET,
+                    request,
+                    Map.class);
+
+            HttpStatusCode status = groupInfoResponse.getStatusCode();
+            if (!status.is2xxSuccessful()) {
+                return null;
+            }
+
+            Map<String, Object> payload = toStringObjectMap(
+                    groupInfoResponse.getBody() instanceof Map<?, ?> map ? map : null);
+
+            String resolved = resolveClassCode(payload);
+            if (resolved == null || FALLBACK_CLASS_CODE.equalsIgnoreCase(resolved)) {
+                return null;
+            }
+            return resolved;
+        } catch (RuntimeException ex) {
+            // groupinfo is best-effort; keep login flow working when scope/endpoint is unavailable
+            return null;
+        }
+    }
+
+    private String toGroupInfoEndpoint(String userInfoEndpoint) {
+        if (userInfoEndpoint == null || userInfoEndpoint.isBlank()) {
+            return null;
+        }
+
+        String normalized = userInfoEndpoint.trim();
+        if (normalized.endsWith("/fulluserinfo")) {
+            return normalized.substring(0, normalized.length() - "fulluserinfo".length()) + "groupinfo";
+        }
+        if (normalized.endsWith("/userinfo")) {
+            return normalized.substring(0, normalized.length() - "userinfo".length()) + "groupinfo";
+        }
+        return null;
     }
 }

@@ -31,9 +31,17 @@ export class ReadingListOverviewComponent implements OnInit {
     return list.name?.trim().toLowerCase() === ReadingListOverviewComponent.FAVORITES_NAME;
   }
 
+  isClassList(list: ReadingList): boolean {
+    return list.isClassList === true;
+  }
+
+  canDeleteList(list: ReadingList): boolean {
+    return !this.isFavoritesList(list) && !this.isClassList(list);
+  }
+
   deleteList(list: ReadingList) {
-    if (this.isFavoritesList(list)) {
-      this.toastService.show("De leeslijst 'Favorieten' kan niet verwijderd worden", 'error');
+    if (!this.canDeleteList(list)) {
+      this.toastService.show('Deze leeslijst kan niet verwijderd worden', 'error');
       return;
     }
 

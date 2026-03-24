@@ -36,10 +36,11 @@ describe('ReadingListOverviewComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should hide delete button for Favorieten list', () => {
+  it('should hide delete button for protected lists', () => {
     component.readingLists = [
       { id: 1, name: 'Favorieten' },
-      { id: 2, name: 'Zomerboeken' }
+      { id: 2, name: '3 economie', isClassList: true },
+      { id: 3, name: 'Zomerboeken' }
     ];
 
     fixture.detectChanges();
@@ -54,11 +55,20 @@ describe('ReadingListOverviewComponent', () => {
     component.deleteList(favoritesList);
 
     expect(readingListServiceSpy.deleteList).not.toHaveBeenCalled();
-    expect(toastServiceSpy.show).toHaveBeenCalledWith("De leeslijst 'Favorieten' kan niet verwijderd worden", 'error');
+    expect(toastServiceSpy.show).toHaveBeenCalledWith('Deze leeslijst kan niet verwijderd worden', 'error');
+  });
+
+  it('should not call delete API when trying to delete class list', () => {
+    const classList = { id: 2, name: '3 economie', isClassList: true };
+
+    component.deleteList(classList as any);
+
+    expect(readingListServiceSpy.deleteList).not.toHaveBeenCalled();
+    expect(toastServiceSpy.show).toHaveBeenCalledWith('Deze leeslijst kan niet verwijderd worden', 'error');
   });
 
   it('should ask confirmation before deleting a normal list', () => {
-    const normalList = { id: 2, name: 'Zomerboeken' };
+    const normalList = { id: 3, name: 'Zomerboeken' };
 
     component.deleteList(normalList);
 
@@ -67,8 +77,8 @@ describe('ReadingListOverviewComponent', () => {
   });
 
   it('should delete list after confirmation callback', () => {
-    const normalList = { id: 2, name: 'Zomerboeken' };
-    component.readingLists = [normalList, { id: 3, name: 'Andere lijst' }];
+    const normalList = { id: 3, name: 'Zomerboeken' };
+    component.readingLists = [normalList, { id: 4, name: 'Andere lijst' }];
 
     component.deleteList(normalList);
 
@@ -76,8 +86,8 @@ describe('ReadingListOverviewComponent', () => {
     const onConfirm = confirmArgs[1] as () => void;
     onConfirm();
 
-    expect(readingListServiceSpy.deleteList).toHaveBeenCalledWith(2);
-    expect(component.readingLists.some(l => l.id === 2)).toBeFalse();
+    expect(readingListServiceSpy.deleteList).toHaveBeenCalledWith(3);
+    expect(component.readingLists.some(l => l.id === 3)).toBeFalse();
     expect(toastServiceSpy.show).toHaveBeenCalledWith('Leeslijst verwijderd', 'success');
   });
 });
