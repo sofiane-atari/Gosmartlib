@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -28,7 +29,11 @@ public class Loan {
     private LocalDate returnDate; 
 
     @ManyToMany
-    @JoinColumn(name = "book_copy_id")
+    @JoinTable(
+        name = "loan_copies",
+        joinColumns = @JoinColumn(name = "loan_id"),
+        inverseJoinColumns = @JoinColumn(name = "book_copy_id")
+    )
     private List<BookCopy> copies;
 
     @ManyToOne

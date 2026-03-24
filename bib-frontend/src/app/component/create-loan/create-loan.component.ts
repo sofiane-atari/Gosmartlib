@@ -28,6 +28,8 @@ export class CreateLoanComponent {
 
   public readonly searchFirstname = signal('');
   public readonly searchLastname = signal('');
+  // TODO: TEMPORARY - Remove this signal when searchId feature is no longer needed
+  public readonly searchId = signal('');
   public readonly bookSearch = signal('');
   public readonly users = signal<User[]>([]);
   public readonly books = signal<Book[]>([]);
@@ -79,10 +81,18 @@ export class CreateLoanComponent {
     this.searchLastname.set(target.value);
   }
 
+  // TODO: TEMPORARY - Remove this method when searchId feature is no longer needed
+  public onSearchIdChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.searchId.set(target.value);
+  }
+
   public searchUsers(): void {
     const firstName = this.searchFirstname().trim();
     const lastName = this.searchLastname().trim();
-    this.loadUsers(firstName, lastName);
+    // TODO: TEMPORARY - Remove searchId parameter when feature is no longer needed
+    const id = this.searchId().trim();
+    this.loadUsers(firstName, lastName, id);
   }
 
   public selectUser(user: User): void {
@@ -176,7 +186,8 @@ export class CreateLoanComponent {
     return book.id ?? index;
   }
 
-  private loadUsers(firstName: string = '', lastName: string = ''): void {
+  // TODO: TEMPORARY - Remove 'id' parameter when searchId feature is no longer needed
+  private loadUsers(firstName: string = '', lastName: string = '', id: string = ''): void {
     this.isLoadingUsers.set(true);
 
     this.userService

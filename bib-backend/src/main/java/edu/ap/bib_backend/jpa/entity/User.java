@@ -3,6 +3,7 @@ package edu.ap.bib_backend.jpa.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.ap.bib_backend.jpa.enums.Role;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -27,4 +28,8 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
+
+    public Role map(RoleEntity roleEntity) {
+        return roleEntity.getRole();
+    }
 }

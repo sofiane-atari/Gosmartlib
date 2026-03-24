@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpUrlEncodingCodec } from '@angular/common/http';
 import { User } from '../model/user.model';
 
 export interface GetUsersOpt {
     WithfirstName?: string;
     WithlastName?: string; 
+    WithId?: String;
 }
 
 @Injectable({
@@ -20,6 +21,7 @@ export class UserService {
       fromObject: {
         firstName: String(opt?.WithfirstName?? ''),
         lastName: String(opt?.WithlastName ?? ''),
+        id: String(opt?.WithId ?? ''),
       },
     });
 

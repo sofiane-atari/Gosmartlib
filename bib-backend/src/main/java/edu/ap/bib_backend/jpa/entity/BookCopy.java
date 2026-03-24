@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -36,6 +37,6 @@ public class BookCopy {
     @Column(nullable = false)
     private Availability availability;
 
-    @OneToMany(mappedBy = "copy")
+    @ManyToMany (mappedBy = "copies")
     private List<Loan> loans = new ArrayList<>();
 }
