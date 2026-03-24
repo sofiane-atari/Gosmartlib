@@ -47,9 +47,12 @@ public class ReadingListService {
     }
 
     public void deleteReadingList(String userId, Long id) {
-        if (!readingListRepository.existsByIdAndUser_Id(id, userId)) {
-            throw new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet");
+        ReadingList list = getListById(userId, id);
+
+        if ("Favorieten".equalsIgnoreCase(list.getName().trim())) {
+            throw new IllegalArgumentException("De leeslijst 'Favorieten' kan niet verwijderd worden");
         }
+
         readingListRepository.deleteById(id);
     }
 

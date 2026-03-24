@@ -130,7 +130,10 @@ class ReadingListServiceTest {
     @Test
     void givenExistingId_whenDeleteReadingList_thenDeleteSuccessfully() {
         Long id = 10L;
-        when(readingListRepository.existsByIdAndUser_Id(id, USER_ID)).thenReturn(true);
+        ReadingList list = new ReadingList();
+        list.setId(id);
+        list.setName("Gewone lijst");
+        when(readingListRepository.findByIdAndUser_Id(id, USER_ID)).thenReturn(Optional.of(list));
 
         readingListService.deleteReadingList(USER_ID, id);
 
@@ -138,9 +141,24 @@ class ReadingListServiceTest {
     }
 
     @Test
+    void givenFavoritesList_whenDeleteReadingList_thenThrowException() {
+        Long id = 11L;
+        ReadingList list = new ReadingList();
+        list.setId(id);
+        list.setName("Favorieten");
+        when(readingListRepository.findByIdAndUser_Id(id, USER_ID)).thenReturn(Optional.of(list));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.deleteReadingList(USER_ID, id));
+
+        assertEquals("De leeslijst 'Favorieten' kan niet verwijderd worden", exception.getMessage());
+        verify(readingListRepository, never()).deleteById(any());
+    }
+
+    @Test
     void givenNonExistingId_whenDeleteReadingList_thenThrowException() {
         Long id = 99L;
-        when(readingListRepository.existsByIdAndUser_Id(id, USER_ID)).thenReturn(false);
+        when(readingListRepository.findByIdAndUser_Id(id, USER_ID)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.deleteReadingList(USER_ID, id));

@@ -122,6 +122,15 @@ class ReadingListControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void givenFavoritesList_whenDeleteReadingList_thenReturnBadRequest() throws Exception {
+        doThrow(new IllegalArgumentException("De leeslijst 'Favorieten' kan niet verwijderd worden"))
+                .when(readingListService).deleteReadingList(USER_ID, 11L);
+
+        mockMvc.perform(delete("/reading-lists/{id}", 11L).principal(userAuthentication()))
+                .andExpect(status().isBadRequest());
+    }
+
     // GET /reading-lists/{id}
 
     @Test
