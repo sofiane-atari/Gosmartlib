@@ -3,6 +3,7 @@ package edu.ap.bib_backend.controller;
 import java.io.IOException;
 import java.util.Map;
 
+import edu.ap.bib_backend.jpa.entity.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,13 +41,26 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public AuthUserDto me() {
-        return authService.getCurrentUser();
+    public AuthUserDto me(@AuthenticationPrincipal OAuth2User principal) {
+        if (principal == null) {
+            return null; // or throw an exception if you prefer
+        }
+
+        String userId = principal.getAttribute("userID");
+        String name = principal.getAttribute("name");
+        String role = principal.getAuthorities()
+                .stream()
+                .map(auth -> auth.getAuthority())
+                .findFirst()
+                .orElse("ROLE_USER"); // default role if none found
+
+        return new AuthUserDto(userId, name,
+                role.startsWith("ROLE_") ? Role.valueOf(role.substring(5)) : Role.valueOf(role));
     }
 
     @GetMapping("/error")
     public ResponseEntity<?> oauthError(HttpSession session,
-            @RequestParam(value = "message", required = false) String message) {
+                                        @RequestParam(value = "message", required = false) String message) {
         Object exception = session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         String errorMessage = message != null && !message.isBlank()
                 ? message
@@ -56,7 +70,7 @@ public class AuthController {
 
     @GetMapping("/callback")
     public void callback(@AuthenticationPrincipal OAuth2User principal,
-            HttpServletResponse response) throws IOException {
+                         HttpServletResponse response) throws IOException {
 
         // Extract user ID from Smartschool (only ID, no PII)
         String userId = principal.getAttribute("userID");
