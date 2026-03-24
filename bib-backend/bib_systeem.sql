@@ -189,7 +189,10 @@ DROP TABLE IF EXISTS `reading_lists`;
 CREATE TABLE `reading_lists` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
+  `user_id` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK_reading_lists_user` (`user_id`),
+  CONSTRAINT `FK_reading_lists_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

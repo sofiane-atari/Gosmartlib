@@ -3,8 +3,10 @@ package edu.ap.bib_backend.service;
 import edu.ap.bib_backend.dto.ReadingListDTO;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListBook;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,48 +15,51 @@ import java.util.List;
 public class ReadingListService {
     private final ReadingListRepository readingListRepository;
     private final ReadingListBookRepository readingListBookRepository;
+    private final UserRepository userRepository;
 
     public ReadingListService(ReadingListRepository readingListRepository,
-            ReadingListBookRepository readingListBookRepository) {
+            ReadingListBookRepository readingListBookRepository,
+            UserRepository userRepository) {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
+        this.userRepository = userRepository;
     }
 
-    public ReadingList createReadingList(ReadingListDTO dto) {
+    public ReadingList createReadingList(String userId, ReadingListDTO dto) {
         if (dto.name() == null || dto.name().trim().isEmpty()) {
             throw new IllegalArgumentException("name mag niet null of leeg zijn");
         }
 
         ReadingList list = new ReadingList();
         list.setName(dto.name().trim());
+        list.setUser(getUserOrThrow(userId));
 
         return readingListRepository.save(list);
     }
 
-    public List<ReadingList> getAllLists() {
-        return readingListRepository.findAll();
+    public List<ReadingList> getAllLists(String userId) {
+        return readingListRepository.findAllByUser_Id(userId);
     }
 
-    public ReadingList getListById(Long id) {
-        return readingListRepository.findById(id)
+    public ReadingList getListById(String userId, Long id) {
+        return readingListRepository.findByIdAndUser_Id(id, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet"));
     }
 
-    public void deleteReadingList(Long id) {
-        if (!readingListRepository.existsById(id)) {
+    public void deleteReadingList(String userId, Long id) {
+        if (!readingListRepository.existsByIdAndUser_Id(id, userId)) {
             throw new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet");
         }
         readingListRepository.deleteById(id);
     }
 
-    public ReadingListBook addBookToList(Long listId, Long bookId) {
+    public ReadingListBook addBookToList(String userId, Long listId, Long bookId) {
         if (bookId == null) {
             throw new IllegalArgumentException("Boek ID mag niet null zijn");
         }
 
-        ReadingList list = getListById(listId);
+        ReadingList list = getListById(userId, listId);
 
-        // Check if book is already in the list
         boolean exists = list.getBooks() != null && list.getBooks().stream()
                 .anyMatch(rlb -> rlb.getBookId().equals(bookId));
         if (exists) {
@@ -68,15 +73,20 @@ public class ReadingListService {
         return readingListBookRepository.save(newBook);
     }
 
-    public ReadingListBook addBookToFavorites(Long bookId) {
-        // Find existing 'Favorieten' list, or create it if not found
-        ReadingList favoritesList = readingListRepository.findByNameIgnoreCase("Favorieten")
+    public ReadingListBook addBookToFavorites(String userId, Long bookId) {
+        ReadingList favoritesList = readingListRepository.findByNameIgnoreCaseAndUser_Id("Favorieten", userId)
                 .orElseGet(() -> {
                     ReadingList newFavorites = new ReadingList();
                     newFavorites.setName("Favorieten");
+                    newFavorites.setUser(getUserOrThrow(userId));
                     return readingListRepository.save(newFavorites);
                 });
 
-        return addBookToList(favoritesList.getId(), bookId);
+        return addBookToList(userId, favoritesList.getId(), bookId);
+    }
+
+    private User getUserOrThrow(String userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Gebruiker met id " + userId + " bestaat niet"));
     }
 }
