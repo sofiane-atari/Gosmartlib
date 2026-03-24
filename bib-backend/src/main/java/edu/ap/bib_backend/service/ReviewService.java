@@ -2,7 +2,7 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.ReviewDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
-import edu.ap.bib_backend.jpa.entity.Review;
+import edu.ap.bib_backend.jpa.entity.review.Review;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.ReviewRepository;
 import org.springframework.stereotype.Service;

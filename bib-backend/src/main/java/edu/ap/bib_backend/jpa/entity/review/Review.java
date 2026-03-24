@@ -1,0 +1,80 @@
+package edu.ap.bib_backend.jpa.entity.review;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "reviews")
+@Getter
+@Setter
+public class Review {
+
+    private static final int REPORT_THRESHOLD = 3;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(length = 1000)
+    private String comment;
+
+    @Column(nullable = false)
+    private int rating;
+
+    @Column(nullable = false)
+    private int reportCount = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReviewModerationStatus moderationStatus = ReviewModerationStatus.ACTIVE;
+
+    private LocalDateTime flaggedAt;
+
+    private LocalDateTime moderatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReviewReport> reports = new ArrayList<>();
+
+    public Review() {
+    }
+
+    public Review(String comment, int rating, Book book) {
+        this.comment = comment;
+        this.rating = rating;
+        this.book = book;
+        this.reportCount = 0;
+        this.moderationStatus = ReviewModerationStatus.ACTIVE;
+    }
+
+    public void updateReportStatus(int uniqueReportCount) {
+        this.reportCount = uniqueReportCount;
+
+        if (uniqueReportCount >= REPORT_THRESHOLD
+                && this.moderationStatus == ReviewModerationStatus.ACTIVE) {
+            this.moderationStatus = ReviewModerationStatus.FLAGGED;
+
+            if (this.flaggedAt == null) {
+                this.flaggedAt = LocalDateTime.now();
+            }
+        }
+    }
+
+    public void markAsKept() {
+        this.moderationStatus = ReviewModerationStatus.KEPT;
+        this.moderatedAt = LocalDateTime.now();
+    }
+
+    public boolean isFlagged() {
+        return this.moderationStatus == ReviewModerationStatus.FLAGGED;
+    }
+}

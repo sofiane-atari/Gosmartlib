@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.dto;
 
+import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,12 +15,23 @@ public class ReviewDTO {
     private Long bookId;
     private String bookTitle;
     private String bookAuthor;
+    private ReviewModerationStatus moderationStatus;
+    private boolean reportedByCurrentUser;
 
     public ReviewDTO() {
     }
 
-    public ReviewDTO(Long id, String comment, int rating, int reportCount, Long bookId, String bookTitle,
-            String bookAuthor) {
+    public ReviewDTO(
+            Long id,
+            String comment,
+            int rating,
+            int reportCount,
+            Long bookId,
+            String bookTitle,
+            String bookAuthor,
+            ReviewModerationStatus moderationStatus,
+            boolean reportedByCurrentUser
+    ) {
         this.id = id;
         this.comment = comment;
         this.rating = rating;
@@ -27,5 +39,7 @@ public class ReviewDTO {
         this.bookId = bookId;
         this.bookTitle = bookTitle;
         this.bookAuthor = bookAuthor;
+        this.moderationStatus = moderationStatus;
+        this.reportedByCurrentUser = reportedByCurrentUser;
     }
 }

@@ -94,7 +94,7 @@ class BookServiceTest {
 
         @BeforeEach
         void setUp() {
-                bs = new BookService(br, bcr, gr, rlr, reviewRepository, bookLoanRepository,  restTemplate, "fake-api-key");
+                bs = new BookService(br, bcr, gr, reviewRepository, bookLoanRepository, rlr,  restTemplate, "fake-api-key");
         }
 
         @Test

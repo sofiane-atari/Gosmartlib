@@ -1,10 +1,11 @@
 package edu.ap.bib_backend.jpa.repository;
 
-import edu.ap.bib_backend.jpa.entity.Review;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import edu.ap.bib_backend.jpa.entity.review.Review;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
