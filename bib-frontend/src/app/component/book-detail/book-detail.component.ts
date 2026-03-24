@@ -147,7 +147,6 @@ export class BookDetailComponent {
     }
   }
 
-  public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
   selectedBook?: Book;
 
   loadReviews(bookId: number) {

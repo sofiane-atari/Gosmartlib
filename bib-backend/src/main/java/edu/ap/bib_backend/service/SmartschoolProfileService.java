@@ -44,7 +44,8 @@ public class SmartschoolProfileService {
                     fullUserInfoUrl,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<>() {});
+                    new ParameterizedTypeReference<>() {
+                    });
 
             Map<String, Object> body = response.getBody();
             if (body == null) {
@@ -81,7 +82,8 @@ public class SmartschoolProfileService {
                     groupInfoUrl,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<>() {});
+                    new ParameterizedTypeReference<>() {
+                    });
 
             Map<String, Object> body = response.getBody();
             if (body == null) {

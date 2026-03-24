@@ -25,16 +25,18 @@
       </button>
     </div>
 
-    @if (!isLoadingGenres && mode === 'isbn') {
+    @if (!isLoadingGenres && !isLoadingReadingLevels && mode === 'isbn') {
       <app-add-book-isbn
         [genres]="genres"
+        [readingLevels]="readingLevels"
         (bookAdded)="addBook($event)">
       </app-add-book-isbn>
     }
 
-    @if (!isLoadingGenres && mode === 'manual') {
+    @if (!isLoadingGenres && !isLoadingReadingLevels && mode === 'manual') {
       <app-add-book-manual
         [genres]="genres"
+        [readingLevels]="readingLevels"
         (bookAdded)="addBook($event)">
       </app-add-book-manual>
     }
