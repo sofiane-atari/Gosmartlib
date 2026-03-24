@@ -49,7 +49,7 @@ public class Book {
     }
 
     public Book(String isbn, String title, String author, int pages, String image_url, String description,
-            int release_year, int copies) {
+            int release_year) {
         this.isbn = isbn;
         this.title = title;
         this.author = author;

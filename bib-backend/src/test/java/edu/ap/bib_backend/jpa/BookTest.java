@@ -19,10 +19,9 @@ public class BookTest {
         String imageUrl = "https://example.com/image.jpg";
         String description = "This is a test book";
         int releaseYear = 2023;
-        int copies = 5;
 
         // Act
-        Book book = new Book(isbn, title, author, pages, imageUrl, description, releaseYear, copies);
+        Book book = new Book(isbn, title, author, pages, imageUrl, description, releaseYear);
 
         // Assert
         assertThat(book.getIsbn()).isEqualTo(isbn);

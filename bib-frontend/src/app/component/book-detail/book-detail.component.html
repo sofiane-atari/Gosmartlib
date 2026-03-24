@@ -65,19 +65,7 @@
       <!-- Bibliotheekbeheer -->
       <section class="management-section">
         <h2 class="section-title">Bibliotheekbeheer</h2>
-
-        <!-- <div class="management-grid">
-          <div class="management-card">
-            <label class="card-label">Beschikbaarheid</label>
-            <select [(ngModel)]="selectedBook.availability" name="availability" class="status-select">
-              <option value="AVAILABLE">Beschikbaar</option>
-              <option value="BORROWED">Uitgeleend</option>
-              <option value="DAMAGED">Beschadigd</option>
-              <option value="LOST">Verloren</option>
-            </select>
-          </div>
-        </div> -->
-
+        
         <div class="action-buttons">
           <button type="button" class="action-btn secondary" (click)="goToEditPage(selectedBook.id)">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -87,7 +75,7 @@
             <span>Bewerken</span>
           </button>
 
-          <button type="button" class="action-btn danger">
+          <button type="button" class="action-btn danger" (click)="deleteBook(selectedBook.id)">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"></polyline>

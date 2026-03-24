@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReadingListBookRepository extends JpaRepository<ReadingListBook, Long> {
+
+    void deleteByBookId(Long bookId);
 }

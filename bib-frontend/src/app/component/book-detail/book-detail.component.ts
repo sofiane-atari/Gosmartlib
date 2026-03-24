@@ -390,4 +390,32 @@ export class BookDetailComponent {
 
     this.router.navigate(['/books', bookId, 'edit']);
   }
+
+  public deleteBook(bookId?: number): void {
+    if (!bookId) {
+      return;
+    }
+
+    this.toastService.showConfirm(
+      'Weet je zeker dat je dit boek wilt verwijderen?',
+      () => {
+        this.bookService.deleteBook(bookId).subscribe({
+          next: () => {
+            this.toastService.show('Boek succesvol verwijderd.', 'success');
+            void this.router.navigate(['/catalog']);
+          },
+          error: (err) => {
+            const backendMessage = err?.error?.error?.message;
+            this.toastService.show(
+              backendMessage ?? 'Het boek kon niet verwijderd worden.',
+              'error'
+            );
+          }
+        });
+      },
+      () => {}
+    );
+  }
+
 }
+
