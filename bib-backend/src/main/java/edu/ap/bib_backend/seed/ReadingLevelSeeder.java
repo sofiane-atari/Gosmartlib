@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.config;
+package edu.ap.bib_backend.seed;
 
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;

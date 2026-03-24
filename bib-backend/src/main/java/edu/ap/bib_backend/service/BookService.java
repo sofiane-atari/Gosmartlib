@@ -194,7 +194,7 @@ public class BookService {
         if (dto.getReadingLevel() != null && dto.getReadingLevel().getId() != null) {
             ReadingLevel readingLevel = rlr
                     .findById(dto.getReadingLevel().getId())
-                    .orElseThrow(() -> new RuntimeException("Reading level not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Leesniveau niet gevonden"));
 
             book.setReadingLevel(readingLevel);
         }
@@ -210,7 +210,7 @@ public class BookService {
 
         for (GenreDTO genreDto : genresDto) {
             Genre genre = gr.findByName(genreDto.name())
-                    .orElseThrow(() -> new RuntimeException("Genre not found: " + genreDto.name()));
+                    .orElseThrow(() -> new IllegalArgumentException("Genre bestaat niet: " + genreDto.name()));
             genres.add(genre);
         }
 
