@@ -66,6 +66,10 @@ public class Book {
     @OneToMany(mappedBy = "book")
     private List<BookCopy> bookCopies = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "reading_level_id")
+    private ReadingLevel readingLevel;
+
     @Override
     public String toString() {
         return "Book{" +

@@ -27,6 +27,7 @@ import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
@@ -35,6 +36,7 @@ import edu.ap.bib_backend.dto.BookPreviewDTO;
 
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import jakarta.transaction.Transactional;
 
@@ -52,17 +54,20 @@ public class BookService {
     private final RestTemplate restTemplate;
     private final BookCopyRepository bcr;
     private final GenreRepository gr;
+    private final ReadingLevelRepository rlr;
 
     public BookService(
             BookRepository repo,
             BookCopyRepository bcr,
             GenreRepository gr,
+            ReadingLevelRepository rlr,
             RestTemplate restTemplate,
             @Value("${google.books.api.key}") String googleBooksApiKey) {
         this.br = repo;
         this.bcr = bcr;
         this.gr = gr;
         this.restTemplate = restTemplate;
+        this.rlr = rlr;
         this.googleBooksApiKey = googleBooksApiKey;
     }
 
@@ -111,8 +116,7 @@ public class BookService {
             if (existingBookWithIsbn != null && !existingBookWithIsbn.getId().equals(id)) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
-                        "Er bestaat al een ander boek met ISBN: " + normalizedIsbn
-                );
+                        "Er bestaat al een ander boek met ISBN: " + normalizedIsbn);
             }
         }
 
@@ -149,10 +153,15 @@ public class BookService {
                 book.getGenres().stream()
                         .map(this::mapGenreToDTO)
                         .toList());
+
         dto.setTotalCopies(book.getBookCopies().size());
         dto.setAvailableCopies((int) book.getBookCopies().stream()
-            .filter(copy -> copy.getAvailability() == Availability.AVAILABLE)
-            .count());
+                .filter(copy -> copy.getAvailability() == Availability.AVAILABLE)
+                .count());
+
+        if (book.getReadingLevel() != null) {
+            dto.setReadingLevelId(book.getReadingLevel().getId());
+        }
         return dto;
     }
 
@@ -175,6 +184,12 @@ public class BookService {
         book.setDescription(dto.getDescription());
         book.setReleaseYear(dto.getReleaseYear());
         book.setGenres(mapGenresFromDTO(dto.getGenres()));
+
+        if (dto.getReadingLevelId() != null) {
+            ReadingLevel readingLevel = rlr.findById(dto.getReadingLevelId())
+                    .orElseThrow(() -> new RuntimeException("Reading level not found"));
+            book.setReadingLevel(readingLevel);
+        }
         return book;
     }
 
@@ -413,8 +428,6 @@ public class BookService {
 
         return null;
     }
-
-
 
     public Integer getMaxPages() {
         Integer max = br.findMaxPages();
@@ -692,14 +705,13 @@ public class BookService {
     }
 
     public Page<BookDTO> getFilteredBooks(
-        String searchTerm,
-        BookAvailabilityFilter availabilityFilter,
-        Integer minPages,
-        Integer maxPages,
-        int page,
-        int size,
-        BookSortOption sortBy
-    ) {
+            String searchTerm,
+            BookAvailabilityFilter availabilityFilter,
+            Integer minPages,
+            Integer maxPages,
+            int page,
+            int size,
+            BookSortOption sortBy) {
         String normalizedSearchTerm = normalizeSearchTerm(searchTerm);
         int validatedPage = validatePage(page);
         int validatedSize = validateSize(size);
@@ -713,19 +725,18 @@ public class BookService {
                 normalizedSearchTerm,
                 availability,
                 minPages,
-                maxPages
-        );
+                maxPages);
 
         Page<Book> bookPage = br.findAll(specification, pageable);
         return bookPage.map(this::mapToDTO);
     }
 
     private String normalizeSearchTerm(String searchTerm) {
-    if (searchTerm == null || searchTerm.isBlank()) {
-        return null;
-    }
+        if (searchTerm == null || searchTerm.isBlank()) {
+            return null;
+        }
 
-    return searchTerm.trim();
+        return searchTerm.trim();
     }
 
     private int validatePage(int page) {

@@ -28,6 +28,8 @@ public class BookDTO {
 
     private List<GenreDTO> genres = new ArrayList<>();
 
+    private Long readingLevelId;
+
     public BookDTO() {
     }
 

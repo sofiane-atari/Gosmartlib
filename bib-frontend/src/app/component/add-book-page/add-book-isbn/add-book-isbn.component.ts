@@ -9,6 +9,7 @@ import { BookCandidate } from '../../../model/book-candidate.model';
 import { ToastService } from '../../../services/Toast/toast.service';
 import { LoadingOverlayComponent } from "../../shared/loading-overlay/loading-overlay.component";
 import { Genre } from '../../../model/genre.model';
+import { ReadingLevel } from '../../../model/readingLevel.model';
 
 @Component({
   selector: 'app-add-book-isbn',
@@ -23,6 +24,7 @@ export class AddBookISBNComponent {
   selectedBook?: Book;
   @Output() bookAdded = new EventEmitter<Book>();
   @Input() genres: Genre[] = [];
+  @Input() readingLevels: ReadingLevel[] = [];
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
 
@@ -31,14 +33,15 @@ export class AddBookISBNComponent {
   showCandidates = false;
   isLoading = false;
 
-  book: Book = {
+    book: Book = {
     title: '',
     author: '',
     pages: 0,
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
-    genres: []
+    genres: [],
+    readingLevel: undefined 
   };
 
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
@@ -63,8 +66,12 @@ export class AddBookISBNComponent {
       this.ts.show('Selecteer minstens 1 genre', 'error')
       return;
     }
+      const payload = {
+      ...this.book,
+      readingLevelId: this.book.readingLevel?.id
+    };
 
-    this.bookAdded.emit(this.book);
+    this.bookAdded.emit(payload);
   }
   searchBookData() {
   const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
