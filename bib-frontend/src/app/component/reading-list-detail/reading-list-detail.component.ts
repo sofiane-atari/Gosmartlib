@@ -8,6 +8,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ToastService } from '../../services/Toast/toast.service';
 import { LucideAngularModule, Trash2 } from 'lucide-angular';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     selector: 'app-reading-list-detail',
@@ -79,12 +80,25 @@ export class ReadingListDetailComponent implements OnInit {
                         }
                         this.toastService.show('Boek verwijderd uit leeslijst', 'success');
                     },
-                    error: () => {
-                        this.toastService.show('Boek verwijderen mislukt', 'error');
+                    error: (err: unknown) => {
+                        const message = this.extractBackendError(err) ?? 'Boek verwijderen mislukt';
+                        this.toastService.show(message, 'error');
                     }
                 });
             }
         );
+    }
+
+    private extractBackendError(err: unknown): string | null {
+        if (err instanceof HttpErrorResponse) {
+            if (typeof err.error === 'string' && err.error.trim().length > 0) {
+                return err.error;
+            }
+            if (err.message && err.message.trim().length > 0) {
+                return err.message;
+            }
+        }
+        return null;
     }
 
     goToBook(bookId: number | undefined) {

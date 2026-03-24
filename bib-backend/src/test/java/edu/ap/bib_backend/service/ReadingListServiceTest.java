@@ -211,6 +211,7 @@ class ReadingListServiceTest {
         savedBook.setBookId(bookId);
 
         when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId)).thenReturn(false);
         when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
 
         ReadingListBook result = readingListService.addBookToList(USER_ID, listId, bookId);
@@ -228,11 +229,8 @@ class ReadingListServiceTest {
         ReadingList list = new ReadingList();
         list.setId(listId);
 
-        ReadingListBook existingBook = new ReadingListBook();
-        existingBook.setBookId(bookId);
-        list.setBooks(List.of(existingBook));
-
         when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId)).thenReturn(true);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.addBookToList(USER_ID, listId, bookId));
@@ -309,17 +307,12 @@ class ReadingListServiceTest {
         ReadingList list = new ReadingList();
         list.setId(listId);
 
-        ReadingListBook link = new ReadingListBook();
-        link.setId(1L);
-        link.setBookId(bookId);
-        link.setReadingList(list);
-
         when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
-        when(readingListBookRepository.findByReadingList_IdAndBookId(listId, bookId)).thenReturn(Optional.of(link));
+        when(readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId)).thenReturn(1);
 
         readingListService.removeBookFromList(USER_ID, listId, bookId);
 
-        verify(readingListBookRepository).delete(link);
+        verify(readingListBookRepository).deleteAllByReadingListIdAndBookId(listId, bookId);
     }
 
     @Test
@@ -331,13 +324,14 @@ class ReadingListServiceTest {
         list.setId(listId);
 
         when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
-        when(readingListBookRepository.findByReadingList_IdAndBookId(listId, bookId)).thenReturn(Optional.empty());
+        when(readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId)).thenReturn(0);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.removeBookFromList(USER_ID, listId, bookId));
 
         assertEquals("Boek met id 999 zit niet in deze leeslijst", exception.getMessage());
         verify(readingListBookRepository, never()).delete(any());
+        verify(readingListBookRepository, never()).deleteAll(anyList());
     }
 
     @Test

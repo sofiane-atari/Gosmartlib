@@ -63,8 +63,7 @@ public class ReadingListService {
 
         ReadingList list = getListById(userId, listId);
 
-        boolean exists = list.getBooks() != null && list.getBooks().stream()
-                .anyMatch(rlb -> rlb.getBookId().equals(bookId));
+        boolean exists = readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId);
         if (exists) {
             throw new IllegalArgumentException("Boek zit al in deze leeslijst");
         }
@@ -95,10 +94,10 @@ public class ReadingListService {
 
         getListById(userId, listId);
 
-        ReadingListBook readingListBook = readingListBookRepository.findByReadingList_IdAndBookId(listId, bookId)
-                .orElseThrow(() -> new IllegalArgumentException("Boek met id " + bookId + " zit niet in deze leeslijst"));
-
-        readingListBookRepository.delete(readingListBook);
+        int deleted = readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId);
+        if (deleted == 0) {
+            throw new IllegalArgumentException("Boek met id " + bookId + " zit niet in deze leeslijst");
+        }
     }
 
     private User getUserOrThrow(String userId) {
