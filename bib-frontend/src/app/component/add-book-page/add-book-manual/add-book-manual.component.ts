@@ -5,7 +5,7 @@ import { Book } from '../../../model/book.model';
 import { Availability } from '../../../model/enums/availability.enum';
 import { Route, Router } from '@angular/router';
 import { Info, LucideAngularModule, Plus } from "lucide-angular";
-import { ToastService } from '../../../services/Toast/toast.service';
+import { ToastService } from '../../../services/toast/toast.service';
 import { Genre } from '../../../model/genre.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
 

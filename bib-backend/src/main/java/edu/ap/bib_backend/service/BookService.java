@@ -26,6 +26,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.dto.ReadingLevelDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -35,10 +36,13 @@ import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
+import edu.ap.bib_backend.jpa.repository.ReviewRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import jakarta.transaction.Transactional;
@@ -57,18 +61,24 @@ public class BookService {
     private final RestTemplate restTemplate;
     private final BookCopyRepository bcr;
     private final GenreRepository gr;
+    private final ReviewRepository reviewRepository;
+    private final BookLoanRepository bookLoanRepository;
     private final ReadingLevelRepository rlr;
 
     public BookService(
             BookRepository repo,
             BookCopyRepository bcr,
             GenreRepository gr,
+            ReviewRepository reviewRepository,
+            BookLoanRepository bookLoanRepository,
             ReadingLevelRepository rlr,
             RestTemplate restTemplate,
             @Value("${google.books.api.key}") String googleBooksApiKey) {
         this.br = repo;
         this.bcr = bcr;
         this.gr = gr;
+        this.reviewRepository = reviewRepository;
+        this.bookLoanRepository = bookLoanRepository;
         this.restTemplate = restTemplate;
         this.rlr = rlr;
         this.googleBooksApiKey = googleBooksApiKey;
@@ -104,6 +114,25 @@ public class BookService {
         bcr.save(copy);
 
         return mapToDTO(book);
+    }
+
+    @Transactional
+    public void deleteBook(Long id) {
+        Book book = br.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
+
+        boolean hasBorrowedCopies = bcr.existsByBookIdAndAvailability(id, Availability.BORROWED);
+
+        if (hasBorrowedCopies) {
+            throw new IllegalStateException("Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.");
+        }
+
+        reviewRepository.deleteByBookId(id);
+        bookLoanRepository.deleteByCopyBookId(id);
+        bcr.deleteByBookId(id);
+
+        book.getGenres().clear();
+        br.delete(book);
     }
 
     @Transactional

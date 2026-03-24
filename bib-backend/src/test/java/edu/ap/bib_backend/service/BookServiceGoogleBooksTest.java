@@ -19,8 +19,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.ReviewRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,15 +40,20 @@ class BookServiceGoogleBooksTest {
         @Mock
         private RestTemplate restTemplate;
 
+        private BookService bs;
+    
+        private ReviewRepository reviewRepository;
+
+        private BookLoanRepository bookLoanRepository;
+
         @Mock
         private ReadingLevelRepository rlr;
 
-        private BookService bs;
-
         @BeforeEach
         void setUp() {
-                bs = new BookService(br, bcr, gr, rlr, restTemplate, "fake-api-key");
+                bs = new BookService(br, bcr, gr, reviewRepository, bookLoanRepository, rlr, restTemplate, "fake-api-key");
         }
+
 
         @Test
         void searchBookCandidates_whenMatchingBookExists_returnsCandidate() {

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Toast } from '../../model/toast.model';
-import { ToastService } from '../../services/Toast/toast.service';
+import { ToastService } from '../../services/toast/toast.service';
 
 
 @Component({

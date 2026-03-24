@@ -16,6 +16,8 @@ import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.service.BookService;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,15 +29,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RestController
 @RequestMapping("/books")
 public class BookController {
-    private final BookService bs;
+    private final BookService bookService;
 
-    public BookController(BookService bs) {
-        this.bs = bs;
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
     }
 
     @GetMapping
     public List<BookDTO> getAllBooks() {
-        return bs.getAllBooks();
+        return bookService.getAllBooks();
     }
 
     @GetMapping("/catalog")
@@ -48,7 +50,7 @@ public class BookController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<BookDTO> bookPage = bs.getFilteredBooks(
+        Page<BookDTO> bookPage = bookService.getFilteredBooks(
                 searchTerm,
                 availability,
                 minPages,
@@ -66,7 +68,7 @@ public class BookController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BookDTO> getBookById(@PathVariable("id") Long id) {
-        BookDTO book = bs.getBookById(id);
+        BookDTO book = bookService.getBookById(id);
         return ResponseEntity.ok(book);
     }
 
@@ -75,48 +77,48 @@ public class BookController {
     public ResponseEntity<List<BookDTO>> getRelatedBooksCarousel(
             @PathVariable("id") Long id,
             @RequestParam(defaultValue = "10", required = false) int limit) {
-        return ResponseEntity.ok(bs.getRelatedBooksCarousel(id, limit));
+        return ResponseEntity.ok(bookService.getRelatedBooksCarousel(id, limit));
     }
 
 
     @PostMapping
     public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO dto) {
-        BookDTO savedBook = bs.addBook(dto);
+        BookDTO savedBook = bookService.addBook(dto);
         return ResponseEntity.ok(savedBook);
     }
 
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDTO> getBookByISBN(@PathVariable String isbn) {
-        BookDTO book = bs.fetchBookByISBN(isbn);
+        BookDTO book = bookService.fetchBookByISBN(isbn);
         return ResponseEntity.ok(book);
     }
 
     @GetMapping("/isbn/{isbn}/preview")
     public ResponseEntity<BookPreviewDTO> getBookPreviewByISBN(@PathVariable String isbn) {
-        return ResponseEntity.ok(bs.fetchPreviewByISBN(isbn));
+        return ResponseEntity.ok(bookService.fetchPreviewByISBN(isbn));
     }
 
 
     @GetMapping("/pages/max")
     public ResponseEntity<Integer> getMaxPages() {
-        return ResponseEntity.ok(bs.getMaxPages());
+        return ResponseEntity.ok(bookService.getMaxPages());
     }
 
     @GetMapping("/pages/min")
     public ResponseEntity<Integer> getMinPages() {
-        return ResponseEntity.ok(bs.getMinPages());
+        return ResponseEntity.ok(bookService.getMinPages());
     }
 
     @GetMapping("/most-read")
     public ResponseEntity<List<BookDTO>> getMostReadBooks(
             @RequestParam(defaultValue = "3", required = false) int limit) {
-        return ResponseEntity.ok(bs.getMostReadBooks(limit));
+        return ResponseEntity.ok(bookService.getMostReadBooks(limit));
     }
 
     @GetMapping("/newest")
     public ResponseEntity<List<BookDTO>> getNewestBooks(
             @RequestParam(defaultValue = "3", required = false) int limit) {
-        return ResponseEntity.ok(bs.getNewestBooks(limit));
+        return ResponseEntity.ok(bookService.getNewestBooks(limit));
     }
 
     @GetMapping("/search")
@@ -124,20 +126,27 @@ public class BookController {
             @RequestParam String title,
             @RequestParam String author,
             @RequestParam Integer releaseYear) {
-        List<BookCandidateDTO> candidates = bs.searchBookCandidates(title, author, releaseYear);
+        List<BookCandidateDTO> candidates = bookService.searchBookCandidates(title, author, releaseYear);
         return ResponseEntity.ok(candidates);
     }
 
     @PostMapping("/select")
     public ResponseEntity<BookDTO> selectBook(@RequestParam String isbn13) {
-        BookDTO book = bs.fetchBookByISBN(isbn13);
+        BookDTO book = bookService.fetchBookByISBN(isbn13);
         return ResponseEntity.ok(book);
     }
 
     //@PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<BookDTO> updateBook(@PathVariable Long id, @RequestBody BookDTO dto) {
-        BookDTO updatedBook = bs.updateBook(id, dto);
+        BookDTO updatedBook = bookService.updateBook(id, dto);
         return ResponseEntity.ok(updatedBook);
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id){
+        bookService.deleteBook(id);
+        return ResponseEntity.noContent().build();
     }
 }

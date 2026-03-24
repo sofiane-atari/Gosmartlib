@@ -2,6 +2,9 @@ package edu.ap.bib_backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -40,6 +43,7 @@ import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.dto.ReadingLevelDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -47,8 +51,11 @@ import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
+import edu.ap.bib_backend.jpa.repository.ReviewRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 
 import org.springframework.data.domain.Page;
@@ -74,11 +81,20 @@ class BookServiceTest {
         @Mock
         private ReadingLevelRepository rlr;
 
+        @Mock
+        private ReviewRepository reviewRepository;
+
+        @Mock
+        private BookLoanRepository bookLoanRepository;
+
+        @Mock
+        private ReadingListBookRepository readingListBookRepository;
+
         private BookService bs;
 
         @BeforeEach
         void setUp() {
-                bs = new BookService(br, bcr, gr, rlr, restTemplate, "fake-api-key");
+                bs = new BookService(br, bcr, gr, rlr, reviewRepository, bookLoanRepository,  restTemplate, "fake-api-key");
         }
 
         @Test

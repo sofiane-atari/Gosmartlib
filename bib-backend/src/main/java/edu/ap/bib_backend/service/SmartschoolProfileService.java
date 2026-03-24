@@ -90,6 +90,7 @@ public class SmartschoolProfileService {
                 throw new IllegalStateException("Smartschool group response was empty");
             }
 
+
             String primaryGroupName = null;
             List<String> parentGroupNames = new ArrayList<>();
 
@@ -115,6 +116,7 @@ public class SmartschoolProfileService {
                     }
                 }
             }
+
 
             return new SmartschoolGroupDto(primaryGroupName, parentGroupNames);
         } catch (RestClientException exception) {

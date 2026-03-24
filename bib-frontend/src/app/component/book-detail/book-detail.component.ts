@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { Book } from '../../model/book.model';
 import {
   LucideAngularModule,
@@ -26,10 +26,11 @@ import { BookService } from '../../services/BookService/book.service';
 import { Availability } from '../../model/enums/availability.enum';
 import { Review } from '../../model/review.model';
 import { ReviewService } from '../../services/Reviews/review.service';
-import { ToastService } from '../../services/Toast/toast.service';
+import { ToastService } from '../../services/toast/toast.service';
 import { ReadingListService, ReadingList } from '../../services/reading-list.service';
 import { BookPreview } from '../../model/book-preview.model';
 import { RouterLink } from '@angular/router';
+import { RoleService } from '../../services/role-service/role.service';
 
 
 @Component({
@@ -89,6 +90,8 @@ export class BookDetailComponent {
 
   // Related Books Carousel //
   relatedBooksCarousel: Book[] = [];
+
+  protected readonly roleService = Inject(RoleService);
 
   constructor(
     private route: ActivatedRoute,
@@ -374,7 +377,7 @@ export class BookDetailComponent {
     this.embeddedPreviewUrl.set(null);
   }
 
-  public openRelatedBook(bookId?: number) {
+  public openRelatedBook(bookId?: number): void{
     if (!bookId) {
       return;
     }
@@ -382,11 +385,39 @@ export class BookDetailComponent {
     this.router.navigate(['/book', bookId]);
   }
 
-  public goToEditPage(bookId?: number){
+  public goToEditPage(bookId?: number): void{
     if (!bookId) {
       return;
     }
 
     this.router.navigate(['/books', bookId, 'edit']);
   }
+
+  public deleteBook(bookId?: number): void {
+    if (!bookId) {
+      return;
+    }
+
+    this.toastService.showConfirm(
+      'Weet je zeker dat je dit boek wilt verwijderen?',
+      () => {
+        this.bookService.deleteBook(bookId).subscribe({
+          next: () => {
+            this.toastService.show('Boek succesvol verwijderd.', 'success');
+            void this.router.navigate(['/catalog']);
+          },
+          error: (err) => {
+            const backendMessage = err?.error?.error?.message;
+            this.toastService.show(
+              backendMessage ?? 'Het boek kon niet verwijderd worden.',
+              'error'
+            );
+          }
+        });
+      },
+      () => {}
+    );
+  }
+
 }
+
