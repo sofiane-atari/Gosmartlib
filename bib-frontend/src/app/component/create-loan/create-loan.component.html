@@ -20,14 +20,26 @@
 		</div>
 
 		<div class="search-row">
-			<label for="userSearch">Zoek gebruiker</label>
+			<label for="firstnameSearch">Voornaam</label>
 			<div class="search-action-row">
 				<input
-					id="userSearch"
+					id="firstnameSearch"
 					type="text"
-					[value]="userSearch()"
-					(input)="onUserSearchChange($event)"
-					placeholder="Typ voornaam en/of achternaam"
+					[value]="searchFirstname()"
+					(input)="onFirstnameSearchChange($event)"
+					placeholder="Typ voornaam"
+				/>
+			</div>
+		</div>
+		<div class="search-row">
+			<label for="lastnameSearch">Achternaam</label>
+			<div class="search-action-row">
+				<input
+					id="lastnameSearch"
+					type="text"
+					[value]="searchLastname()"
+					(input)="onLastnameSearchChange($event)"
+					placeholder="Typ achternaam"
 				/>
 				<button type="button" class="btn btn-primary" (click)="searchUsers()">Zoeken</button>
 			</div>

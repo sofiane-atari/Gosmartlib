@@ -26,7 +26,8 @@ export class CreateLoanComponent {
   public readonly errorMessage = signal<string>('');
   public readonly successMessage = signal<string>('');
 
-  public readonly userSearch = signal('');
+  public readonly searchFirstname = signal('');
+  public readonly searchLastname = signal('');
   public readonly bookSearch = signal('');
   public readonly users = signal<User[]>([]);
   public readonly books = signal<Book[]>([]);
@@ -68,15 +69,19 @@ export class CreateLoanComponent {
     this.loadBooks();
   }
 
-  public onUserSearchChange(event: Event): void {
+  public onFirstnameSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.userSearch.set(target.value);
+    this.searchFirstname.set(target.value);
+  }
+
+  public onLastnameSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.searchLastname.set(target.value);
   }
 
   public searchUsers(): void {
-    const trimmedSearch = this.userSearch().trim();
-    const [firstName = '', ...rest] = trimmedSearch.split(' ');
-    const lastName = rest.join(' ');
+    const firstName = this.searchFirstname().trim();
+    const lastName = this.searchLastname().trim();
     this.loadUsers(firstName, lastName);
   }
 
