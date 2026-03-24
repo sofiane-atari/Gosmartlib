@@ -139,7 +139,7 @@ CREATE TABLE `reading_lists` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `user_id` varchar(255) NOT NULL,
-  `target_type` enum('CLASS','PERSONAL','SCHOOL','YEAR') NOT NULL,
+  `target_type` enum('CLASS','PERSONAL','SCHOOL','SYSTEM','YEAR') NOT NULL, -- SYSTEM toegevoegd
   `target_value` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_reading_lists_user` (`user_id`),
