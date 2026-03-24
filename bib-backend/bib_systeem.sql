@@ -190,8 +190,8 @@ CREATE TABLE `reading_lists` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `user_id` varchar(255) NOT NULL,
-  `class_code` varchar(255) DEFAULT NULL,
-  `is_class_list` bit(1) NOT NULL DEFAULT b'0',
+  `target_type` enum('CLASS','PERSONAL','SCHOOL','YEAR') NOT NULL,
+  `target_value` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_reading_lists_user` (`user_id`),
   CONSTRAINT `FK_reading_lists_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
@@ -292,7 +292,6 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` varchar(255) NOT NULL,
-  `class_code` varchar(255) DEFAULT NULL,
   `role_id` enum('ADMIN','LIBRARIAN','STUDENT','TEACHER') NOT NULL,
   PRIMARY KEY (`id`),
   KEY `FKp56c1712k691lhsyewcssf40f` (`role_id`),
@@ -306,7 +305,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES ('kWKGeclacHlfpTnlDfqbUA==','2aICT','STUDENT');
+INSERT INTO `users` VALUES ('kWKGeclacHlfpTnlDfqbUA==','STUDENT');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

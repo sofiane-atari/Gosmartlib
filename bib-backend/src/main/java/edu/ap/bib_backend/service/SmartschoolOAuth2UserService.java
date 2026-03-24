@@ -1,43 +1,45 @@
 package edu.ap.bib_backend.service;
 
+import edu.ap.bib_backend.jpa.entity.Role;
+import edu.ap.bib_backend.jpa.entity.User;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import edu.ap.bib_backend.jpa.entity.Role;
-import edu.ap.bib_backend.jpa.entity.User;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.http.HttpStatusCode;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import java.util.Collections;
+import java.util.Map;
 
 @Service
 public class SmartschoolOAuth2UserService
         implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
+    public static final String CLAIM_CLASS_CODE = "classCode";
+    public static final String CLAIM_YEAR_CODE = "yearCode";
+    public static final String CLAIM_SCHOOL_CODE = "schoolCode";
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final UserService userService;
     private final RoleService roleService;
-
-    private static final String FALLBACK_CLASS_CODE = "GENERAL";
+    private final SmartschoolAudienceResolverService audienceResolverService;
 
     public SmartschoolOAuth2UserService(
             UserService userService,
-            RoleService roleService) {
+            RoleService roleService,
+            SmartschoolAudienceResolverService audienceResolverService) {
         this.userService = userService;
         this.roleService = roleService;
+        this.audienceResolverService = audienceResolverService;
     }
 
     @Override
@@ -61,24 +63,31 @@ public class SmartschoolOAuth2UserService
                 HttpMethod.GET,
                 entity,
                 Map.class);
-        Map<String, Object> attributes = toStringObjectMap(userInfoResponse.getBody() instanceof Map<?, ?> map ? map : null);
+
+        Map<String, Object> attributes = audienceResolverService.toStringObjectMap(
+                userInfoResponse.getBody() instanceof Map<?, ?> map ? map : null);
 
         String userId = requireStringAttribute(attributes, "userID");
         String basisrol = requireStringAttribute(attributes, "basisrol");
-        String classCode = resolveClassCode(attributes);
 
-        if (FALLBACK_CLASS_CODE.equalsIgnoreCase(classCode)) {
+        String classCode = audienceResolverService.resolveClassCode(attributes);
+        if (SmartschoolAudienceResolverService.FALLBACK_CLASS_CODE.equalsIgnoreCase(classCode)) {
             String groupInfoClassCode = resolveClassCodeFromGroupInfo(userInfoEndpoint, accessToken);
             if (groupInfoClassCode != null) {
                 classCode = groupInfoClassCode;
             }
         }
 
-        final String resolvedClassCode = classCode;
+        String yearCode = audienceResolverService.resolveYearCode(attributes, classCode);
+        String schoolCode = audienceResolverService.resolveSchoolCode(attributes);
+
+        // Expose audience data as claims carried through JWT/auth context.
+        attributes.put(CLAIM_CLASS_CODE, classCode);
+        attributes.put(CLAIM_YEAR_CODE, yearCode);
+        attributes.put(CLAIM_SCHOOL_CODE, schoolCode);
 
         User user = userService.getUser(userId)
-                .map(existingUser -> userService.saveWithClassCodeIfChanged(existingUser, resolvedClassCode))
-                .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol), resolvedClassCode));
+                .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol)));
 
         String roleString = getOAuthUserRole(user.getRole().getRole());
 
@@ -90,70 +99,6 @@ public class SmartschoolOAuth2UserService
 
     private String getOAuthUserRole(Role role) {
         return "ROLE_" + role.name();
-    }
-
-    private String resolveClassCode(Map<String, Object> attributes) {
-        String[] candidateKeys = {
-                "klas", "class", "classCode", "className", "classname",
-                "klasnaam", "stamboekgroep", "groep", "group", "groupName", "groups", "klassen"
-        };
-
-        for (String key : candidateKeys) {
-            String resolved = extractClassValue(attributes.get(key));
-            if (resolved != null) {
-                return resolved;
-            }
-        }
-
-        return FALLBACK_CLASS_CODE;
-    }
-
-    private String extractClassValue(Object value) {
-        if (value == null) {
-            return null;
-        }
-
-        if (value instanceof String str) {
-            String trimmed = str.trim();
-            return trimmed.isEmpty() ? null : trimmed;
-        }
-
-        if (value instanceof Map<?, ?> mapValue) {
-            String[] nestedKeys = { "name", "naam", "code", "id", "groupName", "className" };
-            for (String nestedKey : nestedKeys) {
-                Object nested = mapValue.get(nestedKey);
-                String resolved = extractClassValue(nested);
-                if (resolved != null) {
-                    return resolved;
-                }
-            }
-            return null;
-        }
-
-        if (value instanceof Iterable<?> items) {
-            for (Object item : items) {
-                String resolved = extractClassValue(item);
-                if (resolved != null) {
-                    return resolved;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private Map<String, Object> toStringObjectMap(Map<?, ?> source) {
-        Map<String, Object> result = new HashMap<>();
-        if (source == null) {
-            return result;
-        }
-
-        for (Map.Entry<?, ?> entry : source.entrySet()) {
-            if (entry.getKey() instanceof String key) {
-                result.put(key, entry.getValue());
-            }
-        }
-        return result;
     }
 
     private String requireStringAttribute(Map<String, Object> attributes, String key) {
@@ -188,11 +133,11 @@ public class SmartschoolOAuth2UserService
                 return null;
             }
 
-            Map<String, Object> payload = toStringObjectMap(
+            Map<String, Object> payload = audienceResolverService.toStringObjectMap(
                     groupInfoResponse.getBody() instanceof Map<?, ?> map ? map : null);
 
-            String resolved = resolveClassCode(payload);
-            if (resolved == null || FALLBACK_CLASS_CODE.equalsIgnoreCase(resolved)) {
+            String resolved = audienceResolverService.resolveClassCode(payload);
+            if (resolved == null || SmartschoolAudienceResolverService.FALLBACK_CLASS_CODE.equalsIgnoreCase(resolved)) {
                 return null;
             }
             return resolved;

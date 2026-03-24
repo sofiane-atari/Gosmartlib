@@ -3,13 +3,17 @@ package edu.ap.bib_backend.service;
 import edu.ap.bib_backend.dto.ReadingListDTO;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListBook;
+import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReadingListService {
@@ -17,7 +21,6 @@ public class ReadingListService {
     private final ReadingListBookRepository readingListBookRepository;
     private final UserRepository userRepository;
     private static final String FAVORITES_NAME = "Favorieten";
-    private static final String FALLBACK_CLASS_CODE = "GENERAL";
 
     public ReadingListService(ReadingListRepository readingListRepository,
             ReadingListBookRepository readingListBookRepository,
@@ -33,32 +36,46 @@ public class ReadingListService {
         }
 
         User user = getUserOrThrow(userId);
+        AudienceContext audience = getAudienceContext();
+
+        ReadingListTargetType targetType = dto.targetType() == null ? ReadingListTargetType.PERSONAL : dto.targetType();
+        String targetValue = normalizeTargetValue(targetType, dto.targetValue(), audience);
 
         ReadingList list = new ReadingList();
         list.setName(dto.name().trim());
         list.setUser(user);
-        list.setClassCode(resolveClassCode(user));
-        list.setIsClassList(false);
+        list.setTargetType(targetType);
+        list.setTargetValue(targetValue);
 
         return readingListRepository.save(list);
     }
 
     public List<ReadingList> getAllLists(String userId) {
         User user = getUserOrThrow(userId);
-        ensureClassReadingListExists(user);
-        return readingListRepository.findVisibleForUser(userId, resolveClassCode(user));
+        AudienceContext audience = getAudienceContext();
+        ensureSharedListsExist(user, audience);
+
+        return readingListRepository.findVisibleForUser(userId,
+                audience.classCode(),
+                audience.yearCode(),
+                audience.schoolCode());
     }
 
     public ReadingList getListById(String userId, Long id) {
-        User user = getUserOrThrow(userId);
-        return readingListRepository.findVisibleById(id, userId, resolveClassCode(user))
+        getUserOrThrow(userId);
+        AudienceContext audience = getAudienceContext();
+        return readingListRepository.findVisibleById(id,
+                        userId,
+                        audience.classCode(),
+                        audience.yearCode(),
+                        audience.schoolCode())
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet"));
     }
 
     public void deleteReadingList(String userId, Long id) {
         ReadingList list = getListById(userId, id);
 
-        if (isFavoritesList(list.getName()) || isClassList(list)) {
+        if (isFavoritesList(list.getName()) || list.getTargetType() != ReadingListTargetType.PERSONAL) {
             throw new IllegalArgumentException("Deze leeslijst kan niet verwijderd worden");
         }
 
@@ -71,6 +88,9 @@ public class ReadingListService {
         }
 
         ReadingList list = getListById(userId, listId);
+        if (list.getTargetType() != ReadingListTargetType.PERSONAL) {
+            throw new IllegalArgumentException("Boeken in deze leeslijst kunnen niet aangepast worden");
+        }
 
         boolean exists = readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId);
         if (exists) {
@@ -86,13 +106,14 @@ public class ReadingListService {
 
     public ReadingListBook addBookToFavorites(String userId, Long bookId) {
         User user = getUserOrThrow(userId);
-        ReadingList favoritesList = readingListRepository.findByNameIgnoreCaseAndUser_Id(FAVORITES_NAME, userId)
+        ReadingList favoritesList = readingListRepository
+                .findByNameIgnoreCaseAndUser_IdAndTargetType(FAVORITES_NAME, userId, ReadingListTargetType.PERSONAL)
                 .orElseGet(() -> {
                     ReadingList newFavorites = new ReadingList();
                     newFavorites.setName(FAVORITES_NAME);
                     newFavorites.setUser(user);
-                    newFavorites.setClassCode(resolveClassCode(user));
-                    newFavorites.setIsClassList(false);
+                    newFavorites.setTargetType(ReadingListTargetType.PERSONAL);
+                    newFavorites.setTargetValue(null);
                     return readingListRepository.save(newFavorites);
                 });
 
@@ -105,8 +126,8 @@ public class ReadingListService {
         }
 
         ReadingList list = getListById(userId, listId);
-        if (isClassList(list)) {
-            throw new IllegalArgumentException("Boeken uit de klassikale leeslijst kunnen niet verwijderd worden");
+        if (list.getTargetType() != ReadingListTargetType.PERSONAL) {
+            throw new IllegalArgumentException("Boeken in deze leeslijst kunnen niet aangepast worden");
         }
 
         int deleted = readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId);
@@ -120,46 +141,107 @@ public class ReadingListService {
                 .orElseThrow(() -> new IllegalArgumentException("Gebruiker met id " + userId + " bestaat niet"));
     }
 
-    private String resolveClassCode(User user) {
-        if (user.getClassCode() == null || user.getClassCode().isBlank()) {
-            return FALLBACK_CLASS_CODE;
-        }
-        return user.getClassCode().trim();
-    }
-
     private boolean isFavoritesList(String name) {
         return name != null && FAVORITES_NAME.equalsIgnoreCase(name.trim());
     }
 
-    private boolean isClassList(ReadingList list) {
-        return Boolean.TRUE.equals(list.getIsClassList());
+    private String normalizeTargetValue(ReadingListTargetType targetType, String requestedValue, AudienceContext audience) {
+        return switch (targetType) {
+            case PERSONAL -> null;
+            case CLASS -> (requestedValue == null || requestedValue.isBlank()) ? audience.classCode() : requestedValue.trim();
+            case YEAR -> (requestedValue == null || requestedValue.isBlank()) ? audience.yearCode() : requestedValue.trim();
+            case SCHOOL -> (requestedValue == null || requestedValue.isBlank()) ? audience.schoolCode() : requestedValue.trim();
+            case SYSTEM -> null;
+        };
     }
 
-    private void ensureClassReadingListExists(User user) {
-        String classCode = resolveClassCode(user);
-        if (readingListRepository.findByClassCodeAndIsClassListTrue(classCode).isPresent()) {
+    @SuppressWarnings("unchecked")
+    private AudienceContext getAudienceContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getDetails() instanceof Map<?, ?> detailsRaw)) {
+            return AudienceContext.defaults();
+        }
+
+        Map<String, Object> details = (Map<String, Object>) detailsRaw;
+        String classCode = readDetail(details, "classCode", AudienceContext.defaults().classCode());
+        String yearCode = readDetail(details, "yearCode", AudienceContext.defaults().yearCode());
+        String schoolCode = readDetail(details, "schoolCode", AudienceContext.defaults().schoolCode());
+
+        return new AudienceContext(classCode, yearCode, schoolCode);
+    }
+
+    private String readDetail(Map<String, Object> details, String key, String fallback) {
+        Object value = details.get(key);
+        if (value instanceof String str && !str.isBlank()) {
+            return str.trim();
+        }
+        return fallback;
+    }
+
+    private void ensureSharedListsExist(User owner, AudienceContext audience) {
+        ensureSharedList(owner,
+                ReadingListTargetType.CLASS,
+                audience.classCode(),
+                "Klas " + audience.classCode());
+
+        ensureSharedList(owner,
+                ReadingListTargetType.YEAR,
+                audience.yearCode(),
+                "Jaar " + audience.yearCode());
+
+        // School-specific list with real school name.
+        String schoolName = extractSchoolName(audience.schoolCode());
+        ensureSharedList(owner,
+                ReadingListTargetType.SCHOOL,
+                audience.schoolCode(),
+                schoolName);
+
+        // System-wide list visible to everyone (no targetValue).
+        ensureSharedList(owner,
+                ReadingListTargetType.SYSTEM,
+                null,
+                "Uitgelicht");
+    }
+
+    private String extractSchoolName(String schoolCode) {
+        if (schoolCode == null || schoolCode.isBlank()) {
+            return "School";
+        }
+        // Extract domain or name from URL-like schoolCode.
+        // Example: "https://aphogeschool.smartschool.be" -> "Aphogeschool"
+        String normalized = schoolCode.trim();
+        if (normalized.startsWith("https://") || normalized.startsWith("http://")) {
+            int slashIndex = normalized.indexOf('/', 8);
+            if (slashIndex > 0) {
+                normalized = normalized.substring(8, slashIndex);
+            } else {
+                normalized = normalized.substring(8);
+            }
+        }
+        if (normalized.endsWith(".smartschool.be")) {
+            normalized = normalized.substring(0, normalized.length() - ".smartschool.be".length());
+        }
+        // Capitalize first letter.
+        return normalized.substring(0, 1).toUpperCase() + normalized.substring(1);
+    }
+
+    private void ensureSharedList(User owner,
+            ReadingListTargetType targetType,
+            String targetValue,
+            String defaultName) {
+        if (targetType == ReadingListTargetType.SYSTEM) {
+            if (readingListRepository.findFirstByTargetType(ReadingListTargetType.SYSTEM).isPresent()) {
+                return;
+            }
+        } else if (targetValue != null && readingListRepository.findFirstByTargetTypeAndTargetValueIgnoreCase(targetType, targetValue).isPresent()) {
             return;
         }
 
-        ReadingList classList = new ReadingList();
-        classList.setName(formatClassListName(classCode));
-        classList.setUser(user);
-        classList.setClassCode(classCode);
-        classList.setIsClassList(true);
-        readingListRepository.save(classList);
-    }
-
-    private String formatClassListName(String classCode) {
-        String normalized = classCode.trim().replace('-', ' ').replace('_', ' ');
-        if (!normalized.contains(" ")) {
-            int splitIndex = 0;
-            while (splitIndex < normalized.length() && Character.isDigit(normalized.charAt(splitIndex))) {
-                splitIndex++;
-            }
-            if (splitIndex > 0 && splitIndex < normalized.length()) {
-                return normalized.substring(0, splitIndex) + " " + normalized.substring(splitIndex);
-            }
-        }
-        return normalized;
+        ReadingList list = new ReadingList();
+        list.setName(defaultName);
+        list.setUser(owner);
+        list.setTargetType(targetType);
+        list.setTargetValue(targetValue);
+        readingListRepository.save(list);
     }
 }

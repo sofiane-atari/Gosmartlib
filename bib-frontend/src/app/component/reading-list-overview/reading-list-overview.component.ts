@@ -31,12 +31,12 @@ export class ReadingListOverviewComponent implements OnInit {
     return list.name?.trim().toLowerCase() === ReadingListOverviewComponent.FAVORITES_NAME;
   }
 
-  isClassList(list: ReadingList): boolean {
-    return list.isClassList === true;
+  isReadOnlyAudience(list: ReadingList): boolean {
+    return !!list.targetType && list.targetType !== 'PERSONAL';
   }
 
   canDeleteList(list: ReadingList): boolean {
-    return !this.isFavoritesList(list) && !this.isClassList(list);
+    return !this.isFavoritesList(list) && !this.isReadOnlyAudience(list);
   }
 
   deleteList(list: ReadingList) {

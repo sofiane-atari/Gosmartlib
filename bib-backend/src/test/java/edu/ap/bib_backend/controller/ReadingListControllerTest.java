@@ -71,7 +71,7 @@ class ReadingListControllerTest {
 
     @Test
     void givenValidDTO_whenCreateReadingList_thenReturnCreated() throws Exception {
-        ReadingListDTO dto = new ReadingListDTO("New List");
+        ReadingListDTO dto = new ReadingListDTO("New List", null, null);
         ReadingList savedList = new ReadingList();
         savedList.setId(10L);
         savedList.setName("New List");
@@ -89,7 +89,7 @@ class ReadingListControllerTest {
 
     @Test
     void givenEmptyName_whenCreateReadingList_thenReturnBadRequest() throws Exception {
-        ReadingListDTO dto = new ReadingListDTO("");
+        ReadingListDTO dto = new ReadingListDTO("", null, null);
 
         when(readingListService.createReadingList(eq(USER_ID), any(ReadingListDTO.class)))
                 .thenThrow(new IllegalArgumentException("name mag niet null of leeg zijn"));

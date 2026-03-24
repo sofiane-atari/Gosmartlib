@@ -62,8 +62,8 @@ export class ReadingListDetailComponent implements OnInit {
         });
     }
 
-    isClassList(): boolean {
-        return this.list?.isClassList === true;
+    isReadOnlyAudience(): boolean {
+        return !!this.list?.targetType && this.list.targetType !== 'PERSONAL';
     }
 
     removeBookFromList(bookId: number | undefined, event: MouseEvent) {
@@ -73,8 +73,8 @@ export class ReadingListDetailComponent implements OnInit {
             return;
         }
 
-        if (this.isClassList()) {
-            this.toastService.show('Boeken uit de klassikale leeslijst kunnen niet verwijderd worden', 'error');
+        if (this.isReadOnlyAudience()) {
+            this.toastService.show('Boeken in deze leeslijst kunnen niet aangepast worden', 'error');
             return;
         }
 

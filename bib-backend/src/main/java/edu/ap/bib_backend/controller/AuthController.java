@@ -6,6 +6,7 @@ import java.util.Map;
 import edu.ap.bib_backend.jpa.entity.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.WebAttributes;
@@ -14,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
-import edu.ap.bib_backend.service.AuthService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
@@ -27,15 +28,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthService authService;
     private final JwtService jwtService;
     private final TokenStorageService tokenStorageService;
 
     @Value("${FRONTEND_REDIRECT_URL}")
     private String frontendRedirectUrl;
 
-    public AuthController(AuthService authService, JwtService jwtService, TokenStorageService tokenStorageService) {
-        this.authService = authService;
+    public AuthController(JwtService jwtService, TokenStorageService tokenStorageService) {
         this.jwtService = jwtService;
         this.tokenStorageService = tokenStorageService;
     }
@@ -43,16 +42,16 @@ public class AuthController {
     @GetMapping("/me")
     public AuthUserDto me(@AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) {
-            return null; // or throw an exception if you prefer
+            return null;
         }
 
         String userId = principal.getAttribute("userID");
         String name = principal.getAttribute("name");
         String role = principal.getAuthorities()
                 .stream()
-                .map(auth -> auth.getAuthority())
+                .map(GrantedAuthority::getAuthority)
                 .findFirst()
-                .orElse("ROLE_USER"); // default role if none found
+                .orElse("ROLE_USER");
 
         return new AuthUserDto(userId, name,
                 role.startsWith("ROLE_") ? Role.valueOf(role.substring(5)) : Role.valueOf(role));
@@ -78,12 +77,22 @@ public class AuthController {
         // Extract role from authorities set by SmartschoolOAuth2UserService
         String role = principal.getAuthorities()
                 .stream()
-                .map(auth -> auth.getAuthority())
+                .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No role found for user"));
 
+        String classCode = principal.getAttribute(SmartschoolOAuth2UserService.CLAIM_CLASS_CODE);
+        String yearCode = principal.getAttribute(SmartschoolOAuth2UserService.CLAIM_YEAR_CODE);
+        String schoolCode = principal.getAttribute(SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE);
+
+        Map<String, Object> audienceClaims = Map.of(
+                SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, classCode == null ? "GENERAL" : classCode,
+                SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, yearCode == null ? "0" : yearCode,
+                SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, schoolCode == null ? "ALLEMAAL" : schoolCode
+        );
+
         // Generate JWT token
-        String jwt = jwtService.generateToken(userId, role);
+        String jwt = jwtService.generateToken(userId, role, audienceClaims);
 
         // Store token in Redis with user ID key (no personal data)
         tokenStorageService.storeToken(userId, jwt);
@@ -100,5 +109,4 @@ public class AuthController {
         tokenStorageService.revokeToken(userId);
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
-
 }

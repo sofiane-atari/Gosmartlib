@@ -3,7 +3,6 @@ package edu.ap.bib_backend.jpa.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -21,9 +20,6 @@ public class User {
 
     @Id
     private String id;
-
-    @Column(name = "class_code")
-    private String classCode;
 
     @OneToMany(mappedBy = "user")
     private List<BookLoan> loans = new ArrayList<>();

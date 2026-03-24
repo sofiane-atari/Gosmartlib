@@ -43,7 +43,7 @@
                 <div class="books-grid">
                     @for (book of booksInList; track book.id) {
                         <div class="book-card" (click)="goToBook(book.id)" style="cursor: pointer;">
-                            @if (!isClassList()) {
+                            @if (!isReadOnlyAudience()) {
                                 <button class="remove-book-btn" title="Verwijder uit leeslijst" (click)="removeBookFromList(book.id, $event)">
                                     <lucide-angular [img]="Trash2" size="18"></lucide-angular>
                                 </button>

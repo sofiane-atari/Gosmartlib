@@ -37,7 +37,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @SpringJUnitConfig
-@ContextConfiguration(classes = SmartschoolOAuth2UserService.class)
+@ContextConfiguration(classes = { SmartschoolOAuth2UserService.class, SmartschoolAudienceResolverService.class })
 class SmartschoolOAuth2UserServiceTest {
 
     @Autowired
@@ -63,7 +63,7 @@ class SmartschoolOAuth2UserServiceTest {
         String userInfoEndpoint = "https://smartschool.example.com/userinfo";
         String accessTokenValue = "access-token-123";
         OAuth2UserRequest userRequest = createUserRequest(userInfoEndpoint, accessTokenValue);
-        String responseBody = "{\"userID\":\"existing-user\",\"basisrol\":\"leerling\",\"klas\":\"2aICT\"}";
+        String responseBody = "{\"userID\":\"existing-user\",\"basisrol\":\"leerling\"}";
 
         RoleEntity teacherRole = new RoleEntity();
         teacherRole.setRole(Role.TEACHER);
@@ -72,7 +72,6 @@ class SmartschoolOAuth2UserServiceTest {
         existingUser.setRole(teacherRole);
 
         when(userService.getUser("existing-user")).thenReturn(Optional.of(existingUser));
-        when(userService.saveWithClassCodeIfChanged(existingUser, "2aICT")).thenReturn(existingUser);
 
         mockRestServiceServer.expect(requestTo(userInfoEndpoint))
                 .andExpect(method(HttpMethod.GET))
@@ -84,9 +83,8 @@ class SmartschoolOAuth2UserServiceTest {
         assertEquals("existing-user", result.getAttribute("userID"));
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")));
         verify(userService, times(1)).getUser("existing-user");
-        verify(userService, times(1)).saveWithClassCodeIfChanged(existingUser, "2aICT");
         verify(userService, never()).createUser(org.mockito.ArgumentMatchers.anyString(),
-                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString());
+                org.mockito.ArgumentMatchers.any());
         verify(roleService, never()).getRoleEntity(org.mockito.ArgumentMatchers.anyString());
         mockRestServiceServer.verify();
     }
@@ -96,7 +94,7 @@ class SmartschoolOAuth2UserServiceTest {
         String userInfoEndpoint = "https://smartschool.example.com/userinfo";
         String accessTokenValue = "access-token-456";
         OAuth2UserRequest userRequest = createUserRequest(userInfoEndpoint, accessTokenValue);
-        String responseBody = "{\"userID\":\"new-user\",\"basisrol\":\"leerling\",\"klas\":\"2aICT\"}";
+        String responseBody = "{\"userID\":\"new-user\",\"basisrol\":\"leerling\"}";
 
         RoleEntity studentRole = new RoleEntity();
         studentRole.setRole(Role.STUDENT);
@@ -106,7 +104,7 @@ class SmartschoolOAuth2UserServiceTest {
 
         when(userService.getUser("new-user")).thenReturn(Optional.empty());
         when(roleService.getRoleEntity("leerling")).thenReturn(studentRole);
-        when(userService.createUser("new-user", studentRole, "2aICT")).thenReturn(createdUser);
+        when(userService.createUser("new-user", studentRole)).thenReturn(createdUser);
 
         mockRestServiceServer.expect(requestTo(userInfoEndpoint))
                 .andExpect(method(HttpMethod.GET))
@@ -119,7 +117,7 @@ class SmartschoolOAuth2UserServiceTest {
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_STUDENT")));
         verify(userService, times(1)).getUser("new-user");
         verify(roleService, times(1)).getRoleEntity("leerling");
-        verify(userService, times(1)).createUser("new-user", studentRole, "2aICT");
+        verify(userService, times(1)).createUser("new-user", studentRole);
         mockRestServiceServer.verify();
     }
 
