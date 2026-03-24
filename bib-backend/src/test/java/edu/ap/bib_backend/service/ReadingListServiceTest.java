@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,15 +53,7 @@ class ReadingListServiceTest {
     @BeforeEach
     void setUp() {
         lenient().when(userRepository.findById(USER_ID)).thenReturn(Optional.of(makeUser()));
-
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(USER_ID, null, List.of());
-        Map<String, Object> details = new HashMap<>();
-        details.put("classCode", CLASS_CODE);
-        details.put("yearCode", YEAR_CODE);
-        details.put("schoolCode", SCHOOL_CODE);
-        authentication.setDetails(details);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        setAuthenticationAsStudent();
     }
 
     @AfterEach
@@ -222,7 +215,52 @@ class ReadingListServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.addBookToList(USER_ID, listId, bookId));
 
-        assertEquals("Boeken in deze leeslijst kunnen niet aangepast worden", exception.getMessage());
+        assertEquals("Alleen leerkrachten kunnen deze leeslijst aanpassen", exception.getMessage());
+        verify(readingListBookRepository, never()).save(any());
+    }
+
+    @Test
+    void givenSharedListAndTeacher_whenAddBookToList_thenAllow() {
+        setAuthenticationAsTeacher();
+
+        Long listId = 2L;
+        Long bookId = 101L;
+        ReadingList list = new ReadingList();
+        list.setId(listId);
+        list.setTargetType(ReadingListTargetType.YEAR);
+
+        ReadingListBook savedBook = new ReadingListBook();
+        savedBook.setId(11L);
+        savedBook.setReadingList(list);
+        savedBook.setBookId(bookId);
+
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE, YEAR_CODE, SCHOOL_CODE))
+                .thenReturn(Optional.of(list));
+        when(readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId)).thenReturn(false);
+        when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
+
+        ReadingListBook result = readingListService.addBookToList(USER_ID, listId, bookId);
+
+        assertEquals(bookId, result.getBookId());
+        verify(readingListBookRepository).save(any(ReadingListBook.class));
+    }
+
+    @Test
+    void givenSystemList_whenAddBookToList_thenAlwaysThrow() {
+        setAuthenticationAsTeacher();
+
+        Long listId = 3L;
+        ReadingList list = new ReadingList();
+        list.setId(listId);
+        list.setTargetType(ReadingListTargetType.SYSTEM);
+
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE, YEAR_CODE, SCHOOL_CODE))
+                .thenReturn(Optional.of(list));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.addBookToList(USER_ID, listId, 102L));
+
+        assertEquals("De systeembrede leeslijst kan niet aangepast worden", exception.getMessage());
         verify(readingListBookRepository, never()).save(any());
     }
 
@@ -267,8 +305,68 @@ class ReadingListServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.removeBookFromList(USER_ID, listId, 100L));
 
-        assertEquals("Boeken in deze leeslijst kunnen niet aangepast worden", exception.getMessage());
+        assertEquals("Alleen leerkrachten kunnen deze leeslijst aanpassen", exception.getMessage());
         verify(readingListBookRepository, never()).deleteAllByReadingListIdAndBookId(anyLong(), anyLong());
+    }
+
+    @Test
+    void givenSharedListAndTeacher_whenRemoveBookFromList_thenAllow() {
+        setAuthenticationAsTeacher();
+
+        Long listId = 11L;
+        Long bookId = 103L;
+
+        ReadingList sharedList = new ReadingList();
+        sharedList.setId(listId);
+        sharedList.setTargetType(ReadingListTargetType.SCHOOL);
+
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE, YEAR_CODE, SCHOOL_CODE))
+                .thenReturn(Optional.of(sharedList));
+        when(readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId)).thenReturn(1);
+
+        readingListService.removeBookFromList(USER_ID, listId, bookId);
+
+        verify(readingListBookRepository).deleteAllByReadingListIdAndBookId(listId, bookId);
+    }
+
+    @Test
+    void givenSystemList_whenRemoveBookFromList_thenAlwaysThrow() {
+        setAuthenticationAsTeacher();
+
+        Long listId = 12L;
+        ReadingList systemList = new ReadingList();
+        systemList.setId(listId);
+        systemList.setTargetType(ReadingListTargetType.SYSTEM);
+
+        when(readingListRepository.findVisibleById(listId, USER_ID, CLASS_CODE, YEAR_CODE, SCHOOL_CODE))
+                .thenReturn(Optional.of(systemList));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.removeBookFromList(USER_ID, listId, 104L));
+
+        assertEquals("De systeembrede leeslijst kan niet aangepast worden", exception.getMessage());
+        verify(readingListBookRepository, never()).deleteAllByReadingListIdAndBookId(anyLong(), anyLong());
+    }
+
+    private void setAuthenticationAsStudent() {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(USER_ID, null, List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
+        applyAudienceDetails(authentication);
+    }
+
+    private void setAuthenticationAsTeacher() {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(USER_ID, null, List.of(new SimpleGrantedAuthority("ROLE_TEACHER")));
+        applyAudienceDetails(authentication);
+    }
+
+    private void applyAudienceDetails(UsernamePasswordAuthenticationToken authentication) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("classCode", CLASS_CODE);
+        details.put("yearCode", YEAR_CODE);
+        details.put("schoolCode", SCHOOL_CODE);
+        authentication.setDetails(details);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private User makeUser() {

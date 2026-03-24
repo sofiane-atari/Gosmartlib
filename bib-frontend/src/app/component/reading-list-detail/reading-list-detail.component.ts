@@ -9,6 +9,7 @@ import { catchError } from 'rxjs/operators';
 import { ToastService } from '../../services/Toast/toast.service';
 import { LucideAngularModule, Trash2 } from 'lucide-angular';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../services/RoleAuthorization/auth.service';
 
 @Component({
     selector: 'app-reading-list-detail',
@@ -30,10 +31,13 @@ export class ReadingListDetailComponent implements OnInit {
         private router: Router,
         private readingListService: ReadingListService,
         private bookService: BookService,
-        private toastService: ToastService
+        private toastService: ToastService,
+        private authService: AuthService
     ) { }
 
     ngOnInit() {
+        this.authService.fetchCurrentUser();
+
         const id = Number(this.route.snapshot.paramMap.get('id'));
         this.readingListService.getListById(id).subscribe({
             next: (listData) => {
@@ -63,7 +67,18 @@ export class ReadingListDetailComponent implements OnInit {
     }
 
     isReadOnlyAudience(): boolean {
-        return !!this.list?.targetType && this.list.targetType !== 'PERSONAL';
+        return !this.canModifyList();
+    }
+
+    private canModifyList(): boolean {
+        const target = this.list?.targetType ?? 'PERSONAL';
+        if (target === 'PERSONAL') {
+            return true;
+        }
+        if (target === 'SYSTEM') {
+            return false;
+        }
+        return this.authService.currentUser()?.role === 'TEACHER';
     }
 
     removeBookFromList(bookId: number | undefined, event: MouseEvent) {
@@ -74,7 +89,11 @@ export class ReadingListDetailComponent implements OnInit {
         }
 
         if (this.isReadOnlyAudience()) {
-            this.toastService.show('Boeken in deze leeslijst kunnen niet aangepast worden', 'error');
+            if ((this.list?.targetType ?? 'PERSONAL') === 'SYSTEM') {
+                this.toastService.show('De systeembrede leeslijst kan niet aangepast worden', 'error');
+            } else {
+                this.toastService.show('Alleen leerkrachten kunnen deze leeslijst aanpassen', 'error');
+            }
             return;
         }
 

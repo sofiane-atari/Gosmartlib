@@ -29,6 +29,7 @@ import { ReviewService } from '../../services/Reviews/review.service';
 import { ToastService } from '../../services/Toast/toast.service';
 import { ReadingListService, ReadingList } from '../../services/reading-list.service';
 import { BookPreview } from '../../model/book-preview.model';
+import { AuthService } from '../../services/RoleAuthorization/auth.service';
 
 
 @Component({
@@ -74,6 +75,7 @@ export class BookDetailComponent {
 
   // Lists //
   readingLists: ReadingList[] = [];
+  pickerReadingLists: ReadingList[] = [];
   showListPicker: boolean = false;
 
   // Preview //
@@ -96,11 +98,15 @@ export class BookDetailComponent {
     private readingListService: ReadingListService,
     private reviewService: ReviewService,
     private toastService: ToastService,
-    private sanitizer: DomSanitizer) {
+    private sanitizer: DomSanitizer,
+    private authService: AuthService) {
 
   }
 
   ngOnInit() {
+    // Ensure current user role is available for picker filtering.
+    this.authService.fetchCurrentUser();
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
 
@@ -158,7 +164,23 @@ export class BookDetailComponent {
   loadReadingLists() {
     this.readingListService.getLists().subscribe((lists) => {
       this.readingLists = lists;
+      this.pickerReadingLists = lists.filter(list => this.canShowInPicker(list));
     });
+  }
+
+  private canShowInPicker(list: ReadingList): boolean {
+    const target = list.targetType ?? 'PERSONAL';
+    const role = this.authService.currentUser()?.role;
+
+    if (target === 'SYSTEM') {
+      return false;
+    }
+
+    if (target === 'PERSONAL') {
+      return true;
+    }
+
+    return role === 'TEACHER';
   }
 
   toggleListPicker() {

@@ -9,6 +9,7 @@ import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -88,9 +89,7 @@ public class ReadingListService {
         }
 
         ReadingList list = getListById(userId, listId);
-        if (list.getTargetType() != ReadingListTargetType.PERSONAL) {
-            throw new IllegalArgumentException("Boeken in deze leeslijst kunnen niet aangepast worden");
-        }
+        assertCanModifyList(list);
 
         boolean exists = readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId);
         if (exists) {
@@ -126,9 +125,7 @@ public class ReadingListService {
         }
 
         ReadingList list = getListById(userId, listId);
-        if (list.getTargetType() != ReadingListTargetType.PERSONAL) {
-            throw new IllegalArgumentException("Boeken in deze leeslijst kunnen niet aangepast worden");
-        }
+        assertCanModifyList(list);
 
         int deleted = readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId);
         if (deleted == 0) {
@@ -243,5 +240,30 @@ public class ReadingListService {
         list.setTargetType(targetType);
         list.setTargetValue(targetValue);
         readingListRepository.save(list);
+    }
+
+    private void assertCanModifyList(ReadingList list) {
+        if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
+            throw new IllegalArgumentException("De systeembrede leeslijst kan niet aangepast worden");
+        }
+
+        if (list.getTargetType() == ReadingListTargetType.PERSONAL) {
+            return;
+        }
+
+        if (!isTeacherAuthenticated()) {
+            throw new IllegalArgumentException("Alleen leerkrachten kunnen deze leeslijst aanpassen");
+        }
+    }
+
+    private boolean isTeacherAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_TEACHER"::equals);
     }
 }
