@@ -66,12 +66,8 @@ export class AddBookISBNComponent {
       this.ts.show('Selecteer minstens 1 genre', 'error')
       return;
     }
-      const payload = {
-      ...this.book,
-      readingLevelId: this.book.readingLevel?.id
-    };
 
-    this.bookAdded.emit(payload);
+    this.bookAdded.emit(this.book);
   }
   searchBookData() {
   const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();

@@ -28,7 +28,7 @@ public class BookDTO {
 
     private List<GenreDTO> genres = new ArrayList<>();
 
-    private Long readingLevelId;
+    private ReadingLevelDTO readingLevel;
 
     public BookDTO() {
     }
@@ -61,6 +61,7 @@ public class BookDTO {
                 ", releaseYear=" + releaseYear +
                 ", reviewScore=" + reviewScore +
                 ", genres=" + genres +
+                ", readingLevel=" + readingLevel +
                 '}';
     }
 }

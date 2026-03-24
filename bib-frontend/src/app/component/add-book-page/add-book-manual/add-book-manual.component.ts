@@ -56,12 +56,7 @@ export class AddBookManualComponent {
       return;
     }
 
-    const payload = {
-      ...this.book,
-      readingLevelId: this.book.readingLevel?.id
-    };
-
-    this.bookAdded.emit(payload);
+    this.bookAdded.emit(this.book);
   }
   
 

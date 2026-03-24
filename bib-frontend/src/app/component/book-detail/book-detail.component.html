@@ -17,11 +17,11 @@
           <span class="stat-value">{{ selectedBook.releaseYear }}</span>
           <span class="stat-label">Jaar</span>
         </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ selectedBook.readingLevel?.niveauName || '-' }}</span>
+            <span class="stat-label">Leesniveau</span>
+          </div>
       </div>
-
-      <!-- <div class="availability-badge" [class.available]="selectedBook.availability === Availability.AVAILABLE">
-        {{ selectedBook.availability }}
-      </div> -->
     </aside>
 
     <!-- Main Content -->

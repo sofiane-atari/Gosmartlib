@@ -5,8 +5,10 @@ import java.nio.charset.StandardCharsets;
 import java.net.URI;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.dto.ReadingLevelDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
@@ -160,7 +163,10 @@ public class BookService {
                 .count());
 
         if (book.getReadingLevel() != null) {
-            dto.setReadingLevelId(book.getReadingLevel().getId());
+            dto.setReadingLevel(new ReadingLevelDTO(
+                    book.getReadingLevel().getId(),
+                    book.getReadingLevel().getNiveauName(),
+                    book.getReadingLevel().getDescription()));
         }
         return dto;
     }
@@ -185,26 +191,30 @@ public class BookService {
         book.setReleaseYear(dto.getReleaseYear());
         book.setGenres(mapGenresFromDTO(dto.getGenres()));
 
-        if (dto.getReadingLevelId() != null) {
-            ReadingLevel readingLevel = rlr.findById(dto.getReadingLevelId())
+        if (dto.getReadingLevel() != null && dto.getReadingLevel().getId() != null) {
+            ReadingLevel readingLevel = rlr
+                    .findById(dto.getReadingLevel().getId())
                     .orElseThrow(() -> new RuntimeException("Reading level not found"));
+
             book.setReadingLevel(readingLevel);
         }
         return book;
     }
 
-    private List<Genre> mapGenresFromDTO(List<GenreDTO> genres) {
-        if (genres == null) {
-            return new ArrayList<>();
+    private Set<Genre> mapGenresFromDTO(List<GenreDTO> genresDto) {
+        Set<Genre> genres = new HashSet<>();
+
+        if (genresDto == null) {
+            return genres;
         }
 
-        return genres.stream()
-                .filter(dto -> dto.name() != null && !dto.name().isBlank())
-                .map(dto -> dto.name().trim())
-                .distinct()
-                .map(name -> gr.findById(name)
-                        .orElseThrow(() -> new IllegalArgumentException("Genre bestaat niet: " + name)))
-                .collect(Collectors.toCollection(ArrayList::new));
+        for (GenreDTO genreDto : genresDto) {
+            Genre genre = gr.findByName(genreDto.name())
+                    .orElseThrow(() -> new RuntimeException("Genre not found: " + genreDto.name()));
+            genres.add(genre);
+        }
+
+        return genres;
     }
 
     @Transactional

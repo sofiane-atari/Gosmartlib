@@ -3,6 +3,8 @@ package edu.ap.bib_backend.jpa.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +28,7 @@ public class ReadingLevel {
     private String description;
 
     @OneToMany(mappedBy = "readingLevel")
+    @JsonIgnore
     private List<Book> books = new ArrayList<>();
 
     public ReadingLevel() {
