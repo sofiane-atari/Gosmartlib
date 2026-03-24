@@ -4,7 +4,8 @@ import edu.ap.bib_backend.dto.ReviewDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.review.Review;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
-import edu.ap.bib_backend.jpa.repository.ReviewRepository;
+import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

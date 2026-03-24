@@ -25,7 +25,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BookService } from '../../services/BookService/book.service';
 import { Availability } from '../../model/enums/availability.enum';
 import { Review } from '../../model/review.model';
-import { ReviewService } from '../../services/Reviews/review.service';
+import { ReviewService } from '../../services/review-service/review.service'; 
 import { ToastService } from '../../services/toast/toast.service';
 import { ReadingListService, ReadingList } from '../../services/reading-list.service';
 import { BookPreview } from '../../model/book-preview.model';
@@ -250,14 +250,14 @@ export class BookDetailComponent {
   }
 
   reportReview(review: Review) {
-    if (!review.id || review.isReported) return;
+    if (!review.id || review.reportedByCurrentUser) return;
 
     this.toastService.showConfirm(
       'Weet je zeker dat je deze review wilt rapporteren? Onterecht rapporteren kan gevolgen hebben.',
       () => {
         this.reviewService.reportReview(review.id!).subscribe({
           next: () => {
-            review.isReported = true;
+            review.reportedByCurrentUser = true;
             review.reportCount = (review.reportCount || 0) + 1;
             this.toastService.show('Review succesvol gerapporteerd.', 'success');
           },

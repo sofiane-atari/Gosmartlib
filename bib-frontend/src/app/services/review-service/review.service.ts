@@ -8,31 +8,38 @@ import { Review } from '../../model/review.model';
 })
 export class ReviewService {
   private http = inject(HttpClient);
-
   private apiUrl = `${environment.apiUrl}/reviews`;
 
-  getReviewsForBook(bookId: number) {
+  public getReviewsForBook(bookId: number) {
     return this.http.get<Review[]>(`${this.apiUrl}/book/${bookId}`);
   }
 
-  getAllReviews() {
+  public getAllReviews() {
     return this.http.get<Review[]>(this.apiUrl);
   }
 
-  addReviewToBook(bookId: number, review: Review) {
+  public getFlaggedReviews() {
+    return this.http.get<Review[]>(`${this.apiUrl}/flagged`);
+  }
+
+  public addReviewToBook(bookId: number, review: Review) {
     return this.http.post<Review>(`${this.apiUrl}/book/${bookId}`, review);
   }
 
-  getAverageRating(bookId: number) {
+  public getAverageRating(bookId: number) {
     return this.http.get<number>(`${this.apiUrl}/book/${bookId}/average`);
   }
 
-  deleteReview(reviewId: number) {
-    return this.http.delete(`${this.apiUrl}/${reviewId}`);
+  public deleteReview(reviewId: number) {
+    return this.http.delete<void>(`${this.apiUrl}/${reviewId}`);
   }
 
-  reportReview(reviewId: number) {
+  public reportReview(reviewId: number) {
     return this.http.post<Review>(`${this.apiUrl}/${reviewId}/report`, {});
+  }
+
+  public keepReview(reviewId: number) {
+    return this.http.patch<Review>(`${this.apiUrl}/${reviewId}/keep`, {});
   }
 
 }

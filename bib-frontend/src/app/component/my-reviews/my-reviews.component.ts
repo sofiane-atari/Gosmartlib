@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReviewService } from '../../services/Reviews/review.service';
+import { ReviewService } from '../../services/revieww-service/review.service';
 import { Review } from '../../model/review.model';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, Star, Trash2, Search } from 'lucide-angular';

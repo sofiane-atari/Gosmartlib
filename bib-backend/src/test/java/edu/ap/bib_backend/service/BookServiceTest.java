@@ -55,7 +55,7 @@ import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
-import edu.ap.bib_backend.jpa.repository.ReviewRepository;
+import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 
 import org.springframework.data.domain.Page;
