@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ToastService } from '../../services/Toast/toast.service';
+import { ToastService } from '../../services/toast/toast.service';
 
 @Component({
   selector: 'app-file-upload',

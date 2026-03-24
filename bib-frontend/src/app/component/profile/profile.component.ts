@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { AuthService } from '../../services/RoleAuthorization/auth.service';
+import { AuthService } from '../../services/authorization/auth.service';
 import { AuthUserDto, Role } from '../../model/auth.model';
 import { ProfileViewModel } from '../../model/profileView.model';
 

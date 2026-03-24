@@ -14,19 +14,18 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
+  public readonly currentUser = signal<AuthUserDto | null>(null);
+  public readonly isLoading = signal(false);
+
   private token = signal<string | null>(
     localStorage.getItem(AuthService.TOKEN_STORAGE_KEY),
   );
+
   private tokenExpiryEpochMs = signal<number | null>(
     this.parseStoredExpiry(
       localStorage.getItem(AuthService.TOKEN_EXPIRY_STORAGE_KEY),
     ),
   );
-
-  public readonly currentUser = signal<AuthUserDto | null>(null);
-  public readonly isLoading = signal(false);
-
-  
 
   public isAuthenticated = computed(() => {
     const authToken = this.token();
@@ -66,10 +65,6 @@ export class AuthService {
         this.isLoading.set(false);
       },
     });
-  }
-
-  public hasRole(role: Role): boolean {
-    return this.currentUser()?.role === role;
   }
 
   public storeToken(token: string): boolean {

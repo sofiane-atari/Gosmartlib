@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
 import {
   ChangeDetectionStrategy,
+  Component,
   computed,
   inject,
   signal
@@ -9,7 +9,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { LucideAngularModule, Info, Pencil, Save } from 'lucide-angular';
-
+import { ToastService } from '../../services/toast/toast.service';
 import { BookService } from '../../services/BookService/book.service';
 import { GenreService } from '../../services/genre/genre.service';
 import { Book } from '../../model/book.model';
@@ -29,6 +29,7 @@ export class BookEditPageComponent {
   private readonly router = inject(Router);
   private readonly bookService = inject(BookService);
   private readonly genreService = inject(GenreService);
+  private readonly toastService = inject(ToastService);
 
   protected readonly infoIcon = Info;
   protected readonly pencilIcon = Pencil;
@@ -75,7 +76,10 @@ export class BookEditPageComponent {
 
     this.genreService.getGenres().subscribe({
       next: (genres) => this.allGenres.set(genres),
-      error: () => this.errorMessage.set('Genres konden niet geladen worden.')
+      error: () => {
+        this.errorMessage.set('Genres konden niet geladen worden.');
+        this.toastService.show('Genres konden niet geladen worden.', 'error');
+      }
     });
 
     this.bookService.getBookById(bookId)
@@ -97,6 +101,7 @@ export class BookEditPageComponent {
         },
         error: () => {
           this.errorMessage.set('Boek kon niet geladen worden.');
+          this.toastService.show('Boek kon niet geladen worden.', 'error');
         }
       });
   }
@@ -122,6 +127,7 @@ export class BookEditPageComponent {
   protected save(): void {
     if (this.form.invalid || this.selectedGenres().length === 0 || this.isSaving()) {
       this.form.markAllAsTouched();
+      this.toastService.show('Controleer eerst alle verplichte velden en kies minstens één genre.', 'error');
       return;
     }
 
@@ -129,6 +135,7 @@ export class BookEditPageComponent {
 
     if (!existingBook?.id) {
       this.errorMessage.set('Geen geldig boek geladen.');
+      this.toastService.show('Geen geldig boek geladen.', 'error');
       return;
     }
 
@@ -160,11 +167,12 @@ export class BookEditPageComponent {
       .subscribe({
         next: (book) => {
           void this.router.navigate(['/books', book.id]);
+          this.toastService.show('Boek succesvol opgeslagen.', 'success');
         },
         error: (err) => {
-          console.error('Update book error:', err);
-          console.error('Response body:', err.error);
-          this.errorMessage.set(err.error?.error?.message ?? 'Het boek opslaan is mislukt.');
+          const backendMessage = err?.error?.error?.message ?? 'Het boek opslaan is mislukt.';
+          this.errorMessage.set(backendMessage);
+          this.toastService.show(backendMessage, 'error');
         }
       });
   }

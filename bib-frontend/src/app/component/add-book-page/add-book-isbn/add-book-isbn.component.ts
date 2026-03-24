@@ -6,7 +6,7 @@ import { Book } from '../../../model/book.model';
 import { Availability } from '../../../model/enums/availability.enum';
 import { CheckCircle, Info, LucideAngularModule, Plus, Search } from "lucide-angular";
 import { BookCandidate } from '../../../model/book-candidate.model';
-import { ToastService } from '../../../services/Toast/toast.service';
+import { ToastService } from '../../../services/toast/toast.service';
 import { LoadingOverlayComponent } from "../../shared/loading-overlay/loading-overlay.component";
 import { Genre } from '../../../model/genre.model';
 

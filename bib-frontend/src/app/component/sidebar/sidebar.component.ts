@@ -1,6 +1,6 @@
 import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/RoleAuthorization/auth.service';
+import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
 import { Role } from '../../model/auth.model';
 import {
@@ -50,8 +50,8 @@ export class SidebarComponent {
     { icon: Book, label: 'Catalogus', route: '/catalog' },
     { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },
     { icon: History, label: 'Geschiedenis', route: '/historiek' },
-    { icon: Star, label: 'Mijn Reviews', route: '/reviews' },
-    { icon: UserCircle, label: 'Mijn Account', route: '/profile' },
+    { icon: Star, label: 'Mijn reviews', route: '/reviews' },
+    { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/instellingen' },
     { icon: Package, label: 'BookBox', route: '/bookbox' },
     { icon: Flag, label: 'Rapporteer', route: '/gerapporteerd' },

@@ -2,6 +2,9 @@ package edu.ap.bib_backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
@@ -38,6 +42,7 @@ import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReviewRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,9 +62,14 @@ class BookServiceTest {
 
     private BookService bs;
 
+    @Mock
     private ReviewRepository reviewRepository;
 
+    @Mock
     private BookLoanRepository bookLoanRepository;
+
+    @Mock
+    private ReadingListBookRepository readingListBookRepository;
 
     @BeforeEach
     void setUp() {
@@ -100,6 +110,74 @@ class BookServiceTest {
         assertThat(result.get(0).getReviewScore()).isEqualTo(4.5);
         assertThat(result.get(0).getGenres()).hasSize(1);
         assertThat(result.get(0).getGenres().get(0).name()).isEqualTo("Roman");
+    }
+
+    @Test
+    @DisplayName("Given valid ID with no borrowed copies, When deleteBook is called, Then delete all related entities and book")
+    void givenValidIdWithNoBorrowedCopies_whenDeleteBook_thenDeleteSuccessfully() {
+        // Arrange
+        Long bookId = 1L;
+        Book book = new Book();
+        book.setId(bookId);
+        book.setGenres(new ArrayList<>()); // Must be a mutable list so .clear() works!
+
+        given(br.findById(bookId)).willReturn(Optional.of(book));
+        given(bcr.existsByBookIdAndAvailability(bookId, Availability.BORROWED)).willReturn(false);
+
+        // Act
+        bs.deleteBook(bookId);
+
+        // Assert
+        then(reviewRepository).should().deleteByBookId(bookId);
+        then(bookLoanRepository).should().deleteByCopyBookId(bookId);
+        then(bcr).should().deleteByBookId(bookId);
+        then(br).should().delete(book);
+        assertTrue(book.getGenres().isEmpty(), "Genres list should be cleared");
+    }
+
+    @Test
+    @DisplayName("Given non-existing book ID, When deleteBook is called, Then throw ResourceNotFoundException")
+    void givenNonExistingBookId_whenDeleteBook_thenThrowResourceNotFoundException() {
+        // Arrange
+        Long invalidId = 99L;
+        
+        given(br.findById(invalidId)).willReturn(Optional.empty());
+
+        // Act & Assert
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
+            bs.deleteBook(invalidId);
+        });
+
+        assertEquals("Boek niet gevonden met id: 99", exception.getMessage());
+        
+        // Ensure no delete operations were called
+        then(bcr).shouldHaveNoInteractions();
+        then(reviewRepository).shouldHaveNoInteractions();
+        then(bookLoanRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("Given book with borrowed copies, When deleteBook is called, Then throw IllegalStateException")
+    void givenBookWithBorrowedCopies_whenDeleteBook_thenThrowIllegalStateException() {
+        // Arrange
+        Long bookId = 2L;
+        Book book = new Book();
+        book.setId(bookId);
+
+        given(br.findById(bookId)).willReturn(Optional.of(book));
+        given(bcr.existsByBookIdAndAvailability(bookId, Availability.BORROWED)).willReturn(true);
+
+        // Act & Assert
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            bs.deleteBook(bookId);
+        });
+
+        assertEquals("Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.", exception.getMessage());
+
+        
+        then(reviewRepository).shouldHaveNoInteractions();
+        then(bookLoanRepository).shouldHaveNoInteractions();
+        then(br).should(never()).delete(any(Book.class));
     }
 
     @Test

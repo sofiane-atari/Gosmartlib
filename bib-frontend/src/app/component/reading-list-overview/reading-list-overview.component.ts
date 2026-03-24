@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReadingListService, ReadingList } from '../../services/reading-list.service';
-import { ToastService } from '../../services/Toast/toast.service';
+import { ToastService } from '../../services/toast/toast.service';
 
 @Component({
   selector: 'app-reading-list-overview',

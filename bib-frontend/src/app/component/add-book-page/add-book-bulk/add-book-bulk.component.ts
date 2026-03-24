@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { Download, CheckSquare, Plus, Info, LucideAngularModule } from 'lucide-angular';
 import { BookService } from '../../../services/BookService/book.service';
-import { ToastService } from '../../../services/Toast/toast.service';
+import { ToastService } from '../../../services/toast/toast.service';
 import { FileValidationError } from '../../../model/FileValidationError';
 import { environment } from '../../../../environments/environment';
 import { FileUploadComponent } from '../../file-upload/file-upload.component';

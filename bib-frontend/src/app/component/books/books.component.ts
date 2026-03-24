@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, computed, effect } from '@angular/co
 import { Book } from '../../model/book.model';
 import { BookService } from '../../services/BookService/book.service';
 import { ReadingListService } from '../../services/reading-list.service';
-import { ToastService } from '../../services/Toast/toast.service';
+import { ToastService } from '../../services/toast/toast.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
