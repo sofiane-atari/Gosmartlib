@@ -88,6 +88,19 @@ public class ReadingListService {
         return addBookToList(userId, favoritesList.getId(), bookId);
     }
 
+    public void removeBookFromList(String userId, Long listId, Long bookId) {
+        if (bookId == null) {
+            throw new IllegalArgumentException("Boek ID mag niet null zijn");
+        }
+
+        getListById(userId, listId);
+
+        ReadingListBook readingListBook = readingListBookRepository.findByReadingList_IdAndBookId(listId, bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Boek met id " + bookId + " zit niet in deze leeslijst"));
+
+        readingListBookRepository.delete(readingListBook);
+    }
+
     private User getUserOrThrow(String userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Gebruiker met id " + userId + " bestaat niet"));

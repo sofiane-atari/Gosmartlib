@@ -299,6 +299,55 @@ class ReadingListServiceTest {
         verify(readingListBookRepository).save(any());
     }
 
+    // removeBookFromList
+
+    @Test
+    void givenBookInList_whenRemoveBookFromList_thenDeleteLink() {
+        Long listId = 10L;
+        Long bookId = 100L;
+
+        ReadingList list = new ReadingList();
+        list.setId(listId);
+
+        ReadingListBook link = new ReadingListBook();
+        link.setId(1L);
+        link.setBookId(bookId);
+        link.setReadingList(list);
+
+        when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListBookRepository.findByReadingList_IdAndBookId(listId, bookId)).thenReturn(Optional.of(link));
+
+        readingListService.removeBookFromList(USER_ID, listId, bookId);
+
+        verify(readingListBookRepository).delete(link);
+    }
+
+    @Test
+    void givenBookNotInList_whenRemoveBookFromList_thenThrowException() {
+        Long listId = 10L;
+        Long bookId = 999L;
+
+        ReadingList list = new ReadingList();
+        list.setId(listId);
+
+        when(readingListRepository.findByIdAndUser_Id(listId, USER_ID)).thenReturn(Optional.of(list));
+        when(readingListBookRepository.findByReadingList_IdAndBookId(listId, bookId)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.removeBookFromList(USER_ID, listId, bookId));
+
+        assertEquals("Boek met id 999 zit niet in deze leeslijst", exception.getMessage());
+        verify(readingListBookRepository, never()).delete(any());
+    }
+
+    @Test
+    void givenNullBookId_whenRemoveBookFromList_thenThrowException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> readingListService.removeBookFromList(USER_ID, 10L, null));
+
+        assertEquals("Boek ID mag niet null zijn", exception.getMessage());
+    }
+
     private User makeUser() {
         User user = new User();
         user.setId(USER_ID);

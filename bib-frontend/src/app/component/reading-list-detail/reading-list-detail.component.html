@@ -20,7 +20,7 @@
                 <h1 class="page-title">{{ list.name }}</h1>
                 <p class="page-subtitle">leeslijst</p>
             </div>
-            <button class="btn-secondary" routerLink="/reading-list">← Terug</button>
+            <button class="btn-secondary" routerLink="/reading-list">Terug</button>
         </div>
 
         <div class="books-empty" *ngIf="booksInList.length === 0 && list.books && list.books.length > 0">
@@ -36,6 +36,9 @@
         <div class="books-grid" *ngIf="booksInList.length > 0">
             <div class="book-card" *ngFor="let book of booksInList" (click)="goToBook(book.id)"
                 style="cursor: pointer;">
+                <button class="remove-book-btn" title="Verwijder uit leeslijst" (click)="removeBookFromList(book.id, $event)">
+                    <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                </button>
                 <div class="book-cover">
                     <!-- Display actual image or fallback -->
                     <img *ngIf="book.imageUrl" [src]="book.imageUrl" alt="Cover"

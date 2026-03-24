@@ -200,6 +200,29 @@ class ReadingListControllerTest {
                 .andExpect(jsonPath("$.bookId").value(100));
     }
 
+    // DELETE /reading-lists/{listId}/books/{bookId}
+
+    @Test
+    void givenBookInList_whenRemoveBookFromList_thenReturnNoContent() throws Exception {
+        doNothing().when(readingListService).removeBookFromList(USER_ID, 10L, 100L);
+
+        mockMvc.perform(delete("/reading-lists/{listId}/books/{bookId}", 10L, 100L)
+                        .principal(userAuthentication()))
+                .andExpect(status().isNoContent());
+
+        verify(readingListService).removeBookFromList(USER_ID, 10L, 100L);
+    }
+
+    @Test
+    void givenBookMissing_whenRemoveBookFromList_thenReturnBadRequest() throws Exception {
+        doThrow(new IllegalArgumentException("Boek met id 999 zit niet in deze leeslijst"))
+                .when(readingListService).removeBookFromList(USER_ID, 10L, 999L);
+
+        mockMvc.perform(delete("/reading-lists/{listId}/books/{bookId}", 10L, 999L)
+                        .principal(userAuthentication()))
+                .andExpect(status().isBadRequest());
+    }
+
     private Authentication userAuthentication() {
         return new UsernamePasswordAuthenticationToken(USER_ID, null, List.of());
     }

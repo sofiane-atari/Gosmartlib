@@ -53,4 +53,8 @@ export class ReadingListService {
   addBookToFavorites(bookId: number): Observable<ReadingListBook> {
     return this.http.post<ReadingListBook>(`${this.apiUrl}/favorites/books`, { bookId });
   }
+
+  removeBookFromList(listId: number, bookId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${listId}/books/${bookId}`);
+  }
 }

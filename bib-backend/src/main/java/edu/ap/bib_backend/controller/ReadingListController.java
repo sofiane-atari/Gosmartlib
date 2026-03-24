@@ -58,6 +58,14 @@ public class ReadingListController {
         return ResponseEntity.status(HttpStatus.CREATED).body(addedBook);
     }
 
+    @DeleteMapping("/{listId}/books/{bookId}")
+    public ResponseEntity<Void> removeBookFromList(@PathVariable("listId") Long listId,
+            @PathVariable("bookId") Long bookId,
+            Principal principal) {
+        readingListService.removeBookFromList(requireUserId(principal), listId, bookId);
+        return ResponseEntity.noContent().build();
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
