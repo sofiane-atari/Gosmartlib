@@ -1,11 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Book } from '../../model/book.model';
 import { BookService } from '../../services/BookService/book.service';
 import { LoansService } from '../../services/loans.service';
 import { UserService } from '../../services/user.service';
 import { AuthUserDto } from '../../model/auth.model';
+import { PaginatedResponse } from '../../model/paginated-response.model.ts';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-create-loan',
@@ -16,9 +20,11 @@ import { AuthUserDto } from '../../model/auth.model';
 })
 export class CreateLoanComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
   private readonly bookService = inject(BookService);
   private readonly loansService = inject(LoansService);
+  private readonly bookSearchSubject = new Subject<string>();
 
   public readonly isLoadingUsers = signal(false);
   public readonly isLoadingBooks = signal(false);
@@ -30,18 +36,48 @@ export class CreateLoanComponent {
   public readonly searchLastname = signal('');
   // TODO: TEMPORARY - Remove this signal when searchId feature is no longer needed
   public readonly searchId = signal('');
-  public readonly bookSearch = signal('');
+  public readonly bookSearchTitle = signal('');
+  public readonly bookSearchAuthor = signal('');
+  public readonly bookSearchIsbn = signal('');
   public readonly users = signal<AuthUserDto[]>([]);
   public readonly books = signal<Book[]>([]);
   public readonly selectedUser = signal<AuthUserDto | null>(null);
   public readonly selectedBooks = signal<Book[]>([]);
 
+  public readonly hasBookSearchInput = computed(() => {
+    return (
+      this.bookSearchTitle().trim().length > 0 ||
+      this.bookSearchAuthor().trim().length > 0 ||
+      this.bookSearchIsbn().trim().length > 0
+    );
+  });
+
   protected loanForm = this.fb.group({
     returnDate: ['', Validators.required],
   });
 
+  public constructor() {
+    this.bookSearchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((searchTerm: string) => {
+        if (!this.selectedUser()) {
+          return;
+        }
+
+        if (!this.hasBookSearchInput()) {
+          this.books.set([]);
+          return;
+        }
+
+        this.loadBooks(searchTerm);
+      });
+  }
+
   public readonly filteredBooks = computed(() => {
-    const query = this.bookSearch().trim().toLowerCase();
     const selectedBookIds = new Set(this.selectedBooks().map((book) => book.id));
 
     return this.books().filter((book) => {
@@ -49,27 +85,9 @@ export class CreateLoanComponent {
       const notAlreadySelected = !selectedBookIds.has(book.id);
       const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
 
-      if (!query) {
-        return hasId && notAlreadySelected && hasCopiesAvailable;
-      }
-
-      const inTitle = book.title.toLowerCase().includes(query);
-      const inAuthor = book.author.toLowerCase().includes(query);
-      const inIsbn = (book.ISBN ?? '').toLowerCase().includes(query);
-
-      return (
-        hasId &&
-        notAlreadySelected &&
-        hasCopiesAvailable &&
-        (inTitle || inAuthor || inIsbn)
-      );
+      return hasId && notAlreadySelected && hasCopiesAvailable;
     });
   });
-
-  public constructor() {
-    this.loadUsers();
-    this.loadBooks();
-  }
 
   public onFirstnameSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
@@ -100,18 +118,36 @@ export class CreateLoanComponent {
     this.selectedBooks.set([]);
     this.successMessage.set('');
     this.errorMessage.set('');
+    this.triggerBookSearch();
   }
 
   public clearSelectedUser(): void {
     this.selectedUser.set(null);
     this.selectedBooks.set([]);
+    this.books.set([]);
+    this.bookSearchTitle.set('');
+    this.bookSearchAuthor.set('');
+    this.bookSearchIsbn.set('');
     this.successMessage.set('');
     this.errorMessage.set('');
   }
 
-  public onBookSearchChange(event: Event): void {
+  public onBookTitleSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.bookSearch.set(target.value);
+    this.bookSearchTitle.set(target.value);
+    this.triggerBookSearch();
+  }
+
+  public onBookAuthorSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.bookSearchAuthor.set(target.value);
+    this.triggerBookSearch();
+  }
+
+  public onBookIsbnSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.bookSearchIsbn.set(target.value);
+    this.triggerBookSearch();
   }
 
   public addBook(book: Book): void {
@@ -169,6 +205,7 @@ export class CreateLoanComponent {
           this.successMessage.set('De lening is succesvol aangemaakt.');
           this.selectedBooks.set([]);
           this.loanForm.reset({ returnDate: '' });
+          this.triggerBookSearch();
         },
         error: () => {
           this.isSubmitting.set(false);
@@ -203,19 +240,48 @@ export class CreateLoanComponent {
       });
   }
 
-  private loadBooks(): void {
+  private loadBooks(searchTerm: string = ''): void {
+    if (!this.selectedUser()) {
+      this.books.set([]);
+      return;
+    }
+
     this.isLoadingBooks.set(true);
 
-    this.bookService.getBooks().subscribe({
-      next: (books) => {
-        this.books.set(books);
+    this.bookService.getFilteredBooks(
+      searchTerm.length > 0 ? searchTerm : null,
+      'AVAILABLE',
+      null,
+      null,
+      0,
+      50,
+      'AZ',
+    ).subscribe({
+      next: (response: PaginatedResponse<Book>) => {
+        this.books.set(response.data);
         this.isLoadingBooks.set(false);
       },
-      error: (err: any) => {
+      error: () => {
         this.books.set([]);
         this.isLoadingBooks.set(false);
         this.errorMessage.set('Boeken konden niet geladen worden.');
       },
     });
+  }
+
+  private triggerBookSearch(): void {
+    const searchTerm = this.buildBookSearchTerm();
+    this.bookSearchSubject.next(searchTerm);
+  }
+
+  private buildBookSearchTerm(): string {
+    return [
+      this.bookSearchTitle().trim(),
+      this.bookSearchAuthor().trim(),
+      this.bookSearchIsbn().trim(),
+    ]
+      .filter((value) => value.length > 0)
+      .join(' ')
+      .trim();
   }
 }

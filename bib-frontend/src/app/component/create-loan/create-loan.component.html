@@ -53,9 +53,10 @@
 			@for (user of users(); track user.id) {
 			<button type="button" class="list-item" [class.active]="selectedUser()?.id === user.id"
 				(click)="selectUser(user)">
-				<span class="list-item-title">{{ user.firstName ?? 'Onbekend voornaam' }} {{ user.lastName ?? 'Onbekend achternaam' }}</span>
+				<span class="list-item-title">{{ user.firstName ?? 'Onbekend voornaam' }} {{ user.lastName ?? 'Onbekend
+					achternaam' }}</span>
 				@if (user.role === 'STUDENT') {
-					<span class="list-item-subtitle">Klas: {{ user.primaryGroupName ?? 'Onbekend klas' }}</span>
+				<span class="list-item-subtitle">Klas: {{ user.primaryGroupName ?? 'Onbekend klas' }}</span>
 				}
 			</button>
 			} @empty {
@@ -82,13 +83,27 @@
 		</div>
 
 		<div class="search-row">
-			<label for="bookSearch">Zoek boek</label>
-			<input id="bookSearch" type="text" [value]="bookSearch()" (input)="onBookSearchChange($event)"
-				placeholder="Zoek op titel, auteur of ISBN" />
+			<label for="bookSearchTitle">Zoek op titel</label>
+			<input id="bookSearchTitle" type="text" [value]="bookSearchTitle()"
+				(input)="onBookTitleSearchChange($event)" placeholder="Typ een titel" />
+		</div>
+
+		<div class="search-row">
+			<label for="bookSearchAuthor">Zoek op auteur</label>
+			<input id="bookSearchAuthor" type="text" [value]="bookSearchAuthor()"
+				(input)="onBookAuthorSearchChange($event)" placeholder="Typ een auteur" />
+		</div>
+
+		<div class="search-row">
+			<label for="bookSearchIsbn">Zoek op ISBN</label>
+			<input id="bookSearchIsbn" type="text" [value]="bookSearchIsbn()" (input)="onBookIsbnSearchChange($event)"
+				placeholder="Typ een ISBN" />
 		</div>
 
 		@if (isLoadingBooks()) {
 		<p class="hint">Boeken worden geladen...</p>
+		} @else if (!hasBookSearchInput()) {
+		<p class="hint">Vul minstens één zoekveld in om boeken te zoeken.</p>
 		} @else {
 		<div class="list">
 			@for (book of filteredBooks(); track trackByBookId($index, book)) {
