@@ -10,6 +10,7 @@ import { PaginatedResponse } from '../../model/paginated-response.model.ts';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toLocalDate } from '../../shared/types/local-date.type';
 
 @Component({
   selector: 'app-create-loan',
@@ -197,7 +198,7 @@ export class CreateLoanComponent {
         id: 0,
         userId: user.id,
         bookIds: bookIds,
-        returnDate: new Date(returnDate),
+        returnDate: toLocalDate(new Date(returnDate)),
       })
       .subscribe({
         next: () => {

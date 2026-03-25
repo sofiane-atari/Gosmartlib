@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.jpa.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.Entity;
@@ -18,7 +19,7 @@ import lombok.Setter;
 @Entity
 @Setter
 @Getter
-@Table(name = "book_loans")
+@Table(name = "loans")
 public class Loan {
 
     @Id
@@ -26,17 +27,13 @@ public class Loan {
     private Long id;
 
     private LocalDate loanDate;
-    private LocalDate returnDate; 
+    private LocalDate returnDate;
 
     @ManyToMany
-    @JoinTable(
-        name = "loan_copies",
-        joinColumns = @JoinColumn(name = "loan_id"),
-        inverseJoinColumns = @JoinColumn(name = "book_copy_id")
-    )
-    private List<BookCopy> copies;
+    @JoinTable(name = "loan_copies", joinColumns = @JoinColumn(name = "loan_id"), inverseJoinColumns = @JoinColumn(name = "book_copy_id"))
+    private List<BookCopy> copies = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "user_id") 
+    @JoinColumn(name = "user_id")
     private User user;
 }

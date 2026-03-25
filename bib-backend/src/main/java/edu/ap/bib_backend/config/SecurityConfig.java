@@ -50,12 +50,13 @@ public class SecurityConfig {
         private final SmartschoolOAuth2UserService smartschoolOAuth2UserService;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter ,
+        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                         SmartschoolOAuth2UserService smartschoolOAuth2UserService) {
 
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
         }
+
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
@@ -74,7 +75,9 @@ public class SecurityConfig {
 
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                                .requestMatchers("/auth/error", "/oauth2/**", "/login/**", "/auth/callback").permitAll()
+                                                .requestMatchers("/auth/error", "/oauth2/**", "/login/**",
+                                                                "/auth/callback")
+                                                .permitAll()
                                                 .requestMatchers("/auth/me", "/auth/logout").authenticated()
                                                 .requestMatchers("/reviews/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
@@ -84,6 +87,9 @@ public class SecurityConfig {
                                                                 Role.LIBRARIAN.name(), Role.ADMIN.name())
                                                 .requestMatchers("/genres/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.ADMIN.name())
+                                                .requestMatchers("/loans/**")
+                                                .hasAnyRole(Role.STUDENT.name(), Role.LIBRARIAN.name(),
+                                                                Role.ADMIN.name())
                                                 .anyRequest().authenticated())
 
                                 // --- OAuth2 login via Smartschool ---
