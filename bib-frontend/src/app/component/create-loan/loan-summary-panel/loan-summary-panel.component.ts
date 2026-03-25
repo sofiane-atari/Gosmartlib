@@ -16,6 +16,7 @@ export class LoanSummaryPanelComponent {
   public readonly selectedBooks = input.required<Book[]>();
   public readonly hasSelectedUser = input.required<boolean>();
   public readonly isSubmitting = input.required<boolean>();
+  public readonly filteredBooks = input.required<Book[]>();
 
   public readonly createLoanRequested = output<void>();
   public readonly removeBookRequested = output<number | undefined>();

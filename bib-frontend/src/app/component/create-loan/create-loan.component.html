@@ -20,6 +20,6 @@
 		(isbnKeydown)="onBookIsbnKeydown($event)" (addBookRequested)="addBook($event)" />
 
 	<app-loan-summary-panel [loanForm]="loanForm" [minReturnDate]="minReturnDate()" [selectedBooks]="selectedBooks()"
-		[hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()" (createLoanRequested)="createLoan()"
+		[hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()" [filteredBooks]="filteredBooks()" (createLoanRequested)="createLoan()"
 		(removeBookRequested)="removeBook($event)" />
 </section>

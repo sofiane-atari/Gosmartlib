@@ -25,7 +25,7 @@
     <p class="hint">Vul minstens één zoekveld in om boeken te zoeken.</p>
     } @else {
     <div class="list">
-        @for (book of filteredBooks(); track book.id ?? $index) {
+        @for (book of filteredBooks(); track book.id) {
         <div class="list-item book-item">
             <div class="book-item-content">
                 <span class="list-item-title">{{ book.title }}</span>
