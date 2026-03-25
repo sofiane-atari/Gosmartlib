@@ -71,7 +71,7 @@ public class SmartschoolOAuth2UserService
                 User user = userService.getUser(userId)
                                 .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol)));
 
-                SmartschoolGroupDto groupDto = smartschoolProfileService.fetchGroups(userId);
+                SmartschoolGroupDto groupDto = smartschoolProfileService.fetchGroups(userRequest.getAccessToken().getTokenValue());
                 String primaryGroupName = groupDto.primaryGroupName();
                 Group group = null;
                 try {
