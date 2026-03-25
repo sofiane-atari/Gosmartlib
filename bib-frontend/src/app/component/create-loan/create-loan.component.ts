@@ -29,13 +29,17 @@ export class CreateLoanComponent {
   private readonly toastService = inject(ToastService);
   private readonly catalogSearchSubject = new Subject<string>();
   private readonly isbnSearchSubject = new Subject<string>();
-  private readonly scannerMinLength = 8;
+  private readonly scannerSuffixKey = 'Enter';
+  private readonly scannerConfiguredPrefixes = ['SCN:', 'ISBN:'];
+  private readonly scannerMinLength = 10;
   private readonly scannerMaxDurationMs = 1200;
   private readonly scannerMaxInterKeyDelayMs = 120;
 
   private isbnScanStartTimestamp = 0;
   private isbnScanLastTimestamp = 0;
   private isbnScanKeystrokeCount = 0;
+  private suppressNextDebouncedIsbnSearch = false;
+  private latestIsbnRequestSequence = 0;
 
   public readonly isLoadingUsers = signal(false);
   public readonly isLoadingCatalogBooks = signal(false);
@@ -96,6 +100,11 @@ export class CreateLoanComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((isbn: string) => {
+        if (this.suppressNextDebouncedIsbnSearch) {
+          this.suppressNextDebouncedIsbnSearch = false;
+          return;
+        }
+
         if (!this.selectedUser()) {
           return;
         }
@@ -179,20 +188,32 @@ export class CreateLoanComponent {
   public onBookIsbnSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.bookSearchIsbn.set(target.value);
-    this.triggerIsbnSearch();
+    this.triggerIsbnSearch(this.normalizeIsbnInput(target.value));
   }
 
   public onBookIsbnKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter') {
+    if (event.key === this.scannerSuffixKey) {
       event.preventDefault();
 
-      const isbn = this.bookSearchIsbn().trim();
-      if (isbn.length === 0) {
+      const rawInput = this.bookSearchIsbn().trim();
+      if (rawInput.length === 0) {
         return;
       }
 
-      const isLikelyScanner = this.isLikelyScannerInput(isbn);
-      this.fetchBookByIsbn(isbn, isLikelyScanner);
+      const scannerPayload = this.extractScannerPayload(rawInput);
+      const normalizedIsbn = this.normalizeIsbnInput(scannerPayload.payload);
+
+      if (!this.isValidIsbnFormat(normalizedIsbn)) {
+        this.showError('Het ingevoerde ISBN-formaat is ongeldig. Gebruik een geldig ISBN-10 of ISBN-13.');
+        this.resetIsbnScannerTracking();
+        return;
+      }
+
+      this.suppressNextDebouncedIsbnSearch = true;
+      this.bookSearchIsbn.set(normalizedIsbn);
+
+      const isLikelyScanner = scannerPayload.hasConfiguredPrefix || this.isLikelyScannerInput(normalizedIsbn);
+      this.fetchBookByIsbn(normalizedIsbn, isLikelyScanner);
       this.resetIsbnScannerTracking();
       return;
     }
@@ -345,10 +366,15 @@ export class CreateLoanComponent {
       return;
     }
 
+    const requestSequence = ++this.latestIsbnRequestSequence;
     this.isLoadingIsbnBooks.set(true);
 
     this.bookService.getBookByISBN(isbn).subscribe({
       next: (book: Book) => {
+        if (requestSequence !== this.latestIsbnRequestSequence) {
+          return;
+        }
+
         this.isbnBooks.set([book]);
         this.isLoadingIsbnBooks.set(false);
 
@@ -357,6 +383,10 @@ export class CreateLoanComponent {
         }
       },
       error: () => {
+        if (requestSequence !== this.latestIsbnRequestSequence) {
+          return;
+        }
+
         this.isbnBooks.set([]);
         this.isLoadingIsbnBooks.set(false);
       },
@@ -395,6 +425,36 @@ export class CreateLoanComponent {
     );
   }
 
+  private extractScannerPayload(rawInput: string): { payload: string; hasConfiguredPrefix: boolean } {
+    const trimmedInput = rawInput.trim();
+    const upperInput = trimmedInput.toUpperCase();
+
+    for (const prefix of this.scannerConfiguredPrefixes) {
+      if (upperInput.startsWith(prefix)) {
+        return {
+          payload: trimmedInput.slice(prefix.length).trim(),
+          hasConfiguredPrefix: true,
+        };
+      }
+    }
+
+    return {
+      payload: trimmedInput,
+      hasConfiguredPrefix: false,
+    };
+  }
+
+  private normalizeIsbnInput(value: string): string {
+    const scannerPayload = this.extractScannerPayload(value).payload;
+    return scannerPayload.replace(/[\s-]/g, '').trim();
+  }
+
+  private isValidIsbnFormat(isbn: string): boolean {
+    const isIsbn13 = /^\d{13}$/.test(isbn);
+    const isIsbn10 = /^\d{9}[\dXx]$/.test(isbn);
+    return isIsbn10 || isIsbn13;
+  }
+
   private resetIsbnScannerTracking(): void {
     this.isbnScanStartTimestamp = 0;
     this.isbnScanLastTimestamp = 0;
@@ -405,8 +465,8 @@ export class CreateLoanComponent {
     this.catalogSearchSubject.next(this.bookSearchQuery().trim());
   }
 
-  private triggerIsbnSearch(): void {
-    this.isbnSearchSubject.next(this.bookSearchIsbn().trim());
+  private triggerIsbnSearch(isbnOverride?: string): void {
+    this.isbnSearchSubject.next((isbnOverride ?? this.bookSearchIsbn().trim()));
   }
 
   private showSuccess(message: string): void {
