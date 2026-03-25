@@ -11,6 +11,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { toLocalDate } from '../../shared/types/local-date.type';
+import { ToastService } from '../../services/Toast/toast.service';
 
 @Component({
   selector: 'app-create-loan',
@@ -25,6 +26,7 @@ export class CreateLoanComponent {
   private readonly userService = inject(UserService);
   private readonly bookService = inject(BookService);
   private readonly loansService = inject(LoansService);
+  private readonly toastService = inject(ToastService);
   private readonly catalogSearchSubject = new Subject<string>();
   private readonly isbnSearchSubject = new Subject<string>();
   private readonly scannerMinLength = 8;
@@ -39,8 +41,6 @@ export class CreateLoanComponent {
   public readonly isLoadingCatalogBooks = signal(false);
   public readonly isLoadingIsbnBooks = signal(false);
   public readonly isSubmitting = signal(false);
-  public readonly errorMessage = signal<string>('');
-  public readonly successMessage = signal<string>('');
 
   public readonly searchFirstname = signal('');
   public readonly searchLastname = signal('');
@@ -156,8 +156,6 @@ export class CreateLoanComponent {
   public selectUser(user: AuthUserDto): void {
     this.selectedUser.set(user);
     this.selectedBooks.set([]);
-    this.successMessage.set('');
-    this.errorMessage.set('');
     this.triggerCatalogSearch();
     this.triggerIsbnSearch();
   }
@@ -170,8 +168,6 @@ export class CreateLoanComponent {
     this.resetIsbnScannerTracking();
     this.bookSearchQuery.set('');
     this.bookSearchIsbn.set('');
-    this.successMessage.set('');
-    this.errorMessage.set('');
   }
 
   public onBookSearchQueryChange(event: Event): void {
@@ -235,8 +231,6 @@ export class CreateLoanComponent {
     }
 
     this.selectedBooks.update((books) => [...books, book]);
-    this.successMessage.set('');
-    this.errorMessage.set('');
   }
 
   public removeBook(bookId: number | undefined): void {
@@ -253,8 +247,7 @@ export class CreateLoanComponent {
     const returnDate = this.loanForm.controls.returnDate.value;
 
     if (!user || books.length === 0 || !returnDate) {
-      this.errorMessage.set('Vul alle verplichte velden in voor je een lening aanmaakt.');
-      this.successMessage.set('');
+      this.showError('Vul alle verplichte velden in voor je een lening aanmaakt.');
       return;
     }
 
@@ -263,13 +256,11 @@ export class CreateLoanComponent {
       .filter((bookId): bookId is number => bookId !== undefined);
 
     if (bookIds.length !== books.length) {
-      this.errorMessage.set('Eén of meerdere geselecteerde boeken zijn ongeldig.');
-      this.successMessage.set('');
+      this.showError('Eén of meerdere geselecteerde boeken zijn ongeldig.');
       return;
     }
 
     this.isSubmitting.set(true);
-    this.errorMessage.set('');
 
     this.loansService
       .createLoan({
@@ -281,7 +272,7 @@ export class CreateLoanComponent {
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
-          this.successMessage.set('De lening is succesvol aangemaakt.');
+          this.showSuccess('De lening is succesvol aangemaakt.');
           this.selectedBooks.set([]);
           this.loanForm.reset({ returnDate: '' });
           this.triggerCatalogSearch();
@@ -289,8 +280,7 @@ export class CreateLoanComponent {
         },
         error: () => {
           this.isSubmitting.set(false);
-          this.errorMessage.set('De lening kon niet aangemaakt worden. Probeer opnieuw.');
-          this.successMessage.set('');
+          this.showError('De lening kon niet worden aangemaakt. Probeer opnieuw.');
         },
       });
   }
@@ -313,7 +303,7 @@ export class CreateLoanComponent {
         error: (err: any) => {
           this.users.set([]);
           this.isLoadingUsers.set(false);
-          this.errorMessage.set('Gebruikers konden niet geladen worden.');
+          this.showError('Gebruikers konden niet worden geladen.');
           console.log('Error loading users:', err);
           console.log('Error loading users with parameters:', { firstName, lastName, id });
         },
@@ -344,7 +334,7 @@ export class CreateLoanComponent {
       error: () => {
         this.catalogBooks.set([]);
         this.isLoadingCatalogBooks.set(false);
-        this.errorMessage.set('Boeken konden niet geladen worden.');
+        this.showError('Boeken konden niet worden geladen.');
       },
     });
   }
@@ -380,21 +370,18 @@ export class CreateLoanComponent {
 
     const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
     if (!hasCopiesAvailable) {
-      this.errorMessage.set('Het gescande boek is niet beschikbaar voor uitlening.');
-      this.successMessage.set('');
+      this.showError('Het gescande boek is niet beschikbaar voor uitlening.');
       return;
     }
 
     const isAlreadySelected = this.selectedBooks().some((selectedBook) => selectedBook.id === book.id);
     if (isAlreadySelected) {
-      this.successMessage.set('Het gescande boek was al geselecteerd.');
-      this.errorMessage.set('');
+      this.showSuccess('Het gescande boek was al geselecteerd.');
       return;
     }
 
     this.addBook(book);
-    this.successMessage.set('Boek succesvol gescand en toegevoegd.');
-    this.errorMessage.set('');
+    this.showSuccess('Boek succesvol gescand en toegevoegd.');
   }
 
   private isLikelyScannerInput(isbn: string): boolean {
@@ -420,5 +407,13 @@ export class CreateLoanComponent {
 
   private triggerIsbnSearch(): void {
     this.isbnSearchSubject.next(this.bookSearchIsbn().trim());
+  }
+
+  private showSuccess(message: string): void {
+    this.toastService.show(message, 'success');
+  }
+
+  private showError(message: string): void {
+    this.toastService.show(message, 'error');
   }
 }

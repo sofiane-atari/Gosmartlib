@@ -8,12 +8,30 @@
 .toast {
   padding: 16px 24px;
   border-radius: 8px;
-  color: var(--main-light-color); 
+  color: var(--main-light-color);
   font-weight: 500;
   min-width: 250px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   margin-bottom: 10px;
   text-align: center;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.btn-close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  min-width: 20px;
 }
 
 
@@ -26,7 +44,7 @@
 }
 
 .toast.confirm {
-  background-color: var(--main-color); 
+  background-color: var(--main-color);
 }
 
 .confirm-buttons {
@@ -58,6 +76,7 @@
   transition: transform 0.1s ease;
 }
 
-.btn-yes:hover, .btn-no:hover {
+.btn-yes:hover,
+.btn-no:hover {
   transform: scale(1.05);
 }

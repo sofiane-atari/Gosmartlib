@@ -1,14 +1,22 @@
 @if (toast) {
-  <div class="toast-container" [@fade]>
-    <div class="toast" [ngClass]="toast.type">
-      {{ toast.message }}
+<div class="toast-container" [@fade]>
+  <div class="toast" [ngClass]="toast.type">
+    <div class="toast-content">
+      <span>{{ toast.message }}</span>
 
-      @if (toast.type === 'confirm') {
-        <div class="confirm-buttons">
-          <button class="btn-yes" (click)="confirm()">Ja</button>
-          <button class="btn-no" (click)="cancel()">Nee</button>
-        </div>
+      @if (toast.type !== 'confirm') {
+      <button type="button" class="btn-close" (click)="close()" aria-label="Melding sluiten">
+        ×
+      </button>
       }
     </div>
+
+    @if (toast.type === 'confirm') {
+    <div class="confirm-buttons">
+      <button class="btn-yes" (click)="confirm()">Ja</button>
+      <button class="btn-no" (click)="cancel()">Nee</button>
+    </div>
+    }
   </div>
+</div>
 }
