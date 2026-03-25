@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserGetOptions {
-    private String withFirstName = "";
-    private String withLastName = "";
-    private String withId = "";
+    private String firstName = "";
+    private String lastName = "";
+    private String id = "";
 }

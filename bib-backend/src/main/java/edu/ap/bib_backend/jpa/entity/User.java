@@ -29,7 +29,7 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
 
-    public Role map(RoleEntity roleEntity) {
-        return roleEntity.getRole();
-    }
+    @ManyToOne
+    @JoinColumn(name = "group_name", nullable = true)
+    private Group group;
 }

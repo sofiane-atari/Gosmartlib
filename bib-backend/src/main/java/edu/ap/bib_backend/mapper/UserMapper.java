@@ -14,8 +14,10 @@ import edu.ap.bib_backend.jpa.enums.Role;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    // Maps a User entity to an AuthUserDto, using a custom converter for the role field
+    // Maps a User entity to an AuthUserDto, using a custom converter for the role
+    // field
     @Mapping(target = "role", source = "role", qualifiedByName = "roleEntityToRole")
+    @Mapping(target = "primaryGroupName", source = "group.name")
     AuthUserDto toDto(User user);
 
     List<AuthUserDto> toDtoList(List<User> users);

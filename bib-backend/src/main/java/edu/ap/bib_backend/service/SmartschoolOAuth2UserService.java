@@ -11,6 +11,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import edu.ap.bib_backend.dto.SmartschoolGroupDto;
+import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 
@@ -22,56 +24,74 @@ import java.util.Collections;
 
 @Service
 public class SmartschoolOAuth2UserService
-        implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+                implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final UserService userService;
-    private final RoleService roleService;
+        private final RestTemplate restTemplate = new RestTemplate();
+        private final UserService userService;
+        private final RoleService roleService;
+        private final GroupService groupService;
+        private final SmartschoolProfileService smartschoolProfileService;
 
-    public SmartschoolOAuth2UserService(
-            UserService userService,
-            RoleService roleService) {
-        this.userService = userService;
-        this.roleService = roleService;
-    }
+        public SmartschoolOAuth2UserService(
+                        UserService userService,
+                        RoleService roleService,
+                        GroupService groupService,
+                        SmartschoolProfileService smartschoolProfileService) {
+                this.userService = userService;
+                this.roleService = roleService;
+                this.groupService = groupService;
+                this.smartschoolProfileService = smartschoolProfileService;
+        }
 
-    @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        @Override
+        public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
-        String userInfoEndpoint = userRequest
-                .getClientRegistration()
-                .getProviderDetails()
-                .getUserInfoEndpoint()
-                .getUri();
+                String userInfoEndpoint = userRequest
+                                .getClientRegistration()
+                                .getProviderDetails()
+                                .getUserInfoEndpoint()
+                                .getUri();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userRequest.getAccessToken().getTokenValue());
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(userRequest.getAccessToken().getTokenValue());
 
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+                HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                userInfoEndpoint,
-                HttpMethod.GET,
-                entity,
-                Map.class);
+                ResponseEntity<Map> response = restTemplate.exchange(
+                                userInfoEndpoint,
+                                HttpMethod.GET,
+                                entity,
+                                Map.class);
 
-        Map<String, Object> attributes = response.getBody();
+                Map<String, Object> attributes = response.getBody();
 
-        String userId = (String) attributes.get("userID");
-        String basisrol = (String) attributes.get("basisrol");
+                String userId = (String) attributes.get("userID");
+                String basisrol = (String) attributes.get("basisrol");
 
-        User user = userService.getUser(userId)
-                .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol)));
+                User user = userService.getUser(userId)
+                                .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol)));
 
-        String roleString = getOAuthUserRole(user.getRole().getRole());
+                SmartschoolGroupDto groupDto = smartschoolProfileService.fetchGroups(userId);
+                String primaryGroupName = groupDto.primaryGroupName();
+                Group group = null;
+                try {
+                        group = groupService.getGroup(primaryGroupName);
+                } catch (RuntimeException e) {
+                        group = groupService.createGroup(primaryGroupName);
+                }
 
-        return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority(roleString)),
-                attributes,
-                "userID");
-    }
+                if (group != null)
+                        user.setGroup(group);
 
-    private String getOAuthUserRole(Role role) {
-        return "ROLE_" + role.name();
-    }
+                String roleString = getOAuthUserRole(user.getRole().getRole());
+
+                return new DefaultOAuth2User(
+                                Collections.singleton(new SimpleGrantedAuthority(roleString)),
+                                attributes,
+                                "userID");
+        }
+
+        private String getOAuthUserRole(Role role) {
+                return "ROLE_" + role.name();
+        }
 }

@@ -23,7 +23,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("path")
+    @GetMapping
     public ResponseEntity<List<AuthUserDto>> getUsers(@ModelAttribute UserGetOptions options) {
         return ResponseEntity.ok(userService.getUsers(options));
     }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
@@ -18,11 +19,13 @@ public class UserService {
     private final ProfanityFilterService profanityFilterService;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final GroupService groupService;
 
-    public UserService(UserRepository userRepository, ProfanityFilterService profanityFilterService, UserMapper userMapper) {
+    public UserService(UserRepository userRepository, ProfanityFilterService profanityFilterService, UserMapper userMapper, GroupService groupService) {
         this.userRepository = userRepository;
         this.profanityFilterService = profanityFilterService;
         this.userMapper = userMapper;
+        this.groupService = groupService;
     }
 
     public Optional<User> getUser(String userId) {
@@ -30,9 +33,12 @@ public class UserService {
     }
 
     public List<AuthUserDto> getUsers(UserGetOptions options) {
-
         List<User> users;
-        var optionsId = options.getWithId();
+        var optionsId = options.getId();
+        
+        System.out.println("Options: " + options);
+        System.out.println("Options ID: " + optionsId);
+
         if (!optionsId.isBlank())
             users = userRepository.findByIdContaining(optionsId);
         else
@@ -46,7 +52,6 @@ public class UserService {
     public User createUser(String userId, RoleEntity role) {
         if (userRepository.existsById(userId)) {
             throw new RuntimeException("Gebruiker bestaat al");
-        }
         User user = new User();
         user.setId(userId);
         user.setRole(role);
