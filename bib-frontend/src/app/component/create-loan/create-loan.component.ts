@@ -27,6 +27,13 @@ export class CreateLoanComponent {
   private readonly loansService = inject(LoansService);
   private readonly catalogSearchSubject = new Subject<string>();
   private readonly isbnSearchSubject = new Subject<string>();
+  private readonly scannerMinLength = 8;
+  private readonly scannerMaxDurationMs = 1200;
+  private readonly scannerMaxInterKeyDelayMs = 120;
+
+  private isbnScanStartTimestamp = 0;
+  private isbnScanLastTimestamp = 0;
+  private isbnScanKeystrokeCount = 0;
 
   public readonly isLoadingUsers = signal(false);
   public readonly isLoadingCatalogBooks = signal(false);
@@ -98,7 +105,7 @@ export class CreateLoanComponent {
           return;
         }
 
-        this.loadBookByIsbn(isbn);
+        this.fetchBookByIsbn(isbn, false);
       });
   }
 
@@ -160,6 +167,7 @@ export class CreateLoanComponent {
     this.selectedBooks.set([]);
     this.catalogBooks.set([]);
     this.isbnBooks.set([]);
+    this.resetIsbnScannerTracking();
     this.bookSearchQuery.set('');
     this.bookSearchIsbn.set('');
     this.successMessage.set('');
@@ -178,8 +186,51 @@ export class CreateLoanComponent {
     this.triggerIsbnSearch();
   }
 
+  public onBookIsbnKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+
+      const isbn = this.bookSearchIsbn().trim();
+      if (isbn.length === 0) {
+        return;
+      }
+
+      const isLikelyScanner = this.isLikelyScannerInput(isbn);
+      this.fetchBookByIsbn(isbn, isLikelyScanner);
+      this.resetIsbnScannerTracking();
+      return;
+    }
+
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+      this.resetIsbnScannerTracking();
+      return;
+    }
+
+    if (event.key.length !== 1 || event.ctrlKey || event.altKey || event.metaKey) {
+      return;
+    }
+
+    const now = Date.now();
+    const isFirstKeystroke = this.isbnScanKeystrokeCount === 0;
+    const isNewSequence = now - this.isbnScanLastTimestamp > this.scannerMaxInterKeyDelayMs;
+
+    if (isFirstKeystroke || isNewSequence) {
+      this.isbnScanStartTimestamp = now;
+      this.isbnScanKeystrokeCount = 1;
+    } else {
+      this.isbnScanKeystrokeCount += 1;
+    }
+
+    this.isbnScanLastTimestamp = now;
+  }
+
   public addBook(book: Book): void {
     if (book.id === undefined || (book.availableCopies ?? 0) < 1) {
+      return;
+    }
+
+    const isAlreadySelected = this.selectedBooks().some((selectedBook) => selectedBook.id === book.id);
+    if (isAlreadySelected) {
       return;
     }
 
@@ -298,7 +349,7 @@ export class CreateLoanComponent {
     });
   }
 
-  private loadBookByIsbn(isbn: string): void {
+  private fetchBookByIsbn(isbn: string, autoSelect: boolean): void {
     if (!this.selectedUser()) {
       this.isbnBooks.set([]);
       return;
@@ -310,12 +361,57 @@ export class CreateLoanComponent {
       next: (book: Book) => {
         this.isbnBooks.set([book]);
         this.isLoadingIsbnBooks.set(false);
+
+        if (autoSelect) {
+          this.selectScannedBook(book);
+        }
       },
       error: () => {
         this.isbnBooks.set([]);
         this.isLoadingIsbnBooks.set(false);
       },
     });
+  }
+
+  private selectScannedBook(book: Book): void {
+    if (book.id === undefined) {
+      return;
+    }
+
+    const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
+    if (!hasCopiesAvailable) {
+      this.errorMessage.set('Het gescande boek is niet beschikbaar voor uitlening.');
+      this.successMessage.set('');
+      return;
+    }
+
+    const isAlreadySelected = this.selectedBooks().some((selectedBook) => selectedBook.id === book.id);
+    if (isAlreadySelected) {
+      this.successMessage.set('Het gescande boek was al geselecteerd.');
+      this.errorMessage.set('');
+      return;
+    }
+
+    this.addBook(book);
+    this.successMessage.set('Boek succesvol gescand en toegevoegd.');
+    this.errorMessage.set('');
+  }
+
+  private isLikelyScannerInput(isbn: string): boolean {
+    const keyPressCount = this.isbnScanKeystrokeCount;
+    const scanDuration = this.isbnScanLastTimestamp - this.isbnScanStartTimestamp;
+
+    return (
+      keyPressCount >= Math.min(this.scannerMinLength, isbn.length) &&
+      scanDuration > 0 &&
+      scanDuration <= this.scannerMaxDurationMs
+    );
+  }
+
+  private resetIsbnScannerTracking(): void {
+    this.isbnScanStartTimestamp = 0;
+    this.isbnScanLastTimestamp = 0;
+    this.isbnScanKeystrokeCount = 0;
   }
 
   private triggerCatalogSearch(): void {

@@ -99,7 +99,7 @@
 		<div class="search-row">
 			<label for="bookSearchIsbn">Zoek op ISBN</label>
 			<input id="bookSearchIsbn" type="text" [value]="bookSearchIsbn()" (input)="onBookIsbnSearchChange($event)"
-				placeholder="Typ een ISBN" />
+				(keydown)="onBookIsbnKeydown($event)" placeholder="Typ een ISBN" />
 		</div>
 
 		@if (isLoadingBooks()) {
