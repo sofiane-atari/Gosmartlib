@@ -1,0 +1,65 @@
+<div class="panel">
+    <div class="panel-header">
+        <h2>1. Kies een gebruiker</h2>
+        <span class="pill">{{ users().length }} gevonden</span>
+    </div>
+
+    <div class="search-row">
+        <label for="firstnameSearch">Voornaam</label>
+        <div class="search-action-row">
+            <input id="firstnameSearch" type="text" [value]="searchFirstname()"
+                (input)="firstnameSearchChanged.emit($event)" placeholder="Typ voornaam" />
+        </div>
+    </div>
+    <div class="search-row">
+        <label for="lastnameSearch">Achternaam</label>
+        <div class="search-action-row">
+            <input id="lastnameSearch" type="text" [value]="searchLastname()"
+                (input)="lastnameSearchChanged.emit($event)" placeholder="Typ achternaam" />
+        </div>
+    </div>
+
+    <div class="search-row">
+        <label for="searchId">Gebruikers-id (tijdelijk)</label>
+        <div class="search-action-row">
+            <input id="searchId" type="text" [value]="searchId()" (input)="searchIdChanged.emit($event)"
+                placeholder="Typ gebruiker ID" />
+            <button type="button" class="btn btn-primary" (click)="searchRequested.emit()">Zoeken</button>
+        </div>
+    </div>
+
+    @if (isLoadingUsers()) {
+    <p class="hint">Gebruikers worden geladen...</p>
+    } @else {
+    <div class="list user-results">
+        @for (user of users(); track user.id) {
+        <button type="button" class="list-item user-item" [class.active]="selectedUser()?.id === user.id"
+            (click)="userSelected.emit(user)">
+            <div class="user-item-content">
+                <span class="user-item-id">ID: {{ user.id }}</span>
+                <span class="list-item-title">{{ user.firstName ?? 'Onbekende voornaam' }} {{ user.lastName ??
+                    'Onbekende achternaam' }}</span>
+                @if (user.role === 'STUDENT') {
+                <span class="list-item-subtitle">Klas: {{ user.primaryGroupName ?? 'Onbekende klas' }}</span>
+                }
+            </div>
+            @if (selectedUser()?.id === user.id) {
+            <span class="user-selected-badge">Geselecteerd</span>
+            }
+        </button>
+        } @empty {
+        <p class="hint">Geen gebruikers gevonden.</p>
+        }
+    </div>
+
+    @if (selectedUser()) {
+    <div class="selected-user selected-user--primary">
+        <span class="selected-user-text">
+            Geselecteerde gebruiker: <strong>{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }}</strong>
+        </span>
+        <button type="button" class="btn btn-secondary" (click)="clearSelectedUserRequested.emit()">Gebruiker
+            wissen</button>
+    </div>
+    }
+    }
+</div>

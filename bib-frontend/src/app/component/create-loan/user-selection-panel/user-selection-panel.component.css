@@ -1,0 +1,206 @@
+.panel {
+    border: 1px solid var(--sec-color);
+    border-radius: 1rem;
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    background: var(--main-light-color);
+    box-shadow: 0 6px 14px color-mix(in srgb, var(--sec-color) 30%, transparent);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--main-color);
+}
+
+.pill {
+    border: 1px solid var(--sec-color);
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--sec-light-color);
+}
+
+.search-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+}
+
+.search-action-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.6rem;
+}
+
+.search-row input {
+    border: 1px solid var(--sec-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #ffffff;
+    color: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-row input:focus {
+    outline: none;
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--main-color) 25%, transparent);
+}
+
+.btn {
+    border: 1px solid var(--main-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: var(--main-color);
+    color: #ffffff;
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: var(--main-color);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-height: 15rem;
+    overflow: auto;
+    padding-right: 0.2rem;
+}
+
+.list-item {
+    border: 1px solid var(--sec-color);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: left;
+    width: 100%;
+    background: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.list-item.active {
+    border-color: var(--main-color);
+    background: color-mix(in srgb, var(--main-light-color) 70%, white);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--main-color) 20%, transparent);
+}
+
+.user-results {
+    max-height: 18rem;
+}
+
+.user-item {
+    align-items: flex-start;
+    cursor: pointer;
+}
+
+.user-item-content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.user-item-id {
+    width: fit-content;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid var(--sec-color);
+    background: color-mix(in srgb, var(--sec-light-color) 55%, white);
+    color: var(--main-color);
+}
+
+.user-selected-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--main-color);
+    background: color-mix(in srgb, var(--main-color) 12%, white);
+    color: var(--main-color);
+}
+
+.list-item-title {
+    display: block;
+    font-weight: 600;
+}
+
+.list-item-subtitle {
+    display: block;
+    font-size: 0.9rem;
+    color: inherit;
+    opacity: 0.8;
+}
+
+.selected-user {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem;
+    border: 1px dashed var(--sec-color);
+    border-radius: 0.65rem;
+    background: color-mix(in srgb, var(--sec-light-color) 45%, white);
+}
+
+.selected-user--primary {
+    border-style: solid;
+    border-color: var(--main-color);
+    background: color-mix(in srgb, var(--main-color) 8%, var(--main-light-color));
+}
+
+.selected-user-text {
+    line-height: 1.35;
+}
+
+.hint {
+    color: inherit;
+    opacity: 0.85;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .panel {
+        padding: 0.9rem;
+    }
+
+    .selected-user,
+    .panel-header,
+    .search-action-row {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .search-action-row {
+        display: flex;
+        width: 100%;
+    }
+}
