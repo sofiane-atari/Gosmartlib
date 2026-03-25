@@ -8,4 +8,5 @@ export interface Review {
   bookAuthor?: string;
   moderationStatus?: 'ACTIVE' | 'FLAGGED' | 'KEPT';
   reportedByCurrentUser?: boolean;
+  createdAt?: string;
 }

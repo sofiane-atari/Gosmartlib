@@ -39,6 +39,9 @@ public class Review {
 
     private LocalDateTime moderatedAt;
 
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
@@ -73,6 +76,11 @@ public class Review {
                 this.flaggedAt = LocalDateTime.now();
             }
         }
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
     public void markAsKept() {

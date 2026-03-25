@@ -326,6 +326,25 @@
   background: #fef2f2;
 }
 
+.review-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.review-card__meta-item strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.review-card__meta-separator {
+  color: #c4a8b1;
+}
+
 /* Empty States */
 .state-panel {
   background: var(--bg-surface);
@@ -411,4 +430,15 @@
   .review-card__action {
     width: 100%;
   }
+
+  @media (max-width: 480px) {
+    .review-card__meta {
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .review-card__meta-separator {
+        display: none;
+    }
+    }
 }

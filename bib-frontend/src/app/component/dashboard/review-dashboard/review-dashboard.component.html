@@ -118,6 +118,13 @@
                 </span>
               </div>
 
+              <div class="review-card__meta">
+                <span class="review-card__meta-separator">•</span>
+                <span class="review-card__meta-item">
+                    {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+                </div>
+
               <p class="review-card__text">
                 {{ review.comment }}
               </p>

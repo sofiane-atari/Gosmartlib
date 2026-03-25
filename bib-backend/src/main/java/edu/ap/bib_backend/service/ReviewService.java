@@ -193,6 +193,7 @@ public class ReviewService {
         reviewDto.setBookAuthor(review.getBook().getAuthor());
         reviewDto.setModerationStatus(review.getModerationStatus());
         reviewDto.setReportedByCurrentUser(reportedByCurrentUser);
+        reviewDto.setCreatedAt(review.getCreatedAt());
 
         return reviewDto;
     }

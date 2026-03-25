@@ -1,5 +1,8 @@
 package edu.ap.bib_backend.dto;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +20,7 @@ public class ReviewDTO {
     private String bookAuthor;
     private ReviewModerationStatus moderationStatus;
     private boolean reportedByCurrentUser;
+    private LocalDateTime createdAt;
 
     public ReviewDTO() {
     }
@@ -30,7 +34,8 @@ public class ReviewDTO {
             String bookTitle,
             String bookAuthor,
             ReviewModerationStatus moderationStatus,
-            boolean reportedByCurrentUser
+            boolean reportedByCurrentUser,
+            LocalDateTime createdAt
     ) {
         this.id = id;
         this.comment = comment;
@@ -41,5 +46,6 @@ public class ReviewDTO {
         this.bookAuthor = bookAuthor;
         this.moderationStatus = moderationStatus;
         this.reportedByCurrentUser = reportedByCurrentUser;
+        this.createdAt = createdAt;
     }
 }
