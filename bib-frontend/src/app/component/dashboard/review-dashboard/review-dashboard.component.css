@@ -1,0 +1,486 @@
+:host {
+  --main-color: #8a1e41;
+  --main-color-hover: #6e1733;
+  --text-dark: #1a0a10;
+  --text-muted: #7a5560;
+  --border-color: #f0e4e8;
+  --bg-surface: #ffffff;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  
+  display: block;
+}
+
+/* =========================================================
+   FORCEER STERREN OM OP TE VULLEN
+   ========================================================= */
+lucide-angular.star-filled ::ng-deep svg,
+lucide-angular.star-filled ::ng-deep path,
+lucide-angular.star-filled ::ng-deep polygon {
+  fill: #f59e0b !important;
+}
+
+.review-dashboard {
+  min-height: 100vh;
+  padding: 24px;
+  /* Optioneel een hele lichte achtergrond zoals op je andere pagina's */
+  background-color: #faf7f8; 
+}
+
+.review-card__cover {
+  flex-shrink: 0; /* Zorgt dat de afbeelding niet krimpt als er veel tekst is */
+  width: 72px;    /* Mooie subtiele breedte */
+  height: 108px;  /* 2:3 ratio (typisch voor boeken) */
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface-soft, #f9fafb);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.review-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Zorgt dat de foto de ruimte perfect vult zonder te vervormen */
+  display: block;
+}
+
+/* Styling voor als een boek (nog) geen cover heeft */
+.review-card__cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1; /* Lichtgrijs icoontje */
+}
+
+/* Base Layout (Matcht .dashboard-labels) */
+.review-dashboard__container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Header (Matcht .page-header) */
+.review-dashboard__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.review-dashboard__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.review-dashboard__subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+/* Stat Cards (Matcht .stat-cards) */
+.review-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.04);
+}
+
+.stat-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.stat-card__icon--main {
+  background: #f9f4f6;
+  color: var(--main-color);
+}
+
+.stat-card__icon--warning {
+  background: #fffbeb;
+  color: var(--warning);
+}
+
+.stat-card__value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.stat-card__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Bulk Actions (Zwevend menu) */
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 20px rgba(138, 30, 65, 0.08);
+  flex-wrap: wrap;
+}
+
+.bulk-actions__badge {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #f9f4f6;
+  color: var(--main-color);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.bulk-actions__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s;
+}
+
+.bulk-actions__button:hover {
+  transform: translateY(-1px);
+}
+
+.bulk-actions__button--approve {
+  background-color: var(--success);
+}
+.bulk-actions__button--approve:hover {
+  background-color: #059669;
+}
+
+.bulk-actions__button--delete {
+  background-color: var(--danger);
+}
+.bulk-actions__button--delete:hover {
+  background-color: #dc2626;
+}
+
+/* Review List & Cards */
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card {
+  display: flex;
+  gap: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.review-card:hover {
+  box-shadow: 0 8px 24px rgba(138, 30, 65, 0.08);
+}
+
+.review-card--selected {
+  border-color: var(--main-color);
+  background-color: #fdfafb;
+  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.12);
+}
+
+/* Checkbox */
+.review-card__select {
+  padding-top: 2px;
+}
+
+.review-card__select input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--main-color);
+}
+
+/* Card Content */
+.review-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.review-card__book-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.review-card__book-author {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.review-card__report-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--danger);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   STAR RATING (Beter gevuld!)
+   ========================================================= */
+.review-card__rating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.review-card__stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star-icon {
+  stroke-width: 1.5; /* Iets dikkere rand voor stevigheid */
+}
+
+.star-icon--filled {
+  fill: var(--warning);
+  stroke: var(--warning); /* Kleur de rand EN de binnenkant */
+  color: var(--warning);
+}
+
+.star-icon--empty {
+  fill: transparent;
+  stroke: #d1d5db; /* Lichte grijze rand */
+  color: #d1d5db;
+}
+
+.review-card__status {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+.review-card__text {
+  margin: 0 0 16px;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Actions in Card */
+.review-card__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.review-card__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.review-card__action:hover {
+  transform: translateY(-1px);
+}
+
+.review-card__action--approve {
+  color: var(--success);
+}
+
+.review-card__action--approve:hover {
+  border-color: var(--success);
+  background: #ecfdf5;
+}
+
+.review-card__action--delete {
+  color: var(--danger);
+}
+
+.review-card__action--delete:hover {
+  border-color: var(--danger);
+  background: #fef2f2;
+}
+
+.review-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.review-card__meta-item strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.review-card__meta-separator {
+  color: #c4a8b1;
+}
+
+/* Empty States */
+.state-panel {
+  background: var(--bg-surface);
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.state-panel--empty {
+  font-weight: 600;
+  color: var(--success);
+  border-color: var(--success);
+  background: #ecfdf5;
+}
+
+/* =========================================================
+   RESPONSIVE STYLES (Matcht je andere component)
+   ========================================================= */
+
+/* Mobile Landscape */
+@media (max-width: 768px) {
+  .review-dashboard {
+    padding: 16px;
+  }
+
+  .review-dashboard__container {
+    gap: 20px;
+  }
+
+  .review-dashboard__header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .review-dashboard__title {
+    font-size: 24px;
+  }
+
+  .bulk-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .stat-cards, .review-dashboard__stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .review-card {
+    padding: 16px;
+    gap: 12px;
+  }
+}
+
+/* Mobile Portrait */
+@media (max-width: 480px) {
+  .review-dashboard__title {
+    font-size: 20px;
+  }
+
+  .review-dashboard__subtitle {
+    font-size: 13px;
+  }
+
+  .bulk-actions__button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .review-card__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .review-card__actions {
+    flex-direction: column;
+  }
+
+  .review-card__action {
+    width: 100%;
+  }
+
+@media (max-width: 480px) {
+    .review-card__meta {
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .review-card__meta-separator {
+        display: none;
+    }
+
+    .review-card__cover {
+    width: 60px;
+    height: 90px;
+  }
+}
+}

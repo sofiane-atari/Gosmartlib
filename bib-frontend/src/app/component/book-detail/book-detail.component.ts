@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, Inject, signal } from '@angular/core';
 import { Book } from '../../model/book.model';
 import {
   LucideAngularModule,
@@ -25,16 +25,19 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BookService } from '../../services/BookService/book.service';
 import { Availability } from '../../model/enums/availability.enum';
 import { Review } from '../../model/review.model';
-import { ReviewService } from '../../services/Reviews/review.service';
+import { ReviewService } from '../../services/review-service/review.service'; 
 import { ToastService } from '../../services/Toast/toast.service';
 import { ReadingListService, ReadingList } from '../../services/reading-list.service';
 import { BookPreview } from '../../model/book-preview.model';
+import { RouterLink } from '@angular/router';
+import { RoleService } from '../../services/role-service/role.service';
+import { AuthService } from '../../services/authorization/auth.service';
 
 
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [LucideAngularModule, CommonModule, FormsModule],
+  imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css'
 })
@@ -74,6 +77,7 @@ export class BookDetailComponent {
 
   // Lists //
   readingLists: ReadingList[] = [];
+  pickerReadingLists: ReadingList[] = [];
   showListPicker: boolean = false;
 
   // Preview //
@@ -89,6 +93,8 @@ export class BookDetailComponent {
   // Related Books Carousel //
   relatedBooksCarousel: Book[] = [];
 
+  protected readonly roleService = Inject(RoleService);
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -96,11 +102,15 @@ export class BookDetailComponent {
     private readingListService: ReadingListService,
     private reviewService: ReviewService,
     private toastService: ToastService,
-    private sanitizer: DomSanitizer) {
+    private sanitizer: DomSanitizer,
+    private authService: AuthService) {
 
   }
 
   ngOnInit() {
+    // Ensure current user role is available for picker filtering.
+    this.authService.fetchCurrentUser();
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
 
@@ -158,7 +168,23 @@ export class BookDetailComponent {
   loadReadingLists() {
     this.readingListService.getLists().subscribe((lists) => {
       this.readingLists = lists;
+      this.pickerReadingLists = lists.filter(list => this.canShowInPicker(list));
     });
+  }
+
+  private canShowInPicker(list: ReadingList): boolean {
+    const target = list.targetType ?? 'PERSONAL';
+    const role = this.authService.currentUser()?.role;
+
+    if (target === 'SYSTEM') {
+      return false;
+    }
+
+    if (target === 'PERSONAL') {
+      return true;
+    }
+
+    return role === 'TEACHER';
   }
 
   toggleListPicker() {
@@ -247,14 +273,14 @@ export class BookDetailComponent {
   }
 
   reportReview(review: Review) {
-    if (!review.id || review.isReported) return;
+    if (!review.id || review.reportedByCurrentUser) return;
 
     this.toastService.showConfirm(
       'Weet je zeker dat je deze review wilt rapporteren? Onterecht rapporteren kan gevolgen hebben.',
       () => {
         this.reviewService.reportReview(review.id!).subscribe({
           next: () => {
-            review.isReported = true;
+            review.reportedByCurrentUser = true;
             review.reportCount = (review.reportCount || 0) + 1;
             this.toastService.show('Review succesvol gerapporteerd.', 'success');
           },
@@ -337,7 +363,7 @@ export class BookDetailComponent {
 
   private getSelectedBookIsbn(): string | null {
     const normalizedBook = this.selectedBook as Book & { isbn?: string };
-    const isbn = this.selectedBook?.ISBN?.trim() || normalizedBook?.isbn?.trim();
+    const isbn = this.selectedBook?.isbn?.trim() || normalizedBook?.isbn?.trim();
     return isbn && isbn.length > 0 ? isbn : null;
   }
 
@@ -374,11 +400,47 @@ export class BookDetailComponent {
     this.embeddedPreviewUrl.set(null);
   }
 
-  openRelatedBook(bookId?: number) {
+  public openRelatedBook(bookId?: number): void{
     if (!bookId) {
       return;
     }
 
     this.router.navigate(['/book', bookId]);
   }
+
+  public goToEditPage(bookId?: number): void{
+    if (!bookId) {
+      return;
+    }
+
+    this.router.navigate(['/books', bookId, 'edit']);
+  }
+
+  public deleteBook(bookId?: number): void {
+    if (!bookId) {
+      return;
+    }
+
+    this.toastService.showConfirm(
+      'Weet je zeker dat je dit boek wilt verwijderen?',
+      () => {
+        this.bookService.deleteBook(bookId).subscribe({
+          next: () => {
+            this.toastService.show('Boek succesvol verwijderd.', 'success');
+            void this.router.navigate(['/catalog']);
+          },
+          error: (err) => {
+            const backendMessage = err?.error?.error?.message;
+            this.toastService.show(
+              backendMessage ?? 'Het boek kon niet verwijderd worden.',
+              'error'
+            );
+          }
+        });
+      },
+      () => {}
+    );
+  }
+
 }
+

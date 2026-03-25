@@ -13,7 +13,7 @@ public class BookDTO {
 
     private Long id;
 
-    private String ISBN;
+    private String isbn;
     private String title;
     private String author;
     private int pages;
@@ -28,13 +28,15 @@ public class BookDTO {
 
     private List<GenreDTO> genres = new ArrayList<>();
 
+    private ReadingLevelDTO readingLevel;
+
     public BookDTO() {
     }
 
-    public BookDTO(Long id, String ISBN, String title, String author, int pages, String image_url, String description,
+    public BookDTO(Long id, String isbn, String title, String author, int pages, String image_url, String description,
             int release_year, double reviewScore, LocalDateTime addedDate, List<GenreDTO> genres) {
         this.id = id;
-        this.ISBN = ISBN;
+        this.isbn = isbn;
         this.title = title;
         this.author = author;
         this.pages = pages;
@@ -50,7 +52,7 @@ public class BookDTO {
     public String toString() {
         return "BookDTO{" +
                 "id=" + id +
-                ", ISBN='" + ISBN + '\'' +
+                ", ISBN='" + isbn + '\'' +
                 ", title='" + title + '\'' +
                 ", author='" + author + '\'' +
                 ", pages=" + pages +
@@ -59,6 +61,7 @@ public class BookDTO {
                 ", releaseYear=" + releaseYear +
                 ", reviewScore=" + reviewScore +
                 ", genres=" + genres +
+                ", readingLevel=" + readingLevel +
                 '}';
     }
 }

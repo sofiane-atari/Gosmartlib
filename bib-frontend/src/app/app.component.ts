@@ -4,7 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { ToastComponent } from './component/toast/toast.component';
-import { AuthService } from './services/RoleAuthorization/auth.service';
+import { AuthService } from './services/authorization/auth.service';
 
 @Component({
   selector: 'app-root',

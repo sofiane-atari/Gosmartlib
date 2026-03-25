@@ -1,6 +1,8 @@
 package edu.ap.bib_backend.service;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,9 +25,14 @@ public class JwtService {
 
     // Call this in /api/auth/callback after Smartschool login
     public String generateToken(String username, String role) {
+        return generateToken(username, role, Map.of());
+    }
+
+    public String generateToken(String username, String role, Map<String, Object> extraClaims) {
         return Jwts.builder()
                 .subject(String.valueOf(username))
                 .claim("roles", role)
+                .claims(extraClaims)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(secretKey)
@@ -42,7 +49,7 @@ public class JwtService {
         return parseClaims(token).get(claimKey);
     }
 
-    // Check if the token is still valid
+
     public boolean isValid(String token) {
         try {
             parseClaims(token); // throws if expired or tampered

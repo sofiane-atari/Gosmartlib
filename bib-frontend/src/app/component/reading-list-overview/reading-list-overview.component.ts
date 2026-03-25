@@ -13,6 +13,7 @@ import { ToastService } from '../../services/Toast/toast.service';
 })
 export class ReadingListOverviewComponent implements OnInit {
 
+  private static readonly FAVORITES_NAME = 'favorieten';
   readingLists: ReadingList[] = [];
 
   constructor(
@@ -26,15 +27,39 @@ export class ReadingListOverviewComponent implements OnInit {
     });
   }
 
-  deleteList(id: number) {
-    this.readingListService.deleteList(id).subscribe({
-      next: () => {
-        this.readingLists = this.readingLists.filter(l => l.id !== id);
-      },
-      error: (err) => {
-        console.error('Fout bij verwijderen van lijst:', err);
+  isFavoritesList(list: ReadingList): boolean {
+    return list.name?.trim().toLowerCase() === ReadingListOverviewComponent.FAVORITES_NAME;
+  }
+
+  isReadOnlyAudience(list: ReadingList): boolean {
+    return !!list.targetType && list.targetType !== 'PERSONAL';
+  }
+
+  canDeleteList(list: ReadingList): boolean {
+    return !this.isFavoritesList(list) && !this.isReadOnlyAudience(list);
+  }
+
+  deleteList(list: ReadingList) {
+    if (!this.canDeleteList(list)) {
+      this.toastService.show('Deze leeslijst kan niet verwijderd worden', 'error');
+      return;
+    }
+
+    this.toastService.showConfirm(
+      `Weet je zeker dat je '${list.name}' wil verwijderen?`,
+      () => {
+        this.readingListService.deleteList(list.id).subscribe({
+          next: () => {
+            this.readingLists = this.readingLists.filter(l => l.id !== list.id);
+            this.toastService.show('Leeslijst verwijderd', 'success');
+          },
+          error: (err) => {
+            console.error('Fout bij verwijderen van lijst:', err);
+            this.toastService.show('Verwijderen mislukt', 'error');
+          }
+        });
       }
-    });
+    );
   }
 
   shareList(id: number) {

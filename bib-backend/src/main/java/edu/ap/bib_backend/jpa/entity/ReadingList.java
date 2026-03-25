@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.jpa.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +19,18 @@ public class ReadingList {
     @Column(nullable = false)
     private String name;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User user;
+
     @OneToMany(mappedBy = "readingList", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ReadingListBook> books;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "target_type", nullable = false)
+    private ReadingListTargetType targetType = ReadingListTargetType.PERSONAL;
+
+    @Column(name = "target_value")
+    private String targetValue;
 }

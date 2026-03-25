@@ -9,6 +9,7 @@ import { BookCandidate } from '../../../model/book-candidate.model';
 import { ToastService } from '../../../services/Toast/toast.service';
 import { LoadingOverlayComponent } from "../../shared/loading-overlay/loading-overlay.component";
 import { Genre } from '../../../model/genre.model';
+import { ReadingLevel } from '../../../model/readingLevel.model';
 
 @Component({
   selector: 'app-add-book-isbn',
@@ -16,13 +17,14 @@ import { Genre } from '../../../model/genre.model';
   imports: [FormsModule, LucideAngularModule, LoadingOverlayComponent],
   templateUrl: './add-book-isbn.component.html',
   styleUrl: './add-book-isbn.component.css'
-  
+
 })
 export class AddBookISBNComponent {
   isbn: string = "";
   selectedBook?: Book;
   @Output() bookAdded = new EventEmitter<Book>();
   @Input() genres: Genre[] = [];
+  @Input() readingLevels: ReadingLevel[] = [];
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
 
@@ -31,18 +33,19 @@ export class AddBookISBNComponent {
   showCandidates = false;
   isLoading = false;
 
-  book: Book = {
+    book: Book = {
     title: '',
     author: '',
     pages: 0,
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
-    genres: []
+    genres: [],
+    readingLevel: undefined
   };
 
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
-  
+
   toggleGenre(genre: Genre) {
     const exists = this.book.genres.some(g => g.name === genre.name);
 
@@ -56,7 +59,7 @@ export class AddBookISBNComponent {
   isGenreSelected(genre: Genre): boolean {
     return this.book.genres.some(g => g.name  === genre.name);
   }
-  
+
   save() {
 
     if (this.book.genres.length === 0) {
@@ -86,7 +89,7 @@ export class AddBookISBNComponent {
 
     this.ts.show('Vul een ISBN in of vul titel, auteur en jaar in.', 'error');
   }
-  
+
   searchByISBN() {
 
     this.showCandidates = false;
@@ -159,7 +162,7 @@ export class AddBookISBNComponent {
     this.bs.selectBook(candidate.isbn13).subscribe({
       next: (selectedBook: Book) => {
         this.book = selectedBook;
-        this.isbn = selectedBook.ISBN ?? candidate.isbn13;
+        this.isbn = selectedBook.isbn ?? candidate.isbn13;
         this.showCandidates = false;
         this.candidates = [];
         this.isLoading = false;

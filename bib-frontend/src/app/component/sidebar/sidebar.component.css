@@ -8,7 +8,7 @@
   position: sticky;
   top: 0;
   left: 0;
-  transition: width 0.3s ease; /* Optioneel: voor een vloeiende overgang */
+  transition: width 0.3s ease;
 }
 
 /* Forceer iconen om zichtbaar te zijn */
@@ -16,7 +16,7 @@ lucide-icon {
   display: inline-block;
   width: 20px;
   height: 20px;
-  color: white; /* Zorg dat ze wit zijn tegen de rode achtergrond */
+  color: white;
 }
 
 .icon-white {
@@ -24,17 +24,20 @@ lucide-icon {
   height: 28px;
   stroke: white;
 }
+
 .icon-md {
   width: 20px;
   height: 20px;
 }
-.icon-sm {
-  width: 18px;
-  height: 18px;
+
+.icon-sm, .btn lucide-icon {
+  width: 18px !important;
+  height: 18px !important;
+  display: block;
 }
 
 .sidebar-header {
-  padding: 1rem; /* Was 1.5rem */
+  padding: 1rem;
   background-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -44,55 +47,53 @@ lucide-icon {
   gap: 12px;
 }
 
-/* sidebar.component.css */
-
 .avatar {
-  /* Behoud de oorspronkelijke grootte van de cirkel */
-  width: 48px; /* Of de grootte die je oorspronkelijk had */
+  width: 48px;
   height: 48px;
-  background-color: #ef4444; /* De rode kleur */
+  background-color: #ef4444;
   border-radius: 50%;
-
-  /* Flexbox inschakelen voor verticale centrering */
   display: flex;
-  align-items: center; /* Verticaal in het midden */
-
-  /* Horizontale centrering uitzetten */
-  justify-content: flex-start; /* Beginnen aan de linkerkant */
-
-  /* Stap 1: Voeg padding toe aan de linkerkant om het icoon op te schuiven */
-  padding-left: 12px; /* Pas dit getal aan (bijv. 4px, 8px) tot het goed staat */
-
-  /* Zorg dat padding de cirkel niet groter maakt */
+  align-items: center;
+  padding-left: 12px;
   box-sizing: border-box;
-
   position: relative;
 }
 
-/* Het icoon binnen de cirkel */
 .avatar lucide-icon {
-  /* Behoud de grootte van het icoon */
   width: 24px;
   height: 24px;
-  color: white;
-  display: block;
 }
 
-.status-indicator {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 12px;
-  height: 12px;
-  background: #10b981;
-  border: 2px solid #450a0a;
-  border-radius: 50%;
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.welcome-text {
+  font-size: 0.75rem;
+  color: #fca5a5;
+  line-height: 1;
+}
+
+.user-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.2;
+}
+
+.user-role {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  line-height: 1;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 10px 12px; /* Minder verticale padding */
-  overflow-y: auto; /* Voeg dit toe: als het écht niet past, kun je scrollen binnen de nav */
+  padding: 10px 12px;
+  overflow-y: auto;
 }
 
 .menu-item {
@@ -110,7 +111,6 @@ lucide-icon {
   transition: 0.2s;
 }
 
-/* Zorg dat tekst altijd wit wordt bij hover */
 .menu-item:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
@@ -124,7 +124,6 @@ lucide-icon {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Als item actief is, moet het icoon ook rood worden */
 .menu-item.active lucide-icon {
   color: #b91c1c;
 }
@@ -139,66 +138,53 @@ lucide-icon {
   flex-direction: column;
   gap: 8px;
   padding: 12px 16px;
-  background-color: rgba(0, 0, 0, 0.2); /* Donkere achtergrond voor contrast */
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .btn {
   display: flex;
-  align-items: center; /* Verticaal in het midden van de button */
+  align-items: center;
   padding: 8px 14px;
-  border-radius: 8px; /* Mooie ronde hoeken zoals in je 2e plaatje */
+  border-radius: 8px;
   border: none;
   color: white;
   font-family: sans-serif;
   font-weight: 600;
-  font-size: 13px; /* Iets kleiner lettertype */
+  font-size: 13px;
   cursor: pointer;
   width: 100%;
   transition: transform 0.2s ease;
 }
 
-/* De truc voor loodrechte uitlijning: */
 .btn-icon {
-  width: 18px; /* Vaste breedte voor het icoon-gebied */
+  width: 18px;
   height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 10px; /* Vaste afstand tot de tekst */
-  flex-shrink: 0; /* Voorkomt dat het icoon kleiner wordt */
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .btn-text {
-  text-align: left; /* Zorgt dat tekst altijd links begint na het icoon */
+  text-align: left;
 }
 
-/* Kleuren exact volgens je wens */
 .btn-emerald {
   background-color: #10b981;
 }
+
 .btn-blue {
   background-color: #3b82f6;
 }
+
 .btn-rose {
   background-color: #f43f5e;
 }
 
-/* Hover effect */
 .btn:hover {
   filter: brightness(1.1);
   transform: scale(1.02);
-}
-
-/* Icoon grootte binnen de knoppen */
-.icon-sm {
-  width: 18px;
-  height: 18px;
-  display: block;
-}
-
-.btn lucide-icon {
-  width: 18px !important;
-  height: 18px !important;
 }
 
 .divider {
@@ -207,7 +193,7 @@ lucide-icon {
   margin: 12px 0;
 }
 
-/* Mobile close button - hidden on desktop */
+/* Mobile close button */
 .mobile-close-btn {
   display: none;
   position: absolute;
@@ -240,10 +226,7 @@ lucide-icon {
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
-    top: 0;
-    left: 0;
     width: 280px;
-    height: 100vh;
     z-index: 1000;
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
@@ -259,8 +242,7 @@ lucide-icon {
   }
 
   .sidebar-header {
-    padding: 1rem;
-    padding-top: 3.5rem;
+    padding: 3.5rem 1rem 1rem 1rem;
   }
 
   .menu-item {
@@ -283,11 +265,6 @@ lucide-icon {
 @media (max-width: 480px) {
   .sidebar {
     width: 100%;
-  }
-
-  .sidebar-header {
-    padding: 1rem;
-    padding-top: 3.5rem;
   }
 
   .avatar {

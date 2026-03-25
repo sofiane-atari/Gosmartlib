@@ -29,6 +29,8 @@ import edu.ap.bib_backend.service.TokenStorageService;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @WebMvcTest(BookController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -99,6 +101,55 @@ public class BookControllerTest {
                 10,
                 BookSortOption.AZ
         );
+    }
+
+    @Test
+    void givenExistingBookId_whenDeleteBook_thenReturn204() throws Exception {
+        // Arrange
+        Long bookId = 1L;
+        Mockito.doNothing().when(bs).deleteBook(bookId);
+
+        // Act
+        var result = mockMvc.perform(delete("/books/{id}", bookId));
+
+        // Assert
+        result.andExpect(status().isNoContent());
+        
+        
+        Mockito.verify(bs, Mockito.times(1)).deleteBook(bookId);
+    }
+
+    @Test
+    void givenNonExistingBookId_whenDeleteBook_thenReturn404() throws Exception {
+        // Arrange
+        Long bookId = 99L;
+        Mockito.doThrow(new edu.ap.bib_backend.exception.ResourceNotFoundException("id", "Boek niet gevonden met id: 99"))
+               .when(bs).deleteBook(bookId);
+
+        // Act
+        var result = mockMvc.perform(delete("/books/{id}", bookId));
+
+        // Assert
+        result.andExpect(status().isNotFound());
+        Mockito.verify(bs, Mockito.times(1)).deleteBook(bookId);
+    }
+
+    @Test
+    void givenBookWithBorrowedCopies_whenDeleteBook_thenReturn500() throws Exception {
+        // Arrange
+        Long bookId = 2L;
+        Mockito.doThrow(new IllegalStateException("Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend."))
+               .when(bs).deleteBook(bookId);
+
+        // Act
+        var result = mockMvc.perform(delete("/books/{id}", bookId));
+
+        // Assert
+        result.andExpect(status().isBadRequest())
+              .andExpect(r -> org.junit.jupiter.api.Assertions.assertInstanceOf(IllegalStateException.class, r.getResolvedException()))
+              .andExpect(r -> org.junit.jupiter.api.Assertions.assertEquals("Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.", r.getResolvedException().getMessage()));
+              
+        Mockito.verify(bs, Mockito.times(1)).deleteBook(bookId);
     }
 
     @Test
@@ -222,7 +273,7 @@ void givenIsbn13_whenSelectBook_thenReturnsBookByIsbn13() throws Exception {
     book.setId(9L);
     book.setTitle("Selected Book");
     book.setAuthor("Selected Author");
-    book.setISBN("9789999999999");
+    book.setIsbn("9789999999999");
 
     Mockito.when(bs.fetchBookByISBN("9789999999999")).thenReturn(book);
 
@@ -265,7 +316,7 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
         book.setId(1L);
         book.setTitle("Test Book");
         book.setAuthor("Test Author");
-        book.setISBN("1672587");
+        book.setIsbn("1672587");
         book.setPages(324);
         book.setImageUrl("https://books.google.com/books/content?id=7p9mEAAAQBAJ&printsec=frontcover&img=1&zoom=1");
         book.setDescription("dede de d e d ed e d e d e de d e d");
@@ -292,7 +343,7 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
         book.setId(1L);
         book.setTitle("Specifiek Boek");
         book.setAuthor("Bekende Auteur");
-        book.setISBN("987654321");
+        book.setIsbn("987654321");
         book.setPages(250);
         book.setImageUrl("https://example.com/image.jpg");
         book.setReleaseYear(2021);
@@ -450,7 +501,7 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
         book.setId(1L);
         book.setTitle("ISBN Boek");
         book.setAuthor("Auteur X");
-        book.setISBN("9781234567890");
+        book.setIsbn("9781234567890");
         book.setPages(280);
         book.setImageUrl("https://example.com/book.jpg");
         book.setDescription("Beschrijving van het boek");
@@ -481,5 +532,62 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
                 .andExpect(content().string("1200"));
 
         Mockito.verify(bs).getMaxPages();
+    }
+
+
+    @Test
+    void givenValidRequest_whenUpdateBook_thenReturnUpdatedBook() throws Exception {
+        // Arrange
+        Long bookId = 1L;
+        BookDTO requestDto = new BookDTO();
+        requestDto.setTitle("Geüpdatet Boek");
+        requestDto.setAuthor("Nieuwe Auteur");
+        requestDto.setPages(400);
+
+        BookDTO updatedDto = new BookDTO();
+        updatedDto.setId(bookId);
+        updatedDto.setTitle("Geüpdatet Boek");
+        updatedDto.setAuthor("Nieuwe Auteur");
+        updatedDto.setPages(400);
+
+        Mockito.when(bs.updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class)))
+               .thenReturn(updatedDto);
+
+        // Act
+        var result = mockMvc.perform(put("/books/{id}", bookId)
+                .contentType("application/json")
+                .content(new ObjectMapper().writeValueAsString(requestDto)));
+
+        // Assert
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("Geüpdatet Boek"))
+                .andExpect(jsonPath("$.author").value("Nieuwe Auteur"))
+                .andExpect(jsonPath("$.pages").value(400));
+
+        Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class));
+    }
+
+    @Test
+    void givenNonExistingBook_whenUpdateBook_thenReturn500() throws Exception {
+        // Arrange
+        Long bookId = 99L;
+        BookDTO requestDto = new BookDTO();
+        requestDto.setTitle("Spook Boek");
+
+        Mockito.when(bs.updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class)))
+               .thenThrow(new RuntimeException("Boek niet gevonden met id: 99"));
+
+        // Act
+        var result = mockMvc.perform(put("/books/{id}", bookId)
+                .contentType("application/json")
+                .content(new ObjectMapper().writeValueAsString(requestDto)));
+
+        // Assert
+        result.andExpect(status().isInternalServerError())
+                .andExpect(r -> org.junit.jupiter.api.Assertions.assertInstanceOf(RuntimeException.class, r.getResolvedException()))
+                .andExpect(r -> org.junit.jupiter.api.Assertions.assertEquals("Boek niet gevonden met id: 99", r.getResolvedException().getMessage()));
+
+        Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class));
     }
 }

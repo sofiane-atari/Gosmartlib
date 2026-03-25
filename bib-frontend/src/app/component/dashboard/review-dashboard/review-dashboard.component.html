@@ -1,0 +1,167 @@
+<div class="review-dashboard">
+  <div class="review-dashboard__container">
+    <div class="review-dashboard__header">
+      <div>
+        <h1 class="review-dashboard__title">Gerapporteerde reviews</h1>
+        <p class="review-dashboard__subtitle">
+          {{ reviews().length }} review(s) wachten op beoordeling
+        </p>
+      </div>
+
+      @if (selectedCount() > 0) {
+        <div class="bulk-actions">
+          <span class="bulk-actions__badge">
+            {{ selectedCount() }} geselecteerd
+          </span>
+
+          <button
+            type="button"
+            class="bulk-actions__button bulk-actions__button--approve"
+            (click)="approveSelectedReviews()"
+          >
+            <lucide-angular [img]="Check" size="16"></lucide-angular>
+            Goedkeuren
+          </button>
+
+          <button
+            type="button"
+            class="bulk-actions__button bulk-actions__button--delete"
+            (click)="deleteSelectedReviews()"
+          >
+            <lucide-angular [img]="Trash2" size="16"></lucide-angular>
+            Verwijderen
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="review-dashboard__stats">
+      <article class="stat-card">
+        <div class="stat-card__icon stat-card__icon--main">
+          <lucide-angular [img]="Flag" size="26"></lucide-angular>
+        </div>
+
+        <div>
+          <div class="stat-card__value">{{ reviews().length }}</div>
+          <div class="stat-card__label">Totaal gerapporteerd</div>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-card__icon stat-card__icon--warning">
+          <lucide-angular [img]="CircleAlert" size="26"></lucide-angular>
+        </div>
+
+        <div>
+          <div class="stat-card__value">{{ criticalReviewsCount() }}</div>
+          <div class="stat-card__label">Kritieke reviews</div>
+        </div>
+      </article>
+    </div>
+
+    @if (isLoading()) {
+      <section class="state-panel">
+        <p>Gerapporteerde reviews laden...</p>
+      </section>
+    } @else if (reviews().length === 0) {
+      <section class="state-panel state-panel--empty">
+        <p>Alle meldingen zijn afgehandeld. 🎉</p>
+      </section>
+    } @else {
+      <section class="review-list">
+        @for (review of reviews(); track review.id) {
+          <article
+            class="review-card"
+            [class.review-card--selected]="review.id !== undefined && isSelected(review.id)"
+            (click)="review.id !== undefined && toggleSelection(review.id)"
+          >
+            <div class="review-card__select">
+              <input
+                type="checkbox"
+                [checked]="review.id !== undefined && isSelected(review.id)"
+                (click)="$event.stopPropagation()"
+                (change)="review.id !== undefined && toggleSelection(review.id)"
+              />
+            </div>
+
+            <div class="review-card__cover">
+              @if (review.bookImageUrl) {
+                <img [src]="review.bookImageUrl" alt="Cover van {{ review.bookTitle }}">
+              } @else {
+                <div class="review-card__cover-fallback">
+                   <lucide-angular name="Image" size="24"></lucide-angular>
+                </div>
+              }
+            </div>
+
+            <div class="review-card__content">
+              <div class="review-card__top">
+                <div>
+                  <h2 class="review-card__book-title">
+                    {{ review.bookTitle ?? 'Onbekend boek' }}
+                  </h2>
+                  <p class="review-card__book-author">
+                    Door {{ review.bookAuthor ?? 'Onbekende auteur' }}
+                  </p>
+                </div>
+
+                <span class="review-card__report-badge">
+                  {{ review.reportCount ?? 0 }}
+                </span>
+              </div>
+
+              <div class="review-card__rating">
+                <div class="review-card__stars">
+                    @for (starValue of starValues; track starValue) {
+                        <lucide-angular
+                        [img]="Star"
+                        size="16"
+                        strokeWidth="1.5"
+                        [color]="starValue <= review.rating ? '#f59e0b' : '#d1d5db'"
+                        [class.star-filled]="starValue <= review.rating"
+                        ></lucide-angular>
+                    }
+                    </div>
+
+                <span class="review-card__status">
+                  {{ translateStatus(review.moderationStatus) }}
+                </span>
+              </div>
+
+              <div class="review-card__meta">
+                <span class="review-card__meta-separator">•</span>
+                <span class="review-card__meta-item">
+                    {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+                </div>
+
+              <p class="review-card__text">
+                {{ review.comment }}
+              </p>
+
+              <div class="review-card__actions">
+                <button
+                  type="button"
+                  class="review-card__action review-card__action--approve"
+                  (click)="$event.stopPropagation(); review.id !== undefined && approveReview(review.id)"
+                >
+                  <lucide-angular [img]="Check" size="14"></lucide-angular>
+                  Goedkeuren
+                </button>
+
+                <button
+                  type="button"
+                  class="review-card__action review-card__action--delete"
+                  (click)="$event.stopPropagation(); review.id !== undefined && deleteReview(review.id)"
+                >
+                  <lucide-angular [img]="Trash2" size="14"></lucide-angular>
+                  Verwijderen
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </div>
+</div>

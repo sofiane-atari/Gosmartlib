@@ -44,7 +44,8 @@ public class SmartschoolProfileService {
                     fullUserInfoUrl,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<>() {});
+                    new ParameterizedTypeReference<>() {
+                    });
 
             Map<String, Object> body = response.getBody();
             if (body == null) {
@@ -81,12 +82,14 @@ public class SmartschoolProfileService {
                     groupInfoUrl,
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<>() {});
+                    new ParameterizedTypeReference<>() {
+                    });
 
             Map<String, Object> body = response.getBody();
             if (body == null) {
                 throw new IllegalStateException("Smartschool group response was empty");
             }
+
 
             String primaryGroupName = null;
             List<String> parentGroupNames = new ArrayList<>();
@@ -113,6 +116,7 @@ public class SmartschoolProfileService {
                     }
                 }
             }
+
 
             return new SmartschoolGroupDto(primaryGroupName, parentGroupNames);
         } catch (RestClientException exception) {

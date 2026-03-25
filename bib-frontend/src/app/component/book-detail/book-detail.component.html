@@ -17,11 +17,11 @@
           <span class="stat-value">{{ selectedBook.releaseYear }}</span>
           <span class="stat-label">Jaar</span>
         </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ selectedBook.readingLevel?.niveauName || '-' }}</span>
+            <span class="stat-label">Leesniveau</span>
+          </div>
       </div>
-
-      <!-- <div class="availability-badge" [class.available]="selectedBook.availability === Availability.AVAILABLE">
-        {{ selectedBook.availability }}
-      </div> -->
     </aside>
 
     <!-- Main Content -->
@@ -49,8 +49,8 @@
             <!-- Dropdown for Reading Lists -->
             <div class="list-picker-dropdown" *ngIf="showListPicker" (click)="$event.stopPropagation()">
               <div class="list-picker-header">Kies een leeslijst</div>
-              <div class="list-picker-items" *ngIf="readingLists.length > 0; else noLists">
-                <div class="list-picker-item" *ngFor="let list of readingLists" (click)="addBookToList(list.id)">
+              <div class="list-picker-items" *ngIf="pickerReadingLists.length > 0; else noLists">
+                <div class="list-picker-item" *ngFor="let list of pickerReadingLists" (click)="addBookToList(list.id)">
                   {{ list.name }}
                 </div>
               </div>
@@ -63,30 +63,20 @@
       </section>
 
       <!-- Bibliotheekbeheer -->
+      
       <section class="management-section">
         <h2 class="section-title">Bibliotheekbeheer</h2>
-
-        <!-- <div class="management-grid">
-          <div class="management-card">
-            <label class="card-label">Beschikbaarheid</label>
-            <select [(ngModel)]="selectedBook.availability" name="availability" class="status-select">
-              <option value="AVAILABLE">Beschikbaar</option>
-              <option value="BORROWED">Uitgeleend</option>
-              <option value="DAMAGED">Beschadigd</option>
-              <option value="LOST">Verloren</option>
-            </select>
-          </div>
-        </div> -->
-
+        
         <div class="action-buttons">
-          <button class="action-btn secondary">
+          <button type="button" class="action-btn secondary" (click)="goToEditPage(selectedBook.id)">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2">
               <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
             </svg>
             <span>Bewerken</span>
           </button>
-          <button class="action-btn danger">
+
+          <button type="button" class="action-btn danger" (click)="deleteBook(selectedBook.id)">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"></polyline>
@@ -96,6 +86,7 @@
           </button>
         </div>
       </section>
+    
 
       <!-- Meta Informatie -->
       <section class="meta-section">
@@ -258,12 +249,12 @@
               </div>
 
               <div class="review-actions" style="display: flex; gap: 8px;">
-                <button class="delete-review-btn" [disabled]="review.isReported" (click)="reportReview(review)"
-                  [style.opacity]="review.isReported ? '0.5' : '1'"
-                  [title]="review.isReported ? 'Review is al gerapporteerd' : 'Review rapporteren'">
+                <button class="delete-review-btn" [disabled]="review.reportedByCurrentUser" (click)="reportReview(review)"
+                  [style.opacity]="review.reportedByCurrentUser ? '0.5' : '1'"
+                  [title]="review.reportedByCurrentUser ? 'Review is al gerapporteerd' : 'Review rapporteren'">
                   <lucide-angular [img]="Flag" size="18"
-                    [style.color]="review.isReported ? '#f87171' : 'inherit'"></lucide-angular>
-                  <span *ngIf="review.isReported"
+                    [style.color]="review.reportedByCurrentUser ? '#f87171' : 'inherit'"></lucide-angular>
+                  <span *ngIf="review.reportedByCurrentUser"
                     style="font-size: 0.8rem; color: #f87171; margin-left: 4px;">Gerapporteerd</span>
                 </button>
                 <button class="delete-review-btn" (click)="deleteReview(review.id)" title="Review verwijderen">

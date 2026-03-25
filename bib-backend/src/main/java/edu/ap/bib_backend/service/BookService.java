@@ -5,8 +5,10 @@ import java.nio.charset.StandardCharsets;
 import java.net.URI;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -24,17 +26,24 @@ import org.springframework.web.util.UriComponentsBuilder;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
+import edu.ap.bib_backend.dto.ReadingLevelDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
+import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import jakarta.transaction.Transactional;
 
@@ -43,6 +52,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.net.URLEncoder;
 
 @Service
+@Transactional
 public class BookService {
 
     private String googleBooksApiKey;
@@ -51,20 +61,30 @@ public class BookService {
     private final RestTemplate restTemplate;
     private final BookCopyRepository bcr;
     private final GenreRepository gr;
+    private final ReviewRepository reviewRepository;
+    private final BookLoanRepository bookLoanRepository;
+    private final ReadingLevelRepository rlr;
 
     public BookService(
             BookRepository repo,
             BookCopyRepository bcr,
             GenreRepository gr,
+            ReviewRepository reviewRepository,
+            BookLoanRepository bookLoanRepository,
+            ReadingLevelRepository rlr,
             RestTemplate restTemplate,
             @Value("${google.books.api.key}") String googleBooksApiKey) {
         this.br = repo;
         this.bcr = bcr;
         this.gr = gr;
+        this.reviewRepository = reviewRepository;
+        this.bookLoanRepository = bookLoanRepository;
         this.restTemplate = restTemplate;
+        this.rlr = rlr;
         this.googleBooksApiKey = googleBooksApiKey;
     }
 
+    @Transactional
     public List<BookDTO> getAllBooks() {
         return br.findAll()
                 .stream()
@@ -74,13 +94,13 @@ public class BookService {
 
     @Transactional
     public BookDTO addBook(BookDTO dto) {
-        String normalizedIsbn = normalizeIsbn(dto.getISBN());
-        dto.setISBN(normalizedIsbn);
+        String normalizedIsbn = normalizeIsbn(dto.getIsbn());
+        dto.setIsbn(normalizedIsbn);
 
         Book book = null;
 
         if (normalizedIsbn != null && !normalizedIsbn.isBlank()) {
-            book = br.findByISBN(normalizedIsbn);
+            book = br.findByIsbn(normalizedIsbn);
         }
 
         if (book == null) {
@@ -96,6 +116,56 @@ public class BookService {
         return mapToDTO(book);
     }
 
+    @Transactional
+    public void deleteBook(Long id) {
+        Book book = br.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
+
+        boolean hasBorrowedCopies = bcr.existsByBookIdAndAvailability(id, Availability.BORROWED);
+
+        if (hasBorrowedCopies) {
+            throw new IllegalStateException(
+                    "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.");
+        }
+
+        reviewRepository.deleteByBookId(id);
+        bookLoanRepository.deleteByCopiesBookId(id);
+        bcr.deleteByBookId(id);
+
+        book.getGenres().clear();
+        br.delete(book);
+    }
+
+    @Transactional
+    public BookDTO updateBook(Long id, BookDTO dto) {
+        Book book = br.findById(id)
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
+
+        String normalizedIsbn = normalizeIsbn(dto.getIsbn());
+
+        if (normalizedIsbn != null && !normalizedIsbn.isBlank()) {
+            Book existingBookWithIsbn = br.findByIsbn(normalizedIsbn);
+
+            if (existingBookWithIsbn != null && !existingBookWithIsbn.getId().equals(id)) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Er bestaat al een ander boek met ISBN: " + normalizedIsbn);
+            }
+        }
+
+        book.setIsbn(normalizedIsbn);
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthor());
+        book.setPages(dto.getPages());
+        book.setImageUrl(dto.getImageUrl());
+        book.setDescription(dto.getDescription());
+        book.setReleaseYear(dto.getReleaseYear());
+        book.setGenres(mapGenresFromDTO(dto.getGenres()));
+
+        Book updatedBook = br.save(book);
+        return mapToDTO(updatedBook);
+    }
+
     private String normalizeIsbn(String isbn) {
         return isbn == null ? null : isbn.replace("-", "").replace(" ", "").trim();
     }
@@ -103,7 +173,7 @@ public class BookService {
     private BookDTO mapToDTO(Book book) {
         BookDTO dto = new BookDTO();
         dto.setId(book.getId());
-        dto.setISBN(book.getISBN());
+        dto.setIsbn(book.getIsbn());
         dto.setTitle(book.getTitle());
         dto.setAuthor(book.getAuthor());
         dto.setPages(book.getPages());
@@ -116,10 +186,18 @@ public class BookService {
                 book.getGenres().stream()
                         .map(this::mapGenreToDTO)
                         .toList());
-                        dto.setTotalCopies(book.getBookCopies().size());
+
+        dto.setTotalCopies(book.getBookCopies().size());
         dto.setAvailableCopies((int) book.getBookCopies().stream()
-            .filter(copy -> copy.getAvailability() == Availability.AVAILABLE)
-            .count());
+                .filter(copy -> copy.getAvailability() == Availability.AVAILABLE)
+                .count());
+
+        if (book.getReadingLevel() != null) {
+            dto.setReadingLevel(new ReadingLevelDTO(
+                    book.getReadingLevel().getId(),
+                    book.getReadingLevel().getNiveauName(),
+                    book.getReadingLevel().getDescription()));
+        }
         return dto;
     }
 
@@ -134,7 +212,7 @@ public class BookService {
 
     private Book mapToEntity(BookDTO dto) {
         Book book = new Book();
-        book.setISBN(dto.getISBN());
+        book.setIsbn(dto.getIsbn());
         book.setTitle(dto.getTitle());
         book.setAuthor(dto.getAuthor());
         book.setPages(dto.getPages());
@@ -142,28 +220,40 @@ public class BookService {
         book.setDescription(dto.getDescription());
         book.setReleaseYear(dto.getReleaseYear());
         book.setGenres(mapGenresFromDTO(dto.getGenres()));
+
+        if (dto.getReadingLevel() != null && dto.getReadingLevel().getId() != null) {
+            ReadingLevel readingLevel = rlr
+                    .findById(dto.getReadingLevel().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Leesniveau niet gevonden"));
+
+            book.setReadingLevel(readingLevel);
+        }
         return book;
     }
 
-    private List<Genre> mapGenresFromDTO(List<GenreDTO> genres) {
-        if (genres == null) {
-            return new ArrayList<>();
+    private Set<Genre> mapGenresFromDTO(List<GenreDTO> genresDto) {
+        Set<Genre> genres = new HashSet<>();
+
+        if (genresDto == null) {
+            return genres;
         }
 
-        return genres.stream()
-                .filter(dto -> dto.name() != null && !dto.name().isBlank())
-                .map(dto -> dto.name().trim())
-                .distinct()
-                .map(name -> gr.findById(name)
-                        .orElseThrow(() -> new IllegalArgumentException("Genre bestaat niet: " + name)))
-                .toList();
+        for (GenreDTO genreDto : genresDto) {
+            Genre genre = gr.findByName(genreDto.name())
+                    .orElseThrow(() -> new IllegalArgumentException("Genre bestaat niet: " + genreDto.name()));
+            genres.add(genre);
+        }
+
+        return genres;
     }
 
+    @Transactional
     public BookDTO getBookById(Long id) {
         return br.findById(id)
                 .map(book -> mapToDTO(book)) // Zet Book om naar BookDTO
                 .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
     }
+
     public Book getBookById(Long id, boolean returnEntity) {
         return br.findById(id)
                 .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
@@ -186,7 +276,7 @@ public class BookService {
         }
 
         BookDTO dto = new BookDTO();
-        dto.setISBN(isbn);
+        dto.setIsbn(isbn);
         dto.setTitle((String) bookData.get("title"));
         dto.setReleaseYear(extractYearFromOpenLibraryDate((String) bookData.get("publish_date")));
 
@@ -384,8 +474,6 @@ public class BookService {
         return null;
     }
 
-
-
     public Integer getMaxPages() {
         Integer max = br.findMaxPages();
         return max != null ? max : 1500;
@@ -396,6 +484,7 @@ public class BookService {
         return min != null ? min : 0;
     }
 
+    @Transactional
     public List<BookDTO> getMostReadBooks(int limit) {
         List<Book> books = br.findMostReadBook(PageRequest.of(0, limit));
 
@@ -406,6 +495,7 @@ public class BookService {
         return mapToDTOList(books);
     }
 
+    @Transactional
     public List<BookDTO> getNewestBooks(int limit) {
         List<Book> books = br.findNewestBooks(PageRequest.of(0, limit));
         return mapToDTOList(books);
@@ -660,14 +750,13 @@ public class BookService {
     }
 
     public Page<BookDTO> getFilteredBooks(
-        String searchTerm,
-        BookAvailabilityFilter availabilityFilter,
-        Integer minPages,
-        Integer maxPages,
-        int page,
-        int size,
-        BookSortOption sortBy
-    ) {
+            String searchTerm,
+            BookAvailabilityFilter availabilityFilter,
+            Integer minPages,
+            Integer maxPages,
+            int page,
+            int size,
+            BookSortOption sortBy) {
         String normalizedSearchTerm = normalizeSearchTerm(searchTerm);
         int validatedPage = validatePage(page);
         int validatedSize = validateSize(size);
@@ -681,19 +770,18 @@ public class BookService {
                 normalizedSearchTerm,
                 availability,
                 minPages,
-                maxPages
-        );
+                maxPages);
 
         Page<Book> bookPage = br.findAll(specification, pageable);
         return bookPage.map(this::mapToDTO);
     }
 
     private String normalizeSearchTerm(String searchTerm) {
-    if (searchTerm == null || searchTerm.isBlank()) {
-        return null;
-    }
+        if (searchTerm == null || searchTerm.isBlank()) {
+            return null;
+        }
 
-    return searchTerm.trim();
+        return searchTerm.trim();
     }
 
     private int validatePage(int page) {

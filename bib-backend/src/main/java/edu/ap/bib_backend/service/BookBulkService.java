@@ -3,6 +3,7 @@ package edu.ap.bib_backend.service;
 import edu.ap.bib_backend.dto.FileValidationError;
 import edu.ap.bib_backend.dto.ValidationProgress;
 import edu.ap.bib_backend.jpa.entity.*;
+import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import jakarta.transaction.Transactional;
@@ -73,7 +74,7 @@ public class BookBulkService {
                 if (importedBooks.containsKey(isbn)) {
                     book = importedBooks.get(isbn);
                 } else {
-                    Book existingBook = br.findByISBN(isbn);
+                    Book existingBook = br.findByIsbn(isbn);
 
                     if (existingBook != null) {
 
@@ -89,7 +90,7 @@ public class BookBulkService {
                 // altijd een BookCopy maken
                 BookCopy copy = new BookCopy();
                 copy.setBook(book);
-
+                copy.setAvailability(Availability.AVAILABLE);
                 bcr.save(copy);
 
             }
@@ -235,7 +236,7 @@ public class BookBulkService {
         Book book = new Book();
         DataFormatter formatter = new DataFormatter();
 
-        book.setISBN(formatter.formatCellValue(row.getCell(0)));
+        book.setIsbn(formatter.formatCellValue(row.getCell(0)));
         book.setTitle(formatter.formatCellValue(row.getCell(1)));
         book.setAuthor(formatter.formatCellValue(row.getCell(2)));
         book.setPages(Integer.parseInt(formatter.formatCellValue(row.getCell(3))));

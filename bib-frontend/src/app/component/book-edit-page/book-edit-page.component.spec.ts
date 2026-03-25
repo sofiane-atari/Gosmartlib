@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DashboardRolesComponent } from './dashboard-roles.component';
+import { BookEditPageComponent } from './book-edit-page.component';
 
-describe('DashboardRolesComponent', () => {
-  let component: DashboardRolesComponent;
-  let fixture: ComponentFixture<DashboardRolesComponent>;
+describe('BookEditPageComponent', () => {
+  let component: BookEditPageComponent;
+  let fixture: ComponentFixture<BookEditPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DashboardRolesComponent]
+      imports: [BookEditPageComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DashboardRolesComponent);
+    fixture = TestBed.createComponent(BookEditPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

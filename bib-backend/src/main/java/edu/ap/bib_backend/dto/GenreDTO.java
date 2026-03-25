@@ -11,7 +11,7 @@ import lombok.Builder;
 @Builder
 public record GenreDTO(
         @JsonProperty("name") @NotBlank(message = "Genrenaam is mag niet leeg zijn") @NotNull(message = "Genrenaam is verplicht") String name,
-        @JsonProperty("color") @HexColor(message = "Ongeldige hexkleur") @NotBlank(message = "Genrekleur is mag niet leeg zijn") @NotNull(message = "Genrekleur is verplicht") String color,
+        @JsonProperty("color") @HexColor(message = "Ongeldige hexkleur") @NotBlank(message = "Genrekleur mag niet leeg zijn") @NotNull(message = "Genrekleur is verplicht") String color,
         @JsonProperty("description") String description,
         @JsonProperty("booksCount") @JsonInclude(JsonInclude.Include.NON_NULL) Integer bookCount // null when not requested, int value when included
 ) {

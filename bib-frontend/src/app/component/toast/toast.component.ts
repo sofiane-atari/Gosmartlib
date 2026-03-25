@@ -28,7 +28,7 @@ export class ToastComponent {
   constructor(private toastService: ToastService) {
     this.toastService.toast$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(t => {
       this.toast = t;
-      
+
       if (this.timeoutId) {
         clearTimeout(this.timeoutId);
         this.timeoutId = null;

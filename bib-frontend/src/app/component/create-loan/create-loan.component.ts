@@ -126,7 +126,7 @@ export class CreateLoanComponent {
     const mergedBooksByKey = new Map<string, Book>();
 
     [...this.catalogBooks(), ...this.isbnBooks()].forEach((book) => {
-      const key = book.id !== undefined ? `id-${book.id}` : `isbn-${book.ISBN}`;
+      const key = book.id !== undefined ? `id-${book.id}` : `isbn-${book.isbn}`;
       if (!mergedBooksByKey.has(key)) {
         mergedBooksByKey.set(key, book);
       }
@@ -317,8 +317,6 @@ export class CreateLoanComponent {
     this.bookService.getFilteredBooks(
       searchTerm.length > 0 ? searchTerm : null,
       'AVAILABLE',
-      null,
-      null,
       0,
       50,
       'AZ',

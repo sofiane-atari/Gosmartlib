@@ -21,6 +21,6 @@ export class LoanSummaryPanelComponent {
   public readonly removeBookRequested = output<number | undefined>();
 
   public trackSelectedBook(index: number, book: Book): number | string {
-    return book.id ?? `book-${book.ISBN ?? index}`;
+    return book.id ?? `book-${book.isbn ?? index}`;
   }
 }

@@ -7,6 +7,7 @@ import { Route, Router } from '@angular/router';
 import { Info, LucideAngularModule, Plus } from "lucide-angular";
 import { ToastService } from '../../../services/Toast/toast.service';
 import { Genre } from '../../../model/genre.model';
+import { ReadingLevel } from '../../../model/readingLevel.model';
 
 @Component({
   selector: 'app-add-book-manual',
@@ -25,11 +26,13 @@ export class AddBookManualComponent {
     imageUrl: '',
     description: '',
     releaseYear: new Date().getFullYear(),
-    genres: []
+    genres: [],
+    readingLevel: undefined
   };
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
 
   @Input() genres: Genre[] = [];
+  @Input() readingLevels: ReadingLevel[] = [];
   @Output() bookAdded = new EventEmitter<Book>();
   readonly InfoIcon = Info;
 
@@ -52,8 +55,9 @@ export class AddBookManualComponent {
       this.ts.show('Selecteer minstens 1 genre', 'error')
       return;
     }
+
     this.bookAdded.emit(this.book);
   }
-  
+
 
 }

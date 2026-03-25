@@ -30,7 +30,7 @@ public class BookDTOTest {
                         new GenreDTO("Thriller", "#EF4444", "Spannend verhaal", null)));
 
         assertEquals(1L, book.getId());
-        assertEquals("9781234567890", book.getISBN()); // let op: getter blijft getISBN()
+        assertEquals("9781234567890", book.getIsbn()); // let op: getter blijft getISBN()
         assertEquals("Test Boek", book.getTitle());
         assertEquals("Auteur X", book.getAuthor());
         assertEquals(300, book.getPages());

@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.config;
 
 import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -45,6 +48,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = jwtService.extractUsername(token);
         String role = (String) jwtService.extractClaim(token, "roles");
 
+        // TEST PRE AUTHORIZE
+        // String authorityName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
+        // UsernamePasswordAuthenticationToken authentication =
+        //         new UsernamePasswordAuthenticationToken(
+        //                 username,
+        //                 null,
+        //                 List.of(new SimpleGrantedAuthority(authorityName))
+        //         );
+
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         username,
@@ -52,7 +65,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         List.of(new SimpleGrantedAuthority(role))
                 );
 
+        Map<String, Object> audienceDetails = new HashMap<>();
+        audienceDetails.put("classCode", asStringOrDefault(jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE), "GENERAL"));
+        audienceDetails.put("yearCode", asStringOrDefault(jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE), "0"));
+        audienceDetails.put("schoolCode", asStringOrDefault(jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE), "ALLEMAAL"));
+        authentication.setDetails(audienceDetails);
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);
+    }
+
+    private String asStringOrDefault(Object value, String fallback) {
+        if (value instanceof String str && !str.isBlank()) {
+            return str;
+        }
+        return fallback;
     }
 }

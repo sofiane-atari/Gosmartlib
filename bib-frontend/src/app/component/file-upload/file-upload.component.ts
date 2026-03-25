@@ -13,7 +13,7 @@ export class FileUploadComponent {
   @Input() selectedFile: File | null = null;
   @Input() accept = '.xlsx';
   @Input() maxSizeMB = 10;
-  
+
   @Output() fileChanged = new EventEmitter<File | null>();
 
   isDragOver = false;

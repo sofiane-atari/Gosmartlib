@@ -10,6 +10,9 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.BufferingClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.config.Customizer;
@@ -26,23 +29,8 @@ import org.springframework.security.oauth2.core.http.converter.OAuth2AccessToken
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
-/**
- * Globale beveiligingsconfiguratie voor de applicatie.
- * 
- * Deze klasse fungeert als de centrale 'firewall' voor alle inkomende
- * HTTP-verzoeken.
- * Het configureert CORS, schakelt CSRF uit (geschikt voor stateless REST
- * API's),
- * stelt de sessiemanagement in op stateless, en definieert welke endpoints
- * publiek toegankelijk zijn en welke authenticatie vereisen.
- * 
- */
-
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -50,54 +38,72 @@ public class SecurityConfig {
         private final SmartschoolOAuth2UserService smartschoolOAuth2UserService;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+        public SecurityConfig(
+                        JwtAuthenticationFilter jwtAuthenticationFilter,
                         SmartschoolOAuth2UserService smartschoolOAuth2UserService) {
-
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
         }
 
         @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain filterChain(
+                        HttpSecurity http,
+                        OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient)
+                        throws Exception {
                 http
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .cors(Customizer.withDefaults())
 
-                                // ⚠️ OAuth2 Authorization Code flow needs a session to store the
-                                // 'state' parameter during the redirect. We relax STATELESS here
-                                // only for that handshake — your API endpoints remain effectively
-                                // stateless because they are protected via the JWT filter below.
+                                // Nodig voor OAuth2 login flow (state handling)
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
-                                // Dev mock filter (still active in non-prod)
+                                // JWT filter
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                                 .authorizeHttpRequests(auth -> auth
+                                                // Preflight
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                                .requestMatchers("/auth/error", "/oauth2/**", "/login/**",
-                                                                "/auth/callback")
+
+                                                // 🔓 Public endpoints
+                                                .requestMatchers(
+                                                                "/auth/error",
+                                                                "/auth/callback",
+                                                                "/oauth2/**",
+                                                                "/login/**")
                                                 .permitAll()
+
+                                                // 🔓 Tijdelijke / dev endpoints (optioneel)
+                                                .requestMatchers(
+                                                                "/books/template",
+                                                                "/books/upload/validate-stream/**")
+                                                .permitAll()
+
+                                                // 🔐 Auth endpoints
                                                 .requestMatchers("/auth/me", "/auth/logout").authenticated()
+
+                                                // 🔐 Business endpoints
                                                 .requestMatchers("/reviews/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                 Role.LIBRARIAN.name(), Role.ADMIN.name())
+
                                                 .requestMatchers("/books/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                 Role.LIBRARIAN.name(), Role.ADMIN.name())
+
                                                 .requestMatchers("/genres/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.ADMIN.name())
+
                                                 .requestMatchers("/loans/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.LIBRARIAN.name(),
                                                                 Role.ADMIN.name())
+
                                                 .anyRequest().authenticated())
 
-                                // --- OAuth2 login via Smartschool ---
+                                // OAuth2 login (Smartschool)
                                 .oauth2Login(oauth2 -> oauth2
-                                                // After Smartschool redirects back, call your own endpoint
-                                                // which issues a JWT and redirects to the Angular frontend
                                                 .tokenEndpoint(token -> token
-                                                                .accessTokenResponseClient(accessTokenResponseClient()))
+                                                                .accessTokenResponseClient(accessTokenResponseClient))
                                                 .userInfoEndpoint(userInfo -> userInfo
                                                                 .userService(smartschoolOAuth2UserService))
                                                 .defaultSuccessUrl("/auth/callback", true)
@@ -108,9 +114,10 @@ public class SecurityConfig {
 
         @Bean
         public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient() {
+
                 OAuth2AccessTokenResponseHttpMessageConverter tokenConverter = new OAuth2AccessTokenResponseHttpMessageConverter();
 
-                // Smartschool returns text/html — add it to accepted types
+                // Smartschool returns text/html
                 tokenConverter.setSupportedMediaTypes(List.of(
                                 MediaType.APPLICATION_JSON,
                                 MediaType.APPLICATION_FORM_URLENCODED,
@@ -124,11 +131,12 @@ public class SecurityConfig {
 
                 restTemplate.setRequestFactory(
                                 new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
-                restTemplate.setInterceptors(List.of(new LoggingInterceptor()));
 
+                restTemplate.setInterceptors(List.of(new LoggingInterceptor()));
                 restTemplate.setErrorHandler(new OAuth2ErrorResponseErrorHandler());
 
                 DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
+
                 client.setRestOperations(restTemplate);
 
                 return client;
