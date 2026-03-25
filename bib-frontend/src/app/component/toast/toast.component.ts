@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Toast } from '../../model/toast.model';
-import { ToastService } from '../../services/toast/toast.service';
+import { ToastService } from '../../services/Toast/toast.service';
 
 
 @Component({
@@ -26,7 +26,7 @@ export class ToastComponent {
   constructor(private toastService: ToastService) {
     this.toastService.toast$.subscribe(t => {
       this.toast = t;
-      
+
       if (this.timeoutId) {
         clearTimeout(this.timeoutId);
       }

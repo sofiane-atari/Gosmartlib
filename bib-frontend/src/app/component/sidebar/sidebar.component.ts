@@ -2,7 +2,6 @@ import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
-import { Role } from '../../model/auth.model';
 import {
   LucideAngularModule,
   Book,

@@ -6,7 +6,7 @@ import { Book } from '../../../model/book.model';
 import { Availability } from '../../../model/enums/availability.enum';
 import { CheckCircle, Info, LucideAngularModule, Plus, Search } from "lucide-angular";
 import { BookCandidate } from '../../../model/book-candidate.model';
-import { ToastService } from '../../../services/toast/toast.service';
+import { ToastService } from '../../../services/Toast/toast.service';
 import { LoadingOverlayComponent } from "../../shared/loading-overlay/loading-overlay.component";
 import { Genre } from '../../../model/genre.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
@@ -17,7 +17,7 @@ import { ReadingLevel } from '../../../model/readingLevel.model';
   imports: [FormsModule, LucideAngularModule, LoadingOverlayComponent],
   templateUrl: './add-book-isbn.component.html',
   styleUrl: './add-book-isbn.component.css'
-  
+
 })
 export class AddBookISBNComponent {
   isbn: string = "";
@@ -41,11 +41,11 @@ export class AddBookISBNComponent {
     description: '',
     releaseYear: new Date().getFullYear(),
     genres: [],
-    readingLevel: undefined 
+    readingLevel: undefined
   };
 
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
-  
+
   toggleGenre(genre: Genre) {
     const exists = this.book.genres.some(g => g.name === genre.name);
 
@@ -59,7 +59,7 @@ export class AddBookISBNComponent {
   isGenreSelected(genre: Genre): boolean {
     return this.book.genres.some(g => g.name  === genre.name);
   }
-  
+
   save() {
 
     if (this.book.genres.length === 0) {
@@ -89,7 +89,7 @@ export class AddBookISBNComponent {
 
     this.ts.show('Vul een ISBN in of vul titel, auteur en jaar in.', 'error');
   }
-  
+
   searchByISBN() {
 
     this.showCandidates = false;

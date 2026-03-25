@@ -38,7 +38,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @SpringJUnitConfig
-@ContextConfiguration(classes = SmartschoolOAuth2UserService.class)
+@ContextConfiguration(classes = { SmartschoolOAuth2UserService.class, SmartschoolAudienceResolverService.class })
 class SmartschoolOAuth2UserServiceTest {
 
     @Autowired

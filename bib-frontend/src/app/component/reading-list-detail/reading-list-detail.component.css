@@ -75,6 +75,7 @@
     padding: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     text-align: center;
+    position: relative;
 }
 
 .book-cover {
@@ -87,4 +88,24 @@
     font-weight: 600;
     color: #333;
     margin: 0;
+}
+
+.remove-book-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    border: none;
+    background: transparent;
+    color: #dc2626;
+    border-radius: 999px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.remove-book-btn:hover {
+    background: #fee2e2;
 }

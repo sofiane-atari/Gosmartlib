@@ -15,6 +15,7 @@ import { BookEditPageComponent } from './component/book-edit-page/book-edit-page
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
+  { path: 'account', redirectTo: '/profile', pathMatch: 'full' },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard]},
   { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
   {

@@ -1,53 +1,71 @@
 <div class="page">
 
-    <!-- Loading state -->
-    <div class="loading-state" *ngIf="loading">
-        <p>Leeslijst laden...</p>
-    </div>
-
-    <!-- Error state -->
-    <div class="error-state" *ngIf="error && !loading">
-        <div class="empty-icon">❌</div>
-        <h3>Leeslijst niet gevonden</h3>
-        <p>Deze leeslijst bestaat niet of is verwijderd.</p>
-        <button class="btn-primary" routerLink="/reading-list">Terug naar overzicht</button>
-    </div>
-
-    <!-- List detail -->
-    <div *ngIf="!loading && !error && list">
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">{{ list.name }}</h1>
-                <p class="page-subtitle">leeslijst</p>
-            </div>
-            <button class="btn-secondary" routerLink="/reading-list">← Terug</button>
+    @if (loading) {
+        <div class="loading-state">
+            <p>Leeslijst laden...</p>
         </div>
+    }
 
-        <div class="books-empty" *ngIf="booksInList.length === 0 && list.books && list.books.length > 0">
-            <div class="empty-icon">⏳</div>
-            <p>Boeken laden...</p>
+    @if (error && !loading) {
+        <div class="error-state">
+            <div class="empty-icon">❌</div>
+            <h3>Leeslijst niet gevonden</h3>
+            <p>Deze leeslijst bestaat niet of is verwijderd.</p>
+            <button class="btn-primary" routerLink="/reading-list">Terug naar overzicht</button>
         </div>
+    }
 
-        <div class="books-empty" *ngIf="(!list.books || list.books.length === 0)">
-            <div class="empty-icon">📖</div>
-            <p>Deze leeslijst bevat nog geen boeken.</p>
-        </div>
-
-        <div class="books-grid" *ngIf="booksInList.length > 0">
-            <div class="book-card" *ngFor="let book of booksInList" (click)="goToBook(book.id)"
-                style="cursor: pointer;">
-                <div class="book-cover">
-                    <!-- Display actual image or fallback -->
-                    <img *ngIf="book.imageUrl" [src]="book.imageUrl" alt="Cover"
-                        style="width: 50%; height: 50%; object-fit: cover; border-radius: inherit;" />
-                    <span *ngIf="!book.imageUrl">📗</span>
+    @if (!loading && !error && list) {
+        <div>
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">{{ list.name }}</h1>
+                    <p class="page-subtitle">leeslijst</p>
                 </div>
-                <div class="book-info">
-                    <p class="book-title">{{ book.title }}</p>
-                    <p class="book-author" style="font-size: 13px; color: #666; margin-top: 4px;">{{ book.author }}</p>
-                </div>
+                <button class="btn-secondary" routerLink="/reading-list">Terug</button>
             </div>
+
+            @if (booksInList.length === 0 && list.books && list.books.length > 0) {
+                <div class="books-empty">
+                    <div class="empty-icon">⏳</div>
+                    <p>Boeken laden...</p>
+                </div>
+            }
+
+            @if (!list.books || list.books.length === 0) {
+                <div class="books-empty">
+                    <div class="empty-icon">📖</div>
+                    <p>Deze leeslijst bevat nog geen boeken.</p>
+                </div>
+            }
+
+            @if (booksInList.length > 0) {
+                <div class="books-grid">
+                    @for (book of booksInList; track book.id) {
+                        <div class="book-card" (click)="goToBook(book.id)" style="cursor: pointer;">
+                            @if (!isReadOnlyAudience()) {
+                                <button class="remove-book-btn" title="Verwijder uit leeslijst" (click)="removeBookFromList(book.id, $event)">
+                                    <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                                </button>
+                            }
+                            <div class="book-cover">
+                                @if (book.imageUrl) {
+                                    <img [src]="book.imageUrl" alt="Cover"
+                                        style="width: 50%; height: 50%; object-fit: cover; border-radius: inherit;" />
+                                }
+                                @if (!book.imageUrl) {
+                                    <span>📗</span>
+                                }
+                            </div>
+                            <div class="book-info">
+                                <p class="book-title">{{ book.title }}</p>
+                                <p class="book-author" style="font-size: 13px; color: #666; margin-top: 4px;">{{ book.author }}</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
-    </div>
+    }
 
 </div>

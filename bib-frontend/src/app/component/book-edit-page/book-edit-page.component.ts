@@ -9,7 +9,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { LucideAngularModule, Info, Pencil, Save } from 'lucide-angular';
-import { ToastService } from '../../services/toast/toast.service';
+import { ToastService } from '../../services/Toast/toast.service';
 import { BookService } from '../../services/BookService/book.service';
 import { GenreService } from '../../services/genre/genre.service';
 import { Book } from '../../model/book.model';

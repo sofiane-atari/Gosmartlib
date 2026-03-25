@@ -8,9 +8,13 @@ export interface ReadingListBook {
   bookId: number;
 }
 
+export type ReadingListTargetType = 'PERSONAL' | 'CLASS' | 'YEAR' | 'SCHOOL' | 'SYSTEM';
+
 export interface ReadingList {
   id: number;
   name: string;
+  targetType?: ReadingListTargetType;
+  targetValue?: string | null;
   books?: ReadingListBook[];
 }
 
@@ -52,5 +56,9 @@ export class ReadingListService {
 
   addBookToFavorites(bookId: number): Observable<ReadingListBook> {
     return this.http.post<ReadingListBook>(`${this.apiUrl}/favorites/books`, { bookId });
+  }
+
+  removeBookFromList(listId: number, bookId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${listId}/books/${bookId}`);
   }
 }
