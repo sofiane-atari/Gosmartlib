@@ -164,6 +164,10 @@ public class BookService {
                 .map(book -> mapToDTO(book)) // Zet Book om naar BookDTO
                 .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
     }
+    public Book getBookById(Long id, boolean returnEntity) {
+        return br.findById(id)
+                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
+    }
 
     public BookDTO fetchBookByISBN(String isbn) {
         String url = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data";
