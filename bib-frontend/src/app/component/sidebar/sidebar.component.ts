@@ -19,8 +19,8 @@ import {
   RotateCcw,
   LogOut,
   User,
+  School,
 } from 'lucide-angular';
-import { School } from 'lucide-angular/src/icons';
 import { Router, RouterModule } from '@angular/router';
 
 @Component({

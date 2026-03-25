@@ -9,7 +9,7 @@
 
         <div class="selected-books">
             <h3>Geselecteerde boeken</h3>
-            @for (book of selectedBooks(); track book.id ?? $index) {
+            @for (book of selectedBooks(); track trackSelectedBook($index, book)) {
             <div class="selected-book-row">
                 <span>{{ book.title }} - {{ book.author }}</span>
                 <button type="button" class="btn btn-danger"
