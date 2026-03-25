@@ -1,5 +1,7 @@
 package edu.ap.bib_backend.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.NotBlank;
@@ -8,6 +10,6 @@ import lombok.Builder;
 
 @Builder
 public record LoanDTO(@JsonProperty("userId") @NotBlank(message = "Gebruiker ID is verplicht") String userId,
-			@JsonProperty("booksIds") @NotEmpty (message = "Minstens één boek is verplicht") int[] booksIds,
-			@JsonProperty("returnDate") @NotBlank(message = "Retourdatum is verplicht") String returnDate) {
+		@JsonProperty("bookIds") @NotEmpty(message = "Minstens één boek is verplicht") List<Long> bookIds,
+		@JsonProperty("returnDate") @NotBlank(message = "Retourdatum is verplicht") String returnDate) {
 }

@@ -196,7 +196,7 @@ export class CreateLoanComponent {
       .createLoan({
         id: 0,
         userId: user.id,
-        booksId: bookIds,
+        bookIds: bookIds,
         returnDate: new Date(returnDate),
       })
       .subscribe({
