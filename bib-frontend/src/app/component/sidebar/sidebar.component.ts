@@ -1,7 +1,8 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
+import { AuthUserDto, Role } from '../../model/auth.model';
 import {
   LucideAngularModule,
   Book,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-angular';
 import { School } from 'lucide-angular/src/icons';
 import { Router, RouterModule } from '@angular/router';
+import { RoleService } from '../../services/role-service/role.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -35,7 +37,8 @@ export class SidebarComponent {
   readonly RotateCcwIcon = RotateCcw;
   readonly LogOutIcon = LogOut;
 
-  public authService = inject(AuthService);
+  public readonly authService = inject(AuthService);
+  private readonly roleService = inject(RoleService);
 
   // Input for mobile state
   public mobileOpen = input<boolean>(false);
@@ -45,6 +48,10 @@ export class SidebarComponent {
 
   public constructor(private readonly router: Router) {}
 
+  protected readonly currentUser = computed<AuthUserDto | null>(() =>
+    this.authService.currentUser()
+  );
+
   menuItems = [
     { icon: Book, label: 'Catalogus', route: '/catalog' },
     { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },
@@ -53,11 +60,31 @@ export class SidebarComponent {
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/instellingen' },
     { icon: Package, label: 'BookBox', route: '/bookbox' },
-    { icon: Flag, label: 'Rapporteer', route: '/gerapporteerd' },
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
-    { icon: Tag, label: 'Labelbeheer', route: '/genre' },
+    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
+    { icon: Tag, label: 'Genrebeheer', route: '/genre' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen' },
   ];
+
+
+  protected readonly userDisplayName = computed(() => {
+    const user = this.currentUser();
+
+    if (!user) {
+      return 'Gebruiker';
+    }
+
+    return user.fullName?.trim()
+      || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+      || user.firstName?.trim()
+      || user.id
+      || 'Gebruiker';
+  });
+
+  protected readonly userRoleLabel = computed(() => {
+    const role = this.currentUser()?.role;
+    return this.getRoleLabel(role);
+  });
 
   public goToAddBook(): void {
     this.router.navigate(['/add-book']);
@@ -73,6 +100,22 @@ export class SidebarComponent {
   public closeOnMobile(): void {
     if (this.mobileOpen()) {
       this.sidebarClosed.emit();
+    }
+  }
+
+
+  private getRoleLabel(role: Role | undefined): string {
+    switch (role) {
+      case 'STUDENT':
+        return 'Leerling';
+      case 'TEACHER':
+        return 'Leerkracht';
+      case 'LIBRARIAN':
+        return 'Bibliotheekbeheerder';
+      case 'ADMIN':
+        return 'Platformbeheerder';
+      default:
+        return 'Onbekende rol';
     }
   }
 }

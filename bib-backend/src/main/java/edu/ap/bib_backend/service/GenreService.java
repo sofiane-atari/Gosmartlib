@@ -2,7 +2,6 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.jpa.entity.Genre;
 
-import edu.ap.bib_backend.jpa.repository.ReviewRepository;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -19,6 +18,7 @@ import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.mapper.GenreMapper;
 import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.options.GenreGetOptions;

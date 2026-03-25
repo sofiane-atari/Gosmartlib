@@ -55,7 +55,7 @@ import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
-import edu.ap.bib_backend.jpa.repository.ReviewRepository;
+import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 
 import org.springframework.data.domain.Page;
@@ -94,7 +94,7 @@ class BookServiceTest {
 
         @BeforeEach
         void setUp() {
-            bs = new BookService(br, bcr, gr, reviewRepository, bookLoanRepository, rlr,  restTemplate, "fake-api-key");
+                bs = new BookService(br, bcr, gr, reviewRepository, bookLoanRepository, rlr,  restTemplate, "fake-api-key");
         }
 
         @Test

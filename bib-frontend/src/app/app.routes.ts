@@ -12,12 +12,15 @@ import { LoginComponent } from './component/login/login.component';
 import { SmartschoolCallbackComponent } from './component/smartschool-callback/smartschool-callback.component';
 import { authGuard, publicOnlyGuard } from './guards/auth.guard';
 import { BookEditPageComponent } from './component/book-edit-page/book-edit-page.component';
+import { ReviewDashboardComponent } from './component/dashboard/review-dashboard/review-dashboard.component';
+import { reviewModerationGuard } from './guards/review-moderation.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
   { path: 'account', redirectTo: '/profile', pathMatch: 'full' },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard]},
   { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
+  { path: 'review-dashboard', component: ReviewDashboardComponent, canActivate: [reviewModerationGuard, authGuard],},
   {
     path: 'book/:id',
     component: BookDetailComponent,
