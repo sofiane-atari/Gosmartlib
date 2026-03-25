@@ -49,20 +49,35 @@
 		@if (isLoadingUsers()) {
 		<p class="hint">Gebruikers worden geladen...</p>
 		} @else {
-		<div class="list">
+		<div class="list user-results">
 			@for (user of users(); track user.id) {
-			<button type="button" class="list-item" [class.active]="selectedUser()?.id === user.id"
+			<button type="button" class="list-item user-item" [class.active]="selectedUser()?.id === user.id"
 				(click)="selectUser(user)">
-				<span class="list-item-title">{{ user.firstName ?? 'Onbekend voornaam' }} {{ user.lastName ?? 'Onbekend
-					achternaam' }}</span>
-				@if (user.role === 'STUDENT') {
-				<span class="list-item-subtitle">Klas: {{ user.primaryGroupName ?? 'Onbekend klas' }}</span>
+				<div class="user-item-content">
+					<span class="user-item-id">ID: {{ user.id }}</span>
+					<span class="list-item-title">{{ user.firstName ?? 'Onbekende voornaam' }} {{ user.lastName ??
+						'Onbekende achternaam' }}</span>
+					@if (user.role === 'STUDENT') {
+					<span class="list-item-subtitle">Klas: {{ user.primaryGroupName ?? 'Onbekende klas' }}</span>
+					}
+				</div>
+				@if (selectedUser()?.id === user.id) {
+				<span class="user-selected-badge">Geselecteerd</span>
 				}
 			</button>
 			} @empty {
 			<p class="hint">Geen gebruikers gevonden.</p>
 			}
 		</div>
+
+		@if (selectedUser()) {
+		<div class="selected-user selected-user--primary">
+			<span class="selected-user-text">
+				Geselecteerde gebruiker: <strong>{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }}</strong>
+			</span>
+			<button type="button" class="btn btn-secondary" (click)="clearSelectedUser()">Gebruiker wissen</button>
+		</div>
+		}
 		}
 	</div>
 
@@ -75,13 +90,6 @@
 		@if (!selectedUser()) {
 		<p class="hint">Selecteer eerst een gebruiker om boeken te zoeken.</p>
 		} @else {
-		<div class="selected-user">
-			<span class="selected-user-text">
-				Geselecteerde gebruiker: <strong>{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }}</strong>
-			</span>
-			<button type="button" class="btn btn-secondary" (click)="clearSelectedUser()">Gebruiker wissen</button>
-		</div>
-
 		<div class="search-row">
 			<label for="bookSearchTitle">Zoek op titel</label>
 			<input id="bookSearchTitle" type="text" [value]="bookSearchTitle()"

@@ -12,6 +12,6 @@ export class LoansService {
   private apiUrl = environment.apiUrl;
 
   public createLoan(loan: Loan): Observable<Loan> {
-    return this.http.post<Loan>(`${this.apiUrl}/api/loans`, loan);
+    return this.http.post<Loan>(`${this.apiUrl}/loans`, loan);
   }
 }

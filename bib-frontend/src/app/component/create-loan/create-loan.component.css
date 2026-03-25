@@ -164,7 +164,45 @@ h3 {
 
 .list-item.active {
 	border-color: var(--main-color);
+	background: color-mix(in srgb, var(--main-light-color) 70%, white);
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--main-color) 20%, transparent);
+}
+
+.user-results {
+	max-height: 18rem;
+}
+
+.user-item {
+	align-items: flex-start;
+	cursor: pointer;
+}
+
+.user-item-content {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+}
+
+.user-item-id {
+	width: fit-content;
+	font-size: 0.75rem;
+	font-weight: 700;
+	padding: 0.15rem 0.45rem;
+	border-radius: 999px;
+	border: 1px solid var(--sec-color);
+	background: color-mix(in srgb, var(--sec-light-color) 55%, white);
+	color: var(--main-color);
+}
+
+.user-selected-badge {
+	font-size: 0.78rem;
+	font-weight: 700;
+	padding: 0.2rem 0.5rem;
+	border-radius: 999px;
+	border: 1px solid var(--main-color);
+	background: color-mix(in srgb, var(--main-color) 12%, white);
+	color: var(--main-color);
 }
 
 .book-item {
@@ -196,6 +234,12 @@ h3 {
 	border: 1px dashed var(--sec-color);
 	border-radius: 0.65rem;
 	background: color-mix(in srgb, var(--sec-light-color) 45%, white);
+}
+
+.selected-user--primary {
+	border-style: solid;
+	border-color: var(--main-color);
+	background: color-mix(in srgb, var(--main-color) 8%, var(--main-light-color));
 }
 
 .selected-user-text {

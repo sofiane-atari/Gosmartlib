@@ -6,7 +6,6 @@ import { BookPreview } from '../../model/book-preview.model';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../model/paginated-response.model.ts';
 import { BookAvailabilityFilter, BookSortOption } from '../../model/bookFilter.model';
-import { FileValidationResult } from '../../model/FileValidationResult';
 import { BookCandidate } from '../../model/book-candidate.model';
 
 
