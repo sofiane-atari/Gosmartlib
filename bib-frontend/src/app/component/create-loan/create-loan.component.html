@@ -50,11 +50,13 @@
 		<p class="hint">Gebruikers worden geladen...</p>
 		} @else {
 		<div class="list">
-			@for (user of users(); track trackByUserId($index, user)) {
+			@for (user of users(); track user.id) {
 			<button type="button" class="list-item" [class.active]="selectedUser()?.id === user.id"
 				(click)="selectUser(user)">
-				<span class="list-item-title">{{ user.firstName }} {{ user.lastName }}</span>
-				<span class="list-item-subtitle">Klas: {{ user.class }}</span>
+				<span class="list-item-title">{{ user.firstName ?? 'Onbekend voornaam' }} {{ user.lastName ?? 'Onbekend achternaam' }}</span>
+				@if (user.role === 'STUDENT') {
+					<span class="list-item-subtitle">Klas: {{ user.primaryGroupName ?? 'Onbekend klas' }}</span>
+				}
 			</button>
 			} @empty {
 			<p class="hint">Geen gebruikers gevonden.</p>

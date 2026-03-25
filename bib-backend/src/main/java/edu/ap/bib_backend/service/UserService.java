@@ -21,7 +21,8 @@ public class UserService {
     private final UserMapper userMapper;
     private final GroupService groupService;
 
-    public UserService(UserRepository userRepository, ProfanityFilterService profanityFilterService, UserMapper userMapper, GroupService groupService) {
+    public UserService(UserRepository userRepository, ProfanityFilterService profanityFilterService,
+            UserMapper userMapper, GroupService groupService) {
         this.userRepository = userRepository;
         this.profanityFilterService = profanityFilterService;
         this.userMapper = userMapper;
@@ -52,6 +53,7 @@ public class UserService {
     public User createUser(String userId, RoleEntity role) {
         if (userRepository.existsById(userId)) {
             throw new RuntimeException("Gebruiker bestaat al");
+        }
         User user = new User();
         user.setId(userId);
         user.setRole(role);

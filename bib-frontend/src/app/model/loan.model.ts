@@ -1,6 +1,6 @@
 export interface Loan {
     id: number;
-    userId: number;
+    userId: string;
     booksId: number[];
     returnDate: Date;
 }

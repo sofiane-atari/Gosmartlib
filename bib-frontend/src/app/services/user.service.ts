@@ -1,7 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpParams, HttpUrlEncodingCodec } from '@angular/common/http';
+import { HttpClient, HttpParams} from '@angular/common/http';
 import { User } from '../model/user.model';
+import { environment } from '../../environments/environment';
+import { AuthUserDto } from '../model/auth.model';
 
 export interface GetUsersOpt {
     WithfirstName?: string;
@@ -15,8 +17,9 @@ export interface GetUsersOpt {
 export class UserService {
 
   private http = inject(HttpClient);   
+  private apiUrl = environment.apiUrl;
 
-  public getUsers(opt?: GetUsersOpt): Observable<User[]> {
+  public getUsers(opt?: GetUsersOpt): Observable<AuthUserDto[]> {
     let params = new HttpParams({
       fromObject: {
         firstName: String(opt?.WithfirstName?? ''),
@@ -25,6 +28,6 @@ export class UserService {
       },
     });
 
-    return this.http.get<User[]>('/api/users', { params });
+    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users`, { params: params });
   }
 }

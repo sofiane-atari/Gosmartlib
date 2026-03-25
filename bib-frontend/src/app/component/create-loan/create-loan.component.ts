@@ -2,10 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Book } from '../../model/book.model';
-import { User } from '../../model/user.model';
 import { BookService } from '../../services/BookService/book.service';
 import { LoansService } from '../../services/loans.service';
 import { UserService } from '../../services/user.service';
+import { AuthUserDto } from '../../model/auth.model';
 
 @Component({
   selector: 'app-create-loan',
@@ -31,9 +31,9 @@ export class CreateLoanComponent {
   // TODO: TEMPORARY - Remove this signal when searchId feature is no longer needed
   public readonly searchId = signal('');
   public readonly bookSearch = signal('');
-  public readonly users = signal<User[]>([]);
+  public readonly users = signal<AuthUserDto[]>([]);
   public readonly books = signal<Book[]>([]);
-  public readonly selectedUser = signal<User | null>(null);
+  public readonly selectedUser = signal<AuthUserDto | null>(null);
   public readonly selectedBooks = signal<Book[]>([]);
 
   protected loanForm = this.fb.group({
@@ -95,7 +95,7 @@ export class CreateLoanComponent {
     this.loadUsers(firstName, lastName, id);
   }
 
-  public selectUser(user: User): void {
+  public selectUser(user: AuthUserDto): void {
     this.selectedUser.set(user);
     this.selectedBooks.set([]);
     this.successMessage.set('');
@@ -178,10 +178,6 @@ export class CreateLoanComponent {
       });
   }
 
-  protected trackByUserId(index: number, user: User): number {
-    return user.id ?? index;
-  }
-
   protected trackByBookId(index: number, book: Book): number {
     return book.id ?? index;
   }
@@ -191,16 +187,18 @@ export class CreateLoanComponent {
     this.isLoadingUsers.set(true);
 
     this.userService
-      .getUsers({ WithfirstName: firstName, WithlastName: lastName })
+      .getUsers({ WithfirstName: firstName, WithlastName: lastName , WithId: id})
       .subscribe({
         next: (users) => {
           this.users.set(users);
           this.isLoadingUsers.set(false);
         },
-        error: () => {
+        error: (err: any) => {
           this.users.set([]);
           this.isLoadingUsers.set(false);
           this.errorMessage.set('Gebruikers konden niet geladen worden.');
+          console.log('Error loading users:', err);
+          console.log('Error loading users with parameters:', { firstName, lastName, id });
         },
       });
   }
@@ -213,7 +211,7 @@ export class CreateLoanComponent {
         this.books.set(books);
         this.isLoadingBooks.set(false);
       },
-      error: () => {
+      error: (err: any) => {
         this.books.set([]);
         this.isLoadingBooks.set(false);
         this.errorMessage.set('Boeken konden niet geladen worden.');
