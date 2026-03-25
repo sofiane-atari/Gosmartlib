@@ -84,6 +84,16 @@
               />
             </div>
 
+            <div class="review-card__cover">
+              @if (review.bookImageUrl) {
+                <img [src]="review.bookImageUrl" alt="Cover van {{ review.bookTitle }}">
+              } @else {
+                <div class="review-card__cover-fallback">
+                   <lucide-angular name="Image" size="24"></lucide-angular>
+                </div>
+              }
+            </div>
+
             <div class="review-card__content">
               <div class="review-card__top">
                 <div>

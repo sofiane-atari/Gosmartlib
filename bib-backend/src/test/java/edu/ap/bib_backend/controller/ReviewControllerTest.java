@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -67,8 +68,10 @@ class ReviewControllerTest {
                 bookId,
                 "Title 1",
                 "Author 1",
+                "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
-                false
+                false,
+                LocalDateTime.now()
         );
 
         ReviewDTO review2 = new ReviewDTO(
@@ -79,8 +82,10 @@ class ReviewControllerTest {
                 bookId,
                 "Title 1",
                 "Author 1",
+                "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
-                false
+                false,
+                LocalDateTime.now()
         );
 
         List<ReviewDTO> mockReviews = Arrays.asList(review1, review2);
@@ -116,8 +121,10 @@ class ReviewControllerTest {
                 1L,
                 "Title 1",
                 "Author 1",
+                "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
-                false
+                false,
+                LocalDateTime.now()
         );
 
         ReviewDTO review2 = new ReviewDTO(
@@ -128,8 +135,10 @@ class ReviewControllerTest {
                 1L,
                 "Title 1",
                 "Author 1",
+                "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
-                false
+                false,
+                LocalDateTime.now()
         );
 
         List<ReviewDTO> mockReviews = Arrays.asList(review1, review2);
@@ -168,7 +177,9 @@ class ReviewControllerTest {
                 null,
                 null,
                 null,
-                false
+                null,
+                false,
+                LocalDateTime.now()
         );
 
         ReviewDTO savedReview = new ReviewDTO(
@@ -179,8 +190,10 @@ class ReviewControllerTest {
                 bookId,
                 "Title",
                 "Author",
+                "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
-                false
+                false,
+                LocalDateTime.now()
         );
 
         Mockito.when(reviewService.addReviewToBook(eq(bookId), any(ReviewDTO.class), any(Authentication.class)))
@@ -255,8 +268,10 @@ class ReviewControllerTest {
                 1L,
                 "Title",
                 "Author",
+                "https://example.com/cover.jpg",
                 ReviewModerationStatus.FLAGGED,
-                true
+                true,
+                LocalDateTime.now()
         );
 
         Mockito.when(reviewService.reportReview(eq(reviewId), any(Authentication.class)))
@@ -290,8 +305,10 @@ class ReviewControllerTest {
                 2L,
                 "Boektitel",
                 "Auteur",
+                "https://example.com/cover.jpg",
                 ReviewModerationStatus.FLAGGED,
-                false
+                false,
+                LocalDateTime.now()
         );
 
         Mockito.when(reviewService.getFlaggedReviews(any(Authentication.class)))
@@ -325,8 +342,10 @@ class ReviewControllerTest {
                 1L,
                 "Titel",
                 "Auteur",
+                "https://example.com/cover.jpg",
                 ReviewModerationStatus.KEPT,
-                false
+                false,
+                LocalDateTime.now()
         );
 
         Mockito.when(reviewService.keepReview(eq(reviewId), any(Authentication.class)))

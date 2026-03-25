@@ -12,11 +12,48 @@
   display: block;
 }
 
+/* =========================================================
+   FORCEER STERREN OM OP TE VULLEN
+   ========================================================= */
+lucide-angular.star-filled ::ng-deep svg,
+lucide-angular.star-filled ::ng-deep path,
+lucide-angular.star-filled ::ng-deep polygon {
+  fill: #f59e0b !important;
+}
+
 .review-dashboard {
   min-height: 100vh;
   padding: 24px;
   /* Optioneel een hele lichte achtergrond zoals op je andere pagina's */
   background-color: #faf7f8; 
+}
+
+.review-card__cover {
+  flex-shrink: 0; /* Zorgt dat de afbeelding niet krimpt als er veel tekst is */
+  width: 72px;    /* Mooie subtiele breedte */
+  height: 108px;  /* 2:3 ratio (typisch voor boeken) */
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface-soft, #f9fafb);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.review-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Zorgt dat de foto de ruimte perfect vult zonder te vervormen */
+  display: block;
+}
+
+/* Styling voor als een boek (nog) geen cover heeft */
+.review-card__cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1; /* Lichtgrijs icoontje */
 }
 
 /* Base Layout (Matcht .dashboard-labels) */
@@ -431,7 +468,7 @@
     width: 100%;
   }
 
-  @media (max-width: 480px) {
+@media (max-width: 480px) {
     .review-card__meta {
         gap: 6px;
         font-size: 12px;
@@ -440,5 +477,10 @@
     .review-card__meta-separator {
         display: none;
     }
-    }
+
+    .review-card__cover {
+    width: 60px;
+    height: 90px;
+  }
+}
 }

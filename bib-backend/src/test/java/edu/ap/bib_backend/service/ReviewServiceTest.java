@@ -22,6 +22,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -153,7 +154,9 @@ class ReviewServiceTest {
                 null,
                 null,
                 null,
-                false
+                null,
+                false,
+                LocalDateTime.now()
         );
 
         Book mockBook = new Book();
@@ -206,7 +209,9 @@ class ReviewServiceTest {
                 null,
                 null,
                 null,
-                false
+                null,
+                false,
+                LocalDateTime.now()
         );
 
         Book book = new Book();
@@ -246,7 +251,9 @@ class ReviewServiceTest {
                 null,
                 null,
                 null,
-                false
+                null,
+                false,
+                LocalDateTime.now()
         );
 
         Mockito.when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());

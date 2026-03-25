@@ -6,6 +6,7 @@ export interface Review {
   bookId?: number;
   bookTitle?: string;
   bookAuthor?: string;
+  bookImageUrl?: string;
   moderationStatus?: 'ACTIVE' | 'FLAGGED' | 'KEPT';
   reportedByCurrentUser?: boolean;
   createdAt?: string;

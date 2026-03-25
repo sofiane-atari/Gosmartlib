@@ -21,6 +21,7 @@ public class ReviewDTO {
     private ReviewModerationStatus moderationStatus;
     private boolean reportedByCurrentUser;
     private LocalDateTime createdAt;
+    private String bookImageUrl;
 
     public ReviewDTO() {
     }
@@ -33,6 +34,7 @@ public class ReviewDTO {
             Long bookId,
             String bookTitle,
             String bookAuthor,
+            String bookImageUrl,
             ReviewModerationStatus moderationStatus,
             boolean reportedByCurrentUser,
             LocalDateTime createdAt
@@ -44,6 +46,7 @@ public class ReviewDTO {
         this.bookId = bookId;
         this.bookTitle = bookTitle;
         this.bookAuthor = bookAuthor;
+        this.bookImageUrl = bookImageUrl;
         this.moderationStatus = moderationStatus;
         this.reportedByCurrentUser = reportedByCurrentUser;
         this.createdAt = createdAt;

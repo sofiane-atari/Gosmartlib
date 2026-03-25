@@ -191,6 +191,7 @@ public class ReviewService {
         reviewDto.setBookId(review.getBook().getId());
         reviewDto.setBookTitle(review.getBook().getTitle());
         reviewDto.setBookAuthor(review.getBook().getAuthor());
+        reviewDto.setBookImageUrl(review.getBook().getImageUrl());
         reviewDto.setModerationStatus(review.getModerationStatus());
         reviewDto.setReportedByCurrentUser(reportedByCurrentUser);
         reviewDto.setCreatedAt(review.getCreatedAt());
