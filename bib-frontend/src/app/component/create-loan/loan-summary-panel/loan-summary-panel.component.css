@@ -1,0 +1,128 @@
+.panel {
+    border: 1px solid var(--sec-color);
+    border-radius: 1rem;
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    background: var(--main-light-color);
+    box-shadow: 0 6px 14px color-mix(in srgb, var(--sec-color) 30%, transparent);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--main-color);
+}
+
+h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.loan-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.loan-form input {
+    border: 1px solid var(--sec-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #ffffff;
+    color: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.loan-form input:focus {
+    outline: none;
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--main-color) 25%, transparent);
+}
+
+.selected-books {
+    border: 1px solid var(--sec-color);
+    border-radius: 0.5rem;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background: #ffffff;
+}
+
+.selected-book-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.6rem;
+    border: 1px solid var(--sec-color);
+    border-radius: 0.45rem;
+    background: var(--main-light-color);
+}
+
+.btn {
+    border: 1px solid var(--main-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: var(--main-color);
+    color: #ffffff;
+}
+
+.btn-danger {
+    border-color: var(--error-color);
+    background: #ffffff;
+    color: var(--error-color);
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+}
+
+.submit-btn {
+    align-self: flex-start;
+    min-width: 13rem;
+}
+
+.hint {
+    color: inherit;
+    opacity: 0.85;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .panel {
+        padding: 0.9rem;
+    }
+
+    .panel-header,
+    .selected-book-row {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .submit-btn {
+        width: 100%;
+    }
+}
