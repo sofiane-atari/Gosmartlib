@@ -25,10 +25,12 @@ export class CreateLoanComponent {
   private readonly userService = inject(UserService);
   private readonly bookService = inject(BookService);
   private readonly loansService = inject(LoansService);
-  private readonly bookSearchSubject = new Subject<string>();
+  private readonly catalogSearchSubject = new Subject<string>();
+  private readonly isbnSearchSubject = new Subject<string>();
 
   public readonly isLoadingUsers = signal(false);
-  public readonly isLoadingBooks = signal(false);
+  public readonly isLoadingCatalogBooks = signal(false);
+  public readonly isLoadingIsbnBooks = signal(false);
   public readonly isSubmitting = signal(false);
   public readonly errorMessage = signal<string>('');
   public readonly successMessage = signal<string>('');
@@ -37,18 +39,21 @@ export class CreateLoanComponent {
   public readonly searchLastname = signal('');
   // TODO: TEMPORARY - Remove this signal when searchId feature is no longer needed
   public readonly searchId = signal('');
-  public readonly bookSearchTitle = signal('');
-  public readonly bookSearchAuthor = signal('');
+  public readonly bookSearchQuery = signal('');
   public readonly bookSearchIsbn = signal('');
   public readonly users = signal<AuthUserDto[]>([]);
-  public readonly books = signal<Book[]>([]);
+  public readonly catalogBooks = signal<Book[]>([]);
+  public readonly isbnBooks = signal<Book[]>([]);
   public readonly selectedUser = signal<AuthUserDto | null>(null);
   public readonly selectedBooks = signal<Book[]>([]);
 
+  public readonly isLoadingBooks = computed(() => {
+    return this.isLoadingCatalogBooks() || this.isLoadingIsbnBooks();
+  });
+
   public readonly hasBookSearchInput = computed(() => {
     return (
-      this.bookSearchTitle().trim().length > 0 ||
-      this.bookSearchAuthor().trim().length > 0 ||
+      this.bookSearchQuery().trim().length > 0 ||
       this.bookSearchIsbn().trim().length > 0
     );
   });
@@ -58,7 +63,7 @@ export class CreateLoanComponent {
   });
 
   public constructor() {
-    this.bookSearchSubject
+    this.catalogSearchSubject
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
@@ -69,19 +74,46 @@ export class CreateLoanComponent {
           return;
         }
 
-        if (!this.hasBookSearchInput()) {
-          this.books.set([]);
+        if (searchTerm.length === 0) {
+          this.catalogBooks.set([]);
           return;
         }
 
-        this.loadBooks(searchTerm);
+        this.loadCatalogBooks(searchTerm);
+      });
+
+    this.isbnSearchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((isbn: string) => {
+        if (!this.selectedUser()) {
+          return;
+        }
+
+        if (isbn.length === 0) {
+          this.isbnBooks.set([]);
+          return;
+        }
+
+        this.loadBookByIsbn(isbn);
       });
   }
 
   public readonly filteredBooks = computed(() => {
     const selectedBookIds = new Set(this.selectedBooks().map((book) => book.id));
+    const mergedBooksByKey = new Map<string, Book>();
 
-    return this.books().filter((book) => {
+    [...this.catalogBooks(), ...this.isbnBooks()].forEach((book) => {
+      const key = book.id !== undefined ? `id-${book.id}` : `isbn-${book.ISBN}`;
+      if (!mergedBooksByKey.has(key)) {
+        mergedBooksByKey.set(key, book);
+      }
+    });
+
+    return Array.from(mergedBooksByKey.values()).filter((book) => {
       const hasId = book.id !== undefined;
       const notAlreadySelected = !selectedBookIds.has(book.id);
       const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
@@ -119,36 +151,31 @@ export class CreateLoanComponent {
     this.selectedBooks.set([]);
     this.successMessage.set('');
     this.errorMessage.set('');
-    this.triggerBookSearch();
+    this.triggerCatalogSearch();
+    this.triggerIsbnSearch();
   }
 
   public clearSelectedUser(): void {
     this.selectedUser.set(null);
     this.selectedBooks.set([]);
-    this.books.set([]);
-    this.bookSearchTitle.set('');
-    this.bookSearchAuthor.set('');
+    this.catalogBooks.set([]);
+    this.isbnBooks.set([]);
+    this.bookSearchQuery.set('');
     this.bookSearchIsbn.set('');
     this.successMessage.set('');
     this.errorMessage.set('');
   }
 
-  public onBookTitleSearchChange(event: Event): void {
+  public onBookSearchQueryChange(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.bookSearchTitle.set(target.value);
-    this.triggerBookSearch();
-  }
-
-  public onBookAuthorSearchChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.bookSearchAuthor.set(target.value);
-    this.triggerBookSearch();
+    this.bookSearchQuery.set(target.value);
+    this.triggerCatalogSearch();
   }
 
   public onBookIsbnSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.bookSearchIsbn.set(target.value);
-    this.triggerBookSearch();
+    this.triggerIsbnSearch();
   }
 
   public addBook(book: Book): void {
@@ -206,7 +233,8 @@ export class CreateLoanComponent {
           this.successMessage.set('De lening is succesvol aangemaakt.');
           this.selectedBooks.set([]);
           this.loanForm.reset({ returnDate: '' });
-          this.triggerBookSearch();
+          this.triggerCatalogSearch();
+          this.triggerIsbnSearch();
         },
         error: () => {
           this.isSubmitting.set(false);
@@ -241,13 +269,13 @@ export class CreateLoanComponent {
       });
   }
 
-  private loadBooks(searchTerm: string = ''): void {
+  private loadCatalogBooks(searchTerm: string = ''): void {
     if (!this.selectedUser()) {
-      this.books.set([]);
+      this.catalogBooks.set([]);
       return;
     }
 
-    this.isLoadingBooks.set(true);
+    this.isLoadingCatalogBooks.set(true);
 
     this.bookService.getFilteredBooks(
       searchTerm.length > 0 ? searchTerm : null,
@@ -259,30 +287,42 @@ export class CreateLoanComponent {
       'AZ',
     ).subscribe({
       next: (response: PaginatedResponse<Book>) => {
-        this.books.set(response.data);
-        this.isLoadingBooks.set(false);
+        this.catalogBooks.set(response.data);
+        this.isLoadingCatalogBooks.set(false);
       },
       error: () => {
-        this.books.set([]);
-        this.isLoadingBooks.set(false);
+        this.catalogBooks.set([]);
+        this.isLoadingCatalogBooks.set(false);
         this.errorMessage.set('Boeken konden niet geladen worden.');
       },
     });
   }
 
-  private triggerBookSearch(): void {
-    const searchTerm = this.buildBookSearchTerm();
-    this.bookSearchSubject.next(searchTerm);
+  private loadBookByIsbn(isbn: string): void {
+    if (!this.selectedUser()) {
+      this.isbnBooks.set([]);
+      return;
+    }
+
+    this.isLoadingIsbnBooks.set(true);
+
+    this.bookService.getBookByISBN(isbn).subscribe({
+      next: (book: Book) => {
+        this.isbnBooks.set([book]);
+        this.isLoadingIsbnBooks.set(false);
+      },
+      error: () => {
+        this.isbnBooks.set([]);
+        this.isLoadingIsbnBooks.set(false);
+      },
+    });
   }
 
-  private buildBookSearchTerm(): string {
-    return [
-      this.bookSearchTitle().trim(),
-      this.bookSearchAuthor().trim(),
-      this.bookSearchIsbn().trim(),
-    ]
-      .filter((value) => value.length > 0)
-      .join(' ')
-      .trim();
+  private triggerCatalogSearch(): void {
+    this.catalogSearchSubject.next(this.bookSearchQuery().trim());
+  }
+
+  private triggerIsbnSearch(): void {
+    this.isbnSearchSubject.next(this.bookSearchIsbn().trim());
   }
 }

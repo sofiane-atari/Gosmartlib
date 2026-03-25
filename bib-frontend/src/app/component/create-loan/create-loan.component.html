@@ -91,15 +91,9 @@
 		<p class="hint">Selecteer eerst een gebruiker om boeken te zoeken.</p>
 		} @else {
 		<div class="search-row">
-			<label for="bookSearchTitle">Zoek op titel</label>
-			<input id="bookSearchTitle" type="text" [value]="bookSearchTitle()"
-				(input)="onBookTitleSearchChange($event)" placeholder="Typ een titel" />
-		</div>
-
-		<div class="search-row">
-			<label for="bookSearchAuthor">Zoek op auteur</label>
-			<input id="bookSearchAuthor" type="text" [value]="bookSearchAuthor()"
-				(input)="onBookAuthorSearchChange($event)" placeholder="Typ een auteur" />
+			<label for="bookSearchQuery">Zoek op titel of auteur</label>
+			<input id="bookSearchQuery" type="text" [value]="bookSearchQuery()"
+				(input)="onBookSearchQueryChange($event)" placeholder="Typ een titel of auteur" />
 		</div>
 
 		<div class="search-row">
