@@ -57,6 +57,7 @@ export class CreateLoanComponent {
   public readonly isbnBooks = signal<Book[]>([]);
   public readonly selectedUser = signal<AuthUserDto | null>(null);
   public readonly selectedBooks = signal<Book[]>([]);
+  public readonly minReturnDate = signal(this.buildMinReturnDate());
 
   public readonly isLoadingBooks = computed(() => {
     return this.isLoadingCatalogBooks() || this.isLoadingIsbnBooks();
@@ -272,6 +273,11 @@ export class CreateLoanComponent {
       return;
     }
 
+    if (returnDate < this.minReturnDate()) {
+      this.showError('De terugbrengdatum moet minimaal één dag in de toekomst liggen.');
+      return;
+    }
+
     const bookIds = books
       .map((book) => book.id)
       .filter((bookId): bookId is number => bookId !== undefined);
@@ -475,5 +481,11 @@ export class CreateLoanComponent {
 
   private showError(message: string): void {
     this.toastService.show(message, 'error');
+  }
+
+  private buildMinReturnDate(): string {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return toLocalDate(tomorrow);
   }
 }
