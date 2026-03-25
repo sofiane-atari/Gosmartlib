@@ -7,8 +7,8 @@ import { Review } from '../../model/review.model';
   providedIn: 'root'
 })
 export class ReviewService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/reviews`;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/reviews`;
 
   public getReviewsForBook(bookId: number) {
     return this.http.get<Review[]>(`${this.apiUrl}/book/${bookId}`);
@@ -16,6 +16,10 @@ export class ReviewService {
 
   public getAllReviews() {
     return this.http.get<Review[]>(this.apiUrl);
+  }
+
+  public getMyReviews() {
+    return this.http.get<Review[]>(`${this.apiUrl}/me`);
   }
 
   public getFlaggedReviews() {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -42,16 +43,21 @@ public class Review {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewReport> reports = new ArrayList<>();
 
     public Review() {
     }
 
-    public Review(String comment, int rating, Book book) {
+    public Review(String comment, int rating, Book book, User user) {
         this.comment = comment;
         this.rating = rating;
         this.book = book;
+        this.user = user;
         this.reportCount = 0;
         this.moderationStatus = ReviewModerationStatus.ACTIVE;
     }

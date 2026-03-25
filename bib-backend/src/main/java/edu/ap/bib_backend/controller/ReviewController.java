@@ -39,6 +39,12 @@ public class ReviewController {
         return ResponseEntity.ok(reviews);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<List<ReviewDTO>> getCurrentUserReviews(Authentication authentication) {
+        List<ReviewDTO> reviews = reviewService.getCurrentUserReviews(authentication);
+        return ResponseEntity.ok(reviews);
+    }
+
     @GetMapping("/flagged")
     //@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<List<ReviewDTO>> getFlaggedReviews(Authentication authentication) {
@@ -59,9 +65,8 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{reviewId}")
-    //@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
-    public ResponseEntity<Void> deleteReviewById(@PathVariable Long reviewId) {
-        reviewService.deleteReview(reviewId);
+    public ResponseEntity<Void> deleteReviewById( @PathVariable Long reviewId, Authentication authentication) {
+        reviewService.deleteReview(reviewId, authentication);
         return ResponseEntity.noContent().build();
     }
 

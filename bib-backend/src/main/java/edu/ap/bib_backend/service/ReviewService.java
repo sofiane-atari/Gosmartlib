@@ -47,6 +47,14 @@ public class ReviewService {
                 .toList();
     }
 
+    public List<ReviewDTO> getCurrentUserReviews(Authentication authentication) {
+        String currentUserId = extractCurrentUserId(authentication);
+
+        return reviewRepository.findByUserId(currentUserId).stream()
+                .map(review -> mapToReviewDto(review, currentUserId))
+                .toList();
+    }
+
     public List<ReviewDTO> getAllReviews(Authentication authentication) {
         String currentUserId = extractCurrentUserId(authentication);
 
@@ -69,10 +77,19 @@ public class ReviewService {
 
         validateReview(reviewDto);
 
-        Review review = new Review(reviewDto.getComment(), reviewDto.getRating(), book);
+        String currentUserId = extractCurrentUserId(authentication);
+
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden met id: " + currentUserId));
+
+        Review review = new Review(
+                reviewDto.getComment(),
+                reviewDto.getRating(),
+                book,
+                currentUser
+        );
         Review savedReview = reviewRepository.save(review);
 
-        String currentUserId = extractCurrentUserId(authentication);
         return mapToReviewDto(savedReview, currentUserId);
     }
 
@@ -80,9 +97,19 @@ public class ReviewService {
         return reviewRepository.getAverageRatingForBook(bookId);
     }
 
-    public void deleteReview(Long reviewId) {
+    public void deleteReview(Long reviewId, Authentication authentication) {
+        String currentUserId = extractCurrentUserId(authentication);
+
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("reviewId", "Review niet gevonden met id: " + reviewId));
+
+        boolean isOwner = review.getUser() != null
+                && review.getUser().getId() != null
+                && review.getUser().getId().equals(currentUserId);
+
+        if (!isModerator(authentication) && !isOwner) {
+            throw new IllegalStateException("Je mag alleen je eigen review verwijderen.");
+        }
 
         reviewRepository.delete(review);
     }
@@ -177,4 +204,12 @@ public class ReviewService {
 
         return authentication.getName();
     }
+
+    private boolean isModerator(Authentication authentication) {
+    return authentication.getAuthorities().stream()
+            .anyMatch(authority ->
+                    authority.getAuthority().equals("ROLE_LIBRARIAN")
+                            || authority.getAuthority().equals("ROLE_ADMIN")
+            );
+}
 }
