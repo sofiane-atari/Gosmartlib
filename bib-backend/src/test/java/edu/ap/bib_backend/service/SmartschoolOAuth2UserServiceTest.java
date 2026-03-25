@@ -1,5 +1,7 @@
 package edu.ap.bib_backend.service;
 
+import edu.ap.bib_backend.dto.SmartschoolGroupDto;
+import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
@@ -50,6 +52,12 @@ class SmartschoolOAuth2UserServiceTest {
     @MockitoBean
     private RoleService roleService;
 
+    @MockitoBean
+    private GroupService groupService;
+
+    @MockitoBean
+    private SmartschoolProfileService smartschoolProfileService;
+
     private MockRestServiceServer mockRestServiceServer;
 
     @BeforeEach
@@ -61,6 +69,7 @@ class SmartschoolOAuth2UserServiceTest {
 
     @Test
     void givenExistingUser_WhenLoadUser_ThenReturnOAuth2UserWithExistingUserRole() {
+        // Arrange
         String userInfoEndpoint = "https://smartschool.example.com/userinfo";
         String accessTokenValue = "access-token-123";
         OAuth2UserRequest userRequest = createUserRequest(userInfoEndpoint, accessTokenValue);
@@ -72,26 +81,37 @@ class SmartschoolOAuth2UserServiceTest {
         existingUser.setId("existing-user");
         existingUser.setRole(teacherRole);
 
+        Group group = new Group();
+        group.setName("1A");
+        SmartschoolGroupDto groupDto = new SmartschoolGroupDto("1A", java.util.List.of("First Grade"));
+
         when(userService.getUser("existing-user")).thenReturn(Optional.of(existingUser));
+        when(smartschoolProfileService.fetchGroups(accessTokenValue)).thenReturn(groupDto);
+        when(groupService.getGroup("1A")).thenReturn(group);
 
         mockRestServiceServer.expect(requestTo(userInfoEndpoint))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenValue))
                 .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON));
 
+        // Act
         OAuth2User result = smartschoolOAuth2UserService.loadUser(userRequest);
 
+        // Assert
         assertEquals("existing-user", result.getAttribute("userID"));
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")));
         verify(userService, times(1)).getUser("existing-user");
         verify(userService, never()).createUser(org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.any());
         verify(roleService, never()).getRoleEntity(org.mockito.ArgumentMatchers.anyString());
+        verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
+        verify(groupService, times(1)).getGroup("1A");
         mockRestServiceServer.verify();
     }
 
     @Test
     void givenNonExistingUser_WhenLoadUser_ThenCreateUserAndReturnOAuth2UserWithCreatedUserRole() {
+        // Arrange
         String userInfoEndpoint = "https://smartschool.example.com/userinfo";
         String accessTokenValue = "access-token-456";
         OAuth2UserRequest userRequest = createUserRequest(userInfoEndpoint, accessTokenValue);
@@ -103,22 +123,32 @@ class SmartschoolOAuth2UserServiceTest {
         createdUser.setId("new-user");
         createdUser.setRole(studentRole);
 
+        Group group = new Group();
+        group.setName("2B");
+        SmartschoolGroupDto groupDto = new SmartschoolGroupDto("2B", java.util.List.of("Second Grade"));
+
         when(userService.getUser("new-user")).thenReturn(Optional.empty());
         when(roleService.getRoleEntity("leerling")).thenReturn(studentRole);
         when(userService.createUser("new-user", studentRole)).thenReturn(createdUser);
+        when(smartschoolProfileService.fetchGroups(accessTokenValue)).thenReturn(groupDto);
+        when(groupService.getGroup("2B")).thenReturn(group);
 
         mockRestServiceServer.expect(requestTo(userInfoEndpoint))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenValue))
                 .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON));
 
+        // Act
         OAuth2User result = smartschoolOAuth2UserService.loadUser(userRequest);
 
+        // Assert
         assertEquals("new-user", result.getAttribute("userID"));
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_STUDENT")));
         verify(userService, times(1)).getUser("new-user");
         verify(roleService, times(1)).getRoleEntity("leerling");
         verify(userService, times(1)).createUser("new-user", studentRole);
+        verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
+        verify(groupService, times(1)).getGroup("2B");
         mockRestServiceServer.verify();
     }
 
