@@ -1,12 +1,18 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { AuthService } from '../services/authorization/auth.service';
-import { inject } from '@angular/core';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.getValidToken();
+  const token = localStorage.getItem('authToken');
+  const expiry = localStorage.getItem('authTokenExpiry');
 
-  if (!token) {
+  if (!token || !expiry) {
+    return next(req);
+  }
+
+  const isExpired = Date.now() > Number(expiry);
+
+  if (isExpired) {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authTokenExpiry');
     return next(req);
   }
 

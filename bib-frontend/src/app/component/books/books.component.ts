@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, computed, effect } from '@angular/co
 import { Book } from '../../model/book.model';
 import { BookService } from '../../services/BookService/book.service';
 import { ReadingListService } from '../../services/reading-list.service';
-import { ToastService } from '../../services/toast/toast.service';
+import { ToastService } from '../../services/Toast/toast.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -70,7 +70,7 @@ export class BooksComponent implements OnInit {
   protected readonly currentPage = signal(0);
   private readonly pageSize = signal(10);
 
-  
+
   protected readonly availableCount = computed(() =>
     this.books().filter((book: Book) => (book.availableCopies ?? 0) > 0).length,
   );
@@ -78,7 +78,7 @@ export class BooksComponent implements OnInit {
   protected readonly borrowedCount = computed(() =>
     this.books().filter((book: Book) => (book.totalCopies ?? 0) > 0 && (book.availableCopies ?? 0) === 0).length,
   );
-  
+
 
   constructor() {
     effect(() => {
@@ -112,7 +112,7 @@ export class BooksComponent implements OnInit {
       this.loadCatalogBooks();
     });
   }
-  
+
   protected readonly filters = signal<BookFilters>({
     searchTerm: '',
     availability: 'ALL',
@@ -144,13 +144,11 @@ export class BooksComponent implements OnInit {
   private loadCatalogBooks(): void {
     this.catalogLoading.set(true);
 
-    const filters: BookFilters = this.filters();
+    const filters: BookFilters = this.getNormalizedFilters(this.filters());
 
     this.bookService.getFilteredBooks(
       filters.searchTerm,
       filters.availability,
-      filters.minPages,
-      filters.maxPages,
       this.currentPage(),
       this.pageSize(),
       filters.sortBy,
@@ -212,7 +210,7 @@ export class BooksComponent implements OnInit {
       },
     });
 
-    
+
     this.bookService.getNewestBooks(3).subscribe({
       next: (books) => {
         this.newestBooks.set(books);
@@ -254,12 +252,12 @@ export class BooksComponent implements OnInit {
   public updateMaxPages(event: Event): void {
     const input = event.target as HTMLInputElement;
     let newMax = Number(input.value);
-    
+
     const currentMin = this.filters().minPages ?? this.absoluteMinPages();
 
     if (newMax < currentMin) {
       newMax = currentMin;
-      input.value = String(newMax); 
+      input.value = String(newMax);
     }
 
     this.filters.update((current: BookFilters) => ({
@@ -272,12 +270,12 @@ export class BooksComponent implements OnInit {
    public updateMinPages(event: Event): void {
     const input = event.target as HTMLInputElement;
     let newMin = Number(input.value);
-    
+
     const currentMax = this.filters().maxPages ?? this.absoluteMaxPages();
 
     if (newMin > currentMax) {
       newMin = currentMax;
-      input.value = String(newMin); 
+      input.value = String(newMin);
     }
 
     this.filters.update((current: BookFilters) => ({
@@ -333,11 +331,63 @@ export class BooksComponent implements OnInit {
     }
 
     try {
-      return JSON.parse(savedFilters) as BookFilters;
+      const parsed = JSON.parse(savedFilters) as Partial<BookFilters>;
+      return this.getNormalizedFilters(parsed);
     } catch {
       localStorage.removeItem('bookFilters');
       return null;
     }
+  }
+
+  private getNormalizedFilters(rawFilters: Partial<BookFilters>): BookFilters {
+    return {
+      searchTerm: typeof rawFilters.searchTerm === 'string' ? rawFilters.searchTerm : '',
+      availability: this.normalizeAvailability(rawFilters.availability),
+      minPages: this.normalizePageFilterValue(rawFilters.minPages),
+      maxPages: this.normalizePageFilterValue(rawFilters.maxPages),
+      sortBy: this.normalizeSortBy(rawFilters.sortBy),
+    };
+  }
+
+  private normalizeAvailability(value: unknown): BookFilters['availability'] {
+    const normalized = typeof value === 'string' ? value.trim().toUpperCase() : '';
+
+    if (normalized === 'AVAILABLE' || normalized === 'BESCHIKBAAR') {
+      return 'AVAILABLE';
+    }
+
+    return 'ALL';
+  }
+
+  private normalizeSortBy(value: unknown): BookFilters['sortBy'] {
+    const normalized = typeof value === 'string' ? value.trim().toUpperCase() : '';
+
+    switch (normalized) {
+      case 'ZA':
+      case 'NEWEST':
+      case 'RATING':
+      case 'AUTHOR_AZ':
+      case 'AUTHOR_ZA':
+        return normalized;
+      case 'AZ':
+      default:
+        return 'AZ';
+    }
+  }
+
+  private normalizePageFilterValue(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+
+    return null;
   }
 
   public toBookDetailPage(book: Book) {

@@ -6,7 +6,6 @@ import { BookPreview } from '../../model/book-preview.model';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../model/paginated-response.model.ts';
 import { BookAvailabilityFilter, BookSortOption } from '../../model/bookFilter.model';
-import { FileValidationResult } from '../../model/fileValidationResult';
 import { BookCandidate } from '../../model/book-candidate.model';
 
 
@@ -24,15 +23,13 @@ export class BookService {
   getFilteredBooks(
     searchTerm: string | null,
     availability: BookAvailabilityFilter,
-    minPages: number | null,
-    maxPages: number | null,
     page: number,
     size: number,
     sortBy: BookSortOption,
   ): Observable<PaginatedResponse<Book>> {
     let params = new HttpParams()
-      .set('page', page)
-      .set('size', size)
+      .set('page', Math.max(0, page))
+      .set('size', Math.max(1, size))
       .set('sortBy', sortBy);
 
     if (searchTerm && searchTerm.trim().length > 0) {
@@ -41,14 +38,6 @@ export class BookService {
 
     if (availability !== 'ALL') {
       params = params.set('availability', availability);
-    }
-
-    if (minPages !== null) {
-      params = params.set('minPages', minPages);
-    }
-
-    if (maxPages !== null) {
-      params = params.set('maxPages', maxPages);
     }
 
     return this.http.get<PaginatedResponse<Book>>(`${this.apiUrl}/catalog`, {
@@ -70,7 +59,7 @@ export class BookService {
   public deleteBook(id: number) {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
-  
+
   getBookByISBN(isbn: string) {
     return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
   }
@@ -105,7 +94,7 @@ export class BookService {
   validateBooksStream(tempFileId: string): EventSource {
     return new EventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`);
   }
-  
+
   searchBookCandidates(title: string, author: string, releaseYear: number): Observable<BookCandidate[]> {
     return this.http.get<BookCandidate[]>(`${this.apiUrl}/search`, {
       params: {

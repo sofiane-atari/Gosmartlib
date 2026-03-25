@@ -49,8 +49,8 @@
             <!-- Dropdown for Reading Lists -->
             <div class="list-picker-dropdown" *ngIf="showListPicker" (click)="$event.stopPropagation()">
               <div class="list-picker-header">Kies een leeslijst</div>
-              <div class="list-picker-items" *ngIf="readingLists.length > 0; else noLists">
-                <div class="list-picker-item" *ngFor="let list of readingLists" (click)="addBookToList(list.id)">
+              <div class="list-picker-items" *ngIf="pickerReadingLists.length > 0; else noLists">
+                <div class="list-picker-item" *ngFor="let list of pickerReadingLists" (click)="addBookToList(list.id)">
                   {{ list.name }}
                 </div>
               </div>
