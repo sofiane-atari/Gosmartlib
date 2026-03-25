@@ -102,19 +102,19 @@
 
               <div class="review-card__rating">
                 <div class="review-card__stars">
-                  @for (starValue of starValues; track starValue) {
-                    <lucide-angular
-                      [img]="Star"
-                      size="16"
-                      class="star-icon"
-                      [class.star-icon--filled]="starValue <= review.rating"
-                      [class.star-icon--empty]="starValue > review.rating"
-                    ></lucide-angular>
-                  }
-                </div>
+                    @for (starValue of starValues; track starValue) {
+                        <lucide-angular
+                        [img]="Star"
+                        size="16"
+                        strokeWidth="1.5"
+                        [color]="starValue <= review.rating ? '#f59e0b' : '#d1d5db'"
+                        [class.star-filled]="starValue <= review.rating"
+                        ></lucide-angular>
+                    }
+                    </div>
 
                 <span class="review-card__status">
-                  {{ review.moderationStatus ?? 'ACTIVE' }}
+                  {{ translateStatus(review.moderationStatus) }}
                 </span>
               </div>
 

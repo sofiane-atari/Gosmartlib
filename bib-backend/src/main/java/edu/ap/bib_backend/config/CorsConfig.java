@@ -20,7 +20,7 @@ public class CorsConfig {
                 // Sta alles toe van localhost:4200
                 registry.addMapping("/**")
                         .allowedOrigins(allowedOrigins)
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                         .allowedHeaders("Authorization", "Content-Type", "X-Mock-Role")
                         .allowCredentials(true);
             }

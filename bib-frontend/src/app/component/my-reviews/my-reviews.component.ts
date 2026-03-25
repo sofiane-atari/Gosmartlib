@@ -48,15 +48,21 @@ export class MyReviewsComponent implements OnInit {
       return;
     }
 
-    this.reviewService.deleteReview(reviewId).subscribe({
-      next: () => {
-        this.reviews = this.reviews.filter((review) => review.id !== reviewId);
-        this.toastService.show('Review verwijderd.', 'success');
+    this.toastService.showConfirm(
+      'Weet je zeker dat je deze review wilt verwijderen?',
+      () => {
+        this.reviewService.deleteReview(reviewId).subscribe({
+          next: () => {
+            this.reviews = this.reviews.filter((review) => review.id !== reviewId);
+            this.toastService.show('Review verwijderd.', 'success');
+          },
+          error: (error) => {
+            console.error('Fout bij verwijderen van review:', error);
+            this.toastService.show('De review kon niet verwijderd worden.', 'error');
+          },
+        });
       },
-      error: (error) => {
-        console.error('Fout bij verwijderen van review:', error);
-        this.toastService.show('De review kon niet verwijderd worden.', 'error');
-      },
-    });
+      () => {}
+    );
   }
 }

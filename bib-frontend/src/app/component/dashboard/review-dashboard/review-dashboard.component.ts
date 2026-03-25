@@ -238,4 +238,13 @@ export class ReviewDashboardComponent {
 
     this.toastService.show(`${successCount} ${pluralSuccessMessage}.`, 'success');
   }
+
+  protected translateStatus(status: string | undefined): string {
+    switch (status) {
+      case 'ACTIVE': return 'Actief';
+      case 'FLAGGED': return 'Gerapporteerd';
+      case 'KEPT': return 'Behouden';
+      default: return status ?? 'Onbekend';
+    }
+  }
 }
