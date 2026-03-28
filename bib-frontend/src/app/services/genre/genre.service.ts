@@ -1,10 +1,10 @@
-import { PageingOpt } from '../../model/paginated-response.model.ts';
+import { PageingOpt } from '../../model/shared/paging/PageingOpt.model';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Genre, GenreStats } from '../../model/genre.model';
 import { Observable } from 'rxjs';
-import { PaginatedResponse } from '../../model/paginated-response.model.ts';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 
 export interface genreGetOpt {
   includeBookCount?: boolean;

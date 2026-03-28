@@ -1,12 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Book } from '../../model/book.model';
-import { BookPreview } from '../../model/book-preview.model';
+import { Book } from '../../model/book/book.model';
+import { BookPreview } from '../../model/book/book-preview.model';
 import { environment } from '../../../environments/environment';
-import { PaginatedResponse } from '../../model/paginated-response.model.ts';
-import { BookAvailabilityFilter, BookSortOption } from '../../model/bookFilter.model';
-import { BookCandidate } from '../../model/book-candidate.model';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model'
+import { BookAvailabilityFilter, BookSortOption } from '../../model/book/bookFilter.model';
+import { BookCandidate } from '../../model/book/book-candidate.model';
 
 
 @Injectable({
