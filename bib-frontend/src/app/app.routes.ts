@@ -1,21 +1,33 @@
+import { BooksComponent } from './component/catalogus/books/books.component';
+import { BookDetailComponent } from './component/catalogus/book-detail/book-detail.component';
+import { AddBookPageComponent } from './component/book/add-book-page/add-book-page.component';
+import { BookEditPageComponent } from './component/book/book-edit-page/book-edit-page.component';
+import { BookManagementComponent } from './component/book/book-management/book-management.component';
+
+// Genre
+import { DashboardGenresComponent } from './component/genre/dashboard-genres/dashboard-genres.component';
+
+// Loan
+import { CreateLoanComponent } from './component/loan/create-loan/create-loan.component';
+
+// Login & Profile
+import { ProfileComponent } from './component/login-profile/profile/profile.component';
+import { LoginComponent } from './component/login-profile/login/login.component';
+import { SmartschoolCallbackComponent } from './component/login-profile/smartschool-callback/smartschool-callback.component';
+
+// Guards
+import { authGuard, publicOnlyGuard } from './guards/authentication/auth.guard';
+import { reviewModerationGuard } from './guards/review/review-moderation.guard';
 import { Routes } from '@angular/router';
-import { CreateReadingListComponent } from './component/create-reading-list/create-reading-list.component';
-import { ReadingListOverviewComponent } from './component/reading-list-overview/reading-list-overview.component';
-import { BooksComponent } from './component/books/books.component';
-import { BookDetailComponent } from './component/book-detail/book-detail.component';
-import { AddBookPageComponent } from './component/add-book-page/add-book-page.component';
-import { ReadingListDetailComponent } from './component/reading-list-detail/reading-list-detail.component';
-import { MyReviewsComponent } from './component/my-reviews/my-reviews.component';
-import { ProfileComponent } from './component/profile/profile.component';
-import { DashboardGenresComponent } from './component/dashboard-genres/dashboard-genres.component';
-import { LoginComponent } from './component/login/login.component';
-import { SmartschoolCallbackComponent } from './component/smartschool-callback/smartschool-callback.component';
-import { authGuard, publicOnlyGuard } from './guards/auth.guard';
-import { BookManagementComponent } from './component/book-management/book-management.component';
-import { CreateLoanComponent } from './component/create-loan/create-loan.component';
-import { BookEditPageComponent } from './component/book-edit-page/book-edit-page.component';
-import { ReviewDashboardComponent } from './component/dashboard/review-dashboard/review-dashboard.component';
-import { reviewModerationGuard } from './guards/review-moderation.guard';
+
+// reviews
+import { ReviewDashboardComponent } from './component/reviews/review-dashboard/review-dashboard.component';
+import { MyReviewsComponent } from './component/reviews/my-reviews/my-reviews.component';
+
+// Reading List
+import { ReadingListOverviewComponent } from './component/reading-list/reading-list-overview/reading-list-overview.component';
+import { CreateReadingListComponent } from './component/reading-list/create-reading-list/create-reading-list.component';
+import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -65,9 +77,16 @@ export const routes: Routes = [
     component: SmartschoolCallbackComponent,
   },
   { path: 'smartschool-callback', component: SmartschoolCallbackComponent },
-  { path: 'books-management', component: BookManagementComponent },
-  { path: 'loans/create', component: CreateLoanComponent},
-
+  { 
+    path: 'books-management', 
+    component: BookManagementComponent, 
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'loans/create', 
+    component: CreateLoanComponent, 
+    canActivate: [authGuard] 
+  },
   { path: '**', redirectTo: '/catalog' },
 
 ];
