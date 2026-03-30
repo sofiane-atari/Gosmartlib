@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
