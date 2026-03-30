@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.book;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,42 +18,26 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
-import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
-import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
-import edu.ap.bib_backend.jpa.repository.BookRepository;
-import edu.ap.bib_backend.jpa.repository.GenreRepository;
-import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
-import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+import edu.ap.bib_backend.mapper.BookCandidateMapper;
+
+
 
 @ExtendWith(MockitoExtension.class)
 class BookServiceGoogleBooksTest {
 
         @Mock
-        private BookRepository br;
-
-        @Mock
-        private BookCopyRepository bcr;
-
-        @Mock
-        private GenreRepository gr;
-
-        @Mock
         private RestTemplate restTemplate;
 
-        private BookService bs;
-    
-        private ReviewRepository reviewRepository;
+        private GoogleBooksClient gbc;
 
-        private BookLoanRepository bookLoanRepository;
-
-        @Mock
-        private ReadingLevelRepository rlr;
 
         @BeforeEach
         void setUp() {
-                bs = new BookService(br, bcr, gr, reviewRepository, bookLoanRepository, rlr, restTemplate, "fake-api-key");
+                gbc = new GoogleBooksClient(
+                                restTemplate,
+                                "fake-api-key",
+                                new BookCandidateMapper());
         }
-
 
         @Test
         void searchBookCandidates_whenMatchingBookExists_returnsCandidate() {
@@ -71,7 +55,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                List<BookCandidateDTO> result = bs.searchBookCandidates(
+                List<BookCandidateDTO> result = gbc.searchBookCandidates(
                                 "Harry Potter and the Philosopher's Stone",
                                 "J.K. Rowling",
                                 1997);
@@ -92,7 +76,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> bs.searchBookCandidates("Test", "Auteur", 2020))
+                assertThatThrownBy(() -> gbc.searchBookCandidates("Test", "Auteur", 2020))
                                 .isInstanceOf(ResponseStatusException.class)
                                 .satisfies(ex -> {
                                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -117,7 +101,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> bs.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                assertThatThrownBy(() -> gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
                                 .isInstanceOf(ResponseStatusException.class)
                                 .satisfies(ex -> {
                                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -140,7 +124,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> bs.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                assertThatThrownBy(() -> gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
                                 .isInstanceOf(ResponseStatusException.class);
         }
 
@@ -159,7 +143,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> bs.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                assertThatThrownBy(() -> gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
                                 .isInstanceOf(ResponseStatusException.class);
         }
 
@@ -178,7 +162,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                List<BookCandidateDTO> result = bs.searchBookCandidates("Harry Potter", "J.K. Rowling", null);
+                List<BookCandidateDTO> result = gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", null);
 
                 assertThat(result).hasSize(1);
                 assertThat(result.get(0).getReleaseYear()).isEqualTo(2001);
@@ -199,7 +183,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> bs.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                assertThatThrownBy(() -> gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
                                 .isInstanceOf(ResponseStatusException.class)
                                 .satisfies(ex -> {
                                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -222,7 +206,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> bs.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                assertThatThrownBy(() -> gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
                                 .isInstanceOf(ResponseStatusException.class);
         }
 
@@ -233,7 +217,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> bs.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                assertThatThrownBy(() -> gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
                                 .isInstanceOf(ResponseStatusException.class)
                                 .satisfies(ex -> {
                                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -250,7 +234,7 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> bs.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                assertThatThrownBy(() -> gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
                                 .isInstanceOf(ResponseStatusException.class)
                                 .satisfies(ex -> {
                                         ResponseStatusException rse = (ResponseStatusException) ex;

@@ -10,7 +10,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,13 +17,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
-import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
-import edu.ap.bib_backend.service.BookService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.book.BookSearchService;
+import edu.ap.bib_backend.service.book.BookService;
+import edu.ap.bib_backend.service.book.GoogleBooksClient;
+import edu.ap.bib_backend.service.book.OpenLibraryClient;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,9 +52,15 @@ public class BookControllerTest {
 
     @MockBean
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
-    //
 
+    @MockBean
+    private BookSearchService bss;
 
+    @MockBean
+    private GoogleBooksClient gbc;
+
+    @MockBean
+    private OpenLibraryClient olc;
 
     @Test
     void givenFilters_whenGetFilteredBooks_thenReturnsPagedResult() throws Exception {
@@ -66,7 +73,7 @@ public class BookControllerTest {
 
         Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of(book));
 
-        Mockito.when(bs.getFilteredBooks(
+        Mockito.when(bss.getFilteredBooks(
                 "Harry",
                 BookAvailabilityFilter.ALL,
                 100,
@@ -92,7 +99,7 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.data[0].pages").value(350))
                 .andExpect(jsonPath("$.meta").exists());
 
-        Mockito.verify(bs).getFilteredBooks(
+        Mockito.verify(bss).getFilteredBooks(
                 "Harry",
                 BookAvailabilityFilter.ALL,
                 100,
@@ -157,7 +164,7 @@ public class BookControllerTest {
         // Arrange
         Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of());
 
-        Mockito.when(bs.getFilteredBooks(
+        Mockito.when(bss.getFilteredBooks(
                 null,
                 null,
                 null,
@@ -174,7 +181,7 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.meta").exists());
 
-        Mockito.verify(bs).getFilteredBooks(
+        Mockito.verify(bss).getFilteredBooks(
                 null,
                 null,
                 null,
@@ -250,7 +257,7 @@ void givenSearchParameters_whenSearchBookCandidates_thenReturnsCandidateList() t
     candidate.setAuthor("Candidate Author");
     candidate.setReleaseYear(2020);
 
-    Mockito.when(bs.searchBookCandidates("Dune", "Frank Herbert", 1965))
+    Mockito.when(gbc.searchBookCandidates("Dune", "Frank Herbert", 1965))
             .thenReturn(List.of(candidate));
 
     // Act & Assert
@@ -263,7 +270,7 @@ void givenSearchParameters_whenSearchBookCandidates_thenReturnsCandidateList() t
             .andExpect(jsonPath("$[0].author").value("Candidate Author"))
             .andExpect(jsonPath("$[0].releaseYear").value(2020));
 
-    Mockito.verify(bs).searchBookCandidates("Dune", "Frank Herbert", 1965);
+    Mockito.verify(gbc).searchBookCandidates("Dune", "Frank Herbert", 1965);
 }
 
 @Test
@@ -275,7 +282,7 @@ void givenIsbn13_whenSelectBook_thenReturnsBookByIsbn13() throws Exception {
     book.setAuthor("Selected Author");
     book.setIsbn("9789999999999");
 
-    Mockito.when(bs.fetchBookByISBN("9789999999999")).thenReturn(book);
+    Mockito.when(olc.fetchBookByISBN("9789999999999")).thenReturn(book);
 
     // Act & Assert
     mockMvc.perform(post("/books/select")
@@ -286,7 +293,7 @@ void givenIsbn13_whenSelectBook_thenReturnsBookByIsbn13() throws Exception {
             .andExpect(jsonPath("$.author").value("Selected Author"))
             .andExpect(jsonPath("$.isbn").value("9789999999999"));
 
-    Mockito.verify(bs).fetchBookByISBN("9789999999999");
+    Mockito.verify(olc).fetchBookByISBN("9789999999999");
 }
 
 @Test
@@ -507,7 +514,7 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
         book.setDescription("Beschrijving van het boek");
         book.setReleaseYear(2022);
 
-        Mockito.when(bs.fetchBookByISBN("9781234567890")).thenReturn(book);
+        Mockito.when(olc.fetchBookByISBN("9781234567890")).thenReturn(book);
 
         mockMvc.perform(get("/books/isbn/9781234567890"))
                 .andExpect(status().isOk())
@@ -520,7 +527,7 @@ void givenMissingIsbn13_whenSelectBook_thenReturnsBadRequest() throws Exception 
                 .andExpect(jsonPath("$.description").value("Beschrijving van het boek"))
                 .andExpect(jsonPath("$.releaseYear").value(2022));
 
-        Mockito.verify(bs).fetchBookByISBN("9781234567890");
+        Mockito.verify(olc).fetchBookByISBN("9781234567890");
     }
 
     @Test

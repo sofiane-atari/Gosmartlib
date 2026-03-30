@@ -2,15 +2,12 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.config.JwtAuthenticationFilter;
 import edu.ap.bib_backend.config.SecurityConfig;
-import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
-import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.SmartschoolProfileService;
 import edu.ap.bib_backend.service.TokenStorageService;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

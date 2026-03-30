@@ -29,12 +29,12 @@ class GenreSeederTest {
     }
 
     @Test
-    @DisplayName("Given empty genre table, when seedGenres runs, then save all default genres")
-    void givenEmptyGenreTable_whenSeedGenresRuns_thenSaveAllDefaultGenres() throws Exception {
+    @DisplayName("Given empty genre table, when initGenres runs, then save all default genres")
+    void givenEmptyGenreTable_wheninitGenressRuns_thenSaveAllDefaultGenres() throws Exception {
         // Given
         given(repository.count()).willReturn(0L);
 
-        CommandLineRunner runner = seeder.seedGenres(repository);
+        CommandLineRunner runner = seeder.initGenres(repository);
 
         // When
         runner.run();
@@ -44,34 +44,36 @@ class GenreSeederTest {
         then(repository).should().saveAll(captor.capture());
 
         List<Genre> savedGenres = captor.getValue();
-        assertThat(savedGenres).hasSize(15);
+        assertThat(savedGenres).hasSize(17);
         assertThat(savedGenres)
                 .extracting(Genre::getName)
                 .containsExactly(
+                        "Fictie algemeen",
+                        "Literaire roman",
+                        "Spanning / thriller",
+                        "Detective / misdaad",
                         "Fantasy",
-                        "Science Fiction",
-                        "Thriller",
-                        "Detective",
+                        "Sciencefiction",
+                        "Dystopie",
+                        "Historische roman",
                         "Romantiek",
-                        "Historisch",
-                        "Horror",
+                        "Coming-of-age",
                         "Avontuur",
-                        "Biografie",
-                        "Jeugd",
+                        "Oorlog & conflict",
+                        "Horror",
+                        "Humor",
+                        "Graphic novel / strip",
                         "Poëzie",
-                        "Schoolpublicatie",
-                        "Tijdschrift",
-                        "Stripverhaal",
-                        "Educatief");
+                        "Non-fictie algemeen");
     }
 
     @Test
-    @DisplayName("Given non-empty genre table, when seedGenres runs, then do not save genres")
-    void givenNonEmptyGenreTable_whenSeedGenresRuns_thenDoNotSaveGenres() throws Exception {
+    @DisplayName("Given non-empty genre table, when initGenres runs, then do not save genres")
+    void givenNonEmptyGenreTable_wheninitGenressRuns_thenDoNotSaveGenres() throws Exception {
         // Given
         given(repository.count()).willReturn(5L);
 
-        CommandLineRunner runner = seeder.seedGenres(repository);
+        CommandLineRunner runner = seeder.initGenres(repository);
 
         // When
         runner.run();
