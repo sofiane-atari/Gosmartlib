@@ -12,6 +12,7 @@ import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
+import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
 
 @Service

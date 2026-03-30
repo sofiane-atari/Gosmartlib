@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.book;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

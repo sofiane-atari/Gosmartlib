@@ -15,10 +15,10 @@ import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
-import edu.ap.bib_backend.service.BookSearchService;
-import edu.ap.bib_backend.service.BookService;
-import edu.ap.bib_backend.service.GoogleBooksClient;
-import edu.ap.bib_backend.service.OpenLibraryClient;
+import edu.ap.bib_backend.service.book.BookSearchService;
+import edu.ap.bib_backend.service.book.BookService;
+import edu.ap.bib_backend.service.book.GoogleBooksClient;
+import edu.ap.bib_backend.service.book.OpenLibraryClient;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;

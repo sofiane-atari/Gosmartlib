@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.book;
 
 import edu.ap.bib_backend.dto.FileValidationError;
 import edu.ap.bib_backend.dto.ValidationProgress;

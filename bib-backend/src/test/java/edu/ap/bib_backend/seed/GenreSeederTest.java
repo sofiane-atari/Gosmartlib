@@ -44,25 +44,27 @@ class GenreSeederTest {
         then(repository).should().saveAll(captor.capture());
 
         List<Genre> savedGenres = captor.getValue();
-        assertThat(savedGenres).hasSize(15);
+        assertThat(savedGenres).hasSize(17);
         assertThat(savedGenres)
                 .extracting(Genre::getName)
                 .containsExactly(
+                        "Fictie algemeen",
+                        "Literaire roman",
+                        "Spanning / thriller",
+                        "Detective / misdaad",
                         "Fantasy",
-                        "Science Fiction",
-                        "Thriller",
-                        "Detective",
+                        "Sciencefiction",
+                        "Dystopie",
+                        "Historische roman",
                         "Romantiek",
-                        "Historisch",
-                        "Horror",
+                        "Coming-of-age",
                         "Avontuur",
-                        "Biografie",
-                        "Jeugd",
+                        "Oorlog & conflict",
+                        "Horror",
+                        "Humor",
+                        "Graphic novel / strip",
                         "Poëzie",
-                        "Schoolpublicatie",
-                        "Tijdschrift",
-                        "Stripverhaal",
-                        "Educatief");
+                        "Non-fictie algemeen");
     }
 
     @Test
