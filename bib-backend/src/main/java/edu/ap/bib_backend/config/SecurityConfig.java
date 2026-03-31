@@ -92,7 +92,8 @@ public class SecurityConfig {
                                                                 Role.LIBRARIAN.name(), Role.ADMIN.name())
 
                                                 .requestMatchers("/genres/**")
-                                                .hasAnyRole(Role.STUDENT.name(), Role.ADMIN.name())
+                                                .hasAnyRole(Role.STUDENT.name(), Role.ADMIN.name(),
+                                                                Role.LIBRARIAN.name(), Role.TEACHER.name())
 
                                                 .requestMatchers("/loans/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.LIBRARIAN.name(),

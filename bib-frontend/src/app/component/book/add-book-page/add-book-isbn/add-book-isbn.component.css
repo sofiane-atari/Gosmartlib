@@ -123,8 +123,6 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  /* We reserveren hier alvast de ruimte voor de tekst die eventueel komt */
-  margin-bottom: 2rem;
 }
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-1px);
