@@ -43,6 +43,12 @@ public class Book {
     @Column(name = "added_date")
     private LocalDateTime addedDate;
 
+    @Formula("(SELECT COUNT(*) FROM book_copies bc WHERE bc.book_id = id)")
+    private Integer totalCopies;
+
+    @Formula("(SELECT COUNT(*) FROM book_copies bc WHERE bc.book_id = id AND bc.availability = 'AVAILABLE')")
+    private Integer availableCopies;
+
     @PrePersist
     protected void onCreate() {
         addedDate = LocalDateTime.now();

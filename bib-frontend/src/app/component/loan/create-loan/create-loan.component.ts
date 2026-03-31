@@ -317,6 +317,8 @@ export class CreateLoanComponent {
     this.bookService.getFilteredBooks(
       searchTerm.length > 0 ? searchTerm : null,
       'AVAILABLE',
+      null,
+      null,
       0,
       50,
       'AZ',

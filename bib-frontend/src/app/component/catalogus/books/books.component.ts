@@ -69,16 +69,6 @@ export class BooksComponent implements OnInit {
   protected readonly currentPage = signal(0);
   private readonly pageSize = signal(10);
 
-
-  protected readonly availableCount = computed(() =>
-    this.books().filter((book: Book) => (book.availableCopies ?? 0) > 0).length,
-  );
-
-  protected readonly borrowedCount = computed(() =>
-    this.books().filter((book: Book) => (book.totalCopies ?? 0) > 0 && (book.availableCopies ?? 0) === 0).length,
-  );
-
-
   constructor() {
     effect(() => {
       localStorage.setItem('bookFilters', JSON.stringify(this.filters()));
@@ -148,6 +138,8 @@ export class BooksComponent implements OnInit {
     this.bookService.getFilteredBooks(
       filters.searchTerm,
       filters.availability,
+      filters.minPages,
+      filters.maxPages,
       this.currentPage(),
       this.pageSize(),
       filters.sortBy,

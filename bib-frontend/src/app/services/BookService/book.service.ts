@@ -23,6 +23,8 @@ export class BookService {
   getFilteredBooks(
     searchTerm: string | null,
     availability: BookAvailabilityFilter,
+    minPages: number | null,
+    maxPages: number | null,
     page: number,
     size: number,
     sortBy: BookSortOption,
@@ -38,6 +40,14 @@ export class BookService {
 
     if (availability !== 'ALL') {
       params = params.set('availability', availability);
+    }
+
+    if (minPages !== null) {
+      params = params.set('minPages', minPages)
+    }
+
+    if (maxPages !== null) {
+      params = params.set('maxPages', maxPages)
     }
 
     return this.http.get<PaginatedResponse<Book>>(`${this.apiUrl}/catalog`, {
