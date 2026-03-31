@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -132,6 +131,14 @@ public class BookController {
             @RequestParam Integer releaseYear) {
         List<BookCandidateDTO> candidates = googleBooksClient.searchBookCandidates(title, author, releaseYear);
         return ResponseEntity.ok(candidates);
+    }
+
+    @GetMapping("/search-candidates")
+    public ResponseEntity<List<BookCandidateDTO>> searchCandidates(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) Integer releaseYear) {
+        return ResponseEntity.ok(bookService.searchCandidates(title, author, releaseYear));
     }
 
     @PostMapping("/select")

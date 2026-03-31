@@ -104,6 +104,16 @@ export class BookService {
       }
     });
   }
+  
+  searchCandidates(title?: string, author?: string, releaseYear?: number) {
+    let params = new HttpParams();
+
+    if (title) params = params.set('title', title);
+    if (author) params = params.set('author', author);
+    if (releaseYear != null) params = params.set('releaseYear', releaseYear);
+
+    return this.http.get<Book[]>(`${this.apiUrl}/search-candidates`, { params });
+  }
 
   selectBook(isbn13: string): Observable<Book> {
     return this.http.post<Book>(`${this.apiUrl}/select`, null, {
