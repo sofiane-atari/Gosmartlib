@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Star, Trash2, Search } from 'lucide-angular';
+import { LucideAngularModule, Star, Trash2, Search, Image } from 'lucide-angular';
 
 import { ReviewService } from '../../../services/review-service/review.service';
 import { Review } from '../../../model/review.model';
@@ -18,6 +18,7 @@ export class MyReviewsComponent implements OnInit {
   protected readonly Star = Star;
   protected readonly Trash2 = Trash2;
   protected readonly Search = Search;
+  private readonly Image = Image;
 
   protected readonly starValues = [1, 2, 3, 4, 5];
   protected reviews: Review[] = [];
@@ -64,5 +65,18 @@ export class MyReviewsComponent implements OnInit {
       },
       () => {}
     );
+  }
+
+  protected translateStatus(status: string | undefined): string {
+    switch (status) {
+      case 'ACTIVE':
+        return 'Actief';
+      case 'FLAGGED':
+        return 'Gerapporteerd';
+      case 'KEPT':
+        return 'Behouden';
+      default:
+        return status ?? 'Onbekend';
+    }
   }
 }

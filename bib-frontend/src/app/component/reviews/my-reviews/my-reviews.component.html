@@ -1,58 +1,90 @@
-<div class="page-container">
-    <div class="content-wrapper">
-        <!-- Header -->
-        <header class="content-header">
-            <div class="title-section">
-                <h1 class="page-title">Mijn Reviews</h1>
-                <p class="page-subtitle">{{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }} geschreven</p>
-            </div>
-        </header>
+<div class="review-dashboard">
+  <div class="review-dashboard__container">
+    <div class="review-dashboard__header">
+      <div>
+        <h1 class="review-dashboard__title">Mijn Reviews</h1>
+        <p class="review-dashboard__subtitle">
+          {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }} geschreven
+        </p>
+      </div>
+    </div>
 
-        <main class="main-content">
-            <section class="reviews-section">
-                <h2 class="section-title">Reviews</h2>
-
-                @if (reviews.length === 0) {
-                <div class="empty-state">
-                    <lucide-icon [img]="Search" [size]="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-icon>
-                    <p>Nog geen reviews beschikbaar. Je hebt nog geen reviews geschreven over boeken.</p>
+    @if (reviews.length === 0) {
+      <section class="state-panel state-panel--empty">
+        <lucide-angular [img]="Search" size="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-angular>
+        <p>Je hebt nog geen reviews geschreven over boeken.</p>
+      </section>
+    } @else {
+      <section class="review-list">
+        @for (review of reviews; track review.id) {
+          <article class="review-card">
+            
+            <div class="review-card__cover">
+              @if (review.bookImageUrl) {
+                <img [src]="review.bookImageUrl" alt="Cover van {{ review.bookTitle }}">
+              } @else {
+                <div class="review-card__cover-fallback">
+                   <lucide-angular name="Image" size="24"></lucide-angular>
                 </div>
-                } @else {
-                <div class="reviews-list">
-                    @for (review of reviews; track review.id) {
-                    <div class="review-card">
-                        <div class="review-header"
-                            style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <strong>Anonieme Lezer</strong>
-                                <div class="stars-display" style="display: flex; gap: 2px;">
-                                    @for (star of starValues; track star) {
-                                    <span class="star" [class.filled]="star <= review.rating">★</span>
-                                    }
-                                </div>
-                            </div>
+              }
+            </div>
 
-                            <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
-                                <a [routerLink]="['/book', review.bookId]" class="book-reference-link">
-                                    {{ review.bookTitle }} door {{ review.bookAuthor }}
-                                </a>
+            <div class="review-card__content">
+              
+              <div class="review-card__top">
+                <div>
+                  <h2 class="review-card__book-title">
+                    {{ review.bookTitle ?? 'Onbekend boek' }}
+                  </h2>
+                  <p class="review-card__book-author">
+                    Door {{ review.bookAuthor ?? 'Onbekende auteur' }}
+                  </p>
+                </div>
+              </div>
 
-                                <div class="review-actions" style="display: flex; gap: 8px;">
-                                    <button class="delete-review-btn" (click)="deleteReview(review.id)"
-                                        title="Review verwijderen">
-                                        <lucide-angular [img]="Trash2" size="18"></lucide-angular>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p class="review-text">{{ review.comment }}</p>
-                    </div>
+              <div class="review-card__rating">
+                <div class="review-card__stars">
+                    @for (starValue of starValues; track starValue) {
+                        <lucide-angular
+                        [img]="Star"
+                        size="16"
+                        strokeWidth="1.5"
+                        [color]="starValue <= review.rating ? '#f59e0b' : '#d1d5db'"
+                        [class.star-filled]="starValue <= review.rating"
+                        ></lucide-angular>
                     }
                 </div>
-                }
-            </section>
-        </main>
+              </div>
 
-    </div>
+              <div class="review-card__meta">
+                <a [routerLink]="['/book', review.bookId]" class="book-reference-link">
+                  Bekijk boek
+                </a>
+                <span class="review-card__meta-separator">•</span>
+                <span class="review-card__meta-item">
+                    Geplaatst op {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+
+              <p class="review-card__text">
+                {{ review.comment }}
+              </p>
+
+              <div class="review-card__actions">
+                <button
+                  type="button"
+                  class="review-card__action review-card__action--delete"
+                  (click)="review.id !== undefined && deleteReview(review.id)"
+                >
+                  <lucide-angular [img]="Trash2" size="14"></lucide-angular>
+                  Review verwijderen
+                </button>
+              </div>
+
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </div>
 </div>
