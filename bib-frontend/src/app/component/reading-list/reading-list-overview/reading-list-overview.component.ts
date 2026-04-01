@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReadingListService, ReadingList } from '../../../services/reading-list/reading-list.service';
 import { ToastService } from '../../../services/toast/toast.service';
+import { BookService } from '../../../services/bookService/book.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-reading-list-overview',
@@ -15,16 +18,54 @@ export class ReadingListOverviewComponent implements OnInit {
 
   private static readonly FAVORITES_NAME = 'favorieten';
   readingLists: ReadingList[] = [];
+  listCovers: { [key: number]: string[] } = {};
 
   constructor(
     private readingListService: ReadingListService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private bookService: BookService
   ) { }
 
   ngOnInit() {
     this.readingListService.getLists().subscribe(lists => {
       this.readingLists = lists;
+      this.fetchCoversForLists(lists);
     });
+  }
+
+  fetchCoversForLists(lists: ReadingList[]) {
+    lists.forEach(list => {
+      if (list.books && list.books.length > 0) {
+        const booksToFetch = list.books.slice(0, 4);
+        const coverRequests = booksToFetch.map(b => 
+          this.bookService.getBookById(b.bookId).pipe(
+             catchError(() => of(null))
+          )
+        );
+
+        forkJoin(coverRequests).subscribe(books => {
+          const covers = books
+            .filter(b => b && b.imageUrl)
+            .map(b => b!.imageUrl as string);
+          this.listCovers[list.id] = covers;
+        });
+      } else {
+        this.listCovers[list.id] = [];
+      }
+    });
+  }
+
+  getCoverStyle(index: number, total: number): { [klass: string]: any } {
+    const zIndex = 10 - index;
+    const spacing = 36;
+    const totalWidth = (total - 1) * spacing;
+    const translateX = (totalWidth / 2) - (index * spacing);
+    const scale = 1 - (index * 0.05);
+    
+    return {
+      'z-index': zIndex,
+      'transform': `translateX(${translateX}px) scale(${scale})`
+    };
   }
 
   isFavoritesList(list: ReadingList): boolean {

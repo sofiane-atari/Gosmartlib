@@ -30,7 +30,18 @@
         <div class="cards-grid">
           @for (list of readingLists; track list.id) {
             <div class="card" [routerLink]="['/reading-list', list.id]">
-              <div class="card-cover">📚</div>
+
+               <div class="card-cover">
+                @if (listCovers[list.id] && listCovers[list.id].length > 0) {
+                  <div class="stacked-covers">
+                    @for (cover of listCovers[list.id]; track $index) {
+                      <img [src]="cover" class="stacked-cover" [ngStyle]="getCoverStyle($index, listCovers[list.id].length)" alt="Cover" />
+                    }
+                  </div>
+                } @else {
+                  <div class="empty-cover">📚</div>
+                }
+              </div>
               <div class="card-body">
                 <h3 class="card-title">{{ list.name }}</h3>
                 <p class="card-author">Leeslijst</p>
