@@ -76,7 +76,7 @@ public class SecurityConfig {
                                                 // 🔓 Tijdelijke / dev endpoints (optioneel)
                                                 .requestMatchers(
                                                                 "/books/template",
-                                                                "/books/upload/validate-stream/**")
+                                                                "/books/upload/**")
                                                 .permitAll()
 
                                                 // 🔐 Auth endpoints

@@ -51,6 +51,7 @@
         <h3>Mogelijke bestaande boeken</h3>
 
         <div class="candidate-list">
+          <!-- @for (candidate of candidateBooks; track candidate.id ?? candidate.isbn13 ?? candidate.title) { -->
           @for (candidate of candidateBooks; track candidate.title + '-' + candidate.author + '-' + candidate.releaseYear) {
             <div class="candidate-card" (click)="useCandidate(candidate)">
               <div class="candidate-info">
@@ -112,12 +113,16 @@
         </div>
 
         <div class="form-group">
-          <label for="readingLevel">Leesniveau *</label>
+        <label for="readingLevel">Leesniveau *</label>
 
-          <select id="readingLevel" formControlName="readingLevel">
+          <select
+            id="readingLevel"
+            formControlName="readingLevel"
+            [compareWith]="compareReadingLevels"
+          >
             <option [ngValue]="null">Kies een niveau</option>
 
-            @for (level of readingLevels; track level.niveauName) {
+            @for (level of readingLevels; track level.id) {
               <option [ngValue]="level">
                 {{ level.niveauName }}
               </option>

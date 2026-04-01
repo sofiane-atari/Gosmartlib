@@ -21,6 +21,7 @@ import {
 import { BookService } from '../../../../services/bookService/book.service';
 import { ToastService } from '../../../../services/toast/toast.service';
 import { Book } from '../../../../model/book/book.model';
+import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { Availability } from '../../../../model/enums/availability.enum';
 import { Genre } from '../../../../model/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
@@ -53,15 +54,12 @@ export class AddBookManualComponent implements OnInit, OnDestroy {
 
   availabilityOptions = Object.values(Availability);
 
-  candidateBooks: Book[] = [];
+  candidateBooks: BookCandidate[] = [];
   isSearching = false;
-
   selectedGenres: Genre[] = [];
-
   private destroy$ = new Subject<void>();
 
   form: BookFormGroup;
-  
 
   constructor(
     private fb: FormBuilder,
@@ -92,49 +90,49 @@ export class AddBookManualComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private setupCandidateSearch(): void {
-    this.form.valueChanges.pipe(
-      debounceTime(500),
-      map(value => ({
-        title: value.title?.trim() ?? '',
-        author: value.author?.trim() ?? '',
-        releaseYear: value.releaseYear ?? null
-      })),
-      distinctUntilChanged((prev, curr) =>
-        prev.title === curr.title &&
-        prev.author === curr.author &&
-        prev.releaseYear === curr.releaseYear
-      ),
-      switchMap(filters => {
-        const shouldSearch =
-          filters.title.length >= 2 ||
-          filters.author.length >= 2 ||
-          filters.releaseYear !== null;
+private setupCandidateSearch(): void {
+  this.form.valueChanges.pipe(
+    debounceTime(500),
+    map(value => ({
+      title: value.title?.trim() ?? '',
+      author: value.author?.trim() ?? '',
+      releaseYear: value.releaseYear ?? null
+    })),
+    distinctUntilChanged((prev, curr) =>
+      prev.title === curr.title &&
+      prev.author === curr.author &&
+      prev.releaseYear === curr.releaseYear
+    ),
+    switchMap(filters => {
+      const shouldSearch =
+        filters.title.length >= 2 ||
+        filters.author.length >= 2 ||
+        filters.releaseYear !== null;
 
-        if (!shouldSearch) {
-          this.candidateBooks = [];
-          return of([]);
-        }
+      if (!shouldSearch) {
+        this.candidateBooks = [];
+        return of([] as BookCandidate[]);
+      }
 
-        this.isSearching = true;
+      this.isSearching = true;
 
-        return this.bs.searchCandidates(
-          filters.title || undefined,
-          filters.author || undefined,
-          filters.releaseYear ?? undefined
-        ).pipe(
-          catchError(() => of([])),
-          tap(() => {
-            this.isSearching = false;
-          })
-        );
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe(results => {
-      this.candidateBooks = results;
-      this.isSearching = false;
-    });
-  }
+      return this.bs.searchCandidates(
+        filters.title || undefined,
+        filters.author || undefined,
+        filters.releaseYear ?? undefined
+      ).pipe(
+        catchError(() => of([] as BookCandidate[])),
+        tap(() => {
+          this.isSearching = false;
+        })
+      );
+    }),
+    takeUntil(this.destroy$)
+  ).subscribe((results: BookCandidate[]) => {
+    this.candidateBooks = results;
+    this.isSearching = false;
+  });
+}
 
   toggleGenre(genre: Genre): void {
     const exists = this.selectedGenres.some(g => g.name === genre.name);
@@ -150,18 +148,35 @@ export class AddBookManualComponent implements OnInit, OnDestroy {
     return this.selectedGenres.some(g => g.name === genre.name);
   }
 
-  useCandidate(candidate: Book): void {
-    this.form.patchValue({
-      title: candidate.title ?? '',
-      author: candidate.author ?? '',
-      pages: candidate.pages ?? null,
-      imageUrl: candidate.imageUrl ?? '',
-      description: candidate.description ?? '',
-      releaseYear: candidate.releaseYear ?? new Date().getFullYear(),
-      readingLevel: candidate.readingLevel ?? null
-    });
+  useCandidate(candidate: BookCandidate): void {
+    if (!candidate.id) {
+      this.ts.show('Dit kandidaatboek heeft geen database-id.', 'error');
+      return;
+    }
 
-    this.selectedGenres = candidate.genres ?? [];
+    this.isSearching = true;
+
+    this.bs.getBookById(candidate.id).subscribe({
+      next: (book: Book) => {
+        this.form.patchValue({
+          title: book.title ?? '',
+          author: book.author ?? '',
+          pages: book.pages ?? null,
+          imageUrl: book.imageUrl ?? '',
+          description: book.description ?? '',
+          releaseYear: book.releaseYear ?? null,
+          readingLevel: book.readingLevel ?? null
+        });
+
+        this.selectedGenres = book.genres ?? [];
+        this.isSearching = false;
+        this.ts.show('Boekgegevens uit de database ingevuld.');
+      },
+      error: () => {
+        this.isSearching = false;
+        this.ts.show('Kon het volledige boek niet ophalen uit de database.', 'error');
+      }
+    });
   }
 
   save(): void {
@@ -192,6 +207,10 @@ export class AddBookManualComponent implements OnInit, OnDestroy {
 
     this.bookAdded.emit(book);
   }
+  
+  compareReadingLevels = (a: ReadingLevel | null, b: ReadingLevel | null): boolean => {
+    return a?.id === b?.id;
+  };
 
   get title() {
     return this.form.controls.title;

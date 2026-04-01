@@ -29,6 +29,7 @@ public class BookCandidateMapper {
     public BookCandidateDTO toDBCandidateDTO(Book book) {
         BookCandidateDTO dto = new BookCandidateDTO();
         dto.setTitle(book.getTitle());
+        dto.setId(book.getId());
         dto.setAuthor(book.getAuthor());
         dto.setReleaseYear(book.getReleaseYear());
         dto.setImageUrl(book.getImageUrl());
