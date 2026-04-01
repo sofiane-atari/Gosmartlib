@@ -213,5 +213,5 @@ public class ReviewService {
                     authority.getAuthority().equals("ROLE_LIBRARIAN")
                             || authority.getAuthority().equals("ROLE_ADMIN")
             );
-}
+    }
 }

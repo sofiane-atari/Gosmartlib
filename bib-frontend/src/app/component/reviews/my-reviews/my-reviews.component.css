@@ -33,63 +33,91 @@ lucide-angular.star-filled ::ng-deep polygon {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 
 /* Header */
 .review-dashboard__header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
   flex-wrap: wrap;
   gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(138, 30, 65, 0.08);
 }
 
 .review-dashboard__title {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
   color: var(--text-dark);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.04em;
   margin: 0;
+  line-height: 1.1;
 }
 
 .review-dashboard__subtitle {
   font-size: 14px;
   color: var(--text-muted);
-  margin: 4px 0 0;
+  margin: 6px 0 0;
 }
 
-/* Review List & Cards */
+/* Review List */
 .review-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
+/* Review Card */
 .review-card {
+  position: relative;
   display: flex;
   gap: 16px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #fffafc 100%);
+  border: 1px solid rgba(138, 30, 65, 0.08);
+  border-radius: 18px;
   padding: 20px;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(26, 10, 16, 0.04);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.review-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, #8a1e41 0%, #c04b72 100%);
+  opacity: 0.95;
 }
 
 .review-card:hover {
-  box-shadow: 0 8px 24px rgba(138, 30, 65, 0.08);
+  transform: translateY(-4px);
+  border-color: rgba(138, 30, 65, 0.18);
+  box-shadow: 0 16px 36px rgba(138, 30, 65, 0.12);
 }
 
-/* Cover Afbeelding */
+/* Cover */
 .review-card__cover {
   flex-shrink: 0;
-  width: 72px;    
-  height: 108px;  
-  border-radius: 8px;
+  width: 76px;
+  height: 114px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-surface-soft, #f9fafb);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid rgba(138, 30, 65, 0.1);
+  background: linear-gradient(180deg, #fff 0%, #fbeef2 100%);
+  box-shadow: 0 6px 18px rgba(26, 10, 16, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.review-card:hover .review-card__cover {
+  transform: translateY(-2px) rotate(-1deg);
+  box-shadow: 0 12px 24px rgba(138, 30, 65, 0.12);
 }
 
 .review-card__cover img {
@@ -106,9 +134,10 @@ lucide-angular.star-filled ::ng-deep polygon {
   align-items: center;
   justify-content: center;
   color: #cbd5e1;
+  background: linear-gradient(180deg, #fff 0%, #f7ecef 100%);
 }
 
-/* Card Content */
+/* Content */
 .review-card__content {
   flex: 1;
   min-width: 0;
@@ -119,23 +148,24 @@ lucide-angular.star-filled ::ng-deep polygon {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .review-card__book-title {
   margin: 0;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text-dark);
+  letter-spacing: -0.02em;
 }
 
 .review-card__book-author {
-  margin: 4px 0 0;
+  margin: 5px 0 0;
   font-size: 14px;
   color: var(--text-muted);
 }
 
-/* Sterren */
+/* Rating */
 .review-card__rating {
   display: flex;
   align-items: center;
@@ -146,10 +176,22 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .review-card__stars {
   display: flex;
-  gap: 2px;
+  gap: 3px;
 }
 
-/* Meta Data (Datum & Boek Link) */
+.review-card__stars lucide-angular {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.review-card__stars lucide-angular.star-filled {
+  filter: drop-shadow(0 2px 5px rgba(245, 158, 11, 0.25));
+}
+
+.review-card:hover .review-card__stars lucide-angular.star-filled {
+  transform: scale(1.08);
+}
+
+/* Meta */
 .review-card__meta {
   display: flex;
   align-items: center;
@@ -162,9 +204,9 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .book-reference-link {
   color: var(--main-color);
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 
 .book-reference-link:hover {
@@ -176,15 +218,15 @@ lucide-angular.star-filled ::ng-deep polygon {
   color: #c4a8b1;
 }
 
-/* Review Tekst */
+/* Review Text */
 .review-card__text {
   margin: 0 0 16px;
   color: #4b5563;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
-/* Actieknoppen */
+/* Actions */
 .review-card__actions {
   display: flex;
   gap: 12px;
@@ -196,42 +238,65 @@ lucide-angular.star-filled ::ng-deep polygon {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  padding: 8px 16px;
-  background: transparent;
+  border-radius: 999px;
+  border: 1px solid rgba(138, 30, 65, 0.14);
+  padding: 9px 16px;
+  background: #fff;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .review-card__action:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(138, 30, 65, 0.08);
 }
 
 .review-card__action--delete {
-  color: var(--danger);
-  border-color: #fca5a5;
+  color: #b42318;
+  border-color: rgba(180, 35, 24, 0.18);
 }
 
 .review-card__action--delete:hover {
-  border-color: var(--danger);
-  background: #fef2f2;
+  background: #fff5f5;
+  border-color: rgba(180, 35, 24, 0.35);
 }
 
-/* Empty States */
+/* Empty State */
 .state-panel {
-  background: var(--bg-surface);
-  border: 1px dashed #d1d5db;
-  border-radius: 12px;
-  padding: 48px 24px;
+  background: linear-gradient(180deg, #ffffff 0%, #fff7fa 100%);
+  border: 1px dashed rgba(138, 30, 65, 0.18);
+  border-radius: 18px;
+  padding: 56px 24px;
   text-align: center;
   color: var(--text-muted);
   font-size: 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 10px 24px rgba(26, 10, 16, 0.04);
+}
+
+/* Optional nicer empty-state icon animation */
+.state-panel lucide-angular {
+  animation: floatPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes floatPulse {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
 }
 
 /* =========================================================
@@ -240,7 +305,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 @media (max-width: 768px) {
   .review-dashboard {
-    padding: 16px;
+    padding: 18px;
   }
 
   .review-dashboard__container {
@@ -251,11 +316,20 @@ lucide-angular.star-filled ::ng-deep polygon {
     padding: 16px;
     gap: 12px;
   }
+
+  .review-card__book-title {
+    font-size: 17px;
+  }
 }
 
 @media (max-width: 480px) {
   .review-dashboard__title {
-    font-size: 20px;
+    font-size: 24px;
+  }
+
+  .review-card {
+    flex-direction: row;
+    align-items: flex-start;
   }
 
   .review-card__top {
@@ -282,7 +356,7 @@ lucide-angular.star-filled ::ng-deep polygon {
   }
 
   .review-card__cover {
-    width: 60px;
-    height: 90px;
+    width: 62px;
+    height: 94px;
   }
 }

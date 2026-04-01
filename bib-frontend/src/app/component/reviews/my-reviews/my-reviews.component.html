@@ -12,9 +12,14 @@
     @if (reviews.length === 0) {
       <section class="state-panel state-panel--empty">
         <lucide-angular [img]="Search" size="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-angular>
-        <p>Je hebt nog geen reviews geschreven over boeken.</p>
-      </section>
-    } @else {
+        <h2 style="margin: 0 0 8px; color: #1a0a10; font-size: 18px; font-weight: 700;">
+          Nog geen reviews
+        </h2>
+        <p style="margin: 0;">
+          Je hebt nog geen reviews geschreven over boeken.
+        </p>
+      </section> } 
+      @else {
       <section class="review-list">
         @for (review of reviews; track review.id) {
           <article class="review-card">
