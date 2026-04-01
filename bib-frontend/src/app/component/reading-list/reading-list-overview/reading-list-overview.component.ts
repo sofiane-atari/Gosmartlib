@@ -6,15 +6,19 @@ import { ToastService } from '../../../services/toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { LucideAngularModule, Share2, Trash2 } from 'lucide-angular';
 
 @Component({
   selector: 'app-reading-list-overview',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, LucideAngularModule],
   templateUrl: './reading-list-overview.component.html',
   styleUrl: './reading-list-overview.component.css'
 })
 export class ReadingListOverviewComponent implements OnInit {
+
+  readonly Share2 = Share2;
+  readonly Trash2 = Trash2;
 
   private static readonly FAVORITES_NAME = 'favorieten';
   readingLists: ReadingList[] = [];
@@ -37,7 +41,7 @@ export class ReadingListOverviewComponent implements OnInit {
     lists.forEach(list => {
       if (list.books && list.books.length > 0) {
         const booksToFetch = list.books.slice(0, 4);
-        const coverRequests = booksToFetch.map(b => 
+        const coverRequests = booksToFetch.map(b =>
           this.bookService.getBookById(b.bookId).pipe(
              catchError(() => of(null))
           )
@@ -61,7 +65,7 @@ export class ReadingListOverviewComponent implements OnInit {
     const totalWidth = (total - 1) * spacing;
     const translateX = (totalWidth / 2) - (index * spacing);
     const scale = 1 - (index * 0.05);
-    
+
     return {
       'z-index': zIndex,
       'transform': `translateX(${translateX}px) scale(${scale})`

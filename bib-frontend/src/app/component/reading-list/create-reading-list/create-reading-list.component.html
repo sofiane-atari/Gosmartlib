@@ -1,23 +1,19 @@
 <div class="page">
 
-  <!-- Top bar -->
-  <div class="topbar">
-    <a class="back-link" routerLink="/reading-list">← Terug naar leeslijsten</a>
-  </div>
-
   <!-- Page header -->
-  <h1 class="page-title">Nieuwe Leeslijst</h1>
-  <p class="page-subtitle">Maak een persoonlijke leeslijst aan</p>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Nieuwe leeslijst</h1>
+      <p class="page-subtitle">Maak een persoonlijke leeslijst aan</p>
+    </div>
+    <button type="button" class="btn-secondary" routerLink="/reading-list">Terug naar leeslijsten</button>
+  </div>
 
   <div class="content-layout">
     <!-- Form card -->
     <div class="form-card">
       <div class="form-header">
-        <div class="form-icon">📋</div>
-        <div>
-          <h2 class="form-heading">Leeslijst aanmaken</h2>
-          <p class="form-sub">Geef je leeslijst een naam om te beginnen</p>
-        </div>
+        <h2 class="form-heading">Leeslijst aanmaken</h2>
       </div>
 
       <form (ngSubmit)="submit()">
@@ -29,9 +25,7 @@
 
         <div class="form-actions">
           <button type="button" class="btn-cancel" routerLink="/reading-list">Annuleren</button>
-          <button type="submit" class="btn-submit" [disabled]="!listName.trim()">
-            ✓ Aanmaken
-          </button>
+          <button type="submit" class="btn-primary" [disabled]="!listName.trim()">Aanmaken</button>
         </div>
       </form>
     </div>

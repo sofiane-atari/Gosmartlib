@@ -46,9 +46,13 @@
                 <h3 class="card-title">{{ list.name }}</h3>
                 <p class="card-author">Leeslijst</p>
                 <div class="card-actions">
-                  <button class="btn-share" (click)="shareList(list.id); $event.stopPropagation()">Delen</button>
+                  <button class="btn-share" (click)="shareList(list.id); $event.stopPropagation()" title="Delen">
+                    <lucide-angular [img]="Share2" size="18"></lucide-angular>
+                  </button>
                   @if (canDeleteList(list)) {
-                    <button class="btn-delete" (click)="deleteList(list); $event.stopPropagation()">Verwijderen</button>
+                    <button class="btn-delete" (click)="deleteList(list); $event.stopPropagation()" title="Verwijderen">
+                      <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                    </button>
                   }
                 </div>
               </div>
