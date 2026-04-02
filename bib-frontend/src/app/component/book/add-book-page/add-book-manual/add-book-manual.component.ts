@@ -7,7 +7,6 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { Subject, of } from 'rxjs';
 import {
   catchError,
   debounceTime,
@@ -25,7 +24,9 @@ import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { Availability } from '../../../../model/enums/availability.enum';
 import { Genre } from '../../../../model/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
-import { Info, LucideAngularModule, Plus } from 'lucide-angular';
+import { Info, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
+import { Subject, of, combineLatest } from 'rxjs';
+import { startWith } from 'rxjs/operators';
 
 type BookFormGroup = FormGroup<{
   title: FormControl<string>;
@@ -47,7 +48,7 @@ type BookFormGroup = FormGroup<{
 export class AddBookManualComponent implements OnInit, OnDestroy {
   readonly PlusIcon = Plus;
   readonly InfoIcon = Info;
-
+  readonly Trash2Icon = Trash2;
   @Input() genres: Genre[] = [];
   @Input() readingLevels: ReadingLevel[] = [];
   @Output() bookAdded = new EventEmitter<Book>();
@@ -55,9 +56,11 @@ export class AddBookManualComponent implements OnInit, OnDestroy {
   availabilityOptions = Object.values(Availability);
 
   candidateBooks: BookCandidate[] = [];
+  isCandidateLoaded = false;
   isSearching = false;
   selectedGenres: Genre[] = [];
   private destroy$ = new Subject<void>();
+  private isApplyingCandidate = false;
 
   form: BookFormGroup;
 
@@ -91,19 +94,39 @@ export class AddBookManualComponent implements OnInit, OnDestroy {
   }
 
 private setupCandidateSearch(): void {
-  this.form.valueChanges.pipe(
+  const titleChanges$ = this.form.controls.title.valueChanges.pipe(
+    startWith(this.form.controls.title.value),
     debounceTime(500),
-    map(value => ({
-      title: value.title?.trim() ?? '',
-      author: value.author?.trim() ?? '',
-      releaseYear: value.releaseYear ?? null
+    distinctUntilChanged()
+  );
+
+  const authorChanges$ = this.form.controls.author.valueChanges.pipe(
+    startWith(this.form.controls.author.value),
+    debounceTime(500),
+    distinctUntilChanged()
+  );
+
+  const releaseYearChanges$ = this.form.controls.releaseYear.valueChanges.pipe(
+    startWith(this.form.controls.releaseYear.value),
+    debounceTime(500),
+    distinctUntilChanged()
+  );
+
+  
+  combineLatest([
+    titleChanges$,
+    authorChanges$,
+    releaseYearChanges$
+  ]).pipe(
+    map(([title, author, releaseYear]) => ({
+      title: title?.trim() ?? '',
+      author: author?.trim() ?? '',
+      releaseYear: releaseYear ?? null
     })),
-    distinctUntilChanged((prev, curr) =>
-      prev.title === curr.title &&
-      prev.author === curr.author &&
-      prev.releaseYear === curr.releaseYear
-    ),
     switchMap(filters => {
+      this.isCandidateLoaded = false;
+      this.form.controls.readingLevel.enable();
+
       const shouldSearch =
         filters.title.length >= 2 ||
         filters.author.length >= 2 ||
@@ -149,36 +172,58 @@ private setupCandidateSearch(): void {
   }
 
   useCandidate(candidate: BookCandidate): void {
-    if (!candidate.id) {
-      this.ts.show('Dit kandidaatboek heeft geen database-id.', 'error');
-      return;
-    }
+  if (!candidate.id) {
+    this.ts.show('Dit kandidaatboek heeft geen database-id.', 'error');
+    return;
+  }
 
-    this.isSearching = true;
+  this.isSearching = true;
 
-    this.bs.getBookById(candidate.id).subscribe({
-      next: (book: Book) => {
-        this.form.patchValue({
-          title: book.title ?? '',
-          author: book.author ?? '',
-          pages: book.pages ?? null,
-          imageUrl: book.imageUrl ?? '',
-          description: book.description ?? '',
-          releaseYear: book.releaseYear ?? null,
-          readingLevel: book.readingLevel ?? null
-        });
+  this.bs.getBookById(candidate.id).subscribe({
+    next: (book: Book) => {
+      this.form.patchValue({
+        title: book.title ?? '',
+        author: book.author ?? '',
+        pages: book.pages ?? null,
+        imageUrl: book.imageUrl ?? '',
+        description: book.description ?? '',
+        releaseYear: book.releaseYear ?? null,
+        readingLevel: book.readingLevel ?? null
+      }, { emitEvent: false });
 
-        this.selectedGenres = book.genres ?? [];
-        this.isSearching = false;
-        this.ts.show('Boekgegevens uit de database ingevuld.');
-      },
+      this.selectedGenres = book.genres ?? [];
+      this.candidateBooks = [];
+      this.isCandidateLoaded = true;
+      this.form.controls.readingLevel.disable();
+      this.isSearching = false;
+
+      this.ts.show('Boekgegevens uit de database ingevuld.');
+    },
       error: () => {
         this.isSearching = false;
         this.ts.show('Kon het volledige boek niet ophalen uit de database.', 'error');
       }
     });
   }
+  clearForm(): void {
+    this.form.reset({
+      title: '',
+      author: '',
+      pages: null,
+      releaseYear: null,
+      imageUrl: '',
+      readingLevel: null,
+      description: '',
+    });
 
+    this.selectedGenres = [];
+    this.candidateBooks = [];
+    this.isCandidateLoaded = false;
+    this.isSearching = false;
+
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+  }
   save(): void {
     this.form.markAllAsTouched();
 
@@ -207,7 +252,7 @@ private setupCandidateSearch(): void {
 
     this.bookAdded.emit(book);
   }
-  
+
   compareReadingLevels = (a: ReadingLevel | null, b: ReadingLevel | null): boolean => {
     return a?.id === b?.id;
   };

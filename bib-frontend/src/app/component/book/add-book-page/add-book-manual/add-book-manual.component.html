@@ -63,9 +63,15 @@
           }
         </div>
       </div>
+      <hr class="divider" />
+
     }
 
-    <hr class="divider" />
+    @if (isCandidateLoaded) {
+      <p class="form-lock-hint">
+        Titel, auteur en jaar kunnen nog aangepast worden. Andere velden zijn overgenomen uit de database.
+      </p>
+    }
   </div>
 
   <form [formGroup]="form" (ngSubmit)="save()" class="book-form">
@@ -91,7 +97,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Aantal Pagina's *</label>
-          <input type="number" formControlName="pages" placeholder="320" />
+          <input type="number" formControlName="pages" placeholder="320" [readonly]="isCandidateLoaded" />
           @if (pages.invalid && pages.touched) {
             <p class="error-message">Aantal pagina's is verplicht.</p>
           }
@@ -109,7 +115,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Cover URL (optioneel)</label>
-          <input type="text" formControlName="imageUrl" placeholder="https://..." />
+          <input type="text" formControlName="imageUrl" placeholder="https://..." [readonly]="isCandidateLoaded" />
         </div>
 
         <div class="form-group">
@@ -146,6 +152,7 @@
         <textarea
           formControlName="description"
           placeholder="Een korte beschrijving van het boek..."
+          [readonly]="isCandidateLoaded"
         ></textarea>
 
         @if (description.invalid && description.touched) {
@@ -160,10 +167,11 @@
             <div
               class="genre-option"
               [class.selected]="isGenreSelected(genre)"
+              [class.disabled]="isCandidateLoaded"
               [style.background-color]="isGenreSelected(genre) ? genre.color + '33' : '#f5f5f5'"
               [style.color]="isGenreSelected(genre) ? genre.color : '#666'"
               [style.border-color]="isGenreSelected(genre) ? genre.color + '66' : '#e0e0e0'"
-              (click)="toggleGenre(genre)"
+              (click)="!isCandidateLoaded && toggleGenre(genre)"
             >
               <span class="genre-text">{{ genre.name }}</span>
             </div>
@@ -174,12 +182,21 @@
 
     <div class="form-actions">
       <button
+        type="button"
+        class="btn-clear"
+        (click)="clearForm()"
+      >
+        <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+        Formulier leegmaken
+      </button>
+
+      <button
         type="submit"
         class="btn-submit"
         [disabled]="form.invalid || selectedGenres.length === 0"
       >
         <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-        Boek Toevoegen
+        {{ isCandidateLoaded ? 'Exemplaar Toevoegen' : 'Boek Toevoegen' }}
       </button>
     </div>
   </form>

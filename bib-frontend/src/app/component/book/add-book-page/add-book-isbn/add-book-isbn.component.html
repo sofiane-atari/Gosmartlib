@@ -130,7 +130,7 @@
             #readingLevel="ngModel"
             required
           >
-            <option [ngValue]="undefined">Kies een niveau</option>
+            <option [ngValue]="null">Kies een niveau</option>
 
             @for (level of readingLevels; track level.niveauName) {
               <option [ngValue]="level">
@@ -219,8 +219,21 @@
         </div>
       </div>
 
-      <div class="form-actions">
-        <button type="submit" class="btn-submit"[disabled]="bookForm.invalid || book.genres.length === 0">
+     <div class="form-actions">
+        <button
+          type="button"
+          class="btn-clear"
+          (click)="clearForm()"
+        >
+          <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+          Formulier leegmaken
+        </button>
+
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="bookForm.invalid || book.genres.length === 0"
+        >
           <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
           Boek Toevoegen
         </button>

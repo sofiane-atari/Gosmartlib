@@ -1,9 +1,9 @@
-import { Component, EventEmitter, Input, NgModule, Output } from '@angular/core';
+import { Component, EventEmitter, Input, NgModule, Output, ViewChild } from '@angular/core';
 import { BookService } from '../../../../services/bookService/book.service';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Book } from '../../../../model/book/book.model';
-import { Info, LucideAngularModule, Plus } from "lucide-angular";
+import { Info, LucideAngularModule, Plus, Trash2 } from "lucide-angular";
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { ToastService } from '../../../../services/toast/toast.service';
 import { LoadingOverlayComponent } from "../../../shared/loading-overlay/loading-overlay.component";
@@ -21,11 +21,13 @@ import { ReadingLevel } from '../../../../model/readingLevel.model';
 export class AddBookISBNComponent {
   isbn: string = "";
   selectedBook?: Book;
+  @ViewChild('bookForm') bookForm?: NgForm;
   @Output() bookAdded = new EventEmitter<Book>();
   @Input() genres: Genre[] = [];
   @Input() readingLevels: ReadingLevel[] = [];
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
+  readonly Trash2Icon = Trash2;
 
 
   candidates: BookCandidate[] = [];
@@ -35,12 +37,12 @@ export class AddBookISBNComponent {
     book: Book = {
     title: '',
     author: '',
-    pages: 0,
+    pages: '' as any,
     imageUrl: '',
     description: '',
-    releaseYear: new Date().getFullYear(),
+    releaseYear: null as any,
     genres: [],
-    readingLevel: undefined
+    readingLevel: null as any
   };
 
   constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
@@ -113,7 +115,35 @@ export class AddBookISBNComponent {
       }
     });
   }
+clearForm() {
+    this.isbn = '';
+    this.selectedBook = undefined;
+    this.candidates = [];
+    this.showCandidates = false;
+    this.isLoading = false;
 
+    this.book = {
+      title: '',
+      author: '',
+      pages: 0,
+      imageUrl: '',
+      description: '',
+      releaseYear: new Date().getFullYear(),
+      genres: [],
+      readingLevel: undefined
+    };
+
+    this.bookForm?.resetForm({
+      isbn: '',
+      title: '',
+      author: '',
+      pages: 0,
+      releaseYear: new Date().getFullYear(),
+      imageUrl: '',
+      description: '',
+      readingLevel: undefined
+    });
+  }
   searchByTitleAuthorYear() {
     this.showCandidates = false;
     this.candidates = [];
