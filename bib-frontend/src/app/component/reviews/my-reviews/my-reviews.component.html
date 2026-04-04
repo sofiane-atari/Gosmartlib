@@ -2,13 +2,12 @@
   <div class="review-dashboard__container">
     <div class="review-dashboard__header" @fadeInUp>
       <div>
-        <p class="review-dashboard__eyebrow">Mijn boekentijdlijn</p>
         <h1 class="review-dashboard__title">Mijn Reviews</h1>
         <p class="review-dashboard__subtitle">
           @if (isLoading) {
             Reviews laden...
           } @else {
-            {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }} geschreven
+            {{ pagingMeta.totalItems }} review{{ pagingMeta.totalItems !== 1 ? 's' : '' }} geschreven
           }
         </p>
       </div>
@@ -52,7 +51,7 @@
           </article>
         }
       </section>
-    } @else if (reviews.length === 0) {
+    } @else if (pagingMeta.totalItems === 0) {
       <section class="state-panel state-panel--empty" @fadeInUp>
         <div class="state-panel__icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -178,6 +177,13 @@
           </article>
         }
       </section>
+
+      @if (pagingMeta.totalPages > 1) {
+        <app-paging
+          [meta]="pagingMeta"
+          (pageChange)="onPageChange($event)"
+        />
+      }
     }
   </div>
 </div>

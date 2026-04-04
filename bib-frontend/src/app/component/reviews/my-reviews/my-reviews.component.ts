@@ -6,15 +6,17 @@ import { LucideAngularModule, Star, Trash2, Search, ChevronDown, ChevronUp } fro
 import { ReviewService } from '../../../services/review-service/review.service';
 import { Review } from '../../../model/review.model';
 import { ToastService } from '../../../services/toast/toast.service';
+import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import {
   fadeInUpAnimation,
   reviewCardAnimation,
 } from '../../shared/animations/my-reviews.animations';
+import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 
 @Component({
   selector: 'app-my-reviews',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideAngularModule, PagingComponent],
   templateUrl: './my-reviews.component.html',
   styleUrl: './my-reviews.component.css',
   animations: [reviewCardAnimation, fadeInUpAnimation],
@@ -30,11 +32,17 @@ export class MyReviewsComponent implements OnInit {
   protected readonly skeletonItems = Array.from({ length: 3 });
   protected readonly maxCollapsedLength = 220;
 
-  private readonly expandedReviewIds = new Set<number>();
-
   protected reviews: Review[] = [];
   protected isLoading = true;
 
+  protected pagingMeta: PagingMeta = {
+    currentPage: 0,
+    pageSize: 5,
+    totalItems: 0,
+    totalPages: 0,
+  };
+
+  private readonly expandedReviewIds = new Set<number>();
   private readonly reviewService = inject(ReviewService);
   private readonly toastService = inject(ToastService);
 
@@ -42,23 +50,23 @@ export class MyReviewsComponent implements OnInit {
     this.loadMyReviews();
   }
 
-  protected loadMyReviews(): void {
+  protected loadMyReviews(page: number = this.pagingMeta.currentPage): void {
     this.isLoading = true;
 
-    this.reviewService.getMyReviews().subscribe({
-      next: (reviews) => {
-        this.reviews = [...reviews].sort(
-          (firstReview, secondReview) =>
-            (secondReview.id ?? 0) - (firstReview.id ?? 0),
-        );
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Fout bij ophalen van mijn reviews:', error);
-        this.toastService.show('Je reviews konden niet geladen worden.', 'error');
-        this.isLoading = false;
-      },
-    });
+    this.reviewService
+      .getMyReviews(page, this.pagingMeta.pageSize)
+      .subscribe({
+        next: (response: PaginatedResponse<Review>) => {
+          this.reviews = response.data;
+          this.pagingMeta = response.meta;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Fout bij ophalen van mijn reviews:', error);
+          this.toastService.show('Je reviews konden niet geladen worden.', 'error');
+          this.isLoading = false;
+        },
+      });
   }
 
   protected deleteReview(reviewId?: number): void {
@@ -71,7 +79,16 @@ export class MyReviewsComponent implements OnInit {
       () => {
         this.reviewService.deleteReview(reviewId).subscribe({
           next: () => {
-            this.reviews = this.reviews.filter((review) => review.id !== reviewId);
+            this.expandedReviewIds.delete(reviewId);
+
+            const isLastItemOnPage = this.reviews.length === 1;
+            const hasPreviousPage = this.pagingMeta.currentPage > 0;
+
+            const nextPage = isLastItemOnPage && hasPreviousPage
+              ? this.pagingMeta.currentPage - 1
+              : this.pagingMeta.currentPage;
+
+            this.loadMyReviews(nextPage);
             this.toastService.show('Review verwijderd.', 'success');
           },
           error: (error) => {
@@ -80,8 +97,17 @@ export class MyReviewsComponent implements OnInit {
           },
         });
       },
-      () => {}
+      () => {},
     );
+  }
+
+  protected onPageChange(page: number): void {
+    if (page === this.pagingMeta.currentPage) {
+      return;
+    }
+
+    this.loadMyReviews(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   protected isReviewCollapsible(comment: string | undefined): boolean {

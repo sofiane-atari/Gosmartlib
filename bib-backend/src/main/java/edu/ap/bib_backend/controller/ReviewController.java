@@ -2,6 +2,7 @@ package edu.ap.bib_backend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -12,9 +13,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.ReviewDTO;
+import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.service.ReviewService;
 
 @RestController
@@ -40,9 +44,19 @@ public class ReviewController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<ReviewDTO>> getCurrentUserReviews(Authentication authentication) {
-        List<ReviewDTO> reviews = reviewService.getCurrentUserReviews(authentication);
-        return ResponseEntity.ok(reviews);
+    public ResponseEntity<PageDTO<ReviewDTO>> getCurrentUserReviews(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<ReviewDTO> reviewPage = reviewService.getCurrentUserReviews(authentication, page, size);
+
+        return ResponseEntity.ok(
+                new PageDTO<>(
+                        reviewPage.getContent(),
+                        PageMapper.toPaginatedMeta(reviewPage)
+                )
+        );
     }
 
     @GetMapping("/flagged")
