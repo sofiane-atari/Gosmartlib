@@ -12,6 +12,11 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewReportRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 
 import org.springframework.stereotype.Service;
@@ -47,12 +52,17 @@ public class ReviewService {
                 .toList();
     }
 
-    public List<ReviewDTO> getCurrentUserReviews(Authentication authentication) {
+    public Page<ReviewDTO> getCurrentUserReviews(Authentication authentication, int page, int size) {
         String currentUserId = extractCurrentUserId(authentication);
 
-        return reviewRepository.findByUserId(currentUserId).stream()
-                .map(review -> mapToReviewDto(review, currentUserId))
-                .toList();
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), 50),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return reviewRepository.findByUserId(currentUserId, pageable)
+                .map(review -> mapToReviewDto(review, currentUserId));
     }
 
     public List<ReviewDTO> getAllReviews(Authentication authentication) {
@@ -213,5 +223,5 @@ public class ReviewService {
                     authority.getAuthority().equals("ROLE_LIBRARIAN")
                             || authority.getAuthority().equals("ROLE_ADMIN")
             );
-}
+    }
 }

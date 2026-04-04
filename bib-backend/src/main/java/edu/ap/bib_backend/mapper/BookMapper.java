@@ -27,6 +27,9 @@ public class BookMapper {
         dto.setDescription(book.getDescription());
         dto.setReleaseYear(book.getReleaseYear());
         dto.setReviewScore(book.getReviewScore() != null ? book.getReviewScore() : 0.0);
+        dto.setAddedDate(book.getAddedDate());
+        dto.setTotalCopies(book.getTotalCopies() != null ? book.getTotalCopies() : 0);
+        dto.setAvailableCopies(book.getAvailableCopies() != null ? book.getAvailableCopies() : 0);
 
         // Simpele mapping voor Genre (zonder DB call)
         dto.setGenres(book.getGenres().stream()

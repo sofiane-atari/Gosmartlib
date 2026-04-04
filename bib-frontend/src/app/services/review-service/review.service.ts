@@ -2,6 +2,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Review } from '../../model/review.model';
+import { Observable } from 'rxjs';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +20,10 @@ export class ReviewService {
     return this.http.get<Review[]>(this.apiUrl);
   }
 
-  public getMyReviews() {
-    return this.http.get<Review[]>(`${this.apiUrl}/me`);
+  getMyReviews(page: number, size: number): Observable<PaginatedResponse<Review>> {
+    return this.http.get<PaginatedResponse<Review>>(
+      `${this.apiUrl}/me?page=${page}&size=${size}`,
+    );
   }
 
   public getFlaggedReviews() {

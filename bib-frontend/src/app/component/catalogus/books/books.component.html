@@ -22,16 +22,6 @@
       <h1>Boeken catalogus</h1>
       <span class="subtitle">{{ pagingMeta().totalItems }} boeken gevonden</span>
     </div>
-
-    
-    <div class="quick-stats-badges">
-      <div class="status-badge badge-green">
-        <span class="badge-number">{{ availableCount() }}</span> Beschikbaar
-      </div>
-      <div class="status-badge badge-red">
-        <span class="badge-number">{{ borrowedCount() }}</span> Uitgeleend
-      </div>
-    </div> 
   </div>
 
   @if (isFilterOpen()) {
