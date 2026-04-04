@@ -1,19 +1,64 @@
 <div class="review-dashboard">
   <div class="review-dashboard__container">
-    <div class="review-dashboard__header">
+    <div class="review-dashboard__header" @fadeInUp>
       <div>
         <p class="review-dashboard__eyebrow">Mijn boekentijdlijn</p>
         <h1 class="review-dashboard__title">Mijn Reviews</h1>
         <p class="review-dashboard__subtitle">
-          {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }} geschreven
+          @if (isLoading) {
+            Reviews laden...
+          } @else {
+            {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }} geschreven
+          }
         </p>
       </div>
     </div>
 
-    @if (reviews.length === 0) {
-      <section class="state-panel state-panel--empty">
+    @if (isLoading) {
+      <section class="review-list">
+        @for (item of skeletonItems; track $index) {
+          <article class="review-card review-card--skeleton">
+            <div class="review-card__cover">
+              <div class="skeleton skeleton--cover"></div>
+            </div>
+
+            <div class="review-card__content">
+              <div class="review-card__top">
+                <div class="skeleton skeleton--title"></div>
+              </div>
+
+              <div class="skeleton skeleton--author"></div>
+
+              <div class="review-card__rating">
+                <div class="review-card__stars">
+                  @for (star of starValues; track star) {
+                    <div class="skeleton skeleton--star"></div>
+                  }
+                </div>
+              </div>
+
+              <div class="review-card__meta">
+                <div class="skeleton skeleton--meta"></div>
+              </div>
+
+              <div class="skeleton skeleton--text"></div>
+              <div class="skeleton skeleton--text"></div>
+              <div class="skeleton skeleton--text skeleton--text-short"></div>
+
+              <div class="review-card__actions">
+                <div class="skeleton skeleton--button"></div>
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+    } @else if (reviews.length === 0) {
+      <section class="state-panel state-panel--empty" @fadeInUp>
         <div class="state-panel__icon">
-          <lucide-angular [img]="Search" size="48"></lucide-angular>
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
         </div>
         <h2 class="state-panel__title">Nog geen reviews</h2>
         <p class="state-panel__text">
@@ -25,14 +70,20 @@
         @for (review of reviews; track review.id; let i = $index) {
           <article
             class="review-card"
-            [@reviewCardAnimation]="{ value: '', params: { delay: i * 180 } }"
+            [@reviewCardAnimation]="{ value: '', params: { delay: i * 100 } }"
           >
+            <div class="review-card__accent-bar"></div>
+
             <div class="review-card__cover">
               @if (review.bookImageUrl) {
-                <img [src]="review.bookImageUrl" alt="Cover van {{ review.bookTitle }}">
+                <img [src]="review.bookImageUrl" [alt]="'Cover van ' + review.bookTitle" loading="lazy">
               } @else {
                 <div class="review-card__cover-fallback">
-                  <lucide-angular name="Image" size="24"></lucide-angular>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+                    <circle cx="9" cy="9" r="2"></circle>
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+                  </svg>
                 </div>
               }
             </div>
@@ -52,24 +103,35 @@
               <div class="review-card__rating">
                 <div class="review-card__stars">
                   @for (starValue of starValues; track starValue) {
-                    <lucide-angular
-                      [img]="Star"
-                      size="16"
-                      strokeWidth="1.5"
-                      [color]="starValue <= review.rating ? '#f59e0b' : '#d1d5db'"
+                    <svg
+                      class="star-icon"
                       [class.star-filled]="starValue <= review.rating"
-                    ></lucide-angular>
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      [attr.fill]="starValue <= review.rating ? '#f59e0b' : 'none'"
+                      stroke="#f59e0b"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
                   }
                 </div>
               </div>
 
               <div class="review-card__meta">
                 <a [routerLink]="['/book', review.bookId]" class="book-reference-link">
-                  Bekijk boek
+                  <span>Bekijk boek</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7M7 7h10v10"/>
+                  </svg>
                 </a>
                 <span class="review-card__meta-separator">•</span>
                 <span class="review-card__meta-item">
-                  Geplaatst op {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                  {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
                 </span>
               </div>
 
@@ -83,8 +145,10 @@
                   class="review-card__action review-card__action--delete"
                   (click)="review.id !== undefined && deleteReview(review.id)"
                 >
-                  <lucide-angular [img]="Trash2" size="14"></lucide-angular>
-                  Review verwijderen
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                  </svg>
+                  <span>Review verwijderen</span>
                 </button>
               </div>
             </div>
