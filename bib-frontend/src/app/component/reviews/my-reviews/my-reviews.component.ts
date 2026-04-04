@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Star, Trash2, Search } from 'lucide-angular';
+import { LucideAngularModule, Star, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-angular';
 
 import { ReviewService } from '../../../services/review-service/review.service';
 import { Review } from '../../../model/review.model';
@@ -23,9 +23,14 @@ export class MyReviewsComponent implements OnInit {
   protected readonly Star = Star;
   protected readonly Trash2 = Trash2;
   protected readonly Search = Search;
+  protected readonly ChevronDown = ChevronDown;
+  protected readonly ChevronUp = ChevronUp;
 
   protected readonly starValues = [1, 2, 3, 4, 5];
   protected readonly skeletonItems = Array.from({ length: 3 });
+  protected readonly maxCollapsedLength = 220;
+
+  private readonly expandedReviewIds = new Set<number>();
 
   protected reviews: Review[] = [];
   protected isLoading = true;
@@ -77,6 +82,37 @@ export class MyReviewsComponent implements OnInit {
       },
       () => {}
     );
+  }
+
+  protected isReviewCollapsible(comment: string | undefined): boolean {
+    return (comment?.trim().length ?? 0) > this.maxCollapsedLength;
+  }
+
+  protected isReviewExpanded(reviewId: number | undefined): boolean {
+    return reviewId !== undefined && this.expandedReviewIds.has(reviewId);
+  }
+
+  protected toggleReviewExpanded(reviewId: number | undefined): void {
+    if (reviewId === undefined) {
+      return;
+    }
+
+    if (this.expandedReviewIds.has(reviewId)) {
+      this.expandedReviewIds.delete(reviewId);
+      return;
+    }
+
+    this.expandedReviewIds.add(reviewId);
+  }
+
+  protected getDisplayedComment(review: Review): string {
+    const comment = review.comment?.trim() ?? '';
+
+    if (!this.isReviewCollapsible(comment) || this.isReviewExpanded(review.id)) {
+      return comment;
+    }
+
+    return `${comment.slice(0, this.maxCollapsedLength).trimEnd()}...`;
   }
 
   protected translateStatus(status: string | undefined): string {

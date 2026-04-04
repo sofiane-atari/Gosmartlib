@@ -309,14 +309,42 @@
   font-weight: 500;
 }
 
-.review-card__text {
-  margin: 0;
-  color: #4b5563;
-  font-size: 15px;
-  line-height: 1.7;
-  font-weight: 400;
+.review-card__description {
+  margin-bottom: 16px;
 }
 
+.review-card__text {
+  margin: 0 0 8px;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+.review-card__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--main-color);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.review-card__toggle:hover {
+  color: var(--main-color-hover);
+}
+
+.review-card__toggle:focus-visible {
+  outline: 2px solid rgba(138, 30, 65, 0.25);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
 .review-card__actions {
   display: flex;
   gap: 12px;

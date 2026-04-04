@@ -135,9 +135,32 @@
                 </span>
               </div>
 
-              <p class="review-card__text">
-                {{ review.comment }}
-              </p>
+              <div class="review-card__description">
+                <p
+                  class="review-card__text"
+                  [class.review-card__text--expanded]="isReviewExpanded(review.id)"
+                >
+                  {{ getDisplayedComment(review) }}
+                </p>
+
+                @if (isReviewCollapsible(review.comment)) {
+                  <button
+                    type="button"
+                    class="review-card__toggle"
+                    (click)="toggleReviewExpanded(review.id)"
+                    [attr.aria-expanded]="isReviewExpanded(review.id)"
+                  >
+                    <span>
+                      {{ isReviewExpanded(review.id) ? 'Toon minder' : 'Lees meer' }}
+                    </span>
+
+                    <lucide-angular
+                      [img]="isReviewExpanded(review.id) ? ChevronUp : ChevronDown"
+                      size="14"
+                    ></lucide-angular>
+                  </button>
+                }
+              </div>
 
               <div class="review-card__actions">
                 <button
