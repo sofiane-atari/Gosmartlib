@@ -6,6 +6,7 @@ import { LucideAngularModule, Star, Trash2, Search, Image } from 'lucide-angular
 import { ReviewService } from '../../../services/review-service/review.service';
 import { Review } from '../../../model/review.model';
 import { ToastService } from '../../../services/toast/toast.service';
+import { reviewCardAnimation } from '../../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-my-reviews',
@@ -13,12 +14,12 @@ import { ToastService } from '../../../services/toast/toast.service';
   imports: [CommonModule, RouterModule, LucideAngularModule],
   templateUrl: './my-reviews.component.html',
   styleUrl: './my-reviews.component.css',
+  animations: [reviewCardAnimation],
 })
 export class MyReviewsComponent implements OnInit {
   protected readonly Star = Star;
   protected readonly Trash2 = Trash2;
   protected readonly Search = Search;
-  private readonly Image = Image;
 
   protected readonly starValues = [1, 2, 3, 4, 5];
   protected reviews: Review[] = [];

@@ -2,6 +2,7 @@
   <div class="review-dashboard__container">
     <div class="review-dashboard__header">
       <div>
+        <p class="review-dashboard__eyebrow">Mijn boekentijdlijn</p>
         <h1 class="review-dashboard__title">Mijn Reviews</h1>
         <p class="review-dashboard__subtitle">
           {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }} geschreven
@@ -11,31 +12,32 @@
 
     @if (reviews.length === 0) {
       <section class="state-panel state-panel--empty">
-        <lucide-angular [img]="Search" size="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-angular>
-        <h2 style="margin: 0 0 8px; color: #1a0a10; font-size: 18px; font-weight: 700;">
-          Nog geen reviews
-        </h2>
-        <p style="margin: 0;">
+        <div class="state-panel__icon">
+          <lucide-angular [img]="Search" size="48"></lucide-angular>
+        </div>
+        <h2 class="state-panel__title">Nog geen reviews</h2>
+        <p class="state-panel__text">
           Je hebt nog geen reviews geschreven over boeken.
         </p>
-      </section> } 
-      @else {
+      </section>
+    } @else {
       <section class="review-list">
-        @for (review of reviews; track review.id) {
-          <article class="review-card">
-            
+        @for (review of reviews; track review.id; let i = $index) {
+          <article
+            class="review-card"
+            [@reviewCardAnimation]="{ value: '', params: { delay: i * 180 } }"
+          >
             <div class="review-card__cover">
               @if (review.bookImageUrl) {
                 <img [src]="review.bookImageUrl" alt="Cover van {{ review.bookTitle }}">
               } @else {
                 <div class="review-card__cover-fallback">
-                   <lucide-angular name="Image" size="24"></lucide-angular>
+                  <lucide-angular name="Image" size="24"></lucide-angular>
                 </div>
               }
             </div>
 
             <div class="review-card__content">
-              
               <div class="review-card__top">
                 <div>
                   <h2 class="review-card__book-title">
@@ -49,15 +51,15 @@
 
               <div class="review-card__rating">
                 <div class="review-card__stars">
-                    @for (starValue of starValues; track starValue) {
-                        <lucide-angular
-                        [img]="Star"
-                        size="16"
-                        strokeWidth="1.5"
-                        [color]="starValue <= review.rating ? '#f59e0b' : '#d1d5db'"
-                        [class.star-filled]="starValue <= review.rating"
-                        ></lucide-angular>
-                    }
+                  @for (starValue of starValues; track starValue) {
+                    <lucide-angular
+                      [img]="Star"
+                      size="16"
+                      strokeWidth="1.5"
+                      [color]="starValue <= review.rating ? '#f59e0b' : '#d1d5db'"
+                      [class.star-filled]="starValue <= review.rating"
+                    ></lucide-angular>
+                  }
                 </div>
               </div>
 
@@ -67,7 +69,7 @@
                 </a>
                 <span class="review-card__meta-separator">•</span>
                 <span class="review-card__meta-item">
-                    Geplaatst op {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                  Geplaatst op {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
                 </span>
               </div>
 
@@ -85,7 +87,6 @@
                   Review verwijderen
                 </button>
               </div>
-
             </div>
           </article>
         }

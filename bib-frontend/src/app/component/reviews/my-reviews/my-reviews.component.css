@@ -1,20 +1,19 @@
 :host {
   --main-color: #8a1e41;
   --main-color-hover: #6e1733;
+  --main-color-soft: rgba(138, 30, 65, 0.08);
+  --main-color-border: rgba(138, 30, 65, 0.14);
   --text-dark: #1a0a10;
   --text-muted: #7a5560;
   --border-color: #f0e4e8;
   --bg-surface: #ffffff;
-  --success: #10b981;
+  --bg-soft: #faf7f8;
   --danger: #ef4444;
   --warning: #f59e0b;
-  
+
   display: block;
 }
 
-/* =========================================================
-   FORCEER STERREN OM OP TE VULLEN
-   ========================================================= */
 lucide-angular.star-filled ::ng-deep svg,
 lucide-angular.star-filled ::ng-deep path,
 lucide-angular.star-filled ::ng-deep polygon {
@@ -23,11 +22,12 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .review-dashboard {
   min-height: 100vh;
-  padding: 24px;
-  background-color: #faf7f8; 
+  padding: 28px;
+  background:
+    radial-gradient(circle at top, rgba(138, 30, 65, 0.06), transparent 32%),
+    linear-gradient(180deg, #fcf9fa 0%, #faf7f8 100%);
 }
 
-/* Base Layout */
 .review-dashboard__container {
   max-width: 1100px;
   margin: 0 auto;
@@ -36,7 +36,6 @@ lucide-angular.star-filled ::ng-deep polygon {
   gap: 24px;
 }
 
-/* Header */
 .review-dashboard__header {
   display: flex;
   justify-content: space-between;
@@ -47,44 +46,51 @@ lucide-angular.star-filled ::ng-deep polygon {
   border-bottom: 1px solid rgba(138, 30, 65, 0.08);
 }
 
+.review-dashboard__eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--main-color);
+}
+
 .review-dashboard__title {
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: clamp(28px, 4vw, 42px);
   font-weight: 800;
   color: var(--text-dark);
   letter-spacing: -0.04em;
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.05;
 }
 
 .review-dashboard__subtitle {
   font-size: 14px;
   color: var(--text-muted);
-  margin: 6px 0 0;
+  margin: 8px 0 0;
 }
 
-/* Review List */
 .review-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* Review Card */
 .review-card {
   position: relative;
   display: flex;
   gap: 16px;
   background: linear-gradient(180deg, #ffffff 0%, #fffafc 100%);
   border: 1px solid rgba(138, 30, 65, 0.08);
-  border-radius: 18px;
+  border-radius: 20px;
   padding: 20px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(26, 10, 16, 0.04);
+  box-shadow: 0 10px 28px rgba(26, 10, 16, 0.045);
   transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    border-color 0.25s ease,
-    background 0.25s ease;
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    border-color 0.28s ease,
+    background 0.28s ease;
 }
 
 .review-card::before {
@@ -96,28 +102,41 @@ lucide-angular.star-filled ::ng-deep polygon {
   opacity: 0.95;
 }
 
-.review-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(138, 30, 65, 0.18);
-  box-shadow: 0 16px 36px rgba(138, 30, 65, 0.12);
+.review-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0.35), transparent 35%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.28s ease;
 }
 
-/* Cover */
+.review-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(138, 30, 65, 0.18);
+  box-shadow: 0 18px 42px rgba(138, 30, 65, 0.12);
+}
+
+.review-card:hover::after {
+  opacity: 1;
+}
+
 .review-card__cover {
   flex-shrink: 0;
-  width: 76px;
-  height: 114px;
-  border-radius: 12px;
+  width: 80px;
+  height: 120px;
+  border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(138, 30, 65, 0.1);
   background: linear-gradient(180deg, #fff 0%, #fbeef2 100%);
-  box-shadow: 0 6px 18px rgba(26, 10, 16, 0.08);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 8px 20px rgba(26, 10, 16, 0.08);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
 }
 
 .review-card:hover .review-card__cover {
   transform: translateY(-2px) rotate(-1deg);
-  box-shadow: 0 12px 24px rgba(138, 30, 65, 0.12);
+  box-shadow: 0 14px 28px rgba(138, 30, 65, 0.12);
 }
 
 .review-card__cover img {
@@ -137,7 +156,6 @@ lucide-angular.star-filled ::ng-deep polygon {
   background: linear-gradient(180deg, #fff 0%, #f7ecef 100%);
 }
 
-/* Content */
 .review-card__content {
   flex: 1;
   min-width: 0;
@@ -165,7 +183,6 @@ lucide-angular.star-filled ::ng-deep polygon {
   color: var(--text-muted);
 }
 
-/* Rating */
 .review-card__rating {
   display: flex;
   align-items: center;
@@ -191,7 +208,6 @@ lucide-angular.star-filled ::ng-deep polygon {
   transform: scale(1.08);
 }
 
-/* Meta */
 .review-card__meta {
   display: flex;
   align-items: center;
@@ -218,15 +234,13 @@ lucide-angular.star-filled ::ng-deep polygon {
   color: #c4a8b1;
 }
 
-/* Review Text */
 .review-card__text {
   margin: 0 0 16px;
   color: #4b5563;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
-/* Actions */
 .review-card__actions {
   display: flex;
   gap: 12px;
@@ -268,11 +282,10 @@ lucide-angular.star-filled ::ng-deep polygon {
   border-color: rgba(180, 35, 24, 0.35);
 }
 
-/* Empty State */
 .state-panel {
   background: linear-gradient(180deg, #ffffff 0%, #fff7fa 100%);
   border: 1px dashed rgba(138, 30, 65, 0.18);
-  border-radius: 18px;
+  border-radius: 20px;
   padding: 56px 24px;
   text-align: center;
   color: var(--text-muted);
@@ -283,25 +296,41 @@ lucide-angular.star-filled ::ng-deep polygon {
   box-shadow: 0 10px 24px rgba(26, 10, 16, 0.04);
 }
 
-/* Optional nicer empty-state icon animation */
-.state-panel lucide-angular {
+.state-panel__icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  background: rgba(138, 30, 65, 0.06);
+  color: #cbd5e1;
   animation: floatPulse 2.8s ease-in-out infinite;
+}
+
+.state-panel__title {
+  margin: 0 0 8px;
+  color: var(--text-dark);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.state-panel__text {
+  margin: 0;
+  max-width: 420px;
+  line-height: 1.7;
 }
 
 @keyframes floatPulse {
   0%, 100% {
     transform: translateY(0);
-    opacity: 0.85;
+    opacity: 0.9;
   }
   50% {
     transform: translateY(-4px);
     opacity: 1;
   }
 }
-
-/* =========================================================
-   RESPONSIVE STYLES
-   ========================================================= */
 
 @media (max-width: 768px) {
   .review-dashboard {
