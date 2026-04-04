@@ -159,4 +159,10 @@ public class BookController {
         bookService.deleteBook(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{bookId}/copies")
+    public ResponseEntity<BookDTO> addCopy(@PathVariable Long bookId) {
+        BookDTO dto = bookService.addCopyToBook(bookId);
+        return ResponseEntity.ok(dto);
+    }
 }

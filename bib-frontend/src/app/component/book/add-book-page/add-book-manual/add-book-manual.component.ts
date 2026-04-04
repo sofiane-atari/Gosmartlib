@@ -54,7 +54,7 @@ export class AddBookManualComponent implements OnInit, OnDestroy {
   @Output() bookAdded = new EventEmitter<Book>();
 
   availabilityOptions = Object.values(Availability);
-
+  selectedBookId: number | null = null;
   candidateBooks: BookCandidate[] = [];
   isCandidateLoaded = false;
   isSearching = false;
@@ -172,39 +172,41 @@ private setupCandidateSearch(): void {
   }
 
   useCandidate(candidate: BookCandidate): void {
-  if (!candidate.id) {
-    this.ts.show('Dit kandidaatboek heeft geen database-id.', 'error');
-    return;
-  }
+    if (!candidate.id) {
+      this.ts.show('Dit kandidaatboek heeft geen database-id.', 'error');
+      return;
+    }
 
-  this.isSearching = true;
+    this.isSearching = true;
 
-  this.bs.getBookById(candidate.id).subscribe({
-    next: (book: Book) => {
-      this.form.patchValue({
-        title: book.title ?? '',
-        author: book.author ?? '',
-        pages: book.pages ?? null,
-        imageUrl: book.imageUrl ?? '',
-        description: book.description ?? '',
-        releaseYear: book.releaseYear ?? null,
-        readingLevel: book.readingLevel ?? null
-      }, { emitEvent: false });
+    this.bs.getBookById(candidate.id).subscribe({
+      next: (book: Book) => {
+        this.selectedBookId = book.id ?? candidate.id ?? null;
 
-      this.selectedGenres = book.genres ?? [];
-      this.candidateBooks = [];
-      this.isCandidateLoaded = true;
-      this.form.controls.readingLevel.disable();
-      this.isSearching = false;
+        this.form.patchValue({
+          title: book.title ?? '',
+          author: book.author ?? '',
+          pages: book.pages ?? null,
+          imageUrl: book.imageUrl ?? '',
+          description: book.description ?? '',
+          releaseYear: book.releaseYear ?? null,
+          readingLevel: book.readingLevel ?? null
+        }, { emitEvent: false });
 
-      this.ts.show('Boekgegevens uit de database ingevuld.');
-    },
+        this.selectedGenres = book.genres ?? [];
+        this.candidateBooks = [];
+        this.isCandidateLoaded = true;
+        this.form.controls.readingLevel.disable();
+        this.isSearching = false;
+
+        this.ts.show('Boekgegevens uit de database ingevuld.');
+      },
       error: () => {
         this.isSearching = false;
         this.ts.show('Kon het volledige boek niet ophalen uit de database.', 'error');
       }
     });
-  }
+}
   clearForm(): void {
     this.form.reset({
       title: '',
@@ -220,6 +222,7 @@ private setupCandidateSearch(): void {
     this.candidateBooks = [];
     this.isCandidateLoaded = false;
     this.isSearching = false;
+    this.selectedBookId = null;
 
     this.form.markAsPristine();
     this.form.markAsUntouched();
@@ -237,6 +240,18 @@ private setupCandidateSearch(): void {
       return;
     }
 
+    if (this.isCandidateLoaded && this.selectedBookId) {
+      this.bs.addCopy(this.selectedBookId).subscribe({
+        next: () => {
+          this.ts.show('Exemplaar toegevoegd.');
+          this.clearForm();
+        },
+        error: () => {
+          this.ts.show('Kon geen exemplaar toevoegen.', 'error');
+        }
+      });
+      return;
+    }
     const formValue = this.form.getRawValue();
 
     const book: Book = {

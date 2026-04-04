@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.book;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -68,6 +69,13 @@ public class BookService {
     @Transactional
     public List<BookDTO> getAllBooks() {
         return bookMapper.toDTOList(bookRepository.findAll());
+    }
+
+    @Transactional
+    public BookDTO addCopyToBook(Long bookId) {
+        Book book = findBookOrThrow(bookId);
+        createAvailableCopy(book);
+        return bookMapper.toDTO(book);
     }
 
     @Transactional

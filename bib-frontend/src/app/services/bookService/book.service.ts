@@ -123,7 +123,9 @@ export class BookService {
       }
     });
   }
-
+  addCopy(bookId: number) {
+    return this.http.post<Book>(`${this.apiUrl}/${bookId}/copies`, {});
+  }
 
 
   getRelatedBooksCarousel(bookId: number, limit: number = 10): Observable<Book[]> {
