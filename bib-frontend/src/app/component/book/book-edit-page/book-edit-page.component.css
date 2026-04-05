@@ -13,7 +13,22 @@
   overflow-y: auto;
   padding: 1.5rem 2rem;
 }
-
+.content-header h1::before {
+  content: "";
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  background: #8a1e41;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.content-header h1 {
+  font-size: 2rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 .form-section {
   max-width: 100%;
 }

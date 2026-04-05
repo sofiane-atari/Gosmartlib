@@ -125,55 +125,60 @@ export class BookEditPageComponent {
   }
 
   protected save(): void {
+    // 1. Validatie
     if (this.form.invalid || this.selectedGenres().length === 0 || this.isSaving()) {
       this.form.markAllAsTouched();
-      this.toastService.show('Controleer eerst alle verplichte velden en kies minstens één genre.', 'error');
+      this.toastService.show('Controleer eerst alle verplichte velden.', 'error');
       return;
     }
 
     const existingBook = this.currentBook();
-
     if (!existingBook?.id) {
-      this.errorMessage.set('Geen geldig boek geladen.');
       this.toastService.show('Geen geldig boek geladen.', 'error');
       return;
     }
 
-    this.isSaving.set(true);
-    this.errorMessage.set(null);
+    // 2. Gebruik de confirm-stijl
+    this.toastService.showConfirm(
+      'Weet je zeker dat je de wijzigingen aan dit boek wilt opslaan?',
+      () => {
+        // De 'onConfirm' callback
+        this.isSaving.set(true);
+        const formValue = this.form.getRawValue();
 
-    const formValue = this.form.getRawValue();
+        const updatedBook: Book = {
+          ...existingBook,
+          isbn: formValue.isbn?.trim() || undefined,
+          title: formValue.title.trim(),
+          author: formValue.author.trim(),
+          pages: formValue.pages,
+          imageUrl: formValue.imageUrl.trim(),
+          description: formValue.description.trim(),
+          releaseYear: formValue.releaseYear,
+          genres: this.selectedGenres().map(genre => ({
+            name: genre.name,
+            color: genre.color,
+            description: genre.description
+          }))
+        };
 
-    const updatedBook: Book = {
-      ...existingBook,
-      isbn: formValue.isbn?.trim() || undefined,
-      title: formValue.title.trim(),
-      author: formValue.author.trim(),
-      pages: formValue.pages,
-      imageUrl: formValue.imageUrl.trim(),
-      description: formValue.description.trim(),
-      releaseYear: formValue.releaseYear,
-      genres: this.selectedGenres().map(genre => ({
-      name: genre.name,
-      color: genre.color,
-      description: genre.description
-    }))
-  };
-
-    console.log('Sending updated book:', updatedBook);
-
-    this.bookService.updateBook(existingBook.id, updatedBook)
-      .pipe(finalize(() => this.isSaving.set(false)))
-      .subscribe({
-        next: (book) => {
-          void this.router.navigate(['/books', book.id]);
-          this.toastService.show('Boek succesvol opgeslagen.', 'success');
-        },
-        error: (err) => {
-          const backendMessage = err?.error?.error?.message ?? 'Het boek opslaan is mislukt.';
-          this.errorMessage.set(backendMessage);
-          this.toastService.show(backendMessage, 'error');
-        }
-      });
+        this.bookService.updateBook(existingBook.id!, updatedBook)
+          .pipe(finalize(() => this.isSaving.set(false)))
+          .subscribe({
+            next: (book) => {
+              this.toastService.show('Boek succesvol opgeslagen.', 'success');
+              void this.router.navigate(['/books', book.id]);
+            },
+            error: (err) => {
+              const backendMessage = err?.error?.error?.message ?? 'Het boek opslaan is mislukt.';
+              this.toastService.show(backendMessage, 'error');
+            }
+          });
+      },
+      () => {
+        // Optionele 'onCancel' callback
+        console.log('Opslaan geannuleerd door gebruiker');
+      }
+    );
   }
 }
