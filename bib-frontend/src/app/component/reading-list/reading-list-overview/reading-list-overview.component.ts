@@ -1,12 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ReadingListService, ReadingList } from '../../../services/reading-list/reading-list.service';
+import {
+  ReadingListService,
+  ReadingList,
+  ReadingListTargetType
+} from '../../../services/reading-list/reading-list.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { LucideAngularModule, Share2, Trash2 } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  Share2,
+  Trash2,
+  List,
+  Star,
+  User,
+  Users,
+  GraduationCap,
+  School,
+  BookOpen,
+  Book,
+  BookCopy,
+  LucideIconData
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-reading-list-overview',
@@ -19,10 +37,25 @@ export class ReadingListOverviewComponent implements OnInit {
 
   readonly Share2 = Share2;
   readonly Trash2 = Trash2;
+  readonly EmptyStateIcon = BookOpen;
+  readonly EmptyCoverIcon = Book;
 
   private static readonly FAVORITES_NAME = 'favorieten';
   readingLists: ReadingList[] = [];
   listCovers: { [key: number]: string[] } = {};
+
+  private static readonly FEATURED_TARGET_TYPE: ReadingListTargetType = 'SYSTEM';
+
+  // Filter state
+  selectedFilters: Set<string> = new Set(['ALL']);
+  filterOptions: Array<{ id: string; label: string; icon: LucideIconData }> = [
+    { id: 'ALL', label: 'Alle', icon: List },
+    { id: 'FEATURED', label: 'Uitgelicht', icon: Star },
+    { id: 'PERSONAL', label: 'Persoonlijk', icon: User },
+    { id: 'CLASS', label: 'Klaslijsten', icon: Users },
+    { id: 'YEAR', label: 'Jaarlijsten', icon: GraduationCap },
+    { id: 'SCHOOL', label: 'Schoollijsten', icon: School }
+  ];
 
   constructor(
     private readingListService: ReadingListService,
@@ -35,6 +68,62 @@ export class ReadingListOverviewComponent implements OnInit {
       this.readingLists = lists;
       this.fetchCoversForLists(lists);
     });
+  }
+
+  // Filter toggle logic
+  toggleFilter(filterId: string): void {
+    if (filterId === 'ALL') {
+      this.selectedFilters.clear();
+      this.selectedFilters.add('ALL');
+    } else {
+      this.selectedFilters.delete('ALL');
+      if (this.selectedFilters.has(filterId)) {
+        this.selectedFilters.delete(filterId);
+        if (this.selectedFilters.size === 0) {
+          this.selectedFilters.add('ALL');
+        }
+      } else {
+        this.selectedFilters.add(filterId);
+      }
+    }
+  }
+
+  // Get filtered lists based on selected filters
+  getFilteredLists(): ReadingList[] {
+    if (this.selectedFilters.has('ALL')) {
+      return this.readingLists;
+    }
+
+    return this.readingLists.filter(list => this.matchesSelectedFilters(list));
+  }
+
+  // Count lists by type
+  getFilterCount(filterId: string): number {
+    if (filterId === 'ALL') {
+      return this.readingLists.length;
+    }
+
+    return this.readingLists.filter(list => this.matchesFilter(list, filterId)).length;
+  }
+
+  private matchesSelectedFilters(list: ReadingList): boolean {
+    for (const filterId of this.selectedFilters) {
+      if (this.matchesFilter(list, filterId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private matchesFilter(list: ReadingList, filterId: string): boolean {
+    const targetType = list.targetType || 'PERSONAL';
+
+    if (filterId === 'FEATURED') {
+      // Featured lists are platform-wide lists visible to everyone.
+      return targetType === ReadingListOverviewComponent.FEATURED_TARGET_TYPE;
+    }
+
+    return targetType === filterId;
   }
 
   fetchCoversForLists(lists: ReadingList[]) {
@@ -114,4 +203,5 @@ export class ReadingListOverviewComponent implements OnInit {
     });
   }
 
+  protected readonly BookCopy = BookCopy;
 }

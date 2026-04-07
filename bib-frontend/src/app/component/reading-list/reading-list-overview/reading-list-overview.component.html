@@ -15,20 +15,37 @@
     <!-- Left: cards -->
     <div class="cards-area">
 
-      @if (readingLists.length === 0) {
+      <!-- Filter tabs -->
+      <div class="filter-tabs">
+        @for (filter of filterOptions; track filter.id) {
+          <button
+            class="filter-tab"
+            [class.active]="selectedFilters.has(filter.id)"
+            (click)="toggleFilter(filter.id)"
+            type="button">
+            <span class="filter-icon">
+              <lucide-angular [img]="filter.icon" size="16"></lucide-angular>
+            </span>
+            <span class="filter-label">{{ filter.label }}</span>
+            <span class="filter-count">{{ getFilterCount(filter.id) }}</span>
+          </button>
+        }
+      </div>
+
+      @if (getFilteredLists().length === 0) {
         <!-- Empty state -->
         <div class="empty-state">
-          <div class="empty-icon">📖</div>
+          <div class="empty-icon">
+            <lucide-angular [img]="BookCopy" size="52"></lucide-angular>
+          </div>
           <h3>Nog geen leeslijsten</h3>
           <p>Maak je eerste leeslijst aan om boeken bij te houden.</p>
           <button class="btn-primary" routerLink="/reading-list/create">+ Nieuwe leeslijst aanmaken</button>
         </div>
-      }
-
-      @if (readingLists.length > 0) {
+      } @else {
         <!-- Grid of cards -->
         <div class="cards-grid">
-          @for (list of readingLists; track list.id) {
+          @for (list of getFilteredLists(); track list.id) {
             <div class="card" [routerLink]="['/reading-list', list.id]">
 
                <div class="card-cover">
@@ -39,7 +56,9 @@
                     }
                   </div>
                 } @else {
-                  <div class="empty-cover">📚</div>
+                  <div class="empty-cover">
+                    <lucide-angular [img]="BookCopy" size="52"></lucide-angular>
+                  </div>
                 }
               </div>
               <div class="card-body">
