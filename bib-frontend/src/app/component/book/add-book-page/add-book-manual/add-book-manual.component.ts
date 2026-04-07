@@ -22,11 +22,12 @@ import { ToastService } from '../../../../services/toast/toast.service';
 import { Book } from '../../../../model/book/book.model';
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { Availability } from '../../../../model/enums/availability.enum';
-import { Genre } from '../../../../model/genre.model';
+import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
 import { Info, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
 import { Subject, of, combineLatest } from 'rxjs';
 import { startWith } from 'rxjs/operators';
+import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 
 type BookFormGroup = FormGroup<{
   title: FormControl<string>;
@@ -45,22 +46,19 @@ type BookFormGroup = FormGroup<{
   templateUrl: './add-book-manual.component.html',
   styleUrl: './add-book-manual.component.css'
 })
-export class AddBookManualComponent implements OnInit, OnDestroy {
+export class AddBookManualComponent extends GenreSelectionBase implements OnInit, OnDestroy {
   readonly PlusIcon = Plus;
   readonly InfoIcon = Info;
   readonly Trash2Icon = Trash2;
-  @Input() genres: Genre[] = [];
   @Input() readingLevels: ReadingLevel[] = [];
   @Output() bookAdded = new EventEmitter<Book>();
 
-  availabilityOptions = Object.values(Availability);
   selectedBookId: number | null = null;
   candidateBooks: BookCandidate[] = [];
   isCandidateLoaded = false;
   isSearching = false;
   selectedGenres: Genre[] = [];
   private destroy$ = new Subject<void>();
-  private isApplyingCandidate = false;
 
   form: BookFormGroup;
 
@@ -70,6 +68,7 @@ export class AddBookManualComponent implements OnInit, OnDestroy {
     private rt: Router,
     private ts: ToastService
   ) {
+    super();
     this.form = this.fb.group({
       title: this.fb.nonNullable.control('', [Validators.required]),
       author: this.fb.nonNullable.control('', [Validators.required]),
@@ -157,20 +156,6 @@ private setupCandidateSearch(): void {
   });
 }
 
-  toggleGenre(genre: Genre): void {
-    const exists = this.selectedGenres.some(g => g.name === genre.name);
-
-    if (exists) {
-      this.selectedGenres = this.selectedGenres.filter(g => g.name !== genre.name);
-    } else {
-      this.selectedGenres = [...this.selectedGenres, genre];
-    }
-  }
-
-  isGenreSelected(genre: Genre): boolean {
-    return this.selectedGenres.some(g => g.name === genre.name);
-  }
-
   useCandidate(candidate: BookCandidate): void {
     if (!candidate.id) {
       this.ts.show('Dit kandidaatboek heeft geen database-id.', 'error');
@@ -194,10 +179,19 @@ private setupCandidateSearch(): void {
         }, { emitEvent: false });
 
         this.selectedGenres = book.genres ?? [];
+
+        if (this.selectedGenres.length > 0) {
+          const firstSelected = this.selectedGenres[0];
+
+          this.openedMainGenre = this.genres.find(main =>
+            main.subGenres?.some(sub => sub.name === firstSelected.name)
+          ) ?? null;
+        }        
         this.candidateBooks = [];
         this.isCandidateLoaded = true;
         this.form.controls.readingLevel.disable();
         this.isSearching = false;
+        this.openedMainGenre = this.findMainGenreForSelectedGenres();
 
         this.ts.show('Boekgegevens uit de database ingevuld.');
       },
@@ -223,6 +217,8 @@ private setupCandidateSearch(): void {
     this.isCandidateLoaded = false;
     this.isSearching = false;
     this.selectedBookId = null;
+    this.openedMainGenre = null;
+    this.resetGenreSelection();
 
     this.form.markAsPristine();
     this.form.markAsUntouched();
@@ -294,5 +290,17 @@ private setupCandidateSearch(): void {
 
   get readingLevel() {
     return this.form.controls.readingLevel;
+  }
+
+  protected getSelectedGenres(): Genre[] {
+    return this.selectedGenres;
+  }
+
+  protected setSelectedGenres(genres: Genre[]): void {
+    this.selectedGenres = genres;
+  }
+
+  protected showGenreError(message: string): void {
+    this.ts.show(message, 'error');
   }
 }

@@ -13,7 +13,7 @@ import { ToastService } from '../../../services/toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { GenreService } from '../../../services/genre/genre.service';
 import { Book } from '../../../model/book/book.model';
-import { Genre } from '../../../model/genre.model';
+import { Genre } from '../../../model/genre/genre.model';
 
 @Component({
   selector: 'app-book-edit-page',
@@ -140,7 +140,7 @@ export class BookEditPageComponent {
 
     // 2. Gebruik de confirm-stijl
     this.toastService.showConfirm(
-      'Weet je zeker dat je de wijzigingen aan dit boek wilt opslaan?',
+      'Het boek wordt gewijzigd voor elke school. Wilt u doorgaan?',
       () => {
         // De 'onConfirm' callback
         this.isSaving.set(true);

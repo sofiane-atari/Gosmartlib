@@ -18,7 +18,6 @@ import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
-import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.mapper.GenreMapper;
 import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.options.GenreGetOptions;
@@ -26,14 +25,12 @@ import edu.ap.bib_backend.projection.GenreProjection;
 
 @Service
 public class GenreService {
-    private final ReviewRepository reviewRepository;
     private final GenreRepository genreRepository;
     private final GenreMapper genreMapper;
 
-    public GenreService(GenreRepository genreRepository, GenreMapper genreMapper, ReviewRepository reviewRepository) {
+    public GenreService(GenreRepository genreRepository, GenreMapper genreMapper) {
         this.genreRepository = genreRepository;
         this.genreMapper = genreMapper;
-        this.reviewRepository = reviewRepository;
     }
 
     @Transactional
@@ -100,6 +97,10 @@ public class GenreService {
         GenreStatsDTO stats = new GenreStatsDTO(genres.size(), unActiveCount);
 
         return stats;
+    }
+
+    public List<GenreDTO> getGenresTree() {
+        return genreMapper.toDtoList(genreRepository.findRootGenresWithSubGenres());
     }
 
     @Transactional

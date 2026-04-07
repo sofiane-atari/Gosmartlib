@@ -7,8 +7,9 @@ import { Info, LucideAngularModule, Plus, Trash2 } from "lucide-angular";
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { ToastService } from '../../../../services/toast/toast.service';
 import { LoadingOverlayComponent } from "../../../shared/loading-overlay/loading-overlay.component";
-import { Genre } from '../../../../model/genre.model';
+import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
+import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 
 @Component({
   selector: 'app-add-book-isbn',
@@ -18,17 +19,15 @@ import { ReadingLevel } from '../../../../model/readingLevel.model';
   styleUrl: './add-book-isbn.component.css'
 
 })
-export class AddBookISBNComponent {
+export class AddBookISBNComponent extends GenreSelectionBase {
   isbn: string = "";
   selectedBook?: Book;
   @ViewChild('bookForm') bookForm?: NgForm;
   @Output() bookAdded = new EventEmitter<Book>();
-  @Input() genres: Genre[] = [];
   @Input() readingLevels: ReadingLevel[] = [];
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
   readonly Trash2Icon = Trash2;
-
 
   candidates: BookCandidate[] = [];
   showCandidates = false;
@@ -45,26 +44,13 @@ export class AddBookISBNComponent {
     readingLevel: null as any
   };
 
-  constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
-
-  toggleGenre(genre: Genre) {
-    const exists = this.book.genres.some(g => g.name === genre.name);
-
-    if (exists) {
-      this.book.genres = this.book.genres.filter(g => g.name !== genre.name);
-    } else {
-      this.book.genres.push(genre);
-    }
-  }
-
-  isGenreSelected(genre: Genre): boolean {
-    return this.book.genres.some(g => g.name  === genre.name);
+  constructor(private bs: BookService, private rt: Router, private ts: ToastService){
+    super();
   }
 
   save() {
-
-    if (this.book.genres.length === 0) {
-      this.ts.show('Selecteer minstens 1 genre', 'error')
+    if (!this.isGenreSelectionValid()) {
+      this.ts.show('Kies 1 hoofdgenre en selecteer daarvan 1 tot 3 subgenres.', 'error');
       return;
     }
 
@@ -106,6 +92,7 @@ export class AddBookISBNComponent {
     this.bs.getBookByISBN(this.isbn).subscribe({
       next: (data) => {
         this.book = data;
+        this.openedMainGenre = this.findMainGenreForSelectedGenres();
         this.isLoading = false;
         this.ts.show('Boek gevonden.');
       },
@@ -121,7 +108,8 @@ clearForm() {
     this.candidates = [];
     this.showCandidates = false;
     this.isLoading = false;
-
+    this.openedMainGenre = null;
+    this.resetGenreSelection();
     this.book = {
       title: '',
       author: '',
@@ -191,6 +179,7 @@ clearForm() {
     this.bs.selectBook(candidate.isbn13).subscribe({
       next: (selectedBook: Book) => {
         this.book = selectedBook;
+        this.openedMainGenre = this.findMainGenreForSelectedGenres();
         this.isbn = selectedBook.isbn ?? candidate.isbn13;
         this.showCandidates = false;
         this.candidates = [];
@@ -202,5 +191,16 @@ clearForm() {
         this.ts.show('Kon het gekozen boek niet ophalen.', 'error');
       }
     });
+  }
+  protected getSelectedGenres(): Genre[] {
+    return this.book.genres;
+  }
+
+  protected setSelectedGenres(genres: Genre[]): void {
+    this.book.genres = genres;
+  }
+
+  protected showGenreError(message: string): void {
+    this.ts.show(message, 'error');
   }
 }
