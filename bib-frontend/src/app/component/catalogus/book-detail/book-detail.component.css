@@ -6,7 +6,11 @@
 
 .page-container {
   min-height: 100vh;
-  background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%); /* Meer neutrale grijze achtergrond */
+  background: linear-gradient(
+    to bottom,
+    #f9fafb 0%,
+    #f3f4f6 100%
+  ); /* Meer neutrale grijze achtergrond */
   padding: 16px 8px;
 }
 
@@ -117,7 +121,7 @@
 
 .book-author {
   font-size: 1rem;
-  color: var(--sec-color, #BC808B); /* Roze/Bordeaux accent */
+  color: var(--sec-color, #bc808b); /* Roze/Bordeaux accent */
   font-weight: 600;
 }
 
@@ -176,8 +180,14 @@
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .list-picker-header {
@@ -203,8 +213,8 @@
 }
 
 .list-picker-item:hover {
-  background: var(--main-light-color, #FFF5F8); /* Zacht roze highlight */
-  color: var(--main-color, #8A1E41);
+  background: var(--main-light-color, #fff5f8); /* Zacht roze highlight */
+  color: var(--main-color, #8a1e41);
   font-weight: 600;
 }
 
@@ -254,9 +264,9 @@
 }
 
 .qty-btn:hover:not(:disabled) {
-  background: var(--main-color, #8A1E41);
+  background: var(--main-color, #8a1e41);
   color: white;
-  border-color: var(--main-color, #8A1E41);
+  border-color: var(--main-color, #8a1e41);
 }
 
 .qty-btn:disabled {
@@ -292,7 +302,7 @@
 
 .status-select:focus {
   outline: none;
-  border-color: var(--main-color, #8A1E41);
+  border-color: var(--main-color, #8a1e41);
   box-shadow: 0 0 0 2px rgba(138, 30, 65, 0.1);
 }
 
@@ -317,7 +327,7 @@
 }
 
 .action-btn.primary {
-  background-color: var(--main-color, #8A1E41);
+  background-color: var(--main-color, #8a1e41);
   color: white;
   box-shadow: 0 2px 6px rgba(138, 30, 65, 0.2);
 }
@@ -373,7 +383,7 @@
 }
 
 .meta-label svg {
-  color: var(--main-color, #8A1E41);
+  color: var(--main-color, #8a1e41);
   width: 14px;
   height: 14px;
 }
@@ -401,17 +411,25 @@
 .genres-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .genre-tag {
-  padding: 4px 10px;
-  background: var(--main-light-color, #FFF5F8);
-  color: var(--main-color, #8A1E41);
-  border-radius: 12px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 25px;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.84rem;
   font-weight: 600;
-  border: 1px solid var(--sec-color, #BC808B);
+  line-height: 1.1;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
 }
 
 /* Reviews Section */
@@ -531,7 +549,7 @@
 
 .review-textarea:focus {
   outline: none;
-  border-color: var(--main-color, #8A1E41);
+  border-color: var(--main-color, #8a1e41);
   box-shadow: 0 0 0 2px rgba(138, 30, 65, 0.1);
 }
 
@@ -583,7 +601,12 @@
 .preview-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(31, 41, 55, 0.7); /* Aangepast naar neutralere dark overlay */
+  background: rgba(
+    31,
+    41,
+    55,
+    0.7
+  ); /* Aangepast naar neutralere dark overlay */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -631,14 +654,19 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .related-book-card:hover,
 .related-book-card:focus-visible {
   transform: translateY(-4px); /* Iets meer lift bij een hover */
   /* Een zachtere, modernere schaduw (Tailwind-style 'shadow-md') */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: #d1d5db; /* Rand kleurt lichtjes mee */
   outline: none;
 }
@@ -694,9 +722,9 @@
 }
 
 .carousel-btn:hover {
-  background: var(--main-light-color, #FFF5F8);
-  border-color: var(--main-color, #8A1E41);
-  color: var(--main-color, #8A1E41);
+  background: var(--main-light-color, #fff5f8);
+  border-color: var(--main-color, #8a1e41);
+  color: var(--main-color, #8a1e41);
 }
 
 .carousel-btn:disabled {
@@ -745,14 +773,17 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .carousel-book-card:hover,
 .carousel-book-card:focus-visible {
   transform: translateY(-3px);
   box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.1);
-  border-color: var(--main-color, #8A1E41);
+  border-color: var(--main-color, #8a1e41);
   outline: none;
 }
 
