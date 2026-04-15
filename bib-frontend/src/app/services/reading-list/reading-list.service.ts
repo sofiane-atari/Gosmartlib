@@ -21,6 +21,8 @@ export interface ReadingList {
 // wat je naar de backend stuurt
 export interface CreateReadingListDTO {
   name: string;
+  targetType?: ReadingListTargetType;
+  targetValue?: string | null;
 }
 
 import { environment } from '../../../environments/environment';
@@ -33,8 +35,11 @@ export class ReadingListService {
 
   constructor(private http: HttpClient) { }
 
-  createList(name: string): Observable<ReadingList> {
-    const dto: CreateReadingListDTO = { name };
+  createList(nameOrDto: string | CreateReadingListDTO): Observable<ReadingList> {
+    const dto: CreateReadingListDTO = typeof nameOrDto === 'string'
+      ? { name: nameOrDto }
+      : nameOrDto;
+
     return this.http.post<ReadingList>(this.apiUrl, dto);
   }
 

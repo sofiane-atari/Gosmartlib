@@ -40,6 +40,7 @@ public class ReadingListService {
         AudienceContext audience = getAudienceContext();
 
         ReadingListTargetType targetType = dto.targetType() == null ? ReadingListTargetType.PERSONAL : dto.targetType();
+        assertCanCreateList(targetType);
         String targetValue = normalizeTargetValue(targetType, dto.targetValue(), audience);
 
         ReadingList list = new ReadingList();
@@ -240,6 +241,16 @@ public class ReadingListService {
         list.setTargetType(targetType);
         list.setTargetValue(targetValue);
         readingListRepository.save(list);
+    }
+
+    private void assertCanCreateList(ReadingListTargetType targetType) {
+        if (targetType == ReadingListTargetType.PERSONAL) {
+            return;
+        }
+
+        if (!isTeacherAuthenticated()) {
+            throw new IllegalArgumentException("Alleen leerkrachten kunnen gedeelde leeslijsten maken");
+        }
     }
 
     private void assertCanModifyList(ReadingList list) {

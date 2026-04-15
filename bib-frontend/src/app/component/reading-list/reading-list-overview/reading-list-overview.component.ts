@@ -8,6 +8,7 @@ import {
 } from '../../../services/reading-list/reading-list.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
+import { RoleService } from '../../../services/role-service/role.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
@@ -60,8 +61,13 @@ export class ReadingListOverviewComponent implements OnInit {
   constructor(
     private readingListService: ReadingListService,
     private toastService: ToastService,
-    private bookService: BookService
+    private bookService: BookService,
+    private roleService: RoleService
   ) { }
+
+  get createRoute(): string {
+    return this.roleService.isTeacher() ? '/reading-list/create-teacher' : '/reading-list/create';
+  }
 
   ngOnInit() {
     this.readingListService.getLists().subscribe(lists => {

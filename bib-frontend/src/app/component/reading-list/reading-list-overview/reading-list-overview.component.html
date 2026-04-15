@@ -8,7 +8,7 @@
       <p class="page-subtitle">{{ readingLists.length }} leeslijst{{ readingLists.length !== 1 ? 'en' : '' }} aangemaakt
       </p>
     </div>
-    <button class="btn-primary" routerLink="/reading-list/create">+ Nieuwe leeslijst</button>
+    <button class="btn-primary" [routerLink]="createRoute">+ Nieuwe leeslijst</button>
   </div>
 
   <div class="content-layout">
@@ -40,7 +40,7 @@
           </div>
           <h3>Nog geen leeslijsten</h3>
           <p>Maak je eerste leeslijst aan om boeken bij te houden.</p>
-          <button class="btn-primary" routerLink="/reading-list/create">+ Nieuwe leeslijst aanmaken</button>
+          <button class="btn-primary" [routerLink]="createRoute">+ Nieuwe leeslijst aanmaken</button>
         </div>
       } @else {
         <!-- Grid of cards -->
