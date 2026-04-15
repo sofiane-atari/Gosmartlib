@@ -14,10 +14,12 @@ import {
   CircleAlert,
   Star,
 } from 'lucide-angular';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 
-import { Review } from '../../../model/review.model'; 
-import { ReviewService } from '../../../services/review-service/review.service'; 
-import { ToastService } from '../../../services/toast/toast.service'; 
+import { Review } from '../../../model/review.model';
+import { ReviewService } from '../../../services/review-service/review.service';
+import { ToastService } from '../../../services/toast/toast.service';
 
 @Component({
   selector: 'app-review-dashboard',
@@ -40,6 +42,7 @@ export class ReviewDashboardComponent {
   protected readonly reviews = signal<Review[]>([]);
   protected readonly selectedReviewIds = signal<Set<number>>(new Set());
   protected readonly isLoading = signal<boolean>(false);
+  protected readonly isBulkProcessing = signal<boolean>(false);
 
   protected readonly selectedCount = computed(
     () => this.selectedReviewIds().size,
@@ -73,7 +76,7 @@ export class ReviewDashboardComponent {
 
   protected approveReview(reviewId: number): void {
     this.toastService.showConfirm(
-      'Weet je zeker dat je deze review wilt behouden?',
+      'Weet je zeker dat je deze review wilt goedkeuren?',
       () => {
         this.reviewService.keepReview(reviewId).subscribe({
           next: () => {
@@ -118,30 +121,42 @@ export class ReviewDashboardComponent {
   protected approveSelectedReviews(): void {
     const reviewIds = Array.from(this.selectedReviewIds());
 
-    if (reviewIds.length === 0) {
+    if (reviewIds.length === 0 || this.isBulkProcessing()) {
       return;
     }
 
-    this.processBulkAction(
-      reviewIds,
-      (reviewId) => this.reviewService.keepReview(reviewId),
-      'review goedgekeurd',
-      'reviews goedgekeurd',
+    this.toastService.showConfirm(
+      `Weet je zeker dat je ${reviewIds.length} review${reviewIds.length > 1 ? 's' : ''} wilt goedkeuren?`,
+      () => {
+        this.processBulkAction(
+          reviewIds,
+          (reviewId: number) => this.reviewService.keepReview(reviewId),
+          'review goedgekeurd.',
+          'reviews goedgekeurd.',
+        );
+      },
+      () => {},
     );
   }
 
   protected deleteSelectedReviews(): void {
     const reviewIds = Array.from(this.selectedReviewIds());
 
-    if (reviewIds.length === 0) {
+    if (reviewIds.length === 0 || this.isBulkProcessing()) {
       return;
     }
 
-    this.processBulkAction(
-      reviewIds,
-      (reviewId) => this.reviewService.deleteReview(reviewId),
-      'review verwijderd',
-      'reviews verwijderd',
+    this.toastService.showConfirm(
+      `Weet je zeker dat je ${reviewIds.length} review${reviewIds.length > 1 ? 's' : ''} wilt verwijderen?`,
+      () => {
+        this.processBulkAction(
+          reviewIds,
+          (reviewId: number) => this.reviewService.deleteReview(reviewId),
+          'review verwijderd.',
+          'reviews verwijderd.',
+        );
+      },
+      () => {},
     );
   }
 
@@ -176,75 +191,84 @@ export class ReviewDashboardComponent {
 
   private processBulkAction(
     reviewIds: number[],
-    action: (reviewId: number) => { subscribe: Function },
+    action: (reviewId: number) => Observable<unknown>,
     singularSuccessMessage: string,
     pluralSuccessMessage: string,
   ): void {
-    let processedCount = 0;
-    let successCount = 0;
-    const totalCount = reviewIds.length;
+    this.isBulkProcessing.set(true);
 
-    reviewIds.forEach((reviewId) => {
-      action(reviewId).subscribe({
-        next: () => {
-          this.removeReviewFromDashboard(reviewId);
-          successCount++;
-          processedCount++;
-          this.handleBulkActionCompletion(
-            processedCount,
-            totalCount,
-            successCount,
-            singularSuccessMessage,
-            pluralSuccessMessage,
-          );
+    const requests = reviewIds.map((reviewId: number) =>
+      action(reviewId).pipe(
+        map(() => ({
+          reviewId,
+          success: true as const,
+        })),
+        catchError((error: unknown) => {
+          console.error('Fout bij bulkactie voor review', reviewId, error);
+
+          return of({
+            reviewId,
+            success: false as const,
+          });
+        }),
+      ),
+    );
+
+    forkJoin(requests)
+      .pipe(
+        finalize(() => this.isBulkProcessing.set(false)),
+      )
+      .subscribe({
+        next: (results) => {
+          const successfulReviewIds = results
+            .filter((result) => result.success)
+            .map((result) => result.reviewId);
+
+          successfulReviewIds.forEach((reviewId: number) => {
+            this.removeReviewFromDashboard(reviewId);
+          });
+
+          this.selectedReviewIds.set(new Set());
+
+          const successCount = successfulReviewIds.length;
+
+          if (successCount === 0) {
+            this.toastService.show('Geen reviews konden verwerkt worden.', 'error');
+            return;
+          }
+
+          if (successCount === 1) {
+            this.toastService.show(`1 ${singularSuccessMessage}`, 'success');
+            return;
+          }
+
+          if (successCount < reviewIds.length) {
+            this.toastService.show(
+              `${successCount} van de ${reviewIds.length} reviews verwerkt.`,
+              'success',
+            );
+            return;
+          }
+
+          this.toastService.show(`${successCount} ${pluralSuccessMessage}`, 'success');
         },
         error: (error: unknown) => {
-          console.error('Fout bij bulkactie voor review', reviewId, error);
-          processedCount++;
-          this.handleBulkActionCompletion(
-            processedCount,
-            totalCount,
-            successCount,
-            singularSuccessMessage,
-            pluralSuccessMessage,
-          );
+          console.error('Onverwachte fout bij bulkactie', error);
+          this.toastService.show('Er is iets misgelopen bij de bulkactie.', 'error');
         },
       });
-    });
-  }
-
-  private handleBulkActionCompletion(
-    processedCount: number,
-    totalCount: number,
-    successCount: number,
-    singularSuccessMessage: string,
-    pluralSuccessMessage: string,
-  ): void {
-    if (processedCount !== totalCount) {
-      return;
-    }
-
-    this.selectedReviewIds.set(new Set());
-
-    if (successCount === 0) {
-      this.toastService.show('Geen reviews konden verwerkt worden.', 'error');
-      return;
-    }
-
-    if (successCount === 1) {
-      this.toastService.show(`1 ${singularSuccessMessage}.`, 'success');
-      return;
-    }
-
-    this.toastService.show(`${successCount} ${pluralSuccessMessage}.`, 'success');
   }
 
   protected translateStatus(status: string | undefined): string {
     switch (status) {
-      case 'ACTIVE': return 'Actief';
-      case 'FLAGGED': return 'Gerapporteerd';
-      case 'KEPT': return 'Behouden';
-      default: return status ?? 'Onbekend';
+      case 'ACTIVE':
+        return 'Actief';
+      case 'FLAGGED':
+        return 'Gerapporteerd';
+      case 'KEPT':
+        return 'Behouden';
+      default:
+        return status ?? 'Onbekend';
     }
   }
 }

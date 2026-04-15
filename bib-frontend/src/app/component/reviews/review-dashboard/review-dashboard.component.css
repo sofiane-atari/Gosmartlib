@@ -24,8 +24,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 .review-dashboard {
   min-height: 100vh;
   padding: 24px;
-  /* Optioneel een hele lichte achtergrond zoals op je andere pagina's */
-  background-color: #faf7f8; 
+
 }
 
 .review-card__cover {
@@ -138,11 +137,25 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 /* Bulk Actions (Zwevend menu) */
+.review-dashboard__sticky-actions {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  width: auto;
+  max-width: calc(100vw - 32px);
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
 .bulk-actions {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--bg-surface);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 10px 14px;
@@ -288,18 +301,18 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 .star-icon {
-  stroke-width: 1.5; /* Iets dikkere rand voor stevigheid */
+  stroke-width: 1.5; 
 }
 
 .star-icon--filled {
   fill: var(--warning);
-  stroke: var(--warning); /* Kleur de rand EN de binnenkant */
+  stroke: var(--warning); 
   color: var(--warning);
 }
 
 .star-icon--empty {
   fill: transparent;
-  stroke: #d1d5db; /* Lichte grijze rand */
+  stroke: #d1d5db; 
   color: #d1d5db;
 }
 
@@ -401,7 +414,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 /* =========================================================
-   RESPONSIVE STYLES (Matcht je andere component)
+   RESPONSIVE STYLES
    ========================================================= */
 
 /* Mobile Landscape */
@@ -441,34 +454,33 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 /* Mobile Portrait */
 @media (max-width: 480px) {
-  .review-dashboard__title {
-    font-size: 20px;
-  }
+    .review-dashboard__title {
+      font-size: 20px;
+    }
 
-  .review-dashboard__subtitle {
-    font-size: 13px;
-  }
+    .review-dashboard__subtitle {
+      font-size: 13px;
+    }
 
-  .bulk-actions__button {
-    flex: 1;
-    justify-content: center;
-  }
+    .bulk-actions__button {
+      flex: 1;
+      justify-content: center;
+    }
 
-  .review-card__top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
+    .review-card__top {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
 
-  .review-card__actions {
-    flex-direction: column;
-  }
+    .review-card__actions {
+      flex-direction: column;
+    }
 
-  .review-card__action {
-    width: 100%;
-  }
-
-@media (max-width: 480px) {
+    .review-card__action {
+      width: 100%;
+    }
+    
     .review-card__meta {
         gap: 6px;
         font-size: 12px;
@@ -482,5 +494,4 @@ lucide-angular.star-filled ::ng-deep polygon {
     width: 60px;
     height: 90px;
   }
-}
 }
