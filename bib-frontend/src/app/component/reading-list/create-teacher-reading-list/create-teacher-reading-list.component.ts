@@ -42,17 +42,17 @@ export class CreateTeacherReadingListComponent {
     },
     {
       value: 'CLASS',
-      label: 'Per klas',
+      label: 'Klassikale lijst',
       description: 'Geldt voor jouw klasgroep.'
     },
     {
       value: 'YEAR',
-      label: 'Per jaar',
+      label: 'Jaarleeslijst',
       description: 'Geldt voor het schooljaar van jouw groep.'
     },
     {
       value: 'SCHOOL',
-      label: 'Per school',
+      label: 'Schoolleeslijst',
       description: 'Zichtbaar voor de volledige school.'
     }
   ];
