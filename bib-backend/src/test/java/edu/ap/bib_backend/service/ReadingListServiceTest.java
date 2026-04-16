@@ -26,7 +26,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -172,8 +171,26 @@ class ReadingListServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> readingListService.deleteReadingList(USER_ID, id));
 
-        assertEquals("Deze leeslijst kan niet verwijderd worden", exception.getMessage());
+        assertEquals("Alleen leerkrachten kunnen deze leeslijst verwijderen", exception.getMessage());
         verify(readingListRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void givenSharedListAndTeacher_whenDeleteReadingList_thenAllow() {
+        setAuthenticationAsTeacher();
+
+        Long id = 13L;
+        ReadingList list = new ReadingList();
+        list.setId(id);
+        list.setName("Klaslijst");
+        list.setTargetType(ReadingListTargetType.CLASS);
+
+        when(readingListRepository.findVisibleById(id, USER_ID, CLASS_CODE, YEAR_CODE, SCHOOL_CODE, true))
+                .thenReturn(Optional.of(list));
+
+        readingListService.deleteReadingList(USER_ID, id);
+
+        verify(readingListRepository).deleteById(id);
     }
 
     @Test

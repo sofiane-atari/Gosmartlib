@@ -98,4 +98,17 @@ describe('ReadingListOverviewComponent', () => {
     expect(component.readingLists.some(l => l.id === 2)).toBeFalse();
     expect(toastServiceSpy.show).toHaveBeenCalledWith('Leeslijst verwijderd', 'success');
   });
+
+  it('should allow teachers to delete shared lists', () => {
+    roleServiceSpy.isTeacher.and.returnValue(true);
+    component.readingLists = [
+      { id: 1, name: 'Klaslijst', targetType: 'CLASS' },
+      { id: 2, name: 'Favorieten', targetType: 'PERSONAL' }
+    ];
+
+    fixture.detectChanges();
+
+    const deleteButtons = fixture.nativeElement.querySelectorAll('.btn-delete');
+    expect(deleteButtons.length).toBe(1);
+  });
 });

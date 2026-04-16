@@ -176,7 +176,15 @@ export class ReadingListOverviewComponent implements OnInit {
   }
 
   canDeleteList(list: ReadingList): boolean {
-    return !this.isFavoritesList(list) && !this.isReadOnlyAudience(list);
+    if (this.isFavoritesList(list)) {
+      return false;
+    }
+
+    if ((list.targetType ?? 'PERSONAL') === 'SYSTEM') {
+      return false;
+    }
+
+    return (list.targetType ?? 'PERSONAL') === 'PERSONAL' || this.roleService.isTeacher();
   }
 
   deleteList(list: ReadingList) {

@@ -112,7 +112,17 @@ public class OneRosterClient {
         }
 
         // Use human-readable labels in the UI dropdown.
-        List<String> classes = extractDistinctSortedLabels(classPayload, "classes", "title", "name", "identifier", "sourcedId");
+        // For class matching we prefer canonical codes over display titles,
+        // so created CLASS targetValue aligns with student classCode claims.
+        List<String> classes = filterUmbrellaClassLabels(extractDistinctSortedLabels(
+                classPayload,
+                "classes",
+                "classCode",
+                "identifier",
+                "code",
+                "sourcedId",
+                "title",
+                "name"));
         List<String> years = extractDistinctSortedLabels(yearPayload, "academicSessions", "title", "schoolYear", "identifier", "sourcedId");
         List<String> schools = extractDistinctSortedLabels(schoolPayload, "schools", "name", "title", "identifier", "sourcedId");
 
@@ -468,5 +478,40 @@ public class OneRosterClient {
 
     public record AudiencePayload(List<String> classes, List<String> years, List<String> schools) {
     }
-}
 
+    List<String> filterUmbrellaClassLabels(List<String> labels) {
+        if (labels.size() < 2) {
+            return labels;
+        }
+
+        List<String> filtered = new ArrayList<>();
+        for (String candidate : labels) {
+            if (!isUmbrellaClassLabel(candidate, labels)) {
+                filtered.add(candidate);
+            }
+        }
+        return filtered;
+    }
+
+    private boolean isUmbrellaClassLabel(String candidate, List<String> labels) {
+        String candidateLower = candidate.toLowerCase(Locale.ROOT);
+
+        for (String other : labels) {
+            if (candidate.equals(other)) {
+                continue;
+            }
+
+            String otherLower = other.toLowerCase(Locale.ROOT);
+            if (!otherLower.startsWith(candidateLower) || other.length() <= candidate.length()) {
+                continue;
+            }
+
+            char nextChar = other.charAt(candidate.length());
+            if (Character.isDigit(nextChar) || nextChar == '-' || nextChar == '_' || nextChar == '/' || nextChar == '.') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

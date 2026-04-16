@@ -80,8 +80,12 @@ public class ReadingListService {
     public void deleteReadingList(String userId, Long id) {
         ReadingList list = getListById(userId, id);
 
-        if (isFavoritesList(list.getName()) || list.getTargetType() != ReadingListTargetType.PERSONAL) {
+        if (isFavoritesList(list.getName()) || list.getTargetType() == ReadingListTargetType.SYSTEM) {
             throw new IllegalArgumentException("Deze leeslijst kan niet verwijderd worden");
+        }
+
+        if (list.getTargetType() != ReadingListTargetType.PERSONAL && !isTeacherAuthenticated()) {
+            throw new IllegalArgumentException("Alleen leerkrachten kunnen deze leeslijst verwijderen");
         }
 
         readingListRepository.deleteById(id);

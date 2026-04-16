@@ -87,8 +87,9 @@ public class ReadingListController {
             HttpServletRequest request,
             Principal principal) {
         String schoolCode = requireSchoolCodeFromAuthentication(request);
+        String classCode = readClassCodeFromAuthentication();
         String userId = requireUserId(principal);
-        return ResponseEntity.ok(oneRosterAudienceService.getAudienceOptions(userId, schoolCode));
+        return ResponseEntity.ok(oneRosterAudienceService.getAudienceOptions(userId, schoolCode, classCode));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -154,6 +155,28 @@ public class ReadingListController {
         if (value instanceof String text && !text.isBlank()) {
             return text.trim();
         }
+        return null;
+    }
+
+    private String readClassCodeFromAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            if (authentication.getDetails() instanceof Map<?, ?> details) {
+                String classCodeFromDetails = asNonBlankString(details.get("classCode"));
+                if (classCodeFromDetails != null) {
+                    return classCodeFromDetails;
+                }
+            }
+
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof OAuth2AuthenticatedPrincipal oauthPrincipal) {
+                String classCodeFromClaims = asNonBlankString(oauthPrincipal.getAttribute("classCode"));
+                if (classCodeFromClaims != null) {
+                    return classCodeFromClaims;
+                }
+            }
+        }
+
         return null;
     }
 }

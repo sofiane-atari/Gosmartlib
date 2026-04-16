@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.dto.ReadingListDTO;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.service.ReadingListService;
+import edu.ap.bib_backend.service.oneroster.OneRosterAudienceService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ class ReadingListControllerTest {
 
     @MockitoBean
     private edu.ap.bib_backend.service.JwtService jwtService;
+
+    @MockitoBean
+    private OneRosterAudienceService oneRosterAudienceService;
 
     // GET /reading-lists
 
