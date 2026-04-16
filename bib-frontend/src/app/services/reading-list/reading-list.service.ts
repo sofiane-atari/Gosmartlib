@@ -25,6 +25,12 @@ export interface CreateReadingListDTO {
   targetValue?: string | null;
 }
 
+export interface TeacherAudienceOptions {
+  classes: string[];
+  years: string[];
+  schools: string[];
+}
+
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -41,6 +47,10 @@ export class ReadingListService {
       : nameOrDto;
 
     return this.http.post<ReadingList>(this.apiUrl, dto);
+  }
+
+  getTeacherAudienceOptions(): Observable<TeacherAudienceOptions> {
+    return this.http.get<TeacherAudienceOptions>(`${this.apiUrl}/teacher/audience-options`);
   }
 
   getLists(): Observable<ReadingList[]> {
