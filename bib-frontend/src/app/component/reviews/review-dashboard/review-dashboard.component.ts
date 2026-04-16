@@ -20,11 +20,12 @@ import { catchError, finalize, map } from 'rxjs/operators';
 import { Review } from '../../../model/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
+import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
 
 @Component({
   selector: 'app-review-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, PagingComponent],
   templateUrl: './review-dashboard.component.html',
   styleUrl: './review-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +44,10 @@ export class ReviewDashboardComponent {
   protected readonly selectedReviewIds = signal<Set<number>>(new Set());
   protected readonly isLoading = signal<boolean>(false);
   protected readonly isBulkProcessing = signal<boolean>(false);
+  protected readonly pagingMeta = signal<PagingMeta | null>(null);
+
+  private readonly currentPage = signal<number>(0);
+  private readonly pageSize = signal<number>(10);
 
   protected readonly selectedCount = computed(
     () => this.selectedReviewIds().size,
@@ -52,10 +57,20 @@ export class ReviewDashboardComponent {
     () => this.reviews().filter((review) => (review.reportCount ?? 0) >= 5).length,
   );
 
+  protected readonly totalCount = computed(
+    () => this.pagingMeta()?.totalItems ?? this.reviews().length,
+  );
+
   protected readonly starValues = [1, 2, 3, 4, 5];
 
   public ngOnInit(): void {
-    this.loadFlaggedReviews();
+    this.loadFlaggedReviews(this.currentPage());
+  }
+
+  protected onPageChange(page: number): void {
+    this.currentPage.set(page);
+    this.selectedReviewIds.set(new Set());
+    this.loadFlaggedReviews(page);
   }
 
   protected isSelected(reviewId: number): boolean {
@@ -160,12 +175,13 @@ export class ReviewDashboardComponent {
     );
   }
 
-  private loadFlaggedReviews(): void {
+  private loadFlaggedReviews(page: number): void {
     this.isLoading.set(true);
 
-    this.reviewService.getFlaggedReviews().subscribe({
-      next: (reviews) => {
-        this.reviews.set(reviews);
+    this.reviewService.getFlaggedReviews(page, this.pageSize()).subscribe({
+      next: (response) => {
+        this.reviews.set(response.data);
+        this.pagingMeta.set(response.meta);
         this.isLoading.set(false);
       },
       error: (error) => {

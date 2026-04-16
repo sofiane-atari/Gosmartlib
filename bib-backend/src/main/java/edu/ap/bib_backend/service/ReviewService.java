@@ -73,12 +73,18 @@ public class ReviewService {
                 .toList();
     }
 
-    public List<ReviewDTO> getFlaggedReviews(Authentication authentication) {
+    public Page<ReviewDTO> getFlaggedReviews(Authentication authentication, int page, int size) {
         String currentUserId = extractCurrentUserId(authentication);
 
-        return reviewRepository.findByModerationStatus(ReviewModerationStatus.FLAGGED).stream()
-                .map(review -> mapToReviewDto(review, currentUserId))
-                .toList();
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), 50),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return reviewRepository.findByModerationStatus(ReviewModerationStatus.FLAGGED, pageable)
+                .map(review -> mapToReviewDto(review, currentUserId));
+                
     }
 
     public ReviewDTO addReviewToBook(Long bookId, ReviewDTO reviewDto, Authentication authentication) {

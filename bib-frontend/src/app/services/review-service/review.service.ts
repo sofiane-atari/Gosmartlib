@@ -20,14 +20,16 @@ export class ReviewService {
     return this.http.get<Review[]>(this.apiUrl);
   }
 
-  getMyReviews(page: number, size: number): Observable<PaginatedResponse<Review>> {
+  public getMyReviews(page: number, size: number): Observable<PaginatedResponse<Review>> {
     return this.http.get<PaginatedResponse<Review>>(
       `${this.apiUrl}/me?page=${page}&size=${size}`,
     );
   }
 
-  public getFlaggedReviews() {
-    return this.http.get<Review[]>(`${this.apiUrl}/flagged`);
+  public getFlaggedReviews(page: number, size: number): Observable<PaginatedResponse<Review>> {
+    return this.http.get<PaginatedResponse<Review>>(
+      `${this.apiUrl}/flagged?page=${page}&size=${size}`,
+    );
   }
 
   public addReviewToBook(bookId: number, review: Review) {

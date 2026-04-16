@@ -4,7 +4,7 @@
       <div>
         <h1 class="review-dashboard__title">Gerapporteerde reviews</h1>
         <p class="review-dashboard__subtitle">
-          {{ reviews().length }} review(s) wachten op beoordeling
+          {{ totalCount() }} review(s) wachten op beoordeling
         </p>
       </div>
     </div>
@@ -92,7 +92,7 @@
                 <img [src]="review.bookImageUrl" alt="Cover van {{ review.bookTitle }}">
               } @else {
                 <div class="review-card__cover-fallback">
-                   <lucide-angular name="Image" size="24"></lucide-angular>
+                  <lucide-angular name="Image" size="24"></lucide-angular>
                 </div>
               }
             </div>
@@ -165,6 +165,14 @@
           </article>
         }
       </section>
+      @if (pagingMeta()) {
+        <div class="review-dashboard__paging">
+          <app-paging
+            [meta]="pagingMeta()!"
+            (pageChange)="onPageChange($event)"
+          ></app-paging>
+        </div>
+      }
     }
   </div>
 </div>

@@ -19,7 +19,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     void deleteByBookId(Long bookId);
 
-    List<Review> findByModerationStatus(ReviewModerationStatus moderationStatus);
+    Page<Review> findByModerationStatus(ReviewModerationStatus moderationStatus, Pageable pageable);
 
     @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId")
     Double getAverageRatingForBook(@Param("bookId") Long bookId);

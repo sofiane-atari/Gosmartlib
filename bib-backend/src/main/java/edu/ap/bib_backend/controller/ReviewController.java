@@ -3,6 +3,7 @@ package edu.ap.bib_backend.controller;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.jaxb.SpringDataJaxb.PageDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -61,9 +62,18 @@ public class ReviewController {
 
     @GetMapping("/flagged")
     //@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
-    public ResponseEntity<List<ReviewDTO>> getFlaggedReviews(Authentication authentication) {
-        List<ReviewDTO> flaggedReviews = reviewService.getFlaggedReviews(authentication);
-        return ResponseEntity.ok(flaggedReviews);
+    public ResponseEntity<PageDTO<ReviewDTO>> getFlaggedReviews(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<ReviewDTO> flaggedReviewPage = reviewService.getFlaggedReviews(authentication, page, size);
+        return ResponseEntity.ok(
+            new PageDTO<>(
+                flaggedReviewPage.getContent(), 
+                PageMapper.toPaginatedMeta(flaggedReviewPage)
+            )
+        );
     }
 
     @PostMapping("/book/{bookId}")
