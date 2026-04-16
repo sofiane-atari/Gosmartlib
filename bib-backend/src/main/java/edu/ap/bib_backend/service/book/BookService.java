@@ -237,26 +237,26 @@ public class BookService {
                         "Reading level bestaat niet: " + readingLevelDto.getId()));
     }
 
-    // @Transactional
-    // public List<BookCandidateDTO> searchCandidates(String title, String author, Integer releaseYear) {
-    //     String cleanTitle = normalize(title);
-    //     String cleanAuthor = normalize(author);
+    @Transactional
+    public List<BookCandidateDTO> searchBooksInDb(String title, String author, Integer releaseYear) {
+        String cleanTitle = normalize(title);
+        String cleanAuthor = normalize(author);
 
-    //     boolean noUsefulFilters = cleanTitle == null &&
-    //             cleanAuthor == null &&
-    //             releaseYear == null;
+        boolean noUsefulFilters = cleanTitle == null &&
+                cleanAuthor == null &&
+                releaseYear == null;
 
-    //     if (noUsefulFilters) {
-    //         return List.of();
-    //     }
+        if (noUsefulFilters) {
+            return List.of();
+        }
 
-    //     Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear);
+        Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear);
 
-    //     return bookRepository.findAll(spec).stream()
-    //             .limit(10)
-    //             .map(bookCandidateMapper::toDBCandidateDTO)
-    //             .collect(Collectors.toList());
-    // }
+        return bookRepository.findAll(spec).stream()
+                .limit(10)
+                .map(bookCandidateMapper::toDBCandidateDTO)
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public BookDTO getBookByISBN(String rawIsbn) {

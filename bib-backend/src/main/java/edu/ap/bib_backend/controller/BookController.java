@@ -133,13 +133,13 @@ public class BookController {
         return ResponseEntity.ok(candidates);
     }
 
-    // @GetMapping("/search")
-    // public ResponseEntity<List<BookCandidateDTO>> searchCandidates(
-    //         @RequestParam String title,
-    //         @RequestParam String author,
-    //         @RequestParam Integer releaseYear) {
-    //     return ResponseEntity.ok(bookService.searchCandidates(title, author, releaseYear));
-    // }
+    @GetMapping("/search")
+    public ResponseEntity<List<BookCandidateDTO>> searchBooksInDb(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) Integer releaseYear) {
+        return ResponseEntity.ok(bookService.searchBooksInDb(title, author, releaseYear));
+    }
 
     @PostMapping("/select")
     public ResponseEntity<BookDTO> selectBook(@RequestParam String isbn13) {
