@@ -46,6 +46,7 @@ public class BookService {
     private final ReadingLevelRepository readingLevelRepository;
     private final BookMapper bookMapper;
     private final BookCandidateMapper bookCandidateMapper;
+    private final OpenLibraryClient openLibraryClient;
 
     public BookService(
             BookRepository bookRepository,
@@ -55,7 +56,8 @@ public class BookService {
             BookLoanRepository bookLoanRepository,
             ReadingLevelRepository readingLevelRepository,
             BookMapper bookMapper,
-            BookCandidateMapper bookCandidateMapper) {
+            BookCandidateMapper bookCandidateMapper,
+            OpenLibraryClient openLibraryClient) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.genreRepository = genreRepository;
@@ -64,6 +66,7 @@ public class BookService {
         this.readingLevelRepository = readingLevelRepository;
         this.bookMapper = bookMapper;
         this.bookCandidateMapper = bookCandidateMapper;
+        this.openLibraryClient = openLibraryClient;
     }
 
     @Transactional
@@ -184,7 +187,7 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
     }
 
-    private java.util.Optional<Book> findExistingByIsbn(String isbn) {
+    public java.util.Optional<Book> findExistingByIsbn(String isbn) {
         if (isbn == null || isbn.isBlank()) {
             return java.util.Optional.empty();
         }
@@ -234,25 +237,38 @@ public class BookService {
                         "Reading level bestaat niet: " + readingLevelDto.getId()));
     }
 
+    // @Transactional
+    // public List<BookCandidateDTO> searchCandidates(String title, String author, Integer releaseYear) {
+    //     String cleanTitle = normalize(title);
+    //     String cleanAuthor = normalize(author);
+
+    //     boolean noUsefulFilters = cleanTitle == null &&
+    //             cleanAuthor == null &&
+    //             releaseYear == null;
+
+    //     if (noUsefulFilters) {
+    //         return List.of();
+    //     }
+
+    //     Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear);
+
+    //     return bookRepository.findAll(spec).stream()
+    //             .limit(10)
+    //             .map(bookCandidateMapper::toDBCandidateDTO)
+    //             .collect(Collectors.toList());
+    // }
+
     @Transactional
-    public List<BookCandidateDTO> searchCandidates(String title, String author, Integer releaseYear) {
-        String cleanTitle = normalize(title);
-        String cleanAuthor = normalize(author);
+    public BookDTO getBookByISBN(String rawIsbn) {
+        String normalizedIsbn = IsbnUtils.normalizeIsbn(rawIsbn);
 
-        boolean noUsefulFilters = cleanTitle == null &&
-                cleanAuthor == null &&
-                releaseYear == null;
-
-        if (noUsefulFilters) {
-            return List.of();
+        if (normalizedIsbn == null || normalizedIsbn.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ongeldig ISBN");
         }
 
-        Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear);
-
-        return bookRepository.findAll(spec).stream()
-                .limit(10)
-                .map(bookCandidateMapper::toDBCandidateDTO)
-                .collect(Collectors.toList());
+        return findExistingByIsbn(normalizedIsbn)
+                .map(bookMapper::toDTO)
+                .orElseGet(() -> openLibraryClient.fetchBookByISBN(normalizedIsbn));
     }
 
     private String normalize(String value) {

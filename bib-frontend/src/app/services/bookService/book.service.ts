@@ -96,22 +96,12 @@ export class BookService {
     return new EventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`);
   }
 
-  searchBookCandidates(title: string, author: string, releaseYear: number): Observable<BookCandidate[]> {
-    return this.http.get<BookCandidate[]>(`${this.apiUrl}/search`, {
-      params: {
-        title,
-        author,
-        releaseYear
-      }
-    });
-  }
-
-  searchCandidates(title?: string, author?: string, releaseYear?: number) {
+  searchBookCandidates(title?: string, author?: string, releaseYear?: number): Observable<BookCandidate[]> {
     let params = new HttpParams();
 
-    if (title) params = params.set('title', title);
-    if (author) params = params.set('author', author);
-    if (releaseYear != null) params = params.set('releaseYear', releaseYear);
+    if (title?.trim()) {params = params.set('title', title.trim());}
+    if (author?.trim()) {params = params.set('author', author.trim());}
+    if (releaseYear != null) {params = params.set('releaseYear', releaseYear);}
 
     return this.http.get<BookCandidate[]>(`${this.apiUrl}/search-candidates`, { params });
   }

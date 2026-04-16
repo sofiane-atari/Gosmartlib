@@ -128,6 +128,7 @@
             [(ngModel)]="book.readingLevel"
             name="readingLevel"
             #readingLevel="ngModel"
+            [compareWith]="compareReadingLevels"
             required
           >
             <option [ngValue]="null">Kies een niveau</option>

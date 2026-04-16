@@ -138,7 +138,7 @@ private setupCandidateSearch(): void {
 
       this.isSearching = true;
 
-      return this.bs.searchCandidates(
+      return this.bs.searchBookCandidates(
         filters.title || undefined,
         filters.author || undefined,
         filters.releaseYear ?? undefined

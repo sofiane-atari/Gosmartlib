@@ -94,7 +94,7 @@ public class BookController {
 
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDTO> getBookByISBN(@PathVariable String isbn) {
-        return ResponseEntity.ok(openLibraryClient.fetchBookByISBN(isbn));
+        return ResponseEntity.ok(bookService.getBookByISBN(isbn));
     }
 
     @GetMapping("/isbn/{isbn}/preview")
@@ -124,7 +124,7 @@ public class BookController {
         return ResponseEntity.ok(bookService.getNewestBooks(limit));
     }
 
-    @GetMapping("/search")
+    @GetMapping("/search-candidates")
     public ResponseEntity<List<BookCandidateDTO>> searchBookCandidates(
             @RequestParam String title,
             @RequestParam String author,
@@ -133,17 +133,17 @@ public class BookController {
         return ResponseEntity.ok(candidates);
     }
 
-    @GetMapping("/search-candidates")
-    public ResponseEntity<List<BookCandidateDTO>> searchCandidates(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String author,
-            @RequestParam(required = false) Integer releaseYear) {
-        return ResponseEntity.ok(bookService.searchCandidates(title, author, releaseYear));
-    }
+    // @GetMapping("/search")
+    // public ResponseEntity<List<BookCandidateDTO>> searchCandidates(
+    //         @RequestParam String title,
+    //         @RequestParam String author,
+    //         @RequestParam Integer releaseYear) {
+    //     return ResponseEntity.ok(bookService.searchCandidates(title, author, releaseYear));
+    // }
 
     @PostMapping("/select")
     public ResponseEntity<BookDTO> selectBook(@RequestParam String isbn13) {
-        BookDTO book = openLibraryClient.fetchBookByISBN(isbn13);
+        BookDTO book = bookService.getBookByISBN(isbn13);
         return ResponseEntity.ok(book);
     }
 
