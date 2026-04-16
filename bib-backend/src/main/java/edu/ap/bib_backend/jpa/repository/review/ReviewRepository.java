@@ -21,6 +21,13 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Page<Review> findByModerationStatus(ReviewModerationStatus moderationStatus, Pageable pageable);
 
+    long countByModerationStatus(ReviewModerationStatus moderationStatus);
+
+    long countByModerationStatusAndReportCountGreaterThanEqual(
+            ReviewModerationStatus moderationStatus,
+            int reportCount
+    );
+
     @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId")
     Double getAverageRatingForBook(@Param("bookId") Long bookId);
 }

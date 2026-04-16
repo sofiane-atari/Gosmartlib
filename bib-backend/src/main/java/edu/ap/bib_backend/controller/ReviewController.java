@@ -19,8 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.ReviewDTO;
+import edu.ap.bib_backend.dto.ReviewDashboardStatsDTO;
 import edu.ap.bib_backend.mapper.PageMapper;
-import edu.ap.bib_backend.service.ReviewService;
+import edu.ap.bib_backend.service.review.ReviewService;
 
 @RestController
 @RequestMapping("/reviews")
@@ -105,6 +106,12 @@ public class ReviewController {
     public ResponseEntity<ReviewDTO> keepReview( @PathVariable Long reviewId, Authentication authentication) {
         ReviewDTO keptReview = reviewService.keepReview(reviewId, authentication);
         return ResponseEntity.ok(keptReview);
+    }
+
+    @GetMapping("/flagged/stats")
+    public ResponseEntity<ReviewDashboardStatsDTO> getFlaggedReviewStats() {
+        ReviewDashboardStatsDTO stats = reviewService.getFlaggedReviewStats();
+        return ResponseEntity.ok(stats);
     }
 
 }

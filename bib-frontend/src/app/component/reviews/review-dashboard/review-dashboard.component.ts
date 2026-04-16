@@ -18,7 +18,7 @@ import {
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
 
-import { Review } from '../../../model/review.model';
+import { Review, ReviewDashboardStats } from '../../../model/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
@@ -55,17 +55,18 @@ export class ReviewDashboardComponent {
 
   private readonly currentPage = signal<number>(0);
   private readonly pageSize = signal<number>(10);
+  protected readonly stats = signal<ReviewDashboardStats | null>(null);
 
   protected readonly selectedCount = computed(
     () => this.selectedReviewIds().size,
   );
 
   protected readonly criticalReviewsCount = computed(
-    () => this.reviews().filter((review) => (review.reportCount ?? 0) >= 5).length,
+    () => this.stats()?.criticalFlaggedReviews ?? 0,
   );
 
   protected readonly totalCount = computed(
-    () => this.pagingMeta()?.totalItems ?? this.reviews().length,
+    () => this.stats()?.totalFlaggedReviews ?? this.pagingMeta()?.totalItems ?? 0,
   );
 
   protected readonly starValues = [1, 2, 3, 4, 5];
@@ -73,6 +74,7 @@ export class ReviewDashboardComponent {
 
   public ngOnInit(): void {
     this.loadFlaggedReviews(this.currentPage());
+    this.loadFlaggedReviewStats();
   }
 
   protected onPageChange(page: number): void {
@@ -188,6 +190,17 @@ export class ReviewDashboardComponent {
     this.selectedReviewIds.set(new Set());
   }
 
+  private loadFlaggedReviewStats(): void {
+  this.reviewService.getFlaggedReviewStats().subscribe({
+    next: (stats) => {
+      this.stats.set(stats);
+    },
+    error: (error) => {
+      console.error('Fout bij ophalen van flagged review stats', error);
+    },
+  });
+}
+
   private loadFlaggedReviews(page: number): void {
     this.isLoading.set(true);
 
@@ -279,10 +292,36 @@ export class ReviewDashboardComponent {
       return;
     }
 
+    const currentReviews = this.reviews();
     const processedIdsSet = new Set(processedReviewIds);
 
-    this.reviews.update((currentReviews) =>
-      currentReviews.filter((review) => !processedIdsSet.has(review.id ?? -1)),
+    const processedReviews = currentReviews.filter((review) =>
+      processedIdsSet.has(review.id ?? -1),
+    );
+
+    const removedCriticalCount = processedReviews.filter(
+      (review) => (review.reportCount ?? 0) >= 5,
+    ).length;
+
+    this.stats.update((currentStats) => {
+      if (!currentStats) {
+        return currentStats;
+      }
+
+      return {
+        totalFlaggedReviews: Math.max(
+          currentStats.totalFlaggedReviews - processedReviewIds.length,
+          0,
+        ),
+        criticalFlaggedReviews: Math.max(
+          currentStats.criticalFlaggedReviews - removedCriticalCount,
+          0,
+        ),
+      };
+    });
+
+    this.reviews.update((reviews) =>
+      reviews.filter((review) => !processedIdsSet.has(review.id ?? -1)),
     );
 
     const nextSelectedReviewIds = new Set(this.selectedReviewIds());
