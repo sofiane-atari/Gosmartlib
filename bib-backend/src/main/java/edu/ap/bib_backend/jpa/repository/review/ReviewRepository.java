@@ -28,6 +28,19 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             int reportCount
     );
 
-    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId")
+
+    @Query("""
+        SELECT r
+        FROM Review r
+        WHERE r.book.id = :bookId
+        AND r.moderationStatus IN :statuses
+        ORDER BY r.createdAt DESC
+    """)
+    List<Review> findVisibleReviewsByBookId(
+            @Param("bookId") Long bookId,
+            @Param("statuses") List<ReviewModerationStatus> statuses
+    );
+
+    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId AND r.moderationStatus IN ('ACTIVE','KEPT')")
     Double getAverageRatingForBook(@Param("bookId") Long bookId);
 }

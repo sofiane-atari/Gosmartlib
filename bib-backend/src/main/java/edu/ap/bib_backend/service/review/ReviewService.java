@@ -56,7 +56,12 @@ public class ReviewService {
     public List<ReviewDTO> getReviewsForBook(Long bookId, Authentication authentication) {
         String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
-        return reviewRepository.findByBookId(bookId).stream()
+        List<ReviewModerationStatus> visibleStatuses = List.of(
+                ReviewModerationStatus.ACTIVE,
+                ReviewModerationStatus.KEPT
+        );
+
+        return reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses).stream()
                 .map(review -> reviewMapper.toDto(review, currentUserId))
                 .toList();
     }
