@@ -51,11 +51,6 @@ export class AddBookISBNComponent extends GenreSelectionBase {
   }
 
   save() {
-    if (!this.isGenreSelectionValid()) {
-      this.ts.show('Kies 1 hoofdgenre en selecteer daarvan 1 tot 3 subgenres.', 'error');
-      return;
-    }
-
     if (this.isExistingBookLoaded && this.selectedBookId) {
       this.bs.addCopy(this.selectedBookId).subscribe({
         next: () => {
@@ -66,6 +61,11 @@ export class AddBookISBNComponent extends GenreSelectionBase {
           this.ts.show('Kon geen exemplaar toevoegen.', 'error');
         }
       });
+      return;
+    }
+
+    if (!this.isGenreSelectionValid()) {
+      this.ts.show('Kies 1 hoofdgenre en selecteer daarvan 1 tot 3 subgenres.', 'error');
       return;
     }
 
