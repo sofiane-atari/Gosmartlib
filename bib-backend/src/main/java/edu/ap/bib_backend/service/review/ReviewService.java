@@ -1,6 +1,7 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.review;
 
 import edu.ap.bib_backend.dto.ReviewDTO;
+import edu.ap.bib_backend.dto.ReviewDashboardStatsDTO;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
@@ -12,17 +13,16 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewReportRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+import edu.ap.bib_backend.mapper.ReviewMapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
-
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
@@ -31,29 +31,43 @@ public class ReviewService {
     private final ReviewReportRepository reviewReportRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
-    private final ProfanityFilterService profanityFilterService;
+    private final ReviewMapper reviewMapper;
+    private final ReviewValidationService reviewValidationService;
+    private final CurrentUserService currentUserService;
 
-    public ReviewService(   ReviewRepository reviewRepository, ReviewReportRepository reviewReportRepository, 
-                            BookRepository bookRepository, UserRepository userRepository, ProfanityFilterService profanityFilterService
+    public ReviewService(
+            ReviewRepository reviewRepository,
+            ReviewReportRepository reviewReportRepository,
+            BookRepository bookRepository,
+            UserRepository userRepository,
+            ReviewMapper reviewMapper,
+            ReviewValidationService reviewValidationService,
+            CurrentUserService currentUserService
     ) {
         this.reviewRepository = reviewRepository;
         this.reviewReportRepository = reviewReportRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
-        this.profanityFilterService = profanityFilterService;
+        this.reviewMapper = reviewMapper;
+        this.reviewValidationService = reviewValidationService;
+        this.currentUserService = currentUserService;
     }
 
     public List<ReviewDTO> getReviewsForBook(Long bookId, Authentication authentication) {
-        List<Review> reviews = reviewRepository.findByBookId(bookId);
-        String currentUserId = extractCurrentUserId(authentication);
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
-        return reviews.stream()
-                .map(review -> mapToReviewDto(review, currentUserId))
+        List<ReviewModerationStatus> visibleStatuses = List.of(
+                ReviewModerationStatus.ACTIVE,
+                ReviewModerationStatus.KEPT
+        );
+
+        return reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses).stream()
+                .map(review -> reviewMapper.toDto(review, currentUserId))
                 .toList();
     }
 
     public Page<ReviewDTO> getCurrentUserReviews(Authentication authentication, int page, int size) {
-        String currentUserId = extractCurrentUserId(authentication);
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
         Pageable pageable = PageRequest.of(
                 Math.max(page, 0),
@@ -62,32 +76,37 @@ public class ReviewService {
         );
 
         return reviewRepository.findByUserId(currentUserId, pageable)
-                .map(review -> mapToReviewDto(review, currentUserId));
+                .map(review -> reviewMapper.toDto(review, currentUserId));
     }
 
     public List<ReviewDTO> getAllReviews(Authentication authentication) {
-        String currentUserId = extractCurrentUserId(authentication);
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
         return reviewRepository.findAll().stream()
-                .map(review -> mapToReviewDto(review, currentUserId))
+                .map(review -> reviewMapper.toDto(review, currentUserId))
                 .toList();
     }
 
-    public List<ReviewDTO> getFlaggedReviews(Authentication authentication) {
-        String currentUserId = extractCurrentUserId(authentication);
+    public Page<ReviewDTO> getFlaggedReviews(Authentication authentication, int page, int size) {
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
-        return reviewRepository.findByModerationStatus(ReviewModerationStatus.FLAGGED).stream()
-                .map(review -> mapToReviewDto(review, currentUserId))
-                .toList();
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.min(Math.max(size, 1), 50),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return reviewRepository.findByModerationStatus(ReviewModerationStatus.FLAGGED, pageable)
+                .map(review -> reviewMapper.toDto(review, currentUserId));
     }
 
     public ReviewDTO addReviewToBook(Long bookId, ReviewDTO reviewDto, Authentication authentication) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("bookId", "Boek niet gevonden met id: " + bookId));
 
-        validateReview(reviewDto);
+        reviewValidationService.validateReview(reviewDto);
 
-        String currentUserId = extractCurrentUserId(authentication);
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden met id: " + currentUserId));
@@ -98,9 +117,9 @@ public class ReviewService {
                 book,
                 currentUser
         );
-        Review savedReview = reviewRepository.save(review);
 
-        return mapToReviewDto(savedReview, currentUserId);
+        Review savedReview = reviewRepository.save(review);
+        return reviewMapper.toDto(savedReview, currentUserId);
     }
 
     public Double getAverageRating(Long bookId) {
@@ -108,7 +127,7 @@ public class ReviewService {
     }
 
     public void deleteReview(Long reviewId, Authentication authentication) {
-        String currentUserId = extractCurrentUserId(authentication);
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("reviewId", "Review niet gevonden met id: " + reviewId));
@@ -117,7 +136,7 @@ public class ReviewService {
                 && review.getUser().getId() != null
                 && review.getUser().getId().equals(currentUserId);
 
-        if (!isModerator(authentication) && !isOwner) {
+        if (!currentUserService.isModerator(authentication) && !isOwner) {
             throw new IllegalStateException("Je mag alleen je eigen review verwijderen.");
         }
 
@@ -125,7 +144,7 @@ public class ReviewService {
     }
 
     public ReviewDTO reportReview(Long reviewId, Authentication authentication) {
-        String currentUserId = extractCurrentUserId(authentication);
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("reviewId", "Review niet gevonden met id: " + reviewId));
@@ -149,12 +168,11 @@ public class ReviewService {
         review.updateReportStatus(uniqueReportCount);
 
         Review updatedReview = reviewRepository.save(review);
-
-        return mapToReviewDto(updatedReview, currentUserId);
+        return reviewMapper.toDto(updatedReview, currentUserId);
     }
 
     public ReviewDTO keepReview(Long reviewId, Authentication authentication) {
-        String currentUserId = extractCurrentUserId(authentication);
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("reviewId", "Review niet gevonden met id: " + reviewId));
@@ -162,66 +180,23 @@ public class ReviewService {
         review.markAsKept();
         Review updatedReview = reviewRepository.save(review);
 
-        return mapToReviewDto(updatedReview, currentUserId);
+        return reviewMapper.toDto(updatedReview, currentUserId);
     }
 
-    private void validateReview(ReviewDTO reviewDto) {
-        if (reviewDto == null) {
-            throw new IllegalArgumentException("Review mag niet leeg zijn.");
-        }
+    public ReviewDashboardStatsDTO getFlaggedReviewStats() {
+        long totalFlaggedReviews = reviewRepository.countByModerationStatus(
+                ReviewModerationStatus.FLAGGED
+        );
 
-        if (reviewDto.getComment() == null || reviewDto.getComment().trim().isEmpty()) {
-            throw new IllegalArgumentException("Reviewcommentaar is verplicht.");
-        }
+        long criticalFlaggedReviews =
+                reviewRepository.countByModerationStatusAndReportCountGreaterThanEqual(
+                        ReviewModerationStatus.FLAGGED,
+                        5
+                );
 
-        if (reviewDto.getRating() < 1 || reviewDto.getRating() > 5) {
-            throw new IllegalArgumentException("Rating moet tussen 1 en 5 liggen.");
-        }
-
-        if (profanityFilterService.containsProfanity(reviewDto.getComment())) {
-            throw new IllegalArgumentException("Je review bevat ongepast taalgebruik en kan niet opgeslagen worden.");
-        }
-    }
-
-    private ReviewDTO mapToReviewDto(Review review, String currentUserId) {
-        boolean reportedByCurrentUser = false;
-
-        if (currentUserId != null) {
-            reportedByCurrentUser = reviewReportRepository.existsByReviewIdAndReportedById(
-                    review.getId(),
-                    currentUserId
-            );
-        }
-
-        ReviewDTO reviewDto = new ReviewDTO();
-        reviewDto.setId(review.getId());
-        reviewDto.setComment(review.getComment());
-        reviewDto.setRating(review.getRating());
-        reviewDto.setReportCount(review.getReportCount());
-        reviewDto.setBookId(review.getBook().getId());
-        reviewDto.setBookTitle(review.getBook().getTitle());
-        reviewDto.setBookAuthor(review.getBook().getAuthor());
-        reviewDto.setBookImageUrl(review.getBook().getImageUrl());
-        reviewDto.setModerationStatus(review.getModerationStatus());
-        reviewDto.setReportedByCurrentUser(reportedByCurrentUser);
-        reviewDto.setCreatedAt(review.getCreatedAt());
-
-        return reviewDto;
-    }
-
-    private String extractCurrentUserId(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new IllegalStateException("Geen geauthenticeerde gebruiker gevonden.");
-        }
-
-        return authentication.getName();
-    }
-
-    private boolean isModerator(Authentication authentication) {
-    return authentication.getAuthorities().stream()
-            .anyMatch(authority ->
-                    authority.getAuthority().equals("ROLE_LIBRARIAN")
-                            || authority.getAuthority().equals("ROLE_ADMIN")
-            );
+        return new ReviewDashboardStatsDTO(
+                totalFlaggedReviews,
+                criticalFlaggedReviews
+        );
     }
 }

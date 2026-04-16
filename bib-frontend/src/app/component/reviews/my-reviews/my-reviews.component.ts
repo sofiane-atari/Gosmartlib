@@ -81,14 +81,34 @@ export class MyReviewsComponent implements OnInit {
           next: () => {
             this.expandedReviewIds.delete(reviewId);
 
-            const isLastItemOnPage = this.reviews.length === 1;
-            const hasPreviousPage = this.pagingMeta.currentPage > 0;
+            this.reviews = this.reviews.filter(
+              (review: Review) => review.id !== reviewId,
+            );
 
-            const nextPage = isLastItemOnPage && hasPreviousPage
-              ? this.pagingMeta.currentPage - 1
-              : this.pagingMeta.currentPage;
+            const updatedTotalItems = Math.max(this.pagingMeta.totalItems - 1, 0);
+            const updatedTotalPages = updatedTotalItems === 0
+              ? 0
+              : Math.ceil(updatedTotalItems / this.pagingMeta.pageSize);
 
-            this.loadMyReviews(nextPage);
+            const nextPageToLoad = Math.min(
+              this.pagingMeta.currentPage,
+              Math.max(updatedTotalPages - 1, 0),
+            );
+
+            this.pagingMeta = {
+              ...this.pagingMeta,
+              totalItems: updatedTotalItems,
+              totalPages: updatedTotalPages,
+              currentPage: nextPageToLoad,
+            };
+
+            const shouldReload =
+              this.reviews.length === 0 && updatedTotalItems > 0;
+
+            if (shouldReload) {
+              this.loadMyReviews(nextPageToLoad);
+            }
+
             this.toastService.show('Review verwijderd.', 'success');
           },
           error: (error) => {

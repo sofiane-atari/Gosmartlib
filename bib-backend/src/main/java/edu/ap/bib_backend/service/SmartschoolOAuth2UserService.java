@@ -65,16 +65,10 @@ public class SmartschoolOAuth2UserService
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
-        headers.setBearerAuth(userRequest.getAccessToken().getTokenValue());
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         ResponseEntity<?> userInfoResponse = restTemplate.exchange(
-                userInfoEndpoint,
-                HttpMethod.GET,
-                entity,
-                Map.class);
-        ResponseEntity<Map> response = restTemplate.exchange(
                 userInfoEndpoint,
                 HttpMethod.GET,
                 entity,

@@ -19,8 +19,28 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     void deleteByBookId(Long bookId);
 
-    List<Review> findByModerationStatus(ReviewModerationStatus moderationStatus);
+    Page<Review> findByModerationStatus(ReviewModerationStatus moderationStatus, Pageable pageable);
 
-    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId")
+    long countByModerationStatus(ReviewModerationStatus moderationStatus);
+
+    long countByModerationStatusAndReportCountGreaterThanEqual(
+            ReviewModerationStatus moderationStatus,
+            int reportCount
+    );
+
+
+    @Query("""
+        SELECT r
+        FROM Review r
+        WHERE r.book.id = :bookId
+        AND r.moderationStatus IN :statuses
+        ORDER BY r.createdAt DESC
+    """)
+    List<Review> findVisibleReviewsByBookId(
+            @Param("bookId") Long bookId,
+            @Param("statuses") List<ReviewModerationStatus> statuses
+    );
+
+    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId AND r.moderationStatus IN ('ACTIVE','KEPT')")
     Double getAverageRatingForBook(@Param("bookId") Long bookId);
 }
