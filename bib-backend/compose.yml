@@ -1,4 +1,4 @@
-ng serveservices:
+services:
   backend:
     build: ./
     container_name: spring-boot-app
@@ -23,6 +23,8 @@ ng serveservices:
       FRONTEND_REDIRECT_URL: "${FRONTEND_REDIRECT_URL}"
       REDIS_HOST: "${REDIS_HOST}"
       REDIS_PORT: "${REDIS_PORT}"
+      ONE_ROSTER_CLIENT_ID: "${ONE_ROSTER_CLIENT_ID}"
+      ONE_ROSTER_CLIENT_SECRET: "${ONE_ROSTER_CLIENT_SECRET}"
       
 
     labels:
