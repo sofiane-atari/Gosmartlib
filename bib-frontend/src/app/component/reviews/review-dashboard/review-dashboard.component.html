@@ -1,6 +1,6 @@
 <div class="review-dashboard">
   <div class="review-dashboard__container">
-    <div class="review-dashboard__header">
+    <div class="review-dashboard__header" @fadeInUp>
       <div>
         <h1 class="review-dashboard__title">Gerapporteerde reviews</h1>
         <p class="review-dashboard__subtitle">
@@ -9,43 +9,61 @@
       </div>
     </div>
 
+    <div class="review-dashboard__sticky-actions">
       @if (selectedCount() > 0) {
-        <div class="review-dashboard__sticky-actions">
-          <div class="bulk-actions">
-            <span class="bulk-actions__badge">
-              {{ selectedCount() }} geselecteerd
-            </span>
+        <div class="bulk-actions">
+          <span class="bulk-actions__badge">
+            {{ selectedCount() }} geselecteerd
+          </span>
 
-            <button
-              type="button"
-              class="bulk-actions__button bulk-actions__button--approve"
-              (click)="approveSelectedReviews()"
-            >
-              <lucide-angular [img]="Check" size="16"></lucide-angular>
+          <button
+            type="button"
+            class="bulk-actions__button bulk-actions__button--deselect"
+            [disabled]="isBulkProcessing()"
+            (click)="deselectAll()"
+          >
+            <lucide-angular [img]="eraser" size="16"></lucide-angular>
+            Alles deselecteren
+          </button>
+
+          <button
+            type="button"
+            class="bulk-actions__button bulk-actions__button--approve"
+            [disabled]="isBulkProcessing()"
+            (click)="approveSelectedReviews()"
+          >
+            <lucide-angular [img]="Check" size="16"></lucide-angular>
+            @if (isBulkProcessing()) {
+              Verwerken...
+            } @else {
               Goedkeuren
-            </button>
+            }
+          </button>
 
-            <button
-              type="button"
-              class="bulk-actions__button bulk-actions__button--delete"
-              (click)="deleteSelectedReviews()"
-            >
-              <lucide-angular [img]="Trash2" size="16"></lucide-angular>
+          <button
+            type="button"
+            class="bulk-actions__button bulk-actions__button--delete"
+            [disabled]="isBulkProcessing()"
+            (click)="deleteSelectedReviews()"
+          >
+            <lucide-angular [img]="Trash2" size="16"></lucide-angular>
+            @if (isBulkProcessing()) {
+              Verwerken...
+            } @else {
               Verwijderen
-            </button>
-          </div>
+            }
+          </button>
         </div>
       }
-    
+    </div>
 
     <div class="review-dashboard__stats">
       <article class="stat-card">
         <div class="stat-card__icon stat-card__icon--main">
           <lucide-angular [img]="Flag" size="26"></lucide-angular>
         </div>
-
         <div>
-          <div class="stat-card__value">{{ reviews().length }}</div>
+          <div class="stat-card__value">{{ totalCount() }}</div>
           <div class="stat-card__label">Totaal gerapporteerd</div>
         </div>
       </article>
@@ -54,7 +72,6 @@
         <div class="stat-card__icon stat-card__icon--warning">
           <lucide-angular [img]="CircleAlert" size="26"></lucide-angular>
         </div>
-
         <div>
           <div class="stat-card__value">{{ criticalReviewsCount() }}</div>
           <div class="stat-card__label">Kritieke reviews</div>
@@ -63,18 +80,69 @@
     </div>
 
     @if (isLoading()) {
-      <section class="state-panel">
-        <p>Gerapporteerde reviews laden...</p>
+      <section class="review-list">
+        @for (item of skeletonItems; track $index) {
+          <article class="review-card review-card--skeleton">
+            <div class="review-card__select">
+              <div
+                class="skeleton"
+                style="width: 16px; height: 16px; border-radius: 4px;"
+              ></div>
+            </div>
+
+            <div class="review-card__cover">
+              <div class="skeleton skeleton--cover"></div>
+            </div>
+
+            <div class="review-card__content">
+              <div class="review-card__top">
+                <div>
+                  <div class="skeleton skeleton--title"></div>
+                  <div class="skeleton skeleton--author"></div>
+                </div>
+                <div class="skeleton skeleton--badge"></div>
+              </div>
+
+              <div class="review-card__rating">
+                <div class="review-card__stars">
+                  @for (starValue of starValues; track starValue) {
+                    <div
+                      class="skeleton"
+                      style="width: 16px; height: 16px; border-radius: 4px;"
+                    ></div>
+                  }
+                </div>
+                <div
+                  class="skeleton"
+                  style="width: 60px; height: 18px; border-radius: 6px;"
+                ></div>
+              </div>
+
+              <div class="review-card__meta">
+                <div class="skeleton skeleton--meta"></div>
+              </div>
+
+              <div class="skeleton skeleton--text"></div>
+              <div class="skeleton skeleton--text skeleton--text-short"></div>
+
+              <div class="review-card__actions">
+                <div class="skeleton skeleton--button"></div>
+                <div class="skeleton skeleton--button"></div>
+              </div>
+            </div>
+          </article>
+        }
       </section>
     } @else if (reviews().length === 0) {
-      <section class="state-panel state-panel--empty">
-        <p>Alle meldingen zijn afgehandeld. 🎉</p>
+      <section class="state-panel state-panel--empty" @fadeInUp>
+        <p>Alle meldingen zijn afgehandeld.</p>
       </section>
     } @else {
       <section class="review-list">
-        @for (review of reviews(); track review.id) {
+        @for (review of reviews(); track review.id; let i = $index) {
           <article
             class="review-card"
+            [@reviewCardAnimation]="{ value: '', params: { delay: i * 100 } }"
             [class.review-card--selected]="review.id !== undefined && isSelected(review.id)"
             (click)="review.id !== undefined && toggleSelection(review.id)"
           >
@@ -82,6 +150,7 @@
               <input
                 type="checkbox"
                 [checked]="review.id !== undefined && isSelected(review.id)"
+                [disabled]="isBulkProcessing()"
                 (click)="$event.stopPropagation()"
                 (change)="review.id !== undefined && toggleSelection(review.id)"
               />
@@ -115,16 +184,16 @@
 
               <div class="review-card__rating">
                 <div class="review-card__stars">
-                    @for (starValue of starValues; track starValue) {
-                        <lucide-angular
-                        [img]="Star"
-                        size="16"
-                        strokeWidth="1.5"
-                        [color]="starValue <= review.rating ? '#f59e0b' : '#d1d5db'"
-                        [class.star-filled]="starValue <= review.rating"
-                        ></lucide-angular>
-                    }
-                    </div>
+                  @for (starValue of starValues; track starValue) {
+                    <lucide-angular
+                      [img]="Star"
+                      size="16"
+                      strokeWidth="1.5"
+                      [color]="starValue <= review.rating ? '#f59e0b' : '#d1d5db'"
+                      [class.star-filled]="starValue <= review.rating"
+                    ></lucide-angular>
+                  }
+                </div>
 
                 <span class="review-card__status">
                   {{ translateStatus(review.moderationStatus) }}
@@ -134,9 +203,9 @@
               <div class="review-card__meta">
                 <span class="review-card__meta-separator">•</span>
                 <span class="review-card__meta-item">
-                    {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                  {{ review.createdAt | date:'dd/MM/yyyy HH:mm' }}
                 </span>
-                </div>
+              </div>
 
               <p class="review-card__text">
                 {{ review.comment }}
@@ -146,6 +215,7 @@
                 <button
                   type="button"
                   class="review-card__action review-card__action--approve"
+                  [disabled]="isBulkProcessing()"
                   (click)="$event.stopPropagation(); review.id !== undefined && approveReview(review.id)"
                 >
                   <lucide-angular [img]="Check" size="14"></lucide-angular>
@@ -155,6 +225,7 @@
                 <button
                   type="button"
                   class="review-card__action review-card__action--delete"
+                  [disabled]="isBulkProcessing()"
                   (click)="$event.stopPropagation(); review.id !== undefined && deleteReview(review.id)"
                 >
                   <lucide-angular [img]="Trash2" size="14"></lucide-angular>
@@ -165,6 +236,7 @@
           </article>
         }
       </section>
+
       @if (pagingMeta()) {
         <div class="review-dashboard__paging">
           <app-paging

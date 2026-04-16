@@ -13,6 +13,7 @@ import {
   Flag,
   CircleAlert,
   Star,
+  Eraser,
 } from 'lucide-angular';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
@@ -21,6 +22,10 @@ import { Review } from '../../../model/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
+import {
+  reviewCardAnimation,
+  fadeInUpAnimation,
+} from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-review-dashboard',
@@ -29,6 +34,7 @@ import { PagingMeta, PagingComponent } from '../../shared/paging/paging.componen
   templateUrl: './review-dashboard.component.html',
   styleUrl: './review-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [reviewCardAnimation, fadeInUpAnimation],
 })
 export class ReviewDashboardComponent {
   private readonly reviewService = inject(ReviewService);
@@ -39,6 +45,7 @@ export class ReviewDashboardComponent {
   protected readonly Flag = Flag;
   protected readonly CircleAlert = CircleAlert;
   protected readonly Star = Star;
+  protected readonly eraser = Eraser;
 
   protected readonly reviews = signal<Review[]>([]);
   protected readonly selectedReviewIds = signal<Set<number>>(new Set());
@@ -62,6 +69,7 @@ export class ReviewDashboardComponent {
   );
 
   protected readonly starValues = [1, 2, 3, 4, 5];
+  protected readonly skeletonItems = [1, 2, 3, 4, 5];
 
   public ngOnInit(): void {
     this.loadFlaggedReviews(this.currentPage());
@@ -71,6 +79,7 @@ export class ReviewDashboardComponent {
     this.currentPage.set(page);
     this.selectedReviewIds.set(new Set());
     this.loadFlaggedReviews(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   protected isSelected(reviewId: number): boolean {
@@ -95,7 +104,7 @@ export class ReviewDashboardComponent {
       () => {
         this.reviewService.keepReview(reviewId).subscribe({
           next: () => {
-            this.removeReviewFromDashboard(reviewId);
+            this.applyProcessedReviewIds([reviewId]);
             this.toastService.show('Review goedgekeurd.', 'success');
           },
           error: (error) => {
@@ -117,7 +126,7 @@ export class ReviewDashboardComponent {
       () => {
         this.reviewService.deleteReview(reviewId).subscribe({
           next: () => {
-            this.removeReviewFromDashboard(reviewId);
+            this.applyProcessedReviewIds([reviewId]);
             this.toastService.show('Review verwijderd.', 'success');
           },
           error: (error) => {
@@ -175,6 +184,10 @@ export class ReviewDashboardComponent {
     );
   }
 
+  protected deselectAll(): void {
+    this.selectedReviewIds.set(new Set());
+  }
+
   private loadFlaggedReviews(page: number): void {
     this.isLoading.set(true);
 
@@ -182,6 +195,8 @@ export class ReviewDashboardComponent {
       next: (response) => {
         this.reviews.set(response.data);
         this.pagingMeta.set(response.meta);
+        this.currentPage.set(response.meta.currentPage);
+        this.selectedReviewIds.set(new Set());
         this.isLoading.set(false);
       },
       error: (error) => {
@@ -193,16 +208,6 @@ export class ReviewDashboardComponent {
         this.isLoading.set(false);
       },
     });
-  }
-
-  private removeReviewFromDashboard(reviewId: number): void {
-    this.reviews.update((currentReviews) =>
-      currentReviews.filter((review) => review.id !== reviewId),
-    );
-
-    const nextSelectedReviewIds = new Set(this.selectedReviewIds());
-    nextSelectedReviewIds.delete(reviewId);
-    this.selectedReviewIds.set(nextSelectedReviewIds);
   }
 
   private processBulkAction(
@@ -231,20 +236,14 @@ export class ReviewDashboardComponent {
     );
 
     forkJoin(requests)
-      .pipe(
-        finalize(() => this.isBulkProcessing.set(false)),
-      )
+      .pipe(finalize(() => this.isBulkProcessing.set(false)))
       .subscribe({
         next: (results) => {
           const successfulReviewIds = results
             .filter((result) => result.success)
             .map((result) => result.reviewId);
 
-          successfulReviewIds.forEach((reviewId: number) => {
-            this.removeReviewFromDashboard(reviewId);
-          });
-
-          this.selectedReviewIds.set(new Set());
+          this.applyProcessedReviewIds(successfulReviewIds);
 
           const successCount = successfulReviewIds.length;
 
@@ -273,6 +272,62 @@ export class ReviewDashboardComponent {
           this.toastService.show('Er is iets misgelopen bij de bulkactie.', 'error');
         },
       });
+  }
+
+  private applyProcessedReviewIds(processedReviewIds: number[]): void {
+    if (processedReviewIds.length === 0) {
+      return;
+    }
+
+    const processedIdsSet = new Set(processedReviewIds);
+
+    this.reviews.update((currentReviews) =>
+      currentReviews.filter((review) => !processedIdsSet.has(review.id ?? -1)),
+    );
+
+    const nextSelectedReviewIds = new Set(this.selectedReviewIds());
+    processedReviewIds.forEach((reviewId: number) => {
+      nextSelectedReviewIds.delete(reviewId);
+    });
+    this.selectedReviewIds.set(nextSelectedReviewIds);
+
+    const currentMeta = this.pagingMeta();
+
+    if (!currentMeta) {
+      return;
+    }
+
+    const updatedTotalItems = Math.max(
+      currentMeta.totalItems - processedReviewIds.length,
+      0,
+    );
+
+    const updatedTotalPages =
+      updatedTotalItems === 0
+        ? 0
+        : Math.ceil(updatedTotalItems / currentMeta.pageSize);
+
+    const nextPageToLoad = Math.min(
+      currentMeta.currentPage,
+      Math.max(updatedTotalPages - 1, 0),
+    );
+
+    this.pagingMeta.set({
+      ...currentMeta,
+      totalItems: updatedTotalItems,
+      totalPages: updatedTotalPages,
+      currentPage: nextPageToLoad,
+    });
+
+    const shouldReload =
+      this.reviews().length === 0 && updatedTotalItems > 0;
+
+    if (shouldReload) {
+      this.loadFlaggedReviews(nextPageToLoad);
+      return;
+    }
+
+    this.currentPage.set(nextPageToLoad);
   }
 
   protected translateStatus(status: string | undefined): string {
