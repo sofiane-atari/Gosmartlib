@@ -1,8 +1,20 @@
 <div class="container">
+  <div class="catalog-header-section">
+    <div class="title-container">
+      <h1>Boeken catalogus</h1>
+      <span class="subtitle"
+        >{{ pagingMeta().totalItems }} boeken gevonden</span
+      >
+    </div>
+  </div>
 
   <div class="hero-search-container">
     <div class="hero-search-input-wrapper">
-      <lucide-icon [img]="Search" class="hero-search-icon" [size]="20"></lucide-icon>
+      <lucide-icon
+        [img]="Search"
+        class="hero-search-icon"
+        [size]="20"
+      ></lucide-icon>
       <input
         type="text"
         [ngModel]="searchInput()"
@@ -11,81 +23,114 @@
         class="hero-search-input"
       />
     </div>
-    <button class="hero-filter-btn" (click)="toggleFilters()">
-      <lucide-icon [img]="SlidersHorizontal" [size]="18"></lucide-icon>
-      Filters
-    </button>
   </div>
 
-  <div class="catalog-header-section">
-    <div class="title-container">
-      <h1>Boeken catalogus</h1>
-      <span class="subtitle">{{ pagingMeta().totalItems }} boeken gevonden</span>
+  <div class="expandable-filter-panel">
+    <div class="panel-header">
+      <h3>Geavanceerd zoeken</h3>
     </div>
-  </div>
 
-  @if (isFilterOpen()) {
-    <div class="expandable-filter-panel">
-      <div class="panel-header">
-        <h3>Geavanceerd zoeken</h3>
-        <button class="close-panel-btn" (click)="toggleFilters()">
-          <lucide-icon [img]="X" [size]="20"></lucide-icon>
-        </button>
+    <div class="panel-grid">
+      <div class="filter-item">
+        <label>Sorteer op</label>
+        <select
+          [ngModel]="filters().sortBy"
+          (ngModelChange)="updateSortBy($event)"
+          class="panel-select"
+        >
+          <option value="AZ">Titel (A-Z)</option>
+          <option value="ZA">Titel (Z-A)</option>
+          <option value="AUTHOR_AZ">Auteur (A-Z)</option>
+          <option value="AUTHOR_ZA">Auteur (Z-A)</option>
+          <option value="NEWEST">Nieuwste eerst</option>
+          <option value="RATING">Hoogste rating</option>
+        </select>
       </div>
 
-      <div class="panel-grid">
-        <div class="filter-item">
-          <label>Sorteer op</label>
-          <select [ngModel]="filters().sortBy"
-                  (ngModelChange)="updateSortBy($event)" class="panel-select">
-            <option value="AZ">Titel (A-Z)</option>
-            <option value="ZA">Titel (Z-A)</option>
-            <option value="AUTHOR_AZ">Auteur (A-Z)</option>
-            <option value="AUTHOR_ZA">Auteur (Z-A)</option>
-            <option value="NEWEST">Nieuwste eerst</option>
-            <option value="RATING">Hoogste rating</option>
-          </select>
-        </div>
-
-        <div class="filter-item">
-          <label>Beschikbaarheid</label>
-          <select 
+      <div class="filter-item">
+        <label>Beschikbaarheid</label>
+        <select
           [ngModel]="filters().availability"
-          (ngModelChange)="updateAvailability($event)" class="panel-select">
-            <option value="ALL">Alle boeken</option>
-            <option value="AVAILABLE">Beschikbaar</option>
-          </select>
-        </div>
-
-        <div class="filter-item">
-          <label>Pagina's: <span class="highlight">{{ filters().minPages }} - {{ filters().maxPages }}</span></label>
-          <div class="multi-slider-wrapper">
-            <div class="multi-slider-track"></div>
-            
-            @if(absoluteMaxPages() > 0) {
-              <input type="range" 
-                    [min]="absoluteMinPages()"
-                    [max]="absoluteMaxPages()"
-                    [value]="filters().minPages !== null ? filters().minPages : absoluteMinPages()"
-                    (input)="updateMinPages($event)" 
-                    class="multi-slider min-slider">
-                    
-              <input type="range" 
-                    [min]="absoluteMinPages()"
-                    [max]="absoluteMaxPages()"
-                    [value]="filters().maxPages !== null ? filters().maxPages : absoluteMaxPages()"
-                    (input)="updateMaxPages($event)" 
-                    class="multi-slider max-slider">
-            }
-          </div>
-        </div>
+          (ngModelChange)="updateAvailability($event)"
+          class="panel-select"
+        >
+          <option value="ALL">Alle boeken</option>
+          <option value="AVAILABLE">Beschikbaar</option>
+        </select>
       </div>
 
-      <div class="panel-footer">
-        <button class="clear-filters-text" (click)="resetFilters()">Filters wissen</button>
+      <div class="filter-item">
+        <label>Leesniveau</label>
+        <select
+          [ngModel]="filters().readingLevelId"
+          (ngModelChange)="updateReadingLevel($event)"
+          class="panel-select"
+        >
+          <option [ngValue]="null">Alle niveaus</option>
+          @for (level of readingLevels(); track level.id) {
+            <option [ngValue]="level.id">
+              {{ level.niveauName }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <app-genre-picker
+          [genres]="genres()"
+          [selectedGenreName]="filters().genreName"
+          (genreChange)="updateGenre($event)"
+          label="Genre"
+        ></app-genre-picker>
+      </div>
+
+      <div class="filter-item">
+        <label
+          >Pagina's:
+          <span class="highlight"
+            >{{ filters().minPages }} - {{ filters().maxPages }}</span
+          ></label
+        >
+        <div class="multi-slider-wrapper">
+          <div class="multi-slider-track"></div>
+
+          @if (absoluteMaxPages() > 0) {
+            <input
+              type="range"
+              [min]="absoluteMinPages()"
+              [max]="absoluteMaxPages()"
+              [value]="
+                filters().minPages !== null
+                  ? filters().minPages
+                  : absoluteMinPages()
+              "
+              (input)="updateMinPages($event)"
+              class="multi-slider min-slider"
+            />
+
+            <input
+              type="range"
+              [min]="absoluteMinPages()"
+              [max]="absoluteMaxPages()"
+              [value]="
+                filters().maxPages !== null
+                  ? filters().maxPages
+                  : absoluteMaxPages()
+              "
+              (input)="updateMaxPages($event)"
+              class="multi-slider max-slider"
+            />
+          }
+        </div>
       </div>
     </div>
-  }
+
+    <div class="panel-footer">
+      <button class="clear-filters-text" (click)="resetFilters()">
+        Filters wissen
+      </button>
+    </div>
+  </div>
 
   <div class="main-content">
     @if (catalogLoading()) {
@@ -94,52 +139,63 @@
       </div>
     } @else {
       <div class="books-grid">
-      @for (book of books(); track book.id || $index) {
-        <div class="book-card" (click)="toBookDetailPage(book)">
-          <div class="book-image">
-            <img [src]="book.imageUrl" [alt]="book.title" />
+        @for (book of books(); track book.id || $index) {
+          <div class="book-card" (click)="toBookDetailPage(book)">
+            <div class="book-image">
+              <img [src]="book.imageUrl" [alt]="book.title" />
 
-            @if (book.reviewScore && book.reviewScore > 0) {
-              <div class="rating-badge">
-                <lucide-icon [img]="Star" [size]="14" class="star-icon"></lucide-icon>
-                {{ book.reviewScore | number:'1.1-1' }}
+              @if (book.reviewScore && book.reviewScore > 0) {
+                <div class="rating-badge">
+                  <lucide-icon
+                    [img]="Star"
+                    [size]="14"
+                    class="star-icon"
+                  ></lucide-icon>
+                  {{ book.reviewScore | number: "1.1-1" }}
+                </div>
+              }
+            </div>
+
+            <div class="book-info">
+              <h3 class="book-title">{{ book.title }}</h3>
+              <p class="book-author">{{ book.author }}</p>
+              <p class="book-description">{{ book.description }}</p>
+
+              <div class="card-footer">
+                <div class="pages">
+                  <lucide-icon [img]="Book" [size]="16"></lucide-icon>
+                  {{ book.pages }} pagina's
+                </div>
+                <button
+                  class="favorite-btn"
+                  (click)="toggleFavorite($event, book)"
+                  title="Voeg toe aan favorieten"
+                >
+                  <lucide-icon [img]="Heart" [size]="20"></lucide-icon>
+                </button>
               </div>
-            }
-          </div>
-
-          <div class="book-info">
-            <h3 class="book-title">{{ book.title }}</h3>
-            <p class="book-author">{{ book.author }}</p>
-            <p class="book-description">{{ book.description }}</p>
-
-            <div class="card-footer">
-              <div class="pages">
-                <lucide-icon [img]="Book" [size]="16"></lucide-icon>
-                {{ book.pages }} pagina's
-              </div>
-              <button class="favorite-btn" (click)="toggleFavorite($event, book)" title="Voeg toe aan favorieten">
-                <lucide-icon [img]="Heart" [size]="20"></lucide-icon>
-              </button>
             </div>
           </div>
-        </div>
-      }
+        }
 
-      @if (!catalogLoading() && pagingMeta().totalItems === 0) {
-        <div class="empty-state">
-          <lucide-icon [img]="Search" [size]="48" style="color: #cbd5e1; margin-bottom: 16px;"></lucide-icon>
-          <p>Geen boeken gevonden met deze filters...</p>
-          <button class="reset-btn" (click)="resetFilters()">
-            Wis filters
-          </button>
-        </div>
-      }
-    </div>
+        @if (!catalogLoading() && pagingMeta().totalItems === 0) {
+          <div class="empty-state">
+            <lucide-icon
+              [img]="Search"
+              [size]="48"
+              style="color: #cbd5e1; margin-bottom: 16px"
+            ></lucide-icon>
+            <p>Geen boeken gevonden met deze filters...</p>
+            <button class="reset-btn" (click)="resetFilters()">
+              Wis filters
+            </button>
+          </div>
+        }
+      </div>
     }
-    
 
     <aside class="sidebar">
-      <app-book-list-sidebar 
+      <app-book-list-sidebar
         title="Meest gelezen"
         [books]="mostReadBooks()"
         [loading]="mostReadLoading()"
@@ -154,9 +210,6 @@
   </div>
 
   @if (pagingMeta().totalPages > 1) {
-    <app-paging
-      [meta]="pagingMeta()"
-      (pageChange)="onPageChange($event)"
-    />
+    <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
   }
 </div>
