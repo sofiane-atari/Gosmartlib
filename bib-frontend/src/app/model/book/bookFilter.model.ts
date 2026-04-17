@@ -7,5 +7,6 @@ export interface BookFilters {
   minPages: number | null;
   maxPages: number | null;
   readingLevelId: number | null;
+  genreName: string | null;
   sortBy: BookSortOption;
 }

@@ -320,6 +320,7 @@ export class CreateLoanComponent {
       null,
       null,
       null,
+      null,
       0,
       50,
       'AZ',

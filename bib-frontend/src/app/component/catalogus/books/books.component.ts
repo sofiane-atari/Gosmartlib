@@ -23,6 +23,8 @@ import { PagingComponent } from '../../shared/paging/paging.component';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
 import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
+import { Genre } from '../../../model/genre.model';
+import { GenreService } from '../../../services/genre/genre.service';
 
 
 @Component({
@@ -44,6 +46,7 @@ export class BooksComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly readingListService = inject(ReadingListService);
   private readonly readingLevelsService = inject (ReadingLevelsService);
+  private readonly genreService = inject(GenreService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef)
 
@@ -68,6 +71,7 @@ export class BooksComponent implements OnInit {
   protected readonly absoluteMaxPages = signal(0);
   protected readonly absoluteMinPages = signal(0);
   protected readonly readingLevels = signal<ReadingLevel[]>([]);
+  protected readonly genres = signal<Genre[]>([]);
 
   protected readonly isFilterOpen = signal(false);
   protected readonly currentPage = signal(0);
@@ -113,6 +117,7 @@ export class BooksComponent implements OnInit {
     maxPages: null,
     sortBy: 'AZ',
     readingLevelId: null,
+    genreName: null,
   });
 
   ngOnInit(): void {
@@ -133,6 +138,7 @@ export class BooksComponent implements OnInit {
     this.loadFilterBounds();
     this.loadCatalogBooks();
     this.loadReadingLevels();
+    this.loadGenres();
     this.loadSidebarBooks();
   }
 
@@ -147,6 +153,7 @@ export class BooksComponent implements OnInit {
       filters.minPages,
       filters.maxPages,
       filters.readingLevelId,
+      filters.genreName,
       this.currentPage(),
       this.pageSize(),
       filters.sortBy,
@@ -204,6 +211,17 @@ export class BooksComponent implements OnInit {
       },
       error: () => {
         this.toastService.show('De leesniveaus konden niet worden geladen.', 'error');
+      },
+    });
+  }
+
+  private loadGenres(): void {
+    this.genreService.getGenres().subscribe({
+      next: (genres: Genre[]) => {
+        this.genres.set(genres);
+      },
+      error: () => {
+        this.toastService.show('De genres konden niet worden geladen.', 'error');
       },
     });
   }
@@ -304,6 +322,16 @@ export class BooksComponent implements OnInit {
     this.loadCatalogBooks();
   }
 
+  public updateGenre(genreName: string | null): void {
+    this.filters.update((current: BookFilters) => ({
+      ...current,
+      genreName,
+    }));
+
+    this.currentPage.set(0);
+    this.loadCatalogBooks();
+  }
+
   resetFilters(): void {
     this.filters.set({
       searchTerm: '',
@@ -311,7 +339,8 @@ export class BooksComponent implements OnInit {
       minPages: this.absoluteMinPages(),
       maxPages: this.absoluteMaxPages(),
       sortBy: 'AZ',
-      readingLevelId: null
+      readingLevelId: null,
+      genreName: null,
     });
     this.searchInput.set('')
     this.currentPage.set(0);
@@ -366,7 +395,8 @@ export class BooksComponent implements OnInit {
       minPages: this.normalizePageFilterValue(rawFilters.minPages),
       maxPages: this.normalizePageFilterValue(rawFilters.maxPages),
       sortBy: this.normalizeSortBy(rawFilters.sortBy),
-      readingLevelId: this.normalizeReadingLevelId(rawFilters.readingLevelId)
+      readingLevelId: this.normalizeReadingLevelId(rawFilters.readingLevelId),
+      genreName: this.normalizeGenreName(rawFilters.genreName),
     };
   }
 
@@ -424,6 +454,15 @@ export class BooksComponent implements OnInit {
     }
 
     return null;
+  }
+
+  private normalizeGenreName(value: unknown): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
   }
 
   public toBookDetailPage(book: Book) {

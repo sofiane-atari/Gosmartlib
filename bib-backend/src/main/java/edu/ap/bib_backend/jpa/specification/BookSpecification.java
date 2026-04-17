@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
+import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
@@ -21,7 +22,8 @@ public final class BookSpecification {
             Availability availability,
             Integer minPages,
             Integer maxPages,
-            Long readingLevelId
+            Long readingLevelId,
+            String genreName
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -58,6 +60,15 @@ public final class BookSpecification {
 
             if (readingLevelId != null){
                 predicates.add(criteriaBuilder.equal(root.get("readingLevel").get("id"), readingLevelId));
+            }
+
+            if (genreName != null && !genreName.isBlank()) {
+                Join<Book, Genre> genreJoin = root.join("genres");
+                predicates.add(criteriaBuilder.equal(
+                        criteriaBuilder.lower(genreJoin.get("name")),
+                        genreName.trim().toLowerCase()
+                ));
+                query.distinct(true);
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
