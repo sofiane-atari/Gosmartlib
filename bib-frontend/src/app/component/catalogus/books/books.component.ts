@@ -10,8 +10,7 @@ import { BookFilters } from '../../../model/book/bookFilter.model';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  LucideAngularModule,
+import { LucideAngularModule,
   Heart,
   X,
   Star,
@@ -22,6 +21,9 @@ import {
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
 import { PagingComponent } from '../../shared/paging/paging.component';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
+import { ReadingLevel } from '../../../model/readingLevel.model';
+import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
+
 
 @Component({
   selector: 'app-books',
@@ -41,6 +43,7 @@ export class BooksComponent implements OnInit {
   private readonly bookService = inject(BookService);
   private readonly router = inject(Router);
   private readonly readingListService = inject(ReadingListService);
+  private readonly readingLevelsService = inject (ReadingLevelsService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef)
 
@@ -64,6 +67,7 @@ export class BooksComponent implements OnInit {
 
   protected readonly absoluteMaxPages = signal(0);
   protected readonly absoluteMinPages = signal(0);
+  protected readonly readingLevels = signal<ReadingLevel[]>([]);
 
   protected readonly isFilterOpen = signal(false);
   protected readonly currentPage = signal(0);
@@ -108,6 +112,7 @@ export class BooksComponent implements OnInit {
     minPages: null,
     maxPages: null,
     sortBy: 'AZ',
+    readingLevelId: null,
   });
 
   ngOnInit(): void {
@@ -127,6 +132,7 @@ export class BooksComponent implements OnInit {
 
     this.loadFilterBounds();
     this.loadCatalogBooks();
+    this.loadReadingLevels();
     this.loadSidebarBooks();
   }
 
@@ -140,6 +146,7 @@ export class BooksComponent implements OnInit {
       filters.availability,
       filters.minPages,
       filters.maxPages,
+      filters.readingLevelId,
       this.currentPage(),
       this.pageSize(),
       filters.sortBy,
@@ -186,6 +193,17 @@ export class BooksComponent implements OnInit {
       },
       error: () => {
         this.toastService.show('Minimum aantal pagina’s kon niet worden geladen.', 'error');
+      },
+    });
+  }
+
+  private loadReadingLevels(): void {
+    this.readingLevelsService.getAll().subscribe({
+      next: (levels: ReadingLevel[]) => {
+        this.readingLevels.set(levels);
+      },
+      error: () => {
+        this.toastService.show('De leesniveaus konden niet worden geladen.', 'error');
       },
     });
   }
@@ -276,6 +294,16 @@ export class BooksComponent implements OnInit {
     this.pageRangeSubject.next();
   }
 
+  public updateReadingLevel(readingLevelId: number | null): void {
+    this.filters.update((current: BookFilters) => ({
+      ...current,
+      readingLevelId,
+    }));
+
+    this.currentPage.set(0);
+    this.loadCatalogBooks();
+  }
+
   resetFilters(): void {
     this.filters.set({
       searchTerm: '',
@@ -283,6 +311,7 @@ export class BooksComponent implements OnInit {
       minPages: this.absoluteMinPages(),
       maxPages: this.absoluteMaxPages(),
       sortBy: 'AZ',
+      readingLevelId: null
     });
     this.searchInput.set('')
     this.currentPage.set(0);
@@ -337,6 +366,7 @@ export class BooksComponent implements OnInit {
       minPages: this.normalizePageFilterValue(rawFilters.minPages),
       maxPages: this.normalizePageFilterValue(rawFilters.maxPages),
       sortBy: this.normalizeSortBy(rawFilters.sortBy),
+      readingLevelId: this.normalizeReadingLevelId(rawFilters.readingLevelId)
     };
   }
 
@@ -367,6 +397,21 @@ export class BooksComponent implements OnInit {
   }
 
   private normalizePageFilterValue(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+
+    return null;
+  }
+
+  private normalizeReadingLevelId(value: unknown): number | null {
     if (typeof value === 'number' && Number.isFinite(value)) {
       return value;
     }

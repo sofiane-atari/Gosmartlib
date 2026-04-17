@@ -6,5 +6,6 @@ export interface BookFilters {
   availability: BookAvailabilityFilter;
   minPages: number | null;
   maxPages: number | null;
+  readingLevelId: number | null;
   sortBy: BookSortOption;
 }

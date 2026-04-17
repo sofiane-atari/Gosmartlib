@@ -20,7 +20,8 @@ public final class BookSpecification {
             String searchTerm,
             Availability availability,
             Integer minPages,
-            Integer maxPages
+            Integer maxPages,
+            Long readingLevelId
     ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -53,6 +54,10 @@ public final class BookSpecification {
 
             if (maxPages != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("pages"), maxPages));
+            }
+
+            if (readingLevelId != null){
+                predicates.add(criteriaBuilder.equal(root.get("readingLevel").get("id"), readingLevelId));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

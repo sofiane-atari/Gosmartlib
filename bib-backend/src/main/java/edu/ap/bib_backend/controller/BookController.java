@@ -55,6 +55,7 @@ public class BookController {
             @RequestParam(required = false) BookAvailabilityFilter availability,
             @RequestParam(required = false) Integer minPages,
             @RequestParam(required = false) Integer maxPages,
+            @RequestParam(required = false) Long readingLevelId,
             @RequestParam(required = false) BookSortOption sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -65,6 +66,7 @@ public class BookController {
                 availability,
                 minPages,
                 maxPages,
+                readingLevelId,
                 page,
                 size,
                 sortBy);

@@ -25,6 +25,7 @@ export class BookService {
     availability: BookAvailabilityFilter,
     minPages: number | null,
     maxPages: number | null,
+    readingLevelId: number | null,
     page: number,
     size: number,
     sortBy: BookSortOption,
@@ -48,6 +49,10 @@ export class BookService {
 
     if (maxPages !== null && Number.isFinite(maxPages)) {
       params = params.set('maxPages', maxPages);
+    }
+
+    if (readingLevelId !== null && Number.isFinite(readingLevelId) ){
+      params = params.set('readingLevelId', readingLevelId)
     }
 
     return this.http.get<PaginatedResponse<Book>>(`${this.apiUrl}/catalog`, {

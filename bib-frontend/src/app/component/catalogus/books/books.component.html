@@ -58,6 +58,22 @@
         </div>
 
         <div class="filter-item">
+          <label>Leesniveau</label>
+          <select
+            [ngModel]="filters().readingLevelId"
+            (ngModelChange)="updateReadingLevel($event)"
+            class="panel-select"
+          >
+            <option [ngValue]="null">Alle niveaus</option>
+            @for (level of readingLevels(); track level.id) {
+              <option [ngValue]="level.id">
+                {{ level.niveauName }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-item">
           <label>Pagina's: <span class="highlight">{{ filters().minPages }} - {{ filters().maxPages }}</span></label>
           <div class="multi-slider-wrapper">
             <div class="multi-slider-track"></div>
