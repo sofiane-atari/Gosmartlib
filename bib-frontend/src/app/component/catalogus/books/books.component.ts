@@ -25,12 +25,13 @@ import { ReadingLevel } from '../../../model/readingLevel.model';
 import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
 import { Genre } from '../../../model/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
+import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/genre-picker.component';
 
 
 @Component({
   selector: 'app-books',
   standalone: true,
-  imports: [ FormsModule, CommonModule, LucideAngularModule, BookListSidebarComponent, PagingComponent],
+  imports: [ FormsModule, CommonModule, LucideAngularModule, BookListSidebarComponent, PagingComponent, GenrePickerComponent],
   templateUrl: './books.component.html',
   styleUrl: './books.component.css',
 })

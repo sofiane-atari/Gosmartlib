@@ -74,19 +74,12 @@
         </div>
 
         <div class="filter-item">
-          <label>Genre</label>
-          <select
-            [ngModel]="filters().genreName"
-            (ngModelChange)="updateGenre($event)"
-            class="panel-select"
-          >
-            <option [ngValue]="null">Alle genres</option>
-            @for (genre of genres(); track genre.name) {
-              <option [ngValue]="genre.name">
-                {{ genre.name }}
-              </option>
-            }
-          </select>
+          <app-genre-picker
+            [genres]="genres()"
+            [selectedGenreName]="filters().genreName"
+            (genreChange)="updateGenre($event)"
+            label="Genre"
+          ></app-genre-picker>
         </div>
 
         <div class="filter-item">
