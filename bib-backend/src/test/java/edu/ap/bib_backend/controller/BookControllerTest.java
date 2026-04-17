@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +32,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @WebMvcTest(BookController.class)
@@ -45,6 +48,9 @@ public class BookControllerTest {
     private BookService bs;
 
     @MockBean
+    private BookSearchService bookSearchService;
+
+    @MockBean
     private JwtService jwtService;
 
     @MockBean
@@ -53,8 +59,6 @@ public class BookControllerTest {
     @MockBean
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
 
-    @MockBean
-    private BookSearchService bss;
 
     @MockBean
     private GoogleBooksClient gbc;
@@ -62,8 +66,8 @@ public class BookControllerTest {
     @MockBean
     private OpenLibraryClient olc;
 
-    @Test
-    void givenFilters_whenGetFilteredBooks_thenReturnsPagedResult() throws Exception {
+        @Test
+        void givenFilters_whenGetFilteredBooks_thenReturnsPagedResult() throws Exception {
         // Arrange
         BookDTO book = new BookDTO();
         book.setId(1L);
@@ -71,19 +75,21 @@ public class BookControllerTest {
         book.setAuthor("J.K. Rowling");
         book.setPages(350);
 
-        Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of(book));
+        Page<BookDTO> page = new PageImpl<>(List.of(book));
 
-        Mockito.when(bss.getFilteredBooks(
+        when(bookSearchService.getFilteredBooks(
                 "Harry",
                 BookAvailabilityFilter.ALL,
                 100,
                 500,
+                null,
+                null,
                 0,
                 10,
                 BookSortOption.AZ
         )).thenReturn(page);
 
-        // Act & Assert
+        // Act
         mockMvc.perform(get("/books/catalog")
                 .param("searchTerm", "Harry")
                 .param("availability", "ALL")
@@ -93,22 +99,24 @@ public class BookControllerTest {
                 .param("page", "0")
                 .param("size", "10"))
                 .andExpect(status().isOk())
-                // FIXED: Changed $.content to $.data
                 .andExpect(jsonPath("$.data[0].title").value("Harry Potter"))
                 .andExpect(jsonPath("$.data[0].author").value("J.K. Rowling"))
                 .andExpect(jsonPath("$.data[0].pages").value(350))
                 .andExpect(jsonPath("$.meta").exists());
 
-        Mockito.verify(bss).getFilteredBooks(
+        // Assert
+        verify(bookSearchService).getFilteredBooks(
                 "Harry",
                 BookAvailabilityFilter.ALL,
                 100,
                 500,
+                null,
+                null,
                 0,
                 10,
                 BookSortOption.AZ
         );
-    }
+        }
 
     @Test
     void givenExistingBookId_whenDeleteBook_thenReturn204() throws Exception {
@@ -164,7 +172,9 @@ public class BookControllerTest {
         // Arrange
         Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of());
 
-        Mockito.when(bss.getFilteredBooks(
+        Mockito.when(bookSearchService.getFilteredBooks(
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -181,7 +191,9 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.meta").exists());
 
-        Mockito.verify(bss).getFilteredBooks(
+        Mockito.verify(bookSearchService).getFilteredBooks(
+                null,
+                null,
                 null,
                 null,
                 null,

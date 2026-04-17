@@ -48,7 +48,7 @@ class BookSearchServiceTest {
         Page<Book> pageResult = new PageImpl<>(List.of());
         given(br.findAll(any(Specification.class), any(Pageable.class))).willReturn(pageResult);
 
-        service.getFilteredBooks(null, null, null, null, 0, 10, null);
+        service.getFilteredBooks(null, null, null, null,null, null, 0, 10, null);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         then(br).should().findAll(any(Specification.class), pageableCaptor.capture());
@@ -66,7 +66,7 @@ class BookSearchServiceTest {
         given(br.findAll(any(Specification.class), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(null, null, null, null, -5, 10, null);
+        service.getFilteredBooks(null, null, null, null, null, null, -5, 10, null);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         then(br).should().findAll(any(Specification.class), pageableCaptor.capture());
@@ -80,7 +80,7 @@ class BookSearchServiceTest {
         given(br.findAll(any(Specification.class), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(null, null, null, null, 0, 0, null);
+        service.getFilteredBooks(null, null, null, null, null, null,  0, 0, null);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         then(br).should().findAll(any(Specification.class), pageableCaptor.capture());
@@ -94,7 +94,7 @@ class BookSearchServiceTest {
         given(br.findAll(any(Specification.class), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(null, null, null, null, 0, 999, null);
+        service.getFilteredBooks(null, null, null, null, null, null,  0, 999, null);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         then(br).should().findAll(any(Specification.class), pageableCaptor.capture());
@@ -105,7 +105,7 @@ class BookSearchServiceTest {
     @Test
     @DisplayName("Given minPages greater than maxPages, when getFilteredBooks is called, then throw exception")
     void givenMinPagesGreaterThanMaxPages_whenGetFilteredBooks_thenThrowException() {
-        assertThatThrownBy(() -> service.getFilteredBooks(null, null, 300, 100, 0, 10, null))
+        assertThatThrownBy(() -> service.getFilteredBooks(null, null, 300, 100, null, null,  0, 10, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("minPages mag niet groter zijn dan maxPages.");
     }
@@ -116,7 +116,7 @@ class BookSearchServiceTest {
         given(br.findAll(any(Specification.class), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(null, BookAvailabilityFilter.AVAILABLE, null, null, 0, 10, null);
+        service.getFilteredBooks(null, BookAvailabilityFilter.AVAILABLE, null, null, null, null,  0, 10, null);
 
         then(br).should().findAll(any(Specification.class), any(Pageable.class));
     }
@@ -127,7 +127,7 @@ class BookSearchServiceTest {
         given(br.findAll(any(Specification.class), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(null, null, null, null, 0, 10, BookSortOption.AUTHOR_ZA);
+        service.getFilteredBooks(null, null, null, null, null, null,  0, 10, BookSortOption.AUTHOR_ZA);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         then(br).should().findAll(any(Specification.class), pageableCaptor.capture());
@@ -151,7 +151,7 @@ class BookSearchServiceTest {
         given(br.findAll(any(Specification.class), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(book)));
 
-        Page<BookDTO> result = service.getFilteredBooks(null, null, null, null, 0, 10, BookSortOption.AZ);
+        Page<BookDTO> result = service.getFilteredBooks(null, null, null, null, null, null,  0, 10, BookSortOption.AZ);
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).hasSize(1);
