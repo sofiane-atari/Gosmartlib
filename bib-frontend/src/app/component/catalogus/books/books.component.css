@@ -387,22 +387,28 @@
 }
 
 .book-author {
-  font-size: 0.8rem; /* Kleiner */
+  min-height: 2.4em;
+  font-size: 0.8rem;
   color: var(--sec-color, #bc808b);
   margin-bottom: 8px;
   font-weight: 600;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .book-description {
+  min-height: 3.9em;
   font-size: 0.8rem;
   color: #6b7280;
-  line-height: 1.4;
+  line-height: 1.3;
   margin-bottom: 12px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  flex: none;
 }
 
 .card-footer {
