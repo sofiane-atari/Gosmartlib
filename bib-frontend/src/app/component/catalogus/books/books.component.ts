@@ -1,4 +1,12 @@
-import { Component, OnInit, signal, inject, computed, effect, DestroyRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  signal,
+  inject,
+  computed,
+  effect,
+  DestroyRef,
+} from '@angular/core';
 import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
@@ -10,9 +18,9 @@ import { BookFilters } from '../../../model/book/bookFilter.model';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LucideAngularModule,
+import {
+  LucideAngularModule,
   Heart,
-  X,
   Star,
   BookPlus,
   Search,
@@ -27,11 +35,17 @@ import { Genre } from '../../../model/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/genre-picker.component';
 
-
 @Component({
   selector: 'app-books',
   standalone: true,
-  imports: [ FormsModule, CommonModule, LucideAngularModule, BookListSidebarComponent, PagingComponent, GenrePickerComponent],
+  imports: [
+    FormsModule,
+    CommonModule,
+    LucideAngularModule,
+    BookListSidebarComponent,
+    PagingComponent,
+    GenrePickerComponent,
+  ],
   templateUrl: './books.component.html',
   styleUrl: './books.component.css',
 })
@@ -40,16 +54,15 @@ export class BooksComponent implements OnInit {
   readonly Heart = Heart;
   readonly Search = Search;
   readonly SlidersHorizontal = SlidersHorizontal;
-  readonly X = X;
   readonly Star = Star;
 
   private readonly bookService = inject(BookService);
   private readonly router = inject(Router);
   private readonly readingListService = inject(ReadingListService);
-  private readonly readingLevelsService = inject (ReadingLevelsService);
+  private readonly readingLevelsService = inject(ReadingLevelsService);
   private readonly genreService = inject(GenreService);
   private readonly toastService = inject(ToastService);
-  private readonly destroyRef = inject(DestroyRef)
+  private readonly destroyRef = inject(DestroyRef);
 
   books = signal<Book[]>([]);
   protected readonly pagingMeta = signal({
@@ -74,41 +87,36 @@ export class BooksComponent implements OnInit {
   protected readonly readingLevels = signal<ReadingLevel[]>([]);
   protected readonly genres = signal<Genre[]>([]);
 
-  protected readonly isFilterOpen = signal(false);
   protected readonly currentPage = signal(0);
   private readonly pageSize = signal(10);
 
   constructor() {
     effect(() => {
       localStorage.setItem('bookFilters', JSON.stringify(this.filters()));
-      localStorage.setItem('isFilterOpen', JSON.stringify(this.isFilterOpen()));
     });
 
     this.pageRangeSubject
-    .pipe(
-      debounceTime(400),
-      takeUntilDestroyed(this.destroyRef),
-    )
-    .subscribe(() => {
-      this.currentPage.set(0);
-      this.loadCatalogBooks();
-    });
+      .pipe(debounceTime(400), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.currentPage.set(0);
+        this.loadCatalogBooks();
+      });
 
     this.searchSubject
-    .pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef),
-    )
-    .subscribe((searchTerm: string) => {
-      this.filters.update((current: BookFilters) => ({
-        ...current,
-        searchTerm,
-      }));
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((searchTerm: string) => {
+        this.filters.update((current: BookFilters) => ({
+          ...current,
+          searchTerm,
+        }));
 
-      this.currentPage.set(0);
-      this.loadCatalogBooks();
-    });
+        this.currentPage.set(0);
+        this.loadCatalogBooks();
+      });
   }
 
   protected readonly filters = signal<BookFilters>({
@@ -123,17 +131,10 @@ export class BooksComponent implements OnInit {
 
   ngOnInit(): void {
     const parsedFilters: BookFilters | null = this.getSavedFilters();
-    const savedPanelState = localStorage.getItem('isFilterOpen')
 
     if (parsedFilters) {
       this.filters.set(parsedFilters);
-      this.searchInput.set(parsedFilters.searchTerm)
-    }
-
-    if (savedPanelState === 'true') {
-      this.isFilterOpen.set(true);
-    } else {
-      this.isFilterOpen.set(false);
+      this.searchInput.set(parsedFilters.searchTerm);
     }
 
     this.loadFilterBounds();
@@ -148,27 +149,32 @@ export class BooksComponent implements OnInit {
 
     const filters: BookFilters = this.getNormalizedFilters(this.filters());
 
-    this.bookService.getFilteredBooks(
-      filters.searchTerm,
-      filters.availability,
-      filters.minPages,
-      filters.maxPages,
-      filters.readingLevelId,
-      filters.genreName,
-      this.currentPage(),
-      this.pageSize(),
-      filters.sortBy,
-    ).subscribe({
-      next: (response: PaginatedResponse<Book>) => {
-        this.books.set(response.data);
-        this.pagingMeta.set(response.meta);
-        this.catalogLoading.set(false);
-      },
-      error: () => {
-        this.catalogLoading.set(false);
-        this.toastService.show('De catalogus kon niet worden geladen.', 'error');
-      },
-    });
+    this.bookService
+      .getFilteredBooks(
+        filters.searchTerm,
+        filters.availability,
+        filters.minPages,
+        filters.maxPages,
+        filters.readingLevelId,
+        filters.genreName,
+        this.currentPage(),
+        this.pageSize(),
+        filters.sortBy,
+      )
+      .subscribe({
+        next: (response: PaginatedResponse<Book>) => {
+          this.books.set(response.data);
+          this.pagingMeta.set(response.meta);
+          this.catalogLoading.set(false);
+        },
+        error: () => {
+          this.catalogLoading.set(false);
+          this.toastService.show(
+            'De catalogus kon niet worden geladen.',
+            'error',
+          );
+        },
+      });
   }
 
   private loadFilterBounds(): void {
@@ -184,7 +190,10 @@ export class BooksComponent implements OnInit {
         }
       },
       error: () => {
-        this.toastService.show('Maximum aantal pagina’s kon niet worden geladen.', 'error');
+        this.toastService.show(
+          'Maximum aantal pagina’s kon niet worden geladen.',
+          'error',
+        );
       },
     });
 
@@ -200,7 +209,10 @@ export class BooksComponent implements OnInit {
         }
       },
       error: () => {
-        this.toastService.show('Minimum aantal pagina’s kon niet worden geladen.', 'error');
+        this.toastService.show(
+          'Minimum aantal pagina’s kon niet worden geladen.',
+          'error',
+        );
       },
     });
   }
@@ -211,7 +223,10 @@ export class BooksComponent implements OnInit {
         this.readingLevels.set(levels);
       },
       error: () => {
-        this.toastService.show('De leesniveaus konden niet worden geladen.', 'error');
+        this.toastService.show(
+          'De leesniveaus konden niet worden geladen.',
+          'error',
+        );
       },
     });
   }
@@ -222,7 +237,10 @@ export class BooksComponent implements OnInit {
         this.genres.set(genres);
       },
       error: () => {
-        this.toastService.show('De genres konden niet worden geladen.', 'error');
+        this.toastService.show(
+          'De genres konden niet worden geladen.',
+          'error',
+        );
       },
     });
   }
@@ -238,7 +256,6 @@ export class BooksComponent implements OnInit {
       },
     });
 
-
     this.bookService.getNewestBooks(3).subscribe({
       next: (books) => {
         this.newestBooks.set(books);
@@ -250,12 +267,8 @@ export class BooksComponent implements OnInit {
     });
   }
 
-  public toggleFilters() {
-    this.isFilterOpen.update((current: boolean) => !current);
-  }
-
   public updateSearchTerm(searchTerm: string): void {
-    this.searchInput.set(searchTerm)
+    this.searchInput.set(searchTerm);
     this.searchSubject.next(searchTerm);
   }
 
@@ -295,7 +308,7 @@ export class BooksComponent implements OnInit {
     this.pageRangeSubject.next();
   }
 
-   public updateMinPages(event: Event): void {
+  public updateMinPages(event: Event): void {
     const input = event.target as HTMLInputElement;
     let newMin = Number(input.value);
 
@@ -343,7 +356,7 @@ export class BooksComponent implements OnInit {
       readingLevelId: null,
       genreName: null,
     });
-    this.searchInput.set('')
+    this.searchInput.set('');
     this.currentPage.set(0);
     this.loadCatalogBooks();
   }
@@ -352,16 +365,25 @@ export class BooksComponent implements OnInit {
     event.stopPropagation();
 
     if (!book.id) {
-      this.toastService.show('Het boek kon niet aan favorieten worden toegevoegd.', 'error');
+      this.toastService.show(
+        'Het boek kon niet aan favorieten worden toegevoegd.',
+        'error',
+      );
       return;
     }
     this.readingListService.addBookToFavorites(book.id).subscribe({
       next: () => {
-        this.toastService.show(`"${book.title}" is toegevoegd aan je Favorieten!`, 'success');
+        this.toastService.show(
+          `"${book.title}" is toegevoegd aan je Favorieten!`,
+          'success',
+        );
       },
       error: (err) => {
         if (err.error === 'Boek zit al in deze leeslijst') {
-          this.toastService.show(`"${book.title}" staat al in je favorieten.`, 'error');
+          this.toastService.show(
+            `"${book.title}" staat al in je favorieten.`,
+            'error',
+          );
         } else {
           console.error('Fout bij toevoegen aan favorieten', err);
           this.toastService.show(
@@ -391,7 +413,8 @@ export class BooksComponent implements OnInit {
 
   private getNormalizedFilters(rawFilters: Partial<BookFilters>): BookFilters {
     return {
-      searchTerm: typeof rawFilters.searchTerm === 'string' ? rawFilters.searchTerm : '',
+      searchTerm:
+        typeof rawFilters.searchTerm === 'string' ? rawFilters.searchTerm : '',
       availability: this.normalizeAvailability(rawFilters.availability),
       minPages: this.normalizePageFilterValue(rawFilters.minPages),
       maxPages: this.normalizePageFilterValue(rawFilters.maxPages),
@@ -402,7 +425,8 @@ export class BooksComponent implements OnInit {
   }
 
   private normalizeAvailability(value: unknown): BookFilters['availability'] {
-    const normalized = typeof value === 'string' ? value.trim().toUpperCase() : '';
+    const normalized =
+      typeof value === 'string' ? value.trim().toUpperCase() : '';
 
     if (normalized === 'AVAILABLE' || normalized === 'BESCHIKBAAR') {
       return 'AVAILABLE';
@@ -412,7 +436,8 @@ export class BooksComponent implements OnInit {
   }
 
   private normalizeSortBy(value: unknown): BookFilters['sortBy'] {
-    const normalized = typeof value === 'string' ? value.trim().toUpperCase() : '';
+    const normalized =
+      typeof value === 'string' ? value.trim().toUpperCase() : '';
 
     switch (normalized) {
       case 'ZA':
