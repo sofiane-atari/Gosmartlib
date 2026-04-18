@@ -73,23 +73,22 @@ export class AddBookISBNComponent extends GenreSelectionBase {
   }
   
   searchBookData() {
-  const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
-  this.isLoading = true;
+    const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
+
     if (normalizedIsbn.length === 13) {
+      this.isLoading = true;
       this.isbn = normalizedIsbn;
       this.searchByISBN();
       return;
     }
 
-    if (
-      this.book.title?.trim() &&
-      this.book.author?.trim() &&
-      this.book.releaseYear
-    ) {
+    if (this.book.title?.trim() && this.book.author?.trim() && this.book.releaseYear) {
+      this.isLoading = true;
       this.searchByTitleAuthorYear();
       return;
     }
 
+    this.isLoading = false;
     this.ts.show(
       'Zoeken zonder ISBN kan alleen met titel, auteur én jaar samen.',
       'error'
@@ -184,10 +183,13 @@ clearForm() {
         }
 
         if (results.length === 1) {
-          this.ts.show('1 boek gevonden. Gegevens worden automatisch ingevuld.');
-          this.selectCandidate(results[0]);
+          this.candidates = results;
+          this.showCandidates = true;
+          this.isLoading = false;
+          this.ts.show('1 boek gevonden.');
           return;
         }
+
         this.candidates = results;
         this.showCandidates = true;
         this.isLoading = false;
