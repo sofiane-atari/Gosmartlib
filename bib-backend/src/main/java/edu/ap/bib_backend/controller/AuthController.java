@@ -21,7 +21,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Value("${FRONTEND_REDIRECT_URL}")
+    @Value("${frontend.redirect-url:http://localhost:4200/login}")
     private String frontendRedirectUrl;
 
     public AuthController(AuthService authService) {

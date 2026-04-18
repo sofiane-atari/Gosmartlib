@@ -4,6 +4,7 @@ import edu.ap.bib_backend.config.JwtAuthenticationFilter;
 import edu.ap.bib_backend.config.SecurityConfig;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.SmartschoolProfileService;
@@ -43,7 +44,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 @WebMvcTest(AuthController.class)
 @Import({SecurityConfig.class, JwtAuthenticationFilter.class}) 
-@TestPropertySource(properties = {"FRONTEND_REDIRECT_URL=http://localhost:4200/login"})
+@TestPropertySource(properties = {"frontend.redirect-url=http://localhost:4200/login"})
 public class AuthControllerTest {
 
     @Autowired
@@ -63,6 +64,9 @@ public class AuthControllerTest {
 
     @MockitoBean
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
+
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
 
     @Test
     void givenUnauthenticated_whenMeCalled_thenReturn302() throws Exception {

@@ -98,8 +98,8 @@
 
 .profile-stat-card__value {
   display: block;
-  font-size: 28px; 
-  font-weight: 600; 
+  font-size: 28px;
+  font-weight: 600;
   line-height: 1;
   margin-top: 8px;
 }
@@ -119,12 +119,12 @@
 }
 
 .profile-stat-card--active {
-  background-color: #eaf1f7; 
+  background-color: #eaf1f7;
   color: #2e5f8a;
 }
 
 .profile-stat-card--favorite {
-  background-color: #fff5f5; 
+  background-color: #fff5f5;
   color: var(--error-color);
 }
 
@@ -191,7 +191,7 @@
   .profile-hero {
     padding: 16px;
   }
-  
+
   .profile-stat-card__value {
     font-size: 24px;
   }
@@ -201,7 +201,7 @@
   .stat-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .profile-info-row {
     flex-direction: row;
   }

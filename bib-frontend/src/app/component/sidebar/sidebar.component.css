@@ -183,6 +183,10 @@ lucide-icon {
   background-color: #f43f5e;
 }
 
+.btn-amber {
+  background-color: #f59e0b;
+}
+
 .btn:hover {
   filter: brightness(1.1);
   transform: scale(1.02);
