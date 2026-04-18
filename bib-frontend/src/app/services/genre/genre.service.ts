@@ -60,7 +60,7 @@ export class GenreService {
     return this.http.get<GenreStats>(`${this.url}/_stats`);
   }
 
-  public deleteGenreByid(id: number) {
+  public deleteGenreById(id: number) {
     return this.http.delete<void>(`${this.url}/${id}`);
   }
 

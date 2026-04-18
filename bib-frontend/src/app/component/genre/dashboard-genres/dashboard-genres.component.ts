@@ -155,7 +155,8 @@ export class DashboardGenresComponent {
     this.setPopup(null);
   }
 
-  protected onEditGenre(genre: Genre) {
+  protected onEditGenre(genre: Genre): void {
+    console.log('Genre geselecteerd voor bewerken:', genre);
     this.editingGenre.set(genre);
     this.setPopup('edit');
   }

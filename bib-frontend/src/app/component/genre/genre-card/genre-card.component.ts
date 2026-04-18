@@ -33,7 +33,7 @@ export class GenreCardComponent {
       'Weet je zeker dat je deze genre wilt verwijderen?',
       () => {
         this.service
-          .deleteGenreByid(this.genre().id)
+          .deleteGenreById(this.genre().id!)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {

@@ -57,7 +57,9 @@ export class UpdateGenreComponent {
     });
   }
 
-  setGenre(genre: Genre) {
+  protected setGenre(genre: Genre): void {
+    console.log('UpdateGenreComponent ontvangt genre:', genre);
+
     this.genreForm.patchValue({
       name: genre.name,
       color: genre.color,
@@ -77,8 +79,14 @@ export class UpdateGenreComponent {
   }
 
   protected onSubmit(): void {
-    if (this.genreForm.invalid || !this.genre()) {
+    if (this.genreForm.invalid || !this.genre() || this.genre()!.id == null) {
       this.genreForm.markAllAsTouched();
+      this.errors.set([
+        {
+          message:
+            'Het genre-id ontbreekt. Vernieuw de pagina en probeer opnieuw.',
+        },
+      ]);
       return;
     }
 
@@ -90,6 +98,9 @@ export class UpdateGenreComponent {
       color: formValue.color ?? '',
       description: formValue.description ?? '',
     };
+
+    console.log('this.genre() vóór update:', this.genre());
+    console.log('genreData vóór update:', genreData);
 
     this.service
       .updateGenre(genreData)
