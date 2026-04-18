@@ -6,6 +6,7 @@ import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.ReviewDTO;
 import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
@@ -64,6 +65,9 @@ class ReviewControllerTest {
 
     @MockBean
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
+
+    @MockBean
+    private AdminOverrideService adminOverrideService;
 
     @Test
     @DisplayName("givenValidBookId whenGetReviewsForBook thenReturn200AndReviewList")

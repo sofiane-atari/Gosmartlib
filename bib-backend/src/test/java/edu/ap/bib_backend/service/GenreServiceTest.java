@@ -99,13 +99,19 @@ class GenreServiceTest {
         }
 
         @Test
-        void givenValidInput_whenCreateGenre_thenCreateSuccessfully() {
+                void givenValidInput_whenCreateGenre_thenCreateSuccessfully() {
                 // Arrange
-                GenreDTO dto = GenreDTO.builder().name("Fiction").color("#FF0000").description("Fiction books").build();
+                GenreDTO dto = GenreDTO.builder()
+                        .name("Fiction")
+                        .color("#FF0000")
+                        .description("Fiction books")
+                        .build();
+
                 Genre entity = new Genre("Fiction", "#FF0000", "Fiction books");
 
                 when(genreRepository.existsByName("Fiction")).thenReturn(false);
                 when(genreMapper.toEntity(dto)).thenReturn(entity);
+                when(genreRepository.save(entity)).thenReturn(entity);
                 when(genreMapper.toDto(entity)).thenReturn(dto);
 
                 // Act
