@@ -26,19 +26,18 @@ import edu.ap.bib_backend.projection.GenreProjection;
 
 @Service
 public class GenreService {
-    private final ReviewRepository reviewRepository;
+
     private final GenreRepository genreRepository;
     private final GenreMapper genreMapper;
 
-    public GenreService(GenreRepository genreRepository, GenreMapper genreMapper, ReviewRepository reviewRepository) {
+    public GenreService(GenreRepository genreRepository, GenreMapper genreMapper) {
         this.genreRepository = genreRepository;
         this.genreMapper = genreMapper;
-        this.reviewRepository = reviewRepository;
     }
 
     @Transactional
     public GenreDTO createGenre(GenreDTO genreDTO) {
-        if (genreRepository.existsById(genreDTO.name())) {
+        if (genreRepository.existsByName(genreDTO.name())) {
             throw new ResourceAlreadyExistsException("name", genreDTO.name(),
                     "Genre met de naam '" + genreDTO.name() + "' bestaat al.");
         }
@@ -59,7 +58,7 @@ public class GenreService {
                     options.getBookCount(),
                     pageable);
         } else if (!options.getSearch().isBlank()) {
-            genres = genreRepository.searchByNamerOrDescriptionOrColor(options.getSearch(), pageable);
+            genres = genreRepository.searchByNameOrDescriptionOrColor(options.getSearch(), pageable);
         } else {
             genres = genreRepository.findAll(pageable);
         }
@@ -77,20 +76,32 @@ public class GenreService {
                 .toList();
     }
 
+
     @Transactional
-    public GenreDTO updateGenre(String name, GenreDTO inputDTO) {
+    public GenreDTO update(Long id, GenreDTO inputDTO) {
+        Genre genre = genreRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.valueOf(id),
+                        "Dit genre bestaat niet en kan niet gewijzigd worden"
+                ));
 
-        Genre genre = genreRepository.findById(name)
-                .orElseThrow(() -> new ResourceNotFoundException(name,
-                        "Deze genre bestaat niet en kan niet gewijzigd worden"));
+        boolean nameChanged = !genre.getName().equals(inputDTO.name());
 
+        if (nameChanged && genreRepository.existsByName(inputDTO.name())) {
+            throw new ResourceAlreadyExistsException(
+                    "name",
+                    inputDTO.name(),
+                    "Genre met de naam '" + inputDTO.name() + "' bestaat al."
+            );
+        }
+
+        genre.setName(inputDTO.name());
         genre.setColor(inputDTO.color());
         genre.setDescription(inputDTO.description());
 
-        Genre saved = genreRepository.save(genre);
-        GenreDTO outputDTO = genreMapper.toDto(saved);
+        Genre savedGenre = genreRepository.save(genre);
 
-        return outputDTO;
+        return genreMapper.toDto(savedGenre);
     }
 
     public GenreStatsDTO getAllGenreStats() {
@@ -103,27 +114,13 @@ public class GenreService {
     }
 
     @Transactional
-    public void deleteById(String name) {
-        Genre genre = genreRepository.findById(name)
-                .orElseThrow(() -> new ResourceNotFoundException(name,
+    public void deleteById(Long id) {
+        Genre genre = genreRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(String.valueOf(id),
                         "Deze genre bestaat niet en kan niet verwijderd worden"));
 
-        genreRepository.deleteById(genre.getName());
+        genreRepository.deleteById(genre.getId());
     }
 
-    @Transactional
-    public GenreDTO update(String name, GenreDTO inputDTO) {
-
-        Genre genre = genreRepository.findById(name)
-                .orElseThrow(() -> new ResourceNotFoundException(name,
-                        "Deze genre bestaat niet en kan niet gewijzigd worden"));
-
-        genre.setColor(inputDTO.color());
-        genre.setDescription(inputDTO.description());
-
-        Genre saved = genreRepository.save(genre);
-        GenreDTO outputDTO = genreMapper.toDto(saved);
-
-        return outputDTO;
-    }
+    
 }

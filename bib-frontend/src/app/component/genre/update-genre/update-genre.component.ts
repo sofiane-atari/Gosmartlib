@@ -40,10 +40,9 @@ export class UpdateGenreComponent {
 
   protected errors = signal<DisplayError[]>([]);
   protected success = signal('');
-  protected originalName = '';
 
   genreForm = this.formBuilder.group({
-    name: [{ value: '', disabled: true }, Validators.required],
+    name: ['', Validators.required],
     color: ['', Validators.required],
     description: [''],
   });
@@ -59,7 +58,6 @@ export class UpdateGenreComponent {
   }
 
   setGenre(genre: Genre) {
-    this.originalName = genre.name;
     this.genreForm.patchValue({
       name: genre.name,
       color: genre.color,
@@ -78,15 +76,19 @@ export class UpdateGenreComponent {
     this.genreForm.reset();
   }
 
-  protected onSubmit() {
-    if (this.genreForm.invalid) {
+  protected onSubmit(): void {
+    if (this.genreForm.invalid || !this.genre()) {
+      this.genreForm.markAllAsTouched();
       return;
     }
 
+    const formValue = this.genreForm.getRawValue();
+
     const genreData: Genre = {
-      name: this.genre()!.name,
-      color: this.genreForm.value.color!,
-      description: this.genreForm.value.description || '',
+      id: this.genre()!.id,
+      name: formValue.name ?? '',
+      color: formValue.color ?? '',
+      description: formValue.description ?? '',
     };
 
     this.service

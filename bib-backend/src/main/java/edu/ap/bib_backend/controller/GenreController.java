@@ -71,16 +71,16 @@ public class GenreController {
     }
 
     @DeleteMapping("/{name}")
-    public ResponseEntity<Void> delete(@PathVariable String name) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
 
-        genreService.deleteById(name);
+        genreService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{name}")
-    public ResponseEntity<GenreDTO> putMethodName(@PathVariable String name, @Valid @RequestBody GenreDTO inputDTO) {
+    public ResponseEntity<GenreDTO> updateGenre(@PathVariable Long id, @Valid @RequestBody GenreDTO inputDTO) {
 
-        GenreDTO outputDTO = genreService.update(name, inputDTO);
+        GenreDTO outputDTO = genreService.update(id, inputDTO);
         return ResponseEntity.ok(outputDTO);
     }
 }

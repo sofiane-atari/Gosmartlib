@@ -7,6 +7,8 @@ import edu.ap.bib_backend.annotation.HexColor;
 import edu.ap.bib_backend.projection.GenreProjection;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
@@ -23,7 +25,10 @@ import lombok.Setter;
 public class Genre implements GenreProjection {
 
     @Id
-    @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
     @NotBlank
     private String name;
 

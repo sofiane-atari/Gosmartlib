@@ -10,6 +10,8 @@ import edu.ap.bib_backend.projection.GenreProjection;
 @Mapper(componentModel = "spring")
 public interface GenreMapper {
 
+    GenreDTO toDto(Genre genre);
+
     GenreDTO toDto(GenreProjection genre);
 
     Genre toEntity(GenreDTO dto);

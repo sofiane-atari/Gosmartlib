@@ -11,8 +11,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface GenreRepository extends JpaRepository<Genre, String> {
+public interface GenreRepository extends JpaRepository<Genre, Long> {
+
         Optional<Genre> findByName(String name);
+
+        boolean existsByName(String name);
 
         Page<Genre> findAll(Pageable pageable);
 
@@ -42,6 +45,6 @@ public interface GenreRepository extends JpaRepository<Genre, String> {
                         "OR l.color LIKE %:search% ", countQuery = "SELECT COUNT(l) FROM Genre l WHERE l.name LIKE %:search% "
                                         +
                                         "OR l.description LIKE %:search% OR l.color LIKE %:search%")
-        Page<Genre> searchByNamerOrDescriptionOrColor(@Param("search") String search,
+        Page<Genre> searchByNameOrDescriptionOrColor(@Param("search") String search,
                         Pageable pageable);
 }

@@ -1,10 +1,4 @@
-import {
-  Component,
-  input,
-  output,
-  inject,
-  DestroyRef,
-} from '@angular/core';
+import { Component, input, output, inject, DestroyRef } from '@angular/core';
 import { Genre } from '../../../model/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -30,20 +24,21 @@ export class GenreCardComponent {
   private destroyRef = inject(DestroyRef);
   private toastService = inject(ToastService);
 
-  onEdit() {
+  protected onEdit(): void {
     this.editGenre.emit(this.genre());
   }
-  onDelete() {
+
+  protected onDelete(): void {
     this.toastService.showConfirm(
       'Weet je zeker dat je deze genre wilt verwijderen?',
       () => {
         this.service
-          .deleteGenreByName(this.genre().name)
+          .deleteGenreByid(this.genre().id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {
               this.deletedSuccess.emit(
-                `de genre met de naam: ${this.genre().name} is verwijderd`,
+                `Het genre met de naam: ${this.genre().name} is verwijderd`,
               );
             },
             error: (err: HttpErrorResponse) =>

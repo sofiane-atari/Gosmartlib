@@ -3,7 +3,7 @@ import {
   Component,
   computed,
   inject,
-  signal
+  signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,7 +21,7 @@ import { Genre } from '../../../model/genre.model';
   imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './book-edit-page.component.html',
   styleUrl: './book-edit-page.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookEditPageComponent {
   private readonly formBuilder = inject(FormBuilder);
@@ -48,11 +48,16 @@ export class BookEditPageComponent {
     pages: [1, [Validators.required, Validators.min(1)]],
     imageUrl: ['', [Validators.maxLength(1000)]],
     description: ['', [Validators.required, Validators.maxLength(5000)]],
-    releaseYear: [new Date().getFullYear(), [Validators.required, Validators.min(0)]]
+    releaseYear: [
+      new Date().getFullYear(),
+      [Validators.required, Validators.min(0)],
+    ],
   });
 
   protected readonly isSubmitDisabled = computed(() => {
-    return this.form.invalid || this.isSaving() || this.selectedGenres().length === 0;
+    return (
+      this.form.invalid || this.isSaving() || this.selectedGenres().length === 0
+    );
   });
 
   protected readonly selectedGenres = signal<Genre[]>([]);
@@ -79,10 +84,11 @@ export class BookEditPageComponent {
       error: () => {
         this.errorMessage.set('Genres konden niet geladen worden.');
         this.toastService.show('Genres konden niet geladen worden.', 'error');
-      }
+      },
     });
 
-    this.bookService.getBookById(bookId)
+    this.bookService
+      .getBookById(bookId)
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (book) => {
@@ -96,27 +102,31 @@ export class BookEditPageComponent {
             pages: book.pages,
             imageUrl: book.imageUrl,
             description: book.description,
-            releaseYear: book.releaseYear
+            releaseYear: book.releaseYear,
           });
         },
         error: () => {
           this.errorMessage.set('Boek kon niet geladen worden.');
           this.toastService.show('Boek kon niet geladen worden.', 'error');
-        }
+        },
       });
   }
 
   protected isGenreSelected(genre: Genre): boolean {
-    return this.selectedGenres().some(selected => selected.name === genre.name);
+    return this.selectedGenres().some(
+      (selected) => selected.name === genre.name,
+    );
   }
 
   protected toggleGenre(genre: Genre): void {
     const currentGenres = this.selectedGenres();
-    const alreadySelected = currentGenres.some(selected => selected.name === genre.name);
+    const alreadySelected = currentGenres.some(
+      (selected) => selected.name === genre.name,
+    );
 
     if (alreadySelected) {
       this.selectedGenres.set(
-        currentGenres.filter(selected => selected.name !== genre.name)
+        currentGenres.filter((selected) => selected.name !== genre.name),
       );
       return;
     }
@@ -125,9 +135,16 @@ export class BookEditPageComponent {
   }
 
   protected save(): void {
-    if (this.form.invalid || this.selectedGenres().length === 0 || this.isSaving()) {
+    if (
+      this.form.invalid ||
+      this.selectedGenres().length === 0 ||
+      this.isSaving()
+    ) {
       this.form.markAllAsTouched();
-      this.toastService.show('Controleer eerst alle verplichte velden en kies minstens één genre.', 'error');
+      this.toastService.show(
+        'Controleer eerst alle verplichte velden en kies minstens één genre.',
+        'error',
+      );
       return;
     }
 
@@ -153,16 +170,18 @@ export class BookEditPageComponent {
       imageUrl: formValue.imageUrl.trim(),
       description: formValue.description.trim(),
       releaseYear: formValue.releaseYear,
-      genres: this.selectedGenres().map(genre => ({
-      name: genre.name,
-      color: genre.color,
-      description: genre.description
-    }))
-  };
+      genres: this.selectedGenres().map((genre) => ({
+        id: genre.id,
+        name: genre.name,
+        color: genre.color,
+        description: genre.description,
+      })),
+    };
 
     console.log('Sending updated book:', updatedBook);
 
-    this.bookService.updateBook(existingBook.id, updatedBook)
+    this.bookService
+      .updateBook(existingBook.id, updatedBook)
       .pipe(finalize(() => this.isSaving.set(false)))
       .subscribe({
         next: (book) => {
@@ -170,10 +189,11 @@ export class BookEditPageComponent {
           this.toastService.show('Boek succesvol opgeslagen.', 'success');
         },
         error: (err) => {
-          const backendMessage = err?.error?.error?.message ?? 'Het boek opslaan is mislukt.';
+          const backendMessage =
+            err?.error?.error?.message ?? 'Het boek opslaan is mislukt.';
           this.errorMessage.set(backendMessage);
           this.toastService.show(backendMessage, 'error');
-        }
+        },
       });
   }
 }

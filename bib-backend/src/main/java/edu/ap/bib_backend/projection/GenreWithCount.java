@@ -1,6 +1,10 @@
 package edu.ap.bib_backend.projection;
 
 public interface GenreWithCount extends GenreProjection {
+
+    @Override
+    Long getId();
+    
     String getName();
 
     String getColor();
