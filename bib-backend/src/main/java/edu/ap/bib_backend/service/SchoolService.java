@@ -1,11 +1,13 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SchoolService {
@@ -20,6 +22,35 @@ public class SchoolService {
         return schoolRepository.findAll(Sort.by("name").ascending()).stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    @Transactional
+    public SchoolDTO createSchool(SchoolDTO schoolDTO) {
+        String normalizedDomainName = schoolDTO.domainName().trim().toLowerCase();
+        String normalizedName = schoolDTO.name().trim();
+
+        if (schoolRepository.existsByDomainNameIgnoreCase(normalizedDomainName)) {
+            throw new ResourceAlreadyExistsException(
+                    "domainName",
+                    normalizedDomainName,
+                    "School met domeinnaam '" + normalizedDomainName + "' bestaat al.");
+        }
+
+        if (schoolRepository.existsByNameIgnoreCase(normalizedName)) {
+            throw new ResourceAlreadyExistsException(
+                    "name",
+                    normalizedName,
+                    "School met naam '" + normalizedName + "' bestaat al.");
+        }
+
+        School school = new School();
+        school.setDomainName(normalizedDomainName);
+        school.setName(normalizedName);
+        school.setAdres(schoolDTO.address().trim());
+        school.setPostalCode(schoolDTO.postalCode());
+
+        School savedSchool = schoolRepository.save(school);
+        return toDto(savedSchool);
     }
 
     private SchoolDTO toDto(School school) {

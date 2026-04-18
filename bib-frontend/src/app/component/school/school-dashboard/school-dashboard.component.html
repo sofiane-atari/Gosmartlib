@@ -4,7 +4,16 @@
       <h1>Schoolbeheer</h1>
       <p>Overzicht van scholen en domeinen voor platformkoppelingen</p>
     </div>
+
+    <button type="button" class="btn-new" (click)="openCreateModal()">
+      <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
+      School toevoegen
+    </button>
   </div>
+
+  @if (successMessage()) {
+    <div class="success-message">{{ successMessage() }}</div>
+  }
 
   @if (errorMessage()) {
     <div class="error-message">{{ errorMessage() }}</div>
@@ -53,5 +62,54 @@
         </article>
       }
     </section>
+  }
+
+  @if (isCreateModalOpen()) {
+    <div class="modal-overlay" (click)="closeCreateModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Nieuwe school toevoegen</h2>
+
+        <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
+          <div class="modal-field">
+            <label for="domainName">Domeinnaam</label>
+            <input id="domainName" type="text" formControlName="domainName" placeholder="bijv. school.be" />
+            @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
+              <small class="field-inline-error">Domeinnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="name">Schoolnaam</label>
+            <input id="name" type="text" formControlName="name" placeholder="bijv. AP Hogeschool" />
+            @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
+              <small class="field-inline-error">Schoolnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="address">Adres</label>
+            <input id="address" type="text" formControlName="address" placeholder="Straat en nummer" />
+            @if (schoolForm.controls.address.invalid && schoolForm.controls.address.touched) {
+              <small class="field-inline-error">Adres is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="postalCode">Postcode</label>
+            <input id="postalCode" type="number" formControlName="postalCode" placeholder="bijv. 2000" />
+            @if (schoolForm.controls.postalCode.invalid && schoolForm.controls.postalCode.touched) {
+              <small class="field-inline-error">Postcode moet groter zijn dan 0.</small>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeCreateModal()">Annuleren</button>
+            <button type="submit" class="btn-save" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Toevoegen...' : 'Opslaan' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   }
 </div>
