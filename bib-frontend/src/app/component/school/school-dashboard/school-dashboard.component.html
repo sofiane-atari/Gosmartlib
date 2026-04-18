@@ -1,0 +1,57 @@
+<div class="school-dashboard">
+  <div class="school-dashboard__header">
+    <div>
+      <h1>Schoolbeheer</h1>
+      <p>Overzicht van scholen en domeinen voor platformkoppelingen</p>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-message">{{ errorMessage() }}</div>
+  }
+
+  <div class="school-dashboard__stats">
+    <article class="stat-card">
+      <div class="stat-card__icon stat-card__icon--main">
+        <lucide-icon [name]="SchoolIcon" class="icon-lg"></lucide-icon>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ totalSchools() }}</div>
+        <div class="stat-card__label">Totaal scholen</div>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-card__icon stat-card__icon--alt">
+        <lucide-icon [name]="Building" class="icon-lg"></lucide-icon>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ schools().length }}</div>
+        <div class="stat-card__label">Actieve records</div>
+      </div>
+    </article>
+  </div>
+
+  @if (isLoading()) {
+    <section class="state-panel">
+      <p>Scholen laden...</p>
+    </section>
+  } @else if (schools().length === 0) {
+    <section class="state-panel state-panel--empty">
+      <p>Nog geen scholen geconfigureerd.</p>
+    </section>
+  } @else {
+    <section class="school-list">
+      @for (school of schools(); track school.domainName) {
+        <article class="school-card">
+          <div class="school-card__content">
+            <h2>{{ school.name }}</h2>
+            <p class="school-card__meta"><strong>Domein:</strong> {{ school.domainName }}</p>
+            <p class="school-card__meta"><strong>Adres:</strong> {{ school.address }}</p>
+            <p class="school-card__meta"><strong>Postcode:</strong> {{ school.postalCode }}</p>
+          </div>
+        </article>
+      }
+    </section>
+  }
+</div>

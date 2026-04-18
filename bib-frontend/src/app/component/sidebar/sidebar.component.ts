@@ -20,6 +20,7 @@ import {
   LogOut,
   User,
   School,
+  Shield,
 } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
@@ -36,6 +37,7 @@ export class SidebarComponent {
   readonly UserIcon = User;
   readonly RotateCcwIcon = RotateCcw;
   readonly LogOutIcon = LogOut;
+  readonly ShieldIcon = Shield;
 
   public readonly authService = inject(AuthService);
   private readonly roleService = inject(RoleService);
@@ -46,10 +48,24 @@ export class SidebarComponent {
   // Output for closing sidebar on mobile
   public sidebarClosed = output<void>();
 
-  public constructor(private readonly router: Router) {}
+  public constructor(private readonly router: Router) {
+    void [this.ShieldIcon, this.isAdminOverrideVisible, this.adminOverrideLabel, this.toggleAdminOverride];
+  }
 
   protected readonly currentUser = computed<AuthUserDto | null>(() =>
     this.authService.currentUser()
+  );
+
+  protected readonly isAdminOverrideVisible = computed(() =>
+    this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser()
+  );
+
+  protected readonly isAdminOverrideEnabled = computed(
+    () => this.authService.adminOverrideStatus()?.enabled ?? false
+  );
+
+  protected readonly adminOverrideLabel = computed(() =>
+    this.isAdminOverrideEnabled() ? 'Admin uit (test)' : 'Admin aan (test)'
   );
 
   menuItems = [
@@ -63,10 +79,14 @@ export class SidebarComponent {
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
     { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
     { icon: Tag, label: 'Genrebeheer', route: '/genre' },
-    { icon: School, label: 'Schoolbeheer', route: '/scholen' },
+    { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
     { icon: Book, label: 'Boekbeheer', route: '/books-management' },
   ];
 
+  protected readonly visibleMenuItems = computed(() => {
+    const isAdmin = this.roleService.isAdmin();
+    return this.menuItems.filter((item) => !item.adminOnly || isAdmin);
+  });
 
   protected readonly userDisplayName = computed(() => {
     const user = this.currentUser();
@@ -104,6 +124,10 @@ export class SidebarComponent {
     }
   }
 
+  public toggleAdminOverride(): void {
+    const enable = !this.isAdminOverrideEnabled();
+    this.authService.setAdminOverride(enable);
+  }
 
   private getRoleLabel(role: Role | undefined): string {
     switch (role) {

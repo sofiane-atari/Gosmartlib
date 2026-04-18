@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.dto.ReadingListDTO;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.service.ReadingListService;
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.oneroster.OneRosterAudienceService;
 
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,9 @@ class ReadingListControllerTest {
 
     @MockitoBean
     private edu.ap.bib_backend.service.JwtService jwtService;
+
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
 
     @MockitoBean
     private OneRosterAudienceService oneRosterAudienceService;

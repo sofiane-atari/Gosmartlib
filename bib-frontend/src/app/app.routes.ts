@@ -18,6 +18,7 @@ import { SmartschoolCallbackComponent } from './component/login-profile/smartsch
 // Guards
 import { authGuard, publicOnlyGuard } from './guards/authentication/auth.guard';
 import { teacherOnlyGuard } from './guards/authentication/teacher-only.guard';
+import { adminOnlyGuard } from './guards/authentication/admin-only.guard';
 import { reviewModerationGuard } from './guards/review/review-moderation.guard';
 import { Routes } from '@angular/router';
 
@@ -30,6 +31,7 @@ import { ReadingListOverviewComponent } from './component/reading-list/reading-l
 import { CreateReadingListComponent } from './component/reading-list/create-reading-list/create-reading-list.component';
 import { CreateTeacherReadingListComponent } from './component/reading-list/create-teacher-reading-list/create-teacher-reading-list.component';
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
+import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -93,6 +95,11 @@ export const routes: Routes = [
     path: 'loans/create',
     component: CreateLoanComponent,
     canActivate: [authGuard]
+  },
+  {
+    path: 'scholen',
+    component: SchoolDashboardComponent,
+    canActivate: [authGuard, adminOnlyGuard],
   },
   { path: '**', redirectTo: '/catalog' },
 
