@@ -23,6 +23,7 @@ import {
   Shield,
 } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
+import { RoleService } from '../../services/role-service/role.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -39,6 +40,7 @@ export class SidebarComponent {
   readonly ShieldIcon = Shield;
 
   public readonly authService = inject(AuthService);
+  private readonly roleService = inject(RoleService);
 
   // Input for mobile state
   public mobileOpen = input<boolean>(false);
@@ -77,9 +79,14 @@ export class SidebarComponent {
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
     { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
     { icon: Tag, label: 'Genrebeheer', route: '/genre' },
-    { icon: School, label: 'Schoolbeheer', route: '/scholen' },
+    { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
     { icon: Book, label: 'Boekbeheer', route: '/books-management' },
   ];
+
+  protected readonly visibleMenuItems = computed(() => {
+    const isAdmin = this.roleService.isAdmin();
+    return this.menuItems.filter((item) => !item.adminOnly || isAdmin);
+  });
 
   protected readonly userDisplayName = computed(() => {
     const user = this.currentUser();

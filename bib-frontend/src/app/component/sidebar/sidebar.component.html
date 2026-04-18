@@ -21,7 +21,7 @@
   </div>
 
   <nav class="sidebar-nav">
-    @for (item of menuItems; track $index) {
+    @for (item of visibleMenuItems(); track $index) {
         <div class="menu-wrapper" >
             @if ($index === 5) {
                 <div class="divider"></div>

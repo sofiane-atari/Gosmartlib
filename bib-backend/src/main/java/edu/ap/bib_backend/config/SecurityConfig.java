@@ -98,6 +98,9 @@ public class SecurityConfig {
                                                 .hasAnyRole(Role.STUDENT.name(), Role.LIBRARIAN.name(),
                                                                 Role.ADMIN.name())
 
+                                                .requestMatchers("/schools/**")
+                                                .hasRole(Role.ADMIN.name())
+
                                                 .anyRequest().authenticated())
 
                                 // OAuth2 login (Smartschool)

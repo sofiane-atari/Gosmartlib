@@ -4,7 +4,6 @@ import edu.ap.bib_backend.dto.AdminOverrideRequestDto;
 import edu.ap.bib_backend.dto.AdminOverrideStatusDto;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
