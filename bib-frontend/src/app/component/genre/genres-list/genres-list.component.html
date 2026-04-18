@@ -8,7 +8,7 @@
   </div>
 
   <div class="labels-list__content">
-    @for (genre of genres(); track genre.id) {
+    @for (genre of genres(); track $index) {
       <app-genre-card
         [genre]="genre"
         (deletionError)="deletionError.emit($event)"

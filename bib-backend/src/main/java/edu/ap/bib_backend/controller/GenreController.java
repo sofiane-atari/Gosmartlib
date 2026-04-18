@@ -37,18 +37,19 @@ public class GenreController {
 
     @PostMapping
     public ResponseEntity<GenreDTO> createGenre(@Valid @RequestBody GenreDTO entity) {
-
         GenreDTO createdGenre = genreService.createGenre(entity);
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{name}")
-                .buildAndExpand(createdGenre.name()).toUri();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createdGenre.id())
+                .toUri();
 
         return ResponseEntity.created(location).body(createdGenre);
     }
 
     @GetMapping
     public ResponseEntity<PageDTO<GenreDTO>> getPage(
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @ModelAttribute GenreGetOptions options) {
 
@@ -64,20 +65,20 @@ public class GenreController {
 
     // params starting with underscore are preserved params to avoid conflict of a
     // entity with the same name
-    @GetMapping("_stats")
+    @GetMapping("/_stats")
     public ResponseEntity<GenreStatsDTO> getGenreStats() {
 
         return ResponseEntity.ok(genreService.getAllGenreStats());
     }
 
-    @DeleteMapping("/{name}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
 
         genreService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{name}")
+    @PutMapping("/{id}")
     public ResponseEntity<GenreDTO> updateGenre(@PathVariable Long id, @Valid @RequestBody GenreDTO inputDTO) {
 
         GenreDTO outputDTO = genreService.update(id, inputDTO);

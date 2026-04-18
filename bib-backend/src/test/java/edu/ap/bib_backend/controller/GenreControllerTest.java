@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -14,6 +16,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.ap.bib_backend.TestSecurityConfig;
+import edu.ap.bib_backend.config.JwtAuthenticationFilter;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.GenreStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
@@ -22,6 +25,7 @@ import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.options.GenreGetOptions;
 import edu.ap.bib_backend.service.GenreService;
 import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -42,7 +46,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @WebMvcTest(GenreController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(TestSecurityConfig.class)
+@TestPropertySource(properties = "APP_CORS_ALLOWED_ORIGINS=http://localhost:4200")
 class GenreControllerTest {
 
     @Autowired
@@ -59,6 +65,12 @@ class GenreControllerTest {
 
     @MockitoBean
     private TokenStorageService tokenStorageService;
+
+    @MockitoBean
+    private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
+
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // -------------------------------------------------------
     // POST /api/genres - createGenre
@@ -87,24 +99,31 @@ class GenreControllerTest {
     @Test
     void givenValidBody_whenCreateGenre_thenReturn201WithLocationHeader() throws Exception {
         // Arrange
-        GenreDTO requestBody = GenreDTO.builder().name("urgent").color("#FF0001")
-                .description("High priority tasks").build();
-        GenreDTO createdGenre = GenreDTO.builder().name("urgent").color("#FF0001")
-                .description("High priority tasks").build();
+        GenreDTO requestBody = GenreDTO.builder()
+                .name("urgent")
+                .color("#FF0001")
+                .description("High priority tasks")
+                .build();
+
+        GenreDTO createdGenre = GenreDTO.builder()
+                .id(1L)
+                .name("urgent")
+                .color("#FF0001")
+                .description("High priority tasks")
+                .build();
 
         given(genreService.createGenre(any(GenreDTO.class)))
                 .willReturn(createdGenre);
 
         // Act
-
         ResultActions result = mockMvc.perform(post("/genres")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody)));
 
         // Assert
-        result
-                .andExpect(status().isCreated())
-                .andExpect(header().string("Location", containsString("/genres/urgent")))
+        result.andExpect(status().isCreated())
+                .andExpect(header().string("Location", containsString("/genres/1")))
+                .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("urgent"))
                 .andExpect(jsonPath("$.description").value("High priority tasks"))
                 .andExpect(jsonPath("$.color").value("#FF0001"));
@@ -147,7 +166,7 @@ class GenreControllerTest {
     }
 
     @Test
-    void givenServiceThrows_whenCreateGenre_thenReturn501() throws Exception {
+    void givenServiceThrows_whenCreateGenre_thenReturn500() throws Exception {
         // Arrange
         GenreDTO requestBody = GenreDTO.builder().name("urgent").color("#FF0001").build();
 
@@ -361,66 +380,51 @@ class GenreControllerTest {
     // DELETE /genres/{name} - delete
     // -------------------------------------------------------
     @Test
-    void givenExistingGenreName_whenDelete_thenReturn204() throws Exception {
+    void givenExistingGenreId_whenDelete_thenReturn204() throws Exception {
         // Arrange
-        String genreName = "Fiction";
+        Long genreId = 1L;
 
-        doNothing().when(genreService).deleteById(genreName);
+        doNothing().when(genreService).deleteById(genreId);
 
         // Act
-        ResultActions result = mockMvc.perform(delete("/genres/{name}", genreName));
+        ResultActions result = mockMvc.perform(delete("/genres/{id}", genreId));
 
         // Assert
         result.andExpect(status().isNoContent());
-        then(genreService).should(times(1)).deleteById(genreName);
-    }
+        then(genreService).should(times(1)).deleteById(genreId);
+        }
 
     @Test
-    void givenNonExistingGenreName_whenDelete_thenReturn404() throws Exception {
+        void givenNonExistingGenreId_whenDelete_thenReturn404() throws Exception {
         // Arrange
-        String genreName = "NonExistent";
+        Long genreId = 999L;
 
-        doThrow(new ResourceNotFoundException(genreName, "Genre not found"))
-                .when(genreService).deleteById(genreName);
+        doThrow(new ResourceNotFoundException(String.valueOf(genreId), "Genre not found"))
+                .when(genreService).deleteById(genreId);
 
         // Act
-
-        ResultActions result = mockMvc.perform(delete("/genres/{name}", genreName));
+        ResultActions result = mockMvc.perform(delete("/genres/{id}", genreId));
 
         // Assert
         result.andExpect(status().isNotFound());
-        then(genreService).should(times(1)).deleteById(genreName);
-    }
+        then(genreService).should(times(1)).deleteById(genreId);
+        }
 
-    @Test
-    void givenGenreNameWithSpecialCharacters_whenDelete_thenReturn204() throws Exception {
-        // Arrange - Use a simple name without URL encoding issues
-        String genreName = "Science_Fiction";
-
-        doNothing().when(genreService).deleteById(genreName);
-
-        // Act
-        ResultActions result = mockMvc.perform(delete("/genres/{name}", genreName));
-
-        // Assert
-        result.andExpect(status().isNoContent());
-        then(genreService).should(times(1)).deleteById(genreName);
-    }
-
+    
     @Test
     void givenDeleteError_whenDelete_thenReturn500() throws Exception {
         // Arrange
-        String genreName = "Fiction";
+        Long genreId = 1L;
 
         doThrow(new RuntimeException("Database error"))
-                .when(genreService).deleteById(genreName);
+                .when(genreService).deleteById(genreId);
 
         // Act
-        ResultActions result = mockMvc.perform(delete("/genres/{name}", genreName));
+        ResultActions result = mockMvc.perform(delete("/genres/{id}", genreId));
 
         // Assert
         result.andExpect(status().isInternalServerError());
-    }
+        }
 
     // -------------------------------------------------------
     // PUT /genres/{name} - updateGenre
@@ -428,129 +432,148 @@ class GenreControllerTest {
     @Test
     void givenValidBody_whenUpdateGenre_thenReturn200() throws Exception {
         // Arrange
-        String genreName = "Fiction";
+        Long genreId = 1L;
+
         GenreDTO requestBody = GenreDTO.builder()
-                .name(genreName)
-                .color("#00FF00")
-                .description("Updated fiction description")
-                .build();
-        GenreDTO updatedGenre = GenreDTO.builder()
-                .name(genreName)
+                .id(genreId)
+                .name("Fiction")
                 .color("#00FF00")
                 .description("Updated fiction description")
                 .build();
 
-        when(genreService.update(eq(genreName), any(GenreDTO.class))).thenReturn(updatedGenre);
+        GenreDTO updatedGenre = GenreDTO.builder()
+                .id(genreId)
+                .name("Fiction")
+                .color("#00FF00")
+                .description("Updated fiction description")
+                .build();
+
+        when(genreService.update(eq(genreId), any(GenreDTO.class))).thenReturn(updatedGenre);
 
         // Act
-        ResultActions result = mockMvc.perform(put("/genres/{name}", genreName)
+        ResultActions result = mockMvc.perform(put("/genres/{id}", genreId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody)));
 
         // Assert
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(genreName))
+                .andExpect(jsonPath("$.id").value(genreId))
+                .andExpect(jsonPath("$.name").value("Fiction"))
                 .andExpect(jsonPath("$.color").value("#00FF00"))
                 .andExpect(jsonPath("$.description").value("Updated fiction description"));
-        then(genreService).should(times(1)).update(eq(genreName), any(GenreDTO.class));
-    }
+
+        then(genreService).should(times(1)).update(eq(genreId), any(GenreDTO.class));
+        }
 
     @Test
-    void givenNonExistingGenre_whenUpdateGenre_thenReturn404() throws Exception {
+    void givenNonExistingGenreId_whenUpdateGenre_thenReturn404() throws Exception {
         // Arrange
-        String genreName = "NonExistent";
+        Long genreId = 999L;
+
         GenreDTO requestBody = GenreDTO.builder()
-                .name(genreName)
+                .id(genreId)
+                .name("NonExistent")
                 .color("#00FF00")
                 .description("Some description")
                 .build();
 
-        when(genreService.update(eq(genreName), any(GenreDTO.class)))
-                .thenThrow(new ResourceNotFoundException(genreName, "Genre not found"));
+        when(genreService.update(eq(genreId), any(GenreDTO.class)))
+                .thenThrow(new ResourceNotFoundException(String.valueOf(genreId), "Genre not found"));
 
         // Act
-        ResultActions result = mockMvc.perform(put("/genres/{name}", genreName)
+        ResultActions result = mockMvc.perform(put("/genres/{id}", genreId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody)));
 
         // Assert
         result.andExpect(status().isNotFound());
-        then(genreService).should(times(1)).update(eq(genreName), any(GenreDTO.class));
-    }
+        then(genreService).should(times(1)).update(eq(genreId), any(GenreDTO.class));
+        }
 
     @Test
     void givenServiceThrows_whenUpdateGenre_thenReturn500() throws Exception {
         // Arrange
-        String genreName = "Fiction";
+        Long genreId = 1L;
+
         GenreDTO requestBody = GenreDTO.builder()
-                .name(genreName)
+                .id(genreId)
+                .name("Fiction")
                 .color("#00FF00")
                 .description("Updated description")
                 .build();
 
-        when(genreService.update(eq(genreName), any(GenreDTO.class)))
+        when(genreService.update(eq(genreId), any(GenreDTO.class)))
                 .thenThrow(new RuntimeException("Unexpected error"));
 
         // Act
-        ResultActions result = mockMvc.perform(put("/genres/{name}", genreName)
+        ResultActions result = mockMvc.perform(put("/genres/{id}", genreId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody)));
 
         // Assert
         result.andExpect(status().isInternalServerError())
                 .andExpect(r -> assertInstanceOf(RuntimeException.class, r.getResolvedException()));
-    }
+        }
 
     @Test
     void givenValidRequest_whenUpdateGenre_thenCallServiceOnce() throws Exception {
         // Arrange
-        String genreName = "Science";
+        Long genreId = 2L;
+
         GenreDTO requestBody = GenreDTO.builder()
-                .name(genreName)
-                .color("#0000FF")
-                .description("Science books")
-                .build();
-        GenreDTO updatedGenre = GenreDTO.builder()
-                .name(genreName)
+                .id(genreId)
+                .name("Science")
                 .color("#0000FF")
                 .description("Science books")
                 .build();
 
-        when(genreService.update(eq(genreName), any(GenreDTO.class))).thenReturn(updatedGenre);
+        GenreDTO updatedGenre = GenreDTO.builder()
+                .id(genreId)
+                .name("Science")
+                .color("#0000FF")
+                .description("Science books")
+                .build();
+
+        when(genreService.update(eq(genreId), any(GenreDTO.class))).thenReturn(updatedGenre);
 
         // Act
-        mockMvc.perform(put("/genres/{name}", genreName)
+        mockMvc.perform(put("/genres/{id}", genreId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody)));
 
         // Assert
-        then(genreService).should(times(1)).update(eq(genreName), any(GenreDTO.class));
-    }
+        then(genreService).should(times(1)).update(eq(genreId), any(GenreDTO.class));
+        }
 
     @Test
     void givenUpdateWithNullDescription_whenUpdateGenre_thenReturn200() throws Exception {
         // Arrange
-        String genreName = "Fiction";
+        Long genreId = 1L;
+
         GenreDTO requestBody = GenreDTO.builder()
-                .name(genreName)
+                .id(genreId)
+                .name("Fiction")
                 .color("#FF0000")
                 .build();
+
         GenreDTO updatedGenre = GenreDTO.builder()
-                .name(genreName)
+                .id(genreId)
+                .name("Fiction")
                 .color("#FF0000")
                 .description(null)
                 .build();
 
-        when(genreService.update(eq(genreName), any(GenreDTO.class))).thenReturn(updatedGenre);
+        when(genreService.update(eq(genreId), any(GenreDTO.class))).thenReturn(updatedGenre);
 
         // Act
-        ResultActions result = mockMvc.perform(put("/genres/{name}", genreName)
+        ResultActions result = mockMvc.perform(put("/genres/{id}", genreId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody)));
 
         // Assert
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(genreName))
+                .andExpect(jsonPath("$.id").value(genreId))
+                .andExpect(jsonPath("$.name").value("Fiction"))
                 .andExpect(jsonPath("$.color").value("#FF0000"));
-    }
+        }
 }

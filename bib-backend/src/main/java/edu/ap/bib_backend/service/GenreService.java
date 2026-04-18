@@ -38,13 +38,17 @@ public class GenreService {
     @Transactional
     public GenreDTO createGenre(GenreDTO genreDTO) {
         if (genreRepository.existsByName(genreDTO.name())) {
-            throw new ResourceAlreadyExistsException("name", genreDTO.name(),
-                    "Genre met de naam '" + genreDTO.name() + "' bestaat al.");
+            throw new ResourceAlreadyExistsException(
+                    "name",
+                    genreDTO.name(),
+                    "Genre met de naam '" + genreDTO.name() + "' bestaat al."
+            );
         }
 
         Genre genre = genreMapper.toEntity(genreDTO);
-        genreRepository.save(genre);
-        return genreMapper.toDto(genre);
+        Genre savedGenre = genreRepository.save(genre);
+
+        return genreMapper.toDto(savedGenre);
     }
 
     public PageDTO<GenreDTO> getPage(int page, int pageSize, GenreGetOptions options) {
@@ -57,7 +61,7 @@ public class GenreService {
                     options.getSearch(),
                     options.getBookCount(),
                     pageable);
-        } else if (!options.getSearch().isBlank()) {
+        } else if (options.getSearch() != null && !options.getSearch().isBlank()) {
             genres = genreRepository.searchByNameOrDescriptionOrColor(options.getSearch(), pageable);
         } else {
             genres = genreRepository.findAll(pageable);
@@ -66,7 +70,7 @@ public class GenreService {
         List<GenreDTO> data = genres.getContent().stream().map(genreMapper::toDto).toList();
         PaginatedMeta meta = PageMapper.toPaginatedMeta(genres);
 
-        return new PageDTO<GenreDTO>(data, meta);
+        return new PageDTO<>(data, meta);
     }
 
     public List<GenreDTO> getAllGenres() {
@@ -115,11 +119,11 @@ public class GenreService {
 
     @Transactional
     public void deleteById(Long id) {
-        Genre genre = genreRepository.findById(id)
+        genreRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(String.valueOf(id),
-                        "Deze genre bestaat niet en kan niet verwijderd worden"));
+                        "Dit genre bestaat niet en kan niet verwijderd worden"));
 
-        genreRepository.deleteById(genre.getId());
+        genreRepository.deleteById(id);
     }
 
     

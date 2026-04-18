@@ -11,6 +11,11 @@ class GenreProjectionTest {
     void givenGenreProjectionImplementation_whenGetName_thenReturnName() {
         // Arrange - Anonymous implementation of GenreProjection
         GenreProjection projection = new GenreProjection() {
+
+            @Override
+            public Long getId() {
+                return null;
+            }
             @Override
             public String getName() {
                 return "Fiction";
