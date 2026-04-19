@@ -1,4 +1,4 @@
-import { DestroyRef, Component, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   LucideAngularModule,
@@ -22,7 +22,7 @@ import { HttpErrorResponseError } from '../../../error-reponse.model';
   templateUrl: './school-dashboard.component.html',
   styleUrl: './school-dashboard.component.css',
 })
-export class SchoolDashboardComponent {
+export class SchoolDashboardComponent implements OnInit {
   private readonly schoolService = inject(SchoolService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
@@ -56,6 +56,15 @@ export class SchoolDashboardComponent {
     address: ['', [Validators.required]],
     postalCode: [null as number | null, [Validators.required, Validators.min(1)]],
   });
+
+  private static readonly SUCCESS_MESSAGE_DURATION_MS = 4000;
+  private successMessageTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  public constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.clearSuccessMessageTimer();
+    });
+  }
 
   public ngOnInit(): void {
     this.loadSchools();
@@ -134,7 +143,7 @@ export class SchoolDashboardComponent {
           );
           this.isSubmitting.set(false);
           this.closeCreateModal();
-          this.successMessage.set('School succesvol toegevoegd.');
+          this.showSuccessMessage('School succesvol toegevoegd.');
         },
         error: (error: HttpErrorResponse) => {
           const backendError = error.error as HttpErrorResponseError | undefined;
@@ -183,7 +192,7 @@ export class SchoolDashboardComponent {
           );
           this.isUpdating.set(false);
           this.closeEditModal();
-          this.successMessage.set('School succesvol bijgewerkt.');
+          this.showSuccessMessage('School succesvol bijgewerkt.');
         },
         error: (error: HttpErrorResponse) => {
           const backendError = error.error as HttpErrorResponseError | undefined;
@@ -215,7 +224,7 @@ export class SchoolDashboardComponent {
           );
           this.isDeleting.set(false);
           this.closeDeleteModal();
-          this.successMessage.set('School succesvol verwijderd.');
+          this.showSuccessMessage('School succesvol verwijderd.');
         },
         error: (error: HttpErrorResponse) => {
           const backendError = error.error as HttpErrorResponseError | undefined;
@@ -271,5 +280,21 @@ export class SchoolDashboardComponent {
           this.isLoading.set(false);
         },
       });
+  }
+
+  private showSuccessMessage(message: string): void {
+    this.clearSuccessMessageTimer();
+    this.successMessage.set(message);
+    this.successMessageTimeoutId = setTimeout(() => {
+      this.successMessage.set(null);
+      this.successMessageTimeoutId = null;
+    }, SchoolDashboardComponent.SUCCESS_MESSAGE_DURATION_MS);
+  }
+
+  private clearSuccessMessageTimer(): void {
+    if (this.successMessageTimeoutId !== null) {
+      clearTimeout(this.successMessageTimeoutId);
+      this.successMessageTimeoutId = null;
+    }
   }
 }
