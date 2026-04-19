@@ -83,7 +83,7 @@
   }
 
   @if (isCreateModalOpen()) {
-    <div class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'create')">
       <div class="modal" (click)="$event.stopPropagation()">
         <h2>Nieuwe school toevoegen</h2>
 
@@ -132,7 +132,7 @@
   }
 
   @if (isEditModalOpen()) {
-    <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'edit')">
       <div class="modal" (click)="$event.stopPropagation()">
         <h2>School wijzigen</h2>
 
@@ -186,7 +186,7 @@
   }
 
   @if (isDeleteModalOpen()) {
-    <div class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'delete')">
       <div class="modal modal--danger" (click)="$event.stopPropagation()">
         <h2>School verwijderen</h2>
         @if (selectedSchoolForDelete()) {

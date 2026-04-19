@@ -46,6 +46,8 @@ export class SchoolDashboardComponent {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly successMessage = signal<string | null>(null);
 
+  private backdropPointerStartedOnOverlay = false;
+
   protected readonly totalSchools = computed(() => this.schools().length);
 
   protected readonly schoolForm = this.formBuilder.group({
@@ -224,6 +226,32 @@ export class SchoolDashboardComponent {
           this.isDeleting.set(false);
         },
       });
+  }
+
+  protected onOverlayPointerDown(event: PointerEvent): void {
+    this.backdropPointerStartedOnOverlay = event.target === event.currentTarget;
+  }
+
+  protected onOverlayClick(event: MouseEvent, modalType: 'create' | 'edit' | 'delete'): void {
+    const endedOnOverlay = event.target === event.currentTarget;
+    if (!(this.backdropPointerStartedOnOverlay && endedOnOverlay)) {
+      this.backdropPointerStartedOnOverlay = false;
+      return;
+    }
+
+    this.backdropPointerStartedOnOverlay = false;
+
+    if (modalType === 'create') {
+      this.closeCreateModal();
+      return;
+    }
+
+    if (modalType === 'edit') {
+      this.closeEditModal();
+      return;
+    }
+
+    this.closeDeleteModal();
   }
 
   private loadSchools(): void {
