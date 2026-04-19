@@ -1,6 +1,9 @@
 package edu.ap.bib_backend.projection;
 
 public interface GenreProjection {
+
+    Long getId();
+
     String getName();
 
     String getColor();

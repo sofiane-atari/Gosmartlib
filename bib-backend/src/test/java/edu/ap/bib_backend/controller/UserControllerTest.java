@@ -23,6 +23,7 @@ import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.options.UserGetOptions;
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.UserService;
@@ -42,6 +43,9 @@ class UserControllerTest {
 
     @MockitoBean
     private TokenStorageService tokenStorageService;
+
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
 
     @Test
     void GivenUsersExist_WhenGetUsers_ThenReturn200WithUsers() throws Exception {

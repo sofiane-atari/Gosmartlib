@@ -41,8 +41,8 @@ interface ErrorItem {
     SearchBarComponent,
     PagingComponent,
     UpdateGenreComponent,
-    GenresListComponent
-],
+    GenresListComponent,
+  ],
   templateUrl: './dashboard-genres.component.html',
   styleUrls: ['./dashboard-genres.component.css'],
 })
@@ -125,12 +125,12 @@ export class DashboardGenresComponent {
   protected genres = computed(() => this.response()?.data ?? []);
   protected pagingMeta = computed(() => this.response()?.meta);
 
-  onSearch(query: string): void {
+  protected onSearch(query: string): void {
     // Push to subject for debouncing
     this.searchSubject.next(query);
   }
 
-  onBookCountFilterChange(bookCount: string): void {
+  protected onBookCountFilterChange(bookCount: string): void {
     this.bookCountFilter.set(bookCount);
     this.router.navigate([], {
       relativeTo: this.route,
@@ -139,7 +139,7 @@ export class DashboardGenresComponent {
     });
   }
 
-  onPageChange(page: number): void {
+  protected onPageChange(page: number): void {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page },
@@ -147,20 +147,21 @@ export class DashboardGenresComponent {
     });
   }
 
-  setPopup(popup: PopupState) {
+  protected setPopup(popup: PopupState) {
     this.popUp.set(popup);
   }
 
-  closePopup() {
+  protected closePopup() {
     this.setPopup(null);
   }
 
-  onEditGenre(genre: Genre) {
+  protected onEditGenre(genre: Genre): void {
+    console.log('Genre geselecteerd voor bewerken:', genre);
     this.editingGenre.set(genre);
     this.setPopup('edit');
   }
 
-  onSuccess(message: string) {
+  protected onSuccess(message: string) {
     this.success.set(message);
 
     this.refreshTrigger.set(true);
@@ -175,7 +176,7 @@ export class DashboardGenresComponent {
     this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
   }
 
-  onError(error: string | HttpErrorResponseError) {
+  protected onError(error: string | HttpErrorResponseError) {
     this.refreshTrigger.set(true);
     this.refreshTrigger.set(false);
 

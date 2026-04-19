@@ -69,8 +69,12 @@ public class Book {
     }
 
     @ManyToMany
-    @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "genre_name"), uniqueConstraints = @UniqueConstraint(columnNames = {
-            "book_id", "genre_name" }))
+    @JoinTable(
+        name = "book_genres",
+        joinColumns = @JoinColumn(name = "book_id"),
+        inverseJoinColumns = @JoinColumn(name = "genre_id"),
+        uniqueConstraints = @UniqueConstraint(columnNames = { "book_id", "genre_id" })
+    )
     private Set<Genre> genres = new HashSet<>();
 
     @OneToMany(mappedBy = "book")

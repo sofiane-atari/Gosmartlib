@@ -191,7 +191,7 @@ class BookServiceTest {
                 dto.setAuthor("Auteur");
                 dto.setPages(123);
                 dto.setGenres(List.of(
-                                new GenreDTO("Roman", "#8B5CF6", "Literaire fictie", null)));
+                                new GenreDTO(null, "Roman", "#8B5CF6", "Literaire fictie", null)));
 
                 Book savedBook = createBook(
                                 7L,
@@ -228,7 +228,7 @@ class BookServiceTest {
                 dto.setTitle("Boek");
                 dto.setAuthor("Auteur");
                 dto.setGenres(List.of(
-                                new GenreDTO("Onbekend", "#000000", "Bestaat niet", null)));
+                                new GenreDTO(null, "Onbekend", "#000000", "Bestaat niet", null)));
 
                 given(gr.findByName("Onbekend")).willReturn(Optional.empty());
 

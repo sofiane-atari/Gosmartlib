@@ -27,7 +27,8 @@ export class GenreService {
   public createGenre(genre: Genre): Observable<Genre> {
     return this.http.post<Genre>(this.url, genre);
   }
-  getGenres() {
+
+  public getGenres(): Observable<Genre[]> {
     return this.http.get<Genre[]>(`${this.url}/all`);
   }
 
@@ -59,14 +60,11 @@ export class GenreService {
     return this.http.get<GenreStats>(`${this.url}/_stats`);
   }
 
-  public deleteGenreByName(name: string) {
-    return this.http.delete<void>(`${this.url}/${encodeURIComponent(name)}`);
+  public deleteGenreById(id: number) {
+    return this.http.delete<void>(`${this.url}/${id}`);
   }
 
   public updateGenre(genre: Genre): Observable<Genre> {
-    return this.http.put<Genre>(
-      `${this.url}/${encodeURIComponent(genre.name)}`,
-      genre,
-    );
+    return this.http.put<Genre>(`${this.url}/${genre.id}`, genre);
   }
 }

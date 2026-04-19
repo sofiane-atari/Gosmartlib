@@ -5,6 +5,7 @@ import edu.ap.bib_backend.config.SecurityConfig;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.AuthService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.SmartschoolProfileService;
@@ -57,6 +58,9 @@ public class AuthControllerTest {
     private JwtService jwtService;
 
     @MockitoBean
+    private AuthService authService;
+
+    @MockitoBean
     private TokenStorageService tokenStorageService;
 
     @MockitoBean
@@ -70,6 +74,7 @@ public class AuthControllerTest {
 
     @MockitoBean
     private AdminOverrideService adminOverrideService;
+
 
     @Test
     void givenUnauthenticated_whenMeCalled_thenReturn302() throws Exception {
