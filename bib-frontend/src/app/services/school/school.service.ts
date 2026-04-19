@@ -18,4 +18,8 @@ export class SchoolService {
   public create(school: School): Observable<School> {
     return this.http.post<School>(this.url, school);
   }
+
+  public delete(domainName: string): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${domainName}`);
+  }
 }

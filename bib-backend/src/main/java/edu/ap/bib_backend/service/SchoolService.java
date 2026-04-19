@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import java.util.List;
@@ -51,6 +52,19 @@ public class SchoolService {
 
         School savedSchool = schoolRepository.save(school);
         return toDto(savedSchool);
+    }
+
+    @Transactional
+    public void deleteSchool(String domainName) {
+        String normalizedDomainName = domainName.trim().toLowerCase();
+
+        if (!schoolRepository.existsById(normalizedDomainName)) {
+            throw new ResourceNotFoundException(
+                    "domainName",
+                    "School met domeinnaam '" + normalizedDomainName + "' niet gevonden.");
+        }
+
+        schoolRepository.deleteById(normalizedDomainName);
     }
 
     private SchoolDTO toDto(School school) {

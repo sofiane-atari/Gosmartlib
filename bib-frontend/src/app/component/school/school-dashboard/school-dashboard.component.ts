@@ -1,6 +1,6 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, School as SchoolIcon, Building, Plus } from 'lucide-angular';
+import { LucideAngularModule, School as SchoolIcon, Building, Plus, Trash2 } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -23,11 +23,15 @@ export class SchoolDashboardComponent {
   protected readonly SchoolIcon = SchoolIcon;
   protected readonly Building = Building;
   protected readonly Plus = Plus;
+  protected readonly Trash2 = Trash2;
 
   protected readonly schools = signal<School[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly isSubmitting = signal(false);
   protected readonly isCreateModalOpen = signal(false);
+  protected readonly isDeleteModalOpen = signal(false);
+  protected readonly selectedSchoolForDelete = signal<School | null>(null);
+  protected readonly isDeleting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly successMessage = signal<string | null>(null);
 
@@ -55,6 +59,16 @@ export class SchoolDashboardComponent {
     this.isCreateModalOpen.set(false);
     this.schoolForm.markAsPristine();
     this.schoolForm.markAsUntouched();
+  }
+
+  protected openDeleteModal(school: School): void {
+    this.selectedSchoolForDelete.set(school);
+    this.isDeleteModalOpen.set(true);
+  }
+
+  protected closeDeleteModal(): void {
+    this.isDeleteModalOpen.set(false);
+    this.selectedSchoolForDelete.set(null);
   }
 
   protected createSchool(): void {
@@ -95,6 +109,38 @@ export class SchoolDashboardComponent {
               'School kon niet toegevoegd worden. Probeer opnieuw.',
           );
           this.isSubmitting.set(false);
+        },
+      });
+  }
+
+  protected deleteSchool(): void {
+    const schoolToDelete = this.selectedSchoolForDelete();
+    if (!schoolToDelete) {
+      return;
+    }
+
+    this.isDeleting.set(true);
+    this.errorMessage.set(null);
+
+    this.schoolService
+      .delete(schoolToDelete.domainName)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.schools.set(
+            this.schools().filter((s) => s.domainName !== schoolToDelete.domainName),
+          );
+          this.isDeleting.set(false);
+          this.closeDeleteModal();
+          this.successMessage.set('School succesvol verwijderd.');
+        },
+        error: (error: HttpErrorResponse) => {
+          const backendError = error.error as HttpErrorResponseError | undefined;
+          this.errorMessage.set(
+            backendError?.error?.message ??
+              'School kon niet verwijderd worden. Probeer opnieuw.',
+          );
+          this.isDeleting.set(false);
         },
       });
   }
