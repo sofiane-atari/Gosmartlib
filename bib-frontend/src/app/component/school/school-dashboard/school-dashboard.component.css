@@ -320,6 +320,23 @@
   color: #dc2626;
 }
 
+/* Keep lucide icons visually centered inside flex/grid buttons and cards */
+lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.icon-sm,
+.icon-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .icon-sm {
   width: 16px;
   height: 16px;
