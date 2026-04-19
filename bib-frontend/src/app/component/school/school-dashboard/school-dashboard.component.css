@@ -170,9 +170,17 @@
   transition: all 0.2s ease;
 }
 
+.btn-action:disabled,
+.btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-action--edit,
 .btn-edit {
-  background: #2563eb;
+  background: #8a1e41;
 }
 
 .btn-action--edit:hover,
@@ -249,6 +257,13 @@
   font-size: 14px;
 }
 
+.modal-field input[readonly],
+.modal-field input:disabled {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -298,19 +313,18 @@
   transform: none;
 }
 
-.modal-field input.error {
+.field-inline-error {
   display: block;
   margin-top: 6px;
   font-size: 12px;
   color: #dc2626;
 }
 
-
 .icon-sm {
   width: 16px;
   height: 16px;
-  margin-top: -10px;
-  margin-right: 10px;
+  margin-top: 0;
+  margin-right: 0;
 }
 
 .icon-lg {
@@ -342,4 +356,3 @@
     justify-content: flex-end;
   }
 }
-

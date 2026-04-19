@@ -67,6 +67,36 @@ public class SchoolService {
         schoolRepository.deleteById(normalizedDomainName);
     }
 
+    @Transactional
+    public SchoolDTO updateSchool(String domainName, SchoolDTO schoolDTO) {
+        String normalizedDomainName = domainName.trim().toLowerCase();
+        String requestDomainName = schoolDTO.domainName().trim().toLowerCase();
+
+        if (!requestDomainName.equals(normalizedDomainName)) {
+            throw new IllegalArgumentException("Domeinnaam kan niet gewijzigd worden.");
+        }
+
+        School existingSchool = schoolRepository.findById(normalizedDomainName)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "domainName",
+                        "School met domeinnaam '" + normalizedDomainName + "' niet gevonden."));
+
+        String normalizedName = schoolDTO.name().trim();
+        if (schoolRepository.existsByNameIgnoreCaseAndDomainNameNot(normalizedName, normalizedDomainName)) {
+            throw new ResourceAlreadyExistsException(
+                    "name",
+                    normalizedName,
+                    "School met naam '" + normalizedName + "' bestaat al.");
+        }
+
+        existingSchool.setName(normalizedName);
+        existingSchool.setAdres(schoolDTO.address().trim());
+        existingSchool.setPostalCode(schoolDTO.postalCode());
+
+        School updatedSchool = schoolRepository.save(existingSchool);
+        return toDto(updatedSchool);
+    }
+
     private SchoolDTO toDto(School school) {
         return new SchoolDTO(
                 school.getDomainName(),

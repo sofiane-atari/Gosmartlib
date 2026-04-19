@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,10 +43,14 @@ public class SchoolController {
         return ResponseEntity.created(location).body(createdSchool);
     }
 
+    @PutMapping("/{domainName}")
+    public ResponseEntity<SchoolDTO> update(@PathVariable String domainName, @Valid @RequestBody SchoolDTO schoolDTO) {
+        return ResponseEntity.ok(schoolService.updateSchool(domainName, schoolDTO));
+    }
+
     @DeleteMapping("/{domainName}")
     public ResponseEntity<Void> delete(@PathVariable String domainName) {
         schoolService.deleteSchool(domainName);
         return ResponseEntity.noContent().build();
     }
 }
-

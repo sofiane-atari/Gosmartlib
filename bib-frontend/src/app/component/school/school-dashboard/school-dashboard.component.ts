@@ -1,6 +1,13 @@
 import { DestroyRef, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, School as SchoolIcon, Building, Plus, Trash2 } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  School as SchoolIcon,
+  Building,
+  Plus,
+  Trash2,
+  Pencil,
+} from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,12 +31,16 @@ export class SchoolDashboardComponent {
   protected readonly Building = Building;
   protected readonly Plus = Plus;
   protected readonly Trash2 = Trash2;
+  protected readonly Pencil = Pencil;
 
   protected readonly schools = signal<School[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly isSubmitting = signal(false);
+  protected readonly isUpdating = signal(false);
   protected readonly isCreateModalOpen = signal(false);
+  protected readonly isEditModalOpen = signal(false);
   protected readonly isDeleteModalOpen = signal(false);
+  protected readonly selectedSchoolForEdit = signal<School | null>(null);
   protected readonly selectedSchoolForDelete = signal<School | null>(null);
   protected readonly isDeleting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
@@ -52,11 +63,34 @@ export class SchoolDashboardComponent {
     this.errorMessage.set(null);
     this.successMessage.set(null);
     this.isCreateModalOpen.set(true);
+    this.schoolForm.controls.domainName.enable();
     this.schoolForm.reset({ domainName: '', name: '', address: '', postalCode: null });
   }
 
   protected closeCreateModal(): void {
     this.isCreateModalOpen.set(false);
+    this.schoolForm.markAsPristine();
+    this.schoolForm.markAsUntouched();
+  }
+
+  protected openEditModal(school: School): void {
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+    this.selectedSchoolForEdit.set(school);
+    this.isEditModalOpen.set(true);
+    this.schoolForm.reset({
+      domainName: school.domainName,
+      name: school.name,
+      address: school.address,
+      postalCode: school.postalCode,
+    });
+    this.schoolForm.controls.domainName.disable();
+  }
+
+  protected closeEditModal(): void {
+    this.isEditModalOpen.set(false);
+    this.selectedSchoolForEdit.set(null);
+    this.schoolForm.controls.domainName.enable();
     this.schoolForm.markAsPristine();
     this.schoolForm.markAsUntouched();
   }
@@ -94,9 +128,7 @@ export class SchoolDashboardComponent {
       .subscribe({
         next: (createdSchool) => {
           this.schools.set(
-            [...this.schools(), createdSchool].sort((a, b) =>
-              a.name.localeCompare(b.name),
-            ),
+            [...this.schools(), createdSchool].sort((a, b) => a.name.localeCompare(b.name)),
           );
           this.isSubmitting.set(false);
           this.closeCreateModal();
@@ -109,6 +141,55 @@ export class SchoolDashboardComponent {
               'School kon niet toegevoegd worden. Probeer opnieuw.',
           );
           this.isSubmitting.set(false);
+        },
+      });
+  }
+
+  protected updateSchool(): void {
+    const schoolToUpdate = this.selectedSchoolForEdit();
+    if (!schoolToUpdate) {
+      return;
+    }
+
+    if (this.schoolForm.invalid) {
+      this.schoolForm.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.schoolForm.getRawValue();
+    const updatedSchool: School = {
+      domainName: schoolToUpdate.domainName,
+      name: formValue.name?.trim() ?? '',
+      address: formValue.address?.trim() ?? '',
+      postalCode: Number(formValue.postalCode),
+    };
+
+    this.isUpdating.set(true);
+    this.errorMessage.set(null);
+
+    this.schoolService
+      .update(schoolToUpdate.domainName, updatedSchool)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (savedSchool) => {
+          this.schools.set(
+            this.schools()
+              .map((school) =>
+                school.domainName === schoolToUpdate.domainName ? savedSchool : school,
+              )
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          );
+          this.isUpdating.set(false);
+          this.closeEditModal();
+          this.successMessage.set('School succesvol bijgewerkt.');
+        },
+        error: (error: HttpErrorResponse) => {
+          const backendError = error.error as HttpErrorResponseError | undefined;
+          this.errorMessage.set(
+            backendError?.error?.message ??
+              'School kon niet bijgewerkt worden. Probeer opnieuw.',
+          );
+          this.isUpdating.set(false);
         },
       });
   }

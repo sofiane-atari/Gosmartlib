@@ -19,6 +19,10 @@ export class SchoolService {
     return this.http.post<School>(this.url, school);
   }
 
+  public update(domainName: string, school: School): Observable<School> {
+    return this.http.put<School>(`${this.url}/${domainName}`, school);
+  }
+
   public delete(domainName: string): Observable<void> {
     return this.http.delete<void>(`${this.url}/${domainName}`);
   }

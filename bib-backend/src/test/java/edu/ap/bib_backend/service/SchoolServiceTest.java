@@ -5,6 +5,7 @@ import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -68,5 +69,43 @@ class SchoolServiceTest {
         assertEquals(1, result.size());
         assertEquals("AP", result.getFirst().name());
     }
-}
 
+    @Test
+    void givenValidUpdate_whenUpdateSchool_thenSaveAndReturnUpdatedDto() {
+        School existingSchool = new School();
+        existingSchool.setDomainName("ap.be");
+        existingSchool.setName("AP");
+        existingSchool.setAdres("Noorderplaats 2");
+        existingSchool.setPostalCode(2000);
+
+        SchoolDTO update = new SchoolDTO("ap.be", "AP Campus Noord", "Ellermanstraat 33", 2030);
+
+        when(schoolRepository.findById("ap.be")).thenReturn(Optional.of(existingSchool));
+        when(schoolRepository.existsByNameIgnoreCaseAndDomainNameNot("AP Campus Noord", "ap.be"))
+                .thenReturn(false);
+        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SchoolDTO result = schoolService.updateSchool("ap.be", update);
+
+        assertEquals("ap.be", result.domainName());
+        assertEquals("AP Campus Noord", result.name());
+        assertEquals("Ellermanstraat 33", result.address());
+        assertEquals(2030, result.postalCode());
+    }
+
+    @Test
+    void givenDuplicateNameOnUpdate_whenUpdateSchool_thenThrowConflict() {
+        School existingSchool = new School();
+        existingSchool.setDomainName("ap.be");
+        existingSchool.setName("AP");
+
+        SchoolDTO update = new SchoolDTO("ap.be", "KDG", "Noorderplaats 2", 2000);
+
+        when(schoolRepository.findById("ap.be")).thenReturn(Optional.of(existingSchool));
+        when(schoolRepository.existsByNameIgnoreCaseAndDomainNameNot("KDG", "ap.be")).thenReturn(true);
+
+        assertThrows(ResourceAlreadyExistsException.class, () -> schoolService.updateSchool("ap.be", update));
+
+        verify(schoolRepository, never()).save(any(School.class));
+    }
+}
