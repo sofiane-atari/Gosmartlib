@@ -95,6 +95,11 @@ public class GoogleBooksClient {
                 return Integer.compare(distanceA, distanceB);
             });
         }
+        if (candidates.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Geen kandidaten gevonden voor title, author en releaseYear");
+        }
 
         return candidates.stream().limit(4).toList();
     }

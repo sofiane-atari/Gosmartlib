@@ -140,27 +140,32 @@ class GenreServiceTest {
 
         @Test
         void givenNoOptions_whenGetPage_thenReturnAllGenres() {
-                // Arrange
                 int page = 0;
                 int pageSize = 10;
                 GenreGetOptions options = new GenreGetOptions();
 
                 Genre genre = new Genre("Test", "#FF0000", "Test description");
-                Page<Genre> genrePage = new PageImpl<>(List.of(genre),
-                                org.springframework.data.domain.PageRequest.of(page, pageSize), 1);
+                Page<Genre> genrePage = new PageImpl<>(
+                                List.of(genre),
+                                org.springframework.data.domain.PageRequest.of(page, pageSize),
+                                1);
+
+                GenreDTO dto = GenreDTO.builder()
+                                .name("Test")
+                                .color("#FF0000")
+                                .description("Test desc")
+                                .build();
 
                 when(genreRepository.findAll(any(Pageable.class))).thenReturn(genrePage);
-                when(genreMapper.toDto(any(Genre.class))).thenReturn(
-                                GenreDTO.builder().name("Test").color("#FF0000").description("Test desc").build());
+                when(genreMapper.toDto(genre)).thenReturn(dto);
 
-                // Act
                 PageDTO<GenreDTO> result = genreService.getPage(page, pageSize, options);
 
-                // Assert
                 assertNotNull(result);
                 assertNotNull(result.data());
                 assertNotNull(result.meta());
                 verify(genreRepository, times(1)).findAll(any(Pageable.class));
+                verify(genreMapper, times(1)).toDto(genre);
         }
 
         @Test
@@ -329,7 +334,7 @@ class GenreServiceTest {
                 verify(genreRepository, times(1)).deleteById(genreName);
         }
 
-    @Test
+        @Test
         void givenNonExistingGenreName_whenDeleteById_thenThrowException() {
                 // Arrange
                 String genreName = "NonExistent";

@@ -26,8 +26,8 @@ public class BookDTOTest {
                 4.5,
                 LocalDateTime.now(),
                 List.of(
-                        new GenreDTO("Roman", "#8B5CF6", "Literaire fictie", null),
-                        new GenreDTO("Thriller", "#EF4444", "Spannend verhaal", null)));
+                        new GenreDTO("Roman", "#8B5CF6", "Literaire fictie", null, null),
+                        new GenreDTO("Thriller", "#EF4444", "Spannend verhaal", null, null)));
 
         assertEquals(1L, book.getId());
         assertEquals("9781234567890", book.getIsbn()); // let op: getter blijft getISBN()
@@ -57,8 +57,8 @@ public class BookDTOTest {
                 4.5,
                 LocalDateTime.now(),
                 List.of(
-                        new GenreDTO("Roman", "#8B5CF6", "Literaire fictie", null),
-                        new GenreDTO("Thriller", "#EF4444", "Spannend verhaal", null)));
+                        new GenreDTO("Roman", "#8B5CF6", "Literaire fictie", null, null),
+                        new GenreDTO("Thriller", "#EF4444", "Spannend verhaal", null, null)));
 
         String json = mapper.writeValueAsString(book);
 

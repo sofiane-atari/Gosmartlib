@@ -20,8 +20,6 @@ import org.springframework.web.server.ResponseStatusException;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
 
-
-
 @ExtendWith(MockitoExtension.class)
 class BookServiceGoogleBooksTest {
 
@@ -29,7 +27,6 @@ class BookServiceGoogleBooksTest {
         private RestTemplate restTemplate;
 
         private GoogleBooksClient gbc;
-
 
         @BeforeEach
         void setUp() {
@@ -69,7 +66,7 @@ class BookServiceGoogleBooksTest {
         }
 
         @Test
-        void searchBookCandidates_whenVolumeInfoMissing_skipsItem() {
+        void searchBookCandidates_whenVolumeInfoMissing_thenThrowsNotFound() {
                 Map<String, Object> item = Map.of("id", "abc");
                 Map<String, Object> response = Map.of("items", List.of(item));
 
@@ -87,7 +84,7 @@ class BookServiceGoogleBooksTest {
         }
 
         @Test
-        void searchBookCandidates_whenTitleDoesNotMatch_filtersOutItem() {
+        void searchBookCandidates_whenTitleDoesNotMatch_thenThrowsNotFound() {
                 Map<String, Object> volumeInfo = Map.of(
                                 "title", "Completely Different Title",
                                 "authors", List.of("J.K. Rowling"),
@@ -110,7 +107,7 @@ class BookServiceGoogleBooksTest {
         }
 
         @Test
-        void searchBookCandidates_whenAuthorDoesNotMatch_filtersOutItem() {
+        void searchBookCandidates_whenAuthorDoesNotMatch_thenThrowsNotFound() {
                 Map<String, Object> volumeInfo = Map.of(
                                 "title", "Harry Potter",
                                 "authors", List.of("Andere Auteur"),
@@ -129,7 +126,7 @@ class BookServiceGoogleBooksTest {
         }
 
         @Test
-        void searchBookCandidates_whenReleaseYearDoesNotMatch_filtersOutItem() {
+        void searchBookCandidates_whenReleaseYearDiffers_stillReturnsCandidate() {
                 Map<String, Object> volumeInfo = Map.of(
                                 "title", "Harry Potter",
                                 "authors", List.of("J.K. Rowling"),
@@ -143,8 +140,49 @@ class BookServiceGoogleBooksTest {
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
                                 .thenReturn(response);
 
-                assertThatThrownBy(() -> gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
-                                .isInstanceOf(ResponseStatusException.class);
+                List<BookCandidateDTO> result = gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997);
+
+                assertThat(result).hasSize(1);
+                assertThat(result.get(0).getReleaseYear()).isEqualTo(2001);
+        }
+
+        @Test
+        void searchBookCandidates_whenReleaseYearIsProvided_thenSortsByClosestYear() {
+                Map<String, Object> volumeInfo1 = Map.of(
+                                "title", "Harry Potter",
+                                "authors", List.of("J.K. Rowling"),
+                                "publishedDate", "2001",
+                                "industryIdentifiers", List.of(
+                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+
+                Map<String, Object> volumeInfo2 = Map.of(
+                                "title", "Harry Potter",
+                                "authors", List.of("J.K. Rowling"),
+                                "publishedDate", "1998",
+                                "industryIdentifiers", List.of(
+                                                Map.of("type", "ISBN_13", "identifier", "9780747538493")));
+
+                Map<String, Object> volumeInfo3 = Map.of(
+                                "title", "Harry Potter",
+                                "authors", List.of("J.K. Rowling"),
+                                "publishedDate", "1997",
+                                "industryIdentifiers", List.of(
+                                                Map.of("type", "ISBN_13", "identifier", "9780747532743")));
+
+                Map<String, Object> item1 = Map.of("volumeInfo", volumeInfo1);
+                Map<String, Object> item2 = Map.of("volumeInfo", volumeInfo2);
+                Map<String, Object> item3 = Map.of("volumeInfo", volumeInfo3);
+                Map<String, Object> response = Map.of("items", List.of(item1, item2, item3));
+
+                when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
+                                .thenReturn(response);
+
+                List<BookCandidateDTO> result = gbc.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997);
+
+                assertThat(result).hasSize(3);
+                assertThat(result)
+                                .extracting(BookCandidateDTO::getReleaseYear)
+                                .containsExactly(1997, 1998, 2001);
         }
 
         @Test
@@ -169,7 +207,7 @@ class BookServiceGoogleBooksTest {
         }
 
         @Test
-        void searchBookCandidates_whenNoIsbn13_skipsItem() {
+        void searchBookCandidates_whenNoIsbn13_thenThrowsNotFound() {
                 Map<String, Object> volumeInfo = Map.of(
                                 "title", "Harry Potter",
                                 "authors", List.of("J.K. Rowling"),
@@ -193,7 +231,7 @@ class BookServiceGoogleBooksTest {
         }
 
         @Test
-        void searchBookCandidates_whenAuthorsMissing_filtersOutItem() {
+        void searchBookCandidates_whenAuthorsMissing_thenThrowsNotFound() {
                 Map<String, Object> volumeInfo = Map.of(
                                 "title", "Harry Potter",
                                 "publishedDate", "1997",
@@ -211,7 +249,7 @@ class BookServiceGoogleBooksTest {
         }
 
         @Test
-        void searchBookCandidates_whenGoogleReturnsNoItems_throwsNotFound() {
+        void searchBookCandidates_whenGoogleReturnsNoItems_thenThrowsNotFound() {
                 Map<String, Object> response = Map.of();
 
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
@@ -228,7 +266,7 @@ class BookServiceGoogleBooksTest {
         }
 
         @Test
-        void searchBookCandidates_whenGoogleReturnsEmptyItems_throwsNotFound() {
+        void searchBookCandidates_whenGoogleReturnsEmptyItems_thenThrowsNotFound() {
                 Map<String, Object> response = Map.of("items", List.of());
 
                 when(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
