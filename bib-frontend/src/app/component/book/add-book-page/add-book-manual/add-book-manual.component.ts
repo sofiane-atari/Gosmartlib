@@ -24,7 +24,7 @@ import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { Availability } from '../../../../model/enums/availability.enum';
 import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
-import { Info, LucideAngularModule, Plus, Trash2 } from 'lucide-angular';
+import { Info, LucideAngularModule, Pencil, Plus, Trash2 } from 'lucide-angular';
 import { Subject, of, combineLatest } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
@@ -50,6 +50,7 @@ export class AddBookManualComponent extends GenreSelectionBase implements OnInit
   readonly PlusIcon = Plus;
   readonly InfoIcon = Info;
   readonly Trash2Icon = Trash2;
+  readonly PencilIcon = Pencil;
   @Input() readingLevels: ReadingLevel[] = [];
   @Output() bookAdded = new EventEmitter<Book>();
 
@@ -262,6 +263,14 @@ private setupCandidateSearch(): void {
     };
 
     this.bookAdded.emit(book);
+  }
+  editBook(): void {
+    if (!this.selectedBookId) {
+      this.ts.show('Geen bestaand boek geselecteerd om te wijzigen.', 'error');
+      return;
+    }
+
+    void this.rt.navigate(['/books/' + this.selectedBookId + '/edit']);
   }
 
   compareReadingLevels = (a: ReadingLevel | null, b: ReadingLevel | null): boolean => {

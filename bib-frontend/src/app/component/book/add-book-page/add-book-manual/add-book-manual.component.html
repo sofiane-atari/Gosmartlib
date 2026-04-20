@@ -232,23 +232,36 @@
     </div>
 
     <div class="form-actions">
-      <button
-        type="button"
-        class="btn-clear"
-        (click)="clearForm()"
-      >
-        <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
-        Formulier leegmaken
-      </button>
+  <button
+    type="button"
+    class="btn-clear"
+    (click)="clearForm()"
+  >
+    <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+    Formulier leegmaken
+  </button>
 
-      <button
-        type="submit"
-        class="btn-submit"
-        [disabled]="form.invalid || selectedGenres.length === 0"
-      >
-        <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-        {{ isCandidateLoaded ? 'Exemplaar Toevoegen' : 'Boek Toevoegen' }}
-      </button>
+      <div class="action-buttons">
+        @if (isCandidateLoaded) {
+          <button
+            type="button"
+            class="btn-edit"
+            (click)="editBook()"
+          >
+            <lucide-icon [name]="PencilIcon" class="btn-icon"></lucide-icon>
+            Boek Wijzigen
+          </button>
+        }
+
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="form.invalid || selectedGenres.length === 0"
+        >
+          <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
+          {{ isCandidateLoaded ? 'Exemplaar Toevoegen' : 'Boek Toevoegen' }}
+        </button>
+      </div>
     </div>
   </form>
 </div>
