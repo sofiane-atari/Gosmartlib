@@ -3,6 +3,8 @@ package edu.ap.bib_backend.service.book;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
@@ -38,6 +40,7 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+import edu.ap.bib_backend.mapper.BookCandidateMapper;
 import edu.ap.bib_backend.mapper.BookMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,6 +64,15 @@ class BookServiceTest {
         @Mock
         private BookLoanRepository bookLoanRepository;
 
+        @Mock
+        private BookMapper bookMapper1;
+
+        @Mock
+        private BookCandidateMapper bookCandidateMapper;
+
+        @Mock
+        private OpenLibraryClient openLibraryClient;
+
         private BookService bs;
 
         @BeforeEach
@@ -72,7 +84,9 @@ class BookServiceTest {
                                 reviewRepository,
                                 bookLoanRepository,
                                 rlr,
-                                new BookMapper());
+                                bookMapper1,
+                                bookCandidateMapper,
+                                openLibraryClient);
         }
 
         @Test
@@ -90,7 +104,14 @@ class BookServiceTest {
                                 4.5,
                                 Set.of(createGenre("Roman", "#8B5CF6", "Literaire fictie")));
 
+                BookDTO dto = new BookDTO();
+                dto.setId(1L);
+                dto.setIsbn("9781234567890");
+                dto.setTitle("Test Boek");
+                dto.setAuthor("Auteur X");
+
                 given(br.findAll()).willReturn(List.of(book));
+                given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
                 List<BookDTO> result = bs.getAllBooks();
 
@@ -99,13 +120,6 @@ class BookServiceTest {
                 assertThat(result.get(0).getIsbn()).isEqualTo("9781234567890");
                 assertThat(result.get(0).getTitle()).isEqualTo("Test Boek");
                 assertThat(result.get(0).getAuthor()).isEqualTo("Auteur X");
-                assertThat(result.get(0).getPages()).isEqualTo(300);
-                assertThat(result.get(0).getImageUrl()).isEqualTo("https://example.com/image.jpg");
-                assertThat(result.get(0).getDescription()).isEqualTo("Beschrijving");
-                assertThat(result.get(0).getReleaseYear()).isEqualTo(2022);
-                assertThat(result.get(0).getReviewScore()).isEqualTo(4.5);
-                assertThat(result.get(0).getGenres()).hasSize(1);
-                assertThat(result.get(0).getGenres().get(0).name()).isEqualTo("Roman");
         }
 
         @Test
@@ -120,6 +134,10 @@ class BookServiceTest {
                 dto.setReleaseYear(2024);
                 dto.setGenres(List.of());
 
+                Book mappedBook = new Book();
+                mappedBook.setTitle("Nieuwe Boek");
+                mappedBook.setAuthor("Auteur Test");
+
                 Book savedBook = createBook(
                                 1L,
                                 null,
@@ -132,8 +150,15 @@ class BookServiceTest {
                                 0.0,
                                 Set.of());
 
+                BookDTO savedDto = new BookDTO();
+                savedDto.setId(1L);
+                savedDto.setTitle("Nieuwe Boek");
+                savedDto.setAuthor("Auteur Test");
+
+                given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
                 given(br.save(any(Book.class))).willReturn(savedBook);
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
                 BookDTO result = bs.addBook(dto);
 
@@ -167,8 +192,14 @@ class BookServiceTest {
                                 3.5,
                                 Set.of());
 
+                BookDTO existingDto = new BookDTO();
+                existingDto.setId(5L);
+                existingDto.setIsbn("9781234567890");
+                existingDto.setTitle("Bestaand Boek");
+
                 given(br.findByIsbn("9781234567890")).willReturn(existingBook);
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(bookMapper1.toDTO(existingBook)).willReturn(existingDto);
 
                 BookDTO result = bs.addBook(dto);
 
@@ -191,7 +222,11 @@ class BookServiceTest {
                 dto.setAuthor("Auteur");
                 dto.setPages(123);
                 dto.setGenres(List.of(
-                                new GenreDTO(null, "Roman", "#8B5CF6", "Literaire fictie", null)));
+                                new GenreDTO(null,"Roman", "#8B5CF6", "Literaire fictie", null, null)));
+
+                Book mappedBook = new Book();
+                mappedBook.setTitle("Boek");
+                mappedBook.setAuthor("Auteur");
 
                 Book savedBook = createBook(
                                 7L,
@@ -205,18 +240,24 @@ class BookServiceTest {
                                 0.0,
                                 Set.of(genre));
 
+                BookDTO savedDto = new BookDTO();
+                savedDto.setId(7L);
+                savedDto.setTitle("Boek");
+
+                given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
                 given(gr.findByName("Roman")).willReturn(Optional.of(genre));
                 given(br.save(any(Book.class))).willReturn(savedBook);
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
                 bs.addBook(dto);
 
                 ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
                 then(br).should().save(captor.capture());
 
-                Book mappedBook = captor.getValue();
-                assertThat(mappedBook.getGenres()).hasSize(1);
-                assertThat(mappedBook.getGenres())
+                Book mappedAndSavedBook = captor.getValue();
+                assertThat(mappedAndSavedBook.getGenres()).hasSize(1);
+                assertThat(mappedAndSavedBook.getGenres())
                                 .extracting(Genre::getName)
                                 .containsExactly("Roman");
         }
@@ -228,8 +269,10 @@ class BookServiceTest {
                 dto.setTitle("Boek");
                 dto.setAuthor("Auteur");
                 dto.setGenres(List.of(
-                                new GenreDTO(null, "Onbekend", "#000000", "Bestaat niet", null)));
+                                new GenreDTO(null, "Onbekend", "#000000", "Bestaat niet", null, null)));
 
+                Book mappedBook = new Book();
+                given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
                 given(gr.findByName("Onbekend")).willReturn(Optional.empty());
 
                 assertThatThrownBy(() -> bs.addBook(dto))
@@ -249,6 +292,8 @@ class BookServiceTest {
                 dto.setGenres(List.of());
                 dto.setReadingLevel(new ReadingLevelDTO(99L, "Z", "onbekend"));
 
+                Book mappedBook = new Book();
+                given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
                 given(rlr.findById(99L)).willReturn(Optional.empty());
 
                 assertThatThrownBy(() -> bs.addBook(dto))
@@ -273,6 +318,7 @@ class BookServiceTest {
                 readingLevel.setNiveauName("B");
                 readingLevel.setDescription("beschrijving");
 
+                Book mappedBook = new Book();
                 Book savedBook = createBook(
                                 10L,
                                 null,
@@ -286,9 +332,15 @@ class BookServiceTest {
                                 Set.of());
                 savedBook.setReadingLevel(readingLevel);
 
+                BookDTO savedDto = new BookDTO();
+                savedDto.setId(10L);
+                savedDto.setReadingLevel(new ReadingLevelDTO(2L, "B", "beschrijving"));
+
+                given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
                 given(rlr.findById(2L)).willReturn(Optional.of(readingLevel));
                 given(br.save(any(Book.class))).willReturn(savedBook);
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
                 BookDTO result = bs.addBook(dto);
 
@@ -311,7 +363,13 @@ class BookServiceTest {
                                 4.2,
                                 Set.of());
 
+                BookDTO dto = new BookDTO();
+                dto.setId(3L);
+                dto.setTitle("Boek 3");
+                dto.setAuthor("Auteur 3");
+
                 given(br.findById(3L)).willReturn(Optional.of(book));
+                given(bookMapper1.toDTO(book)).willReturn(dto);
 
                 BookDTO result = bs.getBookById(3L);
 
@@ -351,6 +409,26 @@ class BookServiceTest {
         }
 
         @Test
+        @DisplayName("Given books exist, When getMinPages is called, Then return repository value")
+        void givenBooksExist_whenGetMinPages_thenReturnRepositoryValue() {
+                given(br.findMinPages()).willReturn(50);
+
+                Integer result = bs.getMinPages();
+
+                assertThat(result).isEqualTo(50);
+        }
+
+        @Test
+        @DisplayName("Given no books exist, When getMinPages is called, Then return default 0")
+        void givenNoBooksExist_whenGetMinPages_thenReturnDefault0() {
+                given(br.findMinPages()).willReturn(null);
+
+                Integer result = bs.getMinPages();
+
+                assertThat(result).isEqualTo(0);
+        }
+
+        @Test
         @DisplayName("Given most read books exist, When getMostReadBooks is called, Then return mapped DTOs")
         void givenMostReadBooksExist_whenGetMostReadBooks_thenReturnMappedDTOs() {
                 Book book = createBook(
@@ -365,7 +443,11 @@ class BookServiceTest {
                                 4.0,
                                 Set.of());
 
+                BookDTO dto = new BookDTO();
+                dto.setTitle("Populair Boek");
+
                 given(br.findMostReadBook(PageRequest.of(0, 5))).willReturn(List.of(book));
+                given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
                 List<BookDTO> result = bs.getMostReadBooks(5);
 
@@ -402,7 +484,11 @@ class BookServiceTest {
                                 0.0,
                                 Set.of());
 
+                BookDTO dto = new BookDTO();
+                dto.setTitle("Nieuw Boek");
+
                 given(br.findNewestBooks(PageRequest.of(0, 3))).willReturn(List.of(book));
+                given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
                 List<BookDTO> result = bs.getNewestBooks(3);
 
@@ -423,11 +509,16 @@ class BookServiceTest {
                 related.setAuthor("Author");
                 related.setGenres(Set.of());
 
+                BookDTO relatedDto = new BookDTO();
+                relatedDto.setId(2L);
+                relatedDto.setTitle("Related");
+
                 List<Object[]> relatedBooks = new ArrayList<>();
                 relatedBooks.add(new Object[] { related, 2L });
 
                 given(br.findById(1L)).willReturn(Optional.of(source));
                 given(br.findRelatedBooksWithScore(1L, PageRequest.of(0, 10))).willReturn(relatedBooks);
+                given(bookMapper1.toDTO(related)).willReturn(relatedDto);
 
                 List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10);
 
@@ -453,9 +544,15 @@ class BookServiceTest {
                 Book savedBook = createBook(bookId, "9781234567890", "Nieuwe Titel", "Nieuwe Auteur", 250, null, null,
                                 2000, 0.0, new HashSet<>());
 
+                BookDTO savedDto = new BookDTO();
+                savedDto.setId(bookId);
+                savedDto.setTitle("Nieuwe Titel");
+                savedDto.setIsbn("9781234567890");
+
                 given(br.findById(bookId)).willReturn(Optional.of(existingBook));
                 given(br.findByIsbn("9781234567890")).willReturn(null);
                 given(br.save(any(Book.class))).willReturn(savedBook);
+                given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
                 BookDTO result = bs.updateBook(bookId, updateDto);
 
@@ -483,9 +580,13 @@ class BookServiceTest {
                 updateDto.setTitle("Geüpdatete Titel");
                 updateDto.setGenres(new ArrayList<>());
 
+                BookDTO savedDto = new BookDTO();
+                savedDto.setTitle("Geüpdatete Titel");
+
                 given(br.findById(bookId)).willReturn(Optional.of(existingBook));
                 given(br.findByIsbn(isbn)).willReturn(existingBook);
                 given(br.save(any(Book.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(bookMapper1.toDTO(any(Book.class))).willReturn(savedDto);
 
                 BookDTO result = bs.updateBook(bookId, updateDto);
 
@@ -536,8 +637,72 @@ class BookServiceTest {
                                 .isInstanceOf(ResourceNotFoundException.class)
                                 .hasMessageContaining("Boek niet gevonden met id: 99");
 
-                then(br).should(never()).findByIsbn(any());
+                then(br).should(never()).findByIsbn(anyString());
                 then(br).should(never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Given existing book ID, When addCopyToBook is called, Then save available copy")
+        void givenExistingBookId_whenAddCopyToBook_thenSaveAvailableCopy() {
+                Book book = createBook(11L, "9781234567890", "Titel", "Auteur", 123, null, null, 2020, 0.0, Set.of());
+                BookDTO dto = new BookDTO();
+                dto.setId(11L);
+
+                given(br.findById(11L)).willReturn(Optional.of(book));
+                given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(bookMapper1.toDTO(book)).willReturn(dto);
+
+                BookDTO result = bs.addCopyToBook(11L);
+
+                assertThat(result.getId()).isEqualTo(11L);
+                then(bcr).should().save(any(BookCopy.class));
+        }
+
+        @Test
+        @DisplayName("Given missing ISBN, When getBookByISBN is called, Then throw bad request")
+        void givenMissingIsbn_whenGetBookByISBN_thenThrowBadRequest() {
+                assertThatThrownBy(() -> bs.getBookByISBN("   "))
+                                .isInstanceOf(ResponseStatusException.class)
+                                .satisfies(ex -> {
+                                        ResponseStatusException rse = (ResponseStatusException) ex;
+                                        assertThat(rse.getStatusCode().value()).isEqualTo(400);
+                                        assertThat(rse.getReason()).isEqualTo("Ongeldig ISBN");
+                                });
+        }
+
+        @Test
+        @DisplayName("Given ISBN exists in DB, When getBookByISBN is called, Then return DB book")
+        void givenExistingIsbnInDb_whenGetBookByISBN_thenReturnDbBook() {
+                Book book = createBook(15L, "9781234567890", "DB Boek", "Auteur", 200, null, null, 2020, 0.0, Set.of());
+                BookDTO dto = new BookDTO();
+                dto.setId(15L);
+                dto.setIsbn("9781234567890");
+                dto.setTitle("DB Boek");
+
+                given(br.findByIsbn("9781234567890")).willReturn(book);
+                given(bookMapper1.toDTO(book)).willReturn(dto);
+
+                BookDTO result = bs.getBookByISBN("978-1234567890");
+
+                assertThat(result.getId()).isEqualTo(15L);
+                assertThat(result.getTitle()).isEqualTo("DB Boek");
+                then(openLibraryClient).should(never()).fetchBookByISBN(anyString());
+        }
+
+        @Test
+        @DisplayName("Given ISBN does not exist in DB, When getBookByISBN is called, Then fetch from OpenLibrary")
+        void givenMissingIsbnInDb_whenGetBookByISBN_thenFetchFromOpenLibrary() {
+                BookDTO dto = new BookDTO();
+                dto.setIsbn("9781234567890");
+                dto.setTitle("OpenLibrary Boek");
+
+                given(br.findByIsbn("9781234567890")).willReturn(null);
+                given(openLibraryClient.fetchBookByISBN("9781234567890")).willReturn(dto);
+
+                BookDTO result = bs.getBookByISBN("978-1234567890");
+
+                assertThat(result.getTitle()).isEqualTo("OpenLibrary Boek");
+                then(openLibraryClient).should().fetchBookByISBN("9781234567890");
         }
 
         private Book createBook(

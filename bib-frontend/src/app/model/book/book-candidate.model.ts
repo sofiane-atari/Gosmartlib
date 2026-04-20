@@ -1,4 +1,5 @@
 export interface BookCandidate {
+  id?: number;
   title: string;
   author: string;
   isbn13: string;

@@ -1,14 +1,15 @@
-import { Component, EventEmitter, Input, NgModule, Output } from '@angular/core';
+import { Component, EventEmitter, Input, NgModule, Output, ViewChild } from '@angular/core';
 import { BookService } from '../../../../services/bookService/book.service';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Book } from '../../../../model/book/book.model';
-import { Info, LucideAngularModule, Plus } from "lucide-angular";
+import { Info, LucideAngularModule, Pencil, Plus, Trash2 } from "lucide-angular";
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { ToastService } from '../../../../services/toast/toast.service';
 import { LoadingOverlayComponent } from "../../../shared/loading-overlay/loading-overlay.component";
-import { Genre } from '../../../../model/genre.model';
+import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
+import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 
 @Component({
   selector: 'app-add-book-isbn',
@@ -18,16 +19,19 @@ import { ReadingLevel } from '../../../../model/readingLevel.model';
   styleUrl: './add-book-isbn.component.css'
 
 })
-export class AddBookISBNComponent {
+export class AddBookISBNComponent extends GenreSelectionBase {
   isbn: string = "";
   selectedBook?: Book;
+  @ViewChild('bookForm') bookForm?: NgForm;
   @Output() bookAdded = new EventEmitter<Book>();
-  @Input() genres: Genre[] = [];
   @Input() readingLevels: ReadingLevel[] = [];
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
+  readonly Trash2Icon = Trash2;
+  readonly PencilIcon = Pencil;
 
-
+  selectedBookId: number | null = null;
+  isExistingBookLoaded = false;
   candidates: BookCandidate[] = [];
   showCandidates = false;
   isLoading = false;
@@ -35,58 +39,70 @@ export class AddBookISBNComponent {
     book: Book = {
     title: '',
     author: '',
-    pages: 0,
+    pages: '' as any,
     imageUrl: '',
     description: '',
-    releaseYear: new Date().getFullYear(),
+    releaseYear: null as any,
     genres: [],
-    readingLevel: undefined
+    readingLevel: null as any
   };
 
-  constructor(private bs: BookService, private rt: Router, private ts: ToastService){}
-
-  toggleGenre(genre: Genre) {
-    const exists = this.book.genres.some(g => g.name === genre.name);
-
-    if (exists) {
-      this.book.genres = this.book.genres.filter(g => g.name !== genre.name);
-    } else {
-      this.book.genres.push(genre);
-    }
-  }
-
-  isGenreSelected(genre: Genre): boolean {
-    return this.book.genres.some(g => g.name  === genre.name);
+  constructor(private bs: BookService, private rt: Router, private ts: ToastService){
+    super();
   }
 
   save() {
+    if (this.isExistingBookLoaded && this.selectedBookId) {
+      this.bs.addCopy(this.selectedBookId).subscribe({
+        next: () => {
+          this.ts.show('Exemplaar toegevoegd.');
+          this.clearForm();
+        },
+        error: () => {
+          this.ts.show('Kon geen exemplaar toevoegen.', 'error');
+        }
+      });
+      return;
+    }
 
-    if (this.book.genres.length === 0) {
-      this.ts.show('Selecteer minstens 1 genre', 'error')
+    if (!this.isGenreSelectionValid()) {
+      this.ts.show('Kies 1 hoofdgenre en selecteer daarvan 1 tot 3 subgenres.', 'error');
       return;
     }
 
     this.bookAdded.emit(this.book);
   }
+
+  editBook() {
+    if (!this.selectedBookId) {
+      this.ts.show('Geen bestaand boek geselecteerd om te wijzigen.', 'error');
+      return;
+    }
+
+    this.rt.navigate(['/books/' + this.selectedBookId + '/edit']);
+  }
+
   searchBookData() {
-  const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
-  this.isLoading = true;
+    const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
+
     if (normalizedIsbn.length === 13) {
+      this.isLoading = true;
       this.isbn = normalizedIsbn;
       this.searchByISBN();
       return;
     }
 
-    if (
-      this.book.title?.trim() &&
-      this.book.author?.trim() &&
-      this.book.releaseYear
-    ) {
+    if (this.book.title?.trim() && this.book.author?.trim() && this.book.releaseYear) {
+      this.isLoading = true;
       this.searchByTitleAuthorYear();
       return;
     }
 
-    this.ts.show('Vul een ISBN in of vul titel, auteur en jaar in.', 'error');
+    this.isLoading = false;
+    this.ts.show(
+      'Zoeken zonder ISBN kan alleen met titel, auteur én jaar samen.',
+      'error'
+    );
   }
 
   searchByISBN() {
@@ -104,16 +120,55 @@ export class AddBookISBNComponent {
     this.bs.getBookByISBN(this.isbn).subscribe({
       next: (data) => {
         this.book = data;
+        this.openedMainGenre = this.findMainGenreForSelectedGenres();
+        this.selectedBookId = data.id ?? null;
+        this.isExistingBookLoaded = !!data.id;
         this.isLoading = false;
-        this.ts.show('Boek gevonden.');
+
+        this.ts.show(
+          this.isExistingBookLoaded
+            ? 'Boekgegevens uit de database ingevuld.'
+            : 'Boek gevonden.'
+        );
       },
-      error: (err) => {
+      error: () => {
         this.isLoading = false;
         this.ts.show('Geen boek gevonden op basis van ISBN.', 'error');
       }
     });
   }
+clearForm() {
+    this.isbn = '';
+    this.selectedBook = undefined;
+    this.candidates = [];
+    this.showCandidates = false;
+    this.isLoading = false;
+    this.openedMainGenre = null;
+    this.selectedBookId = null;
+    this.isExistingBookLoaded = false;
+    this.resetGenreSelection();
+    this.book = {
+      title: '',
+      author: '',
+      pages: 0,
+      imageUrl: '',
+      description: '',
+      releaseYear: new Date().getFullYear(),
+      genres: [],
+      readingLevel: undefined
+    };
 
+    this.bookForm?.resetForm({
+      isbn: '',
+      title: '',
+      author: '',
+      pages: 0,
+      releaseYear: new Date().getFullYear(),
+      imageUrl: '',
+      description: '',
+      readingLevel: undefined
+    });
+  }
   searchByTitleAuthorYear() {
     this.showCandidates = false;
     this.candidates = [];
@@ -138,10 +193,13 @@ export class AddBookISBNComponent {
         }
 
         if (results.length === 1) {
-          this.ts.show('1 boek gevonden. Gegevens worden automatisch ingevuld.');
-          this.selectCandidate(results[0]);
+          this.candidates = results;
+          this.showCandidates = true;
+          this.isLoading = false;
+          this.ts.show('1 boek gevonden.');
           return;
         }
+
         this.candidates = results;
         this.showCandidates = true;
         this.isLoading = false;
@@ -161,11 +219,20 @@ export class AddBookISBNComponent {
     this.bs.selectBook(candidate.isbn13).subscribe({
       next: (selectedBook: Book) => {
         this.book = selectedBook;
+        this.openedMainGenre = this.findMainGenreForSelectedGenres();
         this.isbn = selectedBook.isbn ?? candidate.isbn13;
+
+        this.selectedBookId = selectedBook.id ?? null;
+        this.isExistingBookLoaded = !!selectedBook.id;
+
         this.showCandidates = false;
         this.candidates = [];
         this.isLoading = false;
-        this.ts.show('Boekgegevens ingevuld.');
+        this.ts.show(
+          this.isExistingBookLoaded
+            ? 'Boekgegevens uit de database ingevuld.'
+            : 'Boekgegevens ingevuld.'
+        );
       },
       error: () => {
         this.isLoading = false;
@@ -173,4 +240,18 @@ export class AddBookISBNComponent {
       }
     });
   }
+  protected getSelectedGenres(): Genre[] {
+    return this.book.genres;
+  }
+
+  protected setSelectedGenres(genres: Genre[]): void {
+    this.book.genres = genres;
+  }
+
+  protected showGenreError(message: string): void {
+    this.ts.show(message, 'error');
+  }
+  compareReadingLevels = (a: ReadingLevel | null, b: ReadingLevel | null): boolean => {
+    return a?.id === b?.id;
+  };
 }

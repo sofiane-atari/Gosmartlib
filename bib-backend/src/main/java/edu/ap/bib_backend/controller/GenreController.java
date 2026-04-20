@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RequestMapping("/genres")
 public class GenreController {
 
-
     private final GenreService genreService;
 
     public GenreController(GenreService genreService) {
@@ -83,5 +82,10 @@ public class GenreController {
 
         GenreDTO outputDTO = genreService.update(id, inputDTO);
         return ResponseEntity.ok(outputDTO);
+    }
+
+    @GetMapping("/tree")
+    public ResponseEntity<List<GenreDTO>> getGenresTree() {
+        return ResponseEntity.ok(genreService.getGenresTree());
     }
 }

@@ -6,7 +6,7 @@ import { BookService } from '../../../services/bookService/book.service';
 import { GenreService } from '../../../services/genre/genre.service';
 import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
 import { Router } from '@angular/router';
-import { Genre } from '../../../model/genre.model';
+import { Genre } from '../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
 import { Book } from '../../../model/book/book.model';
 
@@ -58,7 +58,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
   loadGenres(): void {
     this.isLoadingGenres = true;
 
-    this.gs.getGenres().subscribe({
+    this.gs.getGenresTree().subscribe({
       next: (genres: Genre[]) => {
         this.genres = genres;
         this.isLoadingGenres = false;

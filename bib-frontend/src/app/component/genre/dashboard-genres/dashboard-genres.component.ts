@@ -22,7 +22,7 @@ import { PagingComponent } from '../../shared/paging/paging.component';
 import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
-import { Genre } from '../../../model/genre.model';
+import { Genre } from '../../../model/genre/genre.model';
 
 type PopupState = 'create' | 'edit' | null;
 

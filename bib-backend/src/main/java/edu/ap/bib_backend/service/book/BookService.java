@@ -2,14 +2,17 @@ package edu.ap.bib_backend.service.book;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.ReadingLevelDTO;
@@ -24,7 +27,9 @@ import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
+import edu.ap.bib_backend.mapper.BookCandidateMapper;
 import edu.ap.bib_backend.mapper.BookMapper;
 import edu.ap.bib_backend.util.IsbnUtils;
 import jakarta.transaction.Transactional;
@@ -40,6 +45,8 @@ public class BookService {
     private final BookLoanRepository bookLoanRepository;
     private final ReadingLevelRepository readingLevelRepository;
     private final BookMapper bookMapper;
+    private final BookCandidateMapper bookCandidateMapper;
+    private final OpenLibraryClient openLibraryClient;
 
     public BookService(
             BookRepository bookRepository,
@@ -48,7 +55,9 @@ public class BookService {
             ReviewRepository reviewRepository,
             BookLoanRepository bookLoanRepository,
             ReadingLevelRepository readingLevelRepository,
-            BookMapper bookMapper) {
+            BookMapper bookMapper,
+            BookCandidateMapper bookCandidateMapper,
+            OpenLibraryClient openLibraryClient) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.genreRepository = genreRepository;
@@ -56,11 +65,20 @@ public class BookService {
         this.bookLoanRepository = bookLoanRepository;
         this.readingLevelRepository = readingLevelRepository;
         this.bookMapper = bookMapper;
+        this.bookCandidateMapper = bookCandidateMapper;
+        this.openLibraryClient = openLibraryClient;
     }
 
     @Transactional
     public List<BookDTO> getAllBooks() {
         return bookMapper.toDTOList(bookRepository.findAll());
+    }
+
+    @Transactional
+    public BookDTO addCopyToBook(Long bookId) {
+        Book book = findBookOrThrow(bookId);
+        createAvailableCopy(book);
+        return bookMapper.toDTO(book);
     }
 
     @Transactional
@@ -169,7 +187,7 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
     }
 
-    private java.util.Optional<Book> findExistingByIsbn(String isbn) {
+    public java.util.Optional<Book> findExistingByIsbn(String isbn) {
         if (isbn == null || isbn.isBlank()) {
             return java.util.Optional.empty();
         }
@@ -217,5 +235,47 @@ public class BookService {
         return readingLevelRepository.findById(readingLevelDto.getId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Reading level bestaat niet: " + readingLevelDto.getId()));
+    }
+
+    @Transactional
+    public List<BookCandidateDTO> searchBooksInDb(String title, String author, Integer releaseYear) {
+        String cleanTitle = normalize(title);
+        String cleanAuthor = normalize(author);
+
+        boolean noUsefulFilters = cleanTitle == null &&
+                cleanAuthor == null &&
+                releaseYear == null;
+
+        if (noUsefulFilters) {
+            return List.of();
+        }
+
+        Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear);
+
+        return bookRepository.findAll(spec).stream()
+                .limit(10)
+                .map(bookCandidateMapper::toDBCandidateDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BookDTO getBookByISBN(String rawIsbn) {
+        String normalizedIsbn = IsbnUtils.normalizeIsbn(rawIsbn);
+
+        if (normalizedIsbn == null || normalizedIsbn.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ongeldig ISBN");
+        }
+
+        return findExistingByIsbn(normalizedIsbn)
+                .map(bookMapper::toDTO)
+                .orElseGet(() -> openLibraryClient.fetchBookByISBN(normalizedIsbn));
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isBlank() ? null : trimmed;
     }
 }

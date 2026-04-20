@@ -147,35 +147,33 @@ class GenreServiceTest {
 
         @Test
         void givenNoOptions_whenGetPage_thenReturnAllGenres() {
-                // Arrange
                 int page = 0;
                 int pageSize = 10;
                 GenreGetOptions options = new GenreGetOptions();
 
                 Genre genre = new Genre("Test", "#FF0000", "Test description");
                 Page<Genre> genrePage = new PageImpl<>(
-                        List.of(genre),
-                        org.springframework.data.domain.PageRequest.of(page, pageSize),
-                        1
-                );
+                                List.of(genre),
+                                org.springframework.data.domain.PageRequest.of(page, pageSize),
+                                1);
 
-                when(genreRepository.findAll(any(Pageable.class))).thenReturn(genrePage);
-                when(genreMapper.toDto(any(GenreProjection.class))).thenReturn(
-                        GenreDTO.builder()
+                GenreDTO dto = GenreDTO.builder()
                                 .name("Test")
                                 .color("#FF0000")
                                 .description("Test desc")
-                                .build()
-                );
+                                .build();
 
-                // Act
+                when(genreRepository.findAll(any(Pageable.class))).thenReturn(genrePage);
+                when(genreMapper.toDto(genre)).thenReturn(dto);
+
+
                 PageDTO<GenreDTO> result = genreService.getPage(page, pageSize, options);
 
-                // Assert
                 assertNotNull(result);
                 assertNotNull(result.data());
                 assertNotNull(result.meta());
                 verify(genreRepository, times(1)).findAll(any(Pageable.class));
+                verify(genreMapper, times(1)).toDto(genre);
         }
 
         @Test

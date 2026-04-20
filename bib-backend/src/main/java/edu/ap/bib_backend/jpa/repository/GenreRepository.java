@@ -3,6 +3,7 @@ package edu.ap.bib_backend.jpa.repository;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.projection.GenreWithCount;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +16,16 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {
 
         Optional<Genre> findByName(String name);
 
+        @Query("""
+                            select distinct g
+                            from Genre g
+                            left join fetch g.subGenres
+                            where g.parentGenre is null
+                            order by g.name
+                        """)
+        List<Genre> findRootGenresWithSubGenres();
+
+        List<Genre> findByParentGenreNameOrderByNameAsc(String parentGenreName);
         boolean existsByName(String name);
 
         Page<Genre> findAll(Pageable pageable);

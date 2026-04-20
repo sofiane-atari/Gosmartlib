@@ -66,27 +66,42 @@ public class GoogleBooksClient {
 
         for (Map<String, Object> item : items) {
             Map<String, Object> volumeInfo = (Map<String, Object>) item.get("volumeInfo");
-            if (volumeInfo == null)
+            if (volumeInfo == null) {
                 continue;
+            }
 
-            if (!matchesCandidate(volumeInfo, title, author, releaseYear))
+            if (!matchesCandidate(volumeInfo, title, author, releaseYear)) {
                 continue;
+            }
 
             String isbn13 = extractIsbn13(
                     (List<Map<String, String>>) volumeInfo.get("industryIdentifiers"));
 
-            if (isbn13 == null)
+            if (isbn13 == null) {
                 continue;
+            }
 
             candidates.add(bookCandidateMapper.toCandidateDTO(volumeInfo, isbn13));
         }
 
+        if (releaseYear != null) {
+            candidates.sort((a, b) -> {
+                Integer yearA = a.getReleaseYear();
+                Integer yearB = b.getReleaseYear();
+
+                int distanceA = yearA == null ? Integer.MAX_VALUE : Math.abs(yearA - releaseYear);
+                int distanceB = yearB == null ? Integer.MAX_VALUE : Math.abs(yearB - releaseYear);
+
+                return Integer.compare(distanceA, distanceB);
+            });
+        }
         if (candidates.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
                     "Geen kandidaten gevonden voor title, author en releaseYear");
         }
 
-        return candidates;
+        return candidates.stream().limit(4).toList();
     }
 
     private String extractIsbn13(List<Map<String, String>> identifiers) {
@@ -104,15 +119,15 @@ public class GoogleBooksClient {
 
     private boolean matchesCandidate(Map<String, Object> volumeInfo, String title, String author, Integer releaseYear) {
         return matchesTitle(volumeInfo, title)
-                && matchesAuthor(volumeInfo, author)
-                && matchesReleaseYear(volumeInfo, releaseYear);
+                && matchesAuthor(volumeInfo, author);
     }
 
     private boolean matchesTitle(Map<String, Object> volumeInfo, String expectedTitle) {
         String foundTitle = normalize((String) volumeInfo.get("title"));
         String wantedTitle = normalize(expectedTitle);
 
-        return foundTitle.equals(wantedTitle) || foundTitle.contains(wantedTitle);
+        return foundTitle.equals(wantedTitle)
+                || foundTitle.contains(wantedTitle);
     }
 
     private boolean matchesAuthor(Map<String, Object> volumeInfo, String expectedAuthor) {
@@ -125,7 +140,11 @@ public class GoogleBooksClient {
         String wantedAuthor = normalize(expectedAuthor);
 
         for (String author : authors) {
-            if (normalize(author).equals(wantedAuthor)) {
+            String foundAuthor = normalize(author);
+
+            if (foundAuthor.equals(wantedAuthor)
+                    || foundAuthor.contains(wantedAuthor)
+                    || wantedAuthor.contains(foundAuthor)) {
                 return true;
             }
         }
@@ -134,26 +153,31 @@ public class GoogleBooksClient {
     }
 
     private boolean matchesReleaseYear(Map<String, Object> volumeInfo, Integer expectedYear) {
-        if (expectedYear == null)
+        if (expectedYear == null) {
             return true;
+        }
 
         String publishedDate = (String) volumeInfo.get("publishedDate");
         if (publishedDate == null || publishedDate.length() < 4) {
             return false;
         }
-        publishedDate = publishedDate.trim();
 
         try {
             int year = Integer.parseInt(publishedDate.substring(0, 4));
-            return year == expectedYear;
+            return Math.abs(year - expectedYear) <= 1;
         } catch (NumberFormatException e) {
             return false;
         }
     }
 
     private String normalize(String value) {
-        if (value == null)
+        if (value == null) {
             return "";
-        return value.toLowerCase().trim();
+        }
+
+        return value
+                .toLowerCase()
+                .replaceAll("[^a-z0-9]", "")
+                .trim();
     }
 }

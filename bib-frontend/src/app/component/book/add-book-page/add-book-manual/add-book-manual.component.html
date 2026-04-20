@@ -19,7 +19,7 @@
         <span class="step-num">Stap 1</span>
         <span class="step-title">Vul de basisgegevens in</span>
         <span class="step-desc">
-          Vul titel, auteur, aantal pagina's en jaar van het boek in.
+          Vul de gegevens in van het boek
         </span>
       </div>
 
@@ -41,75 +41,227 @@
     </div>
 
     <hr class="divider" />
+
+    @if (isSearching) {
+      <p class="search-info">Zoeken naar bestaande boeken...</p>
+    }
+
+    @if (!isSearching && candidateBooks.length > 0) {
+      <div class="candidate-section">
+        <div class="candidate-section-header">
+          <div class="candidate-section-heading">
+            <p class="candidate-section-label">Gevonden resultaten</p>
+          </div>
+        </div>
+
+        <div class="candidate-list">
+          @for (candidate of candidateBooks; track candidate.title + '-' + candidate.author + '-' + candidate.releaseYear) {
+            <button
+              type="button"
+              class="candidate-card"
+              (click)="useCandidate(candidate)"
+            >
+              <div class="candidate-image">
+                @if (candidate.imageUrl) {
+                  <img [src]="candidate.imageUrl" [alt]="candidate.title" />
+                } @else {
+                  <div class="preview-placeholder small">
+                    <p>Geen cover</p>
+                  </div>
+                }
+              </div>
+
+              <div class="candidate-info">
+                <p class="candidate-title">
+                  <strong>{{ candidate.title }}</strong>
+                </p>
+
+                <p class="candidate-author">
+                  {{ candidate.author || 'Onbekende auteur' }}
+                </p>
+
+                <p class="candidate-year">
+                  {{ candidate.releaseYear || 'Onbekende auteur' }}
+                </p>
+
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+
+      <hr class="divider" />
+    }
+
+    @if (isCandidateLoaded) {
+      <p class="form-lock-hint">
+        Titel, auteur en jaar kunnen nog aangepast worden. Andere velden zijn overgenomen uit de database.
+      </p>
+    }
   </div>
 
-  <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
+  <form [formGroup]="form" (ngSubmit)="save()" class="book-form">
     <div class="form-section">
       <div class="form-row">
         <div class="form-group">
           <label>Titel *</label>
-          <input type="text" [(ngModel)]="book.title" name="title" placeholder="Titel" required />
+          <input type="text" formControlName="title" placeholder="Titel" />
+          @if (title.invalid && title.touched) {
+            <p class="error-message">Titel is verplicht.</p>
+          }
         </div>
+
         <div class="form-group">
           <label>Auteur *</label>
-          <input type="text" [(ngModel)]="book.author" name="author" placeholder="Auteur" required />
+          <input type="text" formControlName="author" placeholder="Auteur" />
+          @if (author.invalid && author.touched) {
+            <p class="error-message">Auteur is verplicht.</p>
+          }
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label>Aantal Pagina's *</label>
-          <input type="number" [(ngModel)]="book.pages" name="pages" placeholder="320" required />
+          <input type="number" formControlName="pages" placeholder="320" [readonly]="isCandidateLoaded" />
+          @if (pages.invalid && pages.touched) {
+            <p class="error-message">Aantal pagina's is verplicht.</p>
+          }
         </div>
+
         <div class="form-group">
           <label>Jaar *</label>
-          <input type="number" [(ngModel)]="book.releaseYear" name="releaseYear" placeholder="2024" required />
+          <input type="number" formControlName="releaseYear" placeholder="2024" />
+          @if (releaseYear.invalid && releaseYear.touched) {
+            <p class="error-message">Jaar is verplicht.</p>
+          }
         </div>
       </div>
 
-      <div class="form-group full-width">
-        <label>Cover URL (optioneel)</label>
-        <input type="text" [(ngModel)]="book.imageUrl" name="imageUrl" placeholder="https://..." />
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cover URL (optioneel)</label>
+          <input type="text" formControlName="imageUrl" placeholder="https://..." [readonly]="isCandidateLoaded" />
+        </div>
+
+        <div class="form-group">
+        <label for="readingLevel">Leesniveau *</label>
+
+          <select
+            id="readingLevel"
+            formControlName="readingLevel"
+            [compareWith]="compareReadingLevels"
+          >
+            <option [ngValue]="null">Kies een niveau</option>
+
+            @for (level of readingLevels; track level.id) {
+              <option [ngValue]="level">
+                {{ level.niveauName }}
+              </option>
+            }
+          </select>
+
+          @if (readingLevel.value) {
+            <p class="reading-level-description">
+              {{ readingLevel.value.description }}
+            </p>
+          }
+
+          @if (readingLevel.invalid && readingLevel.touched) {
+            <p class="error-message">Leesniveau is verplicht.</p>
+          }
+        </div>
       </div>
 
       <div class="form-group full-width description-field">
         <label>Beschrijving *</label>
         <textarea
-          [(ngModel)]="book.description"
-          name="description"
+          formControlName="description"
           placeholder="Een korte beschrijving van het boek..."
-          required
+          [readonly]="isCandidateLoaded"
         ></textarea>
+
+        @if (description.invalid && description.touched) {
+          <p class="error-message">Beschrijving is verplicht.</p>
+        }
       </div>
 
-      <div class="form-group full-width genre-section">
-        <label>Genres * (selecteer minimaal 1)</label>
-        <div class="genre-grid">
-          @for (genre of genres; track genre.name) {
-            <div 
-              class="genre-option"
-              [class.selected]="isGenreSelected(genre)"
-              [style.background-color]="isGenreSelected(genre) ? genre.color + '33' : '#f5f5f5'"
-              [style.color]="isGenreSelected(genre) ? genre.color : '#666'"
-              [style.border-color]="isGenreSelected(genre) ? genre.color + '66' : '#e0e0e0'"
-              (click)="toggleGenre(genre)"
-            >
-              <span class="genre-text">{{ genre.name }}</span>
+        <div class="form-group full-width genre-section">
+          <label>Genres * (selecteer minimaal 1 subgenre)</label>
+
+          <div class="genre-grid main-genre-grid">
+            @for (mainGenre of genres; track mainGenre.name) {
+              <div
+                class="genre-option main-genre-option"
+                [class.selected]="isMainGenreOpen(mainGenre)"
+                [class.disabled]="isCandidateLoaded"
+                [style.background-color]="isMainGenreOpen(mainGenre) ? mainGenre.color + '33' : '#f5f5f5'"
+                [style.color]="isMainGenreOpen(mainGenre) ? mainGenre.color : '#666'"
+                [style.border-color]="isMainGenreOpen(mainGenre) ? mainGenre.color + '66' : '#e0e0e0'"
+                (click)="!isCandidateLoaded && toggleMainGenre(mainGenre)"
+              >
+                <span class="genre-text">{{ mainGenre.name }}</span>
+              </div>
+            }
+          </div>
+
+          @if (openedMainGenre && openedMainGenre.subGenres?.length) {
+            <div class="subgenre-wrapper">
+              <p class="subgenre-title">
+                Subgenres van <strong>{{ openedMainGenre.name }}</strong>
+              </p>
+
+              <div class="genre-grid subgenre-grid">
+                @for (subGenre of openedMainGenre.subGenres; track subGenre.name) {
+                  <div
+                    class="genre-option subgenre-option"
+                    [class.selected]="isSubGenreSelected(subGenre)"
+                    [class.disabled]="isCandidateLoaded"
+                    [style.background-color]="isSubGenreSelected(subGenre) ? subGenre.color + '33' : '#f5f5f5'"
+                    [style.color]="isSubGenreSelected(subGenre) ? subGenre.color : '#666'"
+                    [style.border-color]="isSubGenreSelected(subGenre) ? subGenre.color + '66' : '#e0e0e0'"
+                    (click)="!isCandidateLoaded && toggleSubGenre(subGenre)"
+                  >
+                    <span class="genre-text">{{ subGenre.name }}</span>
+                  </div>
+                }
+              </div>
             </div>
           }
         </div>
-      </div>
     </div>
 
     <div class="form-actions">
-      <button
-        type="submit"
-        class="btn-submit"
-        [disabled]="!bookForm.form.valid || book.genres.length === 0"
-      >
-        <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-        Boek Toevoegen
-      </button>
+  <button
+    type="button"
+    class="btn-clear"
+    (click)="clearForm()"
+  >
+    <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+    Formulier leegmaken
+  </button>
+
+      <div class="action-buttons">
+        @if (isCandidateLoaded) {
+          <button
+            type="button"
+            class="btn-edit"
+            (click)="editBook()"
+          >
+            <lucide-icon [name]="PencilIcon" class="btn-icon"></lucide-icon>
+            Boek Wijzigen
+          </button>
+        }
+
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="form.invalid || selectedGenres.length === 0"
+        >
+          <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
+          {{ isCandidateLoaded ? 'Exemplaar Toevoegen' : 'Boek Toevoegen' }}
+        </button>
+      </div>
     </div>
   </form>
 </div>

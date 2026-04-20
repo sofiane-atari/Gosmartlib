@@ -33,13 +33,11 @@ public final class BookSpecification {
 
                 Predicate titleMatch = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("title")),
-                        likePattern
-                );
+                        likePattern);
 
                 Predicate authorMatch = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("author")),
-                        likePattern
-                );
+                        likePattern);
 
                 predicates.add(criteriaBuilder.or(titleMatch, authorMatch));
             }
@@ -69,6 +67,33 @@ public final class BookSpecification {
                         genreName.trim().toLowerCase()
                 ));
                 query.distinct(true);
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Book> withCandidateFilters(
+            String title,
+            String author,
+            Integer releaseYear) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (title != null && !title.isBlank()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("title")),
+                        "%" + title.toLowerCase() + "%"));
+            }
+
+            if (author != null && !author.isBlank()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("author")),
+                        "%" + author.toLowerCase() + "%"));
+            }
+
+            if (releaseYear != null) {
+                predicates.add(criteriaBuilder.equal(root.get("releaseYear"), releaseYear));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

@@ -3,7 +3,7 @@ import {
   input,
   output,
 } from '@angular/core';
-import { Genre } from '../../../model/genre.model';
+import { Genre } from '../../../model/genre/genre.model';
 import { GenreCardComponent } from '../genre-card/genre-card.component';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 

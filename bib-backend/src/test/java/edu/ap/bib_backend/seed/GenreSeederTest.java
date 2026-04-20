@@ -29,26 +29,28 @@ class GenreSeederTest {
     }
 
     @Test
-    @DisplayName("Given empty genre table, when initGenres runs, then save all default genres")
+    @DisplayName("Given empty genre table, when initGenres runs, then save default genres")
     void givenEmptyGenreTable_wheninitGenressRuns_thenSaveAllDefaultGenres() throws Exception {
-        // Given
         given(repository.count()).willReturn(0L);
 
         CommandLineRunner runner = seeder.initGenres(repository);
 
-        // When
         runner.run();
 
-        // Then
+        then(repository).should().save(new Genre("Fictie algemeen", "#95A5A6",
+                "Diverse verzonnen verhalen die niet onder één specifiek subgenre vallen."));
+        then(repository).should().save(new Genre("Non-fictie algemeen", "#16A085",
+                "Informatieve boeken gebaseerd op de werkelijkheid en feiten."));
+
         ArgumentCaptor<List<Genre>> captor = ArgumentCaptor.forClass(List.class);
         then(repository).should().saveAll(captor.capture());
 
         List<Genre> savedGenres = captor.getValue();
-        assertThat(savedGenres).hasSize(17);
+
+        assertThat(savedGenres).hasSize(22);
         assertThat(savedGenres)
                 .extracting(Genre::getName)
                 .containsExactly(
-                        "Fictie algemeen",
                         "Literaire roman",
                         "Spanning / thriller",
                         "Detective / misdaad",
@@ -64,7 +66,13 @@ class GenreSeederTest {
                         "Humor",
                         "Graphic novel / strip",
                         "Poëzie",
-                        "Non-fictie algemeen");
+                        "Biografie / autobiografie",
+                        "Wetenschap & technologie",
+                        "Filosofie",
+                        "Maatschappij & politiek",
+                        "Psychologie",
+                        "Geschiedenis",
+                        "Kunst & cultuur");
     }
 
     @Test

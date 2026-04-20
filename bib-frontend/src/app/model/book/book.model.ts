@@ -1,4 +1,4 @@
-import { Genre } from "../genre.model";
+import { Genre } from "../genre/genre.model";
 import { ReadingLevel } from "../readingLevel.model";
 
 export interface Book {

@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
+import edu.ap.bib_backend.jpa.entity.Book;
 
 @Component
 public class BookCandidateMapper {
@@ -20,6 +21,21 @@ public class BookCandidateMapper {
         Map<String, String> imageLinks = (Map<String, String>) volumeInfo.get("imageLinks");
         if (imageLinks != null) {
             dto.setImageUrl(imageLinks.get("thumbnail"));
+        }
+
+        return dto;
+    }
+
+    public BookCandidateDTO toDBCandidateDTO(Book book) {
+        BookCandidateDTO dto = new BookCandidateDTO();
+        dto.setTitle(book.getTitle());
+        dto.setId(book.getId());
+        dto.setAuthor(book.getAuthor());
+        dto.setReleaseYear(book.getReleaseYear());
+        dto.setImageUrl(book.getImageUrl());
+
+        if (book.getIsbn() != null && !book.getIsbn().isBlank()) {
+            dto.setIsbn13(book.getIsbn());
         }
 
         return dto;

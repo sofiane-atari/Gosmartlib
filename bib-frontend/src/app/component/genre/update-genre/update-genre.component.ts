@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Genre } from '../../../model/genre.model';
+import { Genre } from '../../../model/genre/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpErrorResponseError } from '../../../error-reponse.model';

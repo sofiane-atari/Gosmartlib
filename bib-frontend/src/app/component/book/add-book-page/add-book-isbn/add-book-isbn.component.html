@@ -44,7 +44,7 @@
     <hr class="divider" />
 
     <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
-      
+
       <div class="search-section">
         <input
           type="text"
@@ -60,6 +60,12 @@
 
       <hr class="divider" />
 
+      @if (isExistingBookLoaded) {
+        <p class="form-lock-hint">
+          Dit boek bestaat al in de database. Je kan alleen een extra exemplaar toevoegen.
+        </p>
+      }
+
       <div class="content-wrapper">
         <div class="form-fields">
           <div class="form-row">
@@ -70,6 +76,7 @@
                 [(ngModel)]="book.title"
                 name="title"
                 placeholder="Titel"
+                [readonly]="isExistingBookLoaded"
                 required
               />
             </div>
@@ -81,6 +88,7 @@
                 [(ngModel)]="book.author"
                 name="author"
                 placeholder="Auteur"
+                [readonly]="isExistingBookLoaded"
                 required
               />
             </div>
@@ -94,6 +102,7 @@
                 [(ngModel)]="book.pages"
                 name="pages"
                 placeholder="320"
+                [readonly]="isExistingBookLoaded"
                 required
               />
             </div>
@@ -105,27 +114,37 @@
                 [(ngModel)]="book.releaseYear"
                 name="releaseYear"
                 placeholder="2024"
+                [readonly]="isExistingBookLoaded"
                 required
               />
             </div>
           </div>
 
-         <div class="form-row">
-          <div class="form-group">
-            <label>Cover URL (optioneel)</label>
-            <input
-              type="text"
-              [(ngModel)]="book.imageUrl"
-              name="imageUrl"
-              placeholder="https://..."
-            />
-          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cover URL (optioneel)</label>
+              <input
+                type="text"
+                [(ngModel)]="book.imageUrl"
+                name="imageUrl"
+                placeholder="https://..."
+                [readonly]="isExistingBookLoaded"
+              />
+            </div>
 
-          <div class="form-group">
-            <label for="readingLevel">Leesniveau</label>
-              <select [(ngModel)]="book.readingLevel" name="readingLevel">
-                <option [ngValue]="undefined">Kies een niveau</option>
-                
+            <div class="form-group">
+              <label for="readingLevel">Leesniveau</label>
+
+              <select
+                [(ngModel)]="book.readingLevel"
+                name="readingLevel"
+                #readingLevel="ngModel"
+                [compareWith]="compareReadingLevels"
+                [disabled]="isExistingBookLoaded"
+                required
+              >
+                <option [ngValue]="null">Kies een niveau</option>
+
                 @for (level of readingLevels; track level.niveauName) {
                   <option [ngValue]="level">
                     {{ level.niveauName }}
@@ -138,8 +157,8 @@
                   {{ book.readingLevel.description }}
                 </p>
               }
+            </div>
           </div>
-        </div>
 
           <div class="form-group full-width description-field">
             <label>Beschrijving *</label>
@@ -147,6 +166,7 @@
               [(ngModel)]="book.description"
               name="description"
               placeholder="Een korte beschrijving van het boek..."
+              [readonly]="isExistingBookLoaded"
               required
             ></textarea>
           </div>
@@ -195,28 +215,84 @@
       }
 
       <div class="form-group full-width genre-section">
-        <label>Genres * (selecteer minimaal 1)</label>
-        <div class="genre-grid">
-          @for (genre of genres; track genre.name) {
-            <div 
+        <label>Genres * (kies 1 hoofdgenre en 1 tot 3 subgenres)</label>
+
+        <div class="genre-grid main-genre-grid">
+          @for (mainGenre of genres; track mainGenre.name) {
+            <div
               class="genre-option"
-              [class.selected]="isGenreSelected(genre)"
-              [style.background-color]="isGenreSelected(genre) ? genre.color + '33' : '#f5f5f5'"
-              [style.color]="isGenreSelected(genre) ? genre.color : '#666'"
-              [style.border-color]="isGenreSelected(genre) ? genre.color + '66' : '#e0e0e0'"
-              (click)="toggleGenre(genre)"
+              [class.selected]="isMainGenreOpen(mainGenre)"
+              [class.disabled]="isExistingBookLoaded"
+              [style.background-color]="isMainGenreOpen(mainGenre) ? mainGenre.color + '33' : '#f5f5f5'"
+              [style.color]="isMainGenreOpen(mainGenre) ? mainGenre.color : '#666'"
+              [style.border-color]="isMainGenreOpen(mainGenre) ? mainGenre.color + '66' : '#e0e0e0'"
+              (click)="!isExistingBookLoaded && toggleMainGenre(mainGenre)"
             >
-              <span class="genre-text">{{ genre.name }}</span>
+              <span class="genre-text">{{ mainGenre.name }}</span>
             </div>
           }
         </div>
+
+        <p class="genre-hint">
+          Geselecteerd: {{ book.genres.length }}/3 subgenres
+        </p>
+
+        @if (openedMainGenre && openedMainGenre.subGenres?.length) {
+          <div class="subgenre-wrapper">
+            <p class="subgenre-title">
+              Subgenres van <strong>{{ openedMainGenre.name }}</strong>
+            </p>
+
+            <div class="genre-grid subgenre-grid">
+              @for (subGenre of openedMainGenre.subGenres; track subGenre.name) {
+                <div
+                  class="genre-option"
+                  [class.selected]="isSubGenreSelected(subGenre)"
+                  [class.disabled]="isExistingBookLoaded"
+                  [style.background-color]="isSubGenreSelected(subGenre) ? subGenre.color + '33' : '#f5f5f5'"
+                  [style.color]="isSubGenreSelected(subGenre) ? subGenre.color : '#666'"
+                  [style.border-color]="isSubGenreSelected(subGenre) ? subGenre.color + '66' : '#e0e0e0'"
+                  (click)="!isExistingBookLoaded && toggleSubGenre(subGenre)"
+                >
+                  <span class="genre-text">{{ subGenre.name }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
 
-      <div class="form-actions">
-        <button type="submit" class="btn-submit" [disabled]="bookForm.invalid">
-          <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-          Boek Toevoegen
-        </button>
+<div class="form-actions">
+  <button
+    type="button"
+    class="btn-clear"
+    (click)="clearForm()"
+  >
+    <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+    Formulier leegmaken
+  </button>
+
+        <div class="action-buttons">
+          @if (isExistingBookLoaded) {
+            <button
+              type="button"
+              class="btn-edit"
+              (click)="editBook()"
+            >
+              <lucide-icon [name]="PencilIcon" class="btn-icon"></lucide-icon>
+              Boek wijzigen
+            </button>
+          }
+
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="isExistingBookLoaded ? false : (bookForm.invalid || book.genres.length === 0)"
+          >
+            <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
+            {{ isExistingBookLoaded ? 'Exemplaar toevoegen' : 'Boek toevoegen' }}
+          </button>
+        </div>
       </div>
     </form>
   </div>

@@ -7,10 +7,15 @@ import edu.ap.bib_backend.annotation.HexColor;
 import edu.ap.bib_backend.projection.GenreProjection;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.EqualsAndHashCode;
@@ -41,6 +46,14 @@ public class Genre implements GenreProjection {
 
     @ManyToMany(mappedBy = "genres")
     private List<Book> books = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_genre_name")
+    private Genre parentGenre;
+
+    @OneToMany(mappedBy = "parentGenre")
+    @jakarta.persistence.OrderBy("name ASC")
+    private List<Genre> subGenres = new ArrayList<>();
 
     public Genre() {
     }

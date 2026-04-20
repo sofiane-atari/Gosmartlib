@@ -2,9 +2,10 @@ import { PageingOpt } from '../../model/shared/paging/PageingOpt.model';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Genre, GenreStats } from '../../model/genre.model';
+import { Genre } from '../../model/genre/genre.model';
 import { Observable } from 'rxjs';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
+import { GenreStats } from '../../model/genre/genreStats.model';
 
 export interface genreGetOpt {
   includeBookCount?: boolean;
@@ -62,6 +63,10 @@ export class GenreService {
 
   public deleteGenreById(id: number) {
     return this.http.delete<void>(`${this.url}/${id}`);
+  }
+  
+  getGenresTree(): Observable<Genre[]> {
+    return this.http.get<Genre[]>(`${this.url}/tree`);
   }
 
   public updateGenre(genre: Genre): Observable<Genre> {
