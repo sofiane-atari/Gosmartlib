@@ -38,6 +38,8 @@ public class BookSearchService {
             BookAvailabilityFilter availabilityFilter,
             Integer minPages,
             Integer maxPages,
+            Long readingLevelId,
+            String genreName,
             int page,
             int size,
             BookSortOption sortBy) {
@@ -59,7 +61,9 @@ public class BookSearchService {
                 normalizedSearchTerm,
                 availability,
                 minPages,
-                maxPages);
+                maxPages,
+                readingLevelId,
+                genreName);
 
         // 4. Uitvoering en Mapping naar DTO
         return bookRepository.findAll(specification, pageable)

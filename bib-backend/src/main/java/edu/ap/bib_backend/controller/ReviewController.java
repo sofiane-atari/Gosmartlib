@@ -2,6 +2,8 @@ package edu.ap.bib_backend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.jaxb.SpringDataJaxb.PageDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -12,10 +14,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.ReviewDTO;
-import edu.ap.bib_backend.service.ReviewService;
+import edu.ap.bib_backend.dto.ReviewDashboardStatsDTO;
+import edu.ap.bib_backend.mapper.PageMapper;
+import edu.ap.bib_backend.service.review.ReviewService;
 
 @RestController
 @RequestMapping("/reviews")
@@ -40,16 +46,35 @@ public class ReviewController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<ReviewDTO>> getCurrentUserReviews(Authentication authentication) {
-        List<ReviewDTO> reviews = reviewService.getCurrentUserReviews(authentication);
-        return ResponseEntity.ok(reviews);
+    public ResponseEntity<PageDTO<ReviewDTO>> getCurrentUserReviews(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<ReviewDTO> reviewPage = reviewService.getCurrentUserReviews(authentication, page, size);
+
+        return ResponseEntity.ok(
+                new PageDTO<>(
+                        reviewPage.getContent(),
+                        PageMapper.toPaginatedMeta(reviewPage)
+                )
+        );
     }
 
     @GetMapping("/flagged")
     //@PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
-    public ResponseEntity<List<ReviewDTO>> getFlaggedReviews(Authentication authentication) {
-        List<ReviewDTO> flaggedReviews = reviewService.getFlaggedReviews(authentication);
-        return ResponseEntity.ok(flaggedReviews);
+    public ResponseEntity<PageDTO<ReviewDTO>> getFlaggedReviews(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<ReviewDTO> flaggedReviewPage = reviewService.getFlaggedReviews(authentication, page, size);
+        return ResponseEntity.ok(
+            new PageDTO<>(
+                flaggedReviewPage.getContent(), 
+                PageMapper.toPaginatedMeta(flaggedReviewPage)
+            )
+        );
     }
 
     @PostMapping("/book/{bookId}")
@@ -81,6 +106,12 @@ public class ReviewController {
     public ResponseEntity<ReviewDTO> keepReview( @PathVariable Long reviewId, Authentication authentication) {
         ReviewDTO keptReview = reviewService.keepReview(reviewId, authentication);
         return ResponseEntity.ok(keptReview);
+    }
+
+    @GetMapping("/flagged/stats")
+    public ResponseEntity<ReviewDashboardStatsDTO> getFlaggedReviewStats() {
+        ReviewDashboardStatsDTO stats = reviewService.getFlaggedReviewStats();
+        return ResponseEntity.ok(stats);
     }
 
 }

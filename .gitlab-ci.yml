@@ -20,7 +20,8 @@ deploy:
       ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<- EOF
       if [[ -d "$DIR/.git/" && -e "$DIR/.git/" ]]; then
         cd "$DIR/"
-        git pull
+        git fetch origin
+        git reset --hard origin/main
       else
         rm -rf "$DIR/"
         mkdir "$DIR/"

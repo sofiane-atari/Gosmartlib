@@ -1,7 +1,12 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthUserDto, Role } from '../../model/auth.model';
+import { AuthUserDto } from '../../model/auth.model';
 import { environment } from '../../../environments/environment';
+
+export interface AdminOverrideStatusDto {
+  enabled: boolean;
+  expiresInSeconds: number | null;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -16,6 +21,9 @@ export class AuthService {
 
   public readonly currentUser = signal<AuthUserDto | null>(null);
   public readonly isLoading = signal(false);
+  public readonly adminOverrideStatus = signal<AdminOverrideStatusDto | null>(null);
+  public readonly isAdminOverrideLoading = signal(false);
+  public readonly isAdminOverrideFeatureEnabled = environment.adminOverrideEnabled;
 
   private token = signal<string | null>(
     localStorage.getItem(AuthService.TOKEN_STORAGE_KEY),
@@ -49,6 +57,7 @@ export class AuthService {
   public fetchCurrentUser(): void {
     if (!this.isAuthenticated()) {
       this.currentUser.set(null);
+      this.adminOverrideStatus.set(null);
       return;
     }
 
@@ -58,13 +67,59 @@ export class AuthService {
       next: (user) => {
         this.currentUser.set(user);
         this.isLoading.set(false);
+        this.fetchAdminOverrideStatus();
       },
       error: (err) => {
         console.error('Fout bij ophalen gebruiker', err);
         this.currentUser.set(null);
+        this.adminOverrideStatus.set(null);
         this.isLoading.set(false);
       },
     });
+  }
+
+  public fetchAdminOverrideStatus(): void {
+    if (!this.isAdminOverrideFeatureEnabled || !this.isAuthenticated()) {
+      this.adminOverrideStatus.set(null);
+      return;
+    }
+
+    this.isAdminOverrideLoading.set(true);
+    this.http
+      .get<AdminOverrideStatusDto>(`${environment.apiUrl}/auth/admin-override/status`)
+      .subscribe({
+        next: (status) => {
+          this.adminOverrideStatus.set(status);
+          this.isAdminOverrideLoading.set(false);
+        },
+        error: () => {
+          this.adminOverrideStatus.set(null);
+          this.isAdminOverrideLoading.set(false);
+        },
+      });
+  }
+
+  public setAdminOverride(enabled: boolean): void {
+    if (!this.isAdminOverrideFeatureEnabled || !this.isAuthenticated()) {
+      return;
+    }
+
+    this.isAdminOverrideLoading.set(true);
+    this.http
+      .post<AdminOverrideStatusDto>(`${environment.apiUrl}/auth/admin-override`, {
+        enabled,
+      })
+      .subscribe({
+        next: (status) => {
+          this.adminOverrideStatus.set(status);
+          this.isAdminOverrideLoading.set(false);
+          this.fetchCurrentUser();
+        },
+        error: (err) => {
+          console.error('Fout bij aanpassen admin override', err);
+          this.isAdminOverrideLoading.set(false);
+        },
+      });
   }
 
   public storeToken(token: string): boolean {
@@ -114,6 +169,7 @@ export class AuthService {
     this.token.set(null);
     this.tokenExpiryEpochMs.set(null);
     this.currentUser.set(null);
+    this.adminOverrideStatus.set(null);
   }
 
   private scheduleTokenExpiry(expiresAt: number): void {

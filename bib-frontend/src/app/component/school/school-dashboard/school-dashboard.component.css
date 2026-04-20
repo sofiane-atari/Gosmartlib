@@ -1,0 +1,375 @@
+.school-dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.school-dashboard__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.school-dashboard__header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a0a10;
+  margin: 0;
+}
+
+.school-dashboard__header p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #7a5560;
+}
+
+.btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 20px;
+  color: #fff;
+  background: var(--main-color);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(138, 30, 65, 0.25);
+}
+
+.btn-new:hover {
+  background: #6e1733;
+}
+
+.success-message,
+.error-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 101;
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.success-message {
+  background: #10b981;
+}
+
+.error-message {
+  background: var(--error-color);
+}
+
+.school-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #f3e8ed;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(26, 10, 16, 0.06);
+}
+
+.stat-card__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.stat-card__icon--main {
+  background: #8a1e41;
+}
+
+.stat-card__icon--alt {
+  background: #334155;
+}
+
+.stat-card__value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a0a10;
+}
+
+.stat-card__label {
+  font-size: 13px;
+  color: #7a5560;
+}
+
+.state-panel {
+  border: 1px dashed #e7d5db;
+  border-radius: 12px;
+  padding: 28px;
+  text-align: center;
+  color: #6b7280;
+  background: #fff;
+}
+
+.state-panel--empty {
+  background: #f9f4f6;
+}
+
+.school-list {
+  display: grid;
+  gap: 14px;
+}
+
+.school-card {
+  background: #fff;
+  border: 1px solid #f3e8ed;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.school-card__content h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.school-card__meta {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.school-card__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action,
+.btn-delete {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-action:disabled,
+.btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-action--edit,
+.btn-edit {
+  background: #8a1e41;
+}
+
+.btn-action--edit:hover,
+.btn-edit:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-action--delete,
+.btn-delete {
+  background: #dc2626;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.btn-action--delete:hover,
+.btn-delete:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-action--delete:disabled,
+.btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 10, 16, 0.35);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+
+.modal {
+  width: min(460px, 92vw);
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(138, 30, 65, 0.2);
+}
+
+.modal h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.modal-field {
+  margin-bottom: 12px;
+}
+
+.modal-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #7a5560;
+}
+
+.modal-field input {
+  width: 100%;
+  border: 1px solid #f0e4e8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.modal-field input[readonly],
+.modal-field input:disabled {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn-cancel,
+.btn-save,
+.btn-danger {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-save {
+  background: var(--main-color);
+  color: #fff;
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.field-inline-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+/* Keep lucide icons visually centered inside flex/grid buttons and cards */
+lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.icon-sm,
+.icon-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-sm {
+  width: 16px;
+  height: 16px;
+  margin-top: 0;
+  margin-right: 0;
+}
+
+.icon-lg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 768px) {
+  .school-dashboard__header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-new {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .school-dashboard__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .school-card {
+    flex-direction: column;
+  }
+
+  .school-card__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

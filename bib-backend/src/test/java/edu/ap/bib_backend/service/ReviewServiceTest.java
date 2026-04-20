@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.ReviewDTO;
+import edu.ap.bib_backend.dto.ReviewDashboardStatsDTO;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
@@ -12,24 +13,32 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewReportRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+import edu.ap.bib_backend.mapper.ReviewMapper;
+import edu.ap.bib_backend.service.review.CurrentUserService;
+import edu.ap.bib_backend.service.review.ReviewService;
+import edu.ap.bib_backend.service.review.ReviewValidationService;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
@@ -47,7 +56,13 @@ class ReviewServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private ProfanityFilterService profanityFilterService;
+    private ReviewMapper reviewMapper;
+
+    @Mock
+    private ReviewValidationService reviewValidationService;
+
+    @Mock
+    private CurrentUserService currentUserService;
 
     @Mock
     private Authentication authentication;
@@ -55,34 +70,37 @@ class ReviewServiceTest {
     @InjectMocks
     private ReviewService reviewService;
 
+    private static final String CURRENT_USER_ID = "user-1";
+    private static final String OTHER_USER_ID = "student-1";
+
+    private Book defaultBook;
+    private User currentUser;
+    private User otherUser;
+
+    @BeforeEach
+    void setUp() {
+        defaultBook = createBook(1L, "Test Title", "Test Author");
+        currentUser = createUser(CURRENT_USER_ID);
+        otherUser = createUser(OTHER_USER_ID);
+
+    }
+
     @Test
     @DisplayName("givenValidBookId whenGetReviewsForBook thenReturnReviewDtoList")
     void givenValidBookId_whenGetReviewsForBook_thenReturnReviewDtoList() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long bookId = 1L;
 
-        Book mockBook = new Book();
-        mockBook.setId(bookId);
-        mockBook.setTitle("Test Title");
-        mockBook.setAuthor("Test Author");
+        Review review1 = createReview(10L, "Super boek", 5, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
+        Review review2 = createReview(11L, "Minder goed", 2, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
 
-        User user = new User();
-        user.setId("user-1");
+        ReviewDTO reviewDto1 = createReviewDto(10L, "Super boek", 5, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
+        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
 
-        Review review1 = new Review("Super boek", 5, mockBook, user);
-        review1.setId(10L);
-        review1.setModerationStatus(ReviewModerationStatus.ACTIVE);
-
-        Review review2 = new Review("Minder goed", 2, mockBook, user);
-        review2.setId(11L);
-        review2.setModerationStatus(ReviewModerationStatus.ACTIVE);
-
-        List<Review> mockDatabaseList = Arrays.asList(review1, review2);
-
-        Mockito.when(authentication.getName()).thenReturn("user-1");
-        Mockito.when(reviewRepository.findByBookId(bookId)).thenReturn(mockDatabaseList);
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(10L, "user-1")).thenReturn(false);
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(11L, "user-1")).thenReturn(false);
+        when(reviewRepository.findByBookId(bookId)).thenReturn(List.of(review1, review2));
+        when(reviewMapper.toDto(review1, CURRENT_USER_ID)).thenReturn(reviewDto1);
+        when(reviewMapper.toDto(review2, CURRENT_USER_ID)).thenReturn(reviewDto2);
 
         // Act
         List<ReviewDTO> result = reviewService.getReviewsForBook(bookId, authentication);
@@ -96,35 +114,75 @@ class ReviewServiceTest {
         assertEquals("Test Title", result.get(0).getBookTitle());
         assertEquals("Test Author", result.get(0).getBookAuthor());
 
-        Mockito.verify(reviewRepository).findByBookId(bookId);
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(reviewRepository).findByBookId(bookId);
+        verify(reviewMapper).toDto(review1, CURRENT_USER_ID);
+        verify(reviewMapper).toDto(review2, CURRENT_USER_ID);
+    }
+
+    @Test
+    @DisplayName("givenBookWithoutReviews whenGetReviewsForBook thenReturnEmptyList")
+    void givenBookWithoutReviews_whenGetReviewsForBook_thenReturnEmptyList() {
+        // Arrange
+        Long bookId = 2L;
+        when(reviewRepository.findByBookId(bookId)).thenReturn(List.of());
+
+        // Act
+        List<ReviewDTO> result = reviewService.getReviewsForBook(bookId, authentication);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(reviewRepository).findByBookId(bookId);
+        verifyNoInteractions(reviewMapper);
+    }
+
+    @Test
+    @DisplayName("whenGetCurrentUserReviews thenReturnPaginatedReviewDtos")
+    void whenGetCurrentUserReviews_thenReturnPaginatedReviewDtos() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
+        // Arrange
+        Review review = createReview(12L, "Eigen review", 4, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
+        ReviewDTO reviewDto = createReviewDto(12L, "Eigen review", 4, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
+
+        Page<Review> reviewPage = new PageImpl<>(
+                List.of(review),
+                PageRequest.of(0, 5),
+                1
+        );
+
+        when(reviewRepository.findByUserId(eq(CURRENT_USER_ID), any(Pageable.class))).thenReturn(reviewPage);
+        when(reviewMapper.toDto(review, CURRENT_USER_ID)).thenReturn(reviewDto);
+
+        // Act
+        Page<ReviewDTO> result = reviewService.getCurrentUserReviews(authentication, 0, 5);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(12L, result.getContent().get(0).getId());
+
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(reviewRepository).findByUserId(eq(CURRENT_USER_ID), any(Pageable.class));
+        verify(reviewMapper).toDto(review, CURRENT_USER_ID);
     }
 
     @Test
     @DisplayName("whenGetAllReviews thenReturnReviewDtoList")
     void whenGetAllReviews_thenReturnReviewDtoList() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
-        Book mockBook = new Book();
-        mockBook.setId(1L);
-        mockBook.setTitle("Titel");
-        mockBook.setAuthor("Auteur");
+        Review review1 = createReview(10L, "Super boek", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
+        Review review2 = createReview(11L, "Minder goed", 2, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 3);
 
-        User reviewOwner = new User();
-        reviewOwner.setId("student-1");
+        ReviewDTO reviewDto1 = createReviewDto(10L, "Super boek", 5, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
+        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 3, defaultBook, ReviewModerationStatus.FLAGGED, true);
 
-        Review review1 = new Review("Super boek", 5, mockBook, reviewOwner);
-        review1.setId(10L);
-        review1.setModerationStatus(ReviewModerationStatus.ACTIVE);
-
-        Review review2 = new Review("Minder goed", 2, mockBook, reviewOwner);
-        review2.setId(11L);
-        review2.setModerationStatus(ReviewModerationStatus.FLAGGED);
-
-        List<Review> mockDatabaseList = Arrays.asList(review1, review2);
-
-        Mockito.when(authentication.getName()).thenReturn("user-1");
-        Mockito.when(reviewRepository.findAll()).thenReturn(mockDatabaseList);
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(10L, "user-1")).thenReturn(false);
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(11L, "user-1")).thenReturn(true);
+        when(reviewRepository.findAll()).thenReturn(List.of(review1, review2));
+        when(reviewMapper.toDto(review1, CURRENT_USER_ID)).thenReturn(reviewDto1);
+        when(reviewMapper.toDto(review2, CURRENT_USER_ID)).thenReturn(reviewDto2);
 
         // Act
         List<ReviewDTO> result = reviewService.getAllReviews(authentication);
@@ -136,12 +194,48 @@ class ReviewServiceTest {
         assertEquals(ReviewModerationStatus.FLAGGED, result.get(1).getModerationStatus());
         assertTrue(result.get(1).isReportedByCurrentUser());
 
-        Mockito.verify(reviewRepository).findAll();
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(reviewRepository).findAll();
+        verify(reviewMapper).toDto(review1, CURRENT_USER_ID);
+        verify(reviewMapper).toDto(review2, CURRENT_USER_ID);
+    }
+
+    @Test
+    @DisplayName("whenGetFlaggedReviewsWithPagination thenReturnPaginatedFlaggedReviews")
+    void whenGetFlaggedReviewsWithPagination_thenReturnPaginatedFlaggedReviews() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
+        // Arrange
+        Review flaggedReview = createReview(7L, "Ongepaste review", 1, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 5);
+        ReviewDTO flaggedReviewDto = createReviewDto(7L, "Ongepaste review", 1, 5, defaultBook, ReviewModerationStatus.FLAGGED, false);
+
+        Page<Review> reviewPage = new PageImpl<>(
+                List.of(flaggedReview),
+                PageRequest.of(0, 10),
+                1
+        );
+
+        when(reviewRepository.findByModerationStatus(eq(ReviewModerationStatus.FLAGGED), any(Pageable.class)))
+                .thenReturn(reviewPage);
+        when(reviewMapper.toDto(flaggedReview, CURRENT_USER_ID)).thenReturn(flaggedReviewDto);
+
+        // Act
+        Page<ReviewDTO> result = reviewService.getFlaggedReviews(authentication, 0, 10);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(7L, result.getContent().get(0).getId());
+        assertEquals(ReviewModerationStatus.FLAGGED, result.getContent().get(0).getModerationStatus());
+
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(reviewRepository).findByModerationStatus(eq(ReviewModerationStatus.FLAGGED), any(Pageable.class));
+        verify(reviewMapper).toDto(flaggedReview, CURRENT_USER_ID);
     }
 
     @Test
     @DisplayName("givenValidBookIdAndCleanReviewDto whenAddReviewToBook thenReturnSavedReviewDto")
     void givenValidBookIdAndCleanReviewDto_whenAddReviewToBook_thenReturnSavedReviewDto() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long bookId = 1L;
 
@@ -159,24 +253,13 @@ class ReviewServiceTest {
                 LocalDateTime.now()
         );
 
-        Book mockBook = new Book();
-        mockBook.setId(bookId);
-        mockBook.setTitle("Test Title");
-        mockBook.setAuthor("Test Author");
+        Review savedEntity = createReview(99L, "Highly recommended", 4, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
+        ReviewDTO savedDto = createReviewDto(99L, "Highly recommended", 4, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
 
-        User reviewOwner = new User();
-        reviewOwner.setId("user-1");
-
-        Review savedEntity = new Review(inputDto.getComment(), inputDto.getRating(), mockBook, reviewOwner);
-        savedEntity.setId(99L);
-        savedEntity.setModerationStatus(ReviewModerationStatus.ACTIVE);
-
-        Mockito.when(authentication.getName()).thenReturn("user-1");
-        Mockito.when(profanityFilterService.containsProfanity(inputDto.getComment())).thenReturn(false);
-        Mockito.when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockBook));
-        Mockito.when(userRepository.findById("user-1")).thenReturn(Optional.of(reviewOwner));
-        Mockito.when(reviewRepository.save(any(Review.class))).thenReturn(savedEntity);
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(99L, "user-1")).thenReturn(false);
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(defaultBook));
+        when(userRepository.findById(CURRENT_USER_ID)).thenReturn(Optional.of(currentUser));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedEntity);
+        when(reviewMapper.toDto(savedEntity, CURRENT_USER_ID)).thenReturn(savedDto);
 
         // Act
         ReviewDTO result = reviewService.addReviewToBook(bookId, inputDto, authentication);
@@ -188,10 +271,12 @@ class ReviewServiceTest {
         assertEquals(4, result.getRating());
         assertEquals(ReviewModerationStatus.ACTIVE, result.getModerationStatus());
 
-        Mockito.verify(profanityFilterService).containsProfanity(inputDto.getComment());
-        Mockito.verify(bookRepository).findById(bookId);
-        Mockito.verify(userRepository).findById("user-1");
-        Mockito.verify(reviewRepository).save(any(Review.class));
+        verify(reviewValidationService).validateReview(inputDto);
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(bookRepository).findById(bookId);
+        verify(userRepository).findById(CURRENT_USER_ID);
+        verify(reviewRepository).save(any(Review.class));
+        verify(reviewMapper).toDto(savedEntity, CURRENT_USER_ID);
     }
 
     @Test
@@ -214,11 +299,10 @@ class ReviewServiceTest {
                 LocalDateTime.now()
         );
 
-        Book book = new Book();
-        book.setId(bookId);
-
-        Mockito.when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        Mockito.when(profanityFilterService.containsProfanity(inputDto.getComment())).thenReturn(true);
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(defaultBook));
+        doThrow(new IllegalArgumentException(
+                "Je review bevat ongepast taalgebruik en kan niet opgeslagen worden."
+        )).when(reviewValidationService).validateReview(inputDto);
 
         // Act
         IllegalArgumentException exception = assertThrows(
@@ -232,8 +316,9 @@ class ReviewServiceTest {
                 exception.getMessage()
         );
 
-        Mockito.verify(bookRepository).findById(bookId);
-        Mockito.verify(reviewRepository, never()).save(any(Review.class));
+        verify(bookRepository).findById(bookId);
+        verify(reviewValidationService).validateReview(inputDto);
+        verify(reviewRepository, never()).save(any(Review.class));
     }
 
     @Test
@@ -256,7 +341,7 @@ class ReviewServiceTest {
                 LocalDateTime.now()
         );
 
-        Mockito.when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());
+        when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());
 
         // Act
         ResourceNotFoundException exception = assertThrows(
@@ -266,7 +351,8 @@ class ReviewServiceTest {
 
         // Assert
         assertEquals("Boek niet gevonden met id: 999", exception.getMessage());
-        Mockito.verify(reviewRepository, never()).save(any(Review.class));
+        verify(bookRepository).findById(invalidBookId);
+        verify(reviewRepository, never()).save(any());
     }
 
     @Test
@@ -276,7 +362,7 @@ class ReviewServiceTest {
         Long bookId = 1L;
         Double expectedAverage = 4.5;
 
-        Mockito.when(reviewRepository.getAverageRatingForBook(bookId)).thenReturn(expectedAverage);
+        when(reviewRepository.getAverageRatingForBook(bookId)).thenReturn(expectedAverage);
 
         // Act
         Double result = reviewService.getAverageRating(bookId);
@@ -284,34 +370,82 @@ class ReviewServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(expectedAverage, result);
-        Mockito.verify(reviewRepository).getAverageRatingForBook(bookId);
+        verify(reviewRepository).getAverageRatingForBook(bookId);
     }
 
     @Test
-    @DisplayName("givenExistingReviewId whenDeleteReview thenDeleteReview")
-    void givenExistingReviewId_whenDeleteReview_thenDeleteReview() {
+    @DisplayName("givenBookWithoutReviews whenGetAverageRating thenReturnZero")
+    void givenBookWithoutReviews_whenGetAverageRating_thenReturnZero() {
+        // Arrange
+        Long bookId = 3L;
+        when(reviewRepository.getAverageRatingForBook(bookId)).thenReturn(0.0);
+
+        // Act
+        Double result = reviewService.getAverageRating(bookId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(0.0, result);
+        verify(reviewRepository).getAverageRatingForBook(bookId);
+    }
+
+    @Test
+    @DisplayName("givenExistingReviewIdAndOwner whenDeleteReview thenDeleteReview")
+    void givenExistingReviewIdAndOwner_whenDeleteReview_thenDeleteReview() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long reviewId = 1L;
-        String userId = "student-1";
+        Review review = createReview(reviewId, "Test review", 5, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
 
-        Book book = new Book();
-        book.setId(1L);
-
-        User reviewOwner = new User();
-        reviewOwner.setId(userId);
-
-        Review review = new Review("Test review", 5, book, reviewOwner);
-        review.setId(reviewId);
-
-        Mockito.when(authentication.getName()).thenReturn(userId);
-        Mockito.when(authentication.getAuthorities()).thenReturn(List.of());
-        Mockito.when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+        when(currentUserService.isModerator(authentication)).thenReturn(false);
 
         // Act
         reviewService.deleteReview(reviewId, authentication);
 
         // Assert
-        Mockito.verify(reviewRepository).delete(review);
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(currentUserService).isModerator(authentication);
+        verify(reviewRepository).findById(reviewId);
+        verify(reviewRepository).delete(review);
+    }
+
+    @Test
+    @DisplayName("givenExistingReviewIdAndModerator whenDeleteReview thenDeleteReview")
+    void givenExistingReviewIdAndModerator_whenDeleteReview_thenDeleteReview() {
+        // Arrange
+        Long reviewId = 1L;
+        Review review = createReview(reviewId, "Test review", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
+
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+        when(currentUserService.isModerator(authentication)).thenReturn(true);
+
+        // Act
+        reviewService.deleteReview(reviewId, authentication);
+
+        // Assert
+        verify(reviewRepository).delete(review);
+    }
+
+    @Test
+    @DisplayName("givenExistingReviewIdAndUnauthorizedUser whenDeleteReview thenThrowIllegalStateException")
+    void givenExistingReviewIdAndUnauthorizedUser_whenDeleteReview_thenThrowIllegalStateException() {
+        // Arrange
+        Long reviewId = 1L;
+        Review review = createReview(reviewId, "Test review", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
+
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+        when(currentUserService.isModerator(authentication)).thenReturn(false);
+
+        // Act
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> reviewService.deleteReview(reviewId, authentication)
+        );
+
+        // Assert
+        assertEquals("Je mag alleen je eigen review verwijderen.", exception.getMessage());
+        verify(reviewRepository, never()).delete(any());
     }
 
     @Test
@@ -319,9 +453,7 @@ class ReviewServiceTest {
     void givenInvalidReviewId_whenDeleteReview_thenThrowResourceNotFoundException() {
         // Arrange
         Long reviewId = 999L;
-
-        Mockito.when(authentication.getName()).thenReturn("user-1");
-        Mockito.when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
 
         // Act
         ResourceNotFoundException exception = assertThrows(
@@ -331,74 +463,26 @@ class ReviewServiceTest {
 
         // Assert
         assertEquals("Review niet gevonden met id: 999", exception.getMessage());
-        Mockito.verify(reviewRepository, never()).delete(any());
-    }
-
-    @Test
-    @DisplayName("givenBookWithoutReviews whenGetReviewsForBook thenReturnEmptyList")
-    void givenBookWithoutReviews_whenGetReviewsForBook_thenReturnEmptyList() {
-        // Arrange
-        Long bookId = 2L;
-
-        Mockito.when(authentication.getName()).thenReturn("user-1");
-        Mockito.when(reviewRepository.findByBookId(bookId)).thenReturn(List.of());
-
-        // Act
-        List<ReviewDTO> result = reviewService.getReviewsForBook(bookId, authentication);
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        Mockito.verify(reviewRepository).findByBookId(bookId);
-    }
-
-    @Test
-    @DisplayName("givenBookWithoutReviews whenGetAverageRating thenReturnZero")
-    void givenBookWithoutReviews_whenGetAverageRating_thenReturnZero() {
-        // Arrange
-        Long bookId = 3L;
-
-        Mockito.when(reviewRepository.getAverageRatingForBook(bookId)).thenReturn(0.0);
-
-        // Act
-        Double result = reviewService.getAverageRating(bookId);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(0.0, result);
-        Mockito.verify(reviewRepository).getAverageRatingForBook(bookId);
+        verify(reviewRepository, never()).delete(any());
     }
 
     @Test
     @DisplayName("givenExistingReviewAndNewReporter whenReportReview thenCreateReportAndFlagReview")
     void givenExistingReviewAndNewReporter_whenReportReview_thenCreateReportAndFlagReview() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long reviewId = 1L;
-        String userId = "user-1";
 
-        Book book = new Book();
-        book.setId(42L);
-        book.setTitle("Boektitel");
-        book.setAuthor("Auteur");
+        Review review = createReview(reviewId, "Good book", 4, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 2);
+        Review updatedReview = createReview(reviewId, "Good book", 4, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 3);
+        ReviewDTO expectedDto = createReviewDto(reviewId, "Good book", 4, 3, defaultBook, ReviewModerationStatus.FLAGGED, true);
 
-        Review review = new Review();
-        review.setId(reviewId);
-        review.setBook(book);
-        review.setComment("Good book");
-        review.setRating(4);
-        review.setReportCount(2);
-        review.setModerationStatus(ReviewModerationStatus.ACTIVE);
-
-        User user = new User();
-        user.setId(userId);
-
-        Mockito.when(authentication.getName()).thenReturn(userId);
-        Mockito.when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(reviewId, userId))
-            .thenReturn(false, true);        
-        Mockito.when(reviewReportRepository.countByReviewId(reviewId)).thenReturn(3L);
-        Mockito.when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+        when(userRepository.findById(CURRENT_USER_ID)).thenReturn(Optional.of(currentUser));
+        when(reviewReportRepository.existsByReviewIdAndReportedById(reviewId, CURRENT_USER_ID)).thenReturn(false);
+        when(reviewReportRepository.countByReviewId(reviewId)).thenReturn(3L);
+        when(reviewRepository.save(any(Review.class))).thenReturn(updatedReview);
+        when(reviewMapper.toDto(updatedReview, CURRENT_USER_ID)).thenReturn(expectedDto);
 
         // Act
         ReviewDTO result = reviewService.reportReview(reviewId, authentication);
@@ -412,35 +496,25 @@ class ReviewServiceTest {
         assertEquals(ReviewModerationStatus.FLAGGED, result.getModerationStatus());
         assertTrue(result.isReportedByCurrentUser());
 
-        Mockito.verify(reviewRepository).findById(reviewId);
-        Mockito.verify(userRepository).findById(userId);
-        Mockito.verify(reviewReportRepository).save(any(ReviewReport.class));
-        Mockito.verify(reviewRepository).save(review);
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(reviewRepository).findById(reviewId);
+        verify(userRepository).findById(CURRENT_USER_ID);
+        verify(reviewReportRepository).save(any(ReviewReport.class));
+        verify(reviewRepository).save(any(Review.class));
+        verify(reviewMapper).toDto(updatedReview, CURRENT_USER_ID);
     }
 
     @Test
     @DisplayName("givenAlreadyReportedReview whenReportReview thenThrowResourceAlreadyExistsException")
     void givenAlreadyReportedReview_whenReportReview_thenThrowResourceAlreadyExistsException() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long reviewId = 1L;
-        String userId = "user-1";
+        Review review = createReview(reviewId, "Good book", 4, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
 
-        Book book = new Book();
-        book.setId(42L);
-
-        User reviewOwner = new User();
-        reviewOwner.setId("student-1");
-
-        Review review = new Review("Good book", 4, book, reviewOwner);
-        review.setId(reviewId);
-
-        User reportingUser = new User();
-        reportingUser.setId(userId);
-
-        Mockito.when(authentication.getName()).thenReturn(userId);
-        Mockito.when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(reportingUser));
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(reviewId, userId)).thenReturn(true);
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+        when(userRepository.findById(CURRENT_USER_ID)).thenReturn(Optional.of(currentUser));
+        when(reviewReportRepository.existsByReviewIdAndReportedById(reviewId, CURRENT_USER_ID)).thenReturn(true);
 
         // Act
         ResourceAlreadyExistsException exception = assertThrows(
@@ -450,68 +524,24 @@ class ReviewServiceTest {
 
         // Assert
         assertEquals("Je hebt deze review al gerapporteerd.", exception.getMessage());
-        Mockito.verify(reviewReportRepository, never()).save(any(ReviewReport.class));
-        Mockito.verify(reviewRepository, never()).save(any(Review.class));
-    }
-
-
-    @Test
-    @DisplayName("whenGetFlaggedReviews thenReturnFlaggedReviewList")
-    void whenGetFlaggedReviews_thenReturnFlaggedReviewList() {
-        // Arrange
-        Book book = new Book();
-        book.setId(1L);
-        book.setTitle("Titel");
-        book.setAuthor("Auteur");
-
-        User reviewOwner = new User();
-        reviewOwner.setId("student-1");
-
-        Review flaggedReview = new Review("Ongepaste review", 1, book, reviewOwner);
-        flaggedReview.setId(7L);
-        flaggedReview.setReportCount(5);
-        flaggedReview.setModerationStatus(ReviewModerationStatus.FLAGGED);
-
-        Mockito.when(authentication.getName()).thenReturn("librarian-1");
-        Mockito.when(reviewRepository.findByModerationStatus(ReviewModerationStatus.FLAGGED))
-                .thenReturn(List.of(flaggedReview));
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(7L, "librarian-1"))
-                .thenReturn(false);
-
-        // Act
-        List<ReviewDTO> result = reviewService.getFlaggedReviews(authentication);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(7L, result.get(0).getId());
-        assertEquals(ReviewModerationStatus.FLAGGED, result.get(0).getModerationStatus());
+        verify(reviewReportRepository, never()).save(any(ReviewReport.class));
+        verify(reviewRepository, never()).save(any(Review.class));
     }
 
     @Test
     @DisplayName("givenFlaggedReview whenKeepReview thenReturnKeptReview")
     void givenFlaggedReview_whenKeepReview_thenReturnKeptReview() {
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long reviewId = 5L;
-        String userId = "librarian-1";
 
-        Book book = new Book();
-        book.setId(1L);
-        book.setTitle("Titel");
-        book.setAuthor("Auteur");
+        Review review = createReview(reviewId, "Deze review mag blijven", 4, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 3);
+        Review updatedReview = createReview(reviewId, "Deze review mag blijven", 4, defaultBook, otherUser, ReviewModerationStatus.KEPT, 3);
+        ReviewDTO expectedDto = createReviewDto(reviewId, "Deze review mag blijven", 4, 3, defaultBook, ReviewModerationStatus.KEPT, false);
 
-        User reviewOwner = new User();
-        reviewOwner.setId("student-1");
-
-        Review review = new Review("Deze review mag blijven", 4, book, reviewOwner);
-        review.setId(reviewId);
-        review.setReportCount(3);
-        review.setModerationStatus(ReviewModerationStatus.FLAGGED);
-
-        Mockito.when(authentication.getName()).thenReturn(userId);
-        Mockito.when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-        Mockito.when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        Mockito.when(reviewReportRepository.existsByReviewIdAndReportedById(reviewId, userId)).thenReturn(false);
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+        when(reviewRepository.save(any(Review.class))).thenReturn(updatedReview);
+        when(reviewMapper.toDto(updatedReview, CURRENT_USER_ID)).thenReturn(expectedDto);
 
         // Act
         ReviewDTO result = reviewService.keepReview(reviewId, authentication);
@@ -520,6 +550,88 @@ class ReviewServiceTest {
         assertNotNull(result);
         assertEquals(reviewId, result.getId());
         assertEquals(ReviewModerationStatus.KEPT, result.getModerationStatus());
-        Mockito.verify(reviewRepository).save(review);
+
+        verify(currentUserService).extractCurrentUserId(authentication);
+        verify(reviewRepository).findById(reviewId);
+        verify(reviewRepository).save(any(Review.class));
+        verify(reviewMapper).toDto(updatedReview, CURRENT_USER_ID);
+    }
+
+    @Test
+    @DisplayName("whenGetFlaggedReviewStats thenReturnDashboardStats")
+    void whenGetFlaggedReviewStats_thenReturnDashboardStats() {
+        // Arrange
+        when(reviewRepository.countByModerationStatus(ReviewModerationStatus.FLAGGED)).thenReturn(80L);
+        when(reviewRepository.countByModerationStatusAndReportCountGreaterThanEqual(
+                ReviewModerationStatus.FLAGGED,
+                5
+        )).thenReturn(50L);
+
+        // Act
+        ReviewDashboardStatsDTO result = reviewService.getFlaggedReviewStats();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(80L, result.totalFlaggedReviews());
+        assertEquals(50L, result.criticalFlaggedReviews());
+
+        verify(reviewRepository).countByModerationStatus(ReviewModerationStatus.FLAGGED);
+        verify(reviewRepository).countByModerationStatusAndReportCountGreaterThanEqual(
+                ReviewModerationStatus.FLAGGED,
+                5
+        );
+    }
+
+    private Book createBook(Long id, String title, String author) {
+        Book book = new Book();
+        book.setId(id);
+        book.setTitle(title);
+        book.setAuthor(author);
+        return book;
+    }
+
+    private User createUser(String id) {
+        User user = new User();
+        user.setId(id);
+        return user;
+    }
+
+    private Review createReview(
+            Long id,
+            String comment,
+            int rating,
+            Book book,
+            User user,
+            ReviewModerationStatus moderationStatus,
+            int reportCount
+    ) {
+        Review review = new Review(comment, rating, book, user);
+        review.setId(id);
+        review.setModerationStatus(moderationStatus);
+        review.setReportCount(reportCount);
+        return review;
+    }
+
+    private ReviewDTO createReviewDto(
+            Long id,
+            String comment,
+            int rating,
+            int reportCount,
+            Book book,
+            ReviewModerationStatus moderationStatus,
+            boolean reportedByCurrentUser
+    ) {
+        ReviewDTO reviewDto = new ReviewDTO();
+        reviewDto.setId(id);
+        reviewDto.setComment(comment);
+        reviewDto.setRating(rating);
+        reviewDto.setReportCount(reportCount);
+        reviewDto.setBookId(book.getId());
+        reviewDto.setBookTitle(book.getTitle());
+        reviewDto.setBookAuthor(book.getAuthor());
+        reviewDto.setModerationStatus(moderationStatus);
+        reviewDto.setReportedByCurrentUser(reportedByCurrentUser);
+        reviewDto.setCreatedAt(LocalDateTime.now());
+        return reviewDto;
     }
 }

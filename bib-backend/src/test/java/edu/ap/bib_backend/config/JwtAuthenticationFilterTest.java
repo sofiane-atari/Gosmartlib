@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.config;
 
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,6 +25,9 @@ class JwtAuthenticationFilterTest {
 
     @Mock
     private JwtService jwtService;
+
+    @Mock
+    private AdminOverrideService adminOverrideService;
 
     @Mock
     private HttpServletRequest request;
@@ -96,6 +100,7 @@ class JwtAuthenticationFilterTest {
         given(jwtService.isValid(validToken)).willReturn(true);
         given(jwtService.extractUsername(validToken)).willReturn(username);
         given(jwtService.extractClaim(validToken, "roles")).willReturn(role);
+        given(adminOverrideService.isAdminOverrideActive(username)).willReturn(false);
 
         // Act 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -107,6 +112,30 @@ class JwtAuthenticationFilterTest {
         assertEquals(username, authentication.getName(), "Username moet overeenkomen");
         assertTrue(authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(role)), "Gebruiker moet de juiste rol hebben");
+
+        then(filterChain).should().doFilter(request, response);
+    }
+
+    @Test
+    void GivenValidTokenAndActiveOverride_WhenFiltered_ThenSetAdminAuthority() throws ServletException, IOException {
+        // Arrange
+        String validToken = "valid.jwt.token";
+        String username = "student-1";
+
+        given(request.getHeader("Authorization")).willReturn("Bearer " + validToken);
+        given(jwtService.isValid(validToken)).willReturn(true);
+        given(jwtService.extractUsername(validToken)).willReturn(username);
+        given(jwtService.extractClaim(validToken, "roles")).willReturn("ROLE_STUDENT");
+        given(adminOverrideService.isAdminOverrideActive(username)).willReturn(true);
+
+        // Act
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // Assert
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assertNotNull(authentication, "Authentication mag niet null zijn");
+        assertTrue(authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")), "Gebruiker moet tijdelijk admin rechten krijgen");
 
         then(filterChain).should().doFilter(request, response);
     }

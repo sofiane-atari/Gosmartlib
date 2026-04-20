@@ -42,7 +42,7 @@ public class TokenStorageService {
      */
 
     public boolean hasActiveToken(String userId) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(buildJwtKey(userId)));
+        return redisTemplate.hasKey(buildJwtKey(userId));
     }
 
     /**
@@ -52,6 +52,8 @@ public class TokenStorageService {
     public void revokeToken(String userId) {
         redisTemplate.delete(buildJwtKey(userId));
         redisTemplate.delete(buildSmartschoolAccessTokenKey(userId));
+        // TEMP_ADMIN_OVERRIDE: clear override state on logout.
+        redisTemplate.delete(buildAdminOverrideKey(userId));
     }
 
     /**
@@ -98,6 +100,28 @@ public class TokenStorageService {
         redisTemplate.delete(buildSmartschoolAccessTokenKey(userId));
     }
 
+    public void storeAdminOverride(String userId, long ttlMinutes) {
+        redisTemplate.opsForValue().set(
+            buildAdminOverrideKey(userId),
+            "true",
+            ttlMinutes,
+            TimeUnit.MINUTES
+        );
+    }
+
+    public boolean hasAdminOverride(String userId) {
+        return redisTemplate.hasKey(buildAdminOverrideKey(userId));
+    }
+
+    public void removeAdminOverride(String userId) {
+        redisTemplate.delete(buildAdminOverrideKey(userId));
+    }
+
+    public Long getAdminOverrideTtlSeconds(String userId) {
+        long ttl = redisTemplate.getExpire(buildAdminOverrideKey(userId), TimeUnit.SECONDS);
+        return ttl < 0 ? null : ttl;
+    }
+
     private String buildJwtKey(String userId) {
         return "auth:jwt:user:" + userId;
     }
@@ -108,5 +132,9 @@ public class TokenStorageService {
 
     private String buildSmartschoolAccessTokenKey(String userId) {
         return "smartschool:access:user:" + userId;
+    }
+
+    private String buildAdminOverrideKey(String userId) {
+        return "auth:override:admin:user:" + userId;
     }
 }

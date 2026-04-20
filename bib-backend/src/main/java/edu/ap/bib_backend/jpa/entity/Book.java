@@ -43,6 +43,12 @@ public class Book {
     @Column(name = "added_date")
     private LocalDateTime addedDate;
 
+    @Formula("(SELECT COUNT(*) FROM book_copies bc WHERE bc.book_id = id)")
+    private Integer totalCopies;
+
+    @Formula("(SELECT COUNT(*) FROM book_copies bc WHERE bc.book_id = id AND bc.availability = 'AVAILABLE')")
+    private Integer availableCopies;
+
     @PrePersist
     protected void onCreate() {
         addedDate = LocalDateTime.now();
@@ -63,8 +69,12 @@ public class Book {
     }
 
     @ManyToMany
-    @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "genre_name"), uniqueConstraints = @UniqueConstraint(columnNames = {
-            "book_id", "genre_name" }))
+    @JoinTable(
+        name = "book_genres",
+        joinColumns = @JoinColumn(name = "book_id"),
+        inverseJoinColumns = @JoinColumn(name = "genre_id"),
+        uniqueConstraints = @UniqueConstraint(columnNames = { "book_id", "genre_id" })
+    )
     private Set<Genre> genres = new HashSet<>();
 
     @OneToMany(mappedBy = "book")

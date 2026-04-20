@@ -11,6 +11,7 @@ import edu.ap.bib_backend.jpa.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,6 +41,7 @@ public class ReadingListService {
         AudienceContext audience = getAudienceContext();
 
         ReadingListTargetType targetType = dto.targetType() == null ? ReadingListTargetType.PERSONAL : dto.targetType();
+        assertCanCreateList(targetType);
         String targetValue = normalizeTargetValue(targetType, dto.targetValue(), audience);
 
         ReadingList list = new ReadingList();
@@ -59,7 +61,8 @@ public class ReadingListService {
         return readingListRepository.findVisibleForUser(userId,
                 audience.classCode(),
                 audience.yearCode(),
-                audience.schoolCode());
+                audience.schoolCode(),
+                shouldIncludeOwnSharedLists());
     }
 
     public ReadingList getListById(String userId, Long id) {
@@ -69,15 +72,20 @@ public class ReadingListService {
                         userId,
                         audience.classCode(),
                         audience.yearCode(),
-                        audience.schoolCode())
+                        audience.schoolCode(),
+                        shouldIncludeOwnSharedLists())
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet"));
     }
 
     public void deleteReadingList(String userId, Long id) {
         ReadingList list = getListById(userId, id);
 
-        if (isFavoritesList(list.getName()) || list.getTargetType() != ReadingListTargetType.PERSONAL) {
+        if (isFavoritesList(list.getName()) || list.getTargetType() == ReadingListTargetType.SYSTEM) {
             throw new IllegalArgumentException("Deze leeslijst kan niet verwijderd worden");
+        }
+
+        if (list.getTargetType() != ReadingListTargetType.PERSONAL && !isTeacherAuthenticated()) {
+            throw new IllegalArgumentException("Alleen leerkrachten kunnen deze leeslijst verwijderen");
         }
 
         readingListRepository.deleteById(id);
@@ -155,20 +163,41 @@ public class ReadingListService {
     @SuppressWarnings("unchecked")
     private AudienceContext getAudienceContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getDetails() instanceof Map<?, ?> detailsRaw)) {
+        if (authentication == null) {
             return AudienceContext.defaults();
         }
 
-        Map<String, Object> details = (Map<String, Object>) detailsRaw;
-        String classCode = readDetail(details, "classCode", AudienceContext.defaults().classCode());
-        String yearCode = readDetail(details, "yearCode", AudienceContext.defaults().yearCode());
-        String schoolCode = readDetail(details, "schoolCode", AudienceContext.defaults().schoolCode());
+        // JWT filter-pad: audience zit in authentication details map.
+        if (authentication.getDetails() instanceof Map<?, ?> detailsRaw) {
+            Map<String, Object> details = (Map<String, Object>) detailsRaw;
+            String classCode = readDetail(details, "classCode", AudienceContext.defaults().classCode());
+            String yearCode = readDetail(details, "yearCode", AudienceContext.defaults().yearCode());
+            String schoolCode = readDetail(details, "schoolCode", AudienceContext.defaults().schoolCode());
+            return new AudienceContext(classCode, yearCode, schoolCode);
+        }
 
-        return new AudienceContext(classCode, yearCode, schoolCode);
+        // OAuth2 sessie-pad: audience zit in principal attributes.
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof OAuth2AuthenticatedPrincipal oauthPrincipal) {
+            String classCode = readPrincipalAttribute(oauthPrincipal, "classCode", AudienceContext.defaults().classCode());
+            String yearCode = readPrincipalAttribute(oauthPrincipal, "yearCode", AudienceContext.defaults().yearCode());
+            String schoolCode = readPrincipalAttribute(oauthPrincipal, "schoolCode", AudienceContext.defaults().schoolCode());
+            return new AudienceContext(classCode, yearCode, schoolCode);
+        }
+
+        return AudienceContext.defaults();
     }
 
     private String readDetail(Map<String, Object> details, String key, String fallback) {
         Object value = details.get(key);
+        if (value instanceof String str && !str.isBlank()) {
+            return str.trim();
+        }
+        return fallback;
+    }
+
+    private String readPrincipalAttribute(OAuth2AuthenticatedPrincipal principal, String key, String fallback) {
+        Object value = principal.getAttribute(key);
         if (value instanceof String str && !str.isBlank()) {
             return str.trim();
         }
@@ -242,6 +271,16 @@ public class ReadingListService {
         readingListRepository.save(list);
     }
 
+    private void assertCanCreateList(ReadingListTargetType targetType) {
+        if (targetType == ReadingListTargetType.PERSONAL) {
+            return;
+        }
+
+        if (!isTeacherAuthenticated()) {
+            throw new IllegalArgumentException("Alleen leerkrachten kunnen gedeelde leeslijsten maken");
+        }
+    }
+
     private void assertCanModifyList(ReadingList list) {
         if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
             throw new IllegalArgumentException("De systeembrede leeslijst kan niet aangepast worden");
@@ -254,6 +293,10 @@ public class ReadingListService {
         if (!isTeacherAuthenticated()) {
             throw new IllegalArgumentException("Alleen leerkrachten kunnen deze leeslijst aanpassen");
         }
+    }
+
+    private boolean shouldIncludeOwnSharedLists() {
+        return isTeacherAuthenticated();
     }
 
     private boolean isTeacherAuthenticated() {

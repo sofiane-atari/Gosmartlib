@@ -11,3 +11,8 @@ export interface Review {
   reportedByCurrentUser?: boolean;
   createdAt?: string;
 }
+
+export interface ReviewDashboardStats {
+  totalFlaggedReviews: number;
+  criticalFlaggedReviews: number;
+}

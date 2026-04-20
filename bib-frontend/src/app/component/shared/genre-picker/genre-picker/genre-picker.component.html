@@ -1,0 +1,72 @@
+<div class="genre-picker">
+  <label class="genre-picker__label">{{ label }}</label>
+
+  <button
+    type="button"
+    class="genre-picker__trigger"
+    [class.genre-picker__trigger--open]="isOpen"
+    (click)="toggleDropdown()"
+    [attr.aria-expanded]="isOpen"
+    aria-haspopup="listbox"
+  >
+    <div class="genre-picker__trigger-content">
+      @if (selectedGenre; as genre) {
+        <span class="genre-picker__selected-text">
+            {{ genre.name }}
+        </span>
+        } @else {
+        <span class="genre-picker__placeholder">Alle genres</span>
+        }
+    </div>
+
+    <lucide-icon
+      [img]="ChevronDown"
+      [size]="18"
+      class="genre-picker__chevron"
+      [class.genre-picker__chevron--open]="isOpen"
+    ></lucide-icon>
+  </button>
+
+  @if (isOpen) {
+    <div class="genre-picker__dropdown" role="listbox">
+      <button
+        type="button"
+        class="genre-picker__option"
+        [class.genre-picker__option--selected]="isSelected(null)"
+        (click)="selectGenre(null)"
+      >
+        <span class="genre-picker__option-label">Alle genres</span>
+
+        @if (isSelected(null)) {
+          <lucide-icon [img]="Check" [size]="16"></lucide-icon>
+        }
+      </button>
+
+      @for (genre of genres; track genre.name) {
+        <button
+          type="button"
+          class="genre-picker__option"
+          [class.genre-picker__option--selected]="isSelected(genre.name)"
+          (click)="selectGenre(genre.name)"
+        >
+          <span
+            class="genre-pill"
+            [style.background-color]="getGenreBackgroundColor(genre.color)"
+            [style.color]="genre.color"
+            [style.border-color]="getGenreBorderColor(genre.color)"
+          >
+            <span
+              class="genre-pill__dot"
+              [style.background-color]="genre.color"
+            ></span>
+            {{ genre.name }}
+          </span>
+
+          @if (isSelected(genre.name)) {
+            <lucide-icon [img]="Check" [size]="16"></lucide-icon>
+          }
+        </button>
+      }
+    </div>
+  }
+</div>

@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -102,6 +103,7 @@ class TokenStorageServiceTest {
         // Assert
         verify(redisTemplate, times(1)).delete("auth:jwt:user:user-5");
         verify(redisTemplate, times(1)).delete("smartschool:access:user:user-5");
+        verify(redisTemplate, times(1)).delete("auth:override:admin:user:user-5");
     }
 
     @Test
@@ -198,5 +200,71 @@ class TokenStorageServiceTest {
 
         // Assert
         verify(redisTemplate, times(1)).delete("smartschool:access:user:user-11");
+    }
+
+    @Test
+    void givenUserIdAndTtl_WhenStoreAdminOverride_ThenStoreWithExpectedKeyAndExpiry() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+
+        // Act
+        tokenStorageService.storeAdminOverride("user-12", 30);
+
+        // Assert
+        verify(valueOperations, times(1))
+                .set("auth:override:admin:user:user-12", "true", 30, TimeUnit.MINUTES);
+    }
+
+    @Test
+    void givenExistingAdminOverride_WhenHasAdminOverride_ThenReturnTrue() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+        when(redisTemplate.hasKey("auth:override:admin:user:user-13")).thenReturn(true);
+
+        // Act
+        boolean result = tokenStorageService.hasAdminOverride("user-13");
+
+        // Assert
+        assertTrue(result);
+        verify(redisTemplate, times(1)).hasKey("auth:override:admin:user:user-13");
+    }
+
+    @Test
+    void givenAdminOverrideKey_WhenRemoveAdminOverride_ThenDeleteKey() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+
+        // Act
+        tokenStorageService.removeAdminOverride("user-14");
+
+        // Assert
+        verify(redisTemplate, times(1)).delete("auth:override:admin:user:user-14");
+    }
+
+    @Test
+    void givenAdminOverrideKey_WhenGetAdminOverrideTtlSeconds_ThenReturnRedisTtl() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+        when(redisTemplate.getExpire("auth:override:admin:user:user-15", TimeUnit.SECONDS)).thenReturn(120L);
+
+        // Act
+        Long ttl = tokenStorageService.getAdminOverrideTtlSeconds("user-15");
+
+        // Assert
+        assertEquals(120L, ttl);
+    }
+
+    @Test
+    void givenMissingAdminOverrideTtl_WhenGetAdminOverrideTtlSeconds_ThenReturnNull() {
+        // Arrange
+        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+        when(redisTemplate.getExpire("auth:override:admin:user:user-16", TimeUnit.SECONDS)).thenReturn(-2L);
+
+        // Act
+        Long ttl = tokenStorageService.getAdminOverrideTtlSeconds("user-16");
+
+        // Assert
+        assertNull(ttl);
     }
 }

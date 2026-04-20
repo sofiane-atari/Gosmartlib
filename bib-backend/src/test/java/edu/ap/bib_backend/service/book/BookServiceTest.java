@@ -222,7 +222,7 @@ class BookServiceTest {
                 dto.setAuthor("Auteur");
                 dto.setPages(123);
                 dto.setGenres(List.of(
-                                new GenreDTO("Roman", "#8B5CF6", "Literaire fictie", null, null)));
+                                new GenreDTO(null,"Roman", "#8B5CF6", "Literaire fictie", null, null)));
 
                 Book mappedBook = new Book();
                 mappedBook.setTitle("Boek");
@@ -269,7 +269,7 @@ class BookServiceTest {
                 dto.setTitle("Boek");
                 dto.setAuthor("Auteur");
                 dto.setGenres(List.of(
-                                new GenreDTO("Onbekend", "#000000", "Bestaat niet", null, null)));
+                                new GenreDTO(null, "Onbekend", "#000000", "Bestaat niet", null, null)));
 
                 Book mappedBook = new Book();
                 given(bookMapper1.toEntity(dto)).willReturn(mappedBook);

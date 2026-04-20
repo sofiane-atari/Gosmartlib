@@ -17,6 +17,8 @@ import { SmartschoolCallbackComponent } from './component/login-profile/smartsch
 
 // Guards
 import { authGuard, publicOnlyGuard } from './guards/authentication/auth.guard';
+import { teacherOnlyGuard } from './guards/authentication/teacher-only.guard';
+import { adminOnlyGuard } from './guards/authentication/admin-only.guard';
 import { reviewModerationGuard } from './guards/review/review-moderation.guard';
 import { Routes } from '@angular/router';
 
@@ -27,7 +29,9 @@ import { MyReviewsComponent } from './component/reviews/my-reviews/my-reviews.co
 // Reading List
 import { ReadingListOverviewComponent } from './component/reading-list/reading-list-overview/reading-list-overview.component';
 import { CreateReadingListComponent } from './component/reading-list/create-reading-list/create-reading-list.component';
+import { CreateTeacherReadingListComponent } from './component/reading-list/create-teacher-reading-list/create-teacher-reading-list.component';
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
+import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -61,6 +65,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'reading-list/create-teacher',
+    component: CreateTeacherReadingListComponent,
+    canActivate: [authGuard, teacherOnlyGuard],
+  },
+  {
     path: 'reading-list/:id',
     component: ReadingListDetailComponent,
     canActivate: [authGuard],
@@ -77,15 +86,20 @@ export const routes: Routes = [
     component: SmartschoolCallbackComponent,
   },
   { path: 'smartschool-callback', component: SmartschoolCallbackComponent },
-  { 
-    path: 'books-management', 
-    component: BookManagementComponent, 
-    canActivate: [authGuard] 
+  {
+    path: 'books-management',
+    component: BookManagementComponent,
+    canActivate: [authGuard]
   },
-  { 
-    path: 'loans/create', 
-    component: CreateLoanComponent, 
-    canActivate: [authGuard] 
+  {
+    path: 'loans/create',
+    component: CreateLoanComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'scholen',
+    component: SchoolDashboardComponent,
+    canActivate: [authGuard, adminOnlyGuard],
   },
   { path: '**', redirectTo: '/catalog' },
 

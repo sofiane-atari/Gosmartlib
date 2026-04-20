@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Toast } from '../../../model/shared/toast.model';
 import { ToastService } from '../../../services/toast/toast.service';
@@ -60,5 +60,21 @@ export class ToastComponent {
   cancel() {
     if (this.toast?.onCancel) this.toast.onCancel();
     this.close();
+  }
+
+  @HostListener('document:keydown.enter', ['$event'])
+  handleEnter(event: Event) {
+    if (!this.toast || this.toast.type !== 'confirm') return;
+
+    event.preventDefault();
+    this.confirm();
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  handleEscape(event: Event) {
+    if (!this.toast || this.toast.type !== 'confirm') return;
+
+    event.preventDefault();
+    this.cancel();
   }
 }

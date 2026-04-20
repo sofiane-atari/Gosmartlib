@@ -78,7 +78,7 @@ DROP TABLE IF EXISTS `book_loans`;
 CREATE TABLE `book_loans` (
   `id` bigint NOT NULL,
   `book_copy_id` bigint DEFAULT NULL,
-  `user_id` bigint DEFAULT NULL,
+  `user_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FKoyld3dbrnunaj75c7gy1w5qay` (`book_copy_id`),
   KEY `FKjs7dicejnhi0pm0d4yeo07p39` (`user_id`),
@@ -243,7 +243,7 @@ DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
-  `id` bigint NOT NULL,
+  `id` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

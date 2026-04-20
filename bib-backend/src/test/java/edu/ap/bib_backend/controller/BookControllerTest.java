@@ -10,6 +10,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +21,7 @@ import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
@@ -31,6 +34,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @WebMvcTest(BookController.class)
@@ -45,6 +50,9 @@ public class BookControllerTest {
         private BookService bs;
 
         @MockBean
+        private BookSearchService bookSearchService;
+
+        @MockBean
         private JwtService jwtService;
 
         @MockBean
@@ -53,8 +61,8 @@ public class BookControllerTest {
         @MockBean
         private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
 
-        @MockBean
-        private BookSearchService bss;
+        @MockitoBean
+        private AdminOverrideService adminOverrideService;
 
         @MockBean
         private GoogleBooksClient gbc;
@@ -71,18 +79,20 @@ public class BookControllerTest {
                 book.setAuthor("J.K. Rowling");
                 book.setPages(350);
 
-                Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of(book));
+                Page<BookDTO> page = new PageImpl<>(List.of(book));
 
-                Mockito.when(bss.getFilteredBooks(
+                when(bookSearchService.getFilteredBooks(
                                 "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
                                 500,
+                                null,
+                                null,
                                 0,
                                 10,
                                 BookSortOption.AZ)).thenReturn(page);
 
-                // Act & Assert
+                // Act
                 mockMvc.perform(get("/books/catalog")
                                 .param("searchTerm", "Harry")
                                 .param("availability", "ALL")
@@ -92,17 +102,19 @@ public class BookControllerTest {
                                 .param("page", "0")
                                 .param("size", "10"))
                                 .andExpect(status().isOk())
-                                // FIXED: Changed $.content to $.data
                                 .andExpect(jsonPath("$.data[0].title").value("Harry Potter"))
                                 .andExpect(jsonPath("$.data[0].author").value("J.K. Rowling"))
                                 .andExpect(jsonPath("$.data[0].pages").value(350))
                                 .andExpect(jsonPath("$.meta").exists());
 
-                Mockito.verify(bss).getFilteredBooks(
+                // Assert
+                verify(bookSearchService).getFilteredBooks(
                                 "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
                                 500,
+                                null,
+                                null,
                                 0,
                                 10,
                                 BookSortOption.AZ);
@@ -140,7 +152,7 @@ public class BookControllerTest {
         }
 
         @Test
-        void givenBookWithBorrowedCopies_whenDeleteBook_thenReturn500() throws Exception {
+        void givenBookWithBorrowedCopies_whenDeleteBook_thenReturn400() throws Exception {
                 // Arrange
                 Long bookId = 2L;
                 Mockito.doThrow(new IllegalStateException(
@@ -158,6 +170,7 @@ public class BookControllerTest {
                                                 "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.",
                                                 r.getResolvedException().getMessage()));
 
+                // Controleer of de delete methode daadwerkelijk is aangeroepen
                 Mockito.verify(bs, Mockito.times(1)).deleteBook(bookId);
         }
 
@@ -166,7 +179,9 @@ public class BookControllerTest {
                 // Arrange
                 Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of());
 
-                Mockito.when(bss.getFilteredBooks(
+                Mockito.when(bookSearchService.getFilteredBooks(
+                                null,
+                                null,
                                 null,
                                 null,
                                 null,
@@ -182,7 +197,9 @@ public class BookControllerTest {
                                 .andExpect(jsonPath("$.data").isArray())
                                 .andExpect(jsonPath("$.meta").exists());
 
-                Mockito.verify(bss).getFilteredBooks(
+                Mockito.verify(bookSearchService).getFilteredBooks(
+                                null,
+                                null,
                                 null,
                                 null,
                                 null,

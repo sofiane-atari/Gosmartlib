@@ -7,7 +7,7 @@
 }
 
 .page {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--main-font);
   min-height: 100vh;
   padding: 24px 36px 40px;
 }
@@ -28,26 +28,26 @@
 }
 
 .page-title {
-  font-size: 30px;
+  font-size: 35px;
   font-weight: 700;
-  color: #111;
+  color: black;
   margin-bottom: 4px;
 }
 
 .page-subtitle {
-  font-size: 13px;
-  color: #999;
+  font-size: 16px;
+  color: var(--sec-color);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--main-color), var(--sec-color));
+  background: var(--main-color);
   color: var(--main-light-color);
   border: none;
   border-radius: 10px;
   padding: 11px 20px;
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--main-font);
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s;
   white-space: nowrap;
@@ -77,21 +77,57 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  border: 2px solid var(--main-color);
+  background-color: #fff;
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(138, 30, 65, 0.15);
 }
 
 .card-cover {
-  background: linear-gradient(135deg, var(--sec-light-color), var(--sec-color));
-  height: 140px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 52px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: solid var(--main-color) 2px;
+}
+
+.stacked-covers {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stacked-cover {
+  position: absolute;
+  height: 200px;
+  width: auto;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  box-shadow: -2px 0px 8px rgba(0, 0, 0, 0.3);
+  object-fit: cover;
+  transition: transform 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.empty-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.empty-cover lucide-angular {
+  width: 52px;
+  height: 52px;
+  color: var(--main-color);
 }
 
 .card-body {
@@ -101,7 +137,7 @@
 .card-title {
   font-size: 15px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: black;
   margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -110,51 +146,60 @@
 
 .card-author {
   font-size: 12px;
-  color: #aaa;
+  color: var(--sec-color);
 }
 
 
 
 .card-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 12px;
+  justify-content: flex-end;
 }
 
 .btn-share,
 .btn-delete {
-  flex: 1;
-  flex-basis: 50%;
-  box-sizing: border-box;
-  background: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-family: 'Inter', sans-serif;
-  padding: 6px 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--main-font);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0;
 }
 
 .btn-share {
-  border: 1px solid #a0c4e0;
-  color: #2980b9;
+  color: white;
+  background-color: var(--main-color);
 }
 
 .btn-share:hover {
-  background: #eaf4fb;
-  border-color: #2980b9;
+  background: var(--main-light-color);
+  color: var(--main-color);
 }
 
+.btn-share lucide-angular,
+.btn-delete lucide-angular {
+  width: 18px;
+  height: 18px;
+}
 
 .btn-delete {
-  border: 1px solid #e0a0a0;
-  color: #c0392b;
+  border: 1.5px solid var(--error-color);
+  color: var(--error-color);
+  background: transparent;
 }
 
 .btn-delete:hover {
-  background: #fdecea;
-  border-color: #c0392b;
+  background: rgba(231, 76, 60, 0.1);
+  border-color: var(--error-color);
 }
 
 /* ========== EMPTY STATE ========== */
@@ -170,20 +215,29 @@
 }
 
 .empty-icon {
-  font-size: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
   margin-bottom: 14px;
+}
+
+.empty-icon lucide-angular {
+  width: 52px;
+  height: 52px;
 }
 
 .empty-state h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--main-color);
   margin-bottom: 8px;
 }
 
 .empty-state p {
   font-size: 14px;
-  color: #aaa;
+  color: var(--sec-color);
   margin-bottom: 22px;
 }
 
@@ -273,7 +327,7 @@
   padding: 9px 14px;
   font-size: 13px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--main-font);
   cursor: pointer;
   transition: background 0.2s;
   width: 100%;
@@ -282,3 +336,97 @@
 .btn-widget:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* ========== FILTER TABS ========== */
+.filter-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-behavior: smooth;
+}
+
+.filter-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.filter-tabs::-webkit-scrollbar-track {
+  background: #f0f0f5;
+  border-radius: 4px;
+}
+
+.filter-tabs::-webkit-scrollbar-thumb {
+  background: #d0d0d8;
+  border-radius: 4px;
+}
+
+.filter-tabs::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b8;
+}
+
+.filter-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1.5px solid #e0e0e8;
+  border-radius: 13px;
+  background: #fff;
+  color: var(--sec-color);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--main-font);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.filter-tab:hover {
+  border-color: var(--main-color);
+  color: var(--main-color);
+  background: #fafbfd;
+}
+
+.filter-tab.active {
+  background: var(--main-color);
+  border-color: var(--main-color);
+  color: white;
+}
+
+.filter-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.filter-icon lucide-angular {
+  width: 16px;
+  height: 16px;
+}
+
+.filter-label {
+  font-weight: 600;
+}
+
+.filter-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filter-tab.active .filter-count {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========== CARDS AREA ========== */
+

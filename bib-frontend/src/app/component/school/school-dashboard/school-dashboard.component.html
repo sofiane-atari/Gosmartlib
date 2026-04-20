@@ -1,0 +1,205 @@
+<div class="school-dashboard">
+  <div class="school-dashboard__header">
+    <div>
+      <h1>Schoolbeheer</h1>
+      <p>Overzicht van scholen en domeinen voor platformkoppelingen</p>
+    </div>
+    <button type="button" class="btn-new" (click)="openCreateModal()">
+      <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
+      School toevoegen
+    </button>
+  </div>
+
+  @if (successMessage()) {
+    <div class="success-message">{{ successMessage() }}</div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-message">{{ errorMessage() }}</div>
+  }
+
+  <div class="school-dashboard__stats">
+    <article class="stat-card">
+      <div class="stat-card__icon stat-card__icon--main">
+        <lucide-icon [name]="SchoolIcon" class="icon-lg"></lucide-icon>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ totalSchools() }}</div>
+        <div class="stat-card__label">Totaal scholen</div>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-card__icon stat-card__icon--alt">
+        <lucide-icon [name]="Building" class="icon-lg"></lucide-icon>
+      </div>
+      <div>
+        <div class="stat-card__value">{{ schools().length }}</div>
+        <div class="stat-card__label">Actieve records</div>
+      </div>
+    </article>
+  </div>
+
+  @if (isLoading()) {
+    <section class="state-panel">
+      <p>Scholen laden...</p>
+    </section>
+  } @else if (schools().length === 0) {
+    <section class="state-panel state-panel--empty">
+      <p>Nog geen scholen geconfigureerd.</p>
+    </section>
+  } @else {
+    <section class="school-list">
+      @for (school of schools(); track school.domainName) {
+        <article class="school-card">
+          <div class="school-card__content">
+            <h2>{{ school.name }}</h2>
+            <p class="school-card__meta"><strong>Domein:</strong> {{ school.domainName }}</p>
+            <p class="school-card__meta"><strong>Adres:</strong> {{ school.address }}</p>
+            <p class="school-card__meta"><strong>Postcode:</strong> {{ school.postalCode }}</p>
+          </div>
+          <div class="school-card__actions">
+            <button
+              type="button"
+              class="btn-action btn-action--edit"
+              (click)="openEditModal(school)"
+              [disabled]="isDeleting() || isUpdating()"
+            >
+              <lucide-icon [name]="Pencil" class="icon-sm"></lucide-icon>
+              Wijzigen
+            </button>
+            <button
+              type="button"
+              class="btn-delete"
+              (click)="openDeleteModal(school)"
+              [disabled]="isDeleting() || isUpdating()"
+            >
+              <lucide-icon [name]="Trash2" class="icon-sm"></lucide-icon>
+            </button>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  @if (isCreateModalOpen()) {
+    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'create')">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Nieuwe school toevoegen</h2>
+
+        <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
+          <div class="modal-field">
+            <label for="domainName">Domeinnaam</label>
+            <input id="domainName" type="text" formControlName="domainName" placeholder="bijv. school.be" />
+            @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
+              <small class="field-inline-error">Domeinnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="name">Schoolnaam</label>
+            <input id="name" type="text" formControlName="name" placeholder="bijv. AP Hogeschool" />
+            @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
+              <small class="field-inline-error">Schoolnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="address">Adres</label>
+            <input id="address" type="text" formControlName="address" placeholder="Straat en nummer" />
+            @if (schoolForm.controls.address.invalid && schoolForm.controls.address.touched) {
+              <small class="field-inline-error">Adres is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="postalCode">Postcode</label>
+            <input id="postalCode" type="number" formControlName="postalCode" placeholder="bijv. 2000" />
+            @if (schoolForm.controls.postalCode.invalid && schoolForm.controls.postalCode.touched) {
+              <small class="field-inline-error">Postcode moet groter zijn dan 0.</small>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeCreateModal()">Annuleren</button>
+            <button type="submit" class="btn-save" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Toevoegen...' : 'Opslaan' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (isEditModalOpen()) {
+    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'edit')">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>School wijzigen</h2>
+
+        <form [formGroup]="schoolForm" (ngSubmit)="updateSchool()">
+          <div class="modal-field">
+            <label for="editDomainName">Domeinnaam</label>
+            <input
+              id="editDomainName"
+              type="text"
+              formControlName="domainName"
+              placeholder="bijv. school.be"
+              readonly
+            />
+          </div>
+
+          <div class="modal-field">
+            <label for="editName">Schoolnaam</label>
+            <input id="editName" type="text" formControlName="name" placeholder="bijv. AP Hogeschool" />
+            @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
+              <small class="field-inline-error">Schoolnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="editAddress">Adres</label>
+            <input id="editAddress" type="text" formControlName="address" placeholder="Straat en nummer" />
+            @if (schoolForm.controls.address.invalid && schoolForm.controls.address.touched) {
+              <small class="field-inline-error">Adres is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="editPostalCode">Postcode</label>
+            <input id="editPostalCode" type="number" formControlName="postalCode" placeholder="bijv. 2000" />
+            @if (schoolForm.controls.postalCode.invalid && schoolForm.controls.postalCode.touched) {
+              <small class="field-inline-error">Postcode moet groter zijn dan 0.</small>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeEditModal()" [disabled]="isUpdating()">
+              Annuleren
+            </button>
+            <button type="submit" class="btn-save" [disabled]="isUpdating()">
+              {{ isUpdating() ? 'Wijzigen...' : 'Opslaan' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (isDeleteModalOpen()) {
+    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'delete')">
+      <div class="modal modal--danger" (click)="$event.stopPropagation()">
+        <h2>School verwijderen</h2>
+        @if (selectedSchoolForDelete()) {
+          <p>Weet u zeker dat u de school <strong>{{ selectedSchoolForDelete()?.name }}</strong> wilt verwijderen?</p>
+          <p class="modal__warning">Deze actie kan niet ongedaan worden gemaakt.</p>
+        }
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting()">Annuleren</button>
+          <button type="button" class="btn-danger" (click)="deleteSchool()" [disabled]="isDeleting()">
+            {{ isDeleting() ? 'Verwijderen...' : 'Verwijderen' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -4,12 +4,15 @@ import edu.ap.bib_backend.config.JwtAuthenticationFilter;
 import edu.ap.bib_backend.config.SecurityConfig;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
+import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.AuthService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.SmartschoolProfileService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,8 +45,10 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @WebMvcTest(AuthController.class)
-@Import({SecurityConfig.class, JwtAuthenticationFilter.class}) 
+@AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = {"FRONTEND_REDIRECT_URL=http://localhost:4200/login"})
+@Import({SecurityConfig.class, JwtAuthenticationFilter.class})
+@TestPropertySource(properties = {"frontend.redirect-url=http://localhost:4200/login"})
 public class AuthControllerTest {
 
     @Autowired
@@ -51,6 +56,9 @@ public class AuthControllerTest {
 
     @MockitoBean
     private JwtService jwtService;
+
+    @MockitoBean
+    private AuthService authService;
 
     @MockitoBean
     private TokenStorageService tokenStorageService;
@@ -63,6 +71,10 @@ public class AuthControllerTest {
 
     @MockitoBean
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
+
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
+
 
     @Test
     void givenUnauthenticated_whenMeCalled_thenReturn302() throws Exception {

@@ -23,6 +23,10 @@ export class BookService {
   getFilteredBooks(
     searchTerm: string | null,
     availability: BookAvailabilityFilter,
+    minPages: number | null,
+    maxPages: number | null,
+    readingLevelId: number | null,
+    genreName: string | null,
     page: number,
     size: number,
     sortBy: BookSortOption,
@@ -40,6 +44,21 @@ export class BookService {
       params = params.set('availability', availability);
     }
 
+    if (minPages !== null && Number.isFinite(minPages)) {
+      params = params.set('minPages', minPages);
+    }
+
+    if (maxPages !== null && Number.isFinite(maxPages)) {
+      params = params.set('maxPages', maxPages);
+    }
+
+    if (readingLevelId !== null && Number.isFinite(readingLevelId) ){
+      params = params.set('readingLevelId', readingLevelId)
+    }
+
+    if (genreName && genreName.trim().length > 0) {
+      params = params.set('genreName', genreName.trim());
+    }
     return this.http.get<PaginatedResponse<Book>>(`${this.apiUrl}/catalog`, {
       params,
     });

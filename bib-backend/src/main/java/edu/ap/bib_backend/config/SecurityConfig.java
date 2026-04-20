@@ -80,7 +80,7 @@ public class SecurityConfig {
                                                 .permitAll()
 
                                                 // 🔐 Auth endpoints
-                                                .requestMatchers("/auth/me", "/auth/logout").authenticated()
+                                                .requestMatchers("/auth/me", "/auth/logout", "/auth/admin-override/**").authenticated()
 
                                                 // 🔐 Business endpoints
                                                 .requestMatchers("/reviews/**")
@@ -98,6 +98,9 @@ public class SecurityConfig {
                                                 .requestMatchers("/loans/**")
                                                 .hasAnyRole(Role.STUDENT.name(), Role.LIBRARIAN.name(),
                                                                 Role.ADMIN.name())
+
+                                                .requestMatchers("/schools/**")
+                                                .hasRole(Role.ADMIN.name())
 
                                                 .anyRequest().authenticated())
 

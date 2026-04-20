@@ -12,6 +12,8 @@ import lombok.Builder;
 
 @Builder
 public record GenreDTO(
+                @JsonProperty("id") Long id,
+
                 @JsonProperty("name") @NotBlank(message = "Genrenaam mag niet leeg zijn") @NotNull(message = "Genrenaam is verplicht") String name,
 
                 @JsonProperty("color") @HexColor(message = "Ongeldige hexkleur") @NotBlank(message = "Genrekleur mag niet leeg zijn") @NotNull(message = "Genrekleur is verplicht") String color,

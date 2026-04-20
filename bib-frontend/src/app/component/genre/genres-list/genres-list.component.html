@@ -9,10 +9,12 @@
 
   <div class="labels-list__content">
     @for (genre of genres(); track $index) {
-      <app-genre-card [genre]="genre" 
-      (deletionError)="deletionError.emit($event)" 
-      (deletedSuccess)="deletedSuccess.emit($event)"
-      (editGenre)="editGenre.emit($event)" />
+      <app-genre-card
+        [genre]="genre"
+        (deletionError)="deletionError.emit($event)"
+        (deletedSuccess)="deletedSuccess.emit($event)"
+        (editGenre)="editGenre.emit($event)"
+      />
     }
   </div>
 

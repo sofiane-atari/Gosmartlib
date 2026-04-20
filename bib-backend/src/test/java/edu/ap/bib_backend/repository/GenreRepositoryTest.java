@@ -143,7 +143,7 @@ class GenreRepositoryTest {
         createGenre("Romance", "#FFC0CB", "Love stories");
 
         // Act
-        Page<Genre> result = genreRepository.searchByNamerOrDescriptionOrColor("Hor", PageRequest.of(0, 10));
+        Page<Genre> result = genreRepository.searchByNameOrDescriptionOrColor("Hor", PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -158,7 +158,7 @@ class GenreRepositoryTest {
         createGenre("Genre2", "#FF0000", "other desc");
 
         // Act
-        Page<Genre> result = genreRepository.searchByNamerOrDescriptionOrColor("#00008B", PageRequest.of(0, 10));
+        Page<Genre> result = genreRepository.searchByNameOrDescriptionOrColor("#00008B", PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -171,7 +171,7 @@ class GenreRepositoryTest {
         createGenre("Genre1", "#FF0000", "very unique desc");
 
         // Act
-        Page<Genre> result = genreRepository.searchByNamerOrDescriptionOrColor("unique", PageRequest.of(0, 10));
+        Page<Genre> result = genreRepository.searchByNameOrDescriptionOrColor("unique", PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(1);
@@ -185,7 +185,7 @@ class GenreRepositoryTest {
         createGenre("B", "#0000FF", "desc");
 
         // Act
-        Page<Genre> result = genreRepository.searchByNamerOrDescriptionOrColor("", PageRequest.of(0, 10));
+        Page<Genre> result = genreRepository.searchByNameOrDescriptionOrColor("", PageRequest.of(0, 10));
 
         // Assert
         assertThat(result.getContent()).hasSize(2);

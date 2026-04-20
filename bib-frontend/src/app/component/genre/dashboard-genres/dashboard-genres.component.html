@@ -1,10 +1,9 @@
 <div class="dashboard-labels">
-
   <!-- Header -->
   <div class="page-header">
     <div class="page-header__text">
       <h1>Genre beheer</h1>
-      <p>Beheer genres en genres voor de boekencatalogus</p>
+      <p>Beheer genres voor de boekencatalogus</p>
     </div>
     <button class="btn-new" (click)="setPopup('create')">+ Nieuw genre</button>
   </div>
@@ -19,18 +18,18 @@
     @if (errors().length > 0) {
       <div class="error-message">
         @for (err of errors(); track err.field) {
-          <p> {{ err.message }}</p>
+          <p>{{ err.message }}</p>
         }
       </div>
     }
 
-    @if (popUp() === 'create') {
+    @if (popUp() === "create") {
       <app-create-genre
         (closeEvent)="closePopup()"
         (successEvent)="onSuccess($event)"
         (errorEvent)="onError($event)"
       />
-    }@else if (popUp() === 'edit') {
+    } @else if (popUp() === "edit") {
       <app-update-genre
         [genre]="editingGenre()"
         (closeEvent)="closePopup()"
@@ -40,12 +39,23 @@
     }
   </div>
 
-
   <!-- StatCards -->
   <div class="stat-cards">
-    <app-stat-card label="Totaal Labels"      [value]="stats()?.totalItems ?? 0"  variant="total"  />
-    <app-stat-card label="Actieve Labels"     [value]="totalActive()" variant="active" />
-    <app-stat-card label="Ongebruikte Labels" [value]="stats()?.unActiveGenres ?? 0" variant="unused" />
+    <app-stat-card
+      label="Totaal Labels"
+      [value]="stats()?.totalItems ?? 0"
+      variant="total"
+    />
+    <app-stat-card
+      label="Actieve Labels"
+      [value]="totalActive()"
+      variant="active"
+    />
+    <app-stat-card
+      label="Ongebruikte Labels"
+      [value]="stats()?.unActiveGenres ?? 0"
+      variant="unused"
+    />
   </div>
 
   <!-- SearchBar -->
@@ -72,10 +82,6 @@
 
   <!-- Paging -->
   @if (pagingMeta()) {
-    <app-paging
-      [meta]="pagingMeta()!"
-      (pageChange)="onPageChange($event)"
-    />
+    <app-paging [meta]="pagingMeta()!" (pageChange)="onPageChange($event)" />
   }
-
 </div>

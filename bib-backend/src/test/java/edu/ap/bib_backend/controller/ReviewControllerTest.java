@@ -1,12 +1,21 @@
 package edu.ap.bib_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.ReviewDTO;
 import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.ReviewService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.review.ReviewService;
+import edu.ap.bib_backend.dto.PaginatedMeta;
+import edu.ap.bib_backend.dto.PageDTO;
+import static org.mockito.ArgumentMatchers.eq;
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -53,6 +65,9 @@ class ReviewControllerTest {
 
     @MockBean
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
+
+    @MockBean
+    private AdminOverrideService adminOverrideService;
 
     @Test
     @DisplayName("givenValidBookId whenGetReviewsForBook thenReturn200AndReviewList")
@@ -232,9 +247,9 @@ class ReviewControllerTest {
         // Assert
         result.andExpect(status().isOk())
                 .andExpect(content().string("4.2"));
-    }
+        }
 
-    @Test
+        @Test
         @DisplayName("givenValidId whenDeleteReview thenReturn204")
         void givenValidId_whenDeleteReview_thenReturn204() throws Exception {
         // Arrange
@@ -293,9 +308,9 @@ class ReviewControllerTest {
         Mockito.verify(reviewService).reportReview(eq(reviewId), any(Authentication.class));
     }
 
-    @Test
-    @DisplayName("whenGetFlaggedReviews thenReturn200AndFlaggedReviewList")
-    void whenGetFlaggedReviews_thenReturn200AndFlaggedReviewList() throws Exception {
+        @Test
+        @DisplayName("givenValidPaginationParams whenGetFlaggedReviews thenReturn200AndPaginatedResponse")
+        void givenValidPaginationParams_whenGetFlaggedReviews_thenReturn200AndPaginatedResponse() throws Exception {
         // Arrange
         ReviewDTO flaggedReview = new ReviewDTO(
                 10L,
@@ -311,22 +326,36 @@ class ReviewControllerTest {
                 LocalDateTime.now()
         );
 
-        Mockito.when(reviewService.getFlaggedReviews(any(Authentication.class)))
-                .thenReturn(List.of(flaggedReview));
+        List<ReviewDTO> reviewList = List.of(flaggedReview);
+
+        Page<ReviewDTO> mockPage = new PageImpl<>(
+                reviewList,
+                PageRequest.of(0, 10),
+                1
+        );
+
+        Mockito.when(reviewService.getFlaggedReviews(any(Authentication.class), eq(0), eq(10)))
+                .thenReturn(mockPage);
 
         // Act
         ResultActions result = mockMvc.perform(
                 get("/reviews/flagged")
                         .principal(new TestingAuthenticationToken("librarian-1", null))
+                        .param("page", "0")
+                        .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON)
         );
 
         // Assert
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(10))
-                .andExpect(jsonPath("$[0].moderationStatus").value("FLAGGED"));
-    }
+                .andExpect(jsonPath("$.data[0].id").value(10))
+                .andExpect(jsonPath("$.data[0].comment").value("Ongepaste review"))
+                .andExpect(jsonPath("$.meta.currentPage").value(0))
+                .andExpect(jsonPath("$.meta.pageSize").value(10))
+                .andExpect(jsonPath("$.meta.totalItems").value(1))
+                .andExpect(jsonPath("$.meta.totalPages").value(1));
+        }
+
 
     @Test
     @DisplayName("givenValidReviewId whenKeepReview thenReturn200AndKeptReview")

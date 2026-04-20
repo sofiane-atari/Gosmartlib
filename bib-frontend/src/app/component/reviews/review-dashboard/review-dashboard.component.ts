@@ -13,19 +13,28 @@ import {
   Flag,
   CircleAlert,
   Star,
+  Eraser,
 } from 'lucide-angular';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 
-import { Review } from '../../../model/review.model'; 
-import { ReviewService } from '../../../services/review-service/review.service'; 
-import { ToastService } from '../../../services/toast/toast.service'; 
+import { Review, ReviewDashboardStats } from '../../../model/review.model';
+import { ReviewService } from '../../../services/review-service/review.service';
+import { ToastService } from '../../../services/toast/toast.service';
+import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
+import {
+  reviewCardAnimation,
+  fadeInUpAnimation,
+} from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-review-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, PagingComponent],
   templateUrl: './review-dashboard.component.html',
   styleUrl: './review-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [reviewCardAnimation, fadeInUpAnimation],
 })
 export class ReviewDashboardComponent {
   private readonly reviewService = inject(ReviewService);
@@ -36,23 +45,43 @@ export class ReviewDashboardComponent {
   protected readonly Flag = Flag;
   protected readonly CircleAlert = CircleAlert;
   protected readonly Star = Star;
+  protected readonly eraser = Eraser;
 
   protected readonly reviews = signal<Review[]>([]);
   protected readonly selectedReviewIds = signal<Set<number>>(new Set());
   protected readonly isLoading = signal<boolean>(false);
+  protected readonly isBulkProcessing = signal<boolean>(false);
+  protected readonly pagingMeta = signal<PagingMeta | null>(null);
+
+  private readonly currentPage = signal<number>(0);
+  private readonly pageSize = signal<number>(10);
+  protected readonly stats = signal<ReviewDashboardStats | null>(null);
 
   protected readonly selectedCount = computed(
     () => this.selectedReviewIds().size,
   );
 
   protected readonly criticalReviewsCount = computed(
-    () => this.reviews().filter((review) => (review.reportCount ?? 0) >= 5).length,
+    () => this.stats()?.criticalFlaggedReviews ?? 0,
+  );
+
+  protected readonly totalCount = computed(
+    () => this.stats()?.totalFlaggedReviews ?? this.pagingMeta()?.totalItems ?? 0,
   );
 
   protected readonly starValues = [1, 2, 3, 4, 5];
+  protected readonly skeletonItems = [1, 2, 3, 4, 5];
 
   public ngOnInit(): void {
-    this.loadFlaggedReviews();
+    this.loadFlaggedReviews(this.currentPage());
+    this.loadFlaggedReviewStats();
+  }
+
+  protected onPageChange(page: number): void {
+    this.currentPage.set(page);
+    this.selectedReviewIds.set(new Set());
+    this.loadFlaggedReviews(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   protected isSelected(reviewId: number): boolean {
@@ -73,11 +102,11 @@ export class ReviewDashboardComponent {
 
   protected approveReview(reviewId: number): void {
     this.toastService.showConfirm(
-      'Weet je zeker dat je deze review wilt behouden?',
+      'Weet je zeker dat je deze review wilt goedkeuren?',
       () => {
         this.reviewService.keepReview(reviewId).subscribe({
           next: () => {
-            this.removeReviewFromDashboard(reviewId);
+            this.applyProcessedReviewIds([reviewId]);
             this.toastService.show('Review goedgekeurd.', 'success');
           },
           error: (error) => {
@@ -99,7 +128,7 @@ export class ReviewDashboardComponent {
       () => {
         this.reviewService.deleteReview(reviewId).subscribe({
           next: () => {
-            this.removeReviewFromDashboard(reviewId);
+            this.applyProcessedReviewIds([reviewId]);
             this.toastService.show('Review verwijderd.', 'success');
           },
           error: (error) => {
@@ -118,39 +147,69 @@ export class ReviewDashboardComponent {
   protected approveSelectedReviews(): void {
     const reviewIds = Array.from(this.selectedReviewIds());
 
-    if (reviewIds.length === 0) {
+    if (reviewIds.length === 0 || this.isBulkProcessing()) {
       return;
     }
 
-    this.processBulkAction(
-      reviewIds,
-      (reviewId) => this.reviewService.keepReview(reviewId),
-      'review goedgekeurd',
-      'reviews goedgekeurd',
+    this.toastService.showConfirm(
+      `Weet je zeker dat je ${reviewIds.length} review${reviewIds.length > 1 ? 's' : ''} wilt goedkeuren?`,
+      () => {
+        this.processBulkAction(
+          reviewIds,
+          (reviewId: number) => this.reviewService.keepReview(reviewId),
+          'review goedgekeurd.',
+          'reviews goedgekeurd.',
+        );
+      },
+      () => {},
     );
   }
 
   protected deleteSelectedReviews(): void {
     const reviewIds = Array.from(this.selectedReviewIds());
 
-    if (reviewIds.length === 0) {
+    if (reviewIds.length === 0 || this.isBulkProcessing()) {
       return;
     }
 
-    this.processBulkAction(
-      reviewIds,
-      (reviewId) => this.reviewService.deleteReview(reviewId),
-      'review verwijderd',
-      'reviews verwijderd',
+    this.toastService.showConfirm(
+      `Weet je zeker dat je ${reviewIds.length} review${reviewIds.length > 1 ? 's' : ''} wilt verwijderen?`,
+      () => {
+        this.processBulkAction(
+          reviewIds,
+          (reviewId: number) => this.reviewService.deleteReview(reviewId),
+          'review verwijderd.',
+          'reviews verwijderd.',
+        );
+      },
+      () => {},
     );
   }
 
-  private loadFlaggedReviews(): void {
+  protected deselectAll(): void {
+    this.selectedReviewIds.set(new Set());
+  }
+
+  private loadFlaggedReviewStats(): void {
+  this.reviewService.getFlaggedReviewStats().subscribe({
+    next: (stats) => {
+      this.stats.set(stats);
+    },
+    error: (error) => {
+      console.error('Fout bij ophalen van flagged review stats', error);
+    },
+  });
+}
+
+  private loadFlaggedReviews(page: number): void {
     this.isLoading.set(true);
 
-    this.reviewService.getFlaggedReviews().subscribe({
-      next: (reviews) => {
-        this.reviews.set(reviews);
+    this.reviewService.getFlaggedReviews(page, this.pageSize()).subscribe({
+      next: (response) => {
+        this.reviews.set(response.data);
+        this.pagingMeta.set(response.meta);
+        this.currentPage.set(response.meta.currentPage);
+        this.selectedReviewIds.set(new Set());
         this.isLoading.set(false);
       },
       error: (error) => {
@@ -164,87 +223,162 @@ export class ReviewDashboardComponent {
     });
   }
 
-  private removeReviewFromDashboard(reviewId: number): void {
-    this.reviews.update((currentReviews) =>
-      currentReviews.filter((review) => review.id !== reviewId),
+  private processBulkAction(
+    reviewIds: number[],
+    action: (reviewId: number) => Observable<unknown>,
+    singularSuccessMessage: string,
+    pluralSuccessMessage: string,
+  ): void {
+    this.isBulkProcessing.set(true);
+
+    const requests = reviewIds.map((reviewId: number) =>
+      action(reviewId).pipe(
+        map(() => ({
+          reviewId,
+          success: true as const,
+        })),
+        catchError((error: unknown) => {
+          console.error('Fout bij bulkactie voor review', reviewId, error);
+
+          return of({
+            reviewId,
+            success: false as const,
+          });
+        }),
+      ),
+    );
+
+    forkJoin(requests)
+      .pipe(finalize(() => this.isBulkProcessing.set(false)))
+      .subscribe({
+        next: (results) => {
+          const successfulReviewIds = results
+            .filter((result) => result.success)
+            .map((result) => result.reviewId);
+
+          this.applyProcessedReviewIds(successfulReviewIds);
+
+          const successCount = successfulReviewIds.length;
+
+          if (successCount === 0) {
+            this.toastService.show('Geen reviews konden verwerkt worden.', 'error');
+            return;
+          }
+
+          if (successCount === 1) {
+            this.toastService.show(`1 ${singularSuccessMessage}`, 'success');
+            return;
+          }
+
+          if (successCount < reviewIds.length) {
+            this.toastService.show(
+              `${successCount} van de ${reviewIds.length} reviews verwerkt.`,
+              'success',
+            );
+            return;
+          }
+
+          this.toastService.show(`${successCount} ${pluralSuccessMessage}`, 'success');
+        },
+        error: (error: unknown) => {
+          console.error('Onverwachte fout bij bulkactie', error);
+          this.toastService.show('Er is iets misgelopen bij de bulkactie.', 'error');
+        },
+      });
+  }
+
+  private applyProcessedReviewIds(processedReviewIds: number[]): void {
+    if (processedReviewIds.length === 0) {
+      return;
+    }
+
+    const currentReviews = this.reviews();
+    const processedIdsSet = new Set(processedReviewIds);
+
+    const processedReviews = currentReviews.filter((review) =>
+      processedIdsSet.has(review.id ?? -1),
+    );
+
+    const removedCriticalCount = processedReviews.filter(
+      (review) => (review.reportCount ?? 0) >= 5,
+    ).length;
+
+    this.stats.update((currentStats) => {
+      if (!currentStats) {
+        return currentStats;
+      }
+
+      return {
+        totalFlaggedReviews: Math.max(
+          currentStats.totalFlaggedReviews - processedReviewIds.length,
+          0,
+        ),
+        criticalFlaggedReviews: Math.max(
+          currentStats.criticalFlaggedReviews - removedCriticalCount,
+          0,
+        ),
+      };
+    });
+
+    this.reviews.update((reviews) =>
+      reviews.filter((review) => !processedIdsSet.has(review.id ?? -1)),
     );
 
     const nextSelectedReviewIds = new Set(this.selectedReviewIds());
-    nextSelectedReviewIds.delete(reviewId);
-    this.selectedReviewIds.set(nextSelectedReviewIds);
-  }
-
-  private processBulkAction(
-    reviewIds: number[],
-    action: (reviewId: number) => { subscribe: Function },
-    singularSuccessMessage: string,
-    pluralSuccessMessage: string,
-  ): void {
-    let processedCount = 0;
-    let successCount = 0;
-    const totalCount = reviewIds.length;
-
-    reviewIds.forEach((reviewId) => {
-      action(reviewId).subscribe({
-        next: () => {
-          this.removeReviewFromDashboard(reviewId);
-          successCount++;
-          processedCount++;
-          this.handleBulkActionCompletion(
-            processedCount,
-            totalCount,
-            successCount,
-            singularSuccessMessage,
-            pluralSuccessMessage,
-          );
-        },
-        error: (error: unknown) => {
-          console.error('Fout bij bulkactie voor review', reviewId, error);
-          processedCount++;
-          this.handleBulkActionCompletion(
-            processedCount,
-            totalCount,
-            successCount,
-            singularSuccessMessage,
-            pluralSuccessMessage,
-          );
-        },
-      });
+    processedReviewIds.forEach((reviewId: number) => {
+      nextSelectedReviewIds.delete(reviewId);
     });
-  }
+    this.selectedReviewIds.set(nextSelectedReviewIds);
 
-  private handleBulkActionCompletion(
-    processedCount: number,
-    totalCount: number,
-    successCount: number,
-    singularSuccessMessage: string,
-    pluralSuccessMessage: string,
-  ): void {
-    if (processedCount !== totalCount) {
+    const currentMeta = this.pagingMeta();
+
+    if (!currentMeta) {
       return;
     }
 
-    this.selectedReviewIds.set(new Set());
+    const updatedTotalItems = Math.max(
+      currentMeta.totalItems - processedReviewIds.length,
+      0,
+    );
 
-    if (successCount === 0) {
-      this.toastService.show('Geen reviews konden verwerkt worden.', 'error');
+    const updatedTotalPages =
+      updatedTotalItems === 0
+        ? 0
+        : Math.ceil(updatedTotalItems / currentMeta.pageSize);
+
+    const nextPageToLoad = Math.min(
+      currentMeta.currentPage,
+      Math.max(updatedTotalPages - 1, 0),
+    );
+
+    this.pagingMeta.set({
+      ...currentMeta,
+      totalItems: updatedTotalItems,
+      totalPages: updatedTotalPages,
+      currentPage: nextPageToLoad,
+    });
+
+    const shouldReload =
+      this.reviews().length === 0 && updatedTotalItems > 0;
+
+    if (shouldReload) {
+      this.loadFlaggedReviews(nextPageToLoad);
       return;
     }
 
-    if (successCount === 1) {
-      this.toastService.show(`1 ${singularSuccessMessage}.`, 'success');
-      return;
-    }
-
-    this.toastService.show(`${successCount} ${pluralSuccessMessage}.`, 'success');
+    this.currentPage.set(nextPageToLoad);
   }
 
   protected translateStatus(status: string | undefined): string {
     switch (status) {
-      case 'ACTIVE': return 'Actief';
-      case 'FLAGGED': return 'Gerapporteerd';
-      case 'KEPT': return 'Behouden';
-      default: return status ?? 'Onbekend';
+      case 'ACTIVE':
+        return 'Actief';
+      case 'FLAGGED':
+        return 'Gerapporteerd';
+      case 'KEPT':
+        return 'Behouden';
+      default:
+        return status ?? 'Onbekend';
     }
   }
 }

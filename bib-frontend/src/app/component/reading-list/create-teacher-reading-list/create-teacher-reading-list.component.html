@@ -1,0 +1,89 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Nieuwe leeslijst</h1>
+      <p class="page-subtitle">Maak als leerkracht een leeslijst met doelgroep</p>
+    </div>
+    <button type="button" class="btn-secondary" routerLink="/reading-list">Terug naar leeslijsten</button>
+  </div>
+
+  <div class="content-layout">
+    <div class="form-card">
+      <div class="form-header">
+        <h2 class="form-heading">Leeslijst aanmaken</h2>
+      </div>
+
+      <form (ngSubmit)="submit()">
+        <div class="field-group">
+          <label class="field-label" for="listName">Naam leeslijst</label>
+          <input
+            id="listName"
+            class="field-input"
+            [(ngModel)]="listName"
+            name="listName"
+            placeholder="Bijv. Verplichte lectuur"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="scope">Doelgroep</label>
+          <select
+            id="scope"
+            class="field-input"
+            [(ngModel)]="selectedScope"
+            name="scope"
+            (ngModelChange)="onScopeChange()">
+            @for (option of scopeOptions; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+          <p class="scope-help">{{ selectedScopeDescription }}</p>
+        </div>
+
+        @if (requiresTargetValue) {
+          <div class="field-group">
+            <label class="field-label" for="targetValue">{{ targetValueLabel }}</label>
+
+            @if (isLoadingAudienceOptions) {
+              <p class="scope-help">Doelgroepkeuzes laden...</p>
+            } @else if (usesTargetSelect) {
+              <select id="targetValue" class="field-input" [(ngModel)]="targetValue" name="targetValue">
+                @for (option of currentTargetOptions; track option) {
+                  <option [ngValue]="option">{{ option }}</option>
+                }
+              </select>
+            } @else {
+              <input
+                id="targetValue"
+                class="field-input"
+                [(ngModel)]="targetValue"
+                name="targetValue"
+                [placeholder]="targetValuePlaceholder"
+                autocomplete="off"
+              />
+            }
+
+            @if (audienceOptionsError) {
+              <p class="scope-help">{{ audienceOptionsError }}</p>
+            } @else {
+              <p class="scope-help">Vul hier de specifieke {{ targetValueLabel.toLowerCase() }} in waarvoor de leeslijst bedoeld is.</p>
+            }
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" routerLink="/reading-list">Annuleren</button>
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="!listName.trim() || (requiresTargetValue && !targetValue.trim())">
+            Aanmaken
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

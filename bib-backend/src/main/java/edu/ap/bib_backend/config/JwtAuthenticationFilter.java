@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.config;
 
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import jakarta.servlet.FilterChain;
@@ -21,9 +22,11 @@ import java.util.Map;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final AdminOverrideService adminOverrideService;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, AdminOverrideService adminOverrideService) {
         this.jwtService = jwtService;
+        this.adminOverrideService = adminOverrideService;
     }
 
     @Override
@@ -48,15 +51,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = jwtService.extractUsername(token);
         String role = (String) jwtService.extractClaim(token, "roles");
 
-        // TEST PRE AUTHORIZE
-        // String authorityName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
-
-        // UsernamePasswordAuthenticationToken authentication =
-        //         new UsernamePasswordAuthenticationToken(
-        //                 username,
-        //                 null,
-        //                 List.of(new SimpleGrantedAuthority(authorityName))
-        //         );
+        // TEMP_ADMIN_OVERRIDE: grant temporary admin authority for dev/test sessions.
+        if (adminOverrideService.isAdminOverrideActive(username)) {
+            role = "ROLE_ADMIN";
+        }
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
