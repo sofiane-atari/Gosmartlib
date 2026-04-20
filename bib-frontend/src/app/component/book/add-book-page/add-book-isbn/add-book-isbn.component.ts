@@ -3,7 +3,7 @@ import { BookService } from '../../../../services/bookService/book.service';
 import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Book } from '../../../../model/book/book.model';
-import { Info, LucideAngularModule, Plus, Trash2 } from "lucide-angular";
+import { Info, LucideAngularModule, Pencil, Plus, Trash2 } from "lucide-angular";
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { ToastService } from '../../../../services/toast/toast.service';
 import { LoadingOverlayComponent } from "../../../shared/loading-overlay/loading-overlay.component";
@@ -28,6 +28,7 @@ export class AddBookISBNComponent extends GenreSelectionBase {
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
   readonly Trash2Icon = Trash2;
+  readonly PencilIcon = Pencil;
 
   selectedBookId: number | null = null;
   isExistingBookLoaded = false;
@@ -71,7 +72,16 @@ export class AddBookISBNComponent extends GenreSelectionBase {
 
     this.bookAdded.emit(this.book);
   }
-  
+
+  editBook() {
+    if (!this.selectedBookId) {
+      this.ts.show('Geen bestaand boek geselecteerd om te wijzigen.', 'error');
+      return;
+    }
+
+    this.rt.navigate(['/books/' + this.selectedBookId + '/edit']);
+  }
+
   searchBookData() {
     const normalizedIsbn = (this.isbn ?? '').replace(/[-\s]/g, '').trim();
 

@@ -262,24 +262,37 @@
         }
       </div>
 
-      <div class="form-actions">
-        <button
-          type="button"
-          class="btn-clear"
-          (click)="clearForm()"
-        >
-          <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
-          Formulier leegmaken
-        </button>
+<div class="form-actions">
+  <button
+    type="button"
+    class="btn-clear"
+    (click)="clearForm()"
+  >
+    <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+    Formulier leegmaken
+  </button>
 
-        <button
-          type="submit"
-          class="btn-submit"
-          [disabled]="isExistingBookLoaded ? false : (bookForm.invalid || book.genres.length === 0)"
-        >
-          <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-          {{ isExistingBookLoaded ? 'Exemplaar Toevoegen' : 'Boek Toevoegen' }}
-        </button>
+        <div class="action-buttons">
+          @if (isExistingBookLoaded) {
+            <button
+              type="button"
+              class="btn-edit"
+              (click)="editBook()"
+            >
+              <lucide-icon [name]="PencilIcon" class="btn-icon"></lucide-icon>
+              Boek wijzigen
+            </button>
+          }
+
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="isExistingBookLoaded ? false : (bookForm.invalid || book.genres.length === 0)"
+          >
+            <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
+            {{ isExistingBookLoaded ? 'Exemplaar toevoegen' : 'Boek toevoegen' }}
+          </button>
+        </div>
       </div>
     </form>
   </div>
