@@ -11,9 +11,8 @@ import java.util.Optional;
 
 public interface DidacticMaterialRepository extends JpaRepository<DidacticMaterial, Long> {
 
-    @Override
     @EntityGraph(attributePaths = {"bookLinks", "bookLinks.book"})
-    List<DidacticMaterial> findAll();
+    List<DidacticMaterial> findAllByOrderByUpdatedAtDesc();
 
     @Override
     @EntityGraph(attributePaths = {"bookLinks", "bookLinks.book"})

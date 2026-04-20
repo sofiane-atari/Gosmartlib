@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.jpa.entity.didactic;
 
+import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.enums.DidacticMaterialType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -51,7 +52,6 @@ public class DidacticMaterial {
     @Column(name = "created_by_user_id", nullable = false, length = 100)
     private String createdByUserId;
 
-
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -71,5 +71,16 @@ public class DidacticMaterial {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    
+    public void replaceBookLinks(List<Book> books) {
+        this.bookLinks.clear();
+        books.forEach(book -> {
+            DidacticMaterialBookLink link = new DidacticMaterialBookLink();
+            link.setDidacticMaterial(this);
+            link.setBook(book);
+            this.bookLinks.add(link);
+        });
     }
 }

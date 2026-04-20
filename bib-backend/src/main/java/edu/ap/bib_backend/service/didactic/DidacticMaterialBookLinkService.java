@@ -25,15 +25,7 @@ public class DidacticMaterialBookLinkService {
     public void replaceBookLinks(DidacticMaterial material, List<Long> linkedBookIds) {
         List<Long> normalizedIds = normalizeLinkedBookIds(linkedBookIds);
         List<Book> linkedBooks = normalizedIds.isEmpty() ? List.of() : loadLinkedBooks(normalizedIds);
-
-        material.getBookLinks().clear();
-
-        for (Book linkedBook : linkedBooks) {
-            DidacticMaterialBookLink bookLink = new DidacticMaterialBookLink();
-            bookLink.setDidacticMaterial(material);
-            bookLink.setBook(linkedBook);
-            material.getBookLinks().add(bookLink);
-        }
+        material.replaceBookLinks(linkedBooks);
     }
 
     private List<Long> normalizeLinkedBookIds(List<Long> linkedBookIds) {
