@@ -1,5 +1,5 @@
 import { computed, inject, Injectable } from '@angular/core';
-import { AuthService } from '../authorization/auth.service'; 
+import { AuthService } from '../authorization/auth.service';
 import { Role } from '../../model/auth.model';
 
 /**
@@ -87,6 +87,14 @@ export class RoleService {
    * @returns `true` if the user is allowed to manage books, otherwise `false`.
    */
   public canManageBooks(): boolean {
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
+  }
+
+  /**
+   * Too many methods for the same roles
+   * refactor LATER //////////////////////////////////////////////////////////////////////////
+   */
+  public canManageDidacticMaterials(): boolean {
     return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
   }
 

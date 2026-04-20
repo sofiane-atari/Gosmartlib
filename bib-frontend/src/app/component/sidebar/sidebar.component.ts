@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
 import { AuthUserDto, Role } from '../../model/auth.model';
+import { DIDACTIC_MATERIAL_PATHS } from '../../routes/didactic-material.routes';
 import {
   LucideAngularModule,
   Book,
@@ -21,6 +22,7 @@ import {
   User,
   School,
   Shield,
+  FolderKanban,
 } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
@@ -38,6 +40,7 @@ export class SidebarComponent {
   readonly RotateCcwIcon = RotateCcw;
   readonly LogOutIcon = LogOut;
   readonly ShieldIcon = Shield;
+  public readonly FolderKanbanIcon = FolderKanban;
 
   public readonly authService = inject(AuthService);
   private readonly roleService = inject(RoleService);
@@ -49,23 +52,29 @@ export class SidebarComponent {
   public sidebarClosed = output<void>();
 
   public constructor(private readonly router: Router) {
-    void [this.ShieldIcon, this.isAdminOverrideVisible, this.adminOverrideLabel, this.toggleAdminOverride];
+    void [
+      this.ShieldIcon,
+      this.isAdminOverrideVisible,
+      this.adminOverrideLabel,
+      this.toggleAdminOverride,
+    ];
   }
 
   protected readonly currentUser = computed<AuthUserDto | null>(() =>
-    this.authService.currentUser()
+    this.authService.currentUser(),
   );
 
-  protected readonly isAdminOverrideVisible = computed(() =>
-    this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser()
+  protected readonly isAdminOverrideVisible = computed(
+    () =>
+      this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser(),
   );
 
   protected readonly isAdminOverrideEnabled = computed(
-    () => this.authService.adminOverrideStatus()?.enabled ?? false
+    () => this.authService.adminOverrideStatus()?.enabled ?? false,
   );
 
   protected readonly adminOverrideLabel = computed(() =>
-    this.isAdminOverrideEnabled() ? 'Admin uit (test)' : 'Admin aan (test)'
+    this.isAdminOverrideEnabled() ? 'Admin uit (test)' : 'Admin aan (test)',
   );
 
   menuItems = [
@@ -77,6 +86,12 @@ export class SidebarComponent {
     { icon: Settings, label: 'Instellingen', route: '/instellingen' },
     { icon: Package, label: 'BookBox', route: '/bookbox' },
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
+    {
+      icon: FolderKanban,
+      label: 'Didactisch Materiaal',
+      route: `/${DIDACTIC_MATERIAL_PATHS.root}`,
+      staffOnly: true,
+    },
     { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
     { icon: Tag, label: 'Genrebeheer', route: '/genre' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
@@ -85,7 +100,20 @@ export class SidebarComponent {
 
   protected readonly visibleMenuItems = computed(() => {
     const isAdmin = this.roleService.isAdmin();
-    return this.menuItems.filter((item) => !item.adminOnly || isAdmin);
+    const canManageDidacticMaterials =
+      this.roleService.canManageDidacticMaterials();
+
+    return this.menuItems.filter((item) => {
+      if (item.adminOnly && !isAdmin) {
+        return false;
+      }
+
+      if (item.staffOnly && !canManageDidacticMaterials) {
+        return false;
+      }
+
+      return true;
+    });
   });
 
   protected readonly userDisplayName = computed(() => {
@@ -95,11 +123,13 @@ export class SidebarComponent {
       return 'Gebruiker';
     }
 
-    return user.fullName?.trim()
-      || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
-      || user.firstName?.trim()
-      || user.id
-      || 'Gebruiker';
+    return (
+      user.fullName?.trim() ||
+      `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
+      user.firstName?.trim() ||
+      user.id ||
+      'Gebruiker'
+    );
   });
 
   protected readonly userRoleLabel = computed(() => {

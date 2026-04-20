@@ -6,18 +6,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.didactic.CreateDidacticMaterialRequestDto;
 import edu.ap.bib_backend.dto.didactic.DidacticMaterialResponseDto;
 import edu.ap.bib_backend.service.didactic.DidacticMaterialService;
 import edu.ap.bib_backend.service.review.CurrentUserService;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/didactic-materials")
+@RequestMapping("/didactic-material")
 @PreAuthorize("hasAnyRole('STUDENT','TEACHER','LIBRARIAN','ADMIN')")
 public class DidacticMaterialController {
 
