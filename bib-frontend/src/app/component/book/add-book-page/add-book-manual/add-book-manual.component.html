@@ -19,7 +19,7 @@
         <span class="step-num">Stap 1</span>
         <span class="step-title">Vul de basisgegevens in</span>
         <span class="step-desc">
-          Vul titel, auteur, aantal pagina's en jaar van het boek in.
+          Vul de gegevens in van het boek
         </span>
       </div>
 
@@ -48,23 +48,49 @@
 
     @if (!isSearching && candidateBooks.length > 0) {
       <div class="candidate-section">
-        <h3>Mogelijke bestaande boeken</h3>
+        <div class="candidate-section-header">
+          <div class="candidate-section-heading">
+            <p class="candidate-section-label">Gevonden resultaten</p>
+          </div>
+        </div>
 
         <div class="candidate-list">
-          <!-- @for (candidate of candidateBooks; track candidate.id ?? candidate.isbn13 ?? candidate.title) { -->
           @for (candidate of candidateBooks; track candidate.title + '-' + candidate.author + '-' + candidate.releaseYear) {
-            <div class="candidate-card" (click)="useCandidate(candidate)">
-              <div class="candidate-info">
-                <p class="candidate-title"><strong>{{ candidate.title }}</strong></p>
-                <p class="candidate-author">{{ candidate.author }}</p>
-                <p class="candidate-year">{{ candidate.releaseYear }}</p>
+            <button
+              type="button"
+              class="candidate-card"
+              (click)="useCandidate(candidate)"
+            >
+              <div class="candidate-image">
+                @if (candidate.imageUrl) {
+                  <img [src]="candidate.imageUrl" [alt]="candidate.title" />
+                } @else {
+                  <div class="preview-placeholder small">
+                    <p>Geen cover</p>
+                  </div>
+                }
               </div>
-            </div>
+
+              <div class="candidate-info">
+                <p class="candidate-title">
+                  <strong>{{ candidate.title }}</strong>
+                </p>
+
+                <p class="candidate-author">
+                  {{ candidate.author || 'Onbekende auteur' }}
+                </p>
+
+                <p class="candidate-year">
+                  {{ candidate.releaseYear || 'Onbekende auteur' }}
+                </p>
+
+              </div>
+            </button>
           }
         </div>
       </div>
-      <hr class="divider" />
 
+      <hr class="divider" />
     }
 
     @if (isCandidateLoaded) {

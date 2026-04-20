@@ -601,13 +601,6 @@
   align-items: center;
 }
 
-/* Grid layout voor cards naast elkaar */
-.candidate-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
-}
-
 /* Individuele kandidaat card */
 .candidate-card {
   background: white;
@@ -817,7 +810,254 @@
 .subgenre-wrapper {
   animation: fadeSlideIn 0.18s ease;
 }
+/* ── Kandidaten sectie ───────────────────────────── */
+.candidate-section {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #fbfbfc, #f7f8fa);
+  border: 1px solid #e6e8ec;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  animation: fadeSlideIn 0.2s ease;
+}
 
+.candidate-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.candidate-section-label {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a1e41;
+}
+
+.candidate-section h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2f3440;
+}
+
+.candidate-section-subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+/* ── Kandidaten grid ───────────────────────────── */
+.candidate-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1rem;
+}
+
+/* ── Kandidaat kaart ───────────────────────────── */
+.candidate-card {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+  min-height: 100%;
+}
+
+.candidate-card:hover {
+  transform: translateY(-3px);
+  border-color: #bc808b;
+  box-shadow: 0 10px 22px rgba(138, 30, 65, 0.12);
+}
+
+.candidate-card:active {
+  transform: translateY(-1px);
+}
+
+/* ── Cover ───────────────────────────── */
+.candidate-image {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.candidate-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-placeholder.small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.78rem;
+  background:
+    linear-gradient(135deg, #f8f8f8, #efefef);
+}
+
+/* ── Inhoud ───────────────────────────── */
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem;
+  flex: 1;
+}
+
+.candidate-info p {
+  margin: 0;
+}
+
+.candidate-title strong {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: #222;
+}
+
+.candidate-author {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #8a1e41;
+}
+
+.candidate-meta {
+  font-size: 0.76rem;
+  color: #6b7280;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  line-height: 1.3;
+}
+/* ── Kandidaten grid: compactere lijst ── */
+.candidate-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Breder omdat ze nu horizontaal zijn */
+  gap: 0.75rem;
+}
+
+/* ── Kandidaat kaart: Horizontale layout ── */
+.candidate-card {
+  display: flex;
+  flex-direction: row; /* Zet afbeelding naast de tekst */
+  align-items: center;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  text-align: left;
+  min-height: 80px; /* Vaste kleine hoogte */
+}
+
+.candidate-card:hover {
+  transform: translateX(4px); /* Subtiele verschuiving naar rechts ipv omhoog */
+  border-color: #bc808b;
+  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.1);
+}
+
+/* ── Cover: Klein en vierkantachtig ── */
+.candidate-image {
+  width: 60px; /* Smalle breedte voor horizontale look */
+  height: 80px; /* Matcht de min-height van de kaart */
+  flex-shrink: 0;
+  background: #f3f4f6;
+}
+
+.candidate-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Inhoud: Compactere tekst naast de foto ── */
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  overflow: hidden; /* Belangrijk voor tekstafkapping */
+}
+
+.candidate-title strong {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Tekst op 1 regel met puntjes */
+  font-size: 0.8rem;
+  line-height: 1.2;
+  color: #222;
+}
+
+.candidate-author {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #8a1e41;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Meta info (indien aanwezig) ── */
+.candidate-meta {
+  font-size: 0.65rem;
+  color: #9ca3af;
+}
+
+/* ── Mobiel: Behoud horizontale flow maar iets smaller ── */
+@media (max-width: 480px) {
+  .candidate-list {
+    grid-template-columns: 1fr; /* Stapel ze verticaal, maar hou de kaart horizontaal */
+  }
+}
+/* ── Mobiel ───────────────────────────── */
+@media (max-width: 768px) {
+  .candidate-section {
+    padding: 1rem;
+  }
+
+  .candidate-list {
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .candidate-info {
+    padding: 0.75rem;
+  }
+
+  .candidate-section-subtitle {
+    max-width: 100%;
+  }
+}
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
