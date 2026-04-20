@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, ChevronDown, Check } from 'lucide-angular';
-import { Genre } from '../../../../model/genre.model';
+import { Genre } from '../../../../model/genre/genre.model';
 
 @Component({
   selector: 'app-genre-picker',
@@ -49,9 +49,9 @@ export class GenrePickerComponent {
       return null;
     }
 
-    return this.genres.find(
-      (genre) => genre.name === this.selectedGenreName,
-    ) ?? null;
+    return (
+      this.genres.find((genre) => genre.name === this.selectedGenreName) ?? null
+    );
   }
 
   protected isSelected(genreName: string | null): boolean {
