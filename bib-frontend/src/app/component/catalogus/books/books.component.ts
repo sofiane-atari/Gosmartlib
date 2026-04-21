@@ -31,7 +31,7 @@ import { PagingComponent } from '../../shared/paging/paging.component';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
 import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
-import { Genre } from '../../../model/genre.model';
+import { Genre } from '../../../model/genre/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/genre-picker.component';
 
