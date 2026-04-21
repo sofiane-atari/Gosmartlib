@@ -8,6 +8,8 @@ import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterial;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.didactic.DidacticMaterialRepository;
 import edu.ap.bib_backend.mapper.DidacticMaterialMapper;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,17 +23,22 @@ public class DidacticMaterialService {
     private final DidacticMaterialBookLinkService didacticMaterialBookLinkService;
     private final DidacticMaterialMapper didacticMaterialMapper;
     private final DidacticMaterialCreatorRoleService didacticMaterialCreatorRoleService;
+    private final DidacticMaterialAuthorizationService didacticMaterialAuthorizationService;
+
 
     public DidacticMaterialService(
             DidacticMaterialRepository didacticMaterialRepository,
             DidacticMaterialBookLinkService didacticMaterialBookLinkService,
             DidacticMaterialMapper didacticMaterialMapper,
-            DidacticMaterialCreatorRoleService didacticMaterialCreatorRoleService
+            DidacticMaterialCreatorRoleService didacticMaterialCreatorRoleService,
+            DidacticMaterialAuthorizationService didacticMaterialAuthorizationService
+
     ) {
         this.didacticMaterialRepository = didacticMaterialRepository;
         this.didacticMaterialBookLinkService = didacticMaterialBookLinkService;
         this.didacticMaterialMapper = didacticMaterialMapper;
         this.didacticMaterialCreatorRoleService = didacticMaterialCreatorRoleService;
+        this.didacticMaterialAuthorizationService = didacticMaterialAuthorizationService;
     }
 
     @Transactional(readOnly = true)
@@ -56,15 +63,22 @@ public class DidacticMaterialService {
         return toResponse(savedMaterial);
     }
 
-    public DidacticMaterialResponseDto updateMaterial(Long id, CreateDidacticMaterialRequestDto request) {
+    public DidacticMaterialResponseDto updateMaterial(
+            Long id,
+            CreateDidacticMaterialRequestDto request,
+            Authentication authentication
+    ) {
         DidacticMaterial material = findMaterialOrThrow(id);
+        didacticMaterialAuthorizationService.assertCanModify(material, authentication);
         applyRequestFields(material, request);
 
-        return toResponse(didacticMaterialRepository.save(material));
+        DidacticMaterial savedMaterial = didacticMaterialRepository.save(material);
+        return toResponse(savedMaterial);
     }
 
-    public void deleteMaterial(Long id) {
+    public void deleteMaterial(Long id, Authentication authentication) {
         DidacticMaterial material = findMaterialOrThrow(id);
+        didacticMaterialAuthorizationService.assertCanModify(material, authentication);
         didacticMaterialRepository.delete(material);
     }
 

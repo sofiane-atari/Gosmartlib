@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.user;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +12,8 @@ import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
+import edu.ap.bib_backend.service.GroupService;
+import edu.ap.bib_backend.service.ProfanityFilterService;
 
 @Service
 public class UserService {

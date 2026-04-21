@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service.review;
+package edu.ap.bib_backend.service.user;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;

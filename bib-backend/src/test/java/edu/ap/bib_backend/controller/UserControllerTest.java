@@ -26,7 +26,7 @@ import edu.ap.bib_backend.options.UserGetOptions;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
-import edu.ap.bib_backend.service.UserService;
+import edu.ap.bib_backend.service.user.UserService;
 
 @WebMvcTest(UserController.class)
 @Import(TestSecurityConfig.class)

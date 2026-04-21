@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.*;
 import edu.ap.bib_backend.dto.didactic.CreateDidacticMaterialRequestDto;
 import edu.ap.bib_backend.dto.didactic.DidacticMaterialResponseDto;
 import edu.ap.bib_backend.service.didactic.DidacticMaterialService;
-import edu.ap.bib_backend.service.review.CurrentUserService;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/didactic-materials")
-@PreAuthorize("hasAnyRole('STUDENT','TEACHER','LIBRARIAN','ADMIN')")
+@PreAuthorize("hasAnyRole('TEACHER','LIBRARIAN','ADMIN')")
 public class DidacticMaterialController {
 
     private final DidacticMaterialService didacticMaterialService;
@@ -56,15 +56,17 @@ public class DidacticMaterialController {
             Authentication authentication
     ) {
         DidacticMaterialResponseDto updatedMaterial =
-                didacticMaterialService.updateMaterial(id, request);
+                didacticMaterialService.updateMaterial(id, request, authentication);
 
         return ResponseEntity.ok(updatedMaterial);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMaterial(@PathVariable Long id) {
-        didacticMaterialService.deleteMaterial(id);
+    public ResponseEntity<Void> deleteMaterial(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        didacticMaterialService.deleteMaterial(id, authentication);
         return ResponseEntity.noContent().build();
     }
-
 }
