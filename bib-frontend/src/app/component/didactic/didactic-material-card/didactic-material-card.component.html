@@ -1,0 +1,76 @@
+<article class="material-card">
+  <div class="material-card__body">
+    <div class="material-card__header">
+      <h2 class="material-title">{{ material().title }}</h2>
+    </div>
+
+    <div class="material-card__divider"></div>
+
+    <div class="material-card__content-row">
+      <div class="material-card__content">
+        <p class="material-description">{{ material().description }}</p>
+      </div>
+
+      <div class="material-card__preview">
+        <div class="material-card__preview-placeholder">
+          <span>Geen voorbeeld</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="material-card__meta-row">
+      <div class="material-card__meta-left">
+        <span class="material-meta-item">
+          {{ getMaterialTypeLabel() }}
+        </span>
+
+        @if (material().subject) {
+          <span class="material-meta-item">
+            Vak: {{ material().subject }}
+          </span>
+        }
+
+        @if (material().educationLevel) {
+          <span class="material-meta-item">
+            Niveau: {{ material().educationLevel }}
+          </span>
+        }
+
+        <span class="material-meta-item">
+          {{ material().linkedBooks.length }} gekoppelde boeken
+        </span>
+      </div>
+
+      <div class="material-card__meta-right">
+        <span class="material-date">
+          {{ material().updatedAt | date: "dd/MM/yyyy" }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="material-card__footer">
+    <div class="material-card__author">
+      <div class="material-card__author-details">
+        @if (isOwnMaterial()) {
+          <span class="material-card__author-name">{{
+            creatorDisplayName()
+          }}</span>
+          <span class="material-card__author-role">{{
+            creatorRoleLabel()
+          }}</span>
+        } @else {
+          <span class="material-card__author-name">{{
+            creatorRoleLabel()
+          }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="material-card__actions">
+      <button type="button" class="secondary-button" (click)="openDetail()">
+        Bekijken
+      </button>
+    </div>
+  </div>
+</article>

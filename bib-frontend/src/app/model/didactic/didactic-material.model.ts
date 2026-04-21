@@ -1,3 +1,5 @@
+import { Role } from '../auth.model';
+
 export type DidacticMaterialType =
   | 'LESSON_METHOD'
   | 'DIDACTIC_HANDBOOK'
@@ -23,6 +25,7 @@ export interface DidacticMaterial {
   educationLevel: string | null;
   keywords: string | null;
   createdByUserId: string;
+  createdByRole: Role | null;
   createdAt: string;
   updatedAt: string;
   linkedBooks: DidacticMaterialBookSummary[];

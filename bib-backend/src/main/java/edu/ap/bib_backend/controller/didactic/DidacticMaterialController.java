@@ -15,7 +15,7 @@ import edu.ap.bib_backend.service.review.CurrentUserService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/didactic-material")
+@RequestMapping("/didactic-materials")
 @PreAuthorize("hasAnyRole('STUDENT','TEACHER','LIBRARIAN','ADMIN')")
 public class DidacticMaterialController {
 

@@ -12,7 +12,7 @@ import {
 })
 export class DidacticMaterialService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/didactic-material`;
+  private readonly baseUrl = `${environment.apiUrl}/didactic-materials`;
 
   public getAll(): Observable<DidacticMaterial[]> {
     return this.http.get<DidacticMaterial[]>(this.baseUrl);

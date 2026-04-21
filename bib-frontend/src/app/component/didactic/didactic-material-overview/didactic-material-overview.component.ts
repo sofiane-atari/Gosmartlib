@@ -6,11 +6,12 @@ import { DidacticMaterialService } from '../../../services/didactic/didactic-mat
 import { ToastService } from '../../../services/toast/toast.service';
 import { DidacticMaterial } from '../../../model/didactic/didactic-material.model';
 import { DIDACTIC_MATERIAL_PATHS } from '../../../routes/didactic-material.routes';
+import { DidacticMaterialCardComponent } from '../didactic-material-card/didactic-material-card.component';
 
 @Component({
   selector: 'app-didactic-material-overview',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DidacticMaterialCardComponent],
   templateUrl: './didactic-material-overview.component.html',
   styleUrl: './didactic-material-overview.component.css',
 })

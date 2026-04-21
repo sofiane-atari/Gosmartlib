@@ -5,6 +5,7 @@ import edu.ap.bib_backend.dto.didactic.CreateDidacticMaterialRequestDto;
 import edu.ap.bib_backend.dto.didactic.DidacticMaterialResponseDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterial;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.didactic.DidacticMaterialRepository;
 import edu.ap.bib_backend.mapper.DidacticMaterialMapper;
 import org.springframework.stereotype.Service;
@@ -19,28 +20,31 @@ public class DidacticMaterialService {
     private final DidacticMaterialRepository didacticMaterialRepository;
     private final DidacticMaterialBookLinkService didacticMaterialBookLinkService;
     private final DidacticMaterialMapper didacticMaterialMapper;
+    private final DidacticMaterialCreatorRoleService didacticMaterialCreatorRoleService;
 
     public DidacticMaterialService(
             DidacticMaterialRepository didacticMaterialRepository,
             DidacticMaterialBookLinkService didacticMaterialBookLinkService,
-            DidacticMaterialMapper didacticMaterialMapper
+            DidacticMaterialMapper didacticMaterialMapper,
+            DidacticMaterialCreatorRoleService didacticMaterialCreatorRoleService
     ) {
         this.didacticMaterialRepository = didacticMaterialRepository;
         this.didacticMaterialBookLinkService = didacticMaterialBookLinkService;
         this.didacticMaterialMapper = didacticMaterialMapper;
+        this.didacticMaterialCreatorRoleService = didacticMaterialCreatorRoleService;
     }
 
     @Transactional(readOnly = true)
     public List<DidacticMaterialResponseDto> getAllMaterials() {
-        return didacticMaterialMapper.toResponseList(
-            didacticMaterialRepository.findAllByOrderByUpdatedAtDesc()
-        );
+        return didacticMaterialRepository.findAllByOrderByUpdatedAtDesc().stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public DidacticMaterialResponseDto getMaterialById(Long id) {
         DidacticMaterial material = findMaterialOrThrow(id);
-        return didacticMaterialMapper.toResponse(material);
+        return toResponse(material);
     }
 
     public DidacticMaterialResponseDto createMaterial(CreateDidacticMaterialRequestDto request, String currentUserId) {
@@ -48,14 +52,15 @@ public class DidacticMaterialService {
         material.setCreatedByUserId(currentUserId); 
         applyRequestFields(material, request);
 
-        return didacticMaterialMapper.toResponse(didacticMaterialRepository.save(material));
+        DidacticMaterial savedMaterial = didacticMaterialRepository.save(material);
+        return toResponse(savedMaterial);
     }
 
     public DidacticMaterialResponseDto updateMaterial(Long id, CreateDidacticMaterialRequestDto request) {
         DidacticMaterial material = findMaterialOrThrow(id);
         applyRequestFields(material, request);
 
-        return didacticMaterialMapper.toResponse(didacticMaterialRepository.save(material));
+        return toResponse(didacticMaterialRepository.save(material));
     }
 
     public void deleteMaterial(Long id) {
@@ -71,6 +76,11 @@ public class DidacticMaterialService {
         material.setEducationLevel(normalizeNullableValue(request.educationLevel()));
         material.setKeywords(normalizeNullableValue(request.keywords()));
         didacticMaterialBookLinkService.replaceBookLinks(material, request.linkedBookIds());
+    }
+
+    private DidacticMaterialResponseDto toResponse(DidacticMaterial material) {
+        Role createdByRole = didacticMaterialCreatorRoleService.getCreatorRole(material.getCreatedByUserId());
+        return didacticMaterialMapper.toResponse(material, createdByRole);
     }
 
     private DidacticMaterial findMaterialOrThrow(Long id) {

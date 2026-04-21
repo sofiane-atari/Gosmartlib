@@ -83,70 +83,6 @@
   gap: 16px;
 }
 
-.material-card {
-  position: relative;
-  display: grid;
-  gap: 14px;
-  padding: 20px;
-  border: 1.5px solid var(--main-color-border);
-  border-radius: 20px;
-  background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-  transition:
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.3s ease,
-    background 0.3s ease;
-}
-
-.material-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: linear-gradient(180deg, #8a1e41 0%, #c04b72 100%);
-  opacity: 0.9;
-  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.material-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    transparent 50%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-.material-card:hover {
-  transform: translateY(-4px) scale(1.005);
-  border-color: rgba(138, 30, 65, 0.22);
-  box-shadow: var(--shadow-lg);
-  background: linear-gradient(135deg, #ffffff 0%, #fff9fb 100%);
-}
-
-.material-card:hover::before {
-  width: 5px;
-}
-
-.material-card:hover::after {
-  opacity: 1;
-}
-
-.material-card__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
 .material-badge,
 .metadata-pill {
   display: inline-flex;
@@ -168,11 +104,6 @@
   color: var(--text-light);
 }
 
-.material-card__content {
-  display: grid;
-  gap: 8px;
-}
-
 .material-title {
   margin: 0;
   font-size: 18px;
@@ -181,10 +112,6 @@
   letter-spacing: -0.01em;
   color: var(--text-dark);
   transition: color 0.2s ease;
-}
-
-.material-card:hover .material-title {
-  color: var(--main-color);
 }
 
 .material-description {
@@ -202,12 +129,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.material-card__actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 4px;
 }
 
 .primary-button,
@@ -297,15 +218,6 @@
     font-size: 24px;
   }
 
-  .material-card {
-    padding: 16px;
-  }
-
-  .material-card__actions,
-  .page-header__actions {
-    width: 100%;
-  }
-
   .primary-button,
   .secondary-button {
     width: 100%;
@@ -323,16 +235,6 @@
 
   .material-grid {
     grid-template-columns: 1fr;
-  }
-
-  .material-card {
-    padding: 14px;
-  }
-
-  .material-card__top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
   }
 
   .material-description {

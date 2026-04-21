@@ -43,54 +43,10 @@
   } @else {
     <section class="material-grid">
       @for (material of materials(); track material.id) {
-        <article class="material-card">
-          <div class="material-card__top">
-            <span class="material-badge">
-              {{ getMaterialTypeLabel(material.materialType) }}
-            </span>
-
-            <span class="material-date">
-              Bijgewerkt op {{ material.updatedAt | date: "dd/MM/yyyy" }}
-            </span>
-          </div>
-
-          <div class="material-card__content">
-            <h2 class="material-title">{{ material.title }}</h2>
-            <p class="material-description">{{ material.description }}</p>
-          </div>
-
-          <div class="material-metadata">
-            @if (material.subject) {
-              <span class="metadata-pill">Vak: {{ material.subject }}</span>
-            }
-
-            @if (material.educationLevel) {
-              <span class="metadata-pill">
-                Niveau: {{ material.educationLevel }}
-              </span>
-            }
-
-            @if (material.keywords) {
-              <span class="metadata-pill">
-                Trefwoorden: {{ material.keywords }}
-              </span>
-            }
-
-            <span class="metadata-pill">
-              Gekoppelde boeken: {{ material.linkedBooks.length }}
-            </span>
-          </div>
-
-          <div class="material-card__actions">
-            <button
-              type="button"
-              class="secondary-button"
-              (click)="navigateToDetailPage(material.id)"
-            >
-              Bekijken
-            </button>
-          </div>
-        </article>
+        <app-didactic-material-card
+          [material]="material"
+          (openRequested)="navigateToDetailPage($event)"
+        />
       }
     </section>
   }
