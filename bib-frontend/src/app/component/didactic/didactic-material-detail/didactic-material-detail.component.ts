@@ -29,6 +29,7 @@ export class DidacticMaterialDetailComponent {
 
   protected readonly material = signal<DidacticMaterial | null>(null);
   protected readonly isLoading = signal(false);
+  protected readonly isDeleting = signal(false);
   protected readonly currentUser = computed(() =>
     this.authService.currentUser(),
   );
@@ -80,38 +81,42 @@ export class DidacticMaterialDetailComponent {
   }
 
   public deleteMaterial(): void {
-    const material = this.material();
+    const selectedMaterial = this.material();
 
-    if (!material) {
+    if (!selectedMaterial || this.isDeleting()) {
       return;
     }
 
-    const confirmed = window.confirm(
+    this.toastService.showConfirm(
       'Weet je zeker dat je dit didactisch materiaal wilt verwijderen?',
+      () => {
+        this.isDeleting.set(true);
+
+        this.didacticMaterialService
+          .delete(selectedMaterial.id)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.isDeleting.set(false);
+              this.toastService.show(
+                'Didactisch materiaal is verwijderd.',
+                'success',
+              );
+              void this.router.navigate([`/${DIDACTIC_MATERIAL_PATHS.root}`]);
+            },
+            error: () => {
+              this.isDeleting.set(false);
+              this.toastService.show(
+                'Het didactisch materiaal kon niet worden verwijderd.',
+                'error',
+              );
+            },
+          });
+      },
+      () => {
+        this.toastService.show('Verwijderen geannuleerd.', 'error');
+      },
     );
-
-    if (!confirmed) {
-      return;
-    }
-
-    this.didacticMaterialService
-      .delete(material.id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.toastService.show(
-            'Didactisch materiaal is verwijderd.',
-            'success',
-          );
-          void this.router.navigate([`/${DIDACTIC_MATERIAL_PATHS.root}`]);
-        },
-        error: () => {
-          this.toastService.show(
-            'Het didactisch materiaal kon niet worden verwijderd.',
-            'error',
-          );
-        },
-      });
   }
 
   protected getMaterialTypeLabel(

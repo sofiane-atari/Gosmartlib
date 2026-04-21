@@ -1,247 +1,177 @@
-:host {
-  --main-color: #8a1e41;
-  --main-color-hover: #6e1733;
-  --main-color-soft: rgba(138, 30, 65, 0.06);
-  --main-color-border: rgba(138, 30, 65, 0.12);
-  --text-dark: #1a0a10;
-  --text-muted: #7a5560;
-  --text-light: #a08891;
-  --border-color: #f0e4e8;
-  --bg-surface: #ffffff;
-  --bg-soft: #faf7f8;
-  --bg-canvas: #fcfbfb;
-  --success: #10b981;
-  --danger: #dc2626;
-  --shadow-sm: 0 2px 8px rgba(26, 10, 16, 0.04);
-  --shadow-md: 0 8px 24px rgba(26, 10, 16, 0.06);
-  --shadow-lg: 0 16px 48px rgba(138, 30, 65, 0.12);
-
-  display: block;
-}
-
 .didactic-material-overview {
   min-height: 100vh;
-  padding: 24px;
-  font-family: var(--main-font);
+  padding: 32px 24px;
 }
 
-.page-header {
+/* =========================================================
+   CONTAINER
+   ========================================================= */
+.didactic-material-overview__container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* =========================================================
+   HEADER (Geen achtergrond, wel een subtiele border)
+   ========================================================= */
+.didactic-material-overview__header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1.5px solid var(--main-color-border);
-}
-
-.page-header__content {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.page-header__eyebrow {
-  margin: 0 0 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--main-color);
-  opacity: 0.95;
-}
-
-.page-header__title {
-  margin: 0;
-  font-size: clamp(26px, 4vw, 36px);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--text-dark);
-  background: linear-gradient(135deg, var(--text-dark) 0%, #4a2a35 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.page-header__description {
-  margin: 10px 0 0;
-  max-width: 48rem;
-  font-size: 13.5px;
-  font-weight: 500;
-  line-height: 1.6;
-  color: var(--text-muted);
-}
-
-.page-header__actions {
-  display: flex;
-  align-items: flex-start;
-}
-
-.material-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
-}
-
-.material-badge,
-.metadata-pill {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 30px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--main-color-border);
-  background: var(--main-color-soft);
-  color: var(--main-color);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.material-date {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-light);
-}
-
-.material-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  color: var(--text-dark);
-  transition: color 0.2s ease;
-}
-
-.material-description {
-  margin: 0;
-  color: #4b5563;
-  font-size: 13.5px;
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.material-metadata {
-  display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 16px;
+  padding-top: 16px;
+  padding-bottom: 24px;
+  background-color: transparent;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.primary-button,
-.secondary-button {
+.didactic-material-overview__title {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.didactic-material-overview__subtitle {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+  max-width: 48rem;
+}
+
+.didactic-material-overview__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* =========================================================
+   BUTTONS (Moderne uitstraling)
+   ========================================================= */
+.action-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    background 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease;
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
-.primary-button {
-  border: none;
-  background: var(--main-color);
-  color: #ffffff;
-}
-
-.primary-button:hover {
-  background: var(--main-color-hover);
+.action-button:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.15);
 }
 
-.secondary-button {
-  border: 1.5px solid var(--main-color-border);
-  background: #ffffff;
+.action-button--primary {
+  background-color: var(--main-color);
+  color: var(--bg-surface);
+}
+
+.action-button--primary:hover {
+  background-color: var(--main-color-hover);
+}
+
+.action-button--secondary {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
   color: var(--main-color);
 }
 
-.secondary-button:hover {
-  background: #fff5f8;
-  border-color: rgba(138, 30, 65, 0.3);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+.action-button--secondary:hover {
+  background-color: var(--main-light-color);
+  border-color: var(--main-color);
+  box-shadow: none;
+  transform: translateY(-1px);
 }
 
-.state-card {
+/* =========================================================
+   STATE PANELS
+   ========================================================= */
+.state-panel {
+  background: transparent;
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 48px 24px;
-  text-align: center;
-  border: 2px dashed var(--main-color-border);
-  border-radius: 20px;
-  background: linear-gradient(135deg, #ffffff 0%, #fff7fa 100%);
-  box-shadow: var(--shadow-sm);
+  gap: 16px;
 }
 
-.state-card h2 {
-  margin: 0;
+.state-panel--empty {
+  font-weight: 600;
   color: var(--text-dark);
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
 }
 
-.state-card p {
+.state-panel p {
   margin: 0;
   max-width: 420px;
-  font-size: 14.5px;
-  font-weight: 500;
-  line-height: 1.6;
-  color: var(--text-muted);
 }
 
+/* =========================================================
+   LIST 
+   ========================================================= */
+.material-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.material-list ::ng-deep app-didactic-material-card {
+  display: block;
+  width: 100%;
+  word-break: break-word;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 @media (max-width: 768px) {
   .didactic-material-overview {
-    padding: 20px 16px;
+    padding: 16px;
   }
 
-  .page-header {
+  .didactic-material-overview__header {
+    flex-direction: column;
     align-items: flex-start;
   }
 
-  .page-header__title {
+  .didactic-material-overview__title {
     font-size: 24px;
   }
 
-  .primary-button,
-  .secondary-button {
+  .didactic-material-overview__actions,
+  .action-button {
     width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .didactic-material-overview {
-    padding: 16px 12px;
+  .didactic-material-overview__title {
+    font-size: 20px;
   }
 
-  .page-header__title {
-    font-size: 22px;
-  }
-
-  .material-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .material-description {
+  .didactic-material-overview__subtitle {
     font-size: 13px;
-  }
-
-  .state-card {
-    padding: 32px 16px;
   }
 }

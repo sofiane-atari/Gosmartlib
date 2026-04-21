@@ -49,6 +49,14 @@
   box-shadow: var(--didactic-shadow-sm);
 }
 
+.secondary-button:disabled,
+.danger-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 @media (max-width: 768px) {
   .detail-actions {
     flex-direction: column;

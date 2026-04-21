@@ -1,53 +1,52 @@
-<section class="didactic-material-overview">
-  <header class="page-header">
-    <div class="page-header__content">
-      <p class="page-header__eyebrow">Didactisch materiaal</p>
-      <h1 class="page-header__title">Didactisch materiaal</h1>
-      <p class="page-header__description">
-        Bekijk en beheer didactisch materiaal voor leerkrachten en
-        bibliotheekbeheerders.
-      </p>
+<div class="didactic-material-overview">
+  <div class="didactic-material-overview__container">
+    <div class="didactic-material-overview__header" @fadeInUp>
+      <div class="header-content">
+        <h1 class="didactic-material-overview__title">Didactisch materiaal</h1>
+        <p class="didactic-material-overview__subtitle">
+          Bekijk en beheer didactisch materiaal voor leerkrachten en
+          bibliotheekbeheerders.
+        </p>
+      </div>
+
+      <div class="didactic-material-overview__actions">
+        <button
+          type="button"
+          class="action-button action-button--primary"
+          (click)="navigateToCreatePage()"
+        >
+          Didactisch materiaal toevoegen
+        </button>
+      </div>
     </div>
 
-    <div class="page-header__actions">
-      <button
-        type="button"
-        class="primary-button"
-        (click)="navigateToCreatePage()"
-      >
-        Didactisch materiaal toevoegen
-      </button>
-    </div>
-  </header>
-
-  @if (isLoading()) {
-    <section class="state-card">
-      <p>Didactisch materiaal wordt geladen...</p>
-    </section>
-  } @else if (materials().length === 0) {
-    <section class="state-card">
-      <h2>Nog geen didactisch materiaal</h2>
-      <p>
-        Voeg een eerste item toe om didactisch materiaal beschikbaar te maken
-        voor collega’s.
-      </p>
-
-      <button
-        type="button"
-        class="secondary-button"
-        (click)="navigateToCreatePage()"
-      >
-        Eerste item toevoegen
-      </button>
-    </section>
-  } @else {
-    <section class="material-grid">
-      @for (material of materials(); track material.id) {
-        <app-didactic-material-card
-          [material]="material"
-          (openRequested)="navigateToDetailPage($event)"
-        />
-      }
-    </section>
-  }
-</section>
+    @if (isLoading()) {
+      <section class="state-panel">
+        <p>Didactisch materiaal wordt geladen...</p>
+      </section>
+    } @else if (materials().length === 0) {
+      <section class="state-panel state-panel--empty" @fadeInUp>
+        <p>
+          Nog geen didactisch materiaal. Voeg een eerste item toe om materiaal
+          beschikbaar te maken voor collega’s.
+        </p>
+        <button
+          type="button"
+          class="action-button action-button--secondary"
+          (click)="navigateToCreatePage()"
+        >
+          Eerste item toevoegen
+        </button>
+      </section>
+    } @else {
+      <section class="material-list">
+        @for (material of materials(); track material.id) {
+          <app-didactic-material-card
+            [material]="material"
+            (openRequested)="navigateToDetailPage($event)"
+          />
+        }
+      </section>
+    }
+  </div>
+</div>

@@ -17,7 +17,8 @@ export class DidacticMaterialCardComponent {
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
 
-  public readonly material = input.required<DidacticMaterial>();
+  public readonly material = input<DidacticMaterial | undefined>(undefined);
+  public readonly isLoading = input<boolean>(false);
   public readonly openRequested = output<number>();
 
   protected readonly currentUser = computed(() =>
@@ -26,23 +27,41 @@ export class DidacticMaterialCardComponent {
 
   protected readonly isOwnMaterial = computed(() => {
     const currentUser = this.currentUser();
-    return !!currentUser && this.material().createdByUserId === currentUser.id;
+    const currentMaterial = this.material();
+
+    return (
+      !!currentUser &&
+      !!currentMaterial &&
+      currentMaterial.createdByUserId === currentUser.id
+    );
   });
 
   protected readonly creatorDisplayName = computed(() =>
     this.userService.getDisplayName(this.currentUser()),
   );
 
-  protected readonly creatorRoleLabel = computed(() =>
-    this.userService.getRoleLabel(this.material().createdByRole),
-  );
+  protected readonly creatorRoleLabel = computed(() => {
+    const currentMaterial = this.material();
+    return currentMaterial
+      ? this.userService.getRoleLabel(currentMaterial.createdByRole)
+      : '';
+  });
 
   public openDetail(): void {
-    this.openRequested.emit(this.material().id);
+    const currentMaterial = this.material();
+    if (currentMaterial) {
+      this.openRequested.emit(currentMaterial.id);
+    }
   }
 
   protected getMaterialTypeLabel(): string {
-    switch (this.material().materialType) {
+    const currentMaterial = this.material();
+
+    if (!currentMaterial) {
+      return '';
+    }
+
+    switch (currentMaterial.materialType) {
       case 'LESSON_METHOD':
         return 'Lesmethode';
       case 'DIDACTIC_HANDBOOK':

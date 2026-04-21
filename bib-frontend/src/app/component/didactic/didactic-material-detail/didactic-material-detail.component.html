@@ -20,6 +20,7 @@
               <button
                 type="button"
                 class="secondary-button"
+                [disabled]="isDeleting()"
                 (click)="navigateToEditPage()"
               >
                 Bewerken
@@ -28,9 +29,10 @@
               <button
                 type="button"
                 class="danger-button"
+                [disabled]="isDeleting()"
                 (click)="deleteMaterial()"
               >
-                Verwijderen
+                {{ isDeleting() ? "Verwijderen..." : "Verwijderen" }}
               </button>
             </section>
           }
