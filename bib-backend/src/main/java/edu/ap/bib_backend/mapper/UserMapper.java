@@ -18,6 +18,7 @@ public interface UserMapper {
     // field
     @Mapping(target = "role", source = "role", qualifiedByName = "roleEntityToRole")
     @Mapping(target = "primaryGroupName", source = "group.name")
+    @Mapping(target = "reviewBlocked", source = "reviewBlocked")
     AuthUserDto toDto(User user);
 
     List<AuthUserDto> toDtoList(List<User> users);

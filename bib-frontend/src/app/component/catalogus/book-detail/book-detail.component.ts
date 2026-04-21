@@ -103,7 +103,7 @@ export class BookDetailComponent {
     private reviewService: ReviewService,
     private toastService: ToastService,
     private sanitizer: DomSanitizer,
-    private authService: AuthService) {
+    protected authService: AuthService) {
 
   }
 

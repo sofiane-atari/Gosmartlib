@@ -111,6 +111,10 @@ public class ReviewService {
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden met id: " + currentUserId));
 
+        if (currentUser.isReviewBlocked()) {
+            throw new IllegalStateException("Je mag momenteel geen reviews plaatsen.");
+        }
+
         Review review = new Review(
                 reviewDto.getComment(),
                 reviewDto.getRating(),
@@ -199,4 +203,4 @@ public class ReviewService {
                 criticalFlaggedReviews
         );
     }
-
+}

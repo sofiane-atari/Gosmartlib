@@ -231,6 +231,29 @@
                   <lucide-angular [img]="Trash2" size="14"></lucide-angular>
                   Verwijderen
                 </button>
+
+                <!-- Block/Unblock reviewer buttons for moderators -->
+                @if (roleService.canModerateReviews() && review.reviewerId) {
+                  @if (review.reviewerReviewBlocked) {
+                    <button
+                      type="button"
+                      class="review-card__action review-card__action--unblock"
+                      [disabled]="isBulkProcessing()"
+                      (click)="$event.stopPropagation(); unblockReviewer(review)"
+                    >
+                      Deblokkeren
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="review-card__action review-card__action--block"
+                      [disabled]="isBulkProcessing()"
+                      (click)="$event.stopPropagation(); blockReviewer(review)"
+                    >
+                      Blokkeren
+                    </button>
+                  }
+                }
               </div>
             </div>
           </article>
