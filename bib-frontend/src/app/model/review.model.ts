@@ -10,6 +10,8 @@ export interface Review {
   moderationStatus?: 'ACTIVE' | 'FLAGGED' | 'KEPT';
   reportedByCurrentUser?: boolean;
   createdAt?: string;
+  reviewerId?: string;
+  reviewerReviewBlocked?: boolean;
 }
 
 export interface ReviewDashboardStats {

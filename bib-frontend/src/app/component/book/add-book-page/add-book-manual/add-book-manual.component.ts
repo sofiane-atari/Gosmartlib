@@ -18,7 +18,7 @@ import {
 } from 'rxjs/operators';
 
 import { BookService } from '../../../../services/bookService/book.service';
-import { ToastService } from '../../../../services/Toast/toast.service';
+import { ToastService } from '../../../../services/toast/toast.service';
 import { Book } from '../../../../model/book/book.model';
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { Availability } from '../../../../model/enums/availability.enum';
@@ -112,7 +112,7 @@ private setupCandidateSearch(): void {
     distinctUntilChanged()
   );
 
-  
+
   combineLatest([
     titleChanges$,
     authorChanges$,
@@ -187,7 +187,7 @@ private setupCandidateSearch(): void {
           this.openedMainGenre = this.genres.find(main =>
             main.subGenres?.some(sub => sub.name === firstSelected.name)
           ) ?? null;
-        }        
+        }
         this.candidateBooks = [];
         this.isCandidateLoaded = true;
         this.form.controls.readingLevel.disable();

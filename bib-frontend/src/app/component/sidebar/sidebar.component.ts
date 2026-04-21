@@ -75,17 +75,24 @@ export class SidebarComponent {
     { icon: Star, label: 'Mijn reviews', route: '/reviews' },
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/instellingen' },
-    { icon: Package, label: 'BookBox', route: '/bookbox' },
-    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
-    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
-    { icon: Tag, label: 'Genrebeheer', route: '/genre' },
+    { icon: Package, label: 'BookBox', route: '/bookbox', roles: ['LIBRARIAN', 'TEACHER'] },
+    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage', roles: ['TEACHER'] },
+    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard', roles: ['LIBRARIAN'] },
+    { icon: Tag, label: 'Genrebeheer', route: '/genre', roles: ['LIBRARIAN'] },
     { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
-    { icon: Book, label: 'Boekbeheer', route: '/books-management' },
+    { icon: Book, label: 'Boekbeheer', route: '/books-management', roles: ['LIBRARIAN', 'TEACHER'] },
   ];
 
   protected readonly visibleMenuItems = computed(() => {
-    const isAdmin = this.roleService.isAdmin();
-    return this.menuItems.filter((item) => !item.adminOnly || isAdmin);
+    return this.menuItems.filter(item => {
+      if (item.adminOnly) {
+        return this.roleService.isAdmin();
+      }
+      if (item.roles) {
+        return this.roleService.hasAnyRole(item.roles as Role[]);
+      }
+      return true; // Show item if no specific roles are required
+    });
   });
 
   protected readonly userDisplayName = computed(() => {

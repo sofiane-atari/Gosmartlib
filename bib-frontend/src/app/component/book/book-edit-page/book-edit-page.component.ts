@@ -1,19 +1,13 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { LucideAngularModule, Info, Save } from 'lucide-angular';
 
-import { ToastService } from '../../../services/Toast/toast.service';
+import { ToastService } from '../../../services/toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { GenreService } from '../../../services/genre/genre.service';
-import { ReadingLevelsService } from '../../../services/ReadingLevels/reading-levels.service';
+import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
 
 import { Book } from '../../../model/book/book.model';
 import { Genre } from '../../../model/genre/genre.model';
@@ -51,7 +45,7 @@ export class BookEditPageComponent {
     imageUrl: ['', [Validators.maxLength(1000)]],
     description: ['', [Validators.required, Validators.maxLength(5000)]],
     releaseYear: [new Date().getFullYear(), [Validators.required, Validators.min(0)]],
-    readingLevel: [null as ReadingLevel | null, [Validators.required]]
+    readingLevel: [null as ReadingLevel | null, [Validators.required]],
   });
 
   constructor(
@@ -87,10 +81,13 @@ export class BookEditPageComponent {
     this.loadGenres();
     this.loadReadingLevels();
 
-    this.bookService.getBookById(bookId)
-      .pipe(finalize(() => {
-        this.isLoading = false;
-      }))
+    this.bookService
+      .getBookById(bookId)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        }),
+      )
       .subscribe({
         next: (book) => {
           this.currentBook = book;
@@ -98,7 +95,7 @@ export class BookEditPageComponent {
 
           // HIER
           const matchedReadingLevel =
-            this.readingLevels.find(level => level.id === book.readingLevel?.id) ?? null;
+            this.readingLevels.find((level) => level.id === book.readingLevel?.id) ?? null;
 
           this.form.patchValue({
             isbn: book.isbn ?? '',
@@ -113,7 +110,6 @@ export class BookEditPageComponent {
 
           setTimeout(() => {
             this.openedMainGenre = this.findMainGenreForSelectedGenres();
-
           });
         },
         error: () => {
@@ -132,7 +128,7 @@ export class BookEditPageComponent {
       error: () => {
         this.errorMessage = 'Genres konden niet geladen worden.';
         this.toastService.show('Genres konden niet geladen worden.', 'error');
-      }
+      },
     });
   }
 
@@ -143,21 +139,23 @@ export class BookEditPageComponent {
 
         if (this.currentBook?.readingLevel) {
           const matchedReadingLevel =
-            this.readingLevels.find(level => level.id === this.currentBook?.readingLevel?.id) ?? null;
+            this.readingLevels.find((level) => level.id === this.currentBook?.readingLevel?.id) ?? null;
 
           this.form.patchValue({
-            readingLevel: matchedReadingLevel
+            readingLevel: matchedReadingLevel,
           });
         }
       },
       error: () => {
         this.toastService.show('Leesniveaus konden niet geladen worden.', 'error');
-      }
+      },
     });
   }
 
   toggleMainGenre(mainGenre: Genre): void {
     if (this.openedMainGenre?.name === mainGenre.name) {
+      this.openedMainGenre = null;
+      this.selectedGenres = [];
       return;
     }
 
@@ -170,10 +168,10 @@ export class BookEditPageComponent {
   }
 
   toggleSubGenre(subGenre: Genre): void {
-    const exists = this.selectedGenres.some(g => g.name === subGenre.name);
+    const exists = this.selectedGenres.some((g) => g.name === subGenre.name);
 
     if (exists) {
-      this.selectedGenres = this.selectedGenres.filter(g => g.name !== subGenre.name);
+      this.selectedGenres = this.selectedGenres.filter((g) => g.name !== subGenre.name);
       return;
     }
 
@@ -186,7 +184,7 @@ export class BookEditPageComponent {
   }
 
   isSubGenreSelected(subGenre: Genre): boolean {
-    return this.selectedGenres.some(g => g.name === subGenre.name);
+    return this.selectedGenres.some((g) => g.name === subGenre.name);
   }
 
   findMainGenreForSelectedGenres(): Genre | null {
@@ -195,9 +193,11 @@ export class BookEditPageComponent {
       return null;
     }
 
-    return this.genres.find(mainGenre =>
-      mainGenre.subGenres?.some(subGenre => subGenre.name === firstSelected.name)
-    ) ?? null;
+    return (
+      this.genres.find((mainGenre) =>
+        mainGenre.subGenres?.some((subGenre) => subGenre.name === firstSelected.name),
+      ) ?? null
+    );
   }
 
   isGenreSelectionValid(): boolean {
@@ -209,8 +209,8 @@ export class BookEditPageComponent {
       return false;
     }
 
-    return this.selectedGenres.every(subGenre =>
-      this.openedMainGenre?.subGenres?.some(g => g.name === subGenre.name)
+    return this.selectedGenres.every((subGenre) =>
+      this.openedMainGenre?.subGenres?.some((g) => g.name === subGenre.name),
     );
   }
 

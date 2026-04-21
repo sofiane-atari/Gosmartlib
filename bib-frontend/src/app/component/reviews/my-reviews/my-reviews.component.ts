@@ -5,7 +5,7 @@ import { LucideAngularModule, Star, Trash2, Search, ChevronDown, ChevronUp } fro
 
 import { ReviewService } from '../../../services/review-service/review.service';
 import { Review } from '../../../model/review.model';
-import { ToastService } from '../../../services/Toast/toast.service';
+import { ToastService } from '../../../services/toast/toast.service';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import {
   fadeInUpAnimation,

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, HostListener, inject } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Toast } from '../../../model/shared/toast.model';
-import { ToastService } from '../../../services/Toast/toast.service';
+import { ToastService } from '../../../services/toast/toast.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 

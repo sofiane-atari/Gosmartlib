@@ -11,4 +11,5 @@ export interface AuthUserDto {
   platform?: string | null;
   primaryGroupName?: string | null;
   parentGroupNames?: string[] | null;
+  reviewBlocked?: boolean;
 }

@@ -4,7 +4,7 @@ import { AddBookManualComponent } from "./add-book-manual/add-book-manual.compon
 import { AddBookBulkComponent } from "./add-book-bulk/add-book-bulk.component"
 import { BookService } from '../../../services/bookService/book.service';
 import { GenreService } from '../../../services/genre/genre.service';
-import { ReadingLevelsService } from '../../../services/ReadingLevels/reading-levels.service';
+import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
 import { Router } from '@angular/router';
 import { Genre } from '../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
@@ -25,7 +25,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
   isLoadingReadingLevels = false;
 
   constructor(private bs: BookService, private rt: Router, private gs: GenreService, private rls: ReadingLevelsService){}
-  
+
     book: Book = {
     title: '',
     author: '',
@@ -34,7 +34,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
     description: '',
     releaseYear: new Date().getFullYear(),
     genres: [],
-    readingLevel: undefined 
+    readingLevel: undefined
   };
 
   ngOnInit(): void {

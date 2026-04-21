@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { ReadingListDetailComponent } from './reading-list-detail.component';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
 import { BookService } from '../../../services/bookService/book.service';
-import { ToastService } from '../../../services/Toast/toast.service';
+import { ToastService } from '../../../services/toast/toast.service';
 
 describe('ReadingListDetailComponent', () => {
   let component: ReadingListDetailComponent;

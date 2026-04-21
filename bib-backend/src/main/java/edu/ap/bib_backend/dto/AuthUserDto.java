@@ -14,5 +14,6 @@ public record AuthUserDto(
     String smartschoolId,
     String platform,
     String primaryGroupName,
-    List<String> parentGroupNames
+    List<String> parentGroupNames,
+    boolean reviewBlocked
 ) {}

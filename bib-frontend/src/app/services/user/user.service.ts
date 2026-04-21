@@ -29,4 +29,8 @@ export class UserService {
 
     return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users`, { params: params });
   }
+
+  public updateReviewAccess(userId: string, blocked: boolean): Observable<AuthUserDto> {
+    return this.http.patch<AuthUserDto>(`${this.apiUrl}/users/${userId}/review-access`, { blocked });
+  }
 }

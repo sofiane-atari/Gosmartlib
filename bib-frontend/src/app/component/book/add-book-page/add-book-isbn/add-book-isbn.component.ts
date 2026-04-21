@@ -5,7 +5,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Book } from '../../../../model/book/book.model';
 import { Info, LucideAngularModule, Pencil, Plus, Trash2 } from "lucide-angular";
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
-import { ToastService } from '../../../../services/Toast/toast.service';
+import { ToastService } from '../../../../services/toast/toast.service';
 import { LoadingOverlayComponent } from "../../../shared/loading-overlay/loading-overlay.component";
 import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
