@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
@@ -99,13 +100,13 @@ class GenreServiceTest {
         }
 
         @Test
-                void givenValidInput_whenCreateGenre_thenCreateSuccessfully() {
+        void givenValidInput_whenCreateGenre_thenCreateSuccessfully() {
                 // Arrange
                 GenreDTO dto = GenreDTO.builder()
-                        .name("Fiction")
-                        .color("#FF0000")
-                        .description("Fiction books")
-                        .build();
+                                .name("Fiction")
+                                .color("#FF0000")
+                                .description("Fiction books")
+                                .build();
 
                 Genre entity = new Genre("Fiction", "#FF0000", "Fiction books");
 
@@ -152,9 +153,10 @@ class GenreServiceTest {
                 GenreGetOptions options = new GenreGetOptions();
 
                 Genre genre = new Genre("Test", "#FF0000", "Test description");
+
                 Page<Genre> genrePage = new PageImpl<>(
                                 List.of(genre),
-                                org.springframework.data.domain.PageRequest.of(page, pageSize),
+                                PageRequest.of(page, pageSize),
                                 1);
 
                 GenreDTO dto = GenreDTO.builder()
@@ -166,14 +168,25 @@ class GenreServiceTest {
                 when(genreRepository.findAll(any(Pageable.class))).thenReturn(genrePage);
                 when(genreMapper.toDto(genre)).thenReturn(dto);
 
-
                 PageDTO<GenreDTO> result = genreService.getPage(page, pageSize, options);
 
                 assertNotNull(result);
                 assertNotNull(result.data());
                 assertNotNull(result.meta());
+
+                assertEquals(1, result.data().size());
+                assertEquals("Test", result.data().get(0).name());
+                assertEquals("#FF0000", result.data().get(0).color());
+                assertEquals("Test desc", result.data().get(0).description());
+
+                assertEquals(page, result.meta().page());
+                assertEquals(pageSize, result.meta().pageSize());
+                assertEquals(1, result.meta().totalElements());
+                assertEquals(1, result.meta().totalPages());
+
                 verify(genreRepository, times(1)).findAll(any(Pageable.class));
                 verify(genreMapper, times(1)).toDto(genre);
+                verifyNoMoreInteractions(genreRepository, genreMapper);
         }
 
         @Test
@@ -212,20 +225,18 @@ class GenreServiceTest {
 
                 Genre genre = new Genre("Fiction", "#FF0000", "Fiction books");
                 Page<Genre> genrePage = new PageImpl<>(
-                        List.of(genre),
-                        org.springframework.data.domain.PageRequest.of(page, pageSize),
-                        1
-                );
+                                List.of(genre),
+                                org.springframework.data.domain.PageRequest.of(page, pageSize),
+                                1);
 
                 when(genreRepository.searchByNameOrDescriptionOrColor(eq("fiction"), any(Pageable.class)))
-                        .thenReturn(genrePage);
+                                .thenReturn(genrePage);
                 when(genreMapper.toDto(any(GenreProjection.class))).thenReturn(
-                        GenreDTO.builder()
-                                .name("Fiction")
-                                .color("#FF0000")
-                                .description("Fiction books")
-                                .build()
-                );
+                                GenreDTO.builder()
+                                                .name("Fiction")
+                                                .color("#FF0000")
+                                                .description("Fiction books")
+                                                .build());
 
                 // Act
                 PageDTO<GenreDTO> result = genreService.getPage(page, pageSize, options);
@@ -233,7 +244,7 @@ class GenreServiceTest {
                 // Assert
                 assertNotNull(result);
                 verify(genreRepository, times(1))
-                        .searchByNameOrDescriptionOrColor(eq("fiction"), any(Pageable.class));
+                                .searchByNameOrDescriptionOrColor(eq("fiction"), any(Pageable.class));
                 verify(genreRepository, never()).findAllFiltered(any(), any(), any(Pageable.class));
         }
 
@@ -352,7 +363,7 @@ class GenreServiceTest {
         }
 
         @Test
-                void givenNonExistingGenreId_whenDeleteById_thenThrowException() {
+        void givenNonExistingGenreId_whenDeleteById_thenThrowException() {
                 // Arrange
                 Long genreId = 999L;
 
@@ -360,9 +371,8 @@ class GenreServiceTest {
 
                 // Act
                 ResourceNotFoundException exception = assertThrows(
-                        ResourceNotFoundException.class,
-                        () -> genreService.deleteById(genreId)
-                );
+                                ResourceNotFoundException.class,
+                                () -> genreService.deleteById(genreId));
 
                 // Assert
                 assertNotNull(exception.getMessage());
@@ -378,11 +388,11 @@ class GenreServiceTest {
                 Long genreId = 1L;
 
                 GenreDTO inputDTO = GenreDTO.builder()
-                        .id(genreId)
-                        .name("Fiction")
-                        .color("#00FF00")
-                        .description("Updated fiction description")
-                        .build();
+                                .id(genreId)
+                                .name("Fiction")
+                                .color("#00FF00")
+                                .description("Updated fiction description")
+                                .build();
 
                 Genre existingGenre = new Genre("Fiction", "#FF0000", "Original description");
                 existingGenre.setId(genreId);
@@ -407,24 +417,23 @@ class GenreServiceTest {
         }
 
         @Test
-                void givenNonExistingGenre_whenUpdate_thenThrowException() {
+        void givenNonExistingGenre_whenUpdate_thenThrowException() {
                 // Arrange
                 Long genreId = 999L;
 
                 GenreDTO inputDTO = GenreDTO.builder()
-                        .id(genreId)
-                        .name("NonExistent")
-                        .color("#00FF00")
-                        .description("Some description")
-                        .build();
+                                .id(genreId)
+                                .name("NonExistent")
+                                .color("#00FF00")
+                                .description("Some description")
+                                .build();
 
                 when(genreRepository.findById(genreId)).thenReturn(Optional.empty());
 
                 // Act
                 ResourceNotFoundException exception = assertThrows(
-                        ResourceNotFoundException.class,
-                        () -> genreService.update(genreId, inputDTO)
-                );
+                                ResourceNotFoundException.class,
+                                () -> genreService.update(genreId, inputDTO));
 
                 // Assert
                 assertNotNull(exception.getMessage());
@@ -438,11 +447,11 @@ class GenreServiceTest {
                 Long genreId = 2L;
 
                 GenreDTO inputDTO = GenreDTO.builder()
-                        .id(genreId)
-                        .name("Science")
-                        .color("#0000FF")
-                        .description("Science and technology books")
-                        .build();
+                                .id(genreId)
+                                .name("Science")
+                                .color("#0000FF")
+                                .description("Science and technology books")
+                                .build();
 
                 Genre existingGenre = new Genre("Science", "#FF0000", "Old description");
                 existingGenre.setId(genreId);
@@ -466,16 +475,16 @@ class GenreServiceTest {
         }
 
         @Test
-                void givenNullDescription_whenUpdate_thenSetDescriptionToNull() {
+        void givenNullDescription_whenUpdate_thenSetDescriptionToNull() {
                 // Arrange
                 Long genreId = 1L;
 
                 GenreDTO inputDTO = GenreDTO.builder()
-                        .id(genreId)
-                        .name("Fiction")
-                        .color("#FFFF00")
-                        .description(null)
-                        .build();
+                                .id(genreId)
+                                .name("Fiction")
+                                .color("#FFFF00")
+                                .description(null)
+                                .build();
 
                 Genre existingGenre = new Genre("Fiction", "#FF0000", "Original description");
                 existingGenre.setId(genreId);
@@ -484,11 +493,11 @@ class GenreServiceTest {
                 savedGenre.setId(genreId);
 
                 GenreDTO outputDTO = GenreDTO.builder()
-                        .id(genreId)
-                        .name("Fiction")
-                        .color("#FFFF00")
-                        .description(null)
-                        .build();
+                                .id(genreId)
+                                .name("Fiction")
+                                .color("#FFFF00")
+                                .description(null)
+                                .build();
 
                 when(genreRepository.findById(genreId)).thenReturn(Optional.of(existingGenre));
                 when(genreRepository.save(any(Genre.class))).thenReturn(savedGenre);

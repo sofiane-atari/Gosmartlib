@@ -44,10 +44,7 @@ export class BookEditPageComponent {
     pages: [1, [Validators.required, Validators.min(1)]],
     imageUrl: ['', [Validators.maxLength(1000)]],
     description: ['', [Validators.required, Validators.maxLength(5000)]],
-    releaseYear: [
-      new Date().getFullYear(),
-      [Validators.required, Validators.min(0)],
-    ],
+    releaseYear: [new Date().getFullYear(), [Validators.required, Validators.min(0)]],
     readingLevel: [null as ReadingLevel | null, [Validators.required]],
   });
 
@@ -98,9 +95,7 @@ export class BookEditPageComponent {
 
           // HIER
           const matchedReadingLevel =
-            this.readingLevels.find(
-              (level) => level.id === book.readingLevel?.id,
-            ) ?? null;
+            this.readingLevels.find((level) => level.id === book.readingLevel?.id) ?? null;
 
           this.form.patchValue({
             isbn: book.isbn ?? '',
@@ -110,7 +105,7 @@ export class BookEditPageComponent {
             imageUrl: book.imageUrl ?? '',
             description: book.description,
             releaseYear: book.releaseYear,
-            readingLevel: matchedReadingLevel,
+            readingLevel: matchedReadingLevel
           });
 
           setTimeout(() => {
@@ -120,8 +115,8 @@ export class BookEditPageComponent {
         error: () => {
           this.errorMessage = 'Boek kon niet geladen worden.';
           this.toastService.show('Boek kon niet geladen worden.', 'error');
-        },
-      });
+        }
+    });
   }
 
   loadGenres(): void {
@@ -144,9 +139,7 @@ export class BookEditPageComponent {
 
         if (this.currentBook?.readingLevel) {
           const matchedReadingLevel =
-            this.readingLevels.find(
-              (level) => level.id === this.currentBook?.readingLevel?.id,
-            ) ?? null;
+            this.readingLevels.find((level) => level.id === this.currentBook?.readingLevel?.id) ?? null;
 
           this.form.patchValue({
             readingLevel: matchedReadingLevel,
@@ -154,16 +147,15 @@ export class BookEditPageComponent {
         }
       },
       error: () => {
-        this.toastService.show(
-          'Leesniveaus konden niet geladen worden.',
-          'error',
-        );
+        this.toastService.show('Leesniveaus konden niet geladen worden.', 'error');
       },
     });
   }
 
   toggleMainGenre(mainGenre: Genre): void {
     if (this.openedMainGenre?.name === mainGenre.name) {
+      this.openedMainGenre = null;
+      this.selectedGenres = [];
       return;
     }
 
@@ -179,9 +171,7 @@ export class BookEditPageComponent {
     const exists = this.selectedGenres.some((g) => g.name === subGenre.name);
 
     if (exists) {
-      this.selectedGenres = this.selectedGenres.filter(
-        (g) => g.name !== subGenre.name,
-      );
+      this.selectedGenres = this.selectedGenres.filter((g) => g.name !== subGenre.name);
       return;
     }
 
@@ -208,9 +198,7 @@ export class BookEditPageComponent {
 
     return (
       this.genres.find((mainGenre) =>
-        mainGenre.subGenres?.some(
-          (subGenre) => subGenre.name === firstSelected.name,
-        ),
+        mainGenre.subGenres?.some((subGenre) => subGenre.name === firstSelected.name),
       ) ?? null
     );
   }
@@ -232,10 +220,7 @@ export class BookEditPageComponent {
   save(): void {
     if (this.form.invalid || !this.isGenreSelectionValid() || this.isSaving) {
       this.form.markAllAsTouched();
-      this.toastService.show(
-        'Controleer eerst alle verplichte velden.',
-        'error',
-      );
+      this.toastService.show('Controleer eerst alle verplichte velden.', 'error');
       return;
     }
 

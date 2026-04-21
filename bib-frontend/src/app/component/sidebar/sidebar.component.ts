@@ -97,7 +97,7 @@ export class SidebarComponent {
     { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
     { icon: Tag, label: 'Genrebeheer', route: '/genre' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
-    { icon: Book, label: 'Boekbeheer', route: '/books-management' },
+    { icon: Book, label: 'Boekbeheer', route: '/books-management', roles: ['LIBRARIAN', 'TEACHER'] },
   ];
 
   protected readonly visibleMenuItems = computed(() => {

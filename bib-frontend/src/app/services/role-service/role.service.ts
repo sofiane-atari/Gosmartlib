@@ -57,6 +57,10 @@ export class RoleService {
       return false;
     }
 
+    if (currentRole === 'ADMIN') {
+      return true;
+    }
+
     return roles.includes(currentRole);
   }
 
@@ -129,7 +133,7 @@ export class RoleService {
    * @returns `true` if the user is allowed to moderate reviews, otherwise `false`.
    */
   public canModerateReviews(): boolean {
-    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'STUDENT']); //TEMPORARY
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN']);
   }
 
   /**

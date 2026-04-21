@@ -2,27 +2,19 @@ package edu.ap.bib_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.ap.bib_backend.dto.PageDTO;
-import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.ReviewDTO;
 import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
-import edu.ap.bib_backend.service.AdminOverrideService;
-import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
-import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.review.ReviewService;
-import edu.ap.bib_backend.dto.PaginatedMeta;
-import edu.ap.bib_backend.dto.PageDTO;
-import static org.mockito.ArgumentMatchers.eq;
+
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -33,8 +25,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,9 +33,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @WebMvcTest(ReviewController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(MockitoExtension.class)
 class ReviewControllerTest {
 
     @Autowired
@@ -54,20 +47,8 @@ class ReviewControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Mock
     private ReviewService reviewService;
-
-    @MockBean
-    private JwtService jwtService;
-
-    @MockBean
-    private TokenStorageService tokenStorageService;
-
-    @MockBean
-    private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
-
-    @MockBean
-    private AdminOverrideService adminOverrideService;
 
     @Test
     @DisplayName("givenValidBookId whenGetReviewsForBook thenReturn200AndReviewList")
@@ -86,7 +67,9 @@ class ReviewControllerTest {
                 "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
                 false,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                "user-1",
+                false
         );
 
         ReviewDTO review2 = new ReviewDTO(
@@ -100,10 +83,12 @@ class ReviewControllerTest {
                 "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
                 false,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                "user-2",
+                false
         );
 
-        List<ReviewDTO> mockReviews = Arrays.asList(review1, review2);
+        List<ReviewDTO> mockReviews = List.of(review1, review2);
 
         Mockito.when(reviewService.getReviewsForBook(eq(bookId), any(Authentication.class)))
                 .thenReturn(mockReviews);
@@ -139,7 +124,9 @@ class ReviewControllerTest {
                 "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
                 false,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                "user-1",
+                false
         );
 
         ReviewDTO review2 = new ReviewDTO(
@@ -153,10 +140,12 @@ class ReviewControllerTest {
                 "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
                 false,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                "user-2",
+                false
         );
 
-        List<ReviewDTO> mockReviews = Arrays.asList(review1, review2);
+        List<ReviewDTO> mockReviews = List.of(review1, review2);
 
         Mockito.when(reviewService.getAllReviews(any(Authentication.class)))
                 .thenReturn(mockReviews);
@@ -183,19 +172,9 @@ class ReviewControllerTest {
         // Arrange
         Long bookId = 1L;
 
-        ReviewDTO inputReview = new ReviewDTO(
-                null,
-                "Echt een aanrader",
-                4,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                LocalDateTime.now()
-        );
+        ReviewDTO inputReview = new ReviewDTO();
+        inputReview.setComment("Echt een aanrader");
+        inputReview.setRating(4);
 
         ReviewDTO savedReview = new ReviewDTO(
                 99L,
@@ -208,7 +187,9 @@ class ReviewControllerTest {
                 "https://example.com/cover.jpg",
                 ReviewModerationStatus.ACTIVE,
                 false,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                "user-1",
+                false
         );
 
         Mockito.when(reviewService.addReviewToBook(eq(bookId), any(ReviewDTO.class), any(Authentication.class)))
@@ -247,11 +228,11 @@ class ReviewControllerTest {
         // Assert
         result.andExpect(status().isOk())
                 .andExpect(content().string("4.2"));
-        }
+    }
 
-        @Test
-        @DisplayName("givenValidId whenDeleteReview thenReturn204")
-        void givenValidId_whenDeleteReview_thenReturn204() throws Exception {
+    @Test
+    @DisplayName("givenValidId whenDeleteReview thenReturn204")
+    void givenValidId_whenDeleteReview_thenReturn204() throws Exception {
         // Arrange
         Long reviewId = 5L;
 
@@ -267,7 +248,7 @@ class ReviewControllerTest {
         result.andExpect(status().isNoContent());
 
         Mockito.verify(reviewService).deleteReview(eq(reviewId), any(Authentication.class));
-        }
+    }
 
     @Test
     @DisplayName("givenValidId whenReportReview thenReturnReportedReview")
@@ -286,7 +267,9 @@ class ReviewControllerTest {
                 "https://example.com/cover.jpg",
                 ReviewModerationStatus.FLAGGED,
                 true,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                "user-1",
+                false
         );
 
         Mockito.when(reviewService.reportReview(eq(reviewId), any(Authentication.class)))
@@ -308,9 +291,9 @@ class ReviewControllerTest {
         Mockito.verify(reviewService).reportReview(eq(reviewId), any(Authentication.class));
     }
 
-        @Test
-        @DisplayName("givenValidPaginationParams whenGetFlaggedReviews thenReturn200AndPaginatedResponse")
-        void givenValidPaginationParams_whenGetFlaggedReviews_thenReturn200AndPaginatedResponse() throws Exception {
+    @Test
+    @DisplayName("givenValidPaginationParams whenGetFlaggedReviews thenReturn200AndPaginatedResponse")
+    void givenValidPaginationParams_whenGetFlaggedReviews_thenReturn200AndPaginatedResponse() throws Exception {
         // Arrange
         ReviewDTO flaggedReview = new ReviewDTO(
                 10L,
@@ -323,7 +306,9 @@ class ReviewControllerTest {
                 "https://example.com/cover.jpg",
                 ReviewModerationStatus.FLAGGED,
                 false,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                "user-1",
+                false
         );
 
         List<ReviewDTO> reviewList = List.of(flaggedReview);
@@ -354,8 +339,7 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$.meta.pageSize").value(10))
                 .andExpect(jsonPath("$.meta.totalItems").value(1))
                 .andExpect(jsonPath("$.meta.totalPages").value(1));
-        }
-
+    }
 
     @Test
     @DisplayName("givenValidReviewId whenKeepReview thenReturn200AndKeptReview")
@@ -374,7 +358,9 @@ class ReviewControllerTest {
                 "https://example.com/cover.jpg",
                 ReviewModerationStatus.KEPT,
                 false,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                "user-1",
+                false
         );
 
         Mockito.when(reviewService.keepReview(eq(reviewId), any(Authentication.class)))

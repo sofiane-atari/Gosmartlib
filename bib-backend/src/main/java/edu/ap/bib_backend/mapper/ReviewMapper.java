@@ -38,6 +38,11 @@ public class ReviewMapper {
         reviewDto.setReportedByCurrentUser(reportedByCurrentUser);
         reviewDto.setCreatedAt(review.getCreatedAt());
 
+        if (review.getUser() != null) {
+            reviewDto.setReviewerId(review.getUser().getId());
+            reviewDto.setReviewerReviewBlocked(review.getUser().isReviewBlocked());
+        }
+
         return reviewDto;
     }
 }

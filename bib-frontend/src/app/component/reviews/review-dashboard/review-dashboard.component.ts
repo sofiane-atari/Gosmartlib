@@ -26,6 +26,8 @@ import {
   reviewCardAnimation,
   fadeInUpAnimation,
 } from '../../shared/animations/my-reviews.animations';
+import { UserService } from '../../../services/user/user.service';
+import { RoleService } from '../../../services/role-service/role.service';
 
 @Component({
   selector: 'app-review-dashboard',
@@ -39,6 +41,8 @@ import {
 export class ReviewDashboardComponent {
   private readonly reviewService = inject(ReviewService);
   private readonly toastService = inject(ToastService);
+  private readonly userService = inject(UserService);
+  protected readonly roleService = inject(RoleService);
 
   protected readonly Check = Check;
   protected readonly Trash2 = Trash2;
@@ -137,6 +141,67 @@ export class ReviewDashboardComponent {
               'De review kon niet verwijderd worden.',
               'error',
             );
+          },
+        });
+      },
+      () => {},
+    );
+  }
+
+  // New: block a reviewer from posting reviews
+  protected blockReviewer(review: Review): void {
+    if (!review.reviewerId) {
+      return;
+    }
+
+    this.toastService.showConfirm(
+      'Weet je zeker dat je deze leerling wilt blokkeren voor het plaatsen van reviews?',
+      () => {
+        this.userService.updateReviewAccess(review.reviewerId!, true).subscribe({
+          next: (updatedUser) => {
+            // update local review state to reflect reviewer is blocked
+            this.reviews.update((list) =>
+              list.map((r) =>
+                r.reviewerId === review.reviewerId
+                  ? { ...r, reviewerReviewBlocked: true }
+                  : r,
+              ),
+            );
+            this.toastService.show('Leerling geblokkeerd voor reviews.', 'success');
+          },
+          error: (error) => {
+            console.error('Fout bij blokkeren leerling', error);
+            this.toastService.show('De leerling kon niet geblokkeerd worden.', 'error');
+          },
+        });
+      },
+      () => {},
+    );
+  }
+
+  // New: unblock a reviewer
+  protected unblockReviewer(review: Review): void {
+    if (!review.reviewerId) {
+      return;
+    }
+
+    this.toastService.showConfirm(
+      'Weet je zeker dat je deze leerling wilt deblokkeren voor het plaatsen van reviews?',
+      () => {
+        this.userService.updateReviewAccess(review.reviewerId!, false).subscribe({
+          next: (updatedUser) => {
+            this.reviews.update((list) =>
+              list.map((r) =>
+                r.reviewerId === review.reviewerId
+                  ? { ...r, reviewerReviewBlocked: false }
+                  : r,
+              ),
+            );
+            this.toastService.show('Leerling gedeblokkeerd voor reviews.', 'success');
+          },
+          error: (error) => {
+            console.error('Fout bij deblokkeren leerling', error);
+            this.toastService.show('De leerling kon niet gedeblokkeerd worden.', 'error');
           },
         });
       },

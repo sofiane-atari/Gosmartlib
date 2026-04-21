@@ -43,12 +43,12 @@
       >
       </app-file-upload>
 
-      <input type="file" id="fileInput" accept=".xlsx" (change)="onFileSelected($event)" hidden>
+      <input type="file" id="fileInput" accept=".xlsm" (change)="onFileSelected($event)" hidden>
 
       <div class="form-actions">
         <button type="button" class="btn-secondary" (click)="downloadTemplate()">
           <lucide-icon [img]="DownloadIcon" class="btn-icon"></lucide-icon>
-          Download Template
+          Download template
         </button>
 
         <button
@@ -84,27 +84,41 @@
         </div>
       }
 
-      @if (errors.length > 0) {
+      @if (blockingErrors.length > 0) {
         <div class="errors-box">
           <div class="errors-title">
             <lucide-icon [img]="InfoIcon" class="error-icon"></lucide-icon>
-            Gevonden validatiefouten
+            Gevonden fouten
           </div>
           <ul class="errors-list">
-            @for (error of errors; track $index) {
+            @for (error of blockingErrors; track $index) {
               <li><strong>Rij {{ error.row }}, {{ error.field }}:</strong> {{ error.message }}</li>
             }
           </ul>
         </div>
       }
-      @if (validationCompleted && validationSucceeded && errors.length === 0) {
+
+      @if (warnings.length > 0) {
+        <div class="warnings-box">
+          <div class="warnings-title">
+            <lucide-icon [img]="InfoIcon" class="warning-icon"></lucide-icon>
+            Meldingen
+          </div>
+          <ul class="warnings-list">
+            @for (warning of warnings; track $index) {
+              <li><strong>Rij {{ warning.row }}, {{ warning.field }}:</strong> {{ warning.message }}</li>
+            }
+          </ul>
+        </div>
+      }
+      @if (validationCompleted && validationSucceeded && blockingErrors.length === 0) {
         <div class="success-box">
           <div class="success-title">
             <lucide-icon [img]="CheckIcon" class="success-icon"></lucide-icon>
             Bestand succesvol gecontroleerd
           </div>
           <p class="success-text">
-            Er zijn geen fouten gevonden. De boeken kunnen toegevoegd worden.
+            Er zijn geen blokkerende fouten gevonden. De boeken kunnen toegevoegd worden.
           </p>
         </div>
       }

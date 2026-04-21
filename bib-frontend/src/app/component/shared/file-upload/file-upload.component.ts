@@ -11,7 +11,7 @@ import { ToastService } from '../../../services/toast/toast.service';
 })
 export class FileUploadComponent {
   @Input() selectedFile: File | null = null;
-  @Input() accept = '.xlsx';
+  @Input() accept = '.xlsm';
   @Input() maxSizeMB = 10;
 
   /**

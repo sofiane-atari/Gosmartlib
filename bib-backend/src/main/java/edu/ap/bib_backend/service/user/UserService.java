@@ -6,9 +6,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
@@ -38,9 +38,6 @@ public class UserService {
     public List<AuthUserDto> getUsers(UserGetOptions options) {
         List<User> users;
         var optionsId = options.getId();
-        
-        System.out.println("Options: " + options);
-        System.out.println("Options ID: " + optionsId);
 
         if (!optionsId.isBlank())
             users = userRepository.findByIdContaining(optionsId);
@@ -60,5 +57,14 @@ public class UserService {
         user.setId(userId);
         user.setRole(role);
         return userRepository.save(user);
+    }
+
+    public AuthUserDto setReviewBlocked(String userId, boolean blocked) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden met id: " + userId));
+
+        user.setReviewBlocked(blocked);
+        User updatedUser = userRepository.save(user);
+        return userMapper.toDto(updatedUser);
     }
 }

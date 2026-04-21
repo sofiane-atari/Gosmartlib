@@ -91,14 +91,18 @@ class ReviewServiceTest {
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long bookId = 1L;
+        List<ReviewModerationStatus> visibleStatuses = List.of(
+                ReviewModerationStatus.ACTIVE,
+                ReviewModerationStatus.KEPT
+        );
 
         Review review1 = createReview(10L, "Super boek", 5, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
-        Review review2 = createReview(11L, "Minder goed", 2, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
+        Review review2 = createReview(11L, "Minder goed", 2, defaultBook, currentUser, ReviewModerationStatus.KEPT, 0);
 
         ReviewDTO reviewDto1 = createReviewDto(10L, "Super boek", 5, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
-        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
+        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 0, defaultBook, ReviewModerationStatus.KEPT, false);
 
-        when(reviewRepository.findByBookId(bookId)).thenReturn(List.of(review1, review2));
+        when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses)).thenReturn(List.of(review1, review2));
         when(reviewMapper.toDto(review1, CURRENT_USER_ID)).thenReturn(reviewDto1);
         when(reviewMapper.toDto(review2, CURRENT_USER_ID)).thenReturn(reviewDto2);
 
@@ -115,7 +119,7 @@ class ReviewServiceTest {
         assertEquals("Test Author", result.get(0).getBookAuthor());
 
         verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findByBookId(bookId);
+        verify(reviewRepository).findVisibleReviewsByBookId(bookId, visibleStatuses);
         verify(reviewMapper).toDto(review1, CURRENT_USER_ID);
         verify(reviewMapper).toDto(review2, CURRENT_USER_ID);
     }
@@ -125,7 +129,11 @@ class ReviewServiceTest {
     void givenBookWithoutReviews_whenGetReviewsForBook_thenReturnEmptyList() {
         // Arrange
         Long bookId = 2L;
-        when(reviewRepository.findByBookId(bookId)).thenReturn(List.of());
+        List<ReviewModerationStatus> visibleStatuses = List.of(
+                ReviewModerationStatus.ACTIVE,
+                ReviewModerationStatus.KEPT
+        );
+        when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses)).thenReturn(List.of());
 
         // Act
         List<ReviewDTO> result = reviewService.getReviewsForBook(bookId, authentication);
@@ -135,7 +143,7 @@ class ReviewServiceTest {
         assertTrue(result.isEmpty());
 
         verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findByBookId(bookId);
+        verify(reviewRepository).findVisibleReviewsByBookId(bookId, visibleStatuses);
         verifyNoInteractions(reviewMapper);
     }
 
@@ -239,19 +247,10 @@ class ReviewServiceTest {
         // Arrange
         Long bookId = 1L;
 
-        ReviewDTO inputDto = new ReviewDTO(
-                null,
-                "Highly recommended",
-                4,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                LocalDateTime.now()
-        );
+        ReviewDTO inputDto = new ReviewDTO();
+        inputDto.setComment("Highly recommended");
+        inputDto.setRating(4);
+
 
         Review savedEntity = createReview(99L, "Highly recommended", 4, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
         ReviewDTO savedDto = createReviewDto(99L, "Highly recommended", 4, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
@@ -285,19 +284,9 @@ class ReviewServiceTest {
         // Arrange
         Long bookId = 1L;
 
-        ReviewDTO inputDto = new ReviewDTO(
-                null,
-                "This book is really shit",
-                1,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                LocalDateTime.now()
-        );
+        ReviewDTO inputDto = new ReviewDTO();
+        inputDto.setComment("This book is really shit");
+        inputDto.setRating(1);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(defaultBook));
         doThrow(new IllegalArgumentException(
@@ -327,19 +316,10 @@ class ReviewServiceTest {
         // Arrange
         Long invalidBookId = 999L;
 
-        ReviewDTO inputDto = new ReviewDTO(
-                null,
-                "This book does not exist",
-                1,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                LocalDateTime.now()
-        );
+        ReviewDTO inputDto = new ReviewDTO();
+        inputDto.setComment("This book does not exist");
+        inputDto.setRating(1);
+
 
         when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());
 
@@ -621,17 +601,21 @@ class ReviewServiceTest {
             ReviewModerationStatus moderationStatus,
             boolean reportedByCurrentUser
     ) {
-        ReviewDTO reviewDto = new ReviewDTO();
-        reviewDto.setId(id);
-        reviewDto.setComment(comment);
-        reviewDto.setRating(rating);
-        reviewDto.setReportCount(reportCount);
-        reviewDto.setBookId(book.getId());
-        reviewDto.setBookTitle(book.getTitle());
-        reviewDto.setBookAuthor(book.getAuthor());
-        reviewDto.setModerationStatus(moderationStatus);
-        reviewDto.setReportedByCurrentUser(reportedByCurrentUser);
-        reviewDto.setCreatedAt(LocalDateTime.now());
-        return reviewDto;
+        return new ReviewDTO(
+                id,
+                comment,
+                rating,
+                reportCount,
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                null, // bookImageUrl
+                moderationStatus,
+                reportedByCurrentUser,
+                LocalDateTime.now(),
+                null, // reviewerId
+                false // reviewerReviewBlocked
+        );
     }
 }
+

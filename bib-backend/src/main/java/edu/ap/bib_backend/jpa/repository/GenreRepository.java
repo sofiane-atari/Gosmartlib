@@ -16,6 +16,9 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {
 
         Optional<Genre> findByName(String name);
 
+        @Query("select g from Genre g left join fetch g.parentGenre where lower(g.name) = lower(:name)")
+        Optional<Genre> findByNameWithParent(@Param("name") String name);
+
         @Query("""
                             select distinct g
                             from Genre g
@@ -26,6 +29,7 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {
         List<Genre> findRootGenresWithSubGenres();
 
         List<Genre> findByParentGenreNameOrderByNameAsc(String parentGenreName);
+
         boolean existsByName(String name);
 
         Page<Genre> findAll(Pageable pageable);
@@ -35,27 +39,26 @@ public interface GenreRepository extends JpaRepository<Genre, Long> {
         Page<GenreWithCount> findAllIncludeBookCount(Pageable pageable);
 
         @Query(value = """
-                SELECT
-                l.id as id,
-                l.name as name,
-                l.color as color,
-                l.description as description,
-                COUNT(b) as bookCount
-                FROM Genre l
-                LEFT JOIN l.books b
-                WHERE (:search IS NULL OR l.name LIKE %:search% OR l.description LIKE %:search% OR l.color LIKE %:search%)
-                GROUP BY l.id, l.name, l.color, l.description
-                HAVING (:bookCount IS NULL OR COUNT(b) = :bookCount)
-                """,
-                countQuery = """
-                SELECT COUNT(l)
-                FROM Genre l
-                WHERE (:search IS NULL OR l.name LIKE %:search% OR l.description LIKE %:search% OR l.color LIKE %:search%)
-                """)
+                        SELECT
+                        l.id as id,
+                        l.name as name,
+                        l.color as color,
+                        l.description as description,
+                        COUNT(b) as bookCount
+                        FROM Genre l
+                        LEFT JOIN l.books b
+                        WHERE (:search IS NULL OR l.name LIKE %:search% OR l.description LIKE %:search% OR l.color LIKE %:search%)
+                        GROUP BY l.id, l.name, l.color, l.description
+                        HAVING (:bookCount IS NULL OR COUNT(b) = :bookCount)
+                        """, countQuery = """
+                        SELECT COUNT(l)
+                        FROM Genre l
+                        WHERE (:search IS NULL OR l.name LIKE %:search% OR l.description LIKE %:search% OR l.color LIKE %:search%)
+                        """)
         Page<GenreWithCount> findAllFiltered(
-                @Param("search") String search,
-                @Param("bookCount") Integer bookCount,
-                Pageable pageable);
+                        @Param("search") String search,
+                        @Param("bookCount") Integer bookCount,
+                        Pageable pageable);
 
         @Query(value = "SELECT l " +
                         "FROM Genre l LEFT JOIN l.books b " +

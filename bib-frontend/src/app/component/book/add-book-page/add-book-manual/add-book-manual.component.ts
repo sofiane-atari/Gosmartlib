@@ -112,7 +112,7 @@ private setupCandidateSearch(): void {
     distinctUntilChanged()
   );
 
-  
+
   combineLatest([
     titleChanges$,
     authorChanges$,
@@ -187,7 +187,7 @@ private setupCandidateSearch(): void {
           this.openedMainGenre = this.genres.find(main =>
             main.subGenres?.some(sub => sub.name === firstSelected.name)
           ) ?? null;
-        }        
+        }
         this.candidateBooks = [];
         this.isCandidateLoaded = true;
         this.form.controls.readingLevel.disable();

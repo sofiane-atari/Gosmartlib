@@ -97,7 +97,7 @@ export class AddBookBulkComponent {
       this.validating = false;
       this.progress = 100;
       this.validationCompleted = true;
-      this.validationSucceeded = this.errors.length === 0;
+      this.validationSucceeded = this.blockingErrors.length === 0;
       sse.close();
     });
 
@@ -110,7 +110,13 @@ export class AddBookBulkComponent {
       sse.close();
     };
   }
+  get blockingErrors(): FileValidationError[] {
+    return this.errors.filter(e => (e.severity ?? 'error') === 'error');
+  }
 
+  get warnings(): FileValidationError[] {
+    return this.errors.filter(e => e.severity === 'warning' || e.severity === 'info');
+  }
   uploadBooks() {
     if (!this.selectedFile) {
       this.ts.show('Geen bestand geselecteerd', 'error');
@@ -130,7 +136,7 @@ export class AddBookBulkComponent {
         console.error(err);
         let msg = 'Upload gefailed';
         if (err.status === 400) msg = 'Invalide formaat';
-        else if (err.status === 409) msg = 'Bepaalde boeken bestaan al';
+        else if (err.status === 409) msg = 'Conflict bij opslaan van boek-genre relaties';
         else if (err.error?.message) msg = err.error.message;
         this.ts.show(msg, 'error');
       }

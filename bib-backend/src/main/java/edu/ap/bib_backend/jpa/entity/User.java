@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.ap.bib_backend.jpa.enums.Role;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -32,4 +33,7 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "group_name", nullable = true)
     private Group group;
+
+    @Column(name = "review_blocked", nullable = false)
+    private boolean reviewBlocked = false;
 }

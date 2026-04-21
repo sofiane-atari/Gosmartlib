@@ -27,7 +27,7 @@ public class BookBulkController {
 
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadBooks(@RequestParam("file") MultipartFile file) {
-        if (!file.getOriginalFilename().endsWith(".xlsx")) {
+        if (!file.getOriginalFilename().endsWith(".xlsm")) {
             return ResponseEntity
                     .badRequest()
                     .body(Map.of("message", "Only excel files are supported"));
@@ -39,10 +39,10 @@ public class BookBulkController {
 
     @GetMapping("/template")
     public ResponseEntity<Resource> downloadTemplate() {
-        ClassPathResource file = new ClassPathResource("templates/books_template.xlsx");
+        ClassPathResource file = new ClassPathResource("templates/books_template.xlsm");
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=books_template.xlsx")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=books_template.xlsm")
                 .body(file);
     }
 

@@ -25,7 +25,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
   isLoadingReadingLevels = false;
 
   constructor(private bs: BookService, private rt: Router, private gs: GenreService, private rls: ReadingLevelsService){}
-  
+
     book: Book = {
     title: '',
     author: '',
@@ -34,7 +34,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
     description: '',
     releaseYear: new Date().getFullYear(),
     genres: [],
-    readingLevel: undefined 
+    readingLevel: undefined
   };
 
   ngOnInit(): void {

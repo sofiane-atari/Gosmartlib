@@ -31,6 +31,7 @@ export class UserService {
     });
   }
 
+
   public getDisplayName(user: AuthUserDto | null): string {
     if (!user) {
       return 'Gebruiker';
@@ -66,4 +67,10 @@ export class UserService {
   ): boolean {
     return !!currentUserId && !!ownerUserId && currentUserId === ownerUserId;
   }
+
+
+  public updateReviewAccess(userId: string, blocked: boolean): Observable<AuthUserDto> {
+    return this.http.patch<AuthUserDto>(`${this.apiUrl}/users/${userId}/review-access`, { blocked });
+  }
 }
+
