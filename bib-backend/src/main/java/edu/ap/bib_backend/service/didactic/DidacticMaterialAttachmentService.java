@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.service.didactic;
 
+import edu.ap.bib_backend.dto.didactic.DidacticMaterialAttachmentDownloadDataDto;
 import edu.ap.bib_backend.dto.didactic.DidacticMaterialAttachmentResponseDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterial;
@@ -55,22 +56,12 @@ public class DidacticMaterialAttachmentService {
             MultipartFile file,
             Authentication authentication
     ) {
-        DidacticMaterial didacticMaterial = findMaterialOrThrow(didacticMaterialId);
-        didacticMaterialAuthorizationService.assertCanModify(didacticMaterial, authentication);
-
+        DidacticMaterial didacticMaterial = findMaterialForModification(didacticMaterialId, authentication);
         String storedFileName = fileStorageService.storeFile(file);
 
         try {
-            DidacticMaterialAttachment attachment = new DidacticMaterialAttachment();
-            attachment.setDidacticMaterial(didacticMaterial);
-            attachment.setOriginalFileName(resolveOriginalFileName(file));
-            attachment.setStoredFileName(storedFileName);
-            attachment.setContentType(resolveContentType(file));
-            attachment.setFileSize(file.getSize());
-
-            DidacticMaterialAttachment savedAttachment =
-                    didacticMaterialAttachmentRepository.save(attachment);
-
+            DidacticMaterialAttachment attachment = buildAttachment(didacticMaterial, file, storedFileName);
+            DidacticMaterialAttachment savedAttachment = didacticMaterialAttachmentRepository.save(attachment);
             return didacticMaterialAttachmentMapper.toResponse(savedAttachment);
         } catch (RuntimeException exception) {
             fileStorageService.deleteFile(storedFileName);
@@ -79,11 +70,11 @@ public class DidacticMaterialAttachmentService {
     }
 
     @Transactional(readOnly = true)
-    public AttachmentDownloadDataDto getAttachmentDownloadData(Long didacticMaterialId, Long attachmentId) {
+    public DidacticMaterialAttachmentDownloadDataDto getAttachmentDownloadData(Long didacticMaterialId, Long attachmentId) {
         DidacticMaterialAttachment attachment = findAttachmentOrThrow(attachmentId, didacticMaterialId);
         Resource resource = fileStorageService.loadAsResource(attachment.getStoredFileName());
 
-        return new AttachmentDownloadData(
+        return new DidacticMaterialAttachmentDownloadDataDto(
                 resource,
                 attachment.getOriginalFileName(),
                 attachment.getContentType()
@@ -96,6 +87,26 @@ public class DidacticMaterialAttachmentService {
 
         didacticMaterialAttachmentRepository.delete(attachment);
         fileStorageService.deleteFile(attachment.getStoredFileName());
+    }
+
+    private DidacticMaterial findMaterialForModification(Long didacticMaterialId, Authentication authentication) {
+        DidacticMaterial didacticMaterial = findMaterialOrThrow(didacticMaterialId);
+        didacticMaterialAuthorizationService.assertCanModify(didacticMaterial, authentication);
+        return didacticMaterial;
+    }
+
+    private DidacticMaterialAttachment buildAttachment(
+            DidacticMaterial didacticMaterial,
+            MultipartFile file,
+            String storedFileName
+    ) {
+        DidacticMaterialAttachment attachment = new DidacticMaterialAttachment();
+        attachment.setDidacticMaterial(didacticMaterial);
+        attachment.setOriginalFileName(resolveOriginalFileName(file));
+        attachment.setStoredFileName(storedFileName);
+        attachment.setContentType(resolveContentType(file));
+        attachment.setFileSize(file.getSize());
+        return attachment;
     }
 
     private DidacticMaterial findMaterialOrThrow(Long didacticMaterialId) {
@@ -133,5 +144,4 @@ public class DidacticMaterialAttachmentService {
 
         return contentType;
     }
-
 }

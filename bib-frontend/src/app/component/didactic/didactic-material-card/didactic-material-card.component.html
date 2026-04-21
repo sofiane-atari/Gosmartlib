@@ -1,125 +1,129 @@
 <article class="material-card" [class.material-card--skeleton]="isLoading()">
-  @if (isLoading()) {
-    <div class="material-card__body">
-      <div class="material-card__header">
-        <div class="skeleton skeleton--title"></div>
-      </div>
-
-      <div class="material-card__divider"></div>
-
-      <div class="material-card__content-row">
-        <div class="material-card__content">
-          <div class="skeleton skeleton--text"></div>
-          <div class="skeleton skeleton--text"></div>
-          <div class="skeleton skeleton--text-short"></div>
+  @if (material(); as selectedMaterial) {
+    @if (isLoading()) {
+      <div class="material-card__body">
+        <div class="material-card__header">
+          <div class="skeleton skeleton--title"></div>
         </div>
 
-        <div class="material-card__preview">
-          <div class="skeleton skeleton--preview"></div>
-        </div>
-      </div>
+        <div class="material-card__divider"></div>
 
-      <div class="material-card__meta-row">
-        <div class="material-card__meta-left">
-          <div class="skeleton skeleton--pill"></div>
-          <div class="skeleton skeleton--pill"></div>
-          <div class="skeleton skeleton--pill"></div>
-        </div>
-      </div>
-    </div>
+        <div class="material-card__content-row">
+          <div class="material-card__content">
+            <div class="skeleton skeleton--text"></div>
+            <div class="skeleton skeleton--text"></div>
+            <div class="skeleton skeleton--text-short"></div>
+          </div>
 
-    <div class="material-card__footer">
-      <div class="material-card__author">
-        <div class="skeleton skeleton--avatar"></div>
-        <div class="material-card__author-details">
-          <div
-            class="skeleton skeleton--text-short"
-            style="margin-bottom: 4px"
-          ></div>
-          <div
-            class="skeleton skeleton--text"
-            style="width: 60px; margin: 0"
-          ></div>
-        </div>
-      </div>
-      <div class="material-card__actions">
-        <div class="skeleton skeleton--button"></div>
-      </div>
-    </div>
-  } @else if (material(); as material) {
-    <div class="material-card__body">
-      <div class="material-card__header">
-        <h2 class="material-title">{{ material.title }}</h2>
-      </div>
-
-      <div class="material-card__divider"></div>
-
-      <div class="material-card__content-row">
-        <div class="material-card__content">
-          <p class="material-description">{{ material.description }}</p>
+          <div class="material-card__preview">
+            <div class="skeleton skeleton--preview"></div>
+          </div>
         </div>
 
-        <div class="material-card__preview">
-          <div class="material-card__preview-placeholder">
-            <span>Geen voorbeeld</span>
+        <div class="material-card__meta-row">
+          <div class="material-card__meta-left">
+            <div class="skeleton skeleton--pill"></div>
+            <div class="skeleton skeleton--pill"></div>
+            <div class="skeleton skeleton--pill"></div>
           </div>
         </div>
       </div>
 
-      <div class="material-card__meta-row">
-        <div class="material-card__meta-left">
-          <span class="material-meta-item"> {{ getMaterialTypeLabel() }} </span>
+      <div class="material-card__footer">
+        <div class="material-card__author">
+          <div class="skeleton skeleton--avatar"></div>
+          <div class="material-card__author-details">
+            <div
+              class="skeleton skeleton--text-short"
+              style="margin-bottom: 4px"
+            ></div>
+            <div
+              class="skeleton skeleton--text"
+              style="width: 60px; margin: 0"
+            ></div>
+          </div>
+        </div>
+        <div class="material-card__actions">
+          <div class="skeleton skeleton--button"></div>
+        </div>
+      </div>
+    } @else {
+      <div class="material-card__body">
+        <div class="material-card__header">
+          <h2 class="material-title">{{ selectedMaterial.title }}</h2>
+        </div>
 
-          @if (material.subject) {
+        <div class="material-card__divider"></div>
+
+        <div class="material-card__content-row">
+          <div class="material-card__content">
+            <p class="material-description">
+              {{ selectedMaterial.description }}
+            </p>
+          </div>
+
+          <div class="material-card__preview">
+            <div class="material-card__preview-placeholder">
+              <span>Geen voorbeeld</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="material-card__meta-row">
+          <div class="material-card__meta-left">
+            <span class="material-meta-item">{{ getMaterialTypeLabel() }}</span>
+
+            @if (selectedMaterial.subject) {
+              <span class="material-meta-item">
+                Vak: {{ selectedMaterial.subject }}
+              </span>
+            }
+
+            @if (selectedMaterial.educationLevel) {
+              <span class="material-meta-item">
+                Niveau: {{ selectedMaterial.educationLevel }}
+              </span>
+            }
+
             <span class="material-meta-item">
-              Vak: {{ material.subject }}
+              {{ selectedMaterial.linkedBooks.length }} gekoppelde boeken
             </span>
-          }
+          </div>
 
-          @if (material.educationLevel) {
-            <span class="material-meta-item">
-              Niveau: {{ material.educationLevel }}
+          <div class="material-card__meta-right">
+            <span class="material-date">
+              {{ selectedMaterial.updatedAt | date: "dd/MM/yyyy" }}
             </span>
-          }
-
-          <span class="material-meta-item">
-            {{ material.linkedBooks.length }} gekoppelde boeken
-          </span>
-        </div>
-
-        <div class="material-card__meta-right">
-          <span class="material-date">
-            {{ material.updatedAt | date: "dd/MM/yyyy" }}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="material-card__footer">
-      <div class="material-card__author">
-        <div class="material-card__author-avatar"></div>
-
-        <div class="material-card__author-details">
-          @if (isOwnMaterial()) {
-            <span class="material-card__author-name">{{
-              creatorDisplayName()
-            }}</span>
-            <span class="material-card__author-role">{{
-              creatorRoleLabel()
-            }}</span>
-          } @else {
-            <span class="material-card__author-name">{{
-              creatorRoleLabel()
-            }}</span>
-          }
+          </div>
         </div>
       </div>
 
-      <div class="material-card__actions">
-        <button type="button" class="secondary-button" (click)="openDetail()">
-          Bekijken
-        </button>
+      <div class="material-card__footer">
+        <div class="material-card__author">
+          <div class="material-card__author-avatar"></div>
+
+          <div class="material-card__author-details">
+            @if (isOwnMaterial()) {
+              <span class="material-card__author-name">{{
+                creatorDisplayName()
+              }}</span>
+              <span class="material-card__author-role">{{
+                creatorRoleLabel()
+              }}</span>
+            } @else {
+              <span class="material-card__author-name">{{
+                creatorRoleLabel()
+              }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="material-card__actions">
+          <button type="button" class="secondary-button" (click)="openDetail()">
+            Bekijken
+          </button>
+        </div>
       </div>
-    </div>
+    }
   }
 </article>
