@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   Component,
   input,
@@ -7,15 +6,11 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { Genre } from '../../../model/genre/genre.model';
-=======
-import { Component, input, output, inject, DestroyRef } from '@angular/core';
-import { Genre } from '../../../model/genre.model';
->>>>>>> main
 import { GenreService } from '../../../services/genre/genre.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
-import { ToastService } from '../../../services/toast/toast.service';
+import { ToastService } from '../../../services/Toast/toast.service';
 
 @Component({
   selector: 'app-genre-card',

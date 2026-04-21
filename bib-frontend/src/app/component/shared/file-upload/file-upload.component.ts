@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ToastService } from '../../../services/toast/toast.service';
+import { ToastService } from '../../../services/Toast/toast.service';
 
 @Component({
   selector: 'app-file-upload',
@@ -11,7 +11,7 @@ import { ToastService } from '../../../services/toast/toast.service';
 })
 export class FileUploadComponent {
   @Input() selectedFile: File | null = null;
-  @Input() accept = '.xlsx';
+  @Input() accept = '.xlsm';
   @Input() maxSizeMB = 10;
 
   @Output() fileChanged = new EventEmitter<File | null>();

@@ -18,7 +18,7 @@ import {
 } from 'rxjs/operators';
 
 import { BookService } from '../../../../services/bookService/book.service';
-import { ToastService } from '../../../../services/toast/toast.service';
+import { ToastService } from '../../../../services/Toast/toast.service';
 import { Book } from '../../../../model/book/book.model';
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { Availability } from '../../../../model/enums/availability.enum';

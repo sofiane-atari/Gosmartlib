@@ -20,7 +20,7 @@ import { catchError, finalize, map } from 'rxjs/operators';
 
 import { Review, ReviewDashboardStats } from '../../../model/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
-import { ToastService } from '../../../services/toast/toast.service';
+import { ToastService } from '../../../services/Toast/toast.service';
 import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
 import {
   reviewCardAnimation,

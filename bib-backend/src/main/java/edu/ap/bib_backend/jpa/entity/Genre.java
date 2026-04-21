@@ -3,6 +3,9 @@ package edu.ap.bib_backend.jpa.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import edu.ap.bib_backend.annotation.HexColor;
 import edu.ap.bib_backend.projection.GenreProjection;
 import jakarta.persistence.Column;
@@ -26,7 +29,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "genres")
-@EqualsAndHashCode(of = "name")
 public class Genre implements GenreProjection {
 
     @Id
@@ -48,11 +50,13 @@ public class Genre implements GenreProjection {
     private List<Book> books = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_genre_name")
+    @JoinColumn(name = "parent_genre_id")
+    @JsonBackReference
     private Genre parentGenre;
 
     @OneToMany(mappedBy = "parentGenre")
     @jakarta.persistence.OrderBy("name ASC")
+    @JsonManagedReference
     private List<Genre> subGenres = new ArrayList<>();
 
     public Genre() {
@@ -62,5 +66,19 @@ public class Genre implements GenreProjection {
         this.name = name;
         this.color = color;
         this.description = description;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof Genre other))
+            return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
