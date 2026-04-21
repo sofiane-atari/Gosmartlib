@@ -57,6 +57,10 @@ export class RoleService {
       return false;
     }
 
+    if (currentRole === 'ADMIN') {
+      return true;
+    }
+
     return roles.includes(currentRole);
   }
 
