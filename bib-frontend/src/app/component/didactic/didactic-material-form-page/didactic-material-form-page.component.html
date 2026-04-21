@@ -56,6 +56,53 @@
 
     <hr class="divider" />
 
+    <div class="section-label">Gekoppelde boeken</div>
+
+    <app-didactic-material-book-selection-panel
+      [searchQuery]="bookSearchQuery()"
+      [searchIsbn]="bookSearchIsbn()"
+      [isLoadingBooks]="isLoadingBooks()"
+      [hasBookSearchInput]="hasBookSearchInput()"
+      [filteredBooks]="filteredBooks()"
+      [selectedBooksCount]="selectedLinkedBooksCount()"
+      [selectedBookIds]="selectedLinkedBookIds()"
+      (searchQueryChanged)="handleBookSearchQueryChanged($event)"
+      (isbnSearchChanged)="handleBookSearchIsbnChanged($event)"
+      (isbnKeydown)="handleBookSearchIsbnKeydown($event)"
+      (addBookRequested)="addLinkedBook($event)"
+    ></app-didactic-material-book-selection-panel>
+
+    @if (selectedLinkedBooks().length > 0) {
+      <div class="linked-books-box">
+        <div class="linked-books-box__title">Geselecteerde boeken</div>
+
+        <div class="linked-books-list">
+          @for (linkedBook of selectedLinkedBooks(); track linkedBook.id) {
+            <div class="linked-book-item">
+              <div class="linked-book-item__content">
+                <span class="linked-book-item__title">{{
+                  linkedBook.title
+                }}</span>
+                <span class="linked-book-item__subtitle">{{
+                  linkedBook.author
+                }}</span>
+              </div>
+
+              <button
+                type="button"
+                class="linked-book-item__remove"
+                (click)="removeLinkedBook(linkedBook.id)"
+              >
+                Verwijderen
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <hr class="divider" />
+
     <div class="section-label">Bijlagen</div>
 
     @if (canShowAttachmentsPanel()) {

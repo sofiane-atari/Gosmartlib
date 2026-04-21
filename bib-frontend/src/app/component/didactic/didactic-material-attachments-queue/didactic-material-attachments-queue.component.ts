@@ -18,7 +18,7 @@ import { FileUploadComponent } from '../../shared/file-upload/file-upload.compon
   templateUrl: './didactic-material-attachments-queue.component.html',
   styleUrl: './didactic-material-attachments-queue.component.css',
 })
-export class DidacticMaterialAttachmentQueueComponent {
+export class DidacticMaterialAttachmentsQueueComponent {
   private readonly toastService = inject(ToastService);
 
   public readonly isUploading = input<boolean>(false);

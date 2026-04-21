@@ -2,7 +2,6 @@ import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
 import { DidacticMaterialFormComponent } from '../didactic-material-form/didactic-material-form.component';
 import { DidacticMaterialService } from '../../../services/didactic/didactic-material.service';
 import { ToastService } from '../../../services/toast/toast.service';
@@ -14,6 +13,10 @@ import { Info, LucideAngularModule } from 'lucide-angular/src/icons';
 import { DidacticMaterialAttachmentService } from '../../../services/didactic/didactic-material-attachment.service';
 import { FileUploadComponent } from '../../shared/file-upload/file-upload.component';
 import { DidacticMaterialAttachmentsPanelComponent } from '../didactic-material-attachments-panel/didactic-material-attachments-panel.component';
+import { DIDACTIC_MATERIAL_PATHS } from '../../../routes/didactic-material.routes';
+import { BookCandidate } from '../../../model/book/book-candidate.model';
+import { DidacticMaterialBookSelectionPanelComponent } from '../didactic-material-book-selection-panel/didactic-material-book-selection-panel.component';
+import { DidacticMaterialBookSelectionService } from '../../../services/didactic/didactic-material-book-selection.service';
 
 @Component({
   selector: 'app-didactic-material-form-page',
@@ -24,7 +27,9 @@ import { DidacticMaterialAttachmentsPanelComponent } from '../didactic-material-
     LucideAngularModule,
     FileUploadComponent,
     DidacticMaterialAttachmentsPanelComponent,
+    DidacticMaterialBookSelectionPanelComponent,
   ],
+  providers: [DidacticMaterialBookSelectionService],
   templateUrl: './didactic-material-form-page.component.html',
   styleUrl: './didactic-material-form-page.component.css',
 })
@@ -33,9 +38,12 @@ export class DidacticMaterialFormPageComponent {
   private readonly didacticMaterialAttachmentService = inject(
     DidacticMaterialAttachmentService,
   );
+  private readonly didacticMaterialBookSelectionService = inject(
+    DidacticMaterialBookSelectionService,
+  );
   private readonly toastService = inject(ToastService);
-  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   public readonly InfoIcon = Info;
@@ -53,6 +61,31 @@ export class DidacticMaterialFormPageComponent {
   protected readonly currentUploadingFileName = signal<string | null>(null);
 
   protected readonly isEditMode = computed(() => this.materialId() !== null);
+
+  protected readonly selectedLinkedBooks =
+    this.didacticMaterialBookSelectionService.selectedLinkedBooks;
+
+  protected readonly bookSearchQuery =
+    this.didacticMaterialBookSelectionService.searchQuery;
+
+  protected readonly bookSearchIsbn =
+    this.didacticMaterialBookSelectionService.searchIsbn;
+
+  protected readonly filteredBooks =
+    this.didacticMaterialBookSelectionService.filteredBooks;
+
+  protected readonly isLoadingBooks =
+    this.didacticMaterialBookSelectionService.isLoadingBooks;
+
+  protected readonly hasBookSearchInput =
+    this.didacticMaterialBookSelectionService.hasBookSearchInput;
+
+  protected readonly selectedLinkedBooksCount =
+    this.didacticMaterialBookSelectionService.selectedLinkedBooksCount;
+
+  protected readonly selectedLinkedBookIds =
+    this.didacticMaterialBookSelectionService.selectedLinkedBookIds;
+
   protected readonly hasQueuedFiles = computed(
     () => this.queuedFiles().length > 0,
   );
@@ -101,14 +134,19 @@ export class DidacticMaterialFormPageComponent {
   }
 
   public handleFormSubmitted(request: CreateDidacticMaterialRequest): void {
+    const enrichedRequest: CreateDidacticMaterialRequest = {
+      ...request,
+      linkedBookIds: this.selectedLinkedBookIds(),
+    };
+
     this.isSubmitting.set(true);
 
     if (this.isEditMode()) {
-      this.updateMaterial(request);
+      this.updateMaterial(enrichedRequest);
       return;
     }
 
-    this.createMaterial(request);
+    this.createMaterial(enrichedRequest);
   }
 
   public handleAttachmentFileChange(file: File | null): void {
@@ -169,6 +207,7 @@ export class DidacticMaterialFormPageComponent {
             'Didactisch materiaal is opgeslagen.',
             'success',
           );
+          void this.router.navigate([`/${DIDACTIC_MATERIAL_PATHS.root}`]);
         },
         error: () => {
           this.isSubmitting.set(false);
@@ -194,6 +233,9 @@ export class DidacticMaterialFormPageComponent {
       .subscribe({
         next: (updatedMaterial) => {
           this.initialValue.set(this.mapMaterialToRequest(updatedMaterial));
+          this.didacticMaterialBookSelectionService.hydrateSelectedBooks(
+            updatedMaterial.linkedBooks ?? [],
+          );
           this.isSubmitting.set(false);
           this.toastService.show(
             'Didactisch materiaal is bijgewerkt.',
@@ -232,6 +274,7 @@ export class DidacticMaterialFormPageComponent {
       this.queuedUploadProgress.set(null);
       this.currentUploadingFileName.set(null);
       this.toastService.show('Alle bijlagen zijn toegevoegd.', 'success');
+      void this.router.navigate([`/${DIDACTIC_MATERIAL_PATHS.root}`]);
       return;
     }
 
@@ -272,6 +315,9 @@ export class DidacticMaterialFormPageComponent {
       .subscribe({
         next: (material) => {
           this.initialValue.set(this.mapMaterialToRequest(material));
+          this.didacticMaterialBookSelectionService.hydrateSelectedBooks(
+            material.linkedBooks ?? [],
+          );
           this.isLoading.set(false);
         },
         error: () => {
@@ -282,6 +328,26 @@ export class DidacticMaterialFormPageComponent {
           );
         },
       });
+  }
+
+  public handleBookSearchQueryChanged(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.didacticMaterialBookSelectionService.setSearchQuery(input.value);
+  }
+
+  public handleBookSearchIsbnChanged(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.didacticMaterialBookSelectionService.setSearchIsbn(input.value);
+  }
+
+  public handleBookSearchIsbnKeydown(_event: KeyboardEvent): void {}
+
+  public addLinkedBook(book: BookCandidate): void {
+    this.didacticMaterialBookSelectionService.addSelectedBook(book);
+  }
+
+  public removeLinkedBook(bookId: number): void {
+    this.didacticMaterialBookSelectionService.removeSelectedBook(bookId);
   }
 
   private mapMaterialToRequest(

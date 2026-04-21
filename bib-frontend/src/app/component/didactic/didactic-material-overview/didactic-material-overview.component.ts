@@ -8,10 +8,16 @@ import { DidacticMaterial } from '../../../model/didactic/didactic-material.mode
 import { DIDACTIC_MATERIAL_PATHS } from '../../../routes/didactic-material.routes';
 import { DidacticMaterialCardComponent } from '../didactic-material-card/didactic-material-card.component';
 
+import {
+  reviewCardAnimation,
+  fadeInUpAnimation,
+} from '../../shared/animations/my-reviews.animations';
+
 @Component({
   selector: 'app-didactic-material-overview',
   standalone: true,
   imports: [CommonModule, DidacticMaterialCardComponent],
+  animations: [reviewCardAnimation, fadeInUpAnimation],
   templateUrl: './didactic-material-overview.component.html',
   styleUrl: './didactic-material-overview.component.css',
 })
