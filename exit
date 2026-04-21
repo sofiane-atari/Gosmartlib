@@ -1,0 +1,437 @@
+[33m9e160a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mAlsEenBibBeheerderWilIkBoekenInBulkToevoegenMetGenreEnLeesniveauErbij-63-LeesniveauEnGenreToevoegenAanBulk[m[33m)[m adjusting html names
+[33m17ec617[m[33m ([m[1;32mmain[m[33m)[m adding readinglevel and genres to bulk import also updating checks and adding warning messages
+[33m80ee9a9[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge branch 'AlsEenBibBeheerderAlsIkEenBoekManueelToevoegDatElkVeldGecheckedWordtOpDuplicaten-62-DuplicatenVoorkomenEnBijvoegenVanGeupdateData' into 'main'
+[33m02540e7[m[33m ([m[1;31morigin/AlsEenBibBeheerderAlsIkEenBoekManueelToevoegDatElkVeldGecheckedWordtOpDuplicaten-62-DuplicatenVoorkomenEnBijvoegenVanGeupdateData[m[33m, [m[1;32mAlsEenBibBeheerderAlsIkEenBoekManueelToevoegDatElkVeldGecheckedWordtOpDuplicaten-62-DuplicatenVoorkomenEnBijvoegenVanGeupdateData[m[33m)[m merge with main
+[33mf59c36c[m updating tests
+[33m02f2433[m adding redirect to edit for manual add
+[33m4ecb877[m boek edit button for isbn
+[33me79fb72[m adding css to manual page
+[33m64d00c7[m[33m ([m[1;31morigin/AlsEenadminWilIkScholenKunnenWijzigen-56-AdminKanScholenWijzigen[m[33m)[m Alert bug fix
+[33ma4fb2d0[m Change window bug fix
+[33m2a5a99d[m Components update schooladashboard
+[33m8bec7a1[m Admin can change school values
+[33m93cddee[m[33m ([m[1;31morigin/AlsEenAdminWilIkScholenKunnenVerwijderen-54-AdminKanScholenVerwijderen[m[33m)[m Css update for delete component
+[33m72352cb[m Schooldashboard delete functionality
+[33m897e175[m Merge branch 'AlsEenAdminWilIkDeNaamVanDeGenreKunnenVeranderen-58-updateWithGenreName' into 'main'
+[33mcce1633[m[33m ([m[1;31morigin/AlsEenAdminWilIkDeNaamVanDeGenreKunnenVeranderen-58-updateWithGenreName[m[33m)[m fixed bugs
+[33md390cfa[m fixed extra tests
+[33me789717[m fixed tests and refactored and fixed code
+[33m53299e9[m refactored genres to support genre id
+[33m243967d[m[33m ([m[1;31morigin/AlsEenAdminWilIkScholenKunnenToevoegen-52-adminKanScholenToevoegen[m[33m)[m Add school to dashboard
+[33m1383703[m search on cobination titel author and year fix
+[33m41b60c8[m Merge branch 'AlsEenAdminWilIkSchoolbeheerDashboard-50-AdminHeeftEenSchoolbeheerDashboard'
+[33mc4b40d2[m[33m ([m[1;31morigin/AlsEenAdminWilIkSchoolbeheerDashboard-50-AdminHeeftEenSchoolbeheerDashboard[m[33m)[m Schooldashboard for schools implemented
+[33m60631cd[m adding readinglevels and subgenre logic to edit book page
+[33m5ade308[m Remove double file
+[33m20a4eae[m Admin toggle implementation
+[33md6acc05[m Merge branch 'AlsEenGebruikerWilIkFilterenOpLeesniveauEnGenres-61-extraFilteringAndCssTweaks' into 'main'
+[33mcc59541[m[33m ([m[1;31morigin/AlsEenGebruikerWilIkFilterenOpLeesniveauEnGenres-61-extraFilteringAndCssTweaks[m[33m)[m fixed failing tests
+[33maa88e37[m fixed card styling not being aligned
+[33m0b73c89[m fixed unaligned symbols in nav
+[33m45f793c[m deleted filter button
+[33me74471d[m cleaned up code, added colors to genres and responsive
+[33mbbb6b9e[m added genre filter
+[33m7032724[m added filter for readinglevel
+[33mdebe8c6[m Merge branch 'AlsEenBibBeheerderWilIkDatOpDeBeheeReviewPaginaPagingIs-64-Paging,userInterfaceHideReviews' into 'main'
+[33mea59b2d[m[33m ([m[1;31morigin/AlsEenBibBeheerderWilIkDatOpDeBeheeReviewPaginaPagingIs-64-Paging,userInterfaceHideReviews[m[33m)[m only active or kept reviews get shown, average is calculated on active and kept reviews
+[33m38c31b1[m grayed out data if book entity found in db when search for isbn
+[33m9cc47db[m bugfix: search in db for manual page
+[33m2759f06[m api call for combination search title, author & year
+[33ma6bbfa9[m rtefactored code, fixed failing and added missing tests
+[33mef8bd4c[m fixed loading bugs and animation bugs, cleaned up code
+[33m4b79855[m added paging
+[33m9f03ddd[m Add variables in compose
+[33m23b15ad[m[33m ([m[1;31morigin/AlsEenLeerkrachtWilIkEenLeeslijstAanmakenPerKlas,jaar,schoolEnSchooloverschrijdend-42-CreatieVerschillendelijsten[m[33m)[m add test for oneroster
+[33mefc9dae[m Correct Oneroster calls
+[33m1b44c8a[m cleaned up code fixed sticky approve and delete
+[33m9eacaef[m Teacher create list for class,school and year with vvalues
+[33mc998981[m general layout teacher-create-readinglist done
+[33me24c80a[m adding css styling
+[33m14d194d[m adding subgenre logic
+[33m0b0f81f[m SQL script update
+[33m653ad74[m Add missing line on gitlab-ci
+[33mc105c7e[m Pipeline script fix
+[33m66198c7[m Solve frontend error
+[33mcdbbb36[m Merge branch 'FavorietenlijstPaginaMooierMaken-48-FavorietenlijstMoeier'
+[33ma7a84bd[m[33m ([m[1;31morigin/FavorietenlijstPaginaMooierMaken-48-FavorietenlijstMoeier[m[33m)[m Change readinglist UI with minor logic changes
+[33mf644f01[m adding confirm dialog to boek edit page
+[33m701ce53[m Merge branch 'ReviewPaginaRefactoren-59-CssPagingMooierMaken' into 'main'
+[33m9d75295[m[33m ([m[1;31morigin/ReviewPaginaRefactoren-59-CssPagingMooierMaken[m[33m)[m added paging for Myreviews
+[33m006cecc[m added collaps for long reviews
+[33me061efc[m css update and extra animations/skeletons
+[33m45b0e4b[m added load in animations
+[33maca40f0[m bugfix when adding book manual that it only adds a copy if the book already exists
+[33m56992b5[m adding clear button for add pages
+[33meb56746[m update icons
+[33m671e9f0[m CssUpgradeV1
+[33m5e27e97[m fetching and displaying data when clicked on book candidate
+[33mb88ad33[m Add proper bookview for reading list
+[33m2d0ac60[m upgraded css, html
+[33mb2b3dad[m search in db for potential candidate books to reuse
+[33m76ca3bf[m fixed bugs
+[33m7dab8bc[m adding leesniveau to manual add and making it required
+[33m0d1c75b[m[33m ([m[1;32mid[m[33m)[m Merge branch 'BookserviceKlasseRefactoren-51-BookServiceKlasseOpsplitsen' into 'main'
+[33mae335a0[m[33m ([m[1;31morigin/BookserviceKlasseRefactoren-51-BookServiceKlasseOpsplitsen[m[33m, [m[1;32mBookserviceKlasseRefactoren-51-BookServiceKlasseOpsplitsen[m[33m)[m reordering tests and fixing broken tests
+[33mc534779[m Spliting the code from bookservice to other new services, adding mappers and util class
+[33m69c6a2b[m Merge branch 'SubfoldersVoorFrontend-49-FilesEnCodeOrdenen' into 'main'
+[33mceca272[m[33m ([m[1;31morigin/SubfoldersVoorFrontend-49-FilesEnCodeOrdenen[m[33m, [m[1;32mSubfoldersVoorFrontend-49-FilesEnCodeOrdenen[m[33m)[m adding subfolders and updating the imports in the frontend
+[33m993e34e[m Merge branch 'main' of https://gitlab.apstudent.be/bachelor-it/software-project/25-26/team-02/gosmartlib
+[33m1aea1a2[m[33m ([m[1;31morigin/AlsBibBeheerderWilIkEenBoekKunnenUitlenenAanEenLeerlingLeerkracht-37-EenUitleningVanEenBoekAaanmakenOpEenNaamVanEeenGebruiker[m[33m)[m Fix Smartschool OAuth service tests
+[33m3473f02[m Add tests for user get users with options
+[33md8bc34e[m Add tests for get and create for group service
+[33m596f75b[m Add tests for creating a loan in service and controller
+[33m1b62482[m Fix loan summary panel component
+[33m1756377[m Fix book selection component
+[33m3b020e3[m Add refactered components to create loan
+[33m5f8e00d[m Refactor barcode-scanner-recognizer to be a service
+[33mff9d7a2[m Refactor user selection panel to be a component
+[33m68e8f20[m Refactor loan summary panel to be a component
+[33m1cee418[m Refactor book selection panel to be a component
+[33mf3a8b3f[m Fix creating loan with a date of the past
+[33m0ca9181[m Refactor bar-code scanner feature to be more rebust against bugs
+[33mfdefdf3[m Refactor add better error handeling using the toast service in create loan
+[33m277ecf9[m Add barcode-scanner feature on create-loan
+[33mac79141[m Fix not getting books with isbn numbers and merge title and author inputs
+[33m194e8b5[m Fix loan not getting saved
+[33mfe79727[m Fix books copies not getting added to created  loan
+[33m1589443[m Fix dtos type/json field missmatch
+[33ma3940cf[m Fix LoanDTO annotation error
+[33m45c3436[m Refactor create-label, move the 'remove user button' to the select user component and make the selected user more obvious
+[33mfd6c2f1[m Refactor create-label to fetch books using the getFilterBooks functions
+[33maaed77e[m Fix parameter missmatch
+[33md8b1ac2[m Add group to fetch with user
+[33m6cf8047[m Merge branch 'AlsEenBibBeheerderWilIkGerapporteerdeReviewsBeheren-41-gerapporteerdeReviewsModereren' into 'main'
+[33m95c10b1[m[33m ([m[1;31morigin/AlsEenBibBeheerderWilIkGerapporteerdeReviewsBeheren-41-gerapporteerdeReviewsModereren[m[33m)[m Merge branch 'main' into 'AlsEenBibBeheerderWilIkGerapporteerdeReviewsBeheren-41-gerapporteerdeReviewsModereren'
+[33m55c03a6[m finishing touches tests, css
+[33m6d4166b[m added date toe reviews
+[33mbe7f683[m fixed bug review not confirming, load profilename in nav
+[33m02c7efd[m added frontend + guards + tests
+[33m471ee63[m Merge branch 'AlsEenLeeringWilIkEenIndividueleLeeslijstHebbenPerLeerling,klas,jaar,schoolOfSchooloverschrijdend-31-VerschillendeLijsten'
+[33m8af9532[m added backend logic, frontend service
+[33m5c166a0[m added fields to review
+[33m14823d9[m Fix on the sql dump
+[33m51e9338[m[33m ([m[1;31morigin/AlsEenLeeringWilIkEenIndividueleLeeslijstHebbenPerLeerling,klas,jaar,schoolOfSchooloverschrijdend-31-VerschillendeLijsten[m[33m)[m Updated sql dump
+[33m97c397d[m Diffrent reading list choice depending on role
+[33mb8cda7d[m Merge branch 'AlsEenBibBeheerder/AdminWilIkBoekenKunnenVerwijderen-35-VerwijderBoeken' into 'main'
+[33m81fad08[m[33m ([m[1;31morigin/AlsEenBibBeheerder/AdminWilIkBoekenKunnenVerwijderen-35-VerwijderBoeken[m[33m)[m Merge branch 'main' into 'AlsEenBibBeheerder/AdminWilIkBoekenKunnenVerwijderen-35-VerwijderBoeken'
+[33md84cbdc[m added tests fixed bugs
+[33m7ca9193[m Complete shared list refactor
+[33m3eb3ab2[m ReadingList depending on class
+[33m39e0c76[m Reading list major bug fix
+[33m29bc4b7[m Merge branch 'AlsEenLeerlingWilIkLeesniveauZienPerBoek-27-LeesNiveausToeveogenAanBoeken' into 'main'
+[33md5275d5[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkLeesniveauZienPerBoek-27-LeesNiveausToeveogenAanBoeken[m[33m, [m[1;32mAlsEenLeerlingWilIkLeesniveauZienPerBoek-27-LeesNiveausToeveogenAanBoeken[m[33m)[m adding test for book, seed and readinglevel
+[33m44d9264[m adding reading level to book detail page
+[33m4e7c045[m Add endpoint to get users id
+[33m1ca041e[m Bug fix delete books in read list
+[33m8620a37[m added delete functionality
+[33m1dc2bff[m adding reading level to books
+[33m1009e45[m Add toast for deletion of reading_list
+[33m0a6c985[m Individual reading list for users with testing
+[33mf032407[m Fix local testing
+[33mfcad607[m Refactor create-loan to have 2 input fields for searching a user
+[33m91df468[m Add an endpoint to create a loan
+[33m188a154[m Refactor create-loan html and css to be more appealing
+[33mbcc7446[m Add create-loan ui
+[33m1bc9906[m Init loan and book-management components
+[33m95e4069[m Merge branch 'AlsEenBibBeheerder/AdminWilIkBoekenKunnenWijzigen-36-boekenVanCatalogusWijzigen' into 'main'
+[33m5e7fce3[m[33m ([m[1;31morigin/AlsEenBibBeheerder/AdminWilIkBoekenKunnenWijzigen-36-boekenVanCatalogusWijzigen[m[33m)[m added tests for update/edit book
+[33mc28fd5e[m edit functionality and bugfix
+[33m6aa564d[m Merge branch 'AlsEenLeerlingWilIkEenProfielPagina-34-rollbasedAndSmartschoolApiCommunication' into 'main'
+[33mafba358[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkEenProfielPagina-34-rollbasedAndSmartschoolApiCommunication[m[33m)[m added missing tests, fixed all failing tests
+[33mc594155[m live data ophalen vanuit smartschool
+[33mb4accb7[m Jwt authentication
+[33m1e8b2c3[m new and improved interceptor
+[33md8db073[m merged en cors problemen gefixed
+[33m70e869b[m Merge branch 'AlsBibBeheerderWilIkBijEenBoekZonderIsbnKunnenOpzoekenTitelAuteurEnToevoegen-40-BoekKunnenVindenOpBasisVanTitelEnAuteur' into 'main'
+[33mec6d6f4[m[33m ([m[1;31morigin/AlsBibBeheerderWilIkBijEenBoekZonderIsbnKunnenOpzoekenTitelAuteurEnToevoegen-40-BoekKunnenVindenOpBasisVanTitelEnAuteur[m[33m, [m[1;32mAlsBibBeheerderWilIkBijEenBoekZonderIsbnKunnenOpzoekenTitelAuteurEnToevoegen-40-BoekKunnenVindenOpBasisVanTitelEnAuteur[m[33m)[m merge to main, rename label to genre
+[33mc965c86[m updating existing tests and adding new ones to genres and adding book
+[33m385bb7d[m bugfix add book only checks isbn if available
+[33mbaecca0[m showing genr in book detail and sending the object instead off just the name
+[33md537d2e[m instructions for book add manual page
+[33me8cdc5c[m bugfix adding book
+[33m0060a6a[m Database dump
+[33md596245[m fix for incompatible types in BookServiceTest
+[33mbca9d79[m merge conflict resolved
+[33m1f6ebe0[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkOpDeBoekDetailPaginaGerelateerdeBoekenZien-33-GerelateerdeBoekenWordenOnderaanGetoond[m[33m)[m update test for carousel
+[33m94ba1d5[m Add only carousel version
+[33ma7e8929[m Add Normal and carousel for related books
+[33m1135d2e[m Merge branch 'AlsEenGebruikerWilIkKunnenInloggen-28-DeGebruikerDeMogelijkhiedGevenOmInTeLoggen'
+[33mb5db6e1[m[33m ([m[1;31morigin/AlsEenGebruikerWilIkKunnenInloggen-28-DeGebruikerDeMogelijkhiedGevenOmInTeLoggen[m[33m)[m Add tests for token storage service
+[33m95eb846[m Add tests for jwt service
+[33m2bfe1eb[m Add tests for the logger interceptor
+[33mc5b5258[m Add tests for security config
+[33mc5434c2[m Add tests for redis config
+[33m262b038[m Add tests for cors config
+[33m23e609b[m Add tests for smartschool oauth2 service
+[33m180833e[m Add test for auth controller
+[33mb7f0a6a[m Fix test controllers calling the old endpoint
+[33m5752199[m Add test for role service
+[33m5c6deef[m Add test for user service
+[33m9e163f5[m Refactor login page to be more appealing
+[33m470d692[m Refactor Smartschool button to be a component
+[33me7561fe[m Refactor Smartschool button to be more responsive
+[33m4d8703e[m Refactor Smartschool button to follow offical smartschool guidelines
+[33m790aefa[m Allow user to access other pages after loggin in
+[33m88e9556[m Block user from using the app without login in
+[33m109cd66[m Fix role entity having int's as values instead of strings
+[33m21043ab[m Refactor Smartschool oauth serivce to have single responsibility
+[33m6b745a2[m Fix Smartschool service not finding user in db issue
+[33mdd637f7[m added author filtering
+[33m8d0a23f[m added debouncer for searchbar, pageslider
+[33mbf0e468[m fully refactored filtering/catalog
+[33m865aa65[m updating the html and css
+[33md2d28e5[m renaming labels to genre and being able to call them when adding books
+[33md602910[m Refactor backend to always use /api as a prefix
+[33mce493d6[m Fix CORS problem
+[33mff8414f[m added minpage filter, refactored code
+[33m311ff22[m Merge branch 'AlsEenLeerlingWilIkEenPreviewZienVanHetBoek-32-LeerlingKanPreviewZienVanEenBoek' into main - conflicts opgelost
+[33m12b6c6f[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkEenPreviewZienVanHetBoek-32-LeerlingKanPreviewZienVanEenBoek[m[33m)[m remove unecessary test
+[33m8ea700e[m refactor, bugfix
+[33m63f107b[m Add correct toast to alerts
+[33mf9f33c8[m adding loading animation when searching
+[33m050dc6e[m Add smartschool service related enviorment variables to the backend
+[33m5df7085[m securing the api key in env variable
+[33me565a0b[m adding boek to bookcopy table
+[33m9983f9f[m Add login page
+[33ma23f1a4[m adding api key for google books api
+[33m21867c4[m adding css and bugfix add boek button
+[33m8ab003b[m add smaller css for bookdetail
+[33m4158085[m Retrieving books based on title, author and release year
+[33m05b6f9c[m refactored code
+[33me7de140[m logica aanpassingen
+[33mc020cea[m Basis layout aanpassing
+[33m58d7e39[m added frontend page for account
+[33m89e88da[m Add redis for saving Smartschool token in memmory
+[33md0063b7[m Add JwtService
+[33m69b035f[m Add role service
+[33mad6a032[m Working preview window
+[33mb679dd3[m Add role related entities
+[33m6ab1a7d[m Add Smartschool OAuth service
+[33mded6ac3[m Merge branch 'AlsBibBeheerderWilIkBoekenInBulkToevoegen-39-boekenInBulkLatenToevoegen' into 'main'
+[33m0947519[m[33m ([m[1;31morigin/AlsBibBeheerderWilIkBoekenInBulkToevoegen-39-boekenInBulkLatenToevoegen[m[33m)[m Merge branch 'main' into 'AlsBibBeheerderWilIkBoekenInBulkToevoegen-39-boekenInBulkLatenToevoegen'
+[33md0355dd[m[33m ([m[1;32mAlsBibBeheerderWilIkBoekenInBulkToevoegen-39-boekenInBulkLatenToevoegen[m[33m)[m adding tests to bulk logic and to the dto's
+[33mdc579b6[m disabling boek add button and message box for succesfull validation
+[33m953b23e[m books get added to bookCopy entity with checks for book entity
+[33m1250f09[m seperating the upload field logic from the add book bulk component
+[33mbc6282b[m adding css and bigfix download
+[33m4f8b921[m cleaning the code and adding extra checks for the .xlsx file
+[33mfa390e3[m adding a progress bar
+[33ma550ae8[m SSE works with validating excel file
+[33m52862e9[m showing the errors in the file to the client
+[33m69d172f[m Merge branch 'AlsEenLeerlingWilIkPagingOpDeCatalogusPagina-26-LeerlingKanOpDeCatalogusNaarVolgendePagina' into 'main'
+[33m3253d8c[m adding error handeling
+[33m5d21ece[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkPagingOpDeCatalogusPagina-26-LeerlingKanOpDeCatalogusNaarVolgendePagina[m[33m)[m removed unused items
+[33m0111343[m Adding basic paging on catalogScreen
+[33m29e3361[m removing availabilty from books and moving to bookcopy, adding books in bulk works if formatted correctly
+[33m1ded88f[m updating description from string to text to hold more values
+[33me28a0fc[m updating the template
+[33m2623d60[m copies variable completely gone and being able to download template
+[33mbfeaea0[m removing copies property
+[33m6d70312[m add info fields to add book pages
+[33m3bb5d3f[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkMeestGelezenBoekenEnNetBinnenBoekenKunnenZien-13-MeestGelezenBoekenEnNetBinnenBoekenKunnenZienOpDeHomepagina[m[33m)[m Add tests for the endpoints newest and most-read
+[33ma589c71[m Add newest and most-read components to books component
+[33m39d32fe[m Add newest endpoint for books
+[33m13ffd26[m Add most-read endpoint for books
+[33m3c6f569[m[33m ([m[1;31morigin/AlsEenAdminWilIkLabelsKunnenWijzigen-24-LabelsMetaDataKunnenWijzigenViaHetLabelDashboard[m[33m)[m Add tests for PUT method labels endpoint
+[33m338d4d2[m Add label modifying from the label dashboard
+[33ma93bebf[m Add label update request in the label service
+[33m937aa0b[m Add a label put endpoint for updating labels metadata
+[33m35dc567[m[33m ([m[1;31morigin/AlsEenAdminWilIkLabelKunnenVerwijderen-23-LabelsKunnenVerwijderenVanUitHetDashboard[m[33m)[m Add test for global database constraints expections and resource not found
+[33m9c6368e[m Add label tests for deleting endpoint
+[33m1c1a1e8[m Refactor refresh label-list component after deletion
+[33m9dfe122[m Add global exepection handler for database constraint erros
+[33ma550feb[m Add confirm pop-up to label deletion
+[33m85bd650[m Allow deleting a label
+[33m6ccc693[m Add a endpoint for deleting a label
+[33mde2af44[m Add resource not found exception
+[33maa904e2[m Merge branch 'AlsEenAdminWilIkEenLabelDashboard-21-LabelsDetailBekijkenLabelsStatusBekijken'
+[33m3a0e674[m[33m ([m[1;31morigin/AlsEenAdminWilIkEenLabelDashboard-21-LabelsDetailBekijkenLabelsStatusBekijken[m[33m)[m Add projection and ResourceALreadyExisting exeption test for more test coverage
+[33m59daa10[m Add test for global expection handler
+[33m3053fe4[m Add label tests for custom queries
+[33m89ca3f7[m Merge branch 'AlsEenLeerlingWilIkMijnReviewsKunnenBeheren-14-LeerlingKanAlleReviewsZienEnVerwijderen' into 'main'
+[33m7d9cd34[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkMijnReviewsKunnenBeheren-14-LeerlingKanAlleReviewsZienEnVerwijderen[m[33m)[m adjusting test
+[33m9c88fc7[m Working list with test
+[33m262e40b[m Add service tests for getAllLabelStats
+[33ma944089[m Add controller tests for getPage and getLabelStats
+[33m7afb922[m Refactor stat component to be more reuseble
+[33m5f3c37a[m Refactor use css global variables in paging component
+[33mb095dfc[m Refactor searhing to call search queryparam and bookCount
+[33mc8f343d[m Allow calling for labels endpoints
+[33mb28a341[m Add label bookCount filter
+[33m5021cdf[m Add search query param for searching a label metadata
+[33m1a46db9[m Refactor dashboard-label to show accurate data
+[33m9613fde[m Fix tests construction issue
+[33mceab1b6[m Add labels/_stats endpoint for fetching label stats
+[33me92c116[m Merge branch 'AlsEenLeerlingWilIkKunnenZoeken/filteren-5-filtersOnCatalog' into 'main'
+[33m4a50801[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkKunnenZoeken/filteren-5-filtersOnCatalog[m[33m)[m fixed bug can't add book
+[33m72c8cdc[m fixed slider bug not resetting to the right place
+[33me35f084[m updated sliders and styling added filters toe localstorage
+[33mb6a6c6e[m fixed star icon and failed tests
+[33m4c179b0[m added filter on rating
+[33m9ef6fe5[m cleaned up css styling and changed some filters
+[33mf422f06[m filters and sliders added
+[33md30ca62[m Merge branch 'AlsEenLeerlingWilIkEenReviewKunnenRapporteren-6-LeerlingKanReviewRapporteren' into 'main'
+[33m4f5d03b[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkEenReviewKunnenRapporteren-6-LeerlingKanReviewRapporteren[m[33m)[m deploy ready
+[33m99c6278[m added controllertest for reported reviews
+[33mc2ef5f6[m Working reportsystem with tests
+[33m9a30728[m Add paging component with queryParams support for dashboard-labels
+[33m11e5b25[m Fix properties and params missmatch
+[33m388563e[m Add ManyToMany relationship between Book and Label entities
+[33m00df346[m Add bookCount property to LabelDTO with JsonInclude
+[33mbe3019a[m Add getPage endpoint with pagination and booksCount support
+[33m82d8c3a[m feat: add pagination DTOs and options classes
+[33m2536aa3[m feat: add bookCount property to LabelProjection interfaces
+[33m8cfd872[m added filters not complete yet
+[33m8069c16[m Merge branch 'AlsEenLeerlingWilIkDatErBijHetPlaatsenVanReviewsGecontroleerdWordtOpGrofTaalgebruik-11-FilterTheReviewBeforeAdding' into 'main'
+[33mac8d2e1[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkDatErBijHetPlaatsenVanReviewsGecontroleerdWordtOpGrofTaalgebruik-11-FilterTheReviewBeforeAdding[m[33m)[m Merge branch 'main' into 'AlsEenLeerlingWilIkDatErBijHetPlaatsenVanReviewsGecontroleerdWordtOpGrofTaalgebruik-11-FilterTheReviewBeforeAdding'
+[33m5fc5710[m added and tweaked tests, changed profanitydetector
+[33m8b2cb87[m added toast confirms/popups and finished frontend for reviews with profanity
+[33m5de6b61[m Add label fetching by page
+[33m87cb59b[m added backend logic for profanityfilter
+[33ma88eab6[m Merge branch 'AlsEenLeerlingWilIkBoekenKunnenToevoegenAanEenLeeslijst-10-LeerlingKanBoekenToevoegenAanLeeslijst' into 'main'
+[33mdf44cd5[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkBoekenKunnenToevoegenAanEenLeeslijst-10-LeerlingKanBoekenToevoegenAanLeeslijst[m[33m)[m Changing java version dockerfile
+[33me36d111[m Add dashboard for labels
+[33m61674a2[m Add a search bar
+[33ma4ccd25[m Add status cards
+[33md3014f0[m mibor css changes reading list
+[33m7ef529a[m Working save system
+[33m3bda32f[m Add label list for cards
+[33m260b99a[m Add label card
+[33md7fafa3[m Merge branch 'AlsEenLeerlingWilIkLeeslijstenKunnenDelenDetEenLink-9-LeerlingKanLeeslijstenDelen' into 'main'
+[33m6da8913[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkLeeslijstenKunnenDelenDetEenLink-9-LeerlingKanLeeslijstenDelen[m[33m)[m Merge branch 'main' into 'AlsEenLeerlingWilIkLeeslijstenKunnenDelenDetEenLink-9-LeerlingKanLeeslijstenDelen'
+[33m1a3226c[m minor css changes
+[33m89e4c4f[m Stop tracking dev-compose.yml
+[33me1f2075[m adding correct css
+[33md52212a[m Merge branch 'AlsEenAdminWilIkLabelsKunnenToevoegen-22-LabelsAaanmaken'
+[33m6b04784[m[33m ([m[1;31morigin/AlsEenAdminWilIkLabelsKunnenToevoegen-22-LabelsAaanmaken[m[33m)[m Fix backend build problem
+[33m623c963[m Remove labels/create route
+[33mb4816d5[m Fix label tests
+[33m8e152ec[m Add tests for HexColor annotation
+[33mf5847c7[m show multiple error messages for label
+[33m50bd343[m Add exception for already existing resources
+[33mffa24d3[m Add mapstruct label mapper
+[33ma697894[m Move label field validation to dto
+[33m6d71d5b[m Add hex color validation
+[33mdc67c23[m Merge branch 'AlsEenBibBeheerderWilIkReviewsKunnenVerwijderen-19-AbilityToDeleteEveryReview' into 'main'
+[33mba1d789[m Remove dto validation from LabelController
+[33m2aaa1a0[m[33m ([m[1;31morigin/AlsEenBibBeheerderWilIkReviewsKunnenVerwijderen-19-AbilityToDeleteEveryReview[m[33m)[m added tests for new endpoint
+[33m6845aa5[m Add not-blank validator to LabelDTO
+[33m26abac9[m Change not null message langauge from english to dutch in labelDTO
+[33m2aba5d4[m fixed reviews not getting deleted + added frontend deletebutton
+[33me34008f[m Add error responses for invalid operations
+[33m7ba1a44[m Add error response body
+[33mf80d301[m added backend endpoint for delete, linked to service and frontend
+[33mf47e71b[m Add popup window functionality to create-label
+[33m92505e0[m Merge branch 'AlsEenBibBeheerderWilIkEenBoekKunnenToevoegenMetISBNNummer-17-BoekOphalenVanBoekApiMetISBNNummerEnToevoegenAanCatalogus' into 'main'
+[33mf3ad0bf[m[33m ([m[1;31morigin/AlsEenBibBeheerderWilIkEenBoekKunnenToevoegenMetISBNNummer-17-BoekOphalenVanBoekApiMetISBNNummerEnToevoegenAanCatalogus[m[33m, [m[1;32mAlsEenBibBeheerderWilIkEenBoekKunnenToevoegenMetISBNNummer-17-BoekOphalenVanBoekApiMetISBNNummerEnToevoegenAanCatalogus[m[33m)[m updating the tests
+[33ma66df9f[m updating the html for availability and updating css
+[33m82bf2f8[m updating the html and css
+[33m3642ccf[m Merge branch 'AlsEenLeerlingWilIkEenReviewKunnenPlaatsenOpEenBoek-12-AddingReviewsToBooks' into 'main'
+[33m325dd4f[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkEenReviewKunnenPlaatsenOpEenBoek-12-AddingReviewsToBooks[m[33m)[m Merge branch 'main' into 'AlsEenLeerlingWilIkEenReviewKunnenPlaatsenOpEenBoek-12-AddingReviewsToBooks'
+[33m487c9fd[m added detail for average stars
+[33mba6717f[m updating book entity and showing the created books in the catalog
+[33mce0aa19[m renaming addbook method and carying logic in the parent component
+[33m22ca23a[m basic read-list sharing
+[33me357e48[m API call to book api and retrieving the books
+[33m47cd6e7[m Allow label creation with empty descriptions
+[33m73a9fc9[m Add GlobalExpectionHandler for runtieme exception
+[33m5374602[m Add tests for label creation in service
+[33m5d76fdd[m Add test for creating label in controller
+[33m288c47b[m Merge branch 'AlsEenLeerlingWilIkLeeslijstenKunnenVerwijderen-8-LeerlingKanLeeslijstVerwijderen' into 'main'
+[33m713bdba[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkLeeslijstenKunnenVerwijderen-8-LeerlingKanLeeslijstVerwijderen[m[33m)[m Removing init.sql and references
+[33m86de353[m Working delete functionality
+[33m43b3b69[m verwijderen tijdelijke user entiteit
+[33m6593bcf[m fixing css
+[33m9f71531[m adding correct imports
+[33mdb28147[m resolve stash conflicts
+[33mfb59a0a[m Merge branch 'AlsEenBibBeheerderWilIkEenBoekKunnenToevoegenZonderISBN-16-BoekManueelKunnenToevoegen' into 'main'
+[33mfb18e98[m[33m ([m[1;31morigin/AlsEenBibBeheerderWilIkEenBoekKunnenToevoegenZonderISBN-16-BoekManueelKunnenToevoegen[m[33m, [m[1;32mAlsEenBibBeheerderWilIkEenBoekKunnenToevoegenZonderISBN-16-BoekManueelKunnenToevoegen[m[33m)[m tiny change in html
+[33m2b76d0d[m adding tests for bookcontrolller seviecontroller an for java entity
+[33mee3f6e6[m added tests for reviews
+[33m37f4574[m added frontend for reviews
+[33me9b0437[m added average rating for books
+[33ma01ea57[m added backend code for reviews, tweaked Corsconfig
+[33mefbdf2a[m navigating to catalog when added and update the route
+[33mcbc3ee7[m book gets added to the catalog
+[33mfc78b0b[m updating html and css
+[33ma3a2e8f[m redirect to book add page and switch between adding book with and without isbn number
+[33m8024aed[m Fix Json error
+[33m8f9bd7a[m Add post method for Label
+[33mcdab77b[m Add create service for label
+[33m565aa41[m Add constructors for Label enitity
+[33mc215094[m Add label repo
+[33m5a18f10[m Add labelDTO.java
+[33mfaeabc2[m Add label entity
+[33m4e14e35[m merge branch AlsEenLeerlingWilIkDeBoekDetailPaginaKunnenZien-04-BoekDetailPaginaVan1BoekTonen with main
+[33mf0e7a31[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkDeBoekDetailPaginaKunnenZien-04-BoekDetailPaginaVan1BoekTonen[m[33m, [m[1;32mAlsEenLeerlingWilIkDeBoekDetailPaginaKunnenZien-04-BoekDetailPaginaVan1BoekTonen[m[33m)[m updating the tests and adding new tests for getbyid
+[33m9c5d20d[m adding css for book detail page
+[33me0f582f[m merge branch
+[33md1e04a4[m splitting book component to use bookdetail component instead off all in one
+[33ma20b9e6[m[33m ([m[1;31morigin/AlsEenLeerlingWilIkLeeslijstenKunnenAanmaken-7-LeerlingKanLeeslijstMaken[m[33m)[m delete test components
+[33m3a1a46c[m Add form submit handler
+[33m1023b4f[m Add label.service
+[33m7bcfb95[m Change field-error font-size
+[33m6dbbb40[m Remove close btn
+[33md7ca3d7[m Add create-label ui
+[33m93564b8[m Add reading list creation functionality
+[33mbce694b[m adding review label and aligning titel to the left
+[33m5724783[m adding some css styling
+[33mba86222[m making the book items clickable and show popup
+[33m8061f23[m Merge branch 'AlsEenGebruikeWilIkMijnEigenDashboardZienGebaseerdOprol-25-rolgebaseerdDashBoardKlaarzettenVoorSmartschoolApi' into 'main'
+[33m5a7a2c9[m[33m ([m[1;31morigin/AlsEenGebruikeWilIkMijnEigenDashboardZienGebaseerdOprol-25-rolgebaseerdDashBoardKlaarzettenVoorSmartschoolApi[m[33m)[m Merge branch 'main' into 'AlsEenGebruikeWilIkMijnEigenDashboardZienGebaseerdOprol-25-rolgebaseerdDashBoardKlaarzettenVoorSmartschoolApi'
+[33m91d5fe5[m added localstorage roles, renamed files for easy merge
+[33m27cff9c[m added frontend roleswitcher for development before the real rolebased dashboards with smartschool sso
+[33md28e06c[m book entity updaten
+[33m5bfd948[m Merge branch 'AlsEenLeerlingWilkDeBoekenCatalogusKunnenZien-03-BoekenCatalogusTonenOpDashboard' into 'main'
+[33m30cc545[m[33m ([m[1;31morigin/AlsEenLeerlingWilkDeBoekenCatalogusKunnenZien-03-BoekenCatalogusTonenOpDashboard[m[33m, [m[1;32mAlsEenLeerlingWilkDeBoekenCatalogusKunnenZien-03-BoekenCatalogusTonenOpDashboard[m[33m)[m adding test for bookcontroller
+[33m9891dd5[m bookservice test
+[33m0245bcc[m navigation to book page
+[33m606404b[m centerting icons
+[33m5da8985[m aanmaken van navigatie bar
+[33mf4ef8c9[m html en css aanpassen om mooier eruit te laten zien
+[33m5c9b9e6[m setup backend mocking users
+[33mc7528d0[m boeken van de database ophalen en tonen
+[33me38dc35[m Change ci/cd project dir name
+[33m7089414[m Add env var to .gitlab-ci.yml
+[33m920fd72[m Add env var for db
+[33m875cb11[m Remove test.txt
+[33m48301f1[m Test cicd
+[33me76647f[m Test cicd
+[33me72597b[m Test cicd
+[33mec2e62a[m Test cicd
+[33mcff9543[m Test cicd
+[33mff01646[m Modify filestructure & .gitlab-ci.yml
+[33ma9d74d3[m Test cicd
+[33m014c78a[m Test cicd
+[33mf21b09e[m Test cicd
+[33m73c56b2[m Test cicd
+[33me079b7a[m Test cicd
+[33m4c07b1d[m Test cicd
+[33m790bb37[m Test ci cd
+[33m72bd6c1[m Test ci cd 11
+[33m857cbb0[m Test ci cd 10
+[33m9809af9[m Test ci cd 9
+[33me6f0ef8[m Test ci cd 8
+[33mfc53c2a[m Test ci cd 7
+[33m623fa3e[m Fix undifiend variable in .gitlab-ci.yml
+[33mbadb451[m Test ci/cd 6
+[33m93b2b15[m Test ci cd 5
+[33m5e8bcd1[m Test ci cd 3
+[33m880536a[m test cicd 2
+[33m67a913d[m test cicd
+[33m1948786[m Fix .gitlab-ci.yml
+[33m8a2b189[m Add .gitlab-ci.yml
+[33m5d4b015[m Fix https erros
+[33m3598232[m added a post to test, no models and services yet
+[33me6ee839[m update the gitignore file
+[33m0426a1f[m being able to run docker and local on pc on the right domains
+[33mad1dd81[m Domain nam fixed
+[33mf74fa82[m aanpassingen in backedn dockerfile
+[33me02ecfc[m commentaar weg van traefik
+[33m5b9ce4e[m domain naam in traefik zetten
+[33m9916c10[m opstellen van docker en traefik
+[33m3c49a61[m toevoegen van dockerfiles
+[33mb979343[m fix frontend map not accessible on gitlab
+[33meb81843[m Merge branch 'main' of https://gitlab.apstudent.be/bachelor-it/software-project/25-26/team-02/gosmartlib
+[33md01fa1b[m initial commit, backend frontend hello world
+[33m092f227[m Initial commit
