@@ -1,15 +1,14 @@
-// src/app/component/didactic-material/didactic-material-detail/didactic-material-detail.component.ts
-
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-import { AuthService } from '../../../services/authorization/auth.service';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../services/toast/toast.service';
-import { UserService } from '../../../services/user/user.service';
 import { DidacticMaterialService } from '../../../services/didactic/didactic-material.service';
+import { AuthService } from '../../../services/authorization/auth.service';
+import { UserService } from '../../../services/user/user.service';
+import { RoleService } from '../../../services/role-service/role.service';
 import { DidacticMaterial } from '../../../model/didactic/didactic-material.model';
+import { DIDACTIC_MATERIAL_PATHS } from '../../../routes/didactic-material.routes';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-didactic-material-detail',
@@ -20,10 +19,12 @@ import { DidacticMaterial } from '../../../model/didactic/didactic-material.mode
 })
 export class DidacticMaterialDetailComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly didacticMaterialService = inject(DidacticMaterialService);
   private readonly toastService = inject(ToastService);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly roleService = inject(RoleService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly material = signal<DidacticMaterial | null>(null);
@@ -40,6 +41,12 @@ export class DidacticMaterialDetailComponent {
       material?.createdByUserId,
     );
   });
+
+  protected readonly canModifyMaterial = computed(() =>
+    this.roleService.canModifyDidacticMaterial(
+      this.material()?.createdByUserId,
+    ),
+  );
 
   protected readonly creatorDisplayName = computed(() =>
     this.userService.getDisplayName(this.currentUser()),
@@ -58,6 +65,53 @@ export class DidacticMaterialDetailComponent {
     }
 
     this.loadMaterial(materialId);
+  }
+
+  public navigateToEditPage(): void {
+    const material = this.material();
+
+    if (!material) {
+      return;
+    }
+
+    void this.router.navigate([
+      `/${DIDACTIC_MATERIAL_PATHS.root}/${material.id}/${DIDACTIC_MATERIAL_PATHS.edit}`,
+    ]);
+  }
+
+  public deleteMaterial(): void {
+    const material = this.material();
+
+    if (!material) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Weet je zeker dat je dit didactisch materiaal wilt verwijderen?',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.didacticMaterialService
+      .delete(material.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toastService.show(
+            'Didactisch materiaal is verwijderd.',
+            'success',
+          );
+          void this.router.navigate([`/${DIDACTIC_MATERIAL_PATHS.root}`]);
+        },
+        error: () => {
+          this.toastService.show(
+            'Het didactisch materiaal kon niet worden verwijderd.',
+            'error',
+          );
+        },
+      });
   }
 
   protected getMaterialTypeLabel(

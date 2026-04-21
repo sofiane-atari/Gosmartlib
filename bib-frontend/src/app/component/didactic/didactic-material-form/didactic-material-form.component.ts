@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, effect, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -15,6 +15,10 @@ import {
 })
 export class DidacticMaterialFormComponent {
   public readonly isSubmitting = input<boolean>(false);
+  public readonly initialValue = input<CreateDidacticMaterialRequest | null>(
+    null,
+  );
+  public readonly submitLabel = input<string>('Didactisch materiaal opslaan');
   public readonly formSubmitted = output<CreateDidacticMaterialRequest>();
 
   protected readonly title = signal('');
@@ -24,6 +28,7 @@ export class DidacticMaterialFormComponent {
   protected readonly subject = signal('');
   protected readonly educationLevel = signal('');
   protected readonly keywords = signal('');
+  protected readonly linkedBookIds = signal<number[]>([]);
   protected readonly validationMessage = signal<string | null>(null);
 
   protected readonly materialTypeOptions: ReadonlyArray<{
@@ -39,6 +44,29 @@ export class DidacticMaterialFormComponent {
     { value: 'PRESENTATION', label: 'Presentatie' },
     { value: 'OTHER', label: 'Overig' },
   ];
+
+  public constructor() {
+    effect(
+      () => {
+        const initialValue = this.initialValue();
+
+        if (initialValue === null) {
+          this.resetForm();
+          return;
+        }
+
+        this.title.set(initialValue.title ?? '');
+        this.description.set(initialValue.description ?? '');
+        this.materialType.set(initialValue.materialType ?? 'LESSON_METHOD');
+        this.subject.set(initialValue.subject ?? '');
+        this.educationLevel.set(initialValue.educationLevel ?? '');
+        this.keywords.set(initialValue.keywords ?? '');
+        this.linkedBookIds.set(initialValue.linkedBookIds ?? []);
+        this.validationMessage.set(null);
+      },
+      { allowSignalWrites: true },
+    );
+  }
 
   public submitForm(): void {
     const trimmedTitle = this.title().trim();
@@ -58,8 +86,19 @@ export class DidacticMaterialFormComponent {
       subject: this.normalizeOptionalValue(this.subject()),
       educationLevel: this.normalizeOptionalValue(this.educationLevel()),
       keywords: this.normalizeOptionalValue(this.keywords()),
-      linkedBookIds: [],
+      linkedBookIds: this.linkedBookIds(),
     });
+  }
+
+  private resetForm(): void {
+    this.title.set('');
+    this.description.set('');
+    this.materialType.set('LESSON_METHOD');
+    this.subject.set('');
+    this.educationLevel.set('');
+    this.keywords.set('');
+    this.linkedBookIds.set([]);
+    this.validationMessage.set(null);
   }
 
   private normalizeOptionalValue(value: string): string | null {

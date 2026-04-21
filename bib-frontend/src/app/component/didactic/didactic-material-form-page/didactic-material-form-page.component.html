@@ -3,11 +3,10 @@
     <lucide-icon [name]="InfoIcon" class="info-icon"></lucide-icon>
 
     <div class="info-content">
-      <p><strong>Didactisch materiaal toevoegen</strong></p>
       <p>
-        Voeg hier de basisgegevens van het didactisch materiaal toe. Bestanden
-        en boekkoppelingen kunnen we in een volgende stap uitbreiden.
+        <strong>{{ pageTitle() }}</strong>
       </p>
+      <p>{{ pageDescription() }}</p>
     </div>
   </div>
 
@@ -31,18 +30,28 @@
 
       <div class="step-item">
         <span class="step-num">Stap 3</span>
-        <span class="step-title">Sla het materiaal op</span>
+        <span class="step-title">
+          {{ isEditMode() ? "Werk het materiaal bij" : "Sla het materiaal op" }}
+        </span>
         <span class="step-desc">
-          Controleer de gegevens en maak het item aan.
+          Controleer de gegevens en bevestig je wijzigingen.
         </span>
       </div>
     </div>
 
     <hr class="divider" />
 
-    <app-didactic-material-form
-      [isSubmitting]="isSubmitting()"
-      (formSubmitted)="handleFormSubmitted($event)"
-    />
+    @if (isLoading()) {
+      <div class="state-panel">
+        <p>Didactisch materiaal wordt geladen...</p>
+      </div>
+    } @else {
+      <app-didactic-material-form
+        [isSubmitting]="isSubmitting()"
+        [initialValue]="initialValue()"
+        [submitLabel]="submitLabel()"
+        (formSubmitted)="handleFormSubmitted($event)"
+      />
+    }
   </div>
 </div>

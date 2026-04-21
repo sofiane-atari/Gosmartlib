@@ -15,6 +15,26 @@
             </p>
           </header>
 
+          @if (canModifyMaterial()) {
+            <section class="detail-actions">
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="navigateToEditPage()"
+              >
+                Bewerken
+              </button>
+
+              <button
+                type="button"
+                class="danger-button"
+                (click)="deleteMaterial()"
+              >
+                Verwijderen
+              </button>
+            </section>
+          }
+
           <section class="detail-section">
             <div class="detail-meta-grid">
               <div class="detail-meta-card">
@@ -62,28 +82,9 @@
 
           <section class="detail-section">
             <h2 class="detail-section__title">Gekoppelde boeken</h2>
-
-            @if (selectedMaterial.linkedBooks.length === 0) {
-              <div class="state-panel state-panel--compact">
-                <p>Er zijn nog geen boeken gekoppeld.</p>
-              </div>
-            } @else {
-              <div class="linked-book-list">
-                @for (
-                  linkedBook of selectedMaterial.linkedBooks;
-                  track linkedBook.id
-                ) {
-                  <div class="linked-book-card">
-                    <span class="linked-book-card__title">{{
-                      linkedBook.title
-                    }}</span>
-                    <span class="linked-book-card__author">{{
-                      linkedBook.author
-                    }}</span>
-                  </div>
-                }
-              </div>
-            }
+            <div class="state-panel state-panel--compact">
+              <p>Gekoppelde boeken werken we later verder uit.</p>
+            </div>
           </section>
         </div>
 

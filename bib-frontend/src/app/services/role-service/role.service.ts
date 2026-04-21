@@ -141,4 +141,22 @@ export class RoleService {
   public canAccessAdminOnlyFeatures(): boolean {
     return this.hasRole('ADMIN');
   }
+
+  public canModifyDidacticMaterial(
+    ownerUserId: string | null | undefined,
+  ): boolean {
+    const currentUserId = this.authService.currentUser()?.id;
+
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    if (!currentUserId || !ownerUserId) {
+      return false;
+    }
+
+    return (
+      currentUserId === ownerUserId && this.hasAnyRole(['TEACHER', 'LIBRARIAN'])
+    );
+  }
 }

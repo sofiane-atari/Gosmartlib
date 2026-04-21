@@ -1,3 +1,61 @@
-.didactic-material-page {
-  padding: var(--space-lg);
+.detail-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.secondary-button,
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.secondary-button {
+  border: 1.5px solid var(--didactic-main-color-border);
+  background: #ffffff;
+  color: var(--didactic-main-color);
+}
+
+.secondary-button:hover {
+  background: #fff5f8;
+  border-color: rgba(138, 30, 65, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--didactic-shadow-sm);
+}
+
+.danger-button {
+  border: 1.5px solid rgba(220, 38, 38, 0.18);
+  background: #ffffff;
+  color: #b42318;
+}
+
+.danger-button:hover {
+  background: #fff5f5;
+  border-color: rgba(180, 35, 24, 0.35);
+  transform: translateY(-2px);
+  box-shadow: var(--didactic-shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .detail-actions {
+    flex-direction: column;
+  }
+
+  .secondary-button,
+  .danger-button {
+    width: 100%;
+  }
 }
