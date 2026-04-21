@@ -16,7 +16,11 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -61,6 +65,9 @@ public class DidacticMaterial {
     @OneToMany(mappedBy = "didacticMaterial", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DidacticMaterialBookLink> bookLinks = new ArrayList<>();
 
+    @OneToMany(mappedBy = "didacticMaterial", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DidacticMaterialAttachment> attachments = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -75,12 +82,35 @@ public class DidacticMaterial {
 
     
     public void replaceBookLinks(List<Book> books) {
-        this.bookLinks.clear();
-        books.forEach(book -> {
+        Set<Long> requestedBookIds = books.stream()
+                .map(Book::getId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        this.bookLinks.removeIf(link ->
+                link.getBook() == null
+                        || link.getBook().getId() == null
+                        || !requestedBookIds.contains(link.getBook().getId())
+        );
+
+        Set<Long> existingBookIds = this.bookLinks.stream()
+                .map(DidacticMaterialBookLink::getBook)
+                .filter(java.util.Objects::nonNull)
+                .map(Book::getId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        for (Book book : books) {
+            Long bookId = book.getId();
+
+            if (bookId == null || existingBookIds.contains(bookId)) {
+                continue;
+            }
+
             DidacticMaterialBookLink link = new DidacticMaterialBookLink();
             link.setDidacticMaterial(this);
             link.setBook(book);
             this.bookLinks.add(link);
-        });
+        }
     }
 }
