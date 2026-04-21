@@ -4,6 +4,7 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { Role } from '../../../model/auth.model';
 import { DidacticMaterial } from '../../../model/didactic/didactic-material.model';
 import { AuthService } from '../../../services/authorization/auth.service';
+import { UserService } from '../../../services/user/user.service';
 
 @Component({
   selector: 'app-didactic-material-card',
@@ -14,6 +15,7 @@ import { AuthService } from '../../../services/authorization/auth.service';
 })
 export class DidacticMaterialCardComponent {
   private readonly authService = inject(AuthService);
+  private readonly userService = inject(UserService);
 
   public readonly material = input.required<DidacticMaterial>();
   public readonly openRequested = output<number>();
@@ -27,25 +29,13 @@ export class DidacticMaterialCardComponent {
     return !!currentUser && this.material().createdByUserId === currentUser.id;
   });
 
-  protected readonly creatorDisplayName = computed(() => {
-    const currentUser = this.currentUser();
+  protected readonly creatorDisplayName = computed(() =>
+    this.userService.getDisplayName(this.currentUser()),
+  );
 
-    if (!currentUser) {
-      return 'Gebruiker';
-    }
-
-    return (
-      currentUser.fullName?.trim() ||
-      `${currentUser.firstName ?? ''} ${currentUser.lastName ?? ''}`.trim() ||
-      currentUser.firstName?.trim() ||
-      currentUser.id ||
-      'Gebruiker'
-    );
-  });
-
-  protected readonly creatorRoleLabel = computed(() => {
-    return this.getRoleLabel(this.material().createdByRole ?? undefined);
-  });
+  protected readonly creatorRoleLabel = computed(() =>
+    this.userService.getRoleLabel(this.material().createdByRole),
+  );
 
   public openDetail(): void {
     this.openRequested.emit(this.material().id);
@@ -71,21 +61,6 @@ export class DidacticMaterialCardComponent {
         return 'Overig';
       default:
         return 'Onbekend';
-    }
-  }
-
-  private getRoleLabel(role: Role | undefined): string {
-    switch (role) {
-      case 'STUDENT':
-        return 'Leerling';
-      case 'TEACHER':
-        return 'Leerkracht';
-      case 'LIBRARIAN':
-        return 'Bibliotheekbeheerder';
-      case 'ADMIN':
-        return 'Platformbeheerder';
-      default:
-        return 'Gebruiker';
     }
   }
 }

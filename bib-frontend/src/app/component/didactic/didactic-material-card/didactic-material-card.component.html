@@ -20,9 +20,7 @@
 
     <div class="material-card__meta-row">
       <div class="material-card__meta-left">
-        <span class="material-meta-item">
-          {{ getMaterialTypeLabel() }}
-        </span>
+        <span class="material-meta-item"> {{ getMaterialTypeLabel() }} </span>
 
         @if (material().subject) {
           <span class="material-meta-item">
@@ -51,6 +49,8 @@
 
   <div class="material-card__footer">
     <div class="material-card__author">
+      <div class="material-card__author-avatar"></div>
+
       <div class="material-card__author-details">
         @if (isOwnMaterial()) {
           <span class="material-card__author-name">{{

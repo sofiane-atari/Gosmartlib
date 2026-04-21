@@ -1,4 +1,113 @@
-<section class="didactic-material-page">
-  <h1>Detail van didactisch materiaal</h1>
-  <p>Detailpagina in opbouw.</p>
+<section class="didactic-material-detail">
+  @if (isLoading()) {
+    <section class="state-panel">
+      <p>Didactisch materiaal wordt geladen...</p>
+    </section>
+  } @else {
+    @if (material(); as selectedMaterial) {
+      <div class="detail-layout">
+        <div class="detail-main">
+          <header class="detail-header">
+            <p class="detail-header__eyebrow">Didactisch materiaal</p>
+            <h1 class="detail-header__title">{{ selectedMaterial.title }}</h1>
+            <p class="detail-header__description">
+              {{ selectedMaterial.description }}
+            </p>
+          </header>
+
+          <section class="detail-section">
+            <div class="detail-meta-grid">
+              <div class="detail-meta-card">
+                <span class="detail-meta-card__label">Categorie</span>
+                <span class="detail-meta-card__value">
+                  {{ getMaterialTypeLabel(selectedMaterial.materialType) }}
+                </span>
+              </div>
+
+              @if (selectedMaterial.subject) {
+                <div class="detail-meta-card">
+                  <span class="detail-meta-card__label">Vak</span>
+                  <span class="detail-meta-card__value">{{
+                    selectedMaterial.subject
+                  }}</span>
+                </div>
+              }
+
+              @if (selectedMaterial.educationLevel) {
+                <div class="detail-meta-card">
+                  <span class="detail-meta-card__label">Niveau</span>
+                  <span class="detail-meta-card__value">{{
+                    selectedMaterial.educationLevel
+                  }}</span>
+                </div>
+              }
+
+              <div class="detail-meta-card">
+                <span class="detail-meta-card__label">Laatst bijgewerkt</span>
+                <span class="detail-meta-card__value">
+                  {{ selectedMaterial.updatedAt | date: "dd/MM/yyyy" }}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          @if (selectedMaterial.keywords) {
+            <section class="detail-section">
+              <h2 class="detail-section__title">Trefwoorden</h2>
+              <div class="detail-pill-list">
+                <span class="detail-pill">{{ selectedMaterial.keywords }}</span>
+              </div>
+            </section>
+          }
+
+          <section class="detail-section">
+            <h2 class="detail-section__title">Gekoppelde boeken</h2>
+
+            @if (selectedMaterial.linkedBooks.length === 0) {
+              <div class="state-panel state-panel--compact">
+                <p>Er zijn nog geen boeken gekoppeld.</p>
+              </div>
+            } @else {
+              <div class="linked-book-list">
+                @for (
+                  linkedBook of selectedMaterial.linkedBooks;
+                  track linkedBook.id
+                ) {
+                  <div class="linked-book-card">
+                    <span class="linked-book-card__title">{{
+                      linkedBook.title
+                    }}</span>
+                    <span class="linked-book-card__author">{{
+                      linkedBook.author
+                    }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </div>
+
+        <aside class="detail-sidebar">
+          <div class="creator-card">
+            <div class="creator-card__avatar"></div>
+
+            <div class="creator-card__content">
+              @if (isOwnMaterial()) {
+                <span class="creator-card__name">{{
+                  creatorDisplayName()
+                }}</span>
+                <span class="creator-card__role">{{ creatorRoleLabel() }}</span>
+              } @else {
+                <span class="creator-card__name">{{ creatorRoleLabel() }}</span>
+              }
+            </div>
+          </div>
+        </aside>
+      </div>
+    } @else {
+      <section class="state-panel">
+        <p>Didactisch materiaal kon niet worden gevonden.</p>
+      </section>
+    }
+  }
 </section>

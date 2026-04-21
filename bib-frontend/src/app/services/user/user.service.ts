@@ -1,32 +1,69 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpParams} from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { AuthUserDto } from '../../model/auth.model';
+import { AuthUserDto, Role } from '../../model/auth.model';
 
 export interface GetUsersOpt {
-    WithfirstName?: string;
-    WithlastName?: string; 
-    WithId?: String;
+  WithfirstName?: string;
+  WithlastName?: string;
+  WithId?: String;
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UserService {
-
-  private http = inject(HttpClient);   
+  private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
   public getUsers(opt?: GetUsersOpt): Observable<AuthUserDto[]> {
     let params = new HttpParams({
       fromObject: {
-        firstName: String(opt?.WithfirstName?? ''),
+        firstName: String(opt?.WithfirstName ?? ''),
         lastName: String(opt?.WithlastName ?? ''),
         id: String(opt?.WithId ?? ''),
       },
     });
 
-    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users`, { params: params });
+    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users`, {
+      params: params,
+    });
+  }
+
+  public getDisplayName(user: AuthUserDto | null): string {
+    if (!user) {
+      return 'Gebruiker';
+    }
+
+    return (
+      user.fullName?.trim() ||
+      `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
+      user.firstName?.trim() ||
+      user.id ||
+      'Gebruiker'
+    );
+  }
+
+  public getRoleLabel(role: Role | null | undefined): string {
+    switch (role) {
+      case 'STUDENT':
+        return 'Leerling';
+      case 'TEACHER':
+        return 'Leerkracht';
+      case 'LIBRARIAN':
+        return 'Bibliotheekbeheerder';
+      case 'ADMIN':
+        return 'Platformbeheerder';
+      default:
+        return 'Gebruiker';
+    }
+  }
+
+  public isOwnResource(
+    currentUserId: string | null | undefined,
+    ownerUserId: string | null | undefined,
+  ): boolean {
+    return !!currentUserId && !!ownerUserId && currentUserId === ownerUserId;
   }
 }

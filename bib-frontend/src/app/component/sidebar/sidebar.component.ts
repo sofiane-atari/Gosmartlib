@@ -26,6 +26,7 @@ import {
 } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
+import { UserService } from '../../services/user/user.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -44,6 +45,7 @@ export class SidebarComponent {
 
   public readonly authService = inject(AuthService);
   private readonly roleService = inject(RoleService);
+  private readonly userService = inject(UserService);
 
   // Input for mobile state
   public mobileOpen = input<boolean>(false);
@@ -117,25 +119,12 @@ export class SidebarComponent {
   });
 
   protected readonly userDisplayName = computed(() => {
-    const user = this.currentUser();
-
-    if (!user) {
-      return 'Gebruiker';
-    }
-
-    return (
-      user.fullName?.trim() ||
-      `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
-      user.firstName?.trim() ||
-      user.id ||
-      'Gebruiker'
-    );
+    this.userService.getDisplayName(this.currentUser());
   });
 
-  protected readonly userRoleLabel = computed(() => {
-    const role = this.currentUser()?.role;
-    return this.getRoleLabel(role);
-  });
+  protected readonly userRoleLabel = computed(() =>
+    this.userService.getRoleLabel(this.currentUser()?.role),
+  );
 
   public goToAddBook(): void {
     this.router.navigate(['/add-book']);
@@ -157,20 +146,5 @@ export class SidebarComponent {
   public toggleAdminOverride(): void {
     const enable = !this.isAdminOverrideEnabled();
     this.authService.setAdminOverride(enable);
-  }
-
-  private getRoleLabel(role: Role | undefined): string {
-    switch (role) {
-      case 'STUDENT':
-        return 'Leerling';
-      case 'TEACHER':
-        return 'Leerkracht';
-      case 'LIBRARIAN':
-        return 'Bibliotheekbeheerder';
-      case 'ADMIN':
-        return 'Platformbeheerder';
-      default:
-        return 'Onbekende rol';
-    }
   }
 }
