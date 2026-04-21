@@ -32,9 +32,13 @@
   </div>
 
   @if (isLoadingBooks()) {
-    <p class="hint">Boeken worden geladen...</p>
+    <div class="state-panel state-panel--compact">
+      <p>Boeken worden geladen...</p>
+    </div>
   } @else if (!hasBookSearchInput()) {
-    <p class="hint">Vul minstens één zoekveld in om boeken te zoeken.</p>
+    <div class="state-panel state-panel--compact">
+      <p>Vul minstens één zoekveld in om boeken te zoeken.</p>
+    </div>
   } @else {
     <div class="list">
       @for (book of filteredBooks(); track book.isbn13) {
@@ -69,7 +73,7 @@
           @if (book.id !== undefined) {
             <button
               type="button"
-              class="btn btn-primary"
+              class="action-button action-button--secondary"
               [disabled]="isBookAlreadySelected(book.id)"
               (click)="addBookRequested.emit(book)"
             >
@@ -78,13 +82,19 @@
               }}
             </button>
           } @else {
-            <button type="button" class="btn btn-primary" disabled>
+            <button
+              type="button"
+              class="action-button action-button--secondary"
+              disabled
+            >
               Niet beschikbaar
             </button>
           }
         </div>
       } @empty {
-        <p class="hint">Geen boeken gevonden voor deze zoekterm.</p>
+        <div class="state-panel state-panel--compact">
+          <p>Geen boeken gevonden voor deze zoekterm.</p>
+        </div>
       }
     </div>
   }

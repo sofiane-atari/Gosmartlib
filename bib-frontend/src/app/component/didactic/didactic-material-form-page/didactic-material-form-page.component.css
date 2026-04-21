@@ -1,46 +1,35 @@
-:host {
-  --didactic-main-color: var(--main-color, #8a1e41);
-  --didactic-main-color-hover: var(--main-color-hover, #6e1733);
-  --didactic-text-dark: var(--text-dark, #1a0a10);
-  --didactic-text-muted: var(--text-muted, #7a5560);
-  --didactic-border-color: var(--border-color, #f0e4e8);
-  --didactic-surface: var(--bg-surface, #ffffff);
-  --didactic-soft-surface: var(--bg-soft, #faf7f8);
-  --didactic-shadow-sm: 0 2px 8px rgba(26, 10, 16, 0.04);
-  --didactic-shadow-md: 0 8px 24px rgba(26, 10, 16, 0.06);
-  --didactic-font: var(--main-font, inherit);
-
-  display: block;
-  font-family: var(--didactic-font);
-}
-
 .layout {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 24px;
   min-height: 100vh;
   width: 100%;
-  padding: 1.5rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
   box-sizing: border-box;
+  font-family: var(--main-font);
 }
 
+/* =========================================================
+   INFO BANNER 
+   ========================================================= */
 .info-banner {
   display: flex;
   align-items: flex-start;
-  gap: 0.9rem;
-  padding: 1rem 1.1rem;
-  margin-bottom: 0;
-  border: 1px solid var(--didactic-border-color);
-  border-left: 5px solid var(--didactic-main-color);
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--main-color);
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--didactic-soft-surface), #f3f5f8);
-  box-shadow: var(--didactic-shadow-sm);
+  background: linear-gradient(135deg, #faf7f8, #f3f5f8);
+  box-shadow: 0 2px 8px rgba(26, 10, 16, 0.04);
   animation: fadeInInfo 0.35s ease;
   transition: box-shadow 0.2s ease;
 }
 
 .info-banner:hover {
-  box-shadow: var(--didactic-shadow-md);
+  box-shadow: 0 8px 24px rgba(26, 10, 16, 0.06);
 }
 
 .info-icon {
@@ -48,220 +37,157 @@
   height: 22px;
   flex-shrink: 0;
   margin-top: 3px;
-  color: var(--didactic-main-color);
+  color: var(--main-color);
 }
 
 .info-content {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6px;
 }
 
 .info-content p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 14px;
   line-height: 1.5;
   color: #4a4f57;
 }
 
 .info-content strong {
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 4px;
   background: rgba(138, 30, 65, 0.08);
-  color: var(--didactic-main-color);
+  color: var(--main-color);
   font-weight: 700;
+  display: inline-block;
 }
 
+/* =========================================================
+   FORM SECTION & LAYOUT
+   ========================================================= */
 .form-section {
   max-width: 100%;
-  padding: 1.5rem;
-  border: 1px solid var(--didactic-border-color);
+  padding: 32px;
+  border: 1px solid var(--border-color);
   border-radius: 16px;
-  background: var(--didactic-surface);
-  box-shadow: var(--didactic-shadow-sm);
+  background: var(--bg-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .section-label {
-  padding-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.7rem;
-  font-weight: 600;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #999;
+  color: var(--text-muted);
 }
 
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 32px 0;
+}
+
+/* =========================================================
+   STEPS
+   ========================================================= */
 .step-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.2rem;
+  gap: 16px;
+  margin-bottom: 32px;
+
+  max-width: 1000px;
+
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .step-item {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.85rem;
-  border: 1px solid var(--didactic-border-color);
-  border-radius: 10px;
-  background: #f9f9f9;
+  gap: 8px;
+
+  padding: 20px;
+
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-surface);
 }
 
 .step-num {
   width: fit-content;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(138, 30, 65, 0.08);
-  color: var(--didactic-main-color);
-  font-size: 0.7rem;
-  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--main-light-color); /* Lichtrode achtergrond */
+  color: var(--main-color); /* Donkerrode tekst */
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .step-title {
-  color: #333;
-  font-size: 0.85rem;
-  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 4px;
 }
 
 .step-desc {
-  color: #666;
-  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-size: 13px;
   line-height: 1.4;
 }
 
-.divider {
-  border: none;
-  border-top: 1px solid #e0e0e0;
-  margin: 1.2rem 0;
+/* =========================================================
+   GESELECTEERDE BOEKEN (Mooier en Strakker)
+   ========================================================= */
+.linked-books-box {
+  margin-top: 24px;
+  padding: 24px;
+  background: #faf7f8;
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
 }
 
-.state-panel {
-  background: linear-gradient(135deg, #ffffff 0%, #fff7fa 100%);
-  border: 2px dashed rgba(138, 30, 65, 0.12);
-  border-radius: 16px;
-  padding: 1.25rem 1rem;
-  color: #7a5560;
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.state-panel--compact {
-  padding: 1rem;
-}
-
-.state-panel p {
-  margin: 0;
-}
-
-.attachment-prep-section {
-  display: grid;
-  gap: 1rem;
-}
-
-.attachment-prep-actions {
-  justify-content: flex-end;
-}
-
-.queued-files-box {
-  padding: 1rem;
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-}
-
-.queued-files-title {
-  margin-bottom: 0.75rem;
-  font-size: 0.85rem;
+.linked-books-box__title {
+  margin-bottom: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: #333;
-}
-
-.queued-files-list {
-  display: grid;
-  gap: 0.6rem;
-}
-
-.queued-file-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 0.85rem;
-  background: #ffffff;
-  border: 1px solid #ececec;
-  border-radius: 6px;
-}
-
-.queued-file-name {
-  color: #333;
-  font-size: 0.85rem;
-  font-weight: 600;
-  word-break: break-all;
-}
-
-.queued-file-remove {
-  border: 1px solid #e4b7c3;
-  background: #fff5f8;
-  color: #8a1e41;
-  border-radius: 6px;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.queued-file-remove:hover:not(:disabled) {
-  background: #ffeaf0;
-  border-color: #8a1e41;
-}
-
-.queued-file-remove:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.state-panel {
-  background: linear-gradient(135deg, #ffffff 0%, #fff7fa 100%);
-  border: 2px dashed rgba(138, 30, 65, 0.12);
-  border-radius: 16px;
-  padding: 1.25rem 1rem;
-  color: #7a5560;
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.state-panel--compact {
-  padding: 1rem;
-}
-
-.state-panel p {
-  margin: 0;
+  color: var(--text-dark);
 }
 
 .linked-books-list--cards {
   display: grid;
-  gap: 0.85rem;
+  gap: 12px;
 }
 
 .linked-book-card {
   display: grid;
-  grid-template-columns: 64px 1fr auto;
-  gap: 1rem;
-  align-items: start;
-  padding: 0.9rem;
-  background: #ffffff;
-  border: 1px solid #ececec;
-  border-radius: 12px;
+  grid-template-columns: 56px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.linked-book-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.05);
+  border-color: var(--sec-color);
 }
 
 .linked-book-card__cover {
-  width: 64px;
-  height: 96px;
+  width: 56px;
+  height: 84px;
   overflow: hidden;
-  border-radius: 10px;
-  border: 1px solid #ececec;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
   background: #f9f9f9;
 }
 
@@ -278,59 +204,190 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem;
   text-align: center;
-  color: #999;
-  font-size: 0.7rem;
+  color: #9ca3af;
+  font-size: 11px;
 }
 
 .linked-book-card__content {
   min-width: 0;
-  display: grid;
-  gap: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .linked-book-card__title {
   margin: 0;
-  color: #1a0a10;
-  font-size: 0.92rem;
+  color: var(--text-dark);
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.3;
   word-break: break-word;
 }
 
 .linked-book-card__author {
   margin: 0;
-  color: #7a5560;
-  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-size: 13px;
   line-height: 1.4;
   word-break: break-word;
 }
 
-.linked-book-card__remove {
-  align-self: center;
-  border: 1px solid #e4b7c3;
-  background: #fff5f8;
-  color: #8a1e41;
-  border-radius: 6px;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.78rem;
+/* =========================================================
+   WACHTRIJ & ATTACHMENTS
+   ========================================================= */
+.attachment-prep-section {
+  display: grid;
+  gap: 16px;
+}
+
+.attachment-prep-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.queued-files-box {
+  padding: 20px;
+  background: #faf7f8;
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+}
+
+.queued-files-title {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.queued-files-list {
+  display: grid;
+  gap: 10px;
+}
+
+.queued-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.queued-file-name {
+  color: var(--text-dark);
+  font-size: 14px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* =========================================================
+   STATE PANELS
+   ========================================================= */
+.state-panel {
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.state-panel--compact {
+  padding: 24px;
+}
+
+/* =========================================================
+   PROGRESS BAR
+   ========================================================= */
+.progress-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.progress-header strong {
+  color: var(--text-dark);
+}
+
+.progress-track {
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--main-color);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* =========================================================
+   BUTTONS (Mochten ze globaal ontbreken, vangen we ze hier op)
+   ========================================================= */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.linked-book-card__remove:hover {
-  background: #ffeaf0;
-  border-color: #8a1e41;
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
+.action-button--secondary {
+  background-color: var(--bg-surface);
+  border-color: var(--border-color);
+  color: var(--main-color);
+}
+
+.action-button--secondary:hover:not(:disabled) {
+  background-color: var(--main-light-color);
+  border-color: var(--main-color);
+}
+
+.action-button--danger {
+  background-color: var(--bg-surface);
+  border-color: var(--error-color);
+  color: var(--error-color);
+}
+
+.action-button--danger:hover:not(:disabled) {
+  background-color: #fef2f2;
+}
+
+/* =========================================================
+   ANIMATIONS & RESPONSIVE
+   ========================================================= */
 @keyframes fadeInInfo {
   from {
     opacity: 0;
     transform: translateY(-6px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -339,41 +396,27 @@
 
 @media (max-width: 768px) {
   .layout {
-    padding: 1rem;
+    padding: 16px;
   }
-
   .form-section {
-    padding: 1rem;
+    padding: 16px;
   }
-
   .step-row {
     grid-template-columns: 1fr;
-  }
-
-  .attachment-prep-actions {
-    justify-content: stretch;
-  }
-
-  .queued-file-item {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .queued-file-remove {
-    width: 100%;
   }
 
   .linked-book-card {
     grid-template-columns: 56px 1fr;
   }
 
-  .linked-book-card__cover {
-    width: 56px;
-    height: 84px;
-  }
-
   .linked-book-card__remove {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .queued-file-item {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
   }
 }

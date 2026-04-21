@@ -10,6 +10,7 @@ import { DidacticMaterial } from '../../../model/didactic/didactic-material.mode
 import { DIDACTIC_MATERIAL_PATHS } from '../../../routes/didactic-material.routes';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DidacticMaterialAttachmentsPanelComponent } from '../didactic-material-attachments-panel/didactic-material-attachments-panel.component';
+import { Trash2, Pencil, LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-didactic-material-detail',
@@ -19,6 +20,7 @@ import { DidacticMaterialAttachmentsPanelComponent } from '../didactic-material-
     RouterLink,
     DatePipe,
     DidacticMaterialAttachmentsPanelComponent,
+    LucideAngularModule,
   ],
   templateUrl: './didactic-material-detail.component.html',
   styleUrl: './didactic-material-detail.component.css',
@@ -36,6 +38,9 @@ export class DidacticMaterialDetailComponent {
   protected readonly material = signal<DidacticMaterial | null>(null);
   protected readonly isLoading = signal(false);
   protected readonly isDeleting = signal(false);
+
+  protected readonly Trash2 = Trash2;
+  protected readonly Pencil = Pencil;
   protected readonly currentUser = computed(() =>
     this.authService.currentUser(),
   );

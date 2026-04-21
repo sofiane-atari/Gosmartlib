@@ -15,28 +15,6 @@
             </p>
           </header>
 
-          @if (canModifyMaterial()) {
-            <section class="detail-actions">
-              <button
-                type="button"
-                class="secondary-button"
-                [disabled]="isDeleting()"
-                (click)="navigateToEditPage()"
-              >
-                Bewerken
-              </button>
-
-              <button
-                type="button"
-                class="danger-button"
-                [disabled]="isDeleting()"
-                (click)="deleteMaterial()"
-              >
-                {{ isDeleting() ? "Verwijderen..." : "Verwijderen" }}
-              </button>
-            </section>
-          }
-
           <section class="detail-section">
             <div class="detail-meta-grid">
               <div class="detail-meta-card">
@@ -143,6 +121,38 @@
               }
             </div>
           </div>
+
+          @if (canModifyMaterial()) {
+            <section class="detail-actions">
+              <button
+                type="button"
+                class="action-button action-button--edit"
+                [disabled]="isDeleting()"
+                (click)="navigateToEditPage()"
+              >
+                <lucide-angular
+                  [img]="Pencil"
+                  size="16"
+                  strokeWidth="2.5"
+                ></lucide-angular>
+                Bewerken
+              </button>
+
+              <button
+                type="button"
+                class="action-button action-button--delete"
+                [disabled]="isDeleting()"
+                (click)="deleteMaterial()"
+              >
+                <lucide-angular
+                  [img]="Trash2"
+                  size="16"
+                  strokeWidth="2.5"
+                ></lucide-angular>
+                {{ isDeleting() ? "Verwijderen..." : "Verwijderen" }}
+              </button>
+            </section>
+          }
         </aside>
       </div>
       <app-didactic-material-attachments-panel

@@ -74,7 +74,9 @@
 
     @if (selectedLinkedBooks().length > 0) {
       <div class="linked-books-box">
-        <div class="linked-books-box__title">Geselecteerde boeken</div>
+        <div class="linked-books-box__title">
+          Geselecteerde boeken ({{ selectedLinkedBooks().length }})
+        </div>
 
         <div class="linked-books-list linked-books-list--cards">
           @for (linkedBook of selectedLinkedBooks(); track linkedBook.id) {
@@ -100,7 +102,7 @@
 
               <button
                 type="button"
-                class="linked-book-card__remove"
+                class="action-button action-button--danger linked-book-card__remove"
                 (click)="removeLinkedBook(linkedBook.id)"
               >
                 Verwijderen
@@ -139,7 +141,7 @@
         <div class="form-actions attachment-prep-actions">
           <button
             type="button"
-            class="btn-secondary"
+            class="action-button action-button--secondary"
             [disabled]="!selectedAttachmentFile() || isUploadingQueuedFiles()"
             (click)="addAttachmentToQueue()"
           >
@@ -162,7 +164,7 @@
 
                   <button
                     type="button"
-                    class="queued-file-remove"
+                    class="action-button action-button--danger"
                     [disabled]="isUploadingQueuedFiles()"
                     (click)="removeQueuedFile(index)"
                   >
