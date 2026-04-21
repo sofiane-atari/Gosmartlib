@@ -10,7 +10,7 @@ import {
 import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
-import { ToastService } from '../../../services/toast/toast.service';
+import { ToastService } from '../../../services/Toast/toast.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -30,8 +30,8 @@ import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar
 import { PagingComponent } from '../../shared/paging/paging.component';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
-import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
-import { Genre } from '../../../model/genre.model';
+import { ReadingLevelsService } from '../../../services/ReadingLevels/reading-levels.service';
+import { Genre } from '../../../model/genre/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/genre-picker.component';
 

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,8 @@ import edu.ap.bib_backend.mapper.BookCandidateMapper;
 @ExtendWith(MockitoExtension.class)
 class GoogleBooksClientTest {
 
+        private static final String GOOGLE_BOOKS_URL = "googleapis.com/books/v1/volumes";
+
         @Mock
         private RestTemplate restTemplate;
 
@@ -35,21 +38,17 @@ class GoogleBooksClientTest {
         }
 
         @Test
-        @DisplayName("Given matching book in Google API, When searchBookCandidates is called, Then return candidate")
+        @DisplayName("Given matching book in Google API, when searchBookCandidates is called, then return candidate")
         void givenMatchingBookInGoogleApi_whenSearchBookCandidates_thenReturnCandidate() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Harry Potter and the Philosopher's Stone",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1997-06-26",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")),
-                                "imageLinks", Map.of("thumbnail", "https://example.com/hp.jpg"));
+                Map<String, Object> response = responseOf(
+                                bookItem(
+                                                "Harry Potter and the Philosopher's Stone",
+                                                List.of("J.K. Rowling"),
+                                                "1997-06-26",
+                                                "9780747532699",
+                                                "https://example.com/hp.jpg"));
 
-                Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
-                Map<String, Object> response = Map.of("items", List.of(item));
-
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
+                mockGoogleResponse(response);
 
                 List<BookCandidateDTO> result = client.searchBookCandidates(
                                 "Harry Potter and the Philosopher's Stone",
@@ -57,100 +56,87 @@ class GoogleBooksClientTest {
                                 1997);
 
                 assertThat(result).hasSize(1);
-                assertThat(result.get(0).getTitle()).isEqualTo("Harry Potter and the Philosopher's Stone");
-                assertThat(result.get(0).getAuthor()).isEqualTo("J.K. Rowling");
-                assertThat(result.get(0).getReleaseYear()).isEqualTo(1997);
-                assertThat(result.get(0).getIsbn13()).isEqualTo("9780747532699");
-                assertThat(result.get(0).getImageUrl()).isEqualTo("https://example.com/hp.jpg");
+
+                BookCandidateDTO candidate = result.get(0);
+                assertThat(candidate.getTitle()).isEqualTo("Harry Potter and the Philosopher's Stone");
+                assertThat(candidate.getAuthor()).isEqualTo("J.K. Rowling");
+                assertThat(candidate.getReleaseYear()).isEqualTo(1997);
+                assertThat(candidate.getIsbn13()).isEqualTo("9780747532699");
+                assertThat(candidate.getImageUrl()).isEqualTo("https://example.com/hp.jpg");
         }
 
         @Test
-        @DisplayName("Given missing volume info in Google API, When searchBookCandidates is called, Then return empty list")
-        void givenMissingVolumeInfo_whenSearchBookCandidates_thenReturnEmptyList() {
-                Map<String, Object> item = Map.of("id", "abc");
-                Map<String, Object> response = Map.of("items", List.of(item));
+        @DisplayName("Given missing volume info, when searchBookCandidates is called, then throw not found")
+        void givenMissingVolumeInfo_whenSearchBookCandidates_thenThrowNotFound() {
+                Map<String, Object> response = Map.of("items", List.of(Map.of("id", "abc")));
 
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
+                mockGoogleResponse(response);
 
-                List<BookCandidateDTO> result = client.searchBookCandidates("Test", "Auteur", 2020);
-
-                assertThat(result).isEmpty();
+                assertThatThrownBy(() -> client.searchBookCandidates("Test", "Auteur", 2020))
+                                .isInstanceOf(ResponseStatusException.class)
+                                .satisfies(ex -> {
+                                        ResponseStatusException rse = (ResponseStatusException) ex;
+                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
+                                        assertThat(rse.getReason()).isEqualTo(
+                                                        "Geen kandidaten gevonden voor title, author en releaseYear");
+                                });
         }
 
         @Test
-        @DisplayName("Given non-matching title in Google API, When searchBookCandidates is called, Then filter out item")
-        void givenNonMatchingTitle_whenSearchBookCandidates_thenFilterOutItem() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Completely Different Title",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1997",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+        @DisplayName("Given non-matching title, when searchBookCandidates is called, then throw not found")
+        void givenNonMatchingTitle_whenSearchBookCandidates_thenThrowNotFound() {
+                Map<String, Object> response = responseOf(
+                                bookItem(
+                                                "Completely Different Title",
+                                                List.of("J.K. Rowling"),
+                                                "1997",
+                                                "9780747532699",
+                                                null));
 
-                Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
-                Map<String, Object> response = Map.of("items", List.of(item));
+                mockGoogleResponse(response);
 
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
-
-                List<BookCandidateDTO> result = client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997);
-
-                assertThat(result).isEmpty();
+                assertThatThrownBy(() -> client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                                .isInstanceOf(ResponseStatusException.class)
+                                .satisfies(ex -> {
+                                        ResponseStatusException rse = (ResponseStatusException) ex;
+                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
+                                        assertThat(rse.getReason()).isEqualTo(
+                                                        "Geen kandidaten gevonden voor title, author en releaseYear");
+                                });
         }
 
         @Test
-        @DisplayName("Given non-matching author in Google API, When searchBookCandidates is called, Then filter out item")
-        void givenNonMatchingAuthor_whenSearchBookCandidates_thenFilterOutItem() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("Andere Auteur"),
-                                "publishedDate", "1997",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+        @DisplayName("Given non-matching author, when searchBookCandidates is called, then throw not found")
+        void givenNonMatchingAuthor_whenSearchBookCandidates_thenThrowNotFound() {
+                Map<String, Object> response = responseOf(
+                                bookItem(
+                                                "Harry Potter",
+                                                List.of("Andere Auteur"),
+                                                "1997",
+                                                "9780747532699",
+                                                null));
 
-                Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
-                Map<String, Object> response = Map.of("items", List.of(item));
+                mockGoogleResponse(response);
 
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
-
-                List<BookCandidateDTO> result = client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997);
-
-                assertThat(result).isEmpty();
+                assertThatThrownBy(() -> client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                                .isInstanceOf(ResponseStatusException.class)
+                                .satisfies(ex -> {
+                                        ResponseStatusException rse = (ResponseStatusException) ex;
+                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
+                                        assertThat(rse.getReason()).isEqualTo(
+                                                        "Geen kandidaten gevonden voor title, author en releaseYear");
+                                });
         }
 
         @Test
-        @DisplayName("Given multiple matching books with different release years, When searchBookCandidates is called, Then sort by closest release year")
+        @DisplayName("Given multiple matching books, when searchBookCandidates is called, then sort by closest release year")
         void givenMultipleMatchingBooks_whenSearchBookCandidates_thenSortByClosestReleaseYear() {
-                Map<String, Object> volumeInfo1 = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "2001",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+                Map<String, Object> response = responseOf(
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "2001", "9780747532699", null),
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "1998", "9780747538493", null),
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "1997", "9780747532743", null));
 
-                Map<String, Object> volumeInfo2 = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1998",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747538493")));
-
-                Map<String, Object> volumeInfo3 = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1997",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532743")));
-
-                Map<String, Object> item1 = Map.of("volumeInfo", volumeInfo1);
-                Map<String, Object> item2 = Map.of("volumeInfo", volumeInfo2);
-                Map<String, Object> item3 = Map.of("volumeInfo", volumeInfo3);
-                Map<String, Object> response = Map.of("items", List.of(item1, item2, item3));
-
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
+                mockGoogleResponse(response);
 
                 List<BookCandidateDTO> result = client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997);
 
@@ -161,42 +147,26 @@ class GoogleBooksClientTest {
         }
 
         @Test
-        @DisplayName("Given release year within tolerance, When searchBookCandidates is called, Then return candidate")
-        void givenReleaseYearWithinTolerance_whenSearchBookCandidates_thenReturnCandidate() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1998",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+        @DisplayName("Given release year far away, when searchBookCandidates is called, then candidate is still returned and sorted")
+        void givenReleaseYearFarAway_whenSearchBookCandidates_thenCandidateStillReturned() {
+                Map<String, Object> response = responseOf(
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "2005", "9780747532699", null));
 
-                Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
-                Map<String, Object> response = Map.of("items", List.of(item));
-
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
+                mockGoogleResponse(response);
 
                 List<BookCandidateDTO> result = client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997);
 
                 assertThat(result).hasSize(1);
-                assertThat(result.get(0).getReleaseYear()).isEqualTo(1998);
+                assertThat(result.get(0).getReleaseYear()).isEqualTo(2005);
         }
 
         @Test
-        @DisplayName("Given null release year, When searchBookCandidates is called, Then do not filter on year")
-        void givenNullReleaseYear_whenSearchBookCandidates_thenDoNotFilterOnYear() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "2001",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+        @DisplayName("Given null release year, when searchBookCandidates is called, then do not sort by year")
+        void givenNullReleaseYear_whenSearchBookCandidates_thenDoNotSortByYear() {
+                Map<String, Object> response = responseOf(
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "2001", "9780747532699", null));
 
-                Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
-                Map<String, Object> response = Map.of("items", List.of(item));
-
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
+                mockGoogleResponse(response);
 
                 List<BookCandidateDTO> result = client.searchBookCandidates("Harry Potter", "J.K. Rowling", null);
 
@@ -205,8 +175,8 @@ class GoogleBooksClientTest {
         }
 
         @Test
-        @DisplayName("Given missing ISBN-13 in Google API, When searchBookCandidates is called, Then skip item")
-        void givenMissingIsbn13_whenSearchBookCandidates_thenSkipItem() {
+        @DisplayName("Given missing ISBN-13, when searchBookCandidates is called, then throw not found")
+        void givenMissingIsbn13_whenSearchBookCandidates_thenThrowNotFound() {
                 Map<String, Object> volumeInfo = Map.of(
                                 "title", "Harry Potter",
                                 "authors", List.of("J.K. Rowling"),
@@ -214,70 +184,122 @@ class GoogleBooksClientTest {
                                 "industryIdentifiers", List.of(
                                                 Map.of("type", "ISBN_10", "identifier", "0747532699")));
 
-                Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
-                Map<String, Object> response = Map.of("items", List.of(item));
+                Map<String, Object> response = Map.of("items", List.of(Map.of("volumeInfo", volumeInfo)));
 
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
+                mockGoogleResponse(response);
 
-                List<BookCandidateDTO> result = client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997);
-
-                assertThat(result).isEmpty();
+                assertThatThrownBy(() -> client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                                .isInstanceOf(ResponseStatusException.class)
+                                .satisfies(ex -> {
+                                        ResponseStatusException rse = (ResponseStatusException) ex;
+                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
+                                        assertThat(rse.getReason()).isEqualTo(
+                                                        "Geen kandidaten gevonden voor title, author en releaseYear");
+                                });
         }
 
         @Test
-        @DisplayName("Given missing authors in Google API, When searchBookCandidates is called, Then filter out item")
-        void givenMissingAuthors_whenSearchBookCandidates_thenFilterOutItem() {
+        @DisplayName("Given missing authors, when searchBookCandidates is called, then throw not found")
+        void givenMissingAuthors_whenSearchBookCandidates_thenThrowNotFound() {
                 Map<String, Object> volumeInfo = Map.of(
                                 "title", "Harry Potter",
                                 "publishedDate", "1997",
                                 "industryIdentifiers", List.of(
                                                 Map.of("type", "ISBN_13", "identifier", "9780747532699")));
 
-                Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
-                Map<String, Object> response = Map.of("items", List.of(item));
+                Map<String, Object> response = Map.of("items", List.of(Map.of("volumeInfo", volumeInfo)));
 
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
+                mockGoogleResponse(response);
+
+                assertThatThrownBy(() -> client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                                .isInstanceOf(ResponseStatusException.class)
+                                .satisfies(ex -> {
+                                        ResponseStatusException rse = (ResponseStatusException) ex;
+                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
+                                        assertThat(rse.getReason()).isEqualTo(
+                                                        "Geen kandidaten gevonden voor title, author en releaseYear");
+                                });
+        }
+
+        @Test
+        @DisplayName("Given response without items, when searchBookCandidates is called, then throw not found")
+        void givenResponseWithoutItems_whenSearchBookCandidates_thenThrowNotFound() {
+                Map<String, Object> response = Map.of();
+
+                mockGoogleResponse(response);
+
+                assertThatThrownBy(() -> client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                                .isInstanceOf(ResponseStatusException.class)
+                                .satisfies(ex -> {
+                                        ResponseStatusException rse = (ResponseStatusException) ex;
+                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
+                                        assertThat(rse.getReason())
+                                                        .isEqualTo("Geen boeken gevonden voor title en author");
+                                });
+        }
+
+        @Test
+        @DisplayName("Given empty items list, when searchBookCandidates is called, then throw not found")
+        void givenEmptyItemsList_whenSearchBookCandidates_thenThrowNotFound() {
+                Map<String, Object> response = Map.of("items", List.of());
+
+                mockGoogleResponse(response);
+
+                assertThatThrownBy(() -> client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
+                                .isInstanceOf(ResponseStatusException.class)
+                                .satisfies(ex -> {
+                                        ResponseStatusException rse = (ResponseStatusException) ex;
+                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
+                                        assertThat(rse.getReason())
+                                                        .isEqualTo("Geen boeken gevonden voor title en author");
+                                });
+        }
+
+        @Test
+        @DisplayName("Given more than 4 matching candidates, when searchBookCandidates is called, then only return 4")
+        void givenMoreThanFourMatchingCandidates_whenSearchBookCandidates_thenReturnOnlyFour() {
+                Map<String, Object> response = responseOf(
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "1997", "9780747532700", null),
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "1998", "9780747532701", null),
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "1999", "9780747532702", null),
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "2000", "9780747532703", null),
+                                bookItem("Harry Potter", List.of("J.K. Rowling"), "2001", "9780747532704", null));
+
+                mockGoogleResponse(response);
 
                 List<BookCandidateDTO> result = client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997);
 
-                assertThat(result).isEmpty();
+                assertThat(result).hasSize(4);
         }
 
-        @Test
-        @DisplayName("Given null response from Google API, When searchBookCandidates is called, Then throw NotFound Exception")
-        void givenNullResponseFromGoogle_whenSearchBookCandidates_thenThrowNotFound() {
-                Map<String, Object> response = Map.of();
-
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
+        private void mockGoogleResponse(Map<String, Object> response) {
+                given(restTemplate.getForObject(contains(GOOGLE_BOOKS_URL), eq(Map.class)))
                                 .willReturn(response);
-
-                assertThatThrownBy(() -> client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
-                                .isInstanceOf(ResponseStatusException.class)
-                                .satisfies(ex -> {
-                                        ResponseStatusException rse = (ResponseStatusException) ex;
-                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
-                                        assertThat(rse.getReason())
-                                                        .isEqualTo("Geen boeken gevonden voor title en author");
-                                });
         }
 
-        @Test
-        @DisplayName("Given empty items list from Google API, When searchBookCandidates is called, Then throw NotFound Exception")
-        void givenEmptyItemsFromGoogle_whenSearchBookCandidates_thenThrowNotFound() {
-                Map<String, Object> response = Map.of("items", List.of());
+        @SafeVarargs
+        private final Map<String, Object> responseOf(Map<String, Object>... items) {
+                return Map.of("items", List.of(items));
+        }
 
-                given(restTemplate.getForObject(contains("googleapis.com/books/v1/volumes"), eq(Map.class)))
-                                .willReturn(response);
+        private Map<String, Object> bookItem(
+                        String title,
+                        List<String> authors,
+                        String publishedDate,
+                        String isbn13,
+                        String imageUrl) {
 
-                assertThatThrownBy(() -> client.searchBookCandidates("Harry Potter", "J.K. Rowling", 1997))
-                                .isInstanceOf(ResponseStatusException.class)
-                                .satisfies(ex -> {
-                                        ResponseStatusException rse = (ResponseStatusException) ex;
-                                        assertThat(rse.getStatusCode().value()).isEqualTo(404);
-                                        assertThat(rse.getReason())
-                                                        .isEqualTo("Geen boeken gevonden voor title en author");
-                                });
+                Map<String, Object> volumeInfo = new HashMap<>();
+                volumeInfo.put("title", title);
+                volumeInfo.put("authors", authors);
+                volumeInfo.put("publishedDate", publishedDate);
+                volumeInfo.put("industryIdentifiers", List.of(
+                                Map.of("type", "ISBN_13", "identifier", isbn13)));
+
+                if (imageUrl != null) {
+                        volumeInfo.put("imageLinks", Map.of("thumbnail", imageUrl));
+                }
+
+                return Map.of("volumeInfo", volumeInfo);
         }
 }

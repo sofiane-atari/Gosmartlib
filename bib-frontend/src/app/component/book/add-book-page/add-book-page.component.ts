@@ -4,7 +4,7 @@ import { AddBookManualComponent } from "./add-book-manual/add-book-manual.compon
 import { AddBookBulkComponent } from "./add-book-bulk/add-book-bulk.component"
 import { BookService } from '../../../services/bookService/book.service';
 import { GenreService } from '../../../services/genre/genre.service';
-import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
+import { ReadingLevelsService } from '../../../services/ReadingLevels/reading-levels.service';
 import { Router } from '@angular/router';
 import { Genre } from '../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';

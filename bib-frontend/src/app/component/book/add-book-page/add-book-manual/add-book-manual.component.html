@@ -122,7 +122,7 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label>Aantal Pagina's *</label>
+          <label>Aantal pagina's *</label>
           <input type="number" formControlName="pages" placeholder="320" [readonly]="isCandidateLoaded" />
           @if (pages.invalid && pages.touched) {
             <p class="error-message">Aantal pagina's is verplicht.</p>
@@ -249,7 +249,7 @@
             (click)="editBook()"
           >
             <lucide-icon [name]="PencilIcon" class="btn-icon"></lucide-icon>
-            Boek Wijzigen
+            Boek wijzigen
           </button>
         }
 

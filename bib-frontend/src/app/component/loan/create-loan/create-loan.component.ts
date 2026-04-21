@@ -11,7 +11,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { toLocalDate } from '../../../shared/types/local-date.type';
-import { ToastService } from '../../../services/toast/toast.service';
+import { ToastService } from '../../../services/Toast/toast.service';
 import { BarcodeScannerRecognizerService } from '../../../services/barcode/barcode-scanner-recognizer.service';
 import { UserSelectionPanelComponent } from './user-selection-panel/user-selection-panel.component';
 import { BookSelectionPanelComponent } from './book-selection-panel/book-selection-panel.component';

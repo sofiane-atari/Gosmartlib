@@ -26,7 +26,7 @@ import { BookService } from '../../../services/bookService/book.service';
 import { Availability } from '../../../model/enums/availability.enum';
 import { Review } from '../../../model/review.model';
 import { ReviewService } from '../../../services/review-service/review.service'; 
-import { ToastService } from '../../../services/toast/toast.service';
+import { ToastService } from '../../../services/Toast/toast.service';
 import { ReadingListService, ReadingList } from '../../../services/reading-list/reading-list.service';
 import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';

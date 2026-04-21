@@ -6,7 +6,7 @@ import {
   ReadingList,
   ReadingListTargetType
 } from '../../../services/reading-list/reading-list.service';
-import { ToastService } from '../../../services/toast/toast.service';
+import { ToastService } from '../../../services/Toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { RoleService } from '../../../services/role-service/role.service';
 import { forkJoin, of } from 'rxjs';

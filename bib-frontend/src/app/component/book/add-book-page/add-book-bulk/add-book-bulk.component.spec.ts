@@ -1,3 +1,4 @@
+/// <reference types="jasmine" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AddBookBulkComponent } from './add-book-bulk.component';
