@@ -7,12 +7,22 @@ import { ToastService } from '../../../services/toast/toast.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './file-upload.component.html',
-  styleUrl: './file-upload.component.css'
+  styleUrl: './file-upload.component.css',
 })
 export class FileUploadComponent {
   @Input() selectedFile: File | null = null;
   @Input() accept = '.xlsm';
   @Input() maxSizeMB = 10;
+
+  /**
+   * Optionele extra configuratie.
+   * Bestaande componenten moeten deze niet meegeven.
+   */
+  @Input() label = 'Sleep een bestand hierheen of klik om te uploaden';
+  @Input() subLabel = 'Excel bestanden';
+  @Input() disabled = false;
+  @Input() uploadProgress: number | null = null;
+  @Input() showProgress = false;
 
   @Output() fileChanged = new EventEmitter<File | null>();
 
@@ -20,13 +30,30 @@ export class FileUploadComponent {
 
   constructor(private ts: ToastService) {}
 
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) this.validateAndSetFile(file);
+  get displayLabel(): string {
+    return this.selectedFile ? this.selectedFile.name : this.label;
   }
 
-  onDragOver(event: DragEvent) {
+  onFileSelected(event: Event): void {
+    if (this.disabled) {
+      return;
+    }
+
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (file) {
+      this.validateAndSetFile(file);
+    }
+
+    input.value = '';
+  }
+
+  onDragOver(event: DragEvent): void {
+    if (this.disabled) {
+      return;
+    }
+
     event.preventDefault();
     this.isDragOver = true;
   }
@@ -36,24 +63,48 @@ export class FileUploadComponent {
     this.isDragOver = false;
   }
 
-  onDrop(event: DragEvent) {
-    event.preventDefault();
-    this.isDragOver = false;
-    const file = event.dataTransfer?.files[0];
-    if (file) this.validateAndSetFile(file);
-  }
-
-  private validateAndSetFile(file: File) {
-    const isCorrectType = file.name.toLowerCase().endsWith(this.accept);
-    if (!isCorrectType) {
-      this.ts.show(`Alleen ${this.accept} bestanden zijn toegestaan`, 'error');
+  onDrop(event: DragEvent): void {
+    if (this.disabled) {
       return;
     }
+
+    event.preventDefault();
+    this.isDragOver = false;
+
+    const file = event.dataTransfer?.files?.[0] ?? null;
+
+    if (file) {
+      this.validateAndSetFile(file);
+    }
+  }
+
+  private validateAndSetFile(file: File): void {
+    if (!this.isAllowedFileType(file.name)) {
+      this.ts.show(
+        `Ongeldig bestandstype. Toegelaten: ${this.accept}`,
+        'error',
+      );
+      return;
+    }
+
     if (file.size > this.maxSizeMB * 1024 * 1024) {
-      this.ts.show(`Bestand is te groot (max ${this.maxSizeMB}MB)`, 'error');
+      this.ts.show(`Bestand is te groot (max ${this.maxSizeMB} MB)`, 'error');
       return;
     }
 
     this.fileChanged.emit(file);
+  }
+
+  private isAllowedFileType(fileName: string): boolean {
+    const normalizedFileName = fileName.toLowerCase();
+
+    const allowedExtensions = this.accept
+      .split(',')
+      .map((value) => value.trim().toLowerCase())
+      .filter((value) => value.length > 0);
+
+    return allowedExtensions.some((extension) =>
+      normalizedFileName.endsWith(extension),
+    );
   }
 }

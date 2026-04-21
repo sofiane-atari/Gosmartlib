@@ -1,0 +1,151 @@
+:host {
+  --didactic-main-color: var(--main-color, #8a1e41);
+  --didactic-main-color-hover: var(--main-color-hover, #6e1733);
+  --didactic-text-dark: var(--text-dark, #1a0a10);
+  --didactic-text-muted: var(--text-muted, #7a5560);
+  --didactic-border-color: var(--border-color, #f0e4e8);
+  --didactic-surface: var(--bg-surface, #ffffff);
+  --didactic-font: var(--main-font, inherit);
+
+  display: block;
+  font-family: var(--didactic-font);
+}
+
+.material-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  margin-bottom: 0.35rem;
+  color: #333;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #f9f9f9;
+  color: #333;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #999;
+}
+
+.form-group input:hover,
+.form-group textarea:hover,
+.form-group select:hover {
+  border-color: #bc808b;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--didactic-main-color);
+  background: var(--didactic-surface);
+  box-shadow: 0 0 0 2px rgba(138, 30, 65, 0.1);
+}
+
+.form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-message {
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.form-message--error {
+  border: 1px solid rgba(220, 38, 38, 0.12);
+  background: #fef2f2;
+  color: #b42318;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 210px;
+  height: 42px;
+  padding: 0 1rem;
+  border: 1px solid var(--didactic-main-color);
+  border-radius: 6px;
+  background: var(--didactic-main-color);
+  color: #fff5f8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #bc808b;
+  border-color: #bc808b;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(138, 30, 65, 0.2);
+}
+
+.btn-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .btn-submit {
+    width: 100%;
+    min-width: 0;
+  }
+}

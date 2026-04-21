@@ -1,0 +1,168 @@
+<section class="didactic-material-detail">
+  @if (isLoading()) {
+    <section class="state-panel">
+      <p>Didactisch materiaal wordt geladen...</p>
+    </section>
+  } @else {
+    @if (material(); as selectedMaterial) {
+      <div class="detail-layout">
+        <div class="detail-main">
+          <header class="detail-header">
+            <p class="detail-header__eyebrow">Didactisch materiaal</p>
+            <h1 class="detail-header__title">{{ selectedMaterial.title }}</h1>
+            <p class="detail-header__description">
+              {{ selectedMaterial.description }}
+            </p>
+          </header>
+
+          <section class="detail-section">
+            <div class="detail-meta-grid">
+              <div class="detail-meta-card">
+                <span class="detail-meta-card__label">Categorie</span>
+                <span class="detail-meta-card__value">
+                  {{ getMaterialTypeLabel(selectedMaterial.materialType) }}
+                </span>
+              </div>
+
+              @if (selectedMaterial.subject) {
+                <div class="detail-meta-card">
+                  <span class="detail-meta-card__label">Vak</span>
+                  <span class="detail-meta-card__value">{{
+                    selectedMaterial.subject
+                  }}</span>
+                </div>
+              }
+
+              @if (selectedMaterial.educationLevel) {
+                <div class="detail-meta-card">
+                  <span class="detail-meta-card__label">Niveau</span>
+                  <span class="detail-meta-card__value">{{
+                    selectedMaterial.educationLevel
+                  }}</span>
+                </div>
+              }
+
+              <div class="detail-meta-card">
+                <span class="detail-meta-card__label">Laatst bijgewerkt</span>
+                <span class="detail-meta-card__value">
+                  {{ selectedMaterial.updatedAt | date: "dd/MM/yyyy" }}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          @if (selectedMaterial.keywords) {
+            <section class="detail-section">
+              <h2 class="detail-section__title">Trefwoorden</h2>
+              <div class="detail-pill-list">
+                <span class="detail-pill">{{ selectedMaterial.keywords }}</span>
+              </div>
+            </section>
+          }
+
+          <section class="detail-section">
+            <h2 class="detail-section__title">Gekoppelde boeken</h2>
+
+            @if (selectedMaterial.linkedBooks.length === 0) {
+              <div class="state-panel state-panel--compact">
+                <p>
+                  Er zijn nog geen boeken gekoppeld aan dit didactisch
+                  materiaal.
+                </p>
+              </div>
+            } @else {
+              <div class="linked-books-grid">
+                @for (
+                  linkedBook of selectedMaterial.linkedBooks;
+                  track linkedBook.id
+                ) {
+                  <article class="linked-book-card">
+                    <div class="linked-book-card__cover">
+                      @if (linkedBook.imageUrl) {
+                        <img
+                          [src]="linkedBook.imageUrl"
+                          [alt]="linkedBook.title"
+                          class="linked-book-card__image"
+                        />
+                      } @else {
+                        <div class="linked-book-card__placeholder">
+                          <span>Geen cover</span>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="linked-book-card__content">
+                      <h3 class="linked-book-card__title">
+                        {{ linkedBook.title }}
+                      </h3>
+                      <p class="linked-book-card__author">
+                        {{ linkedBook.author }}
+                      </p>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        </div>
+
+        <aside class="detail-sidebar">
+          <div class="creator-card">
+            <div class="creator-card__avatar"></div>
+
+            <div class="creator-card__content">
+              @if (isOwnMaterial()) {
+                <span class="creator-card__name">{{
+                  creatorDisplayName()
+                }}</span>
+                <span class="creator-card__role">{{ creatorRoleLabel() }}</span>
+              } @else {
+                <span class="creator-card__name">{{ creatorRoleLabel() }}</span>
+              }
+            </div>
+          </div>
+
+          @if (canModifyMaterial()) {
+            <section class="detail-actions">
+              <button
+                type="button"
+                class="action-button action-button--edit"
+                [disabled]="isDeleting()"
+                (click)="navigateToEditPage()"
+              >
+                <lucide-angular
+                  [img]="Pencil"
+                  size="16"
+                  strokeWidth="2.5"
+                ></lucide-angular>
+                Bewerken
+              </button>
+
+              <button
+                type="button"
+                class="action-button action-button--delete"
+                [disabled]="isDeleting()"
+                (click)="deleteMaterial()"
+              >
+                <lucide-angular
+                  [img]="Trash2"
+                  size="16"
+                  strokeWidth="2.5"
+                ></lucide-angular>
+                {{ isDeleting() ? "Verwijderen..." : "Verwijderen" }}
+              </button>
+            </section>
+          }
+        </aside>
+      </div>
+      <app-didactic-material-attachments-panel
+        [didacticMaterialId]="selectedMaterial.id"
+        [canManageAttachments]="canModifyMaterial()"
+      ></app-didactic-material-attachments-panel>
+    } @else {
+      <section class="state-panel">
+        <p>Didactisch materiaal kon niet worden gevonden.</p>
+      </section>
+    }
+  }
+</section>

@@ -49,9 +49,9 @@ export class GenrePickerComponent {
       return null;
     }
 
-    return this.genres.find(
-      (genre) => genre.name === this.selectedGenreName,
-    ) ?? null;
+    return (
+      this.genres.find((genre) => genre.name === this.selectedGenreName) ?? null
+    );
   }
 
   protected isSelected(genreName: string | null): boolean {

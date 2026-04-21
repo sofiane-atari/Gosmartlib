@@ -1,0 +1,55 @@
+<div class="didactic-material-overview">
+  <div class="didactic-material-overview__container">
+    <div class="didactic-material-overview__header" @fadeInUp>
+      <div class="header-content">
+        <h1 class="didactic-material-overview__title">Didactisch materiaal</h1>
+        <p class="didactic-material-overview__subtitle">
+          Bekijk en beheer didactisch materiaal voor leerkrachten en
+          bibliotheekbeheerders.
+        </p>
+      </div>
+
+      <div class="didactic-material-overview__actions">
+        <button
+          type="button"
+          class="action-button action-button--primary"
+          (click)="navigateToCreatePage()"
+        >
+          Didactisch materiaal toevoegen
+        </button>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <section class="material-list">
+        @for (dummy of [1, 2, 3]; track $index) {
+          <app-didactic-material-card [isLoading]="true" />
+        }
+      </section>
+    } @else if (materials().length === 0) {
+      <section class="state-panel state-panel--empty" @fadeInUp>
+        <p>
+          Nog geen didactisch materiaal. Voeg een eerste item toe om materiaal
+          beschikbaar te maken voor collega’s.
+        </p>
+        <button
+          type="button"
+          class="action-button action-button--secondary"
+          (click)="navigateToCreatePage()"
+        >
+          Eerste item toevoegen
+        </button>
+      </section>
+    } @else {
+      <section class="material-list">
+        @for (material of materials(); track material.id; let i = $index) {
+          <app-didactic-material-card
+            [material]="material"
+            (openRequested)="navigateToDetailPage($event)"
+            [@fadeInUp]="{ value: '', params: { delay: i * 100 } }"
+          />
+        }
+      </section>
+    }
+  </div>
+</div>

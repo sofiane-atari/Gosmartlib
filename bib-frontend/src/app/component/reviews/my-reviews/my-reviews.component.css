@@ -20,7 +20,13 @@
   --shadow-xl: 0 24px 64px rgba(138, 30, 65, 0.16);
 
   display: block;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    sans-serif;
 }
 
 lucide-angular.star-filled ::ng-deep svg,
@@ -32,6 +38,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 .review-dashboard {
   min-height: 100vh;
   padding: 24px;
+  font-family: var(--main-font);
 }
 
 .review-dashboard__container {
@@ -39,7 +46,7 @@ lucide-angular.star-filled ::ng-deep polygon {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px; 
+  gap: 24px;
 }
 
 .review-dashboard__header {
@@ -54,7 +61,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .review-dashboard__eyebrow {
   margin: 0 0 6px;
-  font-size: 10px; 
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -63,7 +70,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 .review-dashboard__title {
-  font-size: clamp(26px, 4vw, 36px); 
+  font-size: clamp(26px, 4vw, 36px);
   font-weight: 800;
   color: var(--text-dark);
   letter-spacing: -0.04em;
@@ -85,13 +92,13 @@ lucide-angular.star-filled ::ng-deep polygon {
 .review-list {
   display: flex;
   flex-direction: column;
-  gap: 16px; 
+  gap: 16px;
 }
 
 .review-card {
   position: relative;
   display: flex;
-  gap: 16px; 
+  gap: 16px;
   background: linear-gradient(135deg, #ffffff 0%, #fffbfc 100%);
   border: 1.5px solid var(--main-color-border);
   border-radius: 20px;
@@ -113,14 +120,20 @@ lucide-angular.star-filled ::ng-deep polygon {
   width: 4px;
   background: linear-gradient(180deg, #8a1e41 0%, #c04b72 100%);
   opacity: 0.9;
-  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+  transition:
+    width 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
 }
 
 .review-card::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 50%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    transparent 50%
+  );
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.35s ease;
@@ -144,8 +157,8 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .review-card__cover {
   flex-shrink: 0;
-  width: 72px;  
-  height: 108px; 
+  width: 72px;
+  height: 108px;
   border-radius: 12px;
   overflow: hidden;
   border: 1.5px solid rgba(138, 30, 65, 0.12);
@@ -189,7 +202,7 @@ lucide-angular.star-filled ::ng-deep polygon {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px; 
+  gap: 10px;
 }
 
 .review-card__top {
@@ -201,7 +214,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .review-card__book-title {
   margin: 0;
-  font-size: 17px; 
+  font-size: 17px;
   font-weight: 800;
   color: var(--text-dark);
   letter-spacing: -0.01em;
@@ -215,7 +228,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .review-card__book-author {
   margin: 4px 0 0;
-  font-size: 13px; 
+  font-size: 13px;
   color: var(--text-muted);
   font-weight: 500;
 }
@@ -233,7 +246,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 .star-icon {
-  width: 14px; 
+  width: 14px;
   height: 14px;
   transition:
     transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -254,7 +267,7 @@ lucide-angular.star-filled ::ng-deep polygon {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 12.5px; 
+  font-size: 12.5px;
   color: var(--text-light);
 }
 
@@ -302,8 +315,8 @@ lucide-angular.star-filled ::ng-deep polygon {
 .review-card__text {
   margin: 0 0 6px;
   color: #4b5563;
-  font-size: 13.5px; 
-  line-height: 1.6; 
+  font-size: 13.5px;
+  line-height: 1.6;
   white-space: pre-line;
   word-break: break-word;
 }
@@ -319,7 +332,9 @@ lucide-angular.star-filled ::ng-deep polygon {
   font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .review-card__toggle:hover {
@@ -359,7 +374,11 @@ lucide-angular.star-filled ::ng-deep polygon {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(255,255,255,0.8), transparent 70%);
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.8),
+    transparent 70%
+  );
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -393,7 +412,7 @@ lucide-angular.star-filled ::ng-deep polygon {
   background: linear-gradient(135deg, #ffffff 0%, #fff7fa 100%);
   border: 2px dashed var(--main-color-border);
   border-radius: 20px;
-  padding: 48px 24px; 
+  padding: 48px 24px;
   text-align: center;
   color: var(--text-muted);
   font-size: 14.5px;
@@ -405,13 +424,17 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 .state-panel__icon {
-  width: 64px; 
+  width: 64px;
   height: 64px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   margin-bottom: 16px;
-  background: linear-gradient(135deg, rgba(138, 30, 65, 0.08), rgba(138, 30, 65, 0.04));
+  background: linear-gradient(
+    135deg,
+    rgba(138, 30, 65, 0.08),
+    rgba(138, 30, 65, 0.04)
+  );
   color: rgba(138, 30, 65, 0.4);
   animation: floatPulse 3.5s ease-in-out infinite;
 }
@@ -437,7 +460,8 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 @keyframes floatPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) scale(1);
     box-shadow: 0 4px 16px rgba(138, 30, 65, 0.06);
   }
@@ -544,18 +568,13 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .skeleton {
   border-radius: 12px;
-  background: linear-gradient(
-    90deg,
-    #f1e8eb 20%,
-    #e6d6dc 50%,
-    #f1e8eb 80%
-  );
+  background: linear-gradient(90deg, #f1e8eb 20%, #e6d6dc 50%, #f1e8eb 80%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.4s ease-in-out infinite;
 }
 
 .review-card--skeleton .review-card__cover {
-  width: 72px;  
+  width: 72px;
   height: 108px;
   flex-shrink: 0;
 }
@@ -568,7 +587,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .skeleton--title {
   width: 58%;
-  height: 18px; 
+  height: 18px;
   margin-bottom: 8px;
 }
 
@@ -598,7 +617,7 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .skeleton--button {
   width: 150px;
-  height: 34px; 
+  height: 34px;
   border-radius: 999px;
 }
 
@@ -609,6 +628,10 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 @keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

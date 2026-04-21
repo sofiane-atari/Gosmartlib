@@ -1,0 +1,165 @@
+:host {
+  display: block;
+}
+
+.attachment-queue {
+  display: grid;
+  gap: 1rem;
+}
+
+.attachment-queue__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.queued-files-box {
+  padding: 1rem;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.queued-files-title {
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.queued-files-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.queued-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 6px;
+}
+
+.queued-file-name {
+  color: #333;
+  font-size: 0.85rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.queued-file-remove,
+.btn-secondary,
+.btn-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 0.6rem 0.95rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background: white;
+  color: #8a1e41;
+  border: 1px solid #8a1e41;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(138, 30, 65, 0.05);
+  transform: translateY(-1px);
+}
+
+.btn-clear,
+.queued-file-remove {
+  background: #fff5f8;
+  color: #8a1e41;
+  border: 1px solid #e4b7c3;
+}
+
+.btn-clear:hover:not(:disabled),
+.queued-file-remove:hover:not(:disabled) {
+  background: #ffeaf0;
+  border-color: #8a1e41;
+}
+
+.btn-secondary:disabled,
+.btn-clear:disabled,
+.queued-file-remove:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.state-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #fff7fa 100%);
+  border: 2px dashed rgba(138, 30, 65, 0.12);
+  border-radius: 16px;
+  padding: 1.25rem 1rem;
+  color: #7a5560;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.state-panel--compact {
+  padding: 1rem;
+}
+
+.state-panel p {
+  margin: 0;
+}
+
+.progress-wrap {
+  margin-top: 0.25rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.progress-track {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #8a1e41;
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .attachment-queue__actions {
+    justify-content: stretch;
+  }
+
+  .queued-file-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-secondary,
+  .btn-clear,
+  .queued-file-remove {
+    width: 100%;
+  }
+}

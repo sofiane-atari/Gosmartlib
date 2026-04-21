@@ -14,6 +14,7 @@ import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewReportRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.mapper.ReviewMapper;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

@@ -95,6 +95,14 @@ export class RoleService {
   }
 
   /**
+   * Too many methods for the same roles
+   * refactor LATER //////////////////////////////////////////////////////////////////////////
+   */
+  public canManageDidacticMaterials(): boolean {
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
+  }
+
+  /**
    * Determines whether the user is allowed to manage genres.
    *
    * Only administrators and librarians are allowed to modify genres.
@@ -136,5 +144,23 @@ export class RoleService {
    */
   public canAccessAdminOnlyFeatures(): boolean {
     return this.hasRole('ADMIN');
+  }
+
+  public canModifyDidacticMaterial(
+    ownerUserId: string | null | undefined,
+  ): boolean {
+    const currentUserId = this.authService.currentUser()?.id;
+
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    if (!currentUserId || !ownerUserId) {
+      return false;
+    }
+
+    return (
+      currentUserId === ownerUserId && this.hasAnyRole(['TEACHER', 'LIBRARIAN'])
+    );
   }
 }

@@ -1,0 +1,101 @@
+<div class="panel">
+  <div class="panel-header">
+    <div>
+      <p class="panel-eyebrow">Gekoppelde boeken</p>
+      <h2>Zoek en selecteer boeken</h2>
+    </div>
+
+    <span class="pill">{{ selectedBooksCount() }} gekozen</span>
+  </div>
+
+  <div class="search-row">
+    <label for="didacticBookSearchQuery">Zoek op titel of auteur</label>
+    <input
+      id="didacticBookSearchQuery"
+      type="text"
+      [value]="searchQuery()"
+      (input)="searchQueryChanged.emit($event)"
+      placeholder="Typ een titel of auteur"
+    />
+  </div>
+
+  <div class="search-row">
+    <label for="didacticBookSearchIsbn">Zoek op ISBN</label>
+    <input
+      id="didacticBookSearchIsbn"
+      type="text"
+      [value]="searchIsbn()"
+      (input)="isbnSearchChanged.emit($event)"
+      (keydown)="isbnKeydown.emit($event)"
+      placeholder="Typ een ISBN"
+    />
+  </div>
+
+  @if (isLoadingBooks()) {
+    <div class="state-panel state-panel--compact">
+      <p>Boeken worden geladen...</p>
+    </div>
+  } @else if (!hasBookSearchInput()) {
+    <div class="state-panel state-panel--compact">
+      <p>Vul minstens één zoekveld in om boeken te zoeken.</p>
+    </div>
+  } @else {
+    <div class="list">
+      @for (book of filteredBooks(); track book.isbn13) {
+        <div class="list-item book-item book-item--with-cover">
+          <div class="book-item__cover">
+            @if (book.imageUrl) {
+              <img
+                [src]="book.imageUrl"
+                [alt]="book.title"
+                class="book-item__image"
+              />
+            } @else {
+              <div class="book-item__placeholder">
+                <span>Geen cover</span>
+              </div>
+            }
+          </div>
+
+          <div class="book-item-content">
+            <span class="list-item-title">{{ book.title }}</span>
+            <span class="list-item-subtitle">
+              {{ book.author }}
+              @if (book.releaseYear) {
+                · {{ book.releaseYear }}
+              }
+              @if (book.isbn13) {
+                · ISBN: {{ book.isbn13 }}
+              }
+            </span>
+          </div>
+
+          @if (book.id !== undefined) {
+            <button
+              type="button"
+              class="action-button action-button--secondary"
+              [disabled]="isBookAlreadySelected(book.id)"
+              (click)="addBookRequested.emit(book)"
+            >
+              {{
+                isBookAlreadySelected(book.id) ? "Geselecteerd" : "Selecteren"
+              }}
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="action-button action-button--secondary"
+              disabled
+            >
+              Niet beschikbaar
+            </button>
+          }
+        </div>
+      } @empty {
+        <div class="state-panel state-panel--compact">
+          <p>Geen boeken gevonden voor deze zoekterm.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

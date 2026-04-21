@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
 import { AuthUserDto, Role } from '../../model/auth.model';
+import { DIDACTIC_MATERIAL_PATHS } from '../../routes/didactic-material.routes';
 import {
   LucideAngularModule,
   Book,
@@ -21,9 +22,11 @@ import {
   User,
   School,
   Shield,
+  FolderKanban,
 } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
+import { UserService } from '../../services/user/user.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -38,9 +41,11 @@ export class SidebarComponent {
   readonly RotateCcwIcon = RotateCcw;
   readonly LogOutIcon = LogOut;
   readonly ShieldIcon = Shield;
+  public readonly FolderKanbanIcon = FolderKanban;
 
   public readonly authService = inject(AuthService);
   private readonly roleService = inject(RoleService);
+  private readonly userService = inject(UserService);
 
   // Input for mobile state
   public mobileOpen = input<boolean>(false);
@@ -49,23 +54,29 @@ export class SidebarComponent {
   public sidebarClosed = output<void>();
 
   public constructor(private readonly router: Router) {
-    void [this.ShieldIcon, this.isAdminOverrideVisible, this.adminOverrideLabel, this.toggleAdminOverride];
+    void [
+      this.ShieldIcon,
+      this.isAdminOverrideVisible,
+      this.adminOverrideLabel,
+      this.toggleAdminOverride,
+    ];
   }
 
   protected readonly currentUser = computed<AuthUserDto | null>(() =>
-    this.authService.currentUser()
+    this.authService.currentUser(),
   );
 
-  protected readonly isAdminOverrideVisible = computed(() =>
-    this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser()
+  protected readonly isAdminOverrideVisible = computed(
+    () =>
+      this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser(),
   );
 
   protected readonly isAdminOverrideEnabled = computed(
-    () => this.authService.adminOverrideStatus()?.enabled ?? false
+    () => this.authService.adminOverrideStatus()?.enabled ?? false,
   );
 
   protected readonly adminOverrideLabel = computed(() =>
-    this.isAdminOverrideEnabled() ? 'Admin uit (test)' : 'Admin aan (test)'
+    this.isAdminOverrideEnabled() ? 'Admin uit (test)' : 'Admin aan (test)',
   );
 
   menuItems = [
@@ -75,44 +86,45 @@ export class SidebarComponent {
     { icon: Star, label: 'Mijn reviews', route: '/reviews' },
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/instellingen' },
-    { icon: Package, label: 'BookBox', route: '/bookbox', roles: ['LIBRARIAN', 'TEACHER'] },
-    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage', roles: ['TEACHER'] },
-    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard', roles: ['LIBRARIAN'] },
-    { icon: Tag, label: 'Genrebeheer', route: '/genre', roles: ['LIBRARIAN'] },
+    { icon: Package, label: 'BookBox', route: '/bookbox' },
+    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
+    {
+      icon: FolderKanban,
+      label: 'Didactisch Materiaal',
+      route: `/${DIDACTIC_MATERIAL_PATHS.root}`,
+      staffOnly: true,
+    },
+    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
+    { icon: Tag, label: 'Genrebeheer', route: '/genre' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
     { icon: Book, label: 'Boekbeheer', route: '/books-management', roles: ['LIBRARIAN', 'TEACHER'] },
   ];
 
   protected readonly visibleMenuItems = computed(() => {
-    return this.menuItems.filter(item => {
-      if (item.adminOnly) {
-        return this.roleService.isAdmin();
+    const isAdmin = this.roleService.isAdmin();
+    const canManageDidacticMaterials =
+      this.roleService.canManageDidacticMaterials();
+
+    return this.menuItems.filter((item) => {
+      if (item.adminOnly && !isAdmin) {
+        return false;
       }
-      if (item.roles) {
-        return this.roleService.hasAnyRole(item.roles as Role[]);
+
+      if (item.staffOnly && !canManageDidacticMaterials) {
+        return false;
       }
-      return true; // Show item if no specific roles are required
+
+      return true;
     });
   });
 
   protected readonly userDisplayName = computed(() => {
-    const user = this.currentUser();
-
-    if (!user) {
-      return 'Gebruiker';
-    }
-
-    return user.fullName?.trim()
-      || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
-      || user.firstName?.trim()
-      || user.id
-      || 'Gebruiker';
+    this.userService.getDisplayName(this.currentUser());
   });
 
-  protected readonly userRoleLabel = computed(() => {
-    const role = this.currentUser()?.role;
-    return this.getRoleLabel(role);
-  });
+  protected readonly userRoleLabel = computed(() =>
+    this.userService.getRoleLabel(this.currentUser()?.role),
+  );
 
   public goToAddBook(): void {
     this.router.navigate(['/add-book']);
@@ -134,20 +146,5 @@ export class SidebarComponent {
   public toggleAdminOverride(): void {
     const enable = !this.isAdminOverrideEnabled();
     this.authService.setAdminOverride(enable);
-  }
-
-  private getRoleLabel(role: Role | undefined): string {
-    switch (role) {
-      case 'STUDENT':
-        return 'Leerling';
-      case 'TEACHER':
-        return 'Leerkracht';
-      case 'LIBRARIAN':
-        return 'Bibliotheekbeheerder';
-      case 'ADMIN':
-        return 'Platformbeheerder';
-      default:
-        return 'Onbekende rol';
-    }
   }
 }

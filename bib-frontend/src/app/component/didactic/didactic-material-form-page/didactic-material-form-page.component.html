@@ -1,0 +1,209 @@
+<div class="layout">
+  <div class="info-banner">
+    <lucide-icon [name]="InfoIcon" class="info-icon"></lucide-icon>
+
+    <div class="info-content">
+      <p>
+        <strong>{{ pageTitle() }}</strong>
+      </p>
+      <p>{{ pageDescription() }}</p>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="section-label">Stappenplan</div>
+
+    <div class="step-row">
+      <div class="step-item">
+        <span class="step-num">Stap 1</span>
+        <span class="step-title">Vul de basisgegevens in</span>
+        <span class="step-desc">
+          Geef een titel, beschrijving en categorie op.
+        </span>
+      </div>
+
+      <div class="step-item">
+        <span class="step-num">Stap 2</span>
+        <span class="step-title">Voeg didactische context toe</span>
+        <span class="step-desc"> Vul vak, niveau en trefwoorden in. </span>
+      </div>
+
+      <div class="step-item">
+        <span class="step-num">Stap 3</span>
+        <span class="step-title">
+          {{ isEditMode() ? "Werk het materiaal bij" : "Sla het materiaal op" }}
+        </span>
+        <span class="step-desc">
+          Controleer de gegevens en bevestig je wijzigingen.
+        </span>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    @if (isLoading()) {
+      <div class="state-panel">
+        <p>Didactisch materiaal wordt geladen...</p>
+      </div>
+    } @else {
+      <app-didactic-material-form
+        [isSubmitting]="isSubmitting()"
+        [initialValue]="initialValue()"
+        [submitLabel]="submitLabel()"
+        (formSubmitted)="handleFormSubmitted($event)"
+      />
+    }
+
+    <hr class="divider" />
+
+    <div class="section-label">Gekoppelde boeken</div>
+
+    <app-didactic-material-book-selection-panel
+      [searchQuery]="bookSearchQuery()"
+      [searchIsbn]="bookSearchIsbn()"
+      [isLoadingBooks]="isLoadingBooks()"
+      [hasBookSearchInput]="hasBookSearchInput()"
+      [filteredBooks]="filteredBooks()"
+      [selectedBooksCount]="selectedLinkedBooksCount()"
+      [selectedBookIds]="selectedLinkedBookIds()"
+      (searchQueryChanged)="handleBookSearchQueryChanged($event)"
+      (isbnSearchChanged)="handleBookSearchIsbnChanged($event)"
+      (isbnKeydown)="handleBookSearchIsbnKeydown($event)"
+      (addBookRequested)="addLinkedBook($event)"
+    ></app-didactic-material-book-selection-panel>
+
+    @if (selectedLinkedBooks().length > 0) {
+      <div class="linked-books-box">
+        <div class="linked-books-box__title">
+          Geselecteerde boeken ({{ selectedLinkedBooks().length }})
+        </div>
+
+        <div class="linked-books-list linked-books-list--cards">
+          @for (linkedBook of selectedLinkedBooks(); track linkedBook.id) {
+            <article class="linked-book-card">
+              <div class="linked-book-card__cover">
+                @if (linkedBook.imageUrl) {
+                  <img
+                    [src]="linkedBook.imageUrl"
+                    [alt]="linkedBook.title"
+                    class="linked-book-card__image"
+                  />
+                } @else {
+                  <div class="linked-book-card__placeholder">
+                    <span>Geen cover</span>
+                  </div>
+                }
+              </div>
+
+              <div class="linked-book-card__content">
+                <h3 class="linked-book-card__title">{{ linkedBook.title }}</h3>
+                <p class="linked-book-card__author">{{ linkedBook.author }}</p>
+              </div>
+
+              <button
+                type="button"
+                class="action-button action-button--danger linked-book-card__remove"
+                (click)="removeLinkedBook(linkedBook.id)"
+              >
+                Verwijderen
+              </button>
+            </article>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="state-panel state-panel--compact">
+        <p>Er zijn nog geen boeken gekoppeld aan dit didactisch materiaal.</p>
+      </div>
+    }
+
+    <hr class="divider" />
+
+    <div class="section-label">Bijlagen</div>
+
+    @if (canShowAttachmentsPanel()) {
+      <app-didactic-material-attachments-panel
+        [didacticMaterialId]="materialId()!"
+        [canManageAttachments]="true"
+      ></app-didactic-material-attachments-panel>
+    } @else {
+      <div class="attachment-prep-section">
+        <app-file-upload
+          [selectedFile]="selectedAttachmentFile()"
+          [accept]="'.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx'"
+          [subLabel]="'PDF, Word, PowerPoint en Excel bestanden'"
+          [maxSizeMB]="20"
+          [disabled]="isUploadingQueuedFiles()"
+          [showProgress]="false"
+          (fileChanged)="handleAttachmentFileChange($event)"
+        ></app-file-upload>
+
+        <div class="form-actions attachment-prep-actions">
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            [disabled]="!selectedAttachmentFile() || isUploadingQueuedFiles()"
+            (click)="addAttachmentToQueue()"
+          >
+            Aan wachtrij toevoegen
+          </button>
+        </div>
+
+        @if (queuedFiles().length > 0) {
+          <div class="queued-files-box">
+            <div class="queued-files-title">Bestanden in wachtrij</div>
+
+            <div class="queued-files-list">
+              @for (
+                queuedFile of queuedFiles();
+                track queuedFile.name + queuedFile.lastModified;
+                let index = $index
+              ) {
+                <div class="queued-file-item">
+                  <span class="queued-file-name">{{ queuedFile.name }}</span>
+
+                  <button
+                    type="button"
+                    class="action-button action-button--danger"
+                    [disabled]="isUploadingQueuedFiles()"
+                    (click)="removeQueuedFile(index)"
+                  >
+                    Verwijderen
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (isUploadingQueuedFiles()) {
+          <div class="progress-wrap">
+            <div class="progress-header">
+              <span>
+                Bijlage uploaden:
+                <strong>{{ currentUploadingFileName() }}</strong>
+              </span>
+              <span class="progress-percentage">
+                {{ queuedUploadProgress() ?? 0 }}%
+              </span>
+            </div>
+
+            <div class="progress-track">
+              <div
+                class="progress-bar"
+                [style.width.%]="queuedUploadProgress() ?? 0"
+              ></div>
+            </div>
+          </div>
+        } @else {
+          <div class="state-panel state-panel--compact">
+            <p>
+              Sla eerst het didactisch materiaal op. Daarna verschijnen de
+              opgeslagen bijlagen hieronder in het overzicht.
+            </p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

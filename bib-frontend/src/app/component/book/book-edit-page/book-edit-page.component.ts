@@ -54,7 +54,7 @@ export class BookEditPageComponent {
     private bookService: BookService,
     private genreService: GenreService,
     private readingLevelsService: ReadingLevelsService,
-    private toastService: ToastService
+    private toastService: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -176,7 +176,10 @@ export class BookEditPageComponent {
     }
 
     if (this.selectedGenres.length >= 3) {
-      this.toastService.show('Je mag maximaal 3 subgenres selecteren.', 'error');
+      this.toastService.show(
+        'Je mag maximaal 3 subgenres selecteren.',
+        'error',
+      );
       return;
     }
 
@@ -243,11 +246,12 @@ export class BookEditPageComponent {
           description: formValue.description?.trim() || '',
           releaseYear: formValue.releaseYear || new Date().getFullYear(),
           readingLevel: formValue.readingLevel ?? undefined,
-          genres: this.selectedGenres
+          genres: this.selectedGenres,
         };
 
-        this.bookService.updateBook(this.currentBook!.id!, updatedBook)
-          .pipe(finalize(() => this.isSaving = false))
+        this.bookService
+          .updateBook(this.currentBook!.id!, updatedBook)
+          .pipe(finalize(() => (this.isSaving = false)))
           .subscribe({
             next: (book) => {
               this.toastService.show('Boek succesvol opgeslagen.', 'success');
@@ -257,9 +261,9 @@ export class BookEditPageComponent {
               const backendMessage =
                 err?.error?.error?.message ?? 'Het boek opslaan is mislukt.';
               this.toastService.show(backendMessage, 'error');
-            }
+            },
           });
-      }
+      },
     );
   }
 }

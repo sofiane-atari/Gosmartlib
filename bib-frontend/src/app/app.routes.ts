@@ -3,6 +3,7 @@ import { BookDetailComponent } from './component/catalogus/book-detail/book-deta
 import { AddBookPageComponent } from './component/book/add-book-page/add-book-page.component';
 import { BookEditPageComponent } from './component/book/book-edit-page/book-edit-page.component';
 import { BookManagementComponent } from './component/book/book-management/book-management.component';
+import { didacticMaterialRoutes } from './routes/didactic-material.routes';
 
 // Genre
 import { DashboardGenresComponent } from './component/genre/dashboard-genres/dashboard-genres.component';
@@ -36,9 +37,16 @@ import { SchoolDashboardComponent } from './component/school/school-dashboard/sc
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
   { path: 'account', redirectTo: '/profile', pathMatch: 'full' },
-  { path: 'profile', component: ProfileComponent, canActivate: [authGuard]},
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
-  { path: 'review-dashboard', component: ReviewDashboardComponent, canActivate: [reviewModerationGuard, authGuard],},
+  {
+    path: 'review-dashboard',
+    component: ReviewDashboardComponent,
+    canActivate: [reviewModerationGuard, authGuard],
+  },
+
+  // didactic Routes
+  ...didacticMaterialRoutes,
   {
     path: 'book/:id',
     component: BookDetailComponent,
@@ -89,12 +97,12 @@ export const routes: Routes = [
   {
     path: 'books-management',
     component: BookManagementComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'loans/create',
     component: CreateLoanComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'scholen',
@@ -102,5 +110,4 @@ export const routes: Routes = [
     canActivate: [authGuard, adminOnlyGuard],
   },
   { path: '**', redirectTo: '/catalog' },
-
 ];
