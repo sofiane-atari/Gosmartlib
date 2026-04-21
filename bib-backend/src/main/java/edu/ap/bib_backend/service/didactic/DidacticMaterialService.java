@@ -7,7 +7,7 @@ import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterial;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.didactic.DidacticMaterialRepository;
-import edu.ap.bib_backend.mapper.DidacticMaterialMapper;
+import edu.ap.bib_backend.mapper.didactic.DidacticMaterialMapper;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.mapper;
+package edu.ap.bib_backend.mapper.didactic;
 
 import edu.ap.bib_backend.dto.didactic.DidacticMaterialBookSummaryResponseDto;
 import edu.ap.bib_backend.dto.didactic.DidacticMaterialResponseDto;
