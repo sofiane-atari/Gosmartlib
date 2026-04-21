@@ -84,9 +84,47 @@
 
           <section class="detail-section">
             <h2 class="detail-section__title">Gekoppelde boeken</h2>
-            <div class="state-panel state-panel--compact">
-              <p>Gekoppelde boeken werken we later verder uit.</p>
-            </div>
+
+            @if (selectedMaterial.linkedBooks.length === 0) {
+              <div class="state-panel state-panel--compact">
+                <p>
+                  Er zijn nog geen boeken gekoppeld aan dit didactisch
+                  materiaal.
+                </p>
+              </div>
+            } @else {
+              <div class="linked-books-grid">
+                @for (
+                  linkedBook of selectedMaterial.linkedBooks;
+                  track linkedBook.id
+                ) {
+                  <article class="linked-book-card">
+                    <div class="linked-book-card__cover">
+                      @if (linkedBook.imageUrl) {
+                        <img
+                          [src]="linkedBook.imageUrl"
+                          [alt]="linkedBook.title"
+                          class="linked-book-card__image"
+                        />
+                      } @else {
+                        <div class="linked-book-card__placeholder">
+                          <span>Geen cover</span>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="linked-book-card__content">
+                      <h3 class="linked-book-card__title">
+                        {{ linkedBook.title }}
+                      </h3>
+                      <p class="linked-book-card__author">
+                        {{ linkedBook.author }}
+                      </p>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
           </section>
         </div>
 

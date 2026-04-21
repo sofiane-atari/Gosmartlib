@@ -38,7 +38,21 @@
   } @else {
     <div class="list">
       @for (book of filteredBooks(); track book.isbn13) {
-        <div class="list-item book-item">
+        <div class="list-item book-item book-item--with-cover">
+          <div class="book-item__cover">
+            @if (book.imageUrl) {
+              <img
+                [src]="book.imageUrl"
+                [alt]="book.title"
+                class="book-item__image"
+              />
+            } @else {
+              <div class="book-item__placeholder">
+                <span>Geen cover</span>
+              </div>
+            }
+          </div>
+
           <div class="book-item-content">
             <span class="list-item-title">{{ book.title }}</span>
             <span class="list-item-subtitle">

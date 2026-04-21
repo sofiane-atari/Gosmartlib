@@ -14,6 +14,7 @@ export interface DidacticMaterialBookSummary {
   id: number;
   title: string;
   author: string;
+  imageUrl?: string | null;
 }
 
 export interface DidacticMaterial {

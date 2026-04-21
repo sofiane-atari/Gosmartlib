@@ -20,5 +20,6 @@ public interface DidacticMaterialMapper {
     @Mapping(target = "id", source = "book.id")
     @Mapping(target = "title", source = "book.title")
     @Mapping(target = "author", source = "book.author")
+    @Mapping(target = "imageUrl", source = "book.imageUrl")
     DidacticMaterialBookSummaryResponseDto toBookSummaryResponse(DidacticMaterialBookLink bookLink);
 }

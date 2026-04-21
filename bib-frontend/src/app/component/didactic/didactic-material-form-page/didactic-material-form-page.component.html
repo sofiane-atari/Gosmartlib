@@ -76,28 +76,42 @@
       <div class="linked-books-box">
         <div class="linked-books-box__title">Geselecteerde boeken</div>
 
-        <div class="linked-books-list">
+        <div class="linked-books-list linked-books-list--cards">
           @for (linkedBook of selectedLinkedBooks(); track linkedBook.id) {
-            <div class="linked-book-item">
-              <div class="linked-book-item__content">
-                <span class="linked-book-item__title">{{
-                  linkedBook.title
-                }}</span>
-                <span class="linked-book-item__subtitle">{{
-                  linkedBook.author
-                }}</span>
+            <article class="linked-book-card">
+              <div class="linked-book-card__cover">
+                @if (linkedBook.imageUrl) {
+                  <img
+                    [src]="linkedBook.imageUrl"
+                    [alt]="linkedBook.title"
+                    class="linked-book-card__image"
+                  />
+                } @else {
+                  <div class="linked-book-card__placeholder">
+                    <span>Geen cover</span>
+                  </div>
+                }
+              </div>
+
+              <div class="linked-book-card__content">
+                <h3 class="linked-book-card__title">{{ linkedBook.title }}</h3>
+                <p class="linked-book-card__author">{{ linkedBook.author }}</p>
               </div>
 
               <button
                 type="button"
-                class="linked-book-item__remove"
+                class="linked-book-card__remove"
                 (click)="removeLinkedBook(linkedBook.id)"
               >
                 Verwijderen
               </button>
-            </div>
+            </article>
           }
         </div>
+      </div>
+    } @else {
+      <div class="state-panel state-panel--compact">
+        <p>Er zijn nog geen boeken gekoppeld aan dit didactisch materiaal.</p>
       </div>
     }
 

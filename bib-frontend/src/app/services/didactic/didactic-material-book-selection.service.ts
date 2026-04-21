@@ -92,6 +92,7 @@ export class DidacticMaterialBookSelectionService {
         id: bookId,
         title: book.title,
         author: book.author,
+        imageUrl: book.imageUrl ?? null,
       },
     ]);
   }
