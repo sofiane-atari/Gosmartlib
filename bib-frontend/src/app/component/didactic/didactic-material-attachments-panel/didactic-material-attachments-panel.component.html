@@ -1,0 +1,93 @@
+<section class="attachments-panel">
+  <div class="attachments-panel__header">
+    <div>
+      <p class="attachments-panel__eyebrow">Bijlagen</p>
+      <h2 class="attachments-panel__title">Bestanden</h2>
+      <p class="attachments-panel__description">
+        Upload lesfiches, presentaties, evaluaties of andere ondersteunende
+        bestanden.
+      </p>
+    </div>
+  </div>
+
+  @if (canManageAttachments()) {
+    <div class="attachments-panel__upload">
+      <app-file-upload
+        [selectedFile]="selectedFile()"
+        [accept]="'.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx'"
+        [subLabel]="'PDF, Word, PowerPoint en Excel bestanden'"
+        [maxSizeMB]="20"
+        [disabled]="isUploading()"
+        [uploadProgress]="uploadProgress()"
+        [showProgress]="true"
+        (fileChanged)="handleFileSelected($event)"
+      ></app-file-upload>
+
+      <div class="attachments-panel__upload-actions">
+        <button
+          type="button"
+          class="btn-submit"
+          [disabled]="!selectedFile() || isUploading()"
+          (click)="uploadSelectedFile()"
+        >
+          {{ isUploading() ? "Uploaden..." : "Bijlage toevoegen" }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="state-panel state-panel--compact">
+      <p>Bijlagen worden geladen...</p>
+    </div>
+  } @else if (attachments().length === 0) {
+    <div class="state-panel state-panel--compact">
+      <p>Er zijn nog geen bijlagen toegevoegd.</p>
+    </div>
+  } @else {
+    <div class="attachment-list">
+      @for (attachment of attachments(); track attachment.id) {
+        <article class="attachment-card">
+          <div class="attachment-card__content">
+            <h3 class="attachment-card__name">
+              {{ attachment.originalFileName }}
+            </h3>
+
+            <div class="attachment-card__meta">
+              <span>{{ formatFileSize(attachment.fileSize) }}</span>
+              <span>•</span>
+              <span>{{
+                attachment.uploadedAt | date: "dd/MM/yyyy HH:mm"
+              }}</span>
+            </div>
+          </div>
+
+          <div class="attachment-card__actions">
+            <button
+              type="button"
+              class="btn-secondary"
+              (click)="downloadAttachment(attachment)"
+            >
+              Downloaden
+            </button>
+
+            @if (canManageAttachments()) {
+              <button
+                type="button"
+                class="btn-danger"
+                [disabled]="isDeletingAttachment(attachment.id)"
+                (click)="deleteAttachment(attachment)"
+              >
+                {{
+                  isDeletingAttachment(attachment.id)
+                    ? "Verwijderen..."
+                    : "Verwijderen"
+                }}
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

@@ -9,11 +9,17 @@ import { RoleService } from '../../../services/role-service/role.service';
 import { DidacticMaterial } from '../../../model/didactic/didactic-material.model';
 import { DIDACTIC_MATERIAL_PATHS } from '../../../routes/didactic-material.routes';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DidacticMaterialAttachmentsPanelComponent } from '../didactic-material-attachments-panel/didactic-material-attachments-panel.component';
 
 @Component({
   selector: 'app-didactic-material-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, DatePipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    DatePipe,
+    DidacticMaterialAttachmentsPanelComponent,
+  ],
   templateUrl: './didactic-material-detail.component.html',
   styleUrl: './didactic-material-detail.component.css',
 })

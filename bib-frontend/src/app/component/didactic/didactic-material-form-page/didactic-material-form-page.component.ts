@@ -10,18 +10,29 @@ import {
   CreateDidacticMaterialRequest,
   DidacticMaterial,
 } from '../../../model/didactic/didactic-material.model';
-import { DIDACTIC_MATERIAL_PATHS } from '../../../routes/didactic-material.routes';
 import { Info, LucideAngularModule } from 'lucide-angular/src/icons';
+import { DidacticMaterialAttachmentService } from '../../../services/didactic/didactic-material-attachment.service';
+import { FileUploadComponent } from '../../shared/file-upload/file-upload.component';
+import { DidacticMaterialAttachmentsPanelComponent } from '../didactic-material-attachments-panel/didactic-material-attachments-panel.component';
 
 @Component({
   selector: 'app-didactic-material-form-page',
   standalone: true,
-  imports: [CommonModule, DidacticMaterialFormComponent, LucideAngularModule],
+  imports: [
+    CommonModule,
+    DidacticMaterialFormComponent,
+    LucideAngularModule,
+    FileUploadComponent,
+    DidacticMaterialAttachmentsPanelComponent,
+  ],
   templateUrl: './didactic-material-form-page.component.html',
   styleUrl: './didactic-material-form-page.component.css',
 })
 export class DidacticMaterialFormPageComponent {
   private readonly didacticMaterialService = inject(DidacticMaterialService);
+  private readonly didacticMaterialAttachmentService = inject(
+    DidacticMaterialAttachmentService,
+  );
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -35,7 +46,23 @@ export class DidacticMaterialFormPageComponent {
     signal<CreateDidacticMaterialRequest | null>(null);
   protected readonly materialId = signal<number | null>(null);
 
+  protected readonly selectedAttachmentFile = signal<File | null>(null);
+  protected readonly queuedFiles = signal<File[]>([]);
+  protected readonly isUploadingQueuedFiles = signal(false);
+  protected readonly queuedUploadProgress = signal<number | null>(null);
+  protected readonly currentUploadingFileName = signal<string | null>(null);
+
   protected readonly isEditMode = computed(() => this.materialId() !== null);
+  protected readonly hasQueuedFiles = computed(
+    () => this.queuedFiles().length > 0,
+  );
+
+  protected readonly canShowAttachmentsPanel = computed(
+    () =>
+      this.materialId() !== null &&
+      !this.hasQueuedFiles() &&
+      !this.isUploadingQueuedFiles(),
+  );
 
   protected readonly pageTitle = computed(() =>
     this.isEditMode()
@@ -84,20 +111,64 @@ export class DidacticMaterialFormPageComponent {
     this.createMaterial(request);
   }
 
+  public handleAttachmentFileChange(file: File | null): void {
+    this.selectedAttachmentFile.set(file);
+  }
+
+  public addAttachmentToQueue(): void {
+    const selectedFile = this.selectedAttachmentFile();
+
+    if (!selectedFile) {
+      this.toastService.show('Selecteer eerst een bestand.', 'error');
+      return;
+    }
+
+    const alreadyQueued = this.queuedFiles().some(
+      (queuedFile) =>
+        queuedFile.name === selectedFile.name &&
+        queuedFile.size === selectedFile.size &&
+        queuedFile.lastModified === selectedFile.lastModified,
+    );
+
+    if (alreadyQueued) {
+      this.toastService.show('Dit bestand staat al in de wachtrij.', 'error');
+      return;
+    }
+
+    this.queuedFiles.update((currentFiles) => [...currentFiles, selectedFile]);
+    this.selectedAttachmentFile.set(null);
+    this.toastService.show('Bestand toegevoegd aan de wachtrij.', 'success');
+  }
+
+  public removeQueuedFile(fileIndex: number): void {
+    this.queuedFiles.update((currentFiles) =>
+      currentFiles.filter((_, index) => index !== fileIndex),
+    );
+  }
+
   private createMaterial(request: CreateDidacticMaterialRequest): void {
     this.didacticMaterialService
       .create(request)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (createdMaterial) => {
+          this.materialId.set(createdMaterial.id);
+          this.initialValue.set(this.mapMaterialToRequest(createdMaterial));
           this.isSubmitting.set(false);
+
+          if (this.queuedFiles().length > 0) {
+            this.toastService.show(
+              'Didactisch materiaal is opgeslagen. De bijlagen worden nu opgeladen.',
+              'success',
+            );
+            this.uploadQueuedFiles(createdMaterial.id);
+            return;
+          }
+
           this.toastService.show(
             'Didactisch materiaal is opgeslagen.',
             'success',
           );
-          void this.router.navigate([
-            `/${DIDACTIC_MATERIAL_PATHS.root}/${createdMaterial.id}`,
-          ]);
         },
         error: () => {
           this.isSubmitting.set(false);
@@ -122,19 +193,70 @@ export class DidacticMaterialFormPageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updatedMaterial) => {
+          this.initialValue.set(this.mapMaterialToRequest(updatedMaterial));
           this.isSubmitting.set(false);
           this.toastService.show(
             'Didactisch materiaal is bijgewerkt.',
             'success',
           );
-          void this.router.navigate([
-            `/${DIDACTIC_MATERIAL_PATHS.root}/${updatedMaterial.id}`,
-          ]);
         },
         error: () => {
           this.isSubmitting.set(false);
           this.toastService.show(
             'Het didactisch materiaal kon niet worden bijgewerkt.',
+            'error',
+          );
+        },
+      });
+  }
+
+  private uploadQueuedFiles(didacticMaterialId: number): void {
+    const filesToUpload = [...this.queuedFiles()];
+
+    if (filesToUpload.length === 0) {
+      return;
+    }
+
+    this.isUploadingQueuedFiles.set(true);
+    this.uploadNextQueuedFile(didacticMaterialId, filesToUpload);
+  }
+
+  private uploadNextQueuedFile(
+    didacticMaterialId: number,
+    remainingFiles: File[],
+  ): void {
+    const nextFile = remainingFiles[0];
+
+    if (!nextFile) {
+      this.isUploadingQueuedFiles.set(false);
+      this.queuedUploadProgress.set(null);
+      this.currentUploadingFileName.set(null);
+      this.toastService.show('Alle bijlagen zijn toegevoegd.', 'success');
+      return;
+    }
+
+    this.currentUploadingFileName.set(nextFile.name);
+    this.queuedUploadProgress.set(0);
+
+    this.didacticMaterialAttachmentService
+      .upload(didacticMaterialId, nextFile)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (uploadState) => {
+          this.queuedUploadProgress.set(uploadState.progress);
+
+          if (uploadState.attachment) {
+            const newRemainingFiles = remainingFiles.slice(1);
+            this.queuedFiles.set(newRemainingFiles);
+            this.uploadNextQueuedFile(didacticMaterialId, newRemainingFiles);
+          }
+        },
+        error: () => {
+          this.isUploadingQueuedFiles.set(false);
+          this.queuedUploadProgress.set(null);
+          this.currentUploadingFileName.set(null);
+          this.toastService.show(
+            `De bijlage "${nextFile.name}" kon niet worden opgeladen.`,
             'error',
           );
         },
@@ -172,7 +294,8 @@ export class DidacticMaterialFormPageComponent {
       subject: material.subject,
       educationLevel: material.educationLevel,
       keywords: material.keywords,
-      linkedBookIds: material.linkedBooks.map((linkedBook) => linkedBook.id),
+      linkedBookIds:
+        material.linkedBooks?.map((linkedBook) => linkedBook.id) ?? [],
     };
   }
 }

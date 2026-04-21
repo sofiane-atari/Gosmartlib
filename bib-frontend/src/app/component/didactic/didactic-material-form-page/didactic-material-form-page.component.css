@@ -136,6 +136,110 @@
   margin: 1.2rem 0;
 }
 
+.state-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #fff7fa 100%);
+  border: 2px dashed rgba(138, 30, 65, 0.12);
+  border-radius: 16px;
+  padding: 1.25rem 1rem;
+  color: #7a5560;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.state-panel--compact {
+  padding: 1rem;
+}
+
+.state-panel p {
+  margin: 0;
+}
+
+.attachment-prep-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.attachment-prep-actions {
+  justify-content: flex-end;
+}
+
+.queued-files-box {
+  padding: 1rem;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.queued-files-title {
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.queued-files-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.queued-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 6px;
+}
+
+.queued-file-name {
+  color: #333;
+  font-size: 0.85rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.queued-file-remove {
+  border: 1px solid #e4b7c3;
+  background: #fff5f8;
+  color: #8a1e41;
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.queued-file-remove:hover:not(:disabled) {
+  background: #ffeaf0;
+  border-color: #8a1e41;
+}
+
+.queued-file-remove:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.state-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #fff7fa 100%);
+  border: 2px dashed rgba(138, 30, 65, 0.12);
+  border-radius: 16px;
+  padding: 1.25rem 1rem;
+  color: #7a5560;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.state-panel--compact {
+  padding: 1rem;
+}
+
+.state-panel p {
+  margin: 0;
+}
+
 @keyframes fadeInInfo {
   from {
     opacity: 0;
@@ -159,5 +263,18 @@
 
   .step-row {
     grid-template-columns: 1fr;
+  }
+
+  .attachment-prep-actions {
+    justify-content: stretch;
+  }
+
+  .queued-file-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .queued-file-remove {
+    width: 100%;
   }
 }
