@@ -1,6 +1,7 @@
 .didactic-material-overview {
   min-height: 100vh;
   padding: 32px 24px;
+  font-family: var(--main-font);
 }
 
 /* =========================================================
@@ -15,7 +16,7 @@
 }
 
 /* =========================================================
-   HEADER (Geen achtergrond, wel een subtiele border)
+   HEADER
    ========================================================= */
 .didactic-material-overview__header {
   position: sticky;
@@ -26,15 +27,14 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  padding-top: 16px;
-  padding-bottom: 24px;
   background-color: transparent;
-  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .didactic-material-overview__title {
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 800; /* Iets vetter voor meer impact */
   color: var(--text-dark);
   letter-spacing: -0.5px;
   margin: 0;
@@ -54,7 +54,7 @@
 }
 
 /* =========================================================
-   BUTTONS (Moderne uitstraling)
+   BUTTONS
    ========================================================= */
 .action-button {
   display: inline-flex;
@@ -135,6 +135,9 @@
   flex-direction: column;
   gap: 16px;
   width: 100%;
+  list-style: none; /* Verwijdert eventuele browser-bolletjes */
+  padding: 0;
+  margin: 0;
 }
 
 .material-list ::ng-deep app-didactic-material-card {

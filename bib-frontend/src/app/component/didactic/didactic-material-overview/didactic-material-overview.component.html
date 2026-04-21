@@ -21,8 +21,10 @@
     </div>
 
     @if (isLoading()) {
-      <section class="state-panel">
-        <p>Didactisch materiaal wordt geladen...</p>
+      <section class="material-list">
+        @for (dummy of [1, 2, 3]; track $index) {
+          <app-didactic-material-card [isLoading]="true" />
+        }
       </section>
     } @else if (materials().length === 0) {
       <section class="state-panel state-panel--empty" @fadeInUp>
@@ -40,10 +42,11 @@
       </section>
     } @else {
       <section class="material-list">
-        @for (material of materials(); track material.id) {
+        @for (material of materials(); track material.id; let i = $index) {
           <app-didactic-material-card
             [material]="material"
             (openRequested)="navigateToDetailPage($event)"
+            [@fadeInUp]="{ value: '', params: { delay: i * 100 } }"
           />
         }
       </section>
