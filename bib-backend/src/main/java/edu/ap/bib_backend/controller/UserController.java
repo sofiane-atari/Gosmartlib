@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RestController;
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.UserReviewAccessUpdateDto;
 import edu.ap.bib_backend.options.UserGetOptions;
-import edu.ap.bib_backend.service.UserService;
-import edu.ap.bib_backend.service.review.CurrentUserService;
+import edu.ap.bib_backend.service.user.UserService;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 
 import java.util.List;
 
