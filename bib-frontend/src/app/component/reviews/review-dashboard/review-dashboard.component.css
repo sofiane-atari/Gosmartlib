@@ -201,9 +201,26 @@ lucide-angular.star-filled ::ng-deep polygon {
 
 .bulk-actions__button--deselect {
   background-color: var(--text-muted);
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
 }
 .bulk-actions__button--deselect:hover {
   background-color: #5a4550;
+}
+.bulk-actions__button--deselect:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.bulk-actions__button--select {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.bulk-actions__button--select:hover:not(:disabled) {
+  background: #d1fae5;
+  border-color: #6ee7b7;
 }
 
 /* =========================================================

@@ -65,6 +65,17 @@ export class ReviewDashboardComponent {
     () => this.selectedReviewIds().size,
   );
 
+  protected readonly allVisibleReviewsSelected = computed(() => {
+    const visibleReviewIds = this.reviews()
+      .map((review) => review.id)
+      .filter((id): id is number => id !== undefined);
+
+    return (
+      visibleReviewIds.length > 0 &&
+      visibleReviewIds.every((reviewId) => this.selectedReviewIds().has(reviewId))
+    );
+  });
+
   protected readonly criticalReviewsCount = computed(
     () => this.stats()?.criticalFlaggedReviews ?? 0,
   );
@@ -251,6 +262,18 @@ export class ReviewDashboardComponent {
     );
   }
 
+  protected selectAllVisibleReviews(): void {
+    if (this.isBulkProcessing()) {
+      return;
+    }
+
+    const visibleReviewIds = this.reviews()
+      .map((review) => review.id)
+      .filter((id): id is number => id !== undefined);
+
+    this.selectedReviewIds.set(new Set(visibleReviewIds));
+  }
+  
   protected deselectAll(): void {
     this.selectedReviewIds.set(new Set());
   }
