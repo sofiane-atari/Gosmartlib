@@ -75,7 +75,8 @@ public class ReviewService {
                                 Math.min(Math.max(size, 1), 50),
                                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-                return reviewRepository.findByUserId(currentUserId, pageable)
+                return reviewRepository
+                                .findCurrentUserReviewsWithFlaggedFirst(currentUserId, pageable)
                                 .map(review -> reviewMapper.toDto(review, currentUserId));
         }
 
@@ -130,7 +131,7 @@ public class ReviewService {
                                                 "Je hebt al een review geschreven voor dit boek.");
                         }
                 }
-                
+
                 Review review = new Review(
                                 reviewDto.getComment(),
                                 reviewDto.getRating(),

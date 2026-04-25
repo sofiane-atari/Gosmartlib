@@ -173,4 +173,19 @@ export class MyReviewsComponent implements OnInit {
         return status ?? 'Onbekend';
     }
   }
+  protected flaggedReviewsOnCurrentPage(): Review[] {
+    return this.reviews.filter(
+      (review) => review.moderationStatus === 'FLAGGED',
+    );
+  }
+
+  protected normalReviewsOnCurrentPage(): Review[] {
+    return this.reviews.filter(
+      (review) => review.moderationStatus !== 'FLAGGED',
+    );
+  }
+
+  protected hasFlaggedReviewsOnCurrentPage(): boolean {
+    return this.flaggedReviewsOnCurrentPage().length > 0;
+  }
 }
