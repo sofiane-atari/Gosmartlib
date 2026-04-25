@@ -158,8 +158,12 @@ export class BookDetailComponent {
 
   loadReviews(bookId: number) {
     this.reviewService.getReviewsForBook(bookId).subscribe({
-      next: (data) => this.reviews = data,
-      error: (err) => console.error('Problem with loading the reviews', err)
+      next: (data) => {
+        this.reviews = data.filter(
+          (review) => review.moderationStatus !== 'FLAGGED',
+        );
+      },
+      error: (err) => console.error('Problem with loading the reviews', err),
     });
 
     this.updateAverage(bookId);
@@ -282,15 +286,25 @@ export class BookDetailComponent {
           next: () => {
             review.reportedByCurrentUser = true;
             review.reportCount = (review.reportCount || 0) + 1;
+
+            this.reviews = this.reviews.filter((r) => r.id !== review.id);
+
+            if (this.selectedBook?.id) {
+              this.updateAverage(this.selectedBook.id);
+            }
+
             this.toastService.show('Review succesvol gerapporteerd.', 'success');
           },
           error: (err) => {
             console.error('Problem with reporting review', err);
-            this.toastService.show('Er liep iets mis bij het rapporteren van deze review.', 'error');
-          }
+            this.toastService.show(
+              'Er liep iets mis bij het rapporteren van deze review.',
+              'error',
+            );
+          },
         });
       },
-      () => { }
+      () => {},
     );
   }
 

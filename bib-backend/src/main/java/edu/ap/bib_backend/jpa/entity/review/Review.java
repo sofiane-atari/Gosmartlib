@@ -68,13 +68,12 @@ public class Review {
     public void updateReportStatus(int uniqueReportCount) {
         this.reportCount = uniqueReportCount;
 
-        if (uniqueReportCount >= REPORT_THRESHOLD
-                && this.moderationStatus == ReviewModerationStatus.ACTIVE) {
-            this.moderationStatus = ReviewModerationStatus.FLAGGED;
+        boolean canBeFlagged = this.moderationStatus == ReviewModerationStatus.ACTIVE
+                || this.moderationStatus == ReviewModerationStatus.KEPT;
 
-            if (this.flaggedAt == null) {
-                this.flaggedAt = LocalDateTime.now();
-            }
+        if (uniqueReportCount >= REPORT_THRESHOLD && canBeFlagged) {
+            this.moderationStatus = ReviewModerationStatus.FLAGGED;
+            this.flaggedAt = LocalDateTime.now();
         }
     }
 
@@ -85,7 +84,10 @@ public class Review {
 
     public void markAsKept() {
         this.moderationStatus = ReviewModerationStatus.KEPT;
+        this.reportCount = 0;
+        this.flaggedAt = null;
         this.moderatedAt = LocalDateTime.now();
+        this.reports.clear();
     }
 
     public boolean isFlagged() {
