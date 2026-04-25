@@ -23,6 +23,7 @@ public class ReviewDTO {
     private String bookImageUrl;
     private String reviewerId;
     private boolean reviewerReviewBlocked;
+    private boolean currentUserReview;
 
     public ReviewDTO() {
     }
@@ -40,8 +41,8 @@ public class ReviewDTO {
             boolean reportedByCurrentUser,
             LocalDateTime createdAt,
             String reviewerId,
-            boolean reviewerReviewBlocked
-    ) {
+            boolean reviewerReviewBlocked,
+            boolean currentUserReview) {
         this.id = id;
         this.comment = comment;
         this.rating = rating;
@@ -55,5 +56,6 @@ public class ReviewDTO {
         this.createdAt = createdAt;
         this.reviewerId = reviewerId;
         this.reviewerReviewBlocked = reviewerReviewBlocked;
+        this.currentUserReview = currentUserReview;
     }
 }

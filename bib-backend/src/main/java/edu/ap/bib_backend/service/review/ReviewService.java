@@ -115,6 +115,15 @@ public class ReviewService {
                         throw new IllegalStateException("Je mag momenteel geen reviews plaatsen.");
                 }
 
+                boolean hasAlreadyReviewedBook = reviewRepository.existsByBookIdAndUserId(bookId, currentUserId);
+
+                if (hasAlreadyReviewedBook) {
+                        throw new ResourceAlreadyExistsException(
+                                        "bookId",
+                                        bookId,
+                                        "Je hebt al een review geschreven voor dit boek.");
+                }
+
                 Review review = new Review(
                                 reviewDto.getComment(),
                                 reviewDto.getRating(),

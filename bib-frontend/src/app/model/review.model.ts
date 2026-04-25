@@ -12,6 +12,7 @@ export interface Review {
   createdAt?: string;
   reviewerId?: string;
   reviewerReviewBlocked?: boolean;
+  currentUserReview?: boolean;
 }
 
 export interface ReviewDashboardStats {
