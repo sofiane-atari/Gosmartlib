@@ -158,8 +158,12 @@ export class BookDetailComponent {
 
   loadReviews(bookId: number) {
     this.reviewService.getReviewsForBook(bookId).subscribe({
-      next: (data) => this.reviews = data,
-      error: (err) => console.error('Problem with loading the reviews', err)
+      next: (data) => {
+        this.reviews = data.filter(
+          (review) => review.moderationStatus !== 'FLAGGED',
+        );
+      },
+      error: (err) => console.error('Problem with loading the reviews', err),
     });
 
     this.updateAverage(bookId);
@@ -229,11 +233,19 @@ export class BookDetailComponent {
   submitReview() {
     const bookId = this.selectedBook?.id;
 
+    if (this.isLeerling() && this.currentUserAlreadyReviewed()) {
+      this.toastService.show(
+        'Je kunt maar één review per boek schrijven.',
+        'error',
+      );
+      return;
+    }
+
     if (!this.newReviewText.trim() || !bookId) return;
 
     const newReview: Review = {
       comment: this.newReviewText,
-      rating: this.newReviewRating
+      rating: this.newReviewRating,
     };
 
     this.reviewService.addReviewToBook(bookId, newReview).subscribe({
@@ -247,8 +259,14 @@ export class BookDetailComponent {
       },
       error: (err) => {
         console.error('Problem with storing review', err);
-        this.toastService.show('Je review bevat ongepast taalgebruik en is niet geplaatst.', 'error');
-      }
+
+        const message =
+          err?.error?.message ??
+          err?.error?.error?.message ??
+          'Je review kon niet geplaatst worden.';
+
+        this.toastService.show(message, 'error');
+      },
     });
   }
 
@@ -282,15 +300,25 @@ export class BookDetailComponent {
           next: () => {
             review.reportedByCurrentUser = true;
             review.reportCount = (review.reportCount || 0) + 1;
+
+            this.reviews = this.reviews.filter((r) => r.id !== review.id);
+
+            if (this.selectedBook?.id) {
+              this.updateAverage(this.selectedBook.id);
+            }
+
             this.toastService.show('Review succesvol gerapporteerd.', 'success');
           },
           error: (err) => {
             console.error('Problem with reporting review', err);
-            this.toastService.show('Er liep iets mis bij het rapporteren van deze review.', 'error');
-          }
+            this.toastService.show(
+              'Er liep iets mis bij het rapporteren van deze review.',
+              'error',
+            );
+          },
         });
       },
-      () => { }
+      () => {},
     );
   }
 
@@ -408,12 +436,20 @@ export class BookDetailComponent {
     this.router.navigate(['/book', bookId]);
   }
 
+  protected currentUserAlreadyReviewed(): boolean {
+    return this.reviews.some((review) => review.currentUserReview === true);
+  }
+
   public goToEditPage(bookId?: number): void{
     if (!bookId) {
       return;
     }
 
     this.router.navigate(['/books', bookId, 'edit']);
+  }
+
+  protected isLeerling(): boolean {
+    return this.authService.currentUser()?.role === 'STUDENT';
   }
 
   public deleteBook(bookId?: number): void {

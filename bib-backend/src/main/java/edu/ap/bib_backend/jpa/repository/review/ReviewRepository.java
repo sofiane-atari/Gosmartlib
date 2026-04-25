@@ -13,6 +13,28 @@ import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
+    @Query("""
+                select r
+                from Review r
+                where r.user.id = :userId
+                order by
+                    case
+                        when r.moderationStatus = edu.ap.bib_backend.jpa.enums.ReviewModerationStatus.FLAGGED then 0
+                        else 1
+                    end,
+                    r.createdAt desc
+            """)
+    Page<Review> findCurrentUserReviewsWithFlaggedFirst(
+            @Param("userId") String userId,
+            Pageable pageable);
+
+    Page<Review> findByUserIdAndModerationStatusNot(
+            String userId,
+            ReviewModerationStatus moderationStatus,
+            Pageable pageable);
+
+    boolean existsByBookIdAndUserId(Long bookId, String userId);
+
     List<Review> findByBookId(Long bookId);
 
     Page<Review> findByUserId(String userId, Pageable pageable);
@@ -25,21 +47,18 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     long countByModerationStatusAndReportCountGreaterThanEqual(
             ReviewModerationStatus moderationStatus,
-            int reportCount
-    );
-
+            int reportCount);
 
     @Query("""
-        SELECT r
-        FROM Review r
-        WHERE r.book.id = :bookId
-        AND r.moderationStatus IN :statuses
-        ORDER BY r.createdAt DESC
-    """)
+                SELECT r
+                FROM Review r
+                WHERE r.book.id = :bookId
+                AND r.moderationStatus IN :statuses
+                ORDER BY r.createdAt DESC
+            """)
     List<Review> findVisibleReviewsByBookId(
             @Param("bookId") Long bookId,
-            @Param("statuses") List<ReviewModerationStatus> statuses
-    );
+            @Param("statuses") List<ReviewModerationStatus> statuses);
 
     @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId AND r.moderationStatus IN ('ACTIVE','KEPT')")
     Double getAverageRatingForBook(@Param("bookId") Long bookId);

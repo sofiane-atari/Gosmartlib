@@ -10,7 +10,7 @@
     </div>
 
     <div class="review-dashboard__sticky-actions">
-      @if (selectedCount() > 0) {
+      @if (!isLoading() && reviews().length > 0) {
         <div class="bulk-actions">
           <span class="bulk-actions__badge">
             {{ selectedCount() }} geselecteerd
@@ -18,41 +18,53 @@
 
           <button
             type="button"
+            class="bulk-actions__button bulk-actions__button--select"
+            [disabled]="isBulkProcessing() || allVisibleReviewsSelected()"
+            (click)="selectAllVisibleReviews()"
+          >
+            <lucide-angular [img]="Check" size="16"></lucide-angular>
+            Alles selecteren
+          </button>
+
+          <button
+            type="button"
             class="bulk-actions__button bulk-actions__button--deselect"
-            [disabled]="isBulkProcessing()"
+            [disabled]="isBulkProcessing() || selectedCount() === 0"
             (click)="deselectAll()"
           >
             <lucide-angular [img]="eraser" size="16"></lucide-angular>
             Alles deselecteren
           </button>
 
-          <button
-            type="button"
-            class="bulk-actions__button bulk-actions__button--approve"
-            [disabled]="isBulkProcessing()"
-            (click)="approveSelectedReviews()"
-          >
-            <lucide-angular [img]="Check" size="16"></lucide-angular>
-            @if (isBulkProcessing()) {
-              Verwerken...
-            } @else {
-              Goedkeuren
-            }
-          </button>
+          @if (selectedCount() > 0) {
+            <button
+              type="button"
+              class="bulk-actions__button bulk-actions__button--approve"
+              [disabled]="isBulkProcessing()"
+              (click)="approveSelectedReviews()"
+            >
+              <lucide-angular [img]="Check" size="16"></lucide-angular>
+              @if (isBulkProcessing()) {
+                Verwerken...
+              } @else {
+                Goedkeuren
+              }
+            </button>
 
-          <button
-            type="button"
-            class="bulk-actions__button bulk-actions__button--delete"
-            [disabled]="isBulkProcessing()"
-            (click)="deleteSelectedReviews()"
-          >
-            <lucide-angular [img]="Trash2" size="16"></lucide-angular>
-            @if (isBulkProcessing()) {
-              Verwerken...
-            } @else {
-              Verwijderen
-            }
-          </button>
+            <button
+              type="button"
+              class="bulk-actions__button bulk-actions__button--delete"
+              [disabled]="isBulkProcessing()"
+              (click)="deleteSelectedReviews()"
+            >
+              <lucide-angular [img]="Trash2" size="16"></lucide-angular>
+              @if (isBulkProcessing()) {
+                Verwerken...
+              } @else {
+                Verwijderen
+              }
+            </button>
+          }
         </div>
       }
     </div>
@@ -74,7 +86,7 @@
         </div>
         <div>
           <div class="stat-card__value">{{ criticalReviewsCount() }}</div>
-          <div class="stat-card__label">Kritieke reviews</div>
+          <div class="stat-card__label">Dringende reviews</div>
         </div>
       </article>
     </div>

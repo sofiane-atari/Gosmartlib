@@ -44,16 +44,37 @@ public class BookBulkService {
     private final ReadingLevelRepository readingLevelRepository;
     private final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
 
-    // Save uploaded file temporarily and return a temp file ID
     public String storeTempFile(MultipartFile file) throws IOException {
-        String tempFileId = UUID.randomUUID().toString() + ".xlsm";
+        Files.createDirectories(tempDir);
+
+        String extension = getSafeExtension(file.getOriginalFilename());
+        String tempFileId = UUID.randomUUID() + extension;
         Path target = tempDir.resolve(tempFileId);
-        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+
         return tempFileId;
     }
 
     public File getTempFile(String tempFileId) {
         return tempDir.resolve(tempFileId).toFile();
+    }
+
+    private String getSafeExtension(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return ".tmp";
+        }
+
+        String safeName = Paths.get(originalFilename).getFileName().toString();
+        int lastDot = safeName.lastIndexOf('.');
+
+        if (lastDot < 0 || lastDot == safeName.length() - 1) {
+            return ".tmp";
+        }
+
+        return safeName.substring(lastDot).toLowerCase();
     }
 
     @Transactional

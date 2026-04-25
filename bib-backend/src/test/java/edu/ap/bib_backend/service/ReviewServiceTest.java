@@ -93,16 +93,18 @@ class ReviewServiceTest {
         Long bookId = 1L;
         List<ReviewModerationStatus> visibleStatuses = List.of(
                 ReviewModerationStatus.ACTIVE,
-                ReviewModerationStatus.KEPT
-        );
+                ReviewModerationStatus.KEPT);
 
         Review review1 = createReview(10L, "Super boek", 5, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
         Review review2 = createReview(11L, "Minder goed", 2, defaultBook, currentUser, ReviewModerationStatus.KEPT, 0);
 
-        ReviewDTO reviewDto1 = createReviewDto(10L, "Super boek", 5, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
-        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 0, defaultBook, ReviewModerationStatus.KEPT, false);
+        ReviewDTO reviewDto1 = createReviewDto(10L, "Super boek", 5, 0, defaultBook, ReviewModerationStatus.ACTIVE,
+                false);
+        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 0, defaultBook, ReviewModerationStatus.KEPT,
+                false);
 
-        when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses)).thenReturn(List.of(review1, review2));
+        when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses))
+                .thenReturn(List.of(review1, review2));
         when(reviewMapper.toDto(review1, CURRENT_USER_ID)).thenReturn(reviewDto1);
         when(reviewMapper.toDto(review2, CURRENT_USER_ID)).thenReturn(reviewDto2);
 
@@ -131,8 +133,7 @@ class ReviewServiceTest {
         Long bookId = 2L;
         List<ReviewModerationStatus> visibleStatuses = List.of(
                 ReviewModerationStatus.ACTIVE,
-                ReviewModerationStatus.KEPT
-        );
+                ReviewModerationStatus.KEPT);
         when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses)).thenReturn(List.of());
 
         // Act
@@ -150,19 +151,39 @@ class ReviewServiceTest {
     @Test
     @DisplayName("whenGetCurrentUserReviews thenReturnPaginatedReviewDtos")
     void whenGetCurrentUserReviews_thenReturnPaginatedReviewDtos() {
-        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
-        Review review = createReview(12L, "Eigen review", 4, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
-        ReviewDTO reviewDto = createReviewDto(12L, "Eigen review", 4, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
+        when(currentUserService.extractCurrentUserId(authentication))
+                .thenReturn(CURRENT_USER_ID);
+
+        Review review = createReview(
+                12L,
+                "Eigen review",
+                4,
+                defaultBook,
+                currentUser,
+                ReviewModerationStatus.ACTIVE,
+                0);
+
+        ReviewDTO reviewDto = createReviewDto(
+                12L,
+                "Eigen review",
+                4,
+                0,
+                defaultBook,
+                ReviewModerationStatus.ACTIVE,
+                false);
 
         Page<Review> reviewPage = new PageImpl<>(
                 List.of(review),
                 PageRequest.of(0, 5),
-                1
-        );
+                1);
 
-        when(reviewRepository.findByUserId(eq(CURRENT_USER_ID), any(Pageable.class))).thenReturn(reviewPage);
-        when(reviewMapper.toDto(review, CURRENT_USER_ID)).thenReturn(reviewDto);
+        when(reviewRepository.findCurrentUserReviewsWithFlaggedFirst(
+                eq(CURRENT_USER_ID),
+                any(Pageable.class))).thenReturn(reviewPage);
+
+        when(reviewMapper.toDto(review, CURRENT_USER_ID))
+                .thenReturn(reviewDto);
 
         // Act
         Page<ReviewDTO> result = reviewService.getCurrentUserReviews(authentication, 0, 5);
@@ -173,7 +194,9 @@ class ReviewServiceTest {
         assertEquals(12L, result.getContent().get(0).getId());
 
         verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findByUserId(eq(CURRENT_USER_ID), any(Pageable.class));
+        verify(reviewRepository).findCurrentUserReviewsWithFlaggedFirst(
+                eq(CURRENT_USER_ID),
+                any(Pageable.class));
         verify(reviewMapper).toDto(review, CURRENT_USER_ID);
     }
 
@@ -185,8 +208,10 @@ class ReviewServiceTest {
         Review review1 = createReview(10L, "Super boek", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
         Review review2 = createReview(11L, "Minder goed", 2, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 3);
 
-        ReviewDTO reviewDto1 = createReviewDto(10L, "Super boek", 5, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
-        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 3, defaultBook, ReviewModerationStatus.FLAGGED, true);
+        ReviewDTO reviewDto1 = createReviewDto(10L, "Super boek", 5, 0, defaultBook, ReviewModerationStatus.ACTIVE,
+                false);
+        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 3, defaultBook, ReviewModerationStatus.FLAGGED,
+                true);
 
         when(reviewRepository.findAll()).thenReturn(List.of(review1, review2));
         when(reviewMapper.toDto(review1, CURRENT_USER_ID)).thenReturn(reviewDto1);
@@ -213,14 +238,15 @@ class ReviewServiceTest {
     void whenGetFlaggedReviewsWithPagination_thenReturnPaginatedFlaggedReviews() {
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
-        Review flaggedReview = createReview(7L, "Ongepaste review", 1, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 5);
-        ReviewDTO flaggedReviewDto = createReviewDto(7L, "Ongepaste review", 1, 5, defaultBook, ReviewModerationStatus.FLAGGED, false);
+        Review flaggedReview = createReview(7L, "Ongepaste review", 1, defaultBook, otherUser,
+                ReviewModerationStatus.FLAGGED, 5);
+        ReviewDTO flaggedReviewDto = createReviewDto(7L, "Ongepaste review", 1, 5, defaultBook,
+                ReviewModerationStatus.FLAGGED, false);
 
         Page<Review> reviewPage = new PageImpl<>(
                 List.of(flaggedReview),
                 PageRequest.of(0, 10),
-                1
-        );
+                1);
 
         when(reviewRepository.findByModerationStatus(eq(ReviewModerationStatus.FLAGGED), any(Pageable.class)))
                 .thenReturn(reviewPage);
@@ -251,9 +277,10 @@ class ReviewServiceTest {
         inputDto.setComment("Highly recommended");
         inputDto.setRating(4);
 
-
-        Review savedEntity = createReview(99L, "Highly recommended", 4, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
-        ReviewDTO savedDto = createReviewDto(99L, "Highly recommended", 4, 0, defaultBook, ReviewModerationStatus.ACTIVE, false);
+        Review savedEntity = createReview(99L, "Highly recommended", 4, defaultBook, currentUser,
+                ReviewModerationStatus.ACTIVE, 0);
+        ReviewDTO savedDto = createReviewDto(99L, "Highly recommended", 4, 0, defaultBook,
+                ReviewModerationStatus.ACTIVE, false);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(defaultBook));
         when(userRepository.findById(CURRENT_USER_ID)).thenReturn(Optional.of(currentUser));
@@ -290,20 +317,18 @@ class ReviewServiceTest {
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(defaultBook));
         doThrow(new IllegalArgumentException(
-                "Je review bevat ongepast taalgebruik en kan niet opgeslagen worden."
-        )).when(reviewValidationService).validateReview(inputDto);
+                "Je review bevat ongepast taalgebruik en kan niet opgeslagen worden.")).when(reviewValidationService)
+                .validateReview(inputDto);
 
         // Act
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> reviewService.addReviewToBook(bookId, inputDto, authentication)
-        );
+                () -> reviewService.addReviewToBook(bookId, inputDto, authentication));
 
         // Assert
         assertEquals(
                 "Je review bevat ongepast taalgebruik en kan niet opgeslagen worden.",
-                exception.getMessage()
-        );
+                exception.getMessage());
 
         verify(bookRepository).findById(bookId);
         verify(reviewValidationService).validateReview(inputDto);
@@ -320,14 +345,12 @@ class ReviewServiceTest {
         inputDto.setComment("This book does not exist");
         inputDto.setRating(1);
 
-
         when(bookRepository.findById(invalidBookId)).thenReturn(Optional.empty());
 
         // Act
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> reviewService.addReviewToBook(invalidBookId, inputDto, authentication)
-        );
+                () -> reviewService.addReviewToBook(invalidBookId, inputDto, authentication));
 
         // Assert
         assertEquals("Boek niet gevonden met id: 999", exception.getMessage());
@@ -375,7 +398,8 @@ class ReviewServiceTest {
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long reviewId = 1L;
-        Review review = createReview(reviewId, "Test review", 5, defaultBook, currentUser, ReviewModerationStatus.ACTIVE, 0);
+        Review review = createReview(reviewId, "Test review", 5, defaultBook, currentUser,
+                ReviewModerationStatus.ACTIVE, 0);
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
         when(currentUserService.isModerator(authentication)).thenReturn(false);
@@ -395,7 +419,8 @@ class ReviewServiceTest {
     void givenExistingReviewIdAndModerator_whenDeleteReview_thenDeleteReview() {
         // Arrange
         Long reviewId = 1L;
-        Review review = createReview(reviewId, "Test review", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
+        Review review = createReview(reviewId, "Test review", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE,
+                0);
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
         when(currentUserService.isModerator(authentication)).thenReturn(true);
@@ -412,7 +437,8 @@ class ReviewServiceTest {
     void givenExistingReviewIdAndUnauthorizedUser_whenDeleteReview_thenThrowIllegalStateException() {
         // Arrange
         Long reviewId = 1L;
-        Review review = createReview(reviewId, "Test review", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
+        Review review = createReview(reviewId, "Test review", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE,
+                0);
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
         when(currentUserService.isModerator(authentication)).thenReturn(false);
@@ -420,8 +446,7 @@ class ReviewServiceTest {
         // Act
         IllegalStateException exception = assertThrows(
                 IllegalStateException.class,
-                () -> reviewService.deleteReview(reviewId, authentication)
-        );
+                () -> reviewService.deleteReview(reviewId, authentication));
 
         // Assert
         assertEquals("Je mag alleen je eigen review verwijderen.", exception.getMessage());
@@ -438,8 +463,7 @@ class ReviewServiceTest {
         // Act
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> reviewService.deleteReview(reviewId, authentication)
-        );
+                () -> reviewService.deleteReview(reviewId, authentication));
 
         // Assert
         assertEquals("Review niet gevonden met id: 999", exception.getMessage());
@@ -453,9 +477,12 @@ class ReviewServiceTest {
         // Arrange
         Long reviewId = 1L;
 
-        Review review = createReview(reviewId, "Good book", 4, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 2);
-        Review updatedReview = createReview(reviewId, "Good book", 4, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 3);
-        ReviewDTO expectedDto = createReviewDto(reviewId, "Good book", 4, 3, defaultBook, ReviewModerationStatus.FLAGGED, true);
+        Review review = createReview(reviewId, "Good book", 4, defaultBook, otherUser, ReviewModerationStatus.ACTIVE,
+                2);
+        Review updatedReview = createReview(reviewId, "Good book", 4, defaultBook, otherUser,
+                ReviewModerationStatus.FLAGGED, 3);
+        ReviewDTO expectedDto = createReviewDto(reviewId, "Good book", 4, 3, defaultBook,
+                ReviewModerationStatus.FLAGGED, true);
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
         when(userRepository.findById(CURRENT_USER_ID)).thenReturn(Optional.of(currentUser));
@@ -490,7 +517,8 @@ class ReviewServiceTest {
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long reviewId = 1L;
-        Review review = createReview(reviewId, "Good book", 4, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
+        Review review = createReview(reviewId, "Good book", 4, defaultBook, otherUser, ReviewModerationStatus.ACTIVE,
+                0);
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
         when(userRepository.findById(CURRENT_USER_ID)).thenReturn(Optional.of(currentUser));
@@ -499,8 +527,7 @@ class ReviewServiceTest {
         // Act
         ResourceAlreadyExistsException exception = assertThrows(
                 ResourceAlreadyExistsException.class,
-                () -> reviewService.reportReview(reviewId, authentication)
-        );
+                () -> reviewService.reportReview(reviewId, authentication));
 
         // Assert
         assertEquals("Je hebt deze review al gerapporteerd.", exception.getMessage());
@@ -515,9 +542,12 @@ class ReviewServiceTest {
         // Arrange
         Long reviewId = 5L;
 
-        Review review = createReview(reviewId, "Deze review mag blijven", 4, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 3);
-        Review updatedReview = createReview(reviewId, "Deze review mag blijven", 4, defaultBook, otherUser, ReviewModerationStatus.KEPT, 3);
-        ReviewDTO expectedDto = createReviewDto(reviewId, "Deze review mag blijven", 4, 3, defaultBook, ReviewModerationStatus.KEPT, false);
+        Review review = createReview(reviewId, "Deze review mag blijven", 4, defaultBook, otherUser,
+                ReviewModerationStatus.FLAGGED, 3);
+        Review updatedReview = createReview(reviewId, "Deze review mag blijven", 4, defaultBook, otherUser,
+                ReviewModerationStatus.KEPT, 3);
+        ReviewDTO expectedDto = createReviewDto(reviewId, "Deze review mag blijven", 4, 3, defaultBook,
+                ReviewModerationStatus.KEPT, false);
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
         when(reviewRepository.save(any(Review.class))).thenReturn(updatedReview);
@@ -544,8 +574,7 @@ class ReviewServiceTest {
         when(reviewRepository.countByModerationStatus(ReviewModerationStatus.FLAGGED)).thenReturn(80L);
         when(reviewRepository.countByModerationStatusAndReportCountGreaterThanEqual(
                 ReviewModerationStatus.FLAGGED,
-                5
-        )).thenReturn(50L);
+                5)).thenReturn(50L);
 
         // Act
         ReviewDashboardStatsDTO result = reviewService.getFlaggedReviewStats();
@@ -558,8 +587,7 @@ class ReviewServiceTest {
         verify(reviewRepository).countByModerationStatus(ReviewModerationStatus.FLAGGED);
         verify(reviewRepository).countByModerationStatusAndReportCountGreaterThanEqual(
                 ReviewModerationStatus.FLAGGED,
-                5
-        );
+                5);
     }
 
     private Book createBook(Long id, String title, String author) {
@@ -583,8 +611,7 @@ class ReviewServiceTest {
             Book book,
             User user,
             ReviewModerationStatus moderationStatus,
-            int reportCount
-    ) {
+            int reportCount) {
         Review review = new Review(comment, rating, book, user);
         review.setId(id);
         review.setModerationStatus(moderationStatus);
@@ -599,8 +626,7 @@ class ReviewServiceTest {
             int reportCount,
             Book book,
             ReviewModerationStatus moderationStatus,
-            boolean reportedByCurrentUser
-    ) {
+            boolean reportedByCurrentUser) {
         return new ReviewDTO(
                 id,
                 comment,
@@ -614,8 +640,7 @@ class ReviewServiceTest {
                 reportedByCurrentUser,
                 LocalDateTime.now(),
                 null, // reviewerId
-                false // reviewerReviewBlocked
-        );
+                false, // reviewerReviewBlocked
+                false);
     }
 }
-

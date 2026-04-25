@@ -21,8 +21,7 @@ public class ReviewMapper {
         if (currentUserId != null) {
             reportedByCurrentUser = reviewReportRepository.existsByReviewIdAndReportedById(
                     review.getId(),
-                    currentUserId
-            );
+                    currentUserId);
         }
 
         ReviewDTO reviewDto = new ReviewDTO();
@@ -42,6 +41,10 @@ public class ReviewMapper {
             reviewDto.setReviewerId(review.getUser().getId());
             reviewDto.setReviewerReviewBlocked(review.getUser().isReviewBlocked());
         }
+        reviewDto.setCurrentUserReview(
+                review.getUser() != null
+                        && review.getUser().getId() != null
+                        && review.getUser().getId().equals(currentUserId));
 
         return reviewDto;
     }

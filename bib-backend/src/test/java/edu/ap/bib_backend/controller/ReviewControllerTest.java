@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,348 +32,355 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
-@WebMvcTest(ReviewController.class)
+import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.JwtService;
+
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientWebSecurityAutoConfiguration;
+
+@WebMvcTest(controllers = ReviewController.class, excludeAutoConfiguration = {
+                SecurityAutoConfiguration.class,
+                SecurityFilterAutoConfiguration.class,
+                OAuth2ClientAutoConfiguration.class,
+                OAuth2ClientWebSecurityAutoConfiguration.class
+})
 @AutoConfigureMockMvc(addFilters = false)
-@ExtendWith(MockitoExtension.class)
 class ReviewControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Mock
-    private ReviewService reviewService;
+        @MockBean
+        private ReviewService reviewService;
 
-    @Test
-    @DisplayName("givenValidBookId whenGetReviewsForBook thenReturn200AndReviewList")
-    void givenValidBookId_whenGetReviewsForBook_thenReturn200AndReviewList() throws Exception {
-        // Arrange
-        Long bookId = 1L;
+        @MockBean
+        private JwtService jwtService;
 
-        ReviewDTO review1 = new ReviewDTO(
-                1L,
-                "Geweldig boek!",
-                5,
-                0,
-                bookId,
-                "Title 1",
-                "Author 1",
-                "https://example.com/cover.jpg",
-                ReviewModerationStatus.ACTIVE,
-                false,
-                LocalDateTime.now(),
-                "user-1",
-                false
-        );
+        @MockBean
+        private AdminOverrideService adminOverrideService;
 
-        ReviewDTO review2 = new ReviewDTO(
-                2L,
-                "Beetje saai",
-                3,
-                0,
-                bookId,
-                "Title 1",
-                "Author 1",
-                "https://example.com/cover.jpg",
-                ReviewModerationStatus.ACTIVE,
-                false,
-                LocalDateTime.now(),
-                "user-2",
-                false
-        );
+        @Test
+        @DisplayName("givenValidBookId whenGetReviewsForBook thenReturn200AndReviewList")
+        void givenValidBookId_whenGetReviewsForBook_thenReturn200AndReviewList() throws Exception {
+                // Arrange
+                Long bookId = 1L;
 
-        List<ReviewDTO> mockReviews = List.of(review1, review2);
+                ReviewDTO review1 = new ReviewDTO(
+                                1L,
+                                "Geweldig boek!",
+                                5,
+                                0,
+                                bookId,
+                                "Title 1",
+                                "Author 1",
+                                "https://example.com/cover.jpg",
+                                ReviewModerationStatus.ACTIVE,
+                                false,
+                                LocalDateTime.now(),
+                                "user-1",
+                                false,
+                                true);
 
-        Mockito.when(reviewService.getReviewsForBook(eq(bookId), any(Authentication.class)))
-                .thenReturn(mockReviews);
+                ReviewDTO review2 = new ReviewDTO(
+                                2L,
+                                "Beetje saai",
+                                3,
+                                0,
+                                bookId,
+                                "Title 1",
+                                "Author 1",
+                                "https://example.com/cover.jpg",
+                                ReviewModerationStatus.ACTIVE,
+                                false,
+                                LocalDateTime.now(),
+                                "user-2",
+                                false,
+                                false);
 
-        // Act
-        ResultActions result = mockMvc.perform(
-                get("/reviews/book/{bookId}", bookId)
-                        .principal(new TestingAuthenticationToken("user-1", null))
-                        .contentType(MediaType.APPLICATION_JSON)
-        );
+                List<ReviewDTO> mockReviews = List.of(review1, review2);
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].comment").value("Geweldig boek!"))
-                .andExpect(jsonPath("$[0].rating").value(5))
-                .andExpect(jsonPath("$[1].comment").value("Beetje saai"));
-    }
+                Mockito.when(reviewService.getReviewsForBook(eq(bookId), any(Authentication.class)))
+                                .thenReturn(mockReviews);
 
-    @Test
-    @DisplayName("whenGetAllReviews thenReturn200AndReviewList")
-    void whenGetAllReviews_thenReturn200AndReviewList() throws Exception {
-        // Arrange
-        ReviewDTO review1 = new ReviewDTO(
-                1L,
-                "Geweldig boek!",
-                5,
-                0,
-                1L,
-                "Title 1",
-                "Author 1",
-                "https://example.com/cover.jpg",
-                ReviewModerationStatus.ACTIVE,
-                false,
-                LocalDateTime.now(),
-                "user-1",
-                false
-        );
+                // Act
+                ResultActions result = mockMvc.perform(
+                                get("/reviews/book/{bookId}", bookId)
+                                                .principal(new TestingAuthenticationToken("user-1", null))
+                                                .contentType(MediaType.APPLICATION_JSON));
 
-        ReviewDTO review2 = new ReviewDTO(
-                2L,
-                "Beetje saai",
-                3,
-                0,
-                1L,
-                "Title 1",
-                "Author 1",
-                "https://example.com/cover.jpg",
-                ReviewModerationStatus.ACTIVE,
-                false,
-                LocalDateTime.now(),
-                "user-2",
-                false
-        );
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.length()").value(2))
+                                .andExpect(jsonPath("$[0].id").value(1))
+                                .andExpect(jsonPath("$[0].comment").value("Geweldig boek!"))
+                                .andExpect(jsonPath("$[0].rating").value(5))
+                                .andExpect(jsonPath("$[1].comment").value("Beetje saai"));
+        }
 
-        List<ReviewDTO> mockReviews = List.of(review1, review2);
+        @Test
+        @DisplayName("whenGetAllReviews thenReturn200AndReviewList")
+        void whenGetAllReviews_thenReturn200AndReviewList() throws Exception {
+                Long bookId = 1L;
+                // Arrange
+                ReviewDTO review1 = new ReviewDTO(
+                                1L,
+                                "Geweldig boek!",
+                                5,
+                                0,
+                                bookId,
+                                "Title 1",
+                                "Author 1",
+                                "https://example.com/cover.jpg",
+                                ReviewModerationStatus.ACTIVE,
+                                false,
+                                LocalDateTime.now(),
+                                "user-1",
+                                false,
+                                true);
 
-        Mockito.when(reviewService.getAllReviews(any(Authentication.class)))
-                .thenReturn(mockReviews);
+                ReviewDTO review2 = new ReviewDTO(
+                                2L,
+                                "Beetje saai",
+                                3,
+                                0,
+                                bookId,
+                                "Title 1",
+                                "Author 1",
+                                "https://example.com/cover.jpg",
+                                ReviewModerationStatus.ACTIVE,
+                                false,
+                                LocalDateTime.now(),
+                                "user-2",
+                                false,
+                                false);
 
-        // Act
-        ResultActions result = mockMvc.perform(
-                get("/reviews")
-                        .principal(new TestingAuthenticationToken("user-1", null))
-                        .contentType(MediaType.APPLICATION_JSON)
-        );
+                List<ReviewDTO> mockReviews = List.of(review1, review2);
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].comment").value("Geweldig boek!"))
-                .andExpect(jsonPath("$[0].rating").value(5))
-                .andExpect(jsonPath("$[1].comment").value("Beetje saai"));
-    }
+                Mockito.when(reviewService.getAllReviews(any(Authentication.class)))
+                                .thenReturn(mockReviews);
 
-    @Test
-    @DisplayName("givenValidReviewDTO whenAddReview thenReturn200AndSavedReview")
-    void givenValidReviewDTO_whenAddReview_thenReturn200AndSavedReview() throws Exception {
-        // Arrange
-        Long bookId = 1L;
+                // Act
+                ResultActions result = mockMvc.perform(
+                                get("/reviews")
+                                                .principal(new TestingAuthenticationToken("user-1", null))
+                                                .contentType(MediaType.APPLICATION_JSON));
 
-        ReviewDTO inputReview = new ReviewDTO();
-        inputReview.setComment("Echt een aanrader");
-        inputReview.setRating(4);
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.length()").value(2))
+                                .andExpect(jsonPath("$[0].id").value(1))
+                                .andExpect(jsonPath("$[0].comment").value("Geweldig boek!"))
+                                .andExpect(jsonPath("$[0].rating").value(5))
+                                .andExpect(jsonPath("$[1].comment").value("Beetje saai"));
+        }
 
-        ReviewDTO savedReview = new ReviewDTO(
-                99L,
-                "Echt een aanrader",
-                4,
-                0,
-                bookId,
-                "Title",
-                "Author",
-                "https://example.com/cover.jpg",
-                ReviewModerationStatus.ACTIVE,
-                false,
-                LocalDateTime.now(),
-                "user-1",
-                false
-        );
+        @Test
+        @DisplayName("givenValidReviewDTO whenAddReview thenReturn200AndSavedReview")
+        void givenValidReviewDTO_whenAddReview_thenReturn200AndSavedReview() throws Exception {
+                // Arrange
+                Long bookId = 1L;
 
-        Mockito.when(reviewService.addReviewToBook(eq(bookId), any(ReviewDTO.class), any(Authentication.class)))
-                .thenReturn(savedReview);
+                ReviewDTO inputReview = new ReviewDTO();
+                inputReview.setComment("Echt een aanrader");
+                inputReview.setRating(4);
 
-        // Act
-        ResultActions result = mockMvc.perform(
-                post("/reviews/book/{bookId}", bookId)
-                        .principal(new TestingAuthenticationToken("user-1", null))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(inputReview))
-        );
+                ReviewDTO savedReview = new ReviewDTO(
+                                99L,
+                                "Echt een aanrader",
+                                4,
+                                0,
+                                bookId,
+                                "Title",
+                                "Author",
+                                "https://example.com/cover.jpg",
+                                ReviewModerationStatus.ACTIVE,
+                                false,
+                                LocalDateTime.now(),
+                                "user-1",
+                                false,
+                                false);
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(99))
-                .andExpect(jsonPath("$.comment").value("Echt een aanrader"))
-                .andExpect(jsonPath("$.rating").value(4));
-    }
+                Mockito.when(reviewService.addReviewToBook(eq(bookId), any(ReviewDTO.class), any(Authentication.class)))
+                                .thenReturn(savedReview);
 
-    @Test
-    @DisplayName("givenValidBookId whenGetAverageRating thenReturn200AndAverageValue")
-    void givenValidBookId_whenGetAverageRating_thenReturn200AndAverageValue() throws Exception {
-        // Arrange
-        Long bookId = 1L;
-        Double mockAverage = 4.2;
+                // Act
+                ResultActions result = mockMvc.perform(
+                                post("/reviews/book/{bookId}", bookId)
+                                                .principal(new TestingAuthenticationToken("user-1", null))
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(inputReview)));
 
-        Mockito.when(reviewService.getAverageRating(bookId)).thenReturn(mockAverage);
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(99))
+                                .andExpect(jsonPath("$.comment").value("Echt een aanrader"))
+                                .andExpect(jsonPath("$.rating").value(4));
+        }
 
-        // Act
-        ResultActions result = mockMvc.perform(
-                get("/reviews/book/{bookId}/average", bookId)
-                        .contentType(MediaType.APPLICATION_JSON)
-        );
+        @Test
+        @DisplayName("givenValidBookId whenGetAverageRating thenReturn200AndAverageValue")
+        void givenValidBookId_whenGetAverageRating_thenReturn200AndAverageValue() throws Exception {
+                // Arrange
+                Long bookId = 1L;
+                Double mockAverage = 4.2;
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(content().string("4.2"));
-    }
+                Mockito.when(reviewService.getAverageRating(bookId)).thenReturn(mockAverage);
 
-    @Test
-    @DisplayName("givenValidId whenDeleteReview thenReturn204")
-    void givenValidId_whenDeleteReview_thenReturn204() throws Exception {
-        // Arrange
-        Long reviewId = 5L;
+                // Act
+                ResultActions result = mockMvc.perform(
+                                get("/reviews/book/{bookId}/average", bookId)
+                                                .contentType(MediaType.APPLICATION_JSON));
 
-        Mockito.doNothing().when(reviewService).deleteReview(eq(reviewId), any(Authentication.class));
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(content().string("4.2"));
+        }
 
-        // Act
-        ResultActions result = mockMvc.perform(
-                delete("/reviews/{reviewId}", reviewId)
-                        .principal(new TestingAuthenticationToken("user-1", null))
-        );
+        @Test
+        @DisplayName("givenValidId whenDeleteReview thenReturn204")
+        void givenValidId_whenDeleteReview_thenReturn204() throws Exception {
+                // Arrange
+                Long reviewId = 5L;
 
-        // Assert
-        result.andExpect(status().isNoContent());
+                Mockito.doNothing().when(reviewService).deleteReview(eq(reviewId), any(Authentication.class));
 
-        Mockito.verify(reviewService).deleteReview(eq(reviewId), any(Authentication.class));
-    }
+                // Act
+                ResultActions result = mockMvc.perform(
+                                delete("/reviews/{reviewId}", reviewId)
+                                                .principal(new TestingAuthenticationToken("user-1", null)));
 
-    @Test
-    @DisplayName("givenValidId whenReportReview thenReturnReportedReview")
-    void givenValidId_whenReportReview_thenReturnReportedReview() throws Exception {
-        // Arrange
-        Long reviewId = 1L;
+                // Assert
+                result.andExpect(status().isNoContent());
 
-        ReviewDTO reviewDto = new ReviewDTO(
-                reviewId,
-                "Good book",
-                4,
-                3,
-                1L,
-                "Title",
-                "Author",
-                "https://example.com/cover.jpg",
-                ReviewModerationStatus.FLAGGED,
-                true,
-                LocalDateTime.now(),
-                "user-1",
-                false
-        );
+                Mockito.verify(reviewService).deleteReview(eq(reviewId), any(Authentication.class));
+        }
 
-        Mockito.when(reviewService.reportReview(eq(reviewId), any(Authentication.class)))
-                .thenReturn(reviewDto);
+        @Test
+        @DisplayName("givenValidId whenReportReview thenReturnReportedReview")
+        void givenValidId_whenReportReview_thenReturnReportedReview() throws Exception {
+                // Arrange
+                Long reviewId = 1L;
 
-        // Act
-        ResultActions result = mockMvc.perform(
-                post("/reviews/{reviewId}/report", reviewId)
-                        .principal(new TestingAuthenticationToken("user-1", null))
-        );
+                ReviewDTO reviewDto = new ReviewDTO(
+                                reviewId,
+                                "Good book",
+                                4,
+                                3,
+                                1L,
+                                "Title",
+                                "Author",
+                                "https://example.com/cover.jpg",
+                                ReviewModerationStatus.FLAGGED,
+                                true,
+                                LocalDateTime.now(),
+                                "user-1",
+                                false,
+                                false);
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
-                .andExpect(jsonPath("$.comment").value("Good book"))
-                .andExpect(jsonPath("$.rating").value(4))
-                .andExpect(jsonPath("$.reportCount").value(3));
+                Mockito.when(reviewService.reportReview(eq(reviewId), any(Authentication.class)))
+                                .thenReturn(reviewDto);
 
-        Mockito.verify(reviewService).reportReview(eq(reviewId), any(Authentication.class));
-    }
+                // Act
+                ResultActions result = mockMvc.perform(
+                                post("/reviews/{reviewId}/report", reviewId)
+                                                .principal(new TestingAuthenticationToken("user-1", null)));
 
-    @Test
-    @DisplayName("givenValidPaginationParams whenGetFlaggedReviews thenReturn200AndPaginatedResponse")
-    void givenValidPaginationParams_whenGetFlaggedReviews_thenReturn200AndPaginatedResponse() throws Exception {
-        // Arrange
-        ReviewDTO flaggedReview = new ReviewDTO(
-                10L,
-                "Ongepaste review",
-                1,
-                5,
-                2L,
-                "Boektitel",
-                "Auteur",
-                "https://example.com/cover.jpg",
-                ReviewModerationStatus.FLAGGED,
-                false,
-                LocalDateTime.now(),
-                "user-1",
-                false
-        );
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(reviewId))
+                                .andExpect(jsonPath("$.comment").value("Good book"))
+                                .andExpect(jsonPath("$.rating").value(4))
+                                .andExpect(jsonPath("$.reportCount").value(3));
 
-        List<ReviewDTO> reviewList = List.of(flaggedReview);
+                Mockito.verify(reviewService).reportReview(eq(reviewId), any(Authentication.class));
+        }
 
-        Page<ReviewDTO> mockPage = new PageImpl<>(
-                reviewList,
-                PageRequest.of(0, 10),
-                1
-        );
+        @Test
+        @DisplayName("givenValidPaginationParams whenGetFlaggedReviews thenReturn200AndPaginatedResponse")
+        void givenValidPaginationParams_whenGetFlaggedReviews_thenReturn200AndPaginatedResponse() throws Exception {
+                // Arrange
+                ReviewDTO flaggedReview = new ReviewDTO(
+                                10L,
+                                "Ongepaste review",
+                                1,
+                                5,
+                                2L,
+                                "Boektitel",
+                                "Auteur",
+                                "https://example.com/cover.jpg",
+                                ReviewModerationStatus.FLAGGED,
+                                false,
+                                LocalDateTime.now(),
+                                "user-1",
+                                false, false);
 
-        Mockito.when(reviewService.getFlaggedReviews(any(Authentication.class), eq(0), eq(10)))
-                .thenReturn(mockPage);
+                List<ReviewDTO> reviewList = List.of(flaggedReview);
 
-        // Act
-        ResultActions result = mockMvc.perform(
-                get("/reviews/flagged")
-                        .principal(new TestingAuthenticationToken("librarian-1", null))
-                        .param("page", "0")
-                        .param("size", "10")
-                        .contentType(MediaType.APPLICATION_JSON)
-        );
+                Page<ReviewDTO> mockPage = new PageImpl<>(
+                                reviewList,
+                                PageRequest.of(0, 10),
+                                1);
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(10))
-                .andExpect(jsonPath("$.data[0].comment").value("Ongepaste review"))
-                .andExpect(jsonPath("$.meta.currentPage").value(0))
-                .andExpect(jsonPath("$.meta.pageSize").value(10))
-                .andExpect(jsonPath("$.meta.totalItems").value(1))
-                .andExpect(jsonPath("$.meta.totalPages").value(1));
-    }
+                Mockito.when(reviewService.getFlaggedReviews(any(Authentication.class), eq(0), eq(10)))
+                                .thenReturn(mockPage);
 
-    @Test
-    @DisplayName("givenValidReviewId whenKeepReview thenReturn200AndKeptReview")
-    void givenValidReviewId_whenKeepReview_thenReturn200AndKeptReview() throws Exception {
-        // Arrange
-        Long reviewId = 3L;
+                // Act
+                ResultActions result = mockMvc.perform(
+                                get("/reviews/flagged")
+                                                .principal(new TestingAuthenticationToken("librarian-1", null))
+                                                .param("page", "0")
+                                                .param("size", "10")
+                                                .contentType(MediaType.APPLICATION_JSON));
 
-        ReviewDTO keptReview = new ReviewDTO(
-                reviewId,
-                "Deze review mag blijven",
-                4,
-                3,
-                1L,
-                "Titel",
-                "Auteur",
-                "https://example.com/cover.jpg",
-                ReviewModerationStatus.KEPT,
-                false,
-                LocalDateTime.now(),
-                "user-1",
-                false
-        );
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data[0].id").value(10))
+                                .andExpect(jsonPath("$.data[0].comment").value("Ongepaste review"))
+                                .andExpect(jsonPath("$.meta.currentPage").value(0))
+                                .andExpect(jsonPath("$.meta.pageSize").value(10))
+                                .andExpect(jsonPath("$.meta.totalItems").value(1))
+                                .andExpect(jsonPath("$.meta.totalPages").value(1));
+        }
 
-        Mockito.when(reviewService.keepReview(eq(reviewId), any(Authentication.class)))
-                .thenReturn(keptReview);
+        @Test
+        @DisplayName("givenValidReviewId whenKeepReview thenReturn200AndKeptReview")
+        void givenValidReviewId_whenKeepReview_thenReturn200AndKeptReview() throws Exception {
+                // Arrange
+                Long reviewId = 3L;
 
-        // Act
-        ResultActions result = mockMvc.perform(
-                patch("/reviews/{reviewId}/keep", reviewId)
-                        .principal(new TestingAuthenticationToken("librarian-1", null))
-        );
+                ReviewDTO keptReview = new ReviewDTO(
+                                reviewId,
+                                "Deze review mag blijven",
+                                4,
+                                0,
+                                1L,
+                                "Titel",
+                                "Auteur",
+                                "https://example.com/cover.jpg",
+                                ReviewModerationStatus.KEPT,
+                                false,
+                                LocalDateTime.now(),
+                                "user-1",
+                                false, false);
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(3))
-                .andExpect(jsonPath("$.moderationStatus").value("KEPT"));
-    }
+                Mockito.when(reviewService.keepReview(eq(reviewId), any(Authentication.class)))
+                                .thenReturn(keptReview);
+
+                // Act
+                ResultActions result = mockMvc.perform(
+                                patch("/reviews/{reviewId}/keep", reviewId)
+                                                .principal(new TestingAuthenticationToken("librarian-1", null)));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(3))
+                                .andExpect(jsonPath("$.moderationStatus").value("KEPT"));
+        }
 }
