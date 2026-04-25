@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="page-header">
     <div class="page-header__text">
-      <h1>Genre beheer</h1>
+      <h1>Genrebeheer</h1>
       <p>Beheer genres voor de boekencatalogus</p>
     </div>
     <button class="btn-new" (click)="setPopup('create')">+ Nieuw genre</button>
@@ -42,17 +42,17 @@
   <!-- StatCards -->
   <div class="stat-cards">
     <app-stat-card
-      label="Totaal Labels"
+      label="Totaal labels"
       [value]="stats()?.totalItems ?? 0"
       variant="total"
     />
     <app-stat-card
-      label="Actieve Labels"
+      label="Actieve labels"
       [value]="totalActive()"
       variant="active"
     />
     <app-stat-card
-      label="Ongebruikte Labels"
+      label="Ongebruikte labels"
       [value]="stats()?.unActiveGenres ?? 0"
       variant="unused"
     />

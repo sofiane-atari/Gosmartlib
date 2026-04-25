@@ -19,7 +19,6 @@ import { ReadingLevel } from '../../../model/readingLevel.model';
   imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './book-edit-page.component.html',
   styleUrl: './book-edit-page.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookEditPageComponent {
   protected readonly infoIcon = Info;
@@ -255,7 +254,7 @@ export class BookEditPageComponent {
           .subscribe({
             next: (book) => {
               this.toastService.show('Boek succesvol opgeslagen.', 'success');
-              void this.router.navigate(['/books', book.id]);
+              void this.router.navigate(['/book', book.id]);
             },
             error: (err) => {
               const backendMessage =

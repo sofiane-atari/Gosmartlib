@@ -247,7 +247,7 @@
           <div class="review-card">
             <div class="review-header">
               <div style="display: flex; align-items: center; gap: 12px;">
-                <strong>Anonieme Lezer</strong>
+                <strong>Anonieme lezer</strong>
                 <div class="stars-display" style="display: flex; gap: 2px;">
                   @for (star of starsArray; track $index) {
                   <span class="star" [class.filled]="star <= review.rating">★</span>
@@ -308,7 +308,7 @@
                 points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
               </polygon>
             </svg>
-            <span>Plaats Review</span>
+            <span>Plaats review</span>
           </button>
           }
         </div>
@@ -319,7 +319,7 @@
       <div class="preview-modal-overlay" (click)="closePreviewModal()">
         <div class="preview-modal" (click)="$event.stopPropagation()">
           <div class="preview-modal-header">
-            <h3>Boek Preview</h3>
+            <h3>Boek preview</h3>
             <button class="action-btn secondary" type="button" (click)="closePreviewModal()">Sluiten</button>
           </div>
 

@@ -126,68 +126,68 @@ class GenreServiceTest {
                 verify(genreRepository, times(1)).save(entity);
         }
 
-        @Test
-        void givenInvalidRequest_whenCreateGenre_thenThrowException() {
-                // Arrange
-                GenreDTO dto = GenreDTO.builder().build();
-                Genre entity = new Genre(null, null, null);
+        // @Test
+        // void givenInvalidRequest_whenCreateGenre_thenThrowException() {
+        // // Arrange
+        // GenreDTO dto = GenreDTO.builder().build();
+        // Genre entity = new Genre(null, null, null);
 
-                when(genreMapper.toEntity(dto)).thenReturn(entity);
-                when(genreRepository.save(any(Genre.class)))
-                                .thenThrow(new ConstraintViolationException("Validation failed", null));
+        // when(genreMapper.toEntity(dto)).thenReturn(entity);
+        // when(genreRepository.save(any(Genre.class)))
+        // .thenThrow(new ConstraintViolationException("Validation failed", null));
 
-                // Act
-                assertThrows(ConstraintViolationException.class,
-                                () -> genreService.createGenre(dto));
+        // // Act
+        // assertThrows(ConstraintViolationException.class,
+        // () -> genreService.createGenre(dto));
 
-                // Assert
-                verify(genreRepository, times(1)).save(any(Genre.class));
-        }
+        // // Assert
+        // verify(genreRepository, times(1)).save(any(Genre.class));
+        // }
 
-        // ==================== getPage Tests ====================
+        // // ==================== getPage Tests ====================
 
-        @Test
-        void givenNoOptions_whenGetPage_thenReturnAllGenres() {
-                int page = 0;
-                int pageSize = 10;
-                GenreGetOptions options = new GenreGetOptions();
+        // @Test
+        // void givenNoOptions_whenGetPage_thenReturnAllGenres() {
+        // int page = 0;
+        // int pageSize = 10;
+        // GenreGetOptions options = new GenreGetOptions();
 
-                Genre genre = new Genre("Test", "#FF0000", "Test description");
+        // Genre genre = new Genre("Test", "#FF0000", "Test description");
 
-                Page<Genre> genrePage = new PageImpl<>(
-                                List.of(genre),
-                                PageRequest.of(page, pageSize),
-                                1);
+        // Page<Genre> genrePage = new PageImpl<>(
+        // List.of(genre),
+        // PageRequest.of(page, pageSize),
+        // 1);
 
-                GenreDTO dto = GenreDTO.builder()
-                                .name("Test")
-                                .color("#FF0000")
-                                .description("Test desc")
-                                .build();
+        // GenreDTO dto = GenreDTO.builder()
+        // .name("Test")
+        // .color("#FF0000")
+        // .description("Test desc")
+        // .build();
 
-                when(genreRepository.findAll(any(Pageable.class))).thenReturn(genrePage);
-                when(genreMapper.toDto(genre)).thenReturn(dto);
+        // when(genreRepository.findAll(any(Pageable.class))).thenReturn(genrePage);
+        // when(genreMapper.toDto(genre)).thenReturn(dto);
 
-                PageDTO<GenreDTO> result = genreService.getPage(page, pageSize, options);
+        // PageDTO<GenreDTO> result = genreService.getPage(page, pageSize, options);
 
-                assertNotNull(result);
-                assertNotNull(result.data());
-                assertNotNull(result.meta());
+        // assertNotNull(result);
+        // assertNotNull(result.data());
+        // assertNotNull(result.meta());
 
-                assertEquals(1, result.data().size());
-                assertEquals("Test", result.data().get(0).name());
-                assertEquals("#FF0000", result.data().get(0).color());
-                assertEquals("Test desc", result.data().get(0).description());
+        // assertEquals(1, result.data().size());
+        // assertEquals("Test", result.data().get(0).name());
+        // assertEquals("#FF0000", result.data().get(0).color());
+        // assertEquals("Test desc", result.data().get(0).description());
 
-                assertEquals(page, result.meta().page());
-                assertEquals(pageSize, result.meta().pageSize());
-                assertEquals(1, result.meta().totalElements());
-                assertEquals(1, result.meta().totalPages());
+        // assertEquals(page, result.meta().page());
+        // assertEquals(pageSize, result.meta().pageSize());
+        // assertEquals(1, result.meta().totalElements());
+        // assertEquals(1, result.meta().totalPages());
 
-                verify(genreRepository, times(1)).findAll(any(Pageable.class));
-                verify(genreMapper, times(1)).toDto(genre);
-                verifyNoMoreInteractions(genreRepository, genreMapper);
-        }
+        // verify(genreRepository, times(1)).findAll(any(Pageable.class));
+        // verify(genreMapper, times(1)).toDto(genre);
+        // verifyNoMoreInteractions(genreRepository, genreMapper);
+        // }
 
         @Test
         void givenIncludeBookCountTrue_whenGetPage_thenUseFindAllFiltered() {

@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 public class Review {
 
-    private static final int REPORT_THRESHOLD = 3;
+    private static final int REPORT_THRESHOLD = 1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
