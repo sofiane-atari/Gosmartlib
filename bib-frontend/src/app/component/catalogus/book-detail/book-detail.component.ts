@@ -233,7 +233,7 @@ export class BookDetailComponent {
   submitReview() {
     const bookId = this.selectedBook?.id;
 
-    if (this.currentUserAlreadyReviewed()) {
+    if (this.isLeerling() && this.currentUserAlreadyReviewed()) {
       this.toastService.show(
         'Je kunt maar één review per boek schrijven.',
         'error',
@@ -446,6 +446,10 @@ export class BookDetailComponent {
     }
 
     this.router.navigate(['/books', bookId, 'edit']);
+  }
+
+  protected isLeerling(): boolean {
+    return this.authService.currentUser()?.role === 'STUDENT';
   }
 
   public deleteBook(bookId?: number): void {

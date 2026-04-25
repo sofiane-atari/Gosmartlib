@@ -9,6 +9,7 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.entity.review.Review;
 import edu.ap.bib_backend.jpa.entity.review.ReviewReport;
 import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewReportRepository;
@@ -115,15 +116,21 @@ public class ReviewService {
                         throw new IllegalStateException("Je mag momenteel geen reviews plaatsen.");
                 }
 
-                boolean hasAlreadyReviewedBook = reviewRepository.existsByBookIdAndUserId(bookId, currentUserId);
+                boolean isStudent = authentication.getAuthorities().stream()
+                                .anyMatch(authority -> authority.getAuthority().equals("ROLE_STUDENT"));
 
-                if (hasAlreadyReviewedBook) {
-                        throw new ResourceAlreadyExistsException(
-                                        "bookId",
-                                        bookId,
-                                        "Je hebt al een review geschreven voor dit boek.");
+                if (isStudent) {
+                        boolean hasAlreadyReviewedBook = reviewRepository.existsByBookIdAndUserId(bookId,
+                                        currentUserId);
+
+                        if (hasAlreadyReviewedBook) {
+                                throw new ResourceAlreadyExistsException(
+                                                "bookId",
+                                                bookId,
+                                                "Je hebt al een review geschreven voor dit boek.");
+                        }
                 }
-
+                
                 Review review = new Review(
                                 reviewDto.getComment(),
                                 reviewDto.getRating(),
