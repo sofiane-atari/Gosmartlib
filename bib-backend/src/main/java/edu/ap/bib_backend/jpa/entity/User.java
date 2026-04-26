@@ -31,7 +31,7 @@ public class User {
     private RoleEntity role;
 
     @ManyToOne
-    @JoinColumn(name = "group_name", nullable = true)
+    @JoinColumn(name = "group_name", nullable = true) //een klas
     private Group group;
 
     @Column(name = "review_blocked", nullable = false)
