@@ -39,7 +39,7 @@ class BookSearchServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new BookSearchService(br, new BookMapper());
+//        service = new BookSearchService(br, new BookMapper());
     }
 
     @Test

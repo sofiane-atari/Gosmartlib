@@ -73,6 +73,25 @@ public final class BookSpecification {
         };
     }
 
+    public static Specification<Book> hasAvailableCopyInSchool(String schoolDomainName) {
+        return (root, query, criteriaBuilder) -> {
+            Join<Book, BookCopy> bookCopyJoin = root.join("bookCopies");
+
+            query.distinct(true);
+
+            return criteriaBuilder.and(
+                    criteriaBuilder.equal(
+                            bookCopyJoin.get("school").get("domainName"),
+                            schoolDomainName
+                    ),
+                    criteriaBuilder.equal(
+                            bookCopyJoin.get("availability"),
+                            Availability.AVAILABLE
+                    )
+            );
+        };
+    }
+
     public static Specification<Book> withCandidateFilters(
             String title,
             String author,
