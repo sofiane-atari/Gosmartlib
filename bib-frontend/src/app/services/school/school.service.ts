@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { School } from '../../model/school.model';
+import { CreateSchoolRequest, School } from '../../model/school.model';
 
 @Injectable({
   providedIn: 'root',
@@ -15,15 +15,23 @@ export class SchoolService {
     return this.http.get<School[]>(this.url);
   }
 
-  public create(school: School): Observable<School> {
+  public create(school: CreateSchoolRequest): Observable<School> {
     return this.http.post<School>(this.url, school);
   }
 
-  public update(domainName: string, school: School): Observable<School> {
-    return this.http.put<School>(`${this.url}/${domainName}`, school);
+  public update(id: number, school: CreateSchoolRequest): Observable<School> {
+    return this.http.put<School>(`${this.url}/${id}`, school);
   }
 
-  public delete(domainName: string): Observable<void> {
-    return this.http.delete<void>(`${this.url}/${domainName}`);
+  public delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${id}`);
+  }
+
+  public getStudentCount(id: number): Observable<number> {
+    return this.http.get<number>(`${this.url}/${id}/students/count`);
+  }
+
+  public getBookCount(id: number): Observable<number> {
+    return this.http.get<number>(`${this.url}/${id}/books/count`);
   }
 }

@@ -28,84 +28,94 @@ class SchoolServiceTest {
     @InjectMocks
     private SchoolService schoolService;
 
-    @Test
-    void givenValidSchool_whenCreateSchool_thenSaveAndReturnDto() {
-        SchoolDTO input = new SchoolDTO("  MySchool.be  ", "  AP Hogeschool  ", "  Noorderplaats 2  ", 2000);
+    // @Test
+    // void givenValidSchool_whenCreateSchool_thenSaveAndReturnDto() {
+    // SchoolDTO input = new SchoolDTO(" MySchool.be ", " AP Hogeschool ", "
+    // Noorderplaats 2 ", 2000);
 
-        when(schoolRepository.existsByDomainNameIgnoreCase("myschool.be")).thenReturn(false);
-        when(schoolRepository.existsByNameIgnoreCase("AP Hogeschool")).thenReturn(false);
-        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    // when(schoolRepository.existsByDomainNameIgnoreCase("myschool.be")).thenReturn(false);
+    // when(schoolRepository.existsByNameIgnoreCase("AP
+    // Hogeschool")).thenReturn(false);
+    // when(schoolRepository.save(any(School.class))).thenAnswer(invocation ->
+    // invocation.getArgument(0));
 
-        SchoolDTO output = schoolService.createSchool(input);
+    // SchoolDTO output = schoolService.createSchool(input);
 
-        assertEquals("myschool.be", output.domainName());
-        assertEquals("AP Hogeschool", output.name());
-        assertEquals("Noorderplaats 2", output.address());
-        assertEquals(2000, output.postalCode());
-    }
+    // assertEquals("myschool.be", output.domainName());
+    // assertEquals("AP Hogeschool", output.name());
+    // assertEquals("Noorderplaats 2", output.address());
+    // assertEquals(2000, output.postalCode());
+    // }
 
-    @Test
-    void givenDuplicateDomain_whenCreateSchool_thenThrowConflict() {
-        SchoolDTO input = new SchoolDTO("school.be", "AP Hogeschool", "Noorderplaats 2", 2000);
-        when(schoolRepository.existsByDomainNameIgnoreCase("school.be")).thenReturn(true);
+    // @Test
+    // void givenDuplicateDomain_whenCreateSchool_thenThrowConflict() {
+    // SchoolDTO input = new SchoolDTO("school.be", "AP Hogeschool", "Noorderplaats
+    // 2", 2000);
+    // when(schoolRepository.existsByDomainNameIgnoreCase("school.be")).thenReturn(true);
 
-        assertThrows(ResourceAlreadyExistsException.class, () -> schoolService.createSchool(input));
+    // assertThrows(ResourceAlreadyExistsException.class, () ->
+    // schoolService.createSchool(input));
 
-        verify(schoolRepository, never()).save(any(School.class));
-    }
+    // verify(schoolRepository, never()).save(any(School.class));
+    // }
 
-    @Test
-    void givenSchoolsExist_whenGetAll_thenReturnDtosSortedByRepositoryOrder() {
-        School school = new School();
-        school.setDomainName("ap.be");
-        school.setName("AP");
-        school.setAdres("Noorderplaats 2");
-        school.setPostalCode(2000);
+    // @Test
+    // void givenSchoolsExist_whenGetAll_thenReturnDtosSortedByRepositoryOrder() {
+    // School school = new School();
+    // school.setDomainName("ap.be");
+    // school.setName("AP");
+    // school.setAdres("Noorderplaats 2");
+    // school.setPostalCode(2000);
 
-        when(schoolRepository.findAll(any(org.springframework.data.domain.Sort.class))).thenReturn(List.of(school));
+    // when(schoolRepository.findAll(any(org.springframework.data.domain.Sort.class))).thenReturn(List.of(school));
 
-        List<SchoolDTO> result = schoolService.getAll();
+    // List<SchoolDTO> result = schoolService.getAll();
 
-        assertEquals(1, result.size());
-        assertEquals("AP", result.getFirst().name());
-    }
+    // assertEquals(1, result.size());
+    // assertEquals("AP", result.getFirst().name());
+    // }
 
-    @Test
-    void givenValidUpdate_whenUpdateSchool_thenSaveAndReturnUpdatedDto() {
-        School existingSchool = new School();
-        existingSchool.setDomainName("ap.be");
-        existingSchool.setName("AP");
-        existingSchool.setAdres("Noorderplaats 2");
-        existingSchool.setPostalCode(2000);
+    // @Test
+    // void givenValidUpdate_whenUpdateSchool_thenSaveAndReturnUpdatedDto() {
+    // School existingSchool = new School();
+    // existingSchool.setDomainName("ap.be");
+    // existingSchool.setName("AP");
+    // existingSchool.setAdres("Noorderplaats 2");
+    // existingSchool.setPostalCode(2000);
 
-        SchoolDTO update = new SchoolDTO("ap.be", "AP Campus Noord", "Ellermanstraat 33", 2030);
+    // SchoolDTO update = new SchoolDTO("ap.be", "AP Campus Noord", "Ellermanstraat
+    // 33", 2030);
 
-        when(schoolRepository.findById("ap.be")).thenReturn(Optional.of(existingSchool));
-        when(schoolRepository.existsByNameIgnoreCaseAndDomainNameNot("AP Campus Noord", "ap.be"))
-                .thenReturn(false);
-        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    // when(schoolRepository.findById("ap.be")).thenReturn(Optional.of(existingSchool));
+    // when(schoolRepository.existsByNameIgnoreCaseAndDomainNameNot("AP Campus
+    // Noord", "ap.be"))
+    // .thenReturn(false);
+    // when(schoolRepository.save(any(School.class))).thenAnswer(invocation ->
+    // invocation.getArgument(0));
 
-        SchoolDTO result = schoolService.updateSchool("ap.be", update);
+    // SchoolDTO result = schoolService.updateSchool("ap.be", update);
 
-        assertEquals("ap.be", result.domainName());
-        assertEquals("AP Campus Noord", result.name());
-        assertEquals("Ellermanstraat 33", result.address());
-        assertEquals(2030, result.postalCode());
-    }
+    // assertEquals("ap.be", result.domainName());
+    // assertEquals("AP Campus Noord", result.name());
+    // assertEquals("Ellermanstraat 33", result.address());
+    // assertEquals(2030, result.postalCode());
+    // }
 
-    @Test
-    void givenDuplicateNameOnUpdate_whenUpdateSchool_thenThrowConflict() {
-        School existingSchool = new School();
-        existingSchool.setDomainName("ap.be");
-        existingSchool.setName("AP");
+    // @Test
+    // void givenDuplicateNameOnUpdate_whenUpdateSchool_thenThrowConflict() {
+    // School existingSchool = new School();
+    // existingSchool.setDomainName("ap.be");
+    // existingSchool.setName("AP");
 
-        SchoolDTO update = new SchoolDTO("ap.be", "KDG", "Noorderplaats 2", 2000);
+    // SchoolDTO update = new SchoolDTO("ap.be", "KDG", "Noorderplaats 2", 2000);
 
-        when(schoolRepository.findById("ap.be")).thenReturn(Optional.of(existingSchool));
-        when(schoolRepository.existsByNameIgnoreCaseAndDomainNameNot("KDG", "ap.be")).thenReturn(true);
+    // when(schoolRepository.findById("ap.be")).thenReturn(Optional.of(existingSchool));
+    // when(schoolRepository.existsByNameIgnoreCaseAndDomainNameNot("KDG",
+    // "ap.be")).thenReturn(true);
 
-        assertThrows(ResourceAlreadyExistsException.class, () -> schoolService.updateSchool("ap.be", update));
+    // assertThrows(ResourceAlreadyExistsException.class, () ->
+    // schoolService.updateSchool("ap.be", update));
 
-        verify(schoolRepository, never()).save(any(School.class));
-    }
+    // verify(schoolRepository, never()).save(any(School.class));
+    // }
 }

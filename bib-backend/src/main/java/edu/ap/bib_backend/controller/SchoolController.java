@@ -27,30 +27,24 @@ public class SchoolController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SchoolDTO>> getAll() {
-        return ResponseEntity.ok(schoolService.getAll());
+    public List<SchoolDTO> getAll() {
+        return schoolService.getAll();
     }
 
     @PostMapping
-    public ResponseEntity<SchoolDTO> create(@Valid @RequestBody SchoolDTO schoolDTO) {
-        SchoolDTO createdSchool = schoolService.createSchool(schoolDTO);
-
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{domainName}")
-                .buildAndExpand(createdSchool.domainName())
-                .toUri();
-
-        return ResponseEntity.created(location).body(createdSchool);
+    public SchoolDTO create(@Valid @RequestBody SchoolDTO dto) {
+        return schoolService.create(dto);
     }
 
-    @PutMapping("/{domainName}")
-    public ResponseEntity<SchoolDTO> update(@PathVariable String domainName, @Valid @RequestBody SchoolDTO schoolDTO) {
-        return ResponseEntity.ok(schoolService.updateSchool(domainName, schoolDTO));
+    @PutMapping("/{id}")
+    public SchoolDTO update(
+            @PathVariable Long id,
+            @Valid @RequestBody SchoolDTO dto) {
+        return schoolService.update(id, dto);
     }
 
-    @DeleteMapping("/{domainName}")
-    public ResponseEntity<Void> delete(@PathVariable String domainName) {
-        schoolService.deleteSchool(domainName);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        schoolService.delete(id);
     }
 }

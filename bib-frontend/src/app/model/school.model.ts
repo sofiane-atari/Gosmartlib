@@ -1,14 +1,11 @@
 export interface School {
+  id: number;
   domainName: string;
   name: string;
   address: string;
   postalCode: number;
+  contactPhone?: string;
+  contactEmail?: string;
+  createdAt?: string;
 }
-
-export interface SchoolFormValue {
-  domainName: string;
-  name: string;
-  address: string;
-  postalCode: number | null;
-}
-
+export type CreateSchoolRequest = Omit<School, 'id'>;
