@@ -29,17 +29,6 @@
         <strong>{{ totalSchools() }}</strong>
       </div>
     </article>
-
-    <article class="stat-card stat-card--blue">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="Users"></lucide-icon>
-      </div>
-      <div>
-        <p>Totaal Leerlingen</p>
-        <strong>{{ totalStudents() }}</strong>
-      </div>
-    </article>
-
     <article class="stat-card stat-card--green">
       <div class="stat-card__icon">
         <lucide-icon [name]="BookOpen"></lucide-icon>
@@ -75,7 +64,6 @@
             <th>Domein</th>
             <th>Locatie</th>
             <th>Contact</th>
-            <th>Leerlingen</th>
             <th>Boeken</th>
             <th class="actions-heading">Acties</th>
           </tr>
@@ -133,12 +121,6 @@
 
               <td>
                 <span class="count-badge">
-                  {{ getStudentCount(school.id) }} leerlingen
-                </span>
-              </td>
-
-              <td>
-                <span class="count-badge">
                   {{ getBookCount(school.id) }} boeken
                 </span>
               </td>
@@ -169,7 +151,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="7">
+              <td colspan="6">
                 <div class="empty-table-state">
                   Geen scholen gevonden voor deze zoekopdracht.
                 </div>
@@ -310,7 +292,7 @@
             @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
               <small class="field-inline-error">Schoolnaam is verplicht.</small>
             }
-            
+
           </div>
                     <div class="modal-field">
             <label for="editDomainName">Domeinnaam</label>

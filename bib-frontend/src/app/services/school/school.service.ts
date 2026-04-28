@@ -27,11 +27,11 @@ export class SchoolService {
     return this.http.delete<void>(`${this.url}/${id}`);
   }
 
-  public getStudentCount(id: number): Observable<number> {
-    return this.http.get<number>(`${this.url}/${id}/students/count`);
-  }
-
   public getBookCount(id: number): Observable<number> {
     return this.http.get<number>(`${this.url}/${id}/books/count`);
+  }
+
+  public getTotalBookCount(): Observable<number> {
+    return this.http.get<number>(`${this.url}/books/count`);
   }
 }

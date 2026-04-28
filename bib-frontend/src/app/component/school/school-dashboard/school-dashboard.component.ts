@@ -58,15 +58,10 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly totalSchools = computed(() => this.schools().length);
 
   protected readonly searchTerm = signal('');
-  protected readonly schoolStudentCounts = signal<Record<number, number>>({});
   protected readonly schoolBookCounts = signal<Record<number, number>>({});
 
   protected readonly uniquePostalCodes = computed(  
     () => new Set(this.schools().map((school) => school.postalCode)).size,
-  );
-
-  protected readonly totalStudents = computed(() =>
-    Object.values(this.schoolStudentCounts()).reduce((total, count) => total + count, 0),
   );
 
   protected readonly totalBooks = computed(() =>
@@ -74,10 +69,6 @@ export class SchoolDashboardComponent implements OnInit {
   );
 
   protected readonly activeSchools = computed(() => this.schools().length);
-
-  protected getStudentCount(id: number): number {
-    return this.schoolStudentCounts()[id] ?? 0;
-  }
 
   protected getBookCount(id: number): number {
     return this.schoolBookCounts()[id] ?? 0;
@@ -339,18 +330,6 @@ this.schoolService
 
   private loadSchoolCounts(schools: School[]): void {
     schools.forEach((school) => {
-      this.schoolService
-        .getStudentCount(school.id)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (count) => {
-            this.schoolStudentCounts.update((counts) => ({
-              ...counts,
-              [school.id]: count,
-            }));
-          },
-        });
-
       this.schoolService
         .getBookCount(school.id)
         .pipe(takeUntilDestroyed(this.destroyRef))

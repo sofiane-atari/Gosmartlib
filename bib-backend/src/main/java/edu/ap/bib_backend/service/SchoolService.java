@@ -2,18 +2,23 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
-import java.util.List;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class SchoolService {
 
     private final SchoolRepository schoolRepository;
+    private final BookCopyRepository bookCopyRepository;
 
-    public SchoolService(SchoolRepository schoolRepository) {
+    public SchoolService(
+            SchoolRepository schoolRepository,
+            BookCopyRepository bookCopyRepository) {
         this.schoolRepository = schoolRepository;
+        this.bookCopyRepository = bookCopyRepository;
     }
 
     public List<SchoolDTO> getAll() {
@@ -23,7 +28,6 @@ public class SchoolService {
                 .toList();
     }
 
-    @Transactional
     public SchoolDTO create(SchoolDTO dto) {
         School school = new School();
 
@@ -37,15 +41,6 @@ public class SchoolService {
         return toDto(schoolRepository.save(school));
     }
 
-    @Transactional
-    public void delete(Long id) {
-        School school = schoolRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
-
-        schoolRepository.delete(school);
-    }
-
-    @Transactional
     public SchoolDTO update(Long id, SchoolDTO dto) {
         School school = schoolRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
@@ -58,6 +53,26 @@ public class SchoolService {
         school.setContactEmail(dto.contactEmail());
 
         return toDto(schoolRepository.save(school));
+    }
+
+    public void delete(Long id) {
+        if (!schoolRepository.existsById(id)) {
+            throw new IllegalArgumentException("School niet gevonden.");
+        }
+
+        schoolRepository.deleteById(id);
+    }
+
+    public long getBookCountBySchool(Long schoolId) {
+        if (!schoolRepository.existsById(schoolId)) {
+            throw new IllegalArgumentException("School niet gevonden.");
+        }
+
+        return bookCopyRepository.countBySchoolId(schoolId);
+    }
+
+    public long getTotalBookCount() {
+        return bookCopyRepository.count();
     }
 
     private SchoolDTO toDto(School school) {
