@@ -24,7 +24,7 @@ public class User {
     private RoleEntity role;
 
     @ManyToOne
-    @JoinColumn(name = "group_name", nullable = true) // een klas
+    @JoinColumn(name = "group_name", nullable = true) //een klas
     private Group group;
 
     @ManyToOne(fetch = FetchType.LAZY)
