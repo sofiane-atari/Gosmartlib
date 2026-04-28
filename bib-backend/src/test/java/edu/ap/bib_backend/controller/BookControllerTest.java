@@ -7,10 +7,10 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -46,28 +46,28 @@ public class BookControllerTest {
         @Autowired
         private MockMvc mockMvc;
 
-        @MockBean
+        @MockitoBean
         private BookService bs;
 
-        @MockBean
+        @MockitoBean
         private BookSearchService bookSearchService;
 
-        @MockBean
+        @MockitoBean
         private JwtService jwtService;
 
-        @MockBean
+        @MockitoBean
         private TokenStorageService tokenStorageService;
 
-        @MockBean
+        @MockitoBean
         private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
 
         @MockitoBean
         private AdminOverrideService adminOverrideService;
 
-        @MockBean
+        @MockitoBean
         private GoogleBooksClient gbc;
 
-        @MockBean
+        @MockitoBean
         private OpenLibraryClient olc;
 
         @Test
@@ -82,6 +82,7 @@ public class BookControllerTest {
                 Page<BookDTO> page = new PageImpl<>(List.of(book));
 
                 when(bookSearchService.getFilteredBooks(
+                                Mockito.any(Authentication.class),
                                 "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
@@ -109,6 +110,7 @@ public class BookControllerTest {
 
                 // Assert
                 verify(bookSearchService).getFilteredBooks(
+                                Mockito.any(Authentication.class),
                                 "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
@@ -180,6 +182,7 @@ public class BookControllerTest {
                 Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of());
 
                 Mockito.when(bookSearchService.getFilteredBooks(
+                                Mockito.any(Authentication.class),
                                 null,
                                 null,
                                 null,
@@ -198,6 +201,7 @@ public class BookControllerTest {
                                 .andExpect(jsonPath("$.meta").exists());
 
                 Mockito.verify(bookSearchService).getFilteredBooks(
+                                Mockito.any(Authentication.class),
                                 null,
                                 null,
                                 null,
@@ -221,7 +225,7 @@ public class BookControllerTest {
                 related2.setTitle("Related Book 2");
 
                 Mockito.when(bs.getRelatedBooksCarousel(1L, 5))
-                                .thenReturn(List.of(related1, related2));
+                                 .thenReturn(List.of(related1, related2));
 
                 // Act & Assert
                 mockMvc.perform(get("/books/1/related-carousel")
@@ -241,7 +245,7 @@ public class BookControllerTest {
                 related.setTitle("Default Related Book");
 
                 Mockito.when(bs.getRelatedBooksCarousel(1L, 10))
-                                .thenReturn(List.of(related));
+                                 .thenReturn(List.of(related));
 
                 // Act & Assert
                 mockMvc.perform(get("/books/1/related-carousel"))
@@ -408,7 +412,7 @@ public class BookControllerTest {
                 savedDTO.setDescription("Beschrijving hier");
                 savedDTO.setReleaseYear(2024);
 
-                Mockito.when(bs.addBook(Mockito.any(BookDTO.class))).thenReturn(savedDTO);
+                Mockito.when(bs.addBook(Mockito.any(Authentication.class), Mockito.any(BookDTO.class))).thenReturn(savedDTO);
 
                 // Act & Assert
                 mockMvc.perform(post("/books")

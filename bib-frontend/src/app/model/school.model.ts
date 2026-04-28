@@ -5,10 +5,3 @@ export interface School {
   postalCode: number;
 }
 
-export interface SchoolFormValue {
-  domainName: string;
-  name: string;
-  address: string;
-  postalCode: number | null;
-}
-
