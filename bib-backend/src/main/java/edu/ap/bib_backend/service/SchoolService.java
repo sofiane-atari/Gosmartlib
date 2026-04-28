@@ -31,12 +31,12 @@ public class SchoolService {
     public SchoolDTO create(SchoolDTO dto) {
         School school = new School();
 
-        school.setDomainName(dto.domainName());
-        school.setName(dto.name());
-        school.setAddress(dto.address());
+        school.setDomainName(normalizeDomainName(dto.domainName()));
+        school.setName(trimOrNull(dto.name()));
+        school.setAddress(trimOrNull(dto.address()));
         school.setPostalCode(dto.postalCode());
-        school.setContactPhone(dto.contactPhone());
-        school.setContactEmail(dto.contactEmail());
+        school.setContactPhone(trimOrNull(dto.contactPhone()));
+        school.setContactEmail(trimOrNull(dto.contactEmail()));
 
         return toDto(schoolRepository.save(school));
     }
@@ -85,5 +85,13 @@ public class SchoolService {
                 school.getContactPhone(),
                 school.getContactEmail(),
                 school.getCreatedAt());
+    }
+
+    private String trimOrNull(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private String normalizeDomainName(String domainName) {
+        return domainName == null ? null : domainName.trim().toLowerCase();
     }
 }
