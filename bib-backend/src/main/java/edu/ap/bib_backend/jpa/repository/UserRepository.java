@@ -10,13 +10,17 @@ import org.springframework.data.repository.query.Param;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 
-public interface UserRepository extends JpaRepository<User, String>{
+public interface UserRepository extends JpaRepository<User, String> {
     public List<User> findByIdContaining(String Id);
 
+    long countBySchoolIdAndRole(Long schoolId, Role role);
+
+    long countByRole(Role role);
+
     @Query("""
-        select u.role.role
-        from User u
-        where u.id = :userId
-        """)
+            select u.role.role
+            from User u
+            where u.id = :userId
+            """)
     Optional<Role> findRoleByUserId(@Param("userId") String userId);
 }
