@@ -79,15 +79,12 @@ public final class BookSpecification {
 
             query.distinct(true);
 
-            return criteriaBuilder.and(
-                    criteriaBuilder.equal(
-                            bookCopyJoin.get("school").get("domainName"),
-                            schoolDomainName
-                    ),
-                    criteriaBuilder.equal(
-                            bookCopyJoin.get("availability"),
-                            Availability.AVAILABLE
-                    )
+            // Only filter by the school's domain here. Availability filtering should be
+            // controlled by the availability parameter passed into `withFilters` so that
+            // callers can request ALL vs AVAILABLE correctly.
+            return criteriaBuilder.equal(
+                    bookCopyJoin.get("school").get("domainName"),
+                    schoolDomainName
             );
         };
     }
