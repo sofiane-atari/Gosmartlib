@@ -78,6 +78,12 @@ export const routes: Routes = [
     canActivate: [authGuard, teacherOnlyGuard],
   },
   {
+    path: 'reading-list/shared/:publicShareId',
+    component: ReadingListDetailComponent,
+    canActivate: [authGuard],
+    data: { shared: true }
+  },
+  {
     path: 'reading-list/:id',
     component: ReadingListDetailComponent,
     canActivate: [authGuard],

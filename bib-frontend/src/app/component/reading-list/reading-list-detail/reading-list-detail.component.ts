@@ -25,6 +25,7 @@ export class ReadingListDetailComponent implements OnInit {
     booksInList: Book[] = [];
     loading = true;
     error = false;
+    isSharedView = false;
 
     constructor(
         private route: ActivatedRoute,
@@ -35,40 +36,45 @@ export class ReadingListDetailComponent implements OnInit {
         private authService: AuthService
     ) { }
 
-    ngOnInit() {
-        this.authService.fetchCurrentUser();
+  ngOnInit() {
+    this.authService.fetchCurrentUser();
 
-        const id = Number(this.route.snapshot.paramMap.get('id'));
-        this.readingListService.getListById(id).subscribe({
-            next: (listData) => {
-                this.list = listData;
+    this.isSharedView = this.route.snapshot.data['shared'] === true;
 
-                if (listData.books && listData.books.length > 0) {
-                    // Fetch all books based on bookIds
-                    const bookRequests = listData.books.map(b =>
-                        this.bookService.getBookById(b.bookId).pipe(
-                            catchError(() => of(null)) // ignore missing books
-                        )
-                    );
+    if (this.isSharedView) {
+      const publicShareId = this.route.snapshot.paramMap.get('publicShareId');
 
-                    forkJoin(bookRequests).subscribe((books) => {
-                        this.booksInList = books.filter(b => b !== null) as Book[];
-                        this.loading = false;
-                    });
-                } else {
-                    this.loading = false;
-                }
-            },
-            error: () => {
-                this.error = true;
-                this.loading = false;
-            }
-        });
+      if (!publicShareId) {
+        this.error = true;
+        this.loading = false;
+        return;
+      }
+
+      this.readingListService.getSharedList(publicShareId).subscribe({
+        next: (listData) => this.loadListBooks(listData),
+        error: () => {
+          this.error = true;
+          this.loading = false;
+        }
+      });
+
+      return;
     }
 
-    isReadOnlyAudience(): boolean {
-        return !this.canModifyList();
-    }
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+
+    this.readingListService.getListById(id).subscribe({
+      next: (listData) => this.loadListBooks(listData),
+      error: () => {
+        this.error = true;
+        this.loading = false;
+      }
+    });
+  }
+
+  isReadOnlyAudience(): boolean {
+    return this.isSharedView || !this.canModifyList();
+  }
 
     private canModifyList(): boolean {
         const target = this.list?.targetType ?? 'PERSONAL';
@@ -134,4 +140,23 @@ export class ReadingListDetailComponent implements OnInit {
             this.router.navigate(['/book', bookId]);
         }
     }
+
+  private loadListBooks(listData: ReadingList): void {
+    this.list = listData;
+
+    if (listData.books && listData.books.length > 0) {
+      const bookRequests = listData.books.map(b =>
+        this.bookService.getBookById(b.bookId).pipe(
+          catchError(() => of(null))
+        )
+      );
+
+      forkJoin(bookRequests).subscribe((books) => {
+        this.booksInList = books.filter(b => b !== null) as Book[];
+        this.loading = false;
+      });
+    } else {
+      this.loading = false;
+    }
+  }
 }

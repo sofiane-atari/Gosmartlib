@@ -448,7 +448,7 @@ public class BookControllerTest {
                 book3.setTitle("Most Read Book 3");
                 book3.setAuthor("Author C");
 
-                Mockito.when(bs.getMostReadBooks(3)).thenReturn(List.of(book1, book2, book3));
+                Mockito.when(bs.getMostReadBooks(3, null)).thenReturn(List.of(book1, book2, book3));
 
                 // Act & Assert
                 mockMvc.perform(get("/books/most-read"))
@@ -465,7 +465,7 @@ public class BookControllerTest {
                 book1.setId(1L);
                 book1.setTitle("Popular Book");
 
-                Mockito.when(bs.getMostReadBooks(5)).thenReturn(List.of(book1));
+                Mockito.when(bs.getMostReadBooks(5, null)).thenReturn(List.of(book1));
 
                 // Act & Assert
                 mockMvc.perform(get("/books/most-read")
@@ -499,7 +499,7 @@ public class BookControllerTest {
                 book3.setAuthor("Author C");
                 book3.setReleaseYear(2022);
 
-                Mockito.when(bs.getNewestBooks(3)).thenReturn(List.of(book1, book2, book3));
+                Mockito.when(bs.getNewestBooks(3, null)).thenReturn(List.of(book1, book2, book3));
 
                 // Act & Assert
                 mockMvc.perform(get("/books/newest"))
@@ -516,7 +516,7 @@ public class BookControllerTest {
                 book1.setId(1L);
                 book1.setTitle("Recently Added Book");
 
-                Mockito.when(bs.getNewestBooks(10)).thenReturn(List.of(book1));
+                Mockito.when(bs.getNewestBooks(10, null)).thenReturn(List.of(book1));
 
                 // Act & Assert
                 mockMvc.perform(get("/books/newest")

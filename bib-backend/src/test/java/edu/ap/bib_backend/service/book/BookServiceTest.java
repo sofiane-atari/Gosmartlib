@@ -471,7 +471,7 @@ class BookServiceTest {
                 given(br.findMostReadBook(PageRequest.of(0, 5))).willReturn(List.of(book));
                 given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
-                List<BookDTO> result = bs.getMostReadBooks(5);
+                List<BookDTO> result = bs.getMostReadBooks(5, null);
 
                 assertThat(result).hasSize(1);
                 assertThat(result.get(0).getTitle()).isEqualTo("Populair Boek");
@@ -482,7 +482,7 @@ class BookServiceTest {
         void givenNoMostReadBooks_whenGetMostReadBooks_thenThrowNotFound() {
                 given(br.findMostReadBook(PageRequest.of(0, 5))).willReturn(List.of());
 
-                assertThatThrownBy(() -> bs.getMostReadBooks(5))
+                assertThatThrownBy(() -> bs.getMostReadBooks(5, null))
                                 .isInstanceOf(ResponseStatusException.class)
                                 .satisfies(ex -> {
                                         ResponseStatusException rse = (ResponseStatusException) ex;
@@ -512,11 +512,67 @@ class BookServiceTest {
                 given(br.findNewestBooks(PageRequest.of(0, 3))).willReturn(List.of(book));
                 given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
-                List<BookDTO> result = bs.getNewestBooks(3);
+                List<BookDTO> result = bs.getNewestBooks(3, null);
 
                 assertThat(result).hasSize(1);
                 assertThat(result.get(0).getTitle()).isEqualTo("Nieuw Boek");
                 then(br).should().findNewestBooks(PageRequest.of(0, 3));
+        }
+
+        @Test
+        @DisplayName("Given most read books exist for school, When getMostReadBooks is called with schoolCode, Then return mapped DTOs")
+        void givenMostReadBooksExistForSchool_whenGetMostReadBooksWithSchoolCode_thenReturnMappedDTOs() {
+                Book book = createBook(
+                                1L,
+                                "9781234567890",
+                                "Populair Boek",
+                                "Auteur",
+                                200,
+                                null,
+                                null,
+                                2022,
+                                4.0,
+                                Set.of());
+
+                BookDTO dto = new BookDTO();
+                dto.setTitle("Populair Boek");
+
+                given(br.findMostReadBookBySchool("school1", PageRequest.of(0, 5))).willReturn(List.of(book));
+                given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
+
+                List<BookDTO> result = bs.getMostReadBooks(5, "school1");
+
+                assertThat(result).hasSize(1);
+                assertThat(result.get(0).getTitle()).isEqualTo("Populair Boek");
+                then(br).should().findMostReadBookBySchool("school1", PageRequest.of(0, 5));
+        }
+
+        @Test
+        @DisplayName("Given newest books exist for school, When getNewestBooks is called with schoolCode, Then return mapped DTOs")
+        void givenNewestBooksExistForSchool_whenGetNewestBooksWithSchoolCode_thenReturnMappedDTOs() {
+                Book book = createBook(
+                                2L,
+                                "9781234567890",
+                                "Nieuw Boek",
+                                "Auteur",
+                                180,
+                                null,
+                                null,
+                                2025,
+                                0.0,
+                                Set.of());
+
+                BookDTO dto = new BookDTO();
+                dto.setTitle("Nieuw Boek");
+
+                given(br.findNewestBooksBySchool("school1", PageRequest.of(0, 3))).willReturn(List.of(book));
+                given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
+
+                List<BookDTO> result = bs.getNewestBooks(3, "school1");
+
+                assertThat(result).hasSize(1);
+                assertThat(result.get(0).getTitle()).isEqualTo("Nieuw Boek");
+                then(br).should().findNewestBooksBySchool("school1", PageRequest.of(0, 3));
         }
 
         @Test
