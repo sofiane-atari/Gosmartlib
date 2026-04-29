@@ -1,140 +1,151 @@
 package edu.ap.bib_backend.service;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import edu.ap.bib_backend.jpa.entity.AuthSession;
+import edu.ap.bib_backend.jpa.repository.AuthSessionRepository;
 import org.springframework.stereotype.Service;
-import java.util.concurrent.TimeUnit;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
 
 @Service
 public class TokenStorageService {
 
-    private final RedisTemplate<String, String> redisTemplate;
-    private final int JWT_EXPIRY_HOURS = 24;
     private static final long SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES = 55;
 
-    public TokenStorageService(RedisTemplate<String, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    private final AuthSessionRepository authSessionRepository;
+
+    public TokenStorageService(AuthSessionRepository authSessionRepository) {
+        this.authSessionRepository = authSessionRepository;
     }
 
-    /**
-     * Store JWT token mapped to user ID (not username/personal data)
-     * Key format: "token:userId:{userId}"
-     * Value: JWT token
-     */
+    public void storeToken(String userId, String jwtToken, String role, Instant jwtExpiresAt) {
+        AuthSession session = authSessionRepository.findById(userId)
+                .orElseGet(() -> new AuthSession(userId, jwtToken, role, jwtExpiresAt));
 
-    public void storeToken(String userId, String jwtToken) {
-        redisTemplate.opsForValue().set(
-            buildJwtKey(userId),
-            jwtToken,
-            JWT_EXPIRY_HOURS,
-            TimeUnit.HOURS
-        );
+        session.setJwtToken(jwtToken);
+        session.setRole(role);
+        session.setJwtExpiresAt(jwtExpiresAt);
+
+        authSessionRepository.save(session);
     }
 
-    /**
-     * Retrieve JWT token by user ID
-     */
+    public void replaceToken(String userId, String jwtToken, String role, Instant jwtExpiresAt) {
+        storeToken(userId, jwtToken, role, jwtExpiresAt);
+    }
+
+    public Optional<AuthSession> getSession(String userId) {
+        return authSessionRepository.findById(userId);
+    }
+
     public String getToken(String userId) {
-        return redisTemplate.opsForValue().get(buildJwtKey(userId));
+        return authSessionRepository.findById(userId)
+                .filter(session -> session.getJwtExpiresAt() != null)
+                .filter(session -> session.getJwtExpiresAt().isAfter(Instant.now()))
+                .map(AuthSession::getJwtToken)
+                .orElse(null);
     }
-
-    /**
-     * Check if user has an active token session
-     */
 
     public boolean hasActiveToken(String userId) {
-        return redisTemplate.hasKey(buildJwtKey(userId));
+        return authSessionRepository.findById(userId)
+                .filter(session -> session.getJwtExpiresAt() != null)
+                .filter(session -> session.getJwtExpiresAt().isAfter(Instant.now()))
+                .isPresent();
     }
 
-    /**
-     * Revoke token by user ID (logout)
-     */
+    public boolean isCurrentToken(String userId, String jwtToken) {
+        String storedToken = getToken(userId);
+        return storedToken != null && storedToken.equals(jwtToken);
+    }
+
+    public boolean hasActiveToken(String userId, String jwtToken) {
+        return isCurrentToken(userId, jwtToken);
+    }
 
     public void revokeToken(String userId) {
-        redisTemplate.delete(buildJwtKey(userId));
-        redisTemplate.delete(buildSmartschoolAccessTokenKey(userId));
-        // TEMP_ADMIN_OVERRIDE: clear override state on logout.
-        redisTemplate.delete(buildAdminOverrideKey(userId));
+        authSessionRepository.deleteById(userId);
     }
 
-    /**
-     * Store additional user metadata (e.g., role) without PII
-     * Key format: "user:userId:{userId}"
-     * Value: serialized role info
-     */
-
     public void storeUserMetadata(String userId, String role) {
-        redisTemplate.opsForValue().set(
-            buildRoleKey(userId),
-            role,
-            JWT_EXPIRY_HOURS,
-            TimeUnit.HOURS
-        );
+        authSessionRepository.findById(userId).ifPresent(session -> {
+            session.setRole(role);
+            authSessionRepository.save(session);
+        });
     }
 
     public void removeUserMetadata(String userId) {
-        redisTemplate.delete(buildRoleKey(userId));
+        authSessionRepository.findById(userId).ifPresent(session -> {
+            session.setRole("");
+            authSessionRepository.save(session);
+        });
     }
 
-    /**
-     * Retrieve user role by user ID
-     */
-
     public String getUserRole(String userId) {
-        return redisTemplate.opsForValue().get(buildRoleKey(userId));
+        return authSessionRepository.findById(userId)
+                .map(AuthSession::getRole)
+                .orElse(null);
     }
 
     public void storeSmartschoolAccessToken(String userId, String accessToken) {
-        redisTemplate.opsForValue().set(
-            buildSmartschoolAccessTokenKey(userId),
-            accessToken,
-            SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES,
-            TimeUnit.MINUTES
-        );
+        AuthSession session = authSessionRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("No auth session found for user " + userId));
+
+        session.setSmartschoolAccessToken(accessToken);
+        session.setSmartschoolAccessTokenExpiresAt(
+                Instant.now().plusSeconds(SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES * 60));
+
+        authSessionRepository.save(session);
     }
 
     public String getSmartschoolAccessToken(String userId) {
-        return redisTemplate.opsForValue().get(buildSmartschoolAccessTokenKey(userId));
+        return authSessionRepository.findById(userId)
+                .filter(session -> session.getSmartschoolAccessToken() != null)
+                .filter(session -> session.getSmartschoolAccessTokenExpiresAt() != null)
+                .filter(session -> session.getSmartschoolAccessTokenExpiresAt().isAfter(Instant.now()))
+                .map(AuthSession::getSmartschoolAccessToken)
+                .orElse(null);
     }
 
     public void removeSmartschoolAccessToken(String userId) {
-        redisTemplate.delete(buildSmartschoolAccessTokenKey(userId));
+        authSessionRepository.findById(userId).ifPresent(session -> {
+            session.setSmartschoolAccessToken(null);
+            session.setSmartschoolAccessTokenExpiresAt(null);
+            authSessionRepository.save(session);
+        });
     }
 
     public void storeAdminOverride(String userId, long ttlMinutes) {
-        redisTemplate.opsForValue().set(
-            buildAdminOverrideKey(userId),
-            "true",
-            ttlMinutes,
-            TimeUnit.MINUTES
-        );
+        AuthSession session = authSessionRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("No auth session found for user " + userId));
+
+        session.setAdminOverride(true);
+        session.setAdminOverrideExpiresAt(Instant.now().plusSeconds(ttlMinutes * 60));
+
+        authSessionRepository.save(session);
     }
 
     public boolean hasAdminOverride(String userId) {
-        return redisTemplate.hasKey(buildAdminOverrideKey(userId));
+        return authSessionRepository.findById(userId)
+                .filter(AuthSession::isAdminOverride)
+                .filter(session -> session.getAdminOverrideExpiresAt() != null)
+                .filter(session -> session.getAdminOverrideExpiresAt().isAfter(Instant.now()))
+                .isPresent();
     }
 
     public void removeAdminOverride(String userId) {
-        redisTemplate.delete(buildAdminOverrideKey(userId));
+        authSessionRepository.findById(userId).ifPresent(session -> {
+            session.setAdminOverride(false);
+            session.setAdminOverrideExpiresAt(null);
+            authSessionRepository.save(session);
+        });
     }
 
     public Long getAdminOverrideTtlSeconds(String userId) {
-        long ttl = redisTemplate.getExpire(buildAdminOverrideKey(userId), TimeUnit.SECONDS);
-        return ttl < 0 ? null : ttl;
-    }
-
-    private String buildJwtKey(String userId) {
-        return "auth:jwt:user:" + userId;
-    }
-
-    private String buildRoleKey(String userId) {
-        return "auth:role:user:" + userId;
-    }
-
-    private String buildSmartschoolAccessTokenKey(String userId) {
-        return "smartschool:access:user:" + userId;
-    }
-
-    private String buildAdminOverrideKey(String userId) {
-        return "auth:override:admin:user:" + userId;
+        return authSessionRepository.findById(userId)
+                .filter(AuthSession::isAdminOverride)
+                .map(AuthSession::getAdminOverrideExpiresAt)
+                .filter(expiresAt -> expiresAt.isAfter(Instant.now()))
+                .map(expiresAt -> Duration.between(Instant.now(), expiresAt).getSeconds())
+                .orElse(null);
     }
 }

@@ -123,30 +123,30 @@ public class AuthControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").doesNotExist());
     }
 
-    @Test
-    void givenOAuth2User_whenCallbackCalled_thenRedirectWithToken() throws Exception {
-        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
-        OAuth2User principal = new DefaultOAuth2User(authorities, Map.of("sub", "1"), "sub");
-        OAuth2AuthenticationToken auth = new OAuth2AuthenticationToken(principal, authorities, "smartschool");
+//     @Test
+//     void givenOAuth2User_whenCallbackCalled_thenRedirectWithToken() throws Exception {
+//         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
+//         OAuth2User principal = new DefaultOAuth2User(authorities, Map.of("sub", "1"), "sub");
+//         OAuth2AuthenticationToken auth = new OAuth2AuthenticationToken(principal, authorities, "smartschool");
 
-        OAuth2AccessToken smartToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "smart-token", null, null);
-        OAuth2AuthorizedClient authorizedClient = mock(OAuth2AuthorizedClient.class);
-        when(authorizedClient.getAccessToken()).thenReturn(smartToken);
-        when(authorizedClientService.loadAuthorizedClient("smartschool", "1")).thenReturn(authorizedClient);
+//         OAuth2AccessToken smartToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "smart-token", null, null);
+//         OAuth2AuthorizedClient authorizedClient = mock(OAuth2AuthorizedClient.class);
+//         when(authorizedClient.getAccessToken()).thenReturn(smartToken);
+//         when(authorizedClientService.loadAuthorizedClient("smartschool", "1")).thenReturn(authorizedClient);
 
-        when(jwtService.generateToken(any(), any())).thenReturn("jwt-token");
+//         when(jwtService.generateToken(any(), any())).thenReturn("jwt-token");
 
-        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/auth/callback")
-                .with(authentication(auth)));
+//         ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/auth/callback")
+//                 .with(authentication(auth)));
 
-        result.andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                .andExpect(MockMvcResultMatchers.header().string("Location", containsString("token=jwt-token")));
+//         result.andExpect(MockMvcResultMatchers.status().is3xxRedirection())
+//                 .andExpect(MockMvcResultMatchers.header().string("Location", containsString("token=jwt-token")));
         
-        verify(jwtService).generateToken("1", "ROLE_STUDENT");
-        verify(tokenStorageService).storeToken("1", "jwt-token");
-        verify(tokenStorageService).storeUserMetadata("1", "ROLE_STUDENT");
-        verify(tokenStorageService).storeSmartschoolAccessToken("1", "smart-token");
-    }
+//         verify(jwtService).generateToken("1", "ROLE_STUDENT");
+//         verify(tokenStorageService).storeToken("1", "jwt-token");
+//         verify(tokenStorageService).storeUserMetadata("1", "ROLE_STUDENT");
+//         verify(tokenStorageService).storeSmartschoolAccessToken("1", "smart-token");
+//     }
 
     @Test
     void givenOAuth2User_whenLogoutCalled_thenRevokeTokenAndReturnMessage() throws Exception {

@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthUserDto } from '../../model/auth.model';
 import { environment } from '../../../environments/environment';
+import { Router } from '@angular/router';
 
 export interface AdminOverrideStatusDto {
   enabled: boolean;
@@ -17,8 +18,12 @@ export class AuthService {
   private static readonly FALLBACK_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
 
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   private tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private tokenWarningTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
+  private static readonly TOKEN_WARNING_BEFORE_EXPIRY_MS = 5 * 60 * 1000;
+  private static readonly REDIRECT_AFTER_LOGIN_KEY = 'redirectAfterLogin';
   public readonly currentUser = signal<AuthUserDto | null>(null);
   public readonly isLoading = signal(false);
   public readonly adminOverrideStatus = signal<AdminOverrideStatusDto | null>(null);
@@ -50,7 +55,7 @@ export class AuthService {
       return;
     }
 
-    this.scheduleTokenExpiry(expiresAt);
+    this.scheduleTokenTimers(expiresAt);
   }
 
   // Haal de gebruiker op van de backend
@@ -145,7 +150,7 @@ export class AuthService {
     );
     this.token.set(normalizedToken);
     this.tokenExpiryEpochMs.set(expiresAt);
-    this.scheduleTokenExpiry(expiresAt);
+    this.scheduleTokenTimers(expiresAt);
 
     return true;
   }
@@ -163,7 +168,7 @@ export class AuthService {
   }
 
   public clearToken(): void {
-    this.clearExpiryTimeout();
+    this.clearTokenTimers();
     localStorage.removeItem(AuthService.TOKEN_STORAGE_KEY);
     localStorage.removeItem(AuthService.TOKEN_EXPIRY_STORAGE_KEY);
     this.token.set(null);
@@ -172,24 +177,49 @@ export class AuthService {
     this.adminOverrideStatus.set(null);
   }
 
-  private scheduleTokenExpiry(expiresAt: number): void {
-    this.clearExpiryTimeout();
+private scheduleTokenTimers(expiresAt: number): void {
+  this.clearTokenTimers();
 
-    const timeoutMs = expiresAt - Date.now();
-    if (timeoutMs <= 0) {
-      this.clearToken();
-      return;
-    }
+  const now = Date.now();
 
-    this.tokenExpiryTimeoutId = setTimeout(() => {
-      this.clearToken();
-    }, timeoutMs);
+  const warningAt =
+    expiresAt - AuthService.TOKEN_WARNING_BEFORE_EXPIRY_MS;
+
+  const warningTimeoutMs = warningAt - now;
+  const expiryTimeoutMs = expiresAt - now;
+
+  console.log('Token expires at:', new Date(expiresAt));
+  console.log('Session warning at:', new Date(warningAt));
+
+  if (expiryTimeoutMs <= 0) {
+    this.clearToken();
+    this.router.navigate(['/login']);
+    return;
   }
 
-  private clearExpiryTimeout(): void {
+  if (warningTimeoutMs <= 0) {
+    this.showSessionWarning();
+  } else {
+    this.tokenWarningTimeoutId = setTimeout(() => {
+      this.showSessionWarning();
+    }, warningTimeoutMs);
+  }
+
+  this.tokenExpiryTimeoutId = setTimeout(() => {
+    this.clearToken();
+    this.router.navigate(['/login']);
+  }, expiryTimeoutMs);
+}
+
+  private clearTokenTimers(): void {
     if (this.tokenExpiryTimeoutId) {
       clearTimeout(this.tokenExpiryTimeoutId);
       this.tokenExpiryTimeoutId = null;
+    }
+
+    if (this.tokenWarningTimeoutId) {
+      clearTimeout(this.tokenWarningTimeoutId);
+      this.tokenWarningTimeoutId = null;
     }
   }
 
@@ -243,5 +273,25 @@ export class AuthService {
     }
 
     return trimmedToken;
+  }
+  private showSessionWarning(): void {
+    const wantsToLoginAgain = window.confirm(
+      'Je sessie gaat bijna verlopen. Log opnieuw in om verder te gaan.'
+    );
+
+    if (wantsToLoginAgain) {
+      localStorage.setItem(
+        AuthService.REDIRECT_AFTER_LOGIN_KEY,
+        this.router.url,
+      );
+
+      this.clearToken();
+
+      window.location.href = `${environment.apiUrl}/oauth2/authorization/smartschool`;
+      return;
+    }
+
+    this.clearToken();
+    this.router.navigate(['/login']);
   }
 }

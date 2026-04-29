@@ -4,14 +4,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.JwtTokenDTO;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.jpa.enums.Role;
@@ -76,7 +79,6 @@ public class AuthService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No role found"));
 
-        // Extraheer claims
         Map<String, Object> claims = Map.of(
                 SmartschoolOAuth2UserService.CLAIM_CLASS_CODE,
                 getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, "GENERAL"),
@@ -85,7 +87,14 @@ public class AuthService {
                 SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
                 getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL"));
 
-        // Sla Smartschool Access Token op
+        String jwt = jwtService.generateToken(userId, roleStr, claims);
+
+        tokenStorageService.storeToken(
+                userId,
+                jwt,
+                roleStr,
+                jwtService.extractExpirationInstant(jwt));
+
         OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
                 oauthToken.getAuthorizedClientRegistrationId(), userId);
 
@@ -93,17 +102,11 @@ public class AuthService {
             tokenStorageService.storeSmartschoolAccessToken(userId, client.getAccessToken().getTokenValue());
         }
 
-        // Genereer en sla ons eigen JWT op
-        String jwt = jwtService.generateToken(userId, roleStr, claims);
-        tokenStorageService.storeToken(userId, jwt);
-        tokenStorageService.storeUserMetadata(userId, roleStr);
-
         return jwt;
     }
 
     public void logout(String userId) {
         tokenStorageService.revokeToken(userId);
-        tokenStorageService.removeUserMetadata(userId);
     }
 
     private Role extractRole(Collection<? extends GrantedAuthority> authorities) {
@@ -119,5 +122,30 @@ public class AuthService {
     private String getAttributeOrDefault(OAuth2AuthenticationToken token, String attr, String defaultValue) {
         Object val = token.getPrincipal().getAttribute(attr);
         return val == null ? defaultValue : val.toString();
+    }
+
+    public JwtTokenDTO refreshJwtToken(String oldToken) {
+        if (!jwtService.isValid(oldToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+        }
+
+        String userId = jwtService.extractUsername(oldToken);
+        String role = (String) jwtService.extractClaim(oldToken, "roles");
+
+        if (!tokenStorageService.isCurrentToken(userId, oldToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is no longer active");
+        }
+
+        String newToken = jwtService.generateToken(userId, role);
+
+        tokenStorageService.replaceToken(
+                userId,
+                newToken,
+                role,
+                jwtService.extractExpirationInstant(newToken));
+
+        return new JwtTokenDTO(
+                newToken,
+                jwtService.extractExpirationInstant(newToken));
     }
 }

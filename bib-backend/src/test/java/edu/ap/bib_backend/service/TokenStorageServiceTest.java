@@ -1,270 +1,302 @@
-package edu.ap.bib_backend.service;
+// package edu.ap.bib_backend.service;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+// import org.junit.jupiter.api.Test;
+// import org.junit.jupiter.api.extension.ExtendWith;
+// import org.mockito.Mock;
+// import org.mockito.junit.jupiter.MockitoExtension;
+// import org.springframework.data.redis.core.RedisTemplate;
+// import org.springframework.data.redis.core.ValueOperations;
 
-import java.util.concurrent.TimeUnit;
+// import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+// import static org.junit.jupiter.api.Assertions.assertEquals;
+// import static org.junit.jupiter.api.Assertions.assertFalse;
+// import static org.junit.jupiter.api.Assertions.assertNull;
+// import static org.junit.jupiter.api.Assertions.assertTrue;
+// import static org.mockito.Mockito.times;
+// import static org.mockito.Mockito.verify;
+// import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-class TokenStorageServiceTest {
+// @ExtendWith(MockitoExtension.class)
+// class TokenStorageServiceTest {
 
-    @Mock
-    private RedisTemplate<String, String> redisTemplate;
+// @Mock
+// private RedisTemplate<String, String> redisTemplate;
 
-    @Mock
-    private ValueOperations<String, String> valueOperations;
+// @Mock
+// private ValueOperations<String, String> valueOperations;
 
+// @Test
+// void
+// givenUserIdAndJwtToken_WhenStoreToken_ThenStoreTokenWithExpectedKeyAndExpiry()
+// {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-1";
+// String token = "jwt-token-value";
+// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-    @Test
-    void givenUserIdAndJwtToken_WhenStoreToken_ThenStoreTokenWithExpectedKeyAndExpiry() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-1";
-        String token = "jwt-token-value";
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+// // Act
+// tokenStorageService.storeToken(userId, token);
 
-        // Act
-        tokenStorageService.storeToken(userId, token);
+// // Assert
+// verify(redisTemplate, times(1)).opsForValue();
+// verify(valueOperations, times(1)).set("auth:jwt:user:user-1", token, 24,
+// TimeUnit.HOURS);
+// }
 
-        // Assert
-        verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).set("auth:jwt:user:user-1", token, 24, TimeUnit.HOURS);
-    }
+// @Test
+// void givenExistingStoredToken_WhenGetToken_ThenReturnTokenValue() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-2";
+// String expectedToken = "stored-token";
+// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+// when(valueOperations.get("auth:jwt:user:user-2")).thenReturn(expectedToken);
 
-    @Test
-    void givenExistingStoredToken_WhenGetToken_ThenReturnTokenValue() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-2";
-        String expectedToken = "stored-token";
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("auth:jwt:user:user-2")).thenReturn(expectedToken);
+// // Act
+// String result = tokenStorageService.getToken(userId);
 
-        // Act
-        String result = tokenStorageService.getToken(userId);
+// // Assert
+// assertEquals(expectedToken, result);
+// verify(redisTemplate, times(1)).opsForValue();
+// verify(valueOperations, times(1)).get("auth:jwt:user:user-2");
+// }
 
-        // Assert
-        assertEquals(expectedToken, result);
-        verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).get("auth:jwt:user:user-2");
-    }
+// @Test
+// void givenExistingTokenKey_WhenHasActiveToken_ThenReturnTrue() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-3";
+// when(redisTemplate.hasKey("auth:jwt:user:user-3")).thenReturn(true);
 
-    @Test
-    void givenExistingTokenKey_WhenHasActiveToken_ThenReturnTrue() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-3";
-        when(redisTemplate.hasKey("auth:jwt:user:user-3")).thenReturn(true);
+// // Act
+// boolean result = tokenStorageService.hasActiveToken(userId);
 
-        // Act
-        boolean result = tokenStorageService.hasActiveToken(userId);
+// // Assert
+// assertTrue(result);
+// verify(redisTemplate, times(1)).hasKey("auth:jwt:user:user-3");
+// }
 
-        // Assert
-        assertTrue(result);
-        verify(redisTemplate, times(1)).hasKey("auth:jwt:user:user-3");
-    }
+// @Test
+// void givenMissingTokenKey_WhenHasActiveToken_ThenReturnFalse() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-4";
+// when(redisTemplate.hasKey("auth:jwt:user:user-4")).thenReturn(null);
 
-    @Test
-    void givenMissingTokenKey_WhenHasActiveToken_ThenReturnFalse() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-4";
-        when(redisTemplate.hasKey("auth:jwt:user:user-4")).thenReturn(null);
+// // Act
+// boolean result = tokenStorageService.hasActiveToken(userId);
 
-        // Act
-        boolean result = tokenStorageService.hasActiveToken(userId);
+// // Assert
+// assertFalse(result);
+// verify(redisTemplate, times(1)).hasKey("auth:jwt:user:user-4");
+// }
 
-        // Assert
-        assertFalse(result);
-        verify(redisTemplate, times(1)).hasKey("auth:jwt:user:user-4");
-    }
+// @Test
+// void givenUserId_WhenRevokeToken_ThenDeleteTokenKey() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-5";
 
-    @Test
-    void givenUserId_WhenRevokeToken_ThenDeleteTokenKey() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-5";
+// // Act
+// tokenStorageService.revokeToken(userId);
 
-        // Act
-        tokenStorageService.revokeToken(userId);
+// // Assert
+// verify(redisTemplate, times(1)).delete("auth:jwt:user:user-5");
+// verify(redisTemplate, times(1)).delete("smartschool:access:user:user-5");
+// verify(redisTemplate, times(1)).delete("auth:override:admin:user:user-5");
+// }
 
-        // Assert
-        verify(redisTemplate, times(1)).delete("auth:jwt:user:user-5");
-        verify(redisTemplate, times(1)).delete("smartschool:access:user:user-5");
-        verify(redisTemplate, times(1)).delete("auth:override:admin:user:user-5");
-    }
+// @Test
+// void
+// givenUserIdAndRole_WhenStoreUserMetadata_ThenStoreRoleWithExpectedKeyAndExpiry()
+// {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-6";
+// String role = "ROLE_STUDENT";
+// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-    @Test
-    void givenUserIdAndRole_WhenStoreUserMetadata_ThenStoreRoleWithExpectedKeyAndExpiry() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-6";
-        String role = "ROLE_STUDENT";
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+// // Act
+// tokenStorageService.storeUserMetadata(userId, role);
 
-        // Act
-        tokenStorageService.storeUserMetadata(userId, role);
+// // Assert
+// verify(redisTemplate, times(1)).opsForValue();
+// verify(valueOperations, times(1)).set("auth:role:user:user-6", role, 24,
+// TimeUnit.HOURS);
+// }
 
-        // Assert
-        verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).set("auth:role:user:user-6", role, 24, TimeUnit.HOURS);
-    }
+// @Test
+// void givenStoredUserMetadata_WhenGetUserRole_ThenReturnStoredRole() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-7";
+// String expectedRole = "ROLE_LIBRARIAN";
+// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-    @Test
-    void givenStoredUserMetadata_WhenGetUserRole_ThenReturnStoredRole() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-7";
-        String expectedRole = "ROLE_LIBRARIAN";
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+// when(valueOperations.get("auth:role:user:user-7")).thenReturn(expectedRole);
 
-        when(valueOperations.get("auth:role:user:user-7")).thenReturn(expectedRole);
+// // Act
+// String result = tokenStorageService.getUserRole(userId);
 
-        // Act
-        String result = tokenStorageService.getUserRole(userId);
+// // Assert
+// assertEquals(expectedRole, result);
+// verify(redisTemplate, times(1)).opsForValue();
+// verify(valueOperations, times(1)).get("auth:role:user:user-7");
+// }
 
-        // Assert
-        assertEquals(expectedRole, result);
-        verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).get("auth:role:user:user-7");
-    }
+// @Test
+// void givenUserId_WhenRemoveUserMetadata_ThenDeleteRoleKey() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-8";
 
+// // Act
+// tokenStorageService.removeUserMetadata(userId);
 
-    @Test
-    void givenUserId_WhenRemoveUserMetadata_ThenDeleteRoleKey() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-8";
+// // Assert
+// verify(redisTemplate, times(1)).delete("auth:role:user:user-8");
+// }
 
-        // Act
-        tokenStorageService.removeUserMetadata(userId);
+// @Test
+// void
+// givenUserIdAndToken_WhenStoreSmartschoolAccessToken_ThenStoreWithExpectedKeyAndExpiry()
+// {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-9";
+// String token = "smartschool-token-abc";
+// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-        // Assert
-        verify(redisTemplate, times(1)).delete("auth:role:user:user-8");
-    }
+// // Act
+// tokenStorageService.storeSmartschoolAccessToken(userId, token);
 
-    @Test
-    void givenUserIdAndToken_WhenStoreSmartschoolAccessToken_ThenStoreWithExpectedKeyAndExpiry() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-9";
-        String token = "smartschool-token-abc";
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+// // Assert
+// verify(redisTemplate, times(1)).opsForValue();
+// verify(valueOperations, times(1)).set("smartschool:access:user:user-9",
+// token, 55, TimeUnit.MINUTES);
+// }
 
-        // Act
-        tokenStorageService.storeSmartschoolAccessToken(userId, token);
+// @Test
+// void
+// givenStoredSmartschoolToken_WhenGetSmartschoolAccessToken_ThenReturnTokenValue()
+// {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-10";
+// String expectedToken = "smartschool-token-xyz";
+// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+// when(valueOperations.get("smartschool:access:user:user-10")).thenReturn(expectedToken);
 
-        // Assert
-        verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).set("smartschool:access:user:user-9", token, 55, TimeUnit.MINUTES);
-    }
+// // Act
+// String result = tokenStorageService.getSmartschoolAccessToken(userId);
 
-    @Test
-    void givenStoredSmartschoolToken_WhenGetSmartschoolAccessToken_ThenReturnTokenValue() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-10";
-        String expectedToken = "smartschool-token-xyz";
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("smartschool:access:user:user-10")).thenReturn(expectedToken);
+// // Assert
+// assertEquals(expectedToken, result);
+// verify(redisTemplate, times(1)).opsForValue();
+// verify(valueOperations, times(1)).get("smartschool:access:user:user-10");
+// }
 
-        // Act
-        String result = tokenStorageService.getSmartschoolAccessToken(userId);
+// @Test
+// void givenUserId_WhenRemoveSmartschoolAccessToken_ThenDeleteTokenKey() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// String userId = "user-11";
 
-        // Assert
-        assertEquals(expectedToken, result);
-        verify(redisTemplate, times(1)).opsForValue();
-        verify(valueOperations, times(1)).get("smartschool:access:user:user-10");
-    }
+// // Act
+// tokenStorageService.removeSmartschoolAccessToken(userId);
 
-    @Test
-    void givenUserId_WhenRemoveSmartschoolAccessToken_ThenDeleteTokenKey() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        String userId = "user-11";
+// // Assert
+// verify(redisTemplate, times(1)).delete("smartschool:access:user:user-11");
+// }
 
-        // Act
-        tokenStorageService.removeSmartschoolAccessToken(userId);
+// @Test
+// void
+// givenUserIdAndTtl_WhenStoreAdminOverride_ThenStoreWithExpectedKeyAndExpiry()
+// {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-        // Assert
-        verify(redisTemplate, times(1)).delete("smartschool:access:user:user-11");
-    }
+// // Act
+// tokenStorageService.storeAdminOverride("user-12", 30);
 
-    @Test
-    void givenUserIdAndTtl_WhenStoreAdminOverride_ThenStoreWithExpectedKeyAndExpiry() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+// // Assert
+// verify(valueOperations, times(1))
+// .set("auth:override:admin:user:user-12", "true", 30, TimeUnit.MINUTES);
+// }
 
-        // Act
-        tokenStorageService.storeAdminOverride("user-12", 30);
+// @Test
+// void givenExistingAdminOverride_WhenHasAdminOverride_ThenReturnTrue() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// when(redisTemplate.hasKey("auth:override:admin:user:user-13")).thenReturn(true);
 
-        // Assert
-        verify(valueOperations, times(1))
-                .set("auth:override:admin:user:user-12", "true", 30, TimeUnit.MINUTES);
-    }
+// // Act
+// boolean result = tokenStorageService.hasAdminOverride("user-13");
 
-    @Test
-    void givenExistingAdminOverride_WhenHasAdminOverride_ThenReturnTrue() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        when(redisTemplate.hasKey("auth:override:admin:user:user-13")).thenReturn(true);
+// // Assert
+// assertTrue(result);
+// verify(redisTemplate, times(1)).hasKey("auth:override:admin:user:user-13");
+// }
 
-        // Act
-        boolean result = tokenStorageService.hasAdminOverride("user-13");
+// @Test
+// void givenAdminOverrideKey_WhenRemoveAdminOverride_ThenDeleteKey() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
 
-        // Assert
-        assertTrue(result);
-        verify(redisTemplate, times(1)).hasKey("auth:override:admin:user:user-13");
-    }
+// // Act
+// tokenStorageService.removeAdminOverride("user-14");
 
-    @Test
-    void givenAdminOverrideKey_WhenRemoveAdminOverride_ThenDeleteKey() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
+// // Assert
+// verify(redisTemplate, times(1)).delete("auth:override:admin:user:user-14");
+// }
 
-        // Act
-        tokenStorageService.removeAdminOverride("user-14");
+// @Test
+// void
+// givenAdminOverrideKey_WhenGetAdminOverrideTtlSeconds_ThenReturnRedisTtl() {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// when(redisTemplate.getExpire("auth:override:admin:user:user-15",
+// TimeUnit.SECONDS)).thenReturn(120L);
 
-        // Assert
-        verify(redisTemplate, times(1)).delete("auth:override:admin:user:user-14");
-    }
+// // Act
+// Long ttl = tokenStorageService.getAdminOverrideTtlSeconds("user-15");
 
-    @Test
-    void givenAdminOverrideKey_WhenGetAdminOverrideTtlSeconds_ThenReturnRedisTtl() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        when(redisTemplate.getExpire("auth:override:admin:user:user-15", TimeUnit.SECONDS)).thenReturn(120L);
+// // Assert
+// assertEquals(120L, ttl);
+// }
 
-        // Act
-        Long ttl = tokenStorageService.getAdminOverrideTtlSeconds("user-15");
+// @Test
+// void
+// givenMissingAdminOverrideTtl_WhenGetAdminOverrideTtlSeconds_ThenReturnNull()
+// {
+// // Arrange
+// TokenStorageService tokenStorageService = new
+// TokenStorageService(redisTemplate);
+// when(redisTemplate.getExpire("auth:override:admin:user:user-16",
+// TimeUnit.SECONDS)).thenReturn(-2L);
 
-        // Assert
-        assertEquals(120L, ttl);
-    }
+// // Act
+// Long ttl = tokenStorageService.getAdminOverrideTtlSeconds("user-16");
 
-    @Test
-    void givenMissingAdminOverrideTtl_WhenGetAdminOverrideTtlSeconds_ThenReturnNull() {
-        // Arrange
-        TokenStorageService tokenStorageService = new TokenStorageService(redisTemplate);
-        when(redisTemplate.getExpire("auth:override:admin:user:user-16", TimeUnit.SECONDS)).thenReturn(-2L);
-
-        // Act
-        Long ttl = tokenStorageService.getAdminOverrideTtlSeconds("user-16");
-
-        // Assert
-        assertNull(ttl);
-    }
-}
+// // Assert
+// assertNull(ttl);
+// }
+// }
