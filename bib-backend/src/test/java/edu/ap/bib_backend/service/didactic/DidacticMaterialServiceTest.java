@@ -1,14 +1,19 @@
 package edu.ap.bib_backend.service.didactic;
 
-import edu.ap.bib_backend.dto.didactic.CreateDidacticMaterialRequestDto;
-import edu.ap.bib_backend.dto.didactic.DidacticMaterialBookSummaryResponseDto;
-import edu.ap.bib_backend.dto.didactic.DidacticMaterialResponseDto;
+import edu.ap.bib_backend.dto.lessontips.CreateLessonTipRequestDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipBookSummaryResponseDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipResponseDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
-import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterial;
-import edu.ap.bib_backend.jpa.enums.DidacticMaterialType;
+import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
+import edu.ap.bib_backend.jpa.enums.LessonTipType;
 import edu.ap.bib_backend.jpa.enums.Role;
-import edu.ap.bib_backend.jpa.repository.didactic.DidacticMaterialRepository;
-import edu.ap.bib_backend.mapper.didactic.DidacticMaterialMapper;
+import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
+import edu.ap.bib_backend.mapper.lessontips.LessonTipMapper;
+import edu.ap.bib_backend.service.lessontips.LessonTipAuthorizationService;
+import edu.ap.bib_backend.service.lessontips.LessonTipBookLinkService;
+import edu.ap.bib_backend.service.lessontips.LessonTipCreatorRoleService;
+import edu.ap.bib_backend.service.lessontips.LessonTipService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -37,34 +42,34 @@ class DidacticMaterialServiceTest {
     private static final String CURRENT_USER_ID = "teacher-123";
 
     @Mock
-    private DidacticMaterialRepository didacticMaterialRepository;
+    private LessonTipRepository didacticMaterialRepository;
 
     @Mock
-    private DidacticMaterialBookLinkService didacticMaterialBookLinkService;
+    private LessonTipBookLinkService didacticMaterialBookLinkService;
 
     @Mock
-    private DidacticMaterialMapper didacticMaterialMapper;
+    private LessonTipMapper didacticMaterialMapper;
 
     @Mock
-    private DidacticMaterialCreatorRoleService didacticMaterialCreatorRoleService;
+    private LessonTipCreatorRoleService didacticMaterialCreatorRoleService;
 
     @Mock
-    private DidacticMaterialAuthorizationService didacticMaterialAuthorizationService;
+    private LessonTipAuthorizationService didacticMaterialAuthorizationService;
 
     @Mock
     private Authentication authentication;
 
     @InjectMocks
-    private DidacticMaterialService didacticMaterialService;
+    private LessonTipService didacticMaterialService;
 
     @Test
     void givenExistingMaterials_whenGetAllMaterials_thenReturnMappedResponses() {
         // Arrange
-        DidacticMaterial firstMaterial = createMaterial(1L, "teacher-1");
-        DidacticMaterial secondMaterial = createMaterial(2L, "teacher-2");
+        LessonTip firstMaterial = createMaterial(1L, "teacher-1");
+        LessonTip secondMaterial = createMaterial(2L, "teacher-2");
 
-        DidacticMaterialResponseDto firstResponse = createResponseDto(1L, "Materiaal 1");
-        DidacticMaterialResponseDto secondResponse = createResponseDto(2L, "Materiaal 2");
+        LessonTipResponseDto firstResponse = createResponseDto(1L, "Materiaal 1");
+        LessonTipResponseDto secondResponse = createResponseDto(2L, "Materiaal 2");
 
         given(didacticMaterialRepository.findAllByOrderByUpdatedAtDesc())
                 .willReturn(List.of(firstMaterial, secondMaterial));
@@ -78,7 +83,7 @@ class DidacticMaterialServiceTest {
                 .willReturn(secondResponse);
 
         // Act
-        List<DidacticMaterialResponseDto> result = didacticMaterialService.getAllMaterials();
+        List<LessonTipResponseDto> result = didacticMaterialService.getAllLessonTips();
 
         // Assert
         assertThat(result).containsExactly(firstResponse, secondResponse);
@@ -93,8 +98,8 @@ class DidacticMaterialServiceTest {
     @Test
     void givenExistingMaterialId_whenGetMaterialById_thenReturnMappedResponse() {
         // Arrange
-        DidacticMaterial material = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
-        DidacticMaterialResponseDto responseDto = createResponseDto(MATERIAL_ID, "Leesfiche");
+        LessonTip material = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
+        LessonTipResponseDto responseDto = createResponseDto(MATERIAL_ID, "Leesfiche");
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(material));
@@ -104,7 +109,7 @@ class DidacticMaterialServiceTest {
                 .willReturn(responseDto);
 
         // Act
-        DidacticMaterialResponseDto result = didacticMaterialService.getMaterialById(MATERIAL_ID);
+        LessonTipResponseDto result = didacticMaterialService.getLessonTipById(MATERIAL_ID);
 
         // Assert
         assertThat(result).isEqualTo(responseDto);
@@ -123,7 +128,7 @@ class DidacticMaterialServiceTest {
         // Act
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> didacticMaterialService.getMaterialById(MATERIAL_ID)
+                () -> didacticMaterialService.getLessonTipById(MATERIAL_ID)
         );
 
         // Assert
@@ -137,22 +142,22 @@ class DidacticMaterialServiceTest {
     @Test
     void givenValidRequest_whenCreateMaterial_thenSaveNormalizedMaterialAndReturnMappedResponse() {
         // Arrange
-        CreateDidacticMaterialRequestDto requestDto = new CreateDidacticMaterialRequestDto(
+        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
                 "  Leesfiche  ",
                 "  Beschrijving van het materiaal  ",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 "  Nederlands  ",
                 "   ",
                 "   ",
                 List.of(100L, 200L)
         );
 
-        DidacticMaterial savedMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
-        DidacticMaterialResponseDto responseDto = createResponseDto(MATERIAL_ID, "Leesfiche");
+        LessonTip savedMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
+        LessonTipResponseDto responseDto = createResponseDto(MATERIAL_ID, "Leesfiche");
 
-        ArgumentCaptor<DidacticMaterial> materialCaptor = ArgumentCaptor.forClass(DidacticMaterial.class);
+        ArgumentCaptor<LessonTip> materialCaptor = ArgumentCaptor.forClass(LessonTip.class);
 
-        given(didacticMaterialRepository.save(any(DidacticMaterial.class)))
+        given(didacticMaterialRepository.save(any(LessonTip.class)))
                 .willReturn(savedMaterial);
         given(didacticMaterialCreatorRoleService.getCreatorRole(CURRENT_USER_ID))
                 .willReturn(Role.TEACHER);
@@ -160,20 +165,20 @@ class DidacticMaterialServiceTest {
                 .willReturn(responseDto);
 
         // Act
-        DidacticMaterialResponseDto result = didacticMaterialService.createMaterial(requestDto, CURRENT_USER_ID);
+        LessonTipResponseDto result = didacticMaterialService.createLessonTip(requestDto, CURRENT_USER_ID);
 
         // Assert
         assertThat(result).isEqualTo(responseDto);
 
         then(didacticMaterialBookLinkService).should()
-                .replaceBookLinks(any(DidacticMaterial.class), same(requestDto.linkedBookIds()));
+                .replaceBookLinks(any(LessonTip.class), same(requestDto.linkedBookIds()));
         then(didacticMaterialRepository).should().save(materialCaptor.capture());
 
-        DidacticMaterial capturedMaterial = materialCaptor.getValue();
+        LessonTip capturedMaterial = materialCaptor.getValue();
         assertThat(capturedMaterial.getCreatedByUserId()).isEqualTo(CURRENT_USER_ID);
         assertThat(capturedMaterial.getTitle()).isEqualTo("Leesfiche");
         assertThat(capturedMaterial.getDescription()).isEqualTo("Beschrijving van het materiaal");
-        assertThat(capturedMaterial.getMaterialType()).isEqualTo(DidacticMaterialType.WORKSHEET);
+        assertThat(capturedMaterial.getLessonTipType()).isEqualTo(LessonTipType.WORKSHEET);
         assertThat(capturedMaterial.getSubject()).isEqualTo("Nederlands");
         assertThat(capturedMaterial.getEducationLevel()).isNull();
         assertThat(capturedMaterial.getKeywords()).isNull();
@@ -182,22 +187,22 @@ class DidacticMaterialServiceTest {
     @Test
     void givenNullOptionalFields_whenCreateMaterial_thenKeepNullableFieldsAsNull() {
         // Arrange
-        CreateDidacticMaterialRequestDto requestDto = new CreateDidacticMaterialRequestDto(
+        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
                 "Titel",
                 "Beschrijving",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 null,
                 null,
                 null,
                 List.of()
         );
 
-        DidacticMaterial savedMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
-        DidacticMaterialResponseDto responseDto = createResponseDto(MATERIAL_ID, "Titel");
+        LessonTip savedMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
+        LessonTipResponseDto responseDto = createResponseDto(MATERIAL_ID, "Titel");
 
-        ArgumentCaptor<DidacticMaterial> materialCaptor = ArgumentCaptor.forClass(DidacticMaterial.class);
+        ArgumentCaptor<LessonTip> materialCaptor = ArgumentCaptor.forClass(LessonTip.class);
 
-        given(didacticMaterialRepository.save(any(DidacticMaterial.class)))
+        given(didacticMaterialRepository.save(any(LessonTip.class)))
                 .willReturn(savedMaterial);
         given(didacticMaterialCreatorRoleService.getCreatorRole(CURRENT_USER_ID))
                 .willReturn(Role.TEACHER);
@@ -205,12 +210,12 @@ class DidacticMaterialServiceTest {
                 .willReturn(responseDto);
 
         // Act
-        didacticMaterialService.createMaterial(requestDto, CURRENT_USER_ID);
+        didacticMaterialService.createLessonTip(requestDto, CURRENT_USER_ID);
 
         // Assert
         then(didacticMaterialRepository).should().save(materialCaptor.capture());
 
-        DidacticMaterial capturedMaterial = materialCaptor.getValue();
+        LessonTip capturedMaterial = materialCaptor.getValue();
         assertThat(capturedMaterial.getSubject()).isNull();
         assertThat(capturedMaterial.getEducationLevel()).isNull();
         assertThat(capturedMaterial.getKeywords()).isNull();
@@ -219,19 +224,19 @@ class DidacticMaterialServiceTest {
     @Test
     void givenExistingMaterialAndAuthorizedUser_whenUpdateMaterial_thenSaveUpdatedNormalizedMaterialAndReturnMappedResponse() {
         // Arrange
-        CreateDidacticMaterialRequestDto requestDto = new CreateDidacticMaterialRequestDto(
+        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
                 "  Bijgewerkte titel  ",
                 "  Bijgewerkte beschrijving  ",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 "  Geschiedenis  ",
                 "  Tweede graad  ",
                 "  oorlog, bronnen  ",
                 List.of(300L, 400L)
         );
 
-        DidacticMaterial existingMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
-        DidacticMaterial savedMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
-        DidacticMaterialResponseDto responseDto = createResponseDto(MATERIAL_ID, "Bijgewerkte titel");
+        LessonTip existingMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
+        LessonTip savedMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
+        LessonTipResponseDto responseDto = createResponseDto(MATERIAL_ID, "Bijgewerkte titel");
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(existingMaterial));
@@ -243,8 +248,8 @@ class DidacticMaterialServiceTest {
                 .willReturn(responseDto);
 
         // Act
-        DidacticMaterialResponseDto result =
-                didacticMaterialService.updateMaterial(MATERIAL_ID, requestDto, authentication);
+        LessonTipResponseDto result =
+                didacticMaterialService.updateLessonTip(MATERIAL_ID, requestDto, authentication);
 
         // Assert
         assertThat(result).isEqualTo(responseDto);
@@ -262,10 +267,10 @@ class DidacticMaterialServiceTest {
     @Test
     void givenUnknownMaterialId_whenUpdateMaterial_thenThrowResourceNotFoundException() {
         // Arrange
-        CreateDidacticMaterialRequestDto requestDto = new CreateDidacticMaterialRequestDto(
+        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
                 "Titel",
                 "Beschrijving",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 "Nederlands",
                 "Eerste graad",
                 "lezen",
@@ -278,7 +283,7 @@ class DidacticMaterialServiceTest {
         // Act
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> didacticMaterialService.updateMaterial(MATERIAL_ID, requestDto, authentication)
+                () -> didacticMaterialService.updateLessonTip(MATERIAL_ID, requestDto, authentication)
         );
 
         // Assert
@@ -290,17 +295,17 @@ class DidacticMaterialServiceTest {
     @Test
     void givenUnauthorizedUser_whenUpdateMaterial_thenPropagateAccessDeniedExceptionAndDoNotSave() {
         // Arrange
-        CreateDidacticMaterialRequestDto requestDto = new CreateDidacticMaterialRequestDto(
+        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
                 "Titel",
                 "Beschrijving",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 "Nederlands",
                 "Eerste graad",
                 "lezen",
                 List.of(1L)
         );
 
-        DidacticMaterial existingMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
+        LessonTip existingMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(existingMaterial));
@@ -311,7 +316,7 @@ class DidacticMaterialServiceTest {
         // Act
         assertThrows(
                 AccessDeniedException.class,
-                () -> didacticMaterialService.updateMaterial(MATERIAL_ID, requestDto, authentication)
+                () -> didacticMaterialService.updateLessonTip(MATERIAL_ID, requestDto, authentication)
         );
 
         // Assert
@@ -322,13 +327,13 @@ class DidacticMaterialServiceTest {
     @Test
     void givenExistingMaterialAndAuthorizedUser_whenDeleteMaterial_thenDeleteMaterial() {
         // Arrange
-        DidacticMaterial existingMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
+        LessonTip existingMaterial = createMaterial(MATERIAL_ID, CURRENT_USER_ID);
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(existingMaterial));
 
         // Act
-        didacticMaterialService.deleteMaterial(MATERIAL_ID, authentication);
+        didacticMaterialService.deleteLessonTip(MATERIAL_ID, authentication);
 
         // Assert
         then(didacticMaterialAuthorizationService).should().assertCanModify(existingMaterial, authentication);
@@ -344,7 +349,7 @@ class DidacticMaterialServiceTest {
         // Act
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> didacticMaterialService.deleteMaterial(MATERIAL_ID, authentication)
+                () -> didacticMaterialService.deleteLessonTip(MATERIAL_ID, authentication)
         );
 
         // Assert
@@ -353,12 +358,12 @@ class DidacticMaterialServiceTest {
         then(didacticMaterialRepository).should(never()).delete(any());
     }
 
-    private DidacticMaterial createMaterial(Long id, String createdByUserId) {
-        DidacticMaterial material = new DidacticMaterial();
+    private LessonTip createMaterial(Long id, String createdByUserId) {
+        LessonTip material = new LessonTip();
         material.setId(id);
         material.setTitle("Titel");
         material.setDescription("Beschrijving");
-        material.setMaterialType(DidacticMaterialType.WORKSHEET);
+        material.setLessonTipType(LessonTipType.WORKSHEET);
         material.setSubject("Nederlands");
         material.setEducationLevel("Eerste graad");
         material.setKeywords("lezen");
@@ -368,12 +373,12 @@ class DidacticMaterialServiceTest {
         return material;
     }
 
-    private DidacticMaterialResponseDto createResponseDto(Long id, String title) {
-        return new DidacticMaterialResponseDto(
+    private LessonTipResponseDto createResponseDto(Long id, String title) {
+        return new LessonTipResponseDto(
                 id,
                 title,
                 "Beschrijving",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 "Nederlands",
                 "Eerste graad",
                 "lezen",
@@ -381,7 +386,7 @@ class DidacticMaterialServiceTest {
                 Role.TEACHER,
                 LocalDateTime.of(2026, 4, 20, 10, 0),
                 LocalDateTime.of(2026, 4, 21, 11, 0),
-                List.of(new DidacticMaterialBookSummaryResponseDto(
+                List.of(new LessonTipBookSummaryResponseDto(
                         100L,
                         "Matilda",
                         "Roald Dahl",

@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.service.didactic;
 
-import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterial;
+import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
+import edu.ap.bib_backend.service.lessontips.LessonTipAuthorizationService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,12 +31,12 @@ class DidacticMaterialAuthorizationServiceTest {
     private Authentication authentication;
 
     @InjectMocks
-    private DidacticMaterialAuthorizationService didacticMaterialAuthorizationService;
+    private LessonTipAuthorizationService didacticMaterialAuthorizationService;
 
     @Test
     void givenAdminUser_whenAssertCanModify_thenAllowModification() {
         // Arrange
-        DidacticMaterial material = createMaterial("owner-1");
+        LessonTip material = createMaterial("owner-1");
 
         given(currentUserService.extractCurrentUserId(authentication)).willReturn("admin-1");
         doReturn(authorities("ROLE_ADMIN")).when(authentication).getAuthorities();
@@ -49,7 +50,7 @@ class DidacticMaterialAuthorizationServiceTest {
     @Test
     void givenOwnerTeacher_whenAssertCanModify_thenAllowModification() {
         // Arrange
-        DidacticMaterial material = createMaterial("teacher-1");
+        LessonTip material = createMaterial("teacher-1");
 
         given(currentUserService.extractCurrentUserId(authentication)).willReturn("teacher-1");
         doReturn(authorities("ROLE_TEACHER")).when(authentication).getAuthorities();
@@ -63,7 +64,7 @@ class DidacticMaterialAuthorizationServiceTest {
     @Test
     void givenOwnerLibrarian_whenAssertCanModify_thenAllowModification() {
         // Arrange
-        DidacticMaterial material = createMaterial("librarian-1");
+        LessonTip material = createMaterial("librarian-1");
 
         given(currentUserService.extractCurrentUserId(authentication)).willReturn("librarian-1");
         doReturn(authorities("ROLE_LIBRARIAN")).when(authentication).getAuthorities();
@@ -77,7 +78,7 @@ class DidacticMaterialAuthorizationServiceTest {
     @Test
     void givenNonOwnerTeacher_whenAssertCanModify_thenThrowAccessDeniedException() {
         // Arrange
-        DidacticMaterial material = createMaterial("teacher-owner");
+        LessonTip material = createMaterial("teacher-owner");
 
         given(currentUserService.extractCurrentUserId(authentication)).willReturn("teacher-other");
         doReturn(authorities("ROLE_TEACHER")).when(authentication).getAuthorities();
@@ -94,7 +95,7 @@ class DidacticMaterialAuthorizationServiceTest {
     @Test
     void givenOwnerWithoutTeacherLibrarianOrAdminRole_whenAssertCanModify_thenThrowAccessDeniedException() {
         // Arrange
-        DidacticMaterial material = createMaterial("student-1");
+        LessonTip material = createMaterial("student-1");
 
         given(currentUserService.extractCurrentUserId(authentication)).willReturn("student-1");
         doReturn(authorities("ROLE_STUDENT")).when(authentication).getAuthorities();
@@ -108,8 +109,8 @@ class DidacticMaterialAuthorizationServiceTest {
         // Assert
     }
 
-    private DidacticMaterial createMaterial(String createdByUserId) {
-        DidacticMaterial material = new DidacticMaterial();
+    private LessonTip createMaterial(String createdByUserId) {
+        LessonTip material = new LessonTip();
         material.setCreatedByUserId(createdByUserId);
         return material;
     }

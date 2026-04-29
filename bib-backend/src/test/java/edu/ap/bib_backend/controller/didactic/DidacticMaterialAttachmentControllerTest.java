@@ -2,25 +2,24 @@ package edu.ap.bib_backend.controller.didactic;
 
 import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.config.JwtAuthenticationFilter;
-import edu.ap.bib_backend.dto.didactic.DidacticMaterialAttachmentDownloadDataDto;
-import edu.ap.bib_backend.dto.didactic.DidacticMaterialAttachmentResponseDto;
+import edu.ap.bib_backend.controller.lessontips.LessonTipAttachmentController;
+import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentDownloadDataDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentResponseDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
-import edu.ap.bib_backend.service.didactic.DidacticMaterialAttachmentService;
+import edu.ap.bib_backend.service.lessontips.LessonTipAttachmentService;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.mock.web.MockMultipartFile;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(DidacticMaterialAttachmentController.class)
+@WebMvcTest(LessonTipAttachmentController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import(TestSecurityConfig.class)
 class DidacticMaterialAttachmentControllerTest {
@@ -52,7 +51,7 @@ class DidacticMaterialAttachmentControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private DidacticMaterialAttachmentService didacticMaterialAttachmentService;
+    private LessonTipAttachmentService didacticMaterialAttachmentService;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -69,10 +68,10 @@ class DidacticMaterialAttachmentControllerTest {
     @Test
     void givenExistingAttachments_whenGetAttachments_thenReturnOkWithResponseBody() throws Exception {
         // Arrange
-        DidacticMaterialAttachmentResponseDto firstAttachment = createAttachmentResponseDto(1L, "lesfiche.pdf");
-        DidacticMaterialAttachmentResponseDto secondAttachment = createAttachmentResponseDto(2L, "werkblad.docx");
+        LessonTipAttachmentResponseDto firstAttachment = createAttachmentResponseDto(1L, "lesfiche.pdf");
+        LessonTipAttachmentResponseDto secondAttachment = createAttachmentResponseDto(2L, "werkblad.docx");
 
-        given(didacticMaterialAttachmentService.getAttachmentsByMaterialId(MATERIAL_ID))
+        given(didacticMaterialAttachmentService.getAttachmentsByLessonTipId(MATERIAL_ID))
                 .willReturn(List.of(firstAttachment, secondAttachment));
 
         // Act
@@ -86,13 +85,13 @@ class DidacticMaterialAttachmentControllerTest {
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].originalFileName").value("werkblad.docx"));
 
-        then(didacticMaterialAttachmentService).should().getAttachmentsByMaterialId(MATERIAL_ID);
+        then(didacticMaterialAttachmentService).should().getAttachmentsByLessonTipId(ATTACHMENT_ID);
     }
 
     @Test
     void givenUnknownMaterialId_whenGetAttachments_thenReturnNotFound() throws Exception {
         // Arrange
-        given(didacticMaterialAttachmentService.getAttachmentsByMaterialId(MATERIAL_ID))
+        given(didacticMaterialAttachmentService.getAttachmentsByLessonTipId(MATERIAL_ID))
                 .willThrow(new ResourceNotFoundException(
                         "id",
                         "Didactisch materiaal niet gevonden met id: " + MATERIAL_ID
@@ -104,7 +103,7 @@ class DidacticMaterialAttachmentControllerTest {
         // Assert
         result.andExpect(status().isNotFound());
 
-        then(didacticMaterialAttachmentService).should().getAttachmentsByMaterialId(MATERIAL_ID);
+        then(didacticMaterialAttachmentService).should().getAttachmentsByLessonTipId(MATERIAL_ID);
     }
 
 
@@ -113,8 +112,8 @@ class DidacticMaterialAttachmentControllerTest {
         // Arrange
         ByteArrayResource resource = new ByteArrayResource("pdf-content".getBytes());
 
-        DidacticMaterialAttachmentDownloadDataDto downloadData =
-                new DidacticMaterialAttachmentDownloadDataDto(
+        LessonTipAttachmentDownloadDataDto downloadData =
+                new LessonTipAttachmentDownloadDataDto(
                         resource,
                         "lesfiche.pdf",
                         "application/pdf"
@@ -141,8 +140,8 @@ class DidacticMaterialAttachmentControllerTest {
         // Arrange
         ByteArrayResource resource = new ByteArrayResource("file-content".getBytes());
 
-        DidacticMaterialAttachmentDownloadDataDto downloadData =
-                new DidacticMaterialAttachmentDownloadDataDto(
+        LessonTipAttachmentDownloadDataDto downloadData =
+                new LessonTipAttachmentDownloadDataDto(
                         resource,
                         "bijlage.bin",
                         " "
@@ -168,8 +167,8 @@ class DidacticMaterialAttachmentControllerTest {
         // Arrange
         ByteArrayResource resource = new ByteArrayResource("file-content".getBytes());
 
-        DidacticMaterialAttachmentDownloadDataDto downloadData =
-                new DidacticMaterialAttachmentDownloadDataDto(
+        LessonTipAttachmentDownloadDataDto downloadData =
+                new LessonTipAttachmentDownloadDataDto(
                         resource,
                         "bijlage.bin",
                         "invalid/content type/with spaces"
@@ -209,8 +208,8 @@ class DidacticMaterialAttachmentControllerTest {
     }
 
 
-    private DidacticMaterialAttachmentResponseDto createAttachmentResponseDto(Long id, String fileName) {
-        return new DidacticMaterialAttachmentResponseDto(
+    private LessonTipAttachmentResponseDto createAttachmentResponseDto(Long id, String fileName) {
+        return new LessonTipAttachmentResponseDto(
                 id,
                 fileName,
                 "application/pdf",

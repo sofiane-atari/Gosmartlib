@@ -2,8 +2,10 @@ package edu.ap.bib_backend.service.didactic;
 
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
-import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterial;
+import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.service.lessontips.LessonTipBookLinkService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,12 +26,12 @@ class DidacticMaterialBookLinkServiceTest {
     private BookRepository bookRepository;
 
     @InjectMocks
-    private DidacticMaterialBookLinkService didacticMaterialBookLinkService;
+    private LessonTipBookLinkService didacticMaterialBookLinkService;
 
     @Test
     void givenNullLinkedBookIds_whenReplaceBookLinks_thenClearLinksWithoutLoadingBooks() {
         // Arrange
-        DidacticMaterial material = new DidacticMaterial();
+        LessonTip material = new LessonTip();
 
         // Act
         didacticMaterialBookLinkService.replaceBookLinks(material, null);
@@ -43,7 +45,7 @@ class DidacticMaterialBookLinkServiceTest {
     @Test
     void givenMissingBookId_whenReplaceBookLinks_thenThrowResourceNotFoundException() {
         // Arrange
-        DidacticMaterial material = new DidacticMaterial();
+        LessonTip material = new LessonTip();
         Book firstBook = createBook(10L, "Boek 1");
 
         given(bookRepository.findAllById(List.of(10L, 20L)))
@@ -65,7 +67,7 @@ class DidacticMaterialBookLinkServiceTest {
     @Test
     void givenEmptyLinkedBookIds_whenReplaceBookLinks_thenClearExistingLinks() {
         // Arrange
-        DidacticMaterial material = new DidacticMaterial();
+        LessonTip material = new LessonTip();
         material.replaceBookLinks(List.of(createBook(10L, "Boek 1"), createBook(20L, "Boek 2")));
 
         // Act

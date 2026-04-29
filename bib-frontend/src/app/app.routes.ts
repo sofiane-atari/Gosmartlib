@@ -3,7 +3,7 @@ import { BookDetailComponent } from './component/catalogus/book-detail/book-deta
 import { AddBookPageComponent } from './component/book/add-book-page/add-book-page.component';
 import { BookEditPageComponent } from './component/book/book-edit-page/book-edit-page.component';
 import { BookManagementComponent } from './component/book/book-management/book-management.component';
-import { didacticMaterialRoutes } from './routes/didactic-material.routes';
+import { LessonTipRoutes } from './routes/lesson-tip.routes';
 
 // Genre
 import { DashboardGenresComponent } from './component/genre/dashboard-genres/dashboard-genres.component';
@@ -45,8 +45,7 @@ export const routes: Routes = [
     canActivate: [reviewModerationGuard, authGuard],
   },
 
-  // didactic Routes
-  ...didacticMaterialRoutes,
+  ...LessonTipRoutes,
   {
     path: 'book/:id',
     component: BookDetailComponent,

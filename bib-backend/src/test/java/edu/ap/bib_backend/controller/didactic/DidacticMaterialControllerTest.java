@@ -3,23 +3,23 @@ package edu.ap.bib_backend.controller.didactic;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.config.JwtAuthenticationFilter;
-import edu.ap.bib_backend.dto.didactic.CreateDidacticMaterialRequestDto;
-import edu.ap.bib_backend.dto.didactic.DidacticMaterialBookSummaryResponseDto;
-import edu.ap.bib_backend.dto.didactic.DidacticMaterialResponseDto;
+import edu.ap.bib_backend.controller.lessontips.LessonTipController;
+import edu.ap.bib_backend.dto.lessontips.CreateLessonTipRequestDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipBookSummaryResponseDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipResponseDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
-import edu.ap.bib_backend.jpa.enums.DidacticMaterialType;
+import edu.ap.bib_backend.jpa.enums.LessonTipType;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
-import edu.ap.bib_backend.service.didactic.DidacticMaterialService;
+import edu.ap.bib_backend.service.lessontips.LessonTipService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(DidacticMaterialController.class)
+@WebMvcTest(LessonTipController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import(TestSecurityConfig.class)
 class DidacticMaterialControllerTest {
@@ -56,7 +56,7 @@ class DidacticMaterialControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private DidacticMaterialService didacticMaterialService;
+    private LessonTipService didacticMaterialService;
 
     @MockitoBean
     private CurrentUserService currentUserService;
@@ -76,10 +76,10 @@ class DidacticMaterialControllerTest {
     @Test
     void givenExistingMaterials_whenGetAllMaterials_thenReturnOkWithResponseBody() throws Exception {
         // Arrange
-        DidacticMaterialResponseDto firstMaterial = createResponseDto(1L, "Werkblad 1");
-        DidacticMaterialResponseDto secondMaterial = createResponseDto(2L, "Werkblad 2");
+        LessonTipResponseDto firstMaterial = createResponseDto(1L, "Werkblad 1");
+        LessonTipResponseDto secondMaterial = createResponseDto(2L, "Werkblad 2");
 
-        given(didacticMaterialService.getAllMaterials())
+        given(didacticMaterialService.getAllLessonTips())
                 .willReturn(List.of(firstMaterial, secondMaterial));
 
         // Act
@@ -94,15 +94,15 @@ class DidacticMaterialControllerTest {
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].title").value("Werkblad 2"));
 
-        then(didacticMaterialService).should().getAllMaterials();
+        then(didacticMaterialService).should().getAllLessonTips();
     }
 
     @Test
     void givenExistingMaterialId_whenGetMaterialById_thenReturnOkWithResponseBody() throws Exception {
         // Arrange
-        DidacticMaterialResponseDto responseDto = createResponseDto(MATERIAL_ID, "Leesfiche");
+        LessonTipResponseDto responseDto = createResponseDto(MATERIAL_ID, "Leesfiche");
 
-        given(didacticMaterialService.getMaterialById(MATERIAL_ID))
+        given(didacticMaterialService.getLessonTipById(MATERIAL_ID))
                 .willReturn(responseDto);
 
         // Act
@@ -121,13 +121,13 @@ class DidacticMaterialControllerTest {
                 .andExpect(jsonPath("$.linkedBooks[0].id").value(100L))
                 .andExpect(jsonPath("$.linkedBooks[0].title").value("Matilda"));
 
-        then(didacticMaterialService).should().getMaterialById(MATERIAL_ID);
+        then(didacticMaterialService).should().getLessonTipById(MATERIAL_ID);
     }
 
     @Test
     void givenUnknownMaterialId_whenGetMaterialById_thenReturnNotFound() throws Exception {
         // Arrange
-        given(didacticMaterialService.getMaterialById(MATERIAL_ID))
+        given(didacticMaterialService.getLessonTipById(MATERIAL_ID))
                 .willThrow(new ResourceNotFoundException(
                         "id",
                         "Didactisch materiaal niet gevonden met id: " + MATERIAL_ID
@@ -139,7 +139,7 @@ class DidacticMaterialControllerTest {
         // Assert
         result.andExpect(status().isNotFound());
 
-        then(didacticMaterialService).should().getMaterialById(MATERIAL_ID);
+        then(didacticMaterialService).should().getLessonTipById(MATERIAL_ID);
     }
 
     
@@ -147,10 +147,10 @@ class DidacticMaterialControllerTest {
     @Test
     void givenBlankTitle_whenCreateMaterial_thenReturnBadRequestAndDoNotCallService() throws Exception {
         // Arrange
-        CreateDidacticMaterialRequestDto requestDto = new CreateDidacticMaterialRequestDto(
+        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
                 " ",
                 "Beschrijving",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 "Nederlands",
                 "Eerste graad",
                 "lezen",
@@ -166,7 +166,7 @@ class DidacticMaterialControllerTest {
         result.andExpect(status().isBadRequest());
 
         then(currentUserService).should(never()).extractCurrentUserId(any(Authentication.class));
-        then(didacticMaterialService).should(never()).createMaterial(any(), any());
+        then(didacticMaterialService).should(never()).createLessonTip(any(), any());
     }
 
     @Test
@@ -192,17 +192,17 @@ class DidacticMaterialControllerTest {
         result.andExpect(status().isBadRequest());
 
         then(currentUserService).should(never()).extractCurrentUserId(any(Authentication.class));
-        then(didacticMaterialService).should(never()).createMaterial(any(), any());
+        then(didacticMaterialService).should(never()).createLessonTip(any(), any());
     }
 
     @Test
     void givenTitleLongerThan150Characters_whenCreateMaterial_thenReturnBadRequestAndDoNotCallService() throws Exception {
         // Arrange
         String tooLongTitle = "a".repeat(151);
-        CreateDidacticMaterialRequestDto requestDto = new CreateDidacticMaterialRequestDto(
+        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
                 tooLongTitle,
                 "Beschrijving",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 "Nederlands",
                 "Eerste graad",
                 "lezen",
@@ -218,7 +218,7 @@ class DidacticMaterialControllerTest {
         result.andExpect(status().isBadRequest());
 
         then(currentUserService).should(never()).extractCurrentUserId(any(Authentication.class));
-        then(didacticMaterialService).should(never()).createMaterial(any(), any());
+        then(didacticMaterialService).should(never()).createLessonTip(any(), any());
     }
 
    
@@ -226,7 +226,7 @@ class DidacticMaterialControllerTest {
     @Test
     void givenInvalidRequestBody_whenUpdateMaterial_thenReturnBadRequestAndDoNotCallService() throws Exception {
         // Arrange
-        CreateDidacticMaterialRequestDto requestDto = new CreateDidacticMaterialRequestDto(
+        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
                 "",
                 "",
                 null,
@@ -244,16 +244,16 @@ class DidacticMaterialControllerTest {
         // Assert
         result.andExpect(status().isBadRequest());
 
-        then(didacticMaterialService).should(never()).updateMaterial(any(), any(), any());
+        then(didacticMaterialService).should(never()).updateLessonTip(any(), any(), any());
     }
 
 
-    private DidacticMaterialResponseDto createResponseDto(Long id, String title) {
-        return new DidacticMaterialResponseDto(
+    private LessonTipResponseDto createResponseDto(Long id, String title) {
+        return new LessonTipResponseDto(
                 id,
                 title,
                 "Beschrijving van het didactisch materiaal",
-                DidacticMaterialType.WORKSHEET,
+                LessonTipType.WORKSHEET,
                 "Nederlands",
                 "Eerste graad",
                 "lezen, taal",
@@ -261,7 +261,7 @@ class DidacticMaterialControllerTest {
                 Role.TEACHER,
                 LocalDateTime.of(2026, 4, 20, 10, 0),
                 LocalDateTime.of(2026, 4, 21, 11, 30),
-                List.of(new DidacticMaterialBookSummaryResponseDto(
+                List.of(new LessonTipBookSummaryResponseDto(
                         100L,
                         "Matilda",
                         "Roald Dahl",

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
 import { AuthUserDto, Role } from '../../model/auth.model';
-import { DIDACTIC_MATERIAL_PATHS } from '../../routes/didactic-material.routes';
+import { LESSON_TIP_PATHS } from '../../routes/lesson-tip.routes';
 import {
   LucideAngularModule,
   Book,
@@ -90,27 +90,31 @@ export class SidebarComponent {
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
     {
       icon: FolderKanban,
-      label: 'Didactisch Materiaal',
-      route: `/${DIDACTIC_MATERIAL_PATHS.root}`,
+      label: 'Lestips',
+      route: `/${LESSON_TIP_PATHS.root}`,
       staffOnly: true,
     },
     { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
     { icon: Tag, label: 'Genrebeheer', route: '/genre' },
     { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
-    { icon: Book, label: 'Boekbeheer', route: '/books-management', roles: ['LIBRARIAN', 'TEACHER'] },
+    {
+      icon: Book,
+      label: 'Boekbeheer',
+      route: '/books-management',
+      roles: ['LIBRARIAN', 'TEACHER'],
+    },
   ];
 
   protected readonly visibleMenuItems = computed(() => {
     const isAdmin = this.roleService.isAdmin();
-    const canManageDidacticMaterials =
-      this.roleService.canManageDidacticMaterials();
+    const canManageLessonTip = this.roleService.canManageLessonTip();
 
     return this.menuItems.filter((item) => {
       if (item.adminOnly && !isAdmin) {
         return false;
       }
 
-      if (item.staffOnly && !canManageDidacticMaterials) {
+      if (item.staffOnly && !canManageLessonTip) {
         return false;
       }
 

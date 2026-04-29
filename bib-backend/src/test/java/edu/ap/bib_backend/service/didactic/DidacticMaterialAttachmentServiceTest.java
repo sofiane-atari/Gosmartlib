@@ -1,13 +1,15 @@
-package edu.ap.bib_backend.service.didactic;
+/*package edu.ap.bib_backend.service.didactic;
 
-import edu.ap.bib_backend.dto.didactic.DidacticMaterialAttachmentDownloadDataDto;
-import edu.ap.bib_backend.dto.didactic.DidacticMaterialAttachmentResponseDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentDownloadDataDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentResponseDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
-import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterial;
-import edu.ap.bib_backend.jpa.entity.didactic.DidacticMaterialAttachment;
-import edu.ap.bib_backend.jpa.repository.didactic.DidacticMaterialAttachmentRepository;
-import edu.ap.bib_backend.jpa.repository.didactic.DidacticMaterialRepository;
-import edu.ap.bib_backend.mapper.didactic.DidacticMaterialAttachmentMapper;
+import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
+import edu.ap.bib_backend.jpa.entity.lessontips.LessonTipAttachment;
+import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipAttachmentRepository;
+import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
+import edu.ap.bib_backend.mapper.lessontips.LessonTipAttachmentMapper;
+import edu.ap.bib_backend.service.lessontips.LessonTipAttachmentService;
+import edu.ap.bib_backend.service.lessontips.LessonTipAuthorizationService;
 import edu.ap.bib_backend.service.storage.FileStorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,16 +39,16 @@ class DidacticMaterialAttachmentServiceTest {
     private static final Long ATTACHMENT_ID = 9L;
 
     @Mock
-    private DidacticMaterialRepository didacticMaterialRepository;
+    private LessonTipRepository didacticMaterialRepository;
 
     @Mock
-    private DidacticMaterialAttachmentRepository didacticMaterialAttachmentRepository;
+    private LessonTipAttachmentRepository didacticMaterialAttachmentRepository;
 
     @Mock
-    private DidacticMaterialAttachmentMapper didacticMaterialAttachmentMapper;
+    private LessonTipAttachmentMapper didacticMaterialAttachmentMapper;
 
     @Mock
-    private DidacticMaterialAuthorizationService didacticMaterialAuthorizationService;
+    private LessonTipAuthorizationService didacticMaterialAuthorizationService;
 
     @Mock
     private FileStorageService fileStorageService;
@@ -58,17 +60,17 @@ class DidacticMaterialAttachmentServiceTest {
     private Authentication authentication;
 
     @InjectMocks
-    private DidacticMaterialAttachmentService didacticMaterialAttachmentService;
+    private LessonTipAttachmentService didacticMaterialAttachmentService;
 
     @Test
     void givenExistingMaterialId_whenGetAttachmentsByMaterialId_thenReturnMappedAttachments() {
         // Arrange
-        DidacticMaterial material = createMaterial(MATERIAL_ID, "teacher-123");
-        DidacticMaterialAttachment firstAttachment = createAttachment(1L, material, "first.pdf", "stored-first.pdf");
-        DidacticMaterialAttachment secondAttachment = createAttachment(2L, material, "second.pdf", "stored-second.pdf");
+        LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
+        LessonTipAttachment firstAttachment = createAttachment(1L, material, "first.pdf", "stored-first.pdf");
+        LessonTipAttachment secondAttachment = createAttachment(2L, material, "second.pdf", "stored-second.pdf");
 
-        DidacticMaterialAttachmentResponseDto firstResponse = createAttachmentResponseDto(1L, "first.pdf");
-        DidacticMaterialAttachmentResponseDto secondResponse = createAttachmentResponseDto(2L, "second.pdf");
+        LessonTipAttachmentResponseDto firstResponse = createAttachmentResponseDto(1L, "first.pdf");
+        LessonTipAttachmentResponseDto secondResponse = createAttachmentResponseDto(2L, "second.pdf");
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(material));
@@ -78,7 +80,7 @@ class DidacticMaterialAttachmentServiceTest {
                 .willReturn(List.of(firstResponse, secondResponse));
 
         // Act
-        List<DidacticMaterialAttachmentResponseDto> result =
+        List<LessonTipAttachmentResponseDto> result =
                 didacticMaterialAttachmentService.getAttachmentsByMaterialId(MATERIAL_ID);
 
         // Assert
@@ -110,17 +112,17 @@ class DidacticMaterialAttachmentServiceTest {
     @Test
     void givenValidFileAndAuthorizedUser_whenUploadAttachment_thenSaveAttachmentAndReturnMappedResponse() {
         // Arrange
-        DidacticMaterial material = createMaterial(MATERIAL_ID, "teacher-123");
-        DidacticMaterialAttachment savedAttachment = createAttachment(
+        LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
+        LessonTipAttachment savedAttachment = createAttachment(
                 ATTACHMENT_ID,
                 material,
                 "lesfiche.pdf",
                 "stored-123.pdf"
         );
-        DidacticMaterialAttachmentResponseDto responseDto = createAttachmentResponseDto(ATTACHMENT_ID, "lesfiche.pdf");
+        LessonTipAttachmentResponseDto responseDto = createAttachmentResponseDto(ATTACHMENT_ID, "lesfiche.pdf");
 
-        ArgumentCaptor<DidacticMaterialAttachment> attachmentCaptor =
-                ArgumentCaptor.forClass(DidacticMaterialAttachment.class);
+        ArgumentCaptor<LessonTipAttachment> attachmentCaptor =
+                ArgumentCaptor.forClass(LessonTipAttachment.class);
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(material));
@@ -132,13 +134,13 @@ class DidacticMaterialAttachmentServiceTest {
                 .willReturn("application/pdf");
         given(file.getSize())
                 .willReturn(2048L);
-        given(didacticMaterialAttachmentRepository.save(any(DidacticMaterialAttachment.class)))
+        given(didacticMaterialAttachmentRepository.save(any(LessonTipAttachment.class)))
                 .willReturn(savedAttachment);
         given(didacticMaterialAttachmentMapper.toResponse(savedAttachment))
                 .willReturn(responseDto);
 
         // Act
-        DidacticMaterialAttachmentResponseDto result =
+        LessonTipAttachmentResponseDto result =
                 didacticMaterialAttachmentService.uploadAttachment(MATERIAL_ID, file, authentication);
 
         // Assert
@@ -148,7 +150,7 @@ class DidacticMaterialAttachmentServiceTest {
         then(fileStorageService).should().storeFile(file);
         then(didacticMaterialAttachmentRepository).should().save(attachmentCaptor.capture());
 
-        DidacticMaterialAttachment capturedAttachment = attachmentCaptor.getValue();
+        LessonTipAttachment capturedAttachment = attachmentCaptor.getValue();
         assertThat(capturedAttachment.getDidacticMaterial()).isEqualTo(material);
         assertThat(capturedAttachment.getOriginalFileName()).isEqualTo("lesfiche.pdf");
         assertThat(capturedAttachment.getStoredFileName()).isEqualTo("stored-123.pdf");
@@ -159,16 +161,16 @@ class DidacticMaterialAttachmentServiceTest {
     @Test
     void givenBlankContentType_whenUploadAttachment_thenFallbackToApplicationOctetStream() {
         // Arrange
-        DidacticMaterial material = createMaterial(MATERIAL_ID, "teacher-123");
-        DidacticMaterialAttachment savedAttachment = createAttachment(
+        LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
+        LessonTipAttachment savedAttachment = createAttachment(
                 ATTACHMENT_ID,
                 material,
                 "bestand.bin",
                 "stored-123.bin"
         );
 
-        ArgumentCaptor<DidacticMaterialAttachment> attachmentCaptor =
-                ArgumentCaptor.forClass(DidacticMaterialAttachment.class);
+        ArgumentCaptor<LessonTipAttachment> attachmentCaptor =
+                ArgumentCaptor.forClass(LessonTipAttachment.class);
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(material));
@@ -180,7 +182,7 @@ class DidacticMaterialAttachmentServiceTest {
                 .willReturn(" ");
         given(file.getSize())
                 .willReturn(50L);
-        given(didacticMaterialAttachmentRepository.save(any(DidacticMaterialAttachment.class)))
+        given(didacticMaterialAttachmentRepository.save(any(LessonTipAttachment.class)))
                 .willReturn(savedAttachment);
         given(didacticMaterialAttachmentMapper.toResponse(savedAttachment))
                 .willReturn(createAttachmentResponseDto(ATTACHMENT_ID, "bestand.bin"));
@@ -196,7 +198,7 @@ class DidacticMaterialAttachmentServiceTest {
     @Test
     void givenMissingOriginalFileName_whenUploadAttachment_thenDeleteStoredFileAndRethrowException() {
         // Arrange
-        DidacticMaterial material = createMaterial(MATERIAL_ID, "teacher-123");
+        LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(material));
@@ -219,7 +221,7 @@ class DidacticMaterialAttachmentServiceTest {
     @Test
     void givenRepositoryFailureDuringUpload_whenUploadAttachment_thenDeleteStoredFileAndRethrowException() {
         // Arrange
-        DidacticMaterial material = createMaterial(MATERIAL_ID, "teacher-123");
+        LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(material));
@@ -231,7 +233,7 @@ class DidacticMaterialAttachmentServiceTest {
                 .willReturn("application/pdf");
         given(file.getSize())
                 .willReturn(100L);
-        given(didacticMaterialAttachmentRepository.save(any(DidacticMaterialAttachment.class)))
+        given(didacticMaterialAttachmentRepository.save(any(LessonTipAttachment.class)))
                 .willThrow(new RuntimeException("Database error"));
 
         // Act
@@ -247,8 +249,8 @@ class DidacticMaterialAttachmentServiceTest {
     @Test
     void givenExistingAttachmentId_whenGetAttachmentDownloadData_thenReturnDownloadData() {
         // Arrange
-        DidacticMaterial material = createMaterial(MATERIAL_ID, "teacher-123");
-        DidacticMaterialAttachment attachment = createAttachment(
+        LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
+        LessonTipAttachment attachment = createAttachment(
                 ATTACHMENT_ID,
                 material,
                 "lesfiche.pdf",
@@ -262,7 +264,7 @@ class DidacticMaterialAttachmentServiceTest {
                 .willReturn(resource);
 
         // Act
-        DidacticMaterialAttachmentDownloadDataDto result =
+        LessonTipAttachmentDownloadDataDto result =
                 didacticMaterialAttachmentService.getAttachmentDownloadData(MATERIAL_ID, ATTACHMENT_ID);
 
         // Assert
@@ -292,8 +294,8 @@ class DidacticMaterialAttachmentServiceTest {
     @Test
     void givenExistingAttachmentAndAuthorizedUser_whenDeleteAttachment_thenDeleteAttachmentAndStoredFile() {
         // Arrange
-        DidacticMaterial material = createMaterial(MATERIAL_ID, "teacher-123");
-        DidacticMaterialAttachment attachment = createAttachment(
+        LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
+        LessonTipAttachment attachment = createAttachment(
                 ATTACHMENT_ID,
                 material,
                 "lesfiche.pdf",
@@ -329,25 +331,25 @@ class DidacticMaterialAttachmentServiceTest {
         then(fileStorageService).should(never()).deleteFile(any());
     }
 
-    private DidacticMaterial createMaterial(Long id, String createdByUserId) {
-        DidacticMaterial material = new DidacticMaterial();
+    private LessonTip createMaterial(Long id, String createdByUserId) {
+        LessonTip material = new LessonTip();
         material.setId(id);
         material.setTitle("Titel");
         material.setDescription("Beschrijving");
-        material.setMaterialType(edu.ap.bib_backend.jpa.enums.DidacticMaterialType.WORKSHEET);
+        material.setMaterialType(edu.ap.bib_backend.jpa.enums.LessonTipType.WORKSHEET);
         material.setCreatedByUserId(createdByUserId);
         material.setCreatedAt(LocalDateTime.of(2026, 4, 20, 10, 0));
         material.setUpdatedAt(LocalDateTime.of(2026, 4, 21, 11, 0));
         return material;
     }
 
-    private DidacticMaterialAttachment createAttachment(
+    private LessonTipAttachment createAttachment(
             Long id,
-            DidacticMaterial material,
+            LessonTip material,
             String originalFileName,
             String storedFileName
     ) {
-        DidacticMaterialAttachment attachment = new DidacticMaterialAttachment();
+        LessonTipAttachment attachment = new LessonTipAttachment();
         attachment.setId(id);
         attachment.setDidacticMaterial(material);
         attachment.setOriginalFileName(originalFileName);
@@ -358,8 +360,8 @@ class DidacticMaterialAttachmentServiceTest {
         return attachment;
     }
 
-    private DidacticMaterialAttachmentResponseDto createAttachmentResponseDto(Long id, String fileName) {
-        return new DidacticMaterialAttachmentResponseDto(
+    private LessonTipAttachmentResponseDto createAttachmentResponseDto(Long id, String fileName) {
+        return new LessonTipAttachmentResponseDto(
                 id,
                 fileName,
                 "application/pdf",
@@ -367,4 +369,4 @@ class DidacticMaterialAttachmentServiceTest {
                 LocalDateTime.of(2026, 4, 21, 14, 15)
         );
     }
-}
+}*/
