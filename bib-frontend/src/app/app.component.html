@@ -2,6 +2,7 @@
   @if (authService.isAuthenticated()) {
     <app-sidebar [mobileOpen]="isSidebarOpen()" (sidebarClosed)="closeSidebar()"></app-sidebar>
     <app-toast></app-toast>
+    <app-session-expired-modal></app-session-expired-modal>
 
     <!-- Mobile Menu Toggle Button -->
     <button class="mobile-menu-toggle" (click)="toggleSidebar()" aria-label="Toggle menu">

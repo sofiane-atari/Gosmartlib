@@ -21,6 +21,7 @@ export class AuthService {
   private readonly router = inject(Router);
   private tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private tokenWarningTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private countdownIntervalId: ReturnType<typeof setInterval> | null = null;
 
   private static readonly TOKEN_WARNING_BEFORE_EXPIRY_MS = 5 * 60 * 1000;
   private static readonly REDIRECT_AFTER_LOGIN_KEY = 'redirectAfterLogin';
@@ -29,6 +30,10 @@ export class AuthService {
   public readonly adminOverrideStatus = signal<AdminOverrideStatusDto | null>(null);
   public readonly isAdminOverrideLoading = signal(false);
   public readonly isAdminOverrideFeatureEnabled = environment.adminOverrideEnabled;
+
+  public readonly isSessionWarningVisible = signal(false);
+  public readonly sessionSecondsRemaining = signal<number | null>(null);
+  
 
   private token = signal<string | null>(
     localStorage.getItem(AuthService.TOKEN_STORAGE_KEY),
@@ -169,12 +174,18 @@ export class AuthService {
 
   public clearToken(): void {
     this.clearTokenTimers();
+    this.clearCountdownInterval();
+
     localStorage.removeItem(AuthService.TOKEN_STORAGE_KEY);
     localStorage.removeItem(AuthService.TOKEN_EXPIRY_STORAGE_KEY);
+
     this.token.set(null);
     this.tokenExpiryEpochMs.set(null);
     this.currentUser.set(null);
     this.adminOverrideStatus.set(null);
+
+    this.isSessionWarningVisible.set(false);
+    this.sessionSecondsRemaining.set(null);
   }
 
 private scheduleTokenTimers(expiresAt: number): void {
@@ -198,10 +209,10 @@ private scheduleTokenTimers(expiresAt: number): void {
   }
 
   if (warningTimeoutMs <= 0) {
-    this.showSessionWarning();
+    this.showSessionWarning(expiresAt);
   } else {
     this.tokenWarningTimeoutId = setTimeout(() => {
-      this.showSessionWarning();
+      this.showSessionWarning(expiresAt);
     }, warningTimeoutMs);
   }
 
@@ -274,24 +285,53 @@ private scheduleTokenTimers(expiresAt: number): void {
 
     return trimmedToken;
   }
-  private showSessionWarning(): void {
-    const wantsToLoginAgain = window.confirm(
-      'Je sessie gaat bijna verlopen. Log opnieuw in om verder te gaan.'
-    );
 
-    if (wantsToLoginAgain) {
-      localStorage.setItem(
-        AuthService.REDIRECT_AFTER_LOGIN_KEY,
-        this.router.url,
-      );
+  private showSessionWarning(expiresAt: number): void {
+    this.isSessionWarningVisible.set(true);
+    this.startCountdown(expiresAt);
+  }
 
-      this.clearToken();
+  private startCountdown(expiresAt: number): void {
+    this.clearCountdownInterval();
 
-      window.location.href = `${environment.apiUrl}/oauth2/authorization/smartschool`;
-      return;
+    const updateCountdown = () => {
+      const remainingMs = expiresAt - Date.now();
+      const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+
+      this.sessionSecondsRemaining.set(remainingSeconds);
+
+      if (remainingSeconds <= 0) {
+        this.logout();
+      }
+    };
+
+    updateCountdown();
+
+    this.countdownIntervalId = setInterval(updateCountdown, 1000);
+  }
+
+  private clearCountdownInterval(): void {
+    if (this.countdownIntervalId) {
+      clearInterval(this.countdownIntervalId);
+      this.countdownIntervalId = null;
     }
+  }
 
+  public dismissSessionWarningAndLogout(): void {
+    this.logout();
+  }
+
+  public logout(): void {
     this.clearToken();
     this.router.navigate(['/login']);
+  }
+  public prepareSessionRelogin(): void {
+    localStorage.setItem(
+      AuthService.REDIRECT_AFTER_LOGIN_KEY,
+      this.router.url,
+    );
+
+    this.isSessionWarningVisible.set(false);
+    this.clearToken();
   }
 }

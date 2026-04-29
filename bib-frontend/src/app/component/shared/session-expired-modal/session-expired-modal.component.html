@@ -1,0 +1,50 @@
+@if (isVisible()) {
+  <div class="session-modal-backdrop">
+    <section class="session-modal-card" role="dialog" aria-modal="true">
+      <div class="login-container">
+        <div class="login-header">
+          <p class="login-eyebrow">GoSmartLib</p>
+          <h1>Je sessie verloopt bijna</h1>
+          <p class="login-subtitle">
+            Log opnieuw in met Smartschool om verder te gaan waar je bezig was.
+          </p>
+        </div>
+
+        <div class="session-timer">
+          <span class="timer-label">Resterende tijd</span>
+          <span class="timer-value">{{ formattedTime() }}</span>
+        </div>
+
+        <div class="login-content">
+          <div class="info-box">
+            <h2>Meld je opnieuw aan met je schoolaccount</h2>
+            <p>
+              Je huidige sessie loopt bijna af. Na het aanmelden kom je automatisch terug op deze pagina.
+            </p>
+          </div>
+
+          <app-smartschool-button
+            [loading]="isLoading()"
+            [disabled]="isLoading()"
+            (buttonClick)="initiateSmartschoolSSO()"
+          ></app-smartschool-button>
+
+          @if (isLoading()) {
+            <div class="loading-spinner">
+              <div class="spinner"></div>
+              <p>Je wordt doorgestuurd naar Smartschool...</p>
+            </div>
+          }
+        </div>
+
+        <div class="login-footer">
+          <p>
+            <strong>Privacyverklaring:</strong>
+            We bewaren alleen je Smartschool-gebruikers-ID voor authenticatie.
+            Je persoonlijke gegevens worden nooit lokaal opgeslagen.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+}
