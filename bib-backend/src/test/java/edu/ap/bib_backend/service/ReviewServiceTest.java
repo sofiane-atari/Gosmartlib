@@ -5,6 +5,7 @@ import edu.ap.bib_backend.dto.ReviewDashboardStatsDTO;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.entity.review.Review;
 import edu.ap.bib_backend.jpa.entity.review.ReviewReport;
@@ -601,7 +602,18 @@ class ReviewServiceTest {
     private User createUser(String id) {
         User user = new User();
         user.setId(id);
+        user.setSchool(createSchool());
         return user;
+    }
+
+    private School createSchool() {
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+        school.setName("Test School");
+        school.setAddress("Test Address");
+        school.setPostalCode(1000);
+        return school;
     }
 
     private Review createReview(
