@@ -11,6 +11,7 @@ import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
 import { ToastService } from '../../../services/toast/toast.service';
+import { AuthService } from '../../../services/authorization/auth.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -58,6 +59,7 @@ export class BooksComponent implements OnInit {
 
   private readonly bookService = inject(BookService);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
   private readonly readingListService = inject(ReadingListService);
   private readonly readingLevelsService = inject(ReadingLevelsService);
   private readonly genreService = inject(GenreService);
@@ -246,7 +248,10 @@ export class BooksComponent implements OnInit {
   }
 
   private loadSidebarBooks(): void {
-    this.bookService.getMostReadBooks(3).subscribe({
+    const currentUser = this.authService.currentUser();
+    const schoolCode = currentUser?.platform;
+
+    this.bookService.getMostReadBooks(3, schoolCode).subscribe({
       next: (books) => {
         this.mostReadBooks.set(books);
         this.mostReadLoading.set(false);
@@ -256,7 +261,7 @@ export class BooksComponent implements OnInit {
       },
     });
 
-    this.bookService.getNewestBooks(3).subscribe({
+    this.bookService.getNewestBooks(3, schoolCode).subscribe({
       next: (books) => {
         this.newestBooks.set(books);
         this.newestLoading.set(false);

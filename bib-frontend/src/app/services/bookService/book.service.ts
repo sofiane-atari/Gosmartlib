@@ -67,7 +67,7 @@ export class BookService {
   getBookById(id: number): Observable<Book> {
     return this.http.get<Book>(`${this.apiUrl}/${id}`);
   }
-  
+
   addBook(book: Book): Observable<Book> {
     return this.http.post<Book>(this.apiUrl, book);
   }
@@ -96,12 +96,20 @@ export class BookService {
     return this.http.get<number>(`${this.apiUrl}/pages/min`);
   }
 
-  getMostReadBooks(limit: number = 3): Observable<Book[]> {
-    return this.http.get<Book[]>(`${this.apiUrl}/most-read?limit=${limit}`);
+  getMostReadBooks(limit: number = 3, schoolCode?: string | null): Observable<Book[]> {
+    let params = new HttpParams().set('limit', limit);
+    if (schoolCode) {
+      params = params.set('schoolCode', schoolCode);
+    }
+    return this.http.get<Book[]>(`${this.apiUrl}/most-read`, { params });
   }
 
-  getNewestBooks(limit: number = 3): Observable<Book[]> {
-    return this.http.get<Book[]>(`${this.apiUrl}/newest?limit=${limit}`);
+  getNewestBooks(limit: number = 3, schoolCode?: string | null): Observable<Book[]> {
+    let params = new HttpParams().set('limit', limit);
+    if (schoolCode) {
+      params = params.set('schoolCode', schoolCode);
+    }
+    return this.http.get<Book[]>(`${this.apiUrl}/newest`, { params });
   }
 
   uploadBooks(file: File): Observable<any>{
