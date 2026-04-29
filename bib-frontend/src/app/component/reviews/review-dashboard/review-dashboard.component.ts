@@ -18,7 +18,7 @@ import {
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
 
-import { Review, ReviewDashboardStats } from '../../../model/review.model';
+import { Review, ReviewDashboardStats } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';

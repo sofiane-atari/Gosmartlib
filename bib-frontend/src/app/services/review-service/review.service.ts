@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Review, ReviewDashboardStats } from '../../model/review.model';
+import { Review, ReviewDashboardStats } from '../../model/review/review.model';
 import { Observable } from 'rxjs';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 

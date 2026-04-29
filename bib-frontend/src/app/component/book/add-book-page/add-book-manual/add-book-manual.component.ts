@@ -28,6 +28,8 @@ import { Info, LucideAngularModule, Pencil, Plus, Trash2 } from 'lucide-angular'
 import { Subject, of, combineLatest } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
+import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
+import { addBookManualDraft } from '../../../../model/book/add-book-manual-draft.model';
 
 type BookFormGroup = FormGroup<{
   title: FormControl<string>;
@@ -51,6 +53,7 @@ export class AddBookManualComponent extends GenreSelectionBase implements OnInit
   readonly InfoIcon = Info;
   readonly Trash2Icon = Trash2;
   readonly PencilIcon = Pencil;
+  private readonly draftKey = 'add-book-manual';
   @Input() readingLevels: ReadingLevel[] = [];
   @Output() bookAdded = new EventEmitter<Book>();
 
@@ -67,7 +70,8 @@ export class AddBookManualComponent extends GenreSelectionBase implements OnInit
     private fb: FormBuilder,
     private bs: BookService,
     private rt: Router,
-    private ts: ToastService
+    private ts: ToastService,
+    private draftStorage: DraftStorageService
   ) {
     super();
     this.form = this.fb.group({
@@ -85,10 +89,13 @@ export class AddBookManualComponent extends GenreSelectionBase implements OnInit
   }
 
   ngOnInit(): void {
+    this.restoreDraft();
+    this.setupDraftAutosave();
     this.setupCandidateSearch();
   }
 
   ngOnDestroy(): void {
+    this.saveDraft();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -195,6 +202,7 @@ private setupCandidateSearch(): void {
         this.openedMainGenre = this.findMainGenreForSelectedGenres();
 
         this.ts.show('Boekgegevens uit de database ingevuld.');
+        this.saveDraft();
       },
       error: () => {
         this.isSearching = false;
@@ -203,6 +211,8 @@ private setupCandidateSearch(): void {
     });
 }
   clearForm(): void {
+    this.clearDraft();
+
     this.form.reset({
       title: '',
       author: '',
@@ -261,7 +271,7 @@ private setupCandidateSearch(): void {
       genres: this.selectedGenres,
       readingLevel: formValue.readingLevel ?? undefined
     };
-
+    this.saveDraft();
     this.bookAdded.emit(book);
   }
   editBook(): void {
@@ -307,9 +317,53 @@ private setupCandidateSearch(): void {
 
   protected setSelectedGenres(genres: Genre[]): void {
     this.selectedGenres = genres;
+    this.saveDraft();
   }
 
   protected showGenreError(message: string): void {
     this.ts.show(message, 'error');
+  }
+  private setupDraftAutosave(): void {
+    this.form.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.saveDraft();
+      });
+  }
+
+  private saveDraft(): void {
+    const draft: addBookManualDraft = {
+      formValue: this.form.getRawValue(),
+      selectedGenres: this.selectedGenres,
+      selectedBookId: this.selectedBookId,
+      candidateBooks: this.candidateBooks,
+      isCandidateLoaded: this.isCandidateLoaded,
+      openedMainGenre: this.openedMainGenre,
+    };
+
+    this.draftStorage.saveDraft(this.draftKey, draft);
+  }
+
+  private restoreDraft(): void {
+    const draft = this.draftStorage.getDraft<addBookManualDraft>(this.draftKey);
+
+    if (!draft) {
+      return;
+    }
+
+    this.form.patchValue(draft.formValue, { emitEvent: false });
+    this.selectedGenres = draft.selectedGenres ?? [];
+    this.selectedBookId = draft.selectedBookId ?? null;
+    this.candidateBooks = draft.candidateBooks ?? [];
+    this.isCandidateLoaded = draft.isCandidateLoaded ?? false;
+    this.openedMainGenre = draft.openedMainGenre ?? null;
+
+    if (this.isCandidateLoaded) {
+      this.form.controls.readingLevel.disable({ emitEvent: false });
+    }
+  }
+
+  private clearDraft(): void {
+    this.draftStorage.removeDraft(this.draftKey);
   }
 }
