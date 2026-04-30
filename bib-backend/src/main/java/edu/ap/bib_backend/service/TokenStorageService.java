@@ -12,6 +12,7 @@ import java.util.Optional;
 public class TokenStorageService {
 
     private static final long SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES = 55;
+    private static final long SMARTSCHOOL_REFRESH_TOKEN_EXPIRY_DAYS = 365L * 3;
 
     private final AuthSessionRepository authSessionRepository;
 
@@ -95,6 +96,35 @@ public class TokenStorageService {
                 Instant.now().plusSeconds(SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES * 60));
 
         authSessionRepository.save(session);
+    }
+
+    public void storeSmartschoolTokens(
+            String userId,
+            String accessToken,
+            String refreshToken) {
+        AuthSession session = authSessionRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("No auth session found for user " + userId));
+
+        session.setSmartschoolAccessToken(accessToken);
+        session.setSmartschoolAccessTokenExpiresAt(
+                Instant.now().plusSeconds(SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES * 60));
+
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            session.setSmartschoolRefreshToken(refreshToken);
+            session.setSmartschoolRefreshTokenExpiresAt(
+                    Instant.now().plusSeconds(SMARTSCHOOL_REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60));
+        }
+
+        authSessionRepository.save(session);
+    }
+
+    public String getSmartschoolRefreshToken(String userId) {
+        return authSessionRepository.findById(userId)
+                .filter(session -> session.getSmartschoolRefreshToken() != null)
+                .filter(session -> session.getSmartschoolRefreshTokenExpiresAt() == null ||
+                        session.getSmartschoolRefreshTokenExpiresAt().isAfter(Instant.now()))
+                .map(AuthSession::getSmartschoolRefreshToken)
+                .orElse(null);
     }
 
     public String getSmartschoolAccessToken(String userId) {

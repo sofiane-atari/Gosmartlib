@@ -16,7 +16,8 @@ export class AuthService {
   private static readonly TOKEN_STORAGE_KEY = 'authToken';
   private static readonly TOKEN_EXPIRY_STORAGE_KEY = 'authTokenExpiry';
   private static readonly FALLBACK_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
-
+  public readonly isSessionRefreshLoading = signal(false);
+  
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -334,4 +335,24 @@ private scheduleTokenTimers(expiresAt: number): void {
     this.isSessionWarningVisible.set(false);
     this.clearToken();
   }
+  public refreshSessionFromWarning(): void {
+  this.isSessionRefreshLoading.set(true);
+
+  this.http.post<{ token: string; expiresAt: string }>(
+    `${environment.apiUrl}/auth/refresh`,
+    {},
+  ).subscribe({
+    next: (response) => {
+      this.storeToken(response.token);
+
+      this.isSessionWarningVisible.set(false);
+      this.sessionSecondsRemaining.set(null);
+      this.isSessionRefreshLoading.set(false);
+    },
+    error: () => {
+      this.isSessionRefreshLoading.set(false);
+      this.logout();
+    },
+  });
+}
 }

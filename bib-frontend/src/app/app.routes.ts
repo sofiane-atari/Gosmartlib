@@ -33,6 +33,7 @@ import { CreateReadingListComponent } from './component/reading-list/create-read
 import { CreateTeacherReadingListComponent } from './component/reading-list/create-teacher-reading-list/create-teacher-reading-list.component';
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
+import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -42,7 +43,7 @@ export const routes: Routes = [
   {
     path: 'review-dashboard',
     component: ReviewDashboardComponent,
-    canActivate: [reviewModerationGuard, authGuard],
+    canActivate: [reviewModerationGuard, authGuard, staffOnlyGuard],
   },
 
   // didactic Routes
@@ -60,7 +61,7 @@ export const routes: Routes = [
   {
     path: 'genre',
     component: DashboardGenresComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminOnlyGuard],
   },
   {
     path: 'reading-list',
@@ -85,7 +86,7 @@ export const routes: Routes = [
   {
     path: 'add-book',
     component: AddBookPageComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, staffOnlyGuard],
   },
   { path: 'reviews', component: MyReviewsComponent, canActivate: [authGuard] },
   { path: 'login', component: LoginComponent, canActivate: [publicOnlyGuard] },
@@ -97,12 +98,12 @@ export const routes: Routes = [
   {
     path: 'books-management',
     component: BookManagementComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminOnlyGuard],
   },
   {
     path: 'loans/create',
     component: CreateLoanComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, staffOnlyGuard],
   },
   {
     path: 'scholen',

@@ -24,14 +24,19 @@ public class AuthSession {
     @Column(nullable = false)
     private Instant jwtExpiresAt;
 
-    @Column(length = 2048)
-    private String smartschoolAccessToken;
-
-    private Instant smartschoolAccessTokenExpiresAt;
-
     private boolean adminOverride;
 
     private Instant adminOverrideExpiresAt;
+
+    @Column(length = 4096)
+    private String smartschoolAccessToken;
+
+    @Column(length = 4096)
+    private String smartschoolRefreshToken;
+
+    private Instant smartschoolAccessTokenExpiresAt;
+
+    private Instant smartschoolRefreshTokenExpiresAt;
 
     public AuthSession() {
     }

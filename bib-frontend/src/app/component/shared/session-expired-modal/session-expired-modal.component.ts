@@ -15,7 +15,6 @@ export class SessionExpiryModalComponent {
   private readonly loginService = inject(LoginService);
 
   private readonly isLoadingSignal = signal(false);
-  public readonly isLoading = this.isLoadingSignal.asReadonly();
 
   public readonly isVisible = this.authService.isSessionWarningVisible;
   public readonly secondsRemaining = this.authService.sessionSecondsRemaining;
@@ -27,7 +26,12 @@ export class SessionExpiryModalComponent {
 
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   });
+  
+  public readonly isLoading = this.authService.isSessionRefreshLoading;
 
+  public refreshSession(): void {
+    this.authService.refreshSessionFromWarning();
+  }
   public initiateSmartschoolSSO(): void {
     this.isLoadingSignal.set(true);
     this.authService.prepareSessionRelogin();
