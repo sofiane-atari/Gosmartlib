@@ -1,0 +1,83 @@
+.session-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.session-modal-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 28px;
+  border-radius: 18px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+}
+
+.session-modal-card h2 {
+  margin: 0 0 12px;
+  color: #111827;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.session-modal-card p {
+  margin: 0 0 18px;
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.session-timer {
+  margin-bottom: 22px;
+  color: #dc2626;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.session-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.primary-button,
+.secondary-button {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-button {
+  border: none;
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.secondary-button {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

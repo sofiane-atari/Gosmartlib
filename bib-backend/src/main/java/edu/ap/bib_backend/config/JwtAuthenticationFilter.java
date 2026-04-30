@@ -3,6 +3,7 @@ package edu.ap.bib_backend.config;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
+import edu.ap.bib_backend.service.TokenStorageService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,16 +24,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final AdminOverrideService adminOverrideService;
+    private final TokenStorageService tokenStorageService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, AdminOverrideService adminOverrideService) {
+    public JwtAuthenticationFilter(
+            JwtService jwtService,
+            AdminOverrideService adminOverrideService,
+            TokenStorageService tokenStorageService) {
         this.jwtService = jwtService;
         this.adminOverrideService = adminOverrideService;
+        this.tokenStorageService = tokenStorageService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
@@ -51,22 +57,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = jwtService.extractUsername(token);
         String role = (String) jwtService.extractClaim(token, "roles");
 
+        if (!tokenStorageService.isCurrentToken(username, token)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // TEMP_ADMIN_OVERRIDE: grant temporary admin authority for dev/test sessions.
         if (adminOverrideService.isAdminOverrideActive(username)) {
             role = "ROLE_ADMIN";
         }
 
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                        username,
-                        null,
-                        List.of(new SimpleGrantedAuthority(role))
-                );
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                username,
+                null,
+                List.of(new SimpleGrantedAuthority(role)));
 
         Map<String, Object> audienceDetails = new HashMap<>();
-        audienceDetails.put("classCode", asStringOrDefault(jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE), "GENERAL"));
-        audienceDetails.put("yearCode", asStringOrDefault(jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE), "0"));
-        audienceDetails.put("schoolCode", asStringOrDefault(jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE), "ALLEMAAL"));
+        audienceDetails.put("classCode", asStringOrDefault(
+                jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE), "GENERAL"));
+        audienceDetails.put("yearCode",
+                asStringOrDefault(jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE), "0"));
+        audienceDetails.put("schoolCode", asStringOrDefault(
+                jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE), "ALLEMAAL"));
         authentication.setDetails(audienceDetails);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);

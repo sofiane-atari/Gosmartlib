@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, NgModule, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, NgModule, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { BookService } from '../../../../services/bookService/book.service';
 import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -10,6 +10,8 @@ import { LoadingOverlayComponent } from "../../../shared/loading-overlay/loading
 import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
+import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
+import { addBookIsbnDraft } from '../../../../model/book/add-book-isbn-draft.model';
 
 @Component({
   selector: 'app-add-book-isbn',
@@ -19,7 +21,7 @@ import { GenreSelectionBase } from '../../../genre/genre-selection.base';
   styleUrl: './add-book-isbn.component.css'
 
 })
-export class AddBookISBNComponent extends GenreSelectionBase {
+export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, OnDestroy {
   isbn: string = "";
   selectedBook?: Book;
   @ViewChild('bookForm') bookForm?: NgForm;
@@ -29,6 +31,8 @@ export class AddBookISBNComponent extends GenreSelectionBase {
   readonly PlusIcon = Plus;
   readonly Trash2Icon = Trash2;
   readonly PencilIcon = Pencil;
+  private readonly draftKey = 'add-book-isbn';
+  private draftIntervalId: ReturnType<typeof setInterval> | null = null;
 
   selectedBookId: number | null = null;
   isExistingBookLoaded = false;
@@ -47,8 +51,30 @@ export class AddBookISBNComponent extends GenreSelectionBase {
     readingLevel: null as any
   };
 
-  constructor(private bs: BookService, private rt: Router, private ts: ToastService){
+  constructor(
+    private bs: BookService,
+    private rt: Router,
+    private ts: ToastService,
+    private draftStorage: DraftStorageService,
+  ) {
     super();
+  }
+
+  ngOnInit(): void {
+    this.restoreDraft();
+
+    this.draftIntervalId = setInterval(() => {
+      this.saveDraft();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    this.saveDraft();
+
+    if (this.draftIntervalId) {
+      clearInterval(this.draftIntervalId);
+      this.draftIntervalId = null;
+    }
   }
 
   save() {
@@ -124,6 +150,8 @@ export class AddBookISBNComponent extends GenreSelectionBase {
         this.selectedBookId = data.id ?? null;
         this.isExistingBookLoaded = !!data.id;
         this.isLoading = false;
+        this.saveDraft();
+
 
         this.ts.show(
           this.isExistingBookLoaded
@@ -146,14 +174,15 @@ clearForm() {
     this.openedMainGenre = null;
     this.selectedBookId = null;
     this.isExistingBookLoaded = false;
+    this.clearDraft();
     this.resetGenreSelection();
     this.book = {
       title: '',
       author: '',
-      pages: 0,
+      pages: '' as any,
       imageUrl: '',
       description: '',
-      releaseYear: new Date().getFullYear(),
+      releaseYear: '' as any,
       genres: [],
       readingLevel: undefined
     };
@@ -162,8 +191,8 @@ clearForm() {
       isbn: '',
       title: '',
       author: '',
-      pages: 0,
-      releaseYear: new Date().getFullYear(),
+      pages:'' as any,
+      releaseYear: '' as any,
       imageUrl: '',
       description: '',
       readingLevel: undefined
@@ -203,6 +232,7 @@ clearForm() {
         this.candidates = results;
         this.showCandidates = true;
         this.isLoading = false;
+        this.saveDraft();
 
         this.ts.show(`${results.length} boek(en) gevonden.`);
       },
@@ -228,6 +258,7 @@ clearForm() {
         this.showCandidates = false;
         this.candidates = [];
         this.isLoading = false;
+        this.saveDraft();
         this.ts.show(
           this.isExistingBookLoaded
             ? 'Boekgegevens uit de database ingevuld.'
@@ -246,6 +277,7 @@ clearForm() {
 
   protected setSelectedGenres(genres: Genre[]): void {
     this.book.genres = genres;
+    this.saveDraft();
   }
 
   protected showGenreError(message: string): void {
@@ -254,4 +286,37 @@ clearForm() {
   compareReadingLevels = (a: ReadingLevel | null, b: ReadingLevel | null): boolean => {
     return a?.id === b?.id;
   };
+  private saveDraft(): void {
+    const draft: addBookIsbnDraft = {
+      isbn: this.isbn,
+      book: this.book,
+      selectedBookId: this.selectedBookId,
+      isExistingBookLoaded: this.isExistingBookLoaded,
+      candidates: this.candidates,
+      showCandidates: this.showCandidates,
+      openedMainGenre: this.openedMainGenre,
+    };
+
+    this.draftStorage.saveDraft(this.draftKey, draft);
+  }
+
+  private restoreDraft(): void {
+    const draft = this.draftStorage.getDraft<addBookIsbnDraft>(this.draftKey);
+
+    if (!draft) {
+      return;
+    }
+
+    this.isbn = draft.isbn ?? '';
+    this.book = draft.book ?? this.book;
+    this.selectedBookId = draft.selectedBookId ?? null;
+    this.isExistingBookLoaded = draft.isExistingBookLoaded ?? false;
+    this.candidates = draft.candidates ?? [];
+    this.showCandidates = draft.showCandidates ?? false;
+    this.openedMainGenre = draft.openedMainGenre ?? null;
+  }
+
+  private clearDraft(): void {
+    this.draftStorage.removeDraft(this.draftKey);
+  }
 }

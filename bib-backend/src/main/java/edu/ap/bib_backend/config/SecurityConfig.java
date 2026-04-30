@@ -80,7 +80,9 @@ public class SecurityConfig {
                                                 .permitAll()
 
                                                 // 🔐 Auth endpoints
-                                                .requestMatchers("/auth/me", "/auth/logout", "/auth/admin-override/**").authenticated()
+                                                .requestMatchers("/auth/me", "/auth/logout", "/auth/refresh",
+                                                                "/auth/admin-override/**")
+                                                .authenticated()
 
                                                 // 🔐 Business endpoints
                                                 .requestMatchers("/reviews/**")

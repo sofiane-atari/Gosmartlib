@@ -1,0 +1,39 @@
+@if (isVisible()) {
+  <div class="session-modal-backdrop">
+    <section class="session-modal-card" role="dialog" aria-modal="true">
+      <h2>Je sessie gaat verlopen</h2>
+
+      <p>
+        Je sessie verloopt bijna. Wil je je sessie verlengen?
+      </p>
+
+      <div class="session-timer">
+        {{ formattedTime() }}
+      </div>
+
+      <div class="session-actions">
+        <button
+          class="primary-button"
+          type="button"
+          [disabled]="isLoading()"
+          (click)="refreshSession()"
+        >
+          @if (isLoading()) {
+            Verlengen...
+          } @else {
+            Ja, verleng mijn sessie
+          }
+        </button>
+
+        <button
+          class="secondary-button"
+          type="button"
+          [disabled]="isLoading()"
+          (click)="logout()"
+        >
+          Uitloggen
+        </button>
+      </div>
+    </section>
+  </div>
+}

@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { LucideAngularModule, Star, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-angular';
 
 import { ReviewService } from '../../../services/review-service/review.service';
-import { Review } from '../../../model/review.model';
+import { Review } from '../../../model/review/review.model';
 import { ToastService } from '../../../services/toast/toast.service';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import {

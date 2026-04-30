@@ -1,4 +1,4 @@
-import { Component, Inject, signal } from '@angular/core';
+import { Component, Inject, OnDestroy, signal } from '@angular/core';
 import { Book } from '../../../model/book/book.model';
 import {
   LucideAngularModule,
@@ -24,7 +24,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookService } from '../../../services/bookService/book.service';
 import { Availability } from '../../../model/enums/availability.enum';
-import { Review } from '../../../model/review.model';
+import { Review } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { ReadingListService, ReadingList } from '../../../services/reading-list/reading-list.service';
@@ -32,6 +32,8 @@ import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
+import { DraftStorageService } from '../../../services/storage/draft-storage.service';
+import { ReviewDraft } from '../../../model/review/review-draft.model';
 
 
 @Component({
@@ -41,7 +43,7 @@ import { AuthService } from '../../../services/authorization/auth.service';
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css'
 })
-export class BookDetailComponent {
+export class BookDetailComponent implements OnDestroy {
   readonly X = X;
   readonly Library = Library;
   readonly Minus = Minus;
@@ -92,6 +94,9 @@ export class BookDetailComponent {
 
   // Related Books Carousel //
   relatedBooksCarousel: Book[] = [];
+  
+  private currentBookId: number | null = null;
+  private reviewDraftIntervalId: ReturnType<typeof setInterval> | null = null;
 
   protected readonly roleService = Inject(RoleService);
 
@@ -103,7 +108,10 @@ export class BookDetailComponent {
     private reviewService: ReviewService,
     private toastService: ToastService,
     private sanitizer: DomSanitizer,
-    protected authService: AuthService) {
+    protected authService: AuthService,
+    private draftStorage: DraftStorageService
+  
+  ) {
 
   }
 
@@ -114,16 +122,20 @@ export class BookDetailComponent {
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
 
-      if (id) {
-        const numericBookId = +id;
+    if (id) {
+      const numericBookId = +id;
 
-        this.bookService.getBookById(numericBookId).subscribe(book => {
-          this.selectedBook = book;
-        });
+      this.currentBookId = numericBookId;
+      this.restoreReviewDraft(numericBookId);
+      this.startReviewDraftAutosave();
 
-        this.loadRelatedBooksCarousel(numericBookId);
-        this.loadReviews(numericBookId);
-      }
+      this.bookService.getBookById(numericBookId).subscribe(book => {
+        this.selectedBook = book;
+      });
+
+      this.loadRelatedBooksCarousel(numericBookId);
+      this.loadReviews(numericBookId);
+    }
     });
 
     this.loadReadingLists();
@@ -217,6 +229,7 @@ export class BookDetailComponent {
 
   setRating(rating: number) {
     this.newReviewRating = rating;
+    this.saveReviewDraft();
   }
 
   getRoundedAverage(): number {
@@ -253,6 +266,7 @@ export class BookDetailComponent {
         this.reviews.push(savedReview);
         this.newReviewText = '';
         this.newReviewRating = 5;
+        this.clearReviewDraft();
 
         this.updateAverage(bookId);
         this.toastService.show('Review succesvol geplaatst!', 'success');
@@ -477,6 +491,61 @@ export class BookDetailComponent {
       () => {}
     );
   }
+  private getReviewDraftKey(bookId: number): string {
+    return `book-review-${bookId}`;
+  }
 
+  private saveReviewDraft(): void {
+    if (!this.currentBookId) {
+      return;
+    }
+
+    const draft: ReviewDraft = {
+      text: this.newReviewText,
+      rating: this.newReviewRating,
+    };
+
+    this.draftStorage.saveDraft(this.getReviewDraftKey(this.currentBookId), draft);
+  }
+
+  private restoreReviewDraft(bookId: number): void {
+    const draft = this.draftStorage.getDraft<ReviewDraft>(
+      this.getReviewDraftKey(bookId),
+    );
+
+    if (!draft) {
+      return;
+    }
+
+    this.newReviewText = draft.text ?? '';
+    this.newReviewRating = draft.rating ?? 5;
+  }
+
+  private clearReviewDraft(): void {
+    if (!this.currentBookId) {
+      return;
+    }
+
+    this.draftStorage.removeDraft(this.getReviewDraftKey(this.currentBookId));
+  }
+
+  private startReviewDraftAutosave(): void {
+    if (this.reviewDraftIntervalId) {
+      return;
+    }
+
+    this.reviewDraftIntervalId = setInterval(() => {
+      this.saveReviewDraft();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    this.saveReviewDraft();
+
+    if (this.reviewDraftIntervalId) {
+      clearInterval(this.reviewDraftIntervalId);
+      this.reviewDraftIntervalId = null;
+    }
+  }
 }
 
