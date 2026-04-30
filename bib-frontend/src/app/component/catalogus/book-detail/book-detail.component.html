@@ -94,99 +94,115 @@
 
         <!-- Bibliotheekbeheer -->
 
+        <!-- Bibliotheekbeheer -->
         @if (roleService.canManageLessonTip()) {
           <section class="management-section">
             <h2 class="section-title">Bibliotheekbeheer</h2>
 
+            <!-- Aangepaste knoppen styling -->
             <div class="action-buttons">
               <button
                 type="button"
-                class="action-btn secondary"
+                class="action-btn action-button--edit"
                 (click)="goToEditPage(selectedBook.id)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-                  ></path>
-                </svg>
+                <!-- Zorg dat je 'Pencil' of 'Edit' icoon importeert in TS -->
+                <lucide-icon
+                  name="pencil"
+                  [size]="16"
+                  strokeWidth="2.5"
+                  style="margin-right: 6px"
+                ></lucide-icon>
                 <span>Bewerken</span>
               </button>
 
               <button
                 type="button"
-                class="action-btn danger"
+                class="action-btn action-button--delete"
                 (click)="deleteBook(selectedBook.id)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path
-                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                  ></path>
-                </svg>
+                <!-- Zorg dat je 'Trash2' icoon importeert in TS -->
+                <lucide-icon
+                  name="trash-2"
+                  [size]="16"
+                  strokeWidth="2.5"
+                  style="margin-right: 6px"
+                ></lucide-icon>
                 <span>Verwijderen</span>
               </button>
             </div>
+          </section>
 
-            <section class="detail-section">
-              <div class="detail-section__header">
-                <p class="detail-section__eyebrow">Lestips</p>
-                <h2 class="detail-section__title">Lestips bij dit boek</h2>
+          <section
+            class="detail-section"
+            style="
+              background: white;
+              border-radius: 8px;
+              padding: 16px;
+              box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            "
+          >
+            <div class="detail-section__header" style="margin-bottom: 16px">
+              <p
+                class="detail-section__eyebrow"
+                style="
+                  margin: 0 0 4px;
+                  font-size: 12px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  color: var(--main-color, #8a1e41);
+                "
+              >
+                Lestips
+              </p>
+              <h2
+                class="detail-section__title"
+                style="
+                  margin: 0;
+                  font-size: 1.2rem;
+                  font-weight: 800;
+                  color: #1f2937;
+                "
+              >
+                Lestips bij dit boek
+              </h2>
+            </div>
+
+            @if (isLoadingLessonTips()) {
+              <div class="state-panel state-panel--compact">
+                <p>Lestips worden geladen...</p>
               </div>
+            } @else if (lessonTips().length === 0) {
+              <div class="state-panel state-panel--compact">
+                <p>Er zijn nog geen lestips gekoppeld aan dit boek.</p>
+              </div>
+            } @else {
+              <div class="lesson-tip-preview-list">
+                @for (lessonTip of lessonTips(); track lessonTip.id) {
+                  <article
+                    class="lesson-tip-preview-card"
+                    (click)="openLessonTipDetail(lessonTip.id)"
+                  >
+                    <div class="lesson-tip-preview-card__content">
+                      <h3 class="lesson-tip-preview-card__title">
+                        {{ lessonTip.title }}
+                      </h3>
 
-              @if (isLoadingLessonTips()) {
-                <div class="state-panel state-panel--compact">
-                  <p>Lestips worden geladen...</p>
-                </div>
-              } @else if (lessonTips().length === 0) {
-                <div class="state-panel state-panel--compact">
-                  <p>Er zijn nog geen lestips gekoppeld aan dit boek.</p>
-                </div>
-              } @else {
-                <div class="lesson-tip-preview-list">
-                  @for (lessonTip of lessonTips(); track lessonTip.id) {
-                    <article
-                      class="lesson-tip-preview-card"
-                      (click)="openLessonTipDetail(lessonTip.id)"
-                    >
-                      <div class="lesson-tip-preview-card__content">
-                        <h3 class="lesson-tip-preview-card__title">
-                          {{ lessonTip.title }}
-                        </h3>
+                      <p class="lesson-tip-preview-card__description">
+                        {{ lessonTip.description }}
+                      </p>
 
-                        <p class="lesson-tip-preview-card__description">
-                          {{ lessonTip.description }}
-                        </p>
+                      <span class="lesson-tip-preview-card__meta">
+                        Laatst bijgewerkt op
+                        {{ lessonTip.updatedAt | date: "dd/MM/yyyy" }}
+                      </span>
+                    </div>
 
-                        <span class="lesson-tip-preview-card__meta">
-                          Laatst bijgewerkt op
-                          {{ lessonTip.updatedAt | date: "dd/MM/yyyy" }}
-                        </span>
-                      </div>
-
-                      <div class="lesson-tip-preview-card__action">
-                        Bekijken
-                      </div>
-                    </article>
-                  }
-                </div>
-              }
-            </section>
+                    <div class="lesson-tip-preview-card__action">Bekijken</div>
+                  </article>
+                }
+              </div>
+            }
           </section>
         }
 

@@ -170,7 +170,7 @@ export class BookDetailComponent implements OnInit {
   }
 
   public openLessonTipDetail(lessonTipId: number): void {
-    void this.router.navigate(['/lesson-tips', lessonTipId]);
+    void this.router.navigate(['/lesson', lessonTipId]);
   }
 
   scrollCarousel(direction: 'left' | 'right') {

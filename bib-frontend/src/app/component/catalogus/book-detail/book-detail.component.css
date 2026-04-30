@@ -347,6 +347,39 @@
   background: #fef2f2;
 }
 
+/* --- NIEUWE KNOPPEN STYLING (Outline stijl) --- */
+.action-button--edit {
+  background-color: white !important;
+  color: var(--main-color, #8a1e41) !important;
+  border: 1.5px solid rgba(138, 30, 65, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.action-button--edit lucide-icon {
+  color: var(--main-color, #8a1e41);
+}
+
+.action-button--edit:hover:not(:disabled) {
+  background-color: var(--main-light-color, #fff5f8) !important;
+  border-color: var(--main-color, #8a1e41) !important;
+}
+
+.action-button--delete {
+  background-color: white !important;
+  color: var(--error-color, #ef4444) !important;
+  border: 1.5px solid rgba(239, 68, 68, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.action-button--delete lucide-icon {
+  color: var(--error-color, #ef4444);
+}
+
+.action-button--delete:hover:not(:disabled) {
+  background-color: #fef2f2 !important;
+  border-color: var(--error-color, #ef4444) !important;
+}
+
 /* Meta Section, enz. */
 .meta-section,
 .summary-section,
