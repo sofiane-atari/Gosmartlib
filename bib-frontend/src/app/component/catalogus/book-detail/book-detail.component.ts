@@ -8,13 +8,13 @@ import {
   Minus,
   Plus,
   CheckCircle,
-  Edit2,
   Trash2,
   Calendar,
   Star,
   MessageCircle,
   Bookmark,
   Flag,
+  Pencil,
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -33,7 +33,10 @@ import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
-import { LessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
+import {
+  BookLessonTipPreview,
+  LessonTipPreview,
+} from '../../../model/lesson-tip/lesson-tip.model';
 
 @Component({
   selector: 'app-book-detail',
@@ -48,7 +51,7 @@ export class BookDetailComponent implements OnInit {
   readonly Minus = Minus;
   readonly Plus = Plus;
   readonly CheckCircle = CheckCircle;
-  readonly Edit2 = Edit2;
+  readonly Pencil = Pencil;
   readonly Trash2 = Trash2;
   readonly Calendar = Calendar;
   readonly Star = Star;
@@ -62,7 +65,7 @@ export class BookDetailComponent implements OnInit {
     { icon: MessageCircle, label: 'Berichten' },
     { icon: Calendar, label: 'Planning' },
     { icon: CheckCircle, label: 'Voltooid' },
-    { icon: Edit2, label: 'Bewerken' },
+    { icon: Pencil, label: 'Bewerken' },
     { icon: Plus, label: 'Toevoegen' },
     { icon: Minus, label: 'Verwijderen' },
     { icon: Trash2, label: 'Prullenbak' },
@@ -91,7 +94,9 @@ export class BookDetailComponent implements OnInit {
   public readonly previewFallbackUrl = signal<string | null>(null);
   public readonly isPreviewModalOpen = signal<boolean>(false);
 
-  protected readonly lessonTips = signal<LessonTipPreview[]>([]);
+  protected readonly lessonTipPreview = signal<BookLessonTipPreview | null>(
+    null,
+  );
   protected readonly isLoadingLessonTips = signal(false);
 
   Availability = Availability;
@@ -153,13 +158,13 @@ export class BookDetailComponent implements OnInit {
   private loadLessonTips(bookId: number): void {
     this.isLoadingLessonTips.set(true);
 
-    this.bookService.getLessonTipsByBookId(bookId).subscribe({
-      next: (lessonTips) => {
-        this.lessonTips.set(lessonTips);
+    this.bookService.getLessonTipPreviewByBookId(bookId).subscribe({
+      next: (preview) => {
+        this.lessonTipPreview.set(preview);
         this.isLoadingLessonTips.set(false);
       },
       error: () => {
-        this.lessonTips.set([]);
+        this.lessonTipPreview.set(null);
         this.isLoadingLessonTips.set(false);
         this.toastService.show(
           'De lestips bij dit boek konden niet worden geladen.',
@@ -171,6 +176,18 @@ export class BookDetailComponent implements OnInit {
 
   public openLessonTipDetail(lessonTipId: number): void {
     void this.router.navigate(['/lesson', lessonTipId]);
+  }
+
+  public openAllLessonTipsForBook(): void {
+    const bookId = this.selectedBook?.id;
+
+    if (!bookId) {
+      return;
+    }
+
+    void this.router.navigate(['/lesson-tips'], {
+      queryParams: { bookId },
+    });
   }
 
   scrollCarousel(direction: 'left' | 'right') {

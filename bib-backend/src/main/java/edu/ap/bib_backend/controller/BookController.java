@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.lessontips.BookLessonTipPreviewResponseDto;
 import edu.ap.bib_backend.dto.lessontips.LessonTipPreviewResponseDto;
 import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
@@ -180,5 +181,12 @@ public class BookController {
             @PathVariable Long bookId
     ) {
         return ResponseEntity.ok(lessonTipService.getLessonTipPreviewsByBookId(bookId));
+    }
+
+    @GetMapping("/{bookId}/lesson-tips/preview")
+    public ResponseEntity<BookLessonTipPreviewResponseDto> getLessonTipPreviewByBookId(
+            @PathVariable Long bookId
+    ) {
+        return ResponseEntity.ok(lessonTipService.getLessonTipPreviewByBookId(bookId));
     }
 }

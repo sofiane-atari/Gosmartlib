@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.service.lessontips;
 
 
+import edu.ap.bib_backend.dto.lessontips.BookLessonTipPreviewResponseDto;
 import edu.ap.bib_backend.dto.lessontips.CreateLessonTipRequestDto;
 import edu.ap.bib_backend.dto.lessontips.LessonTipPreviewResponseDto;
 import edu.ap.bib_backend.dto.lessontips.LessonTipResponseDto;
@@ -20,6 +21,8 @@ import java.util.List;
 @Service
 @Transactional
 public class LessonTipService {
+
+    private static final int BOOK_DETAIL_PREVIEW_LIMIT = 3;
 
     private final LessonTipRepository lessonTipRepository;
     private final LessonTipBookLinkService lessonTipBookLinkService;
@@ -44,6 +47,25 @@ public class LessonTipService {
         this.lessonTipCreatorRoleService = lessonTipCreatorRoleService;
         this.lessonTipAuthorizationService = lessonTipAuthorizationService;
         this.bookRepository = bookRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public BookLessonTipPreviewResponseDto getLessonTipPreviewByBookId(Long bookId) {
+        ensureBookExists(bookId);
+
+        List<LessonTip> lessonTips =
+                lessonTipRepository.findTop3ByBookLinksBookIdOrderByUpdatedAtDesc(bookId);
+
+        long totalCount = lessonTipRepository.countByBookLinksBookId(bookId);
+
+        List<LessonTipPreviewResponseDto> previewLessonTips =
+                lessonTipMapper.toPreviewResponseList(lessonTips);
+
+        return new BookLessonTipPreviewResponseDto(
+                previewLessonTips,
+                totalCount,
+                totalCount > BOOK_DETAIL_PREVIEW_LIMIT
+        );
     }
 
     @Transactional(readOnly = true)

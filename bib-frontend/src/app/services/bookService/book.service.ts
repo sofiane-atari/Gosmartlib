@@ -10,7 +10,10 @@ import {
   BookSortOption,
 } from '../../model/book/bookFilter.model';
 import { BookCandidate } from '../../model/book/book-candidate.model';
-import { LessonTipPreview } from '../../model/lesson-tip/lesson-tip.model';
+import {
+  BookLessonTipPreview,
+  LessonTipPreview,
+} from '../../model/lesson-tip/lesson-tip.model';
 
 @Injectable({
   providedIn: 'root',
@@ -175,6 +178,14 @@ export class BookService {
   public getLessonTipsByBookId(bookId: number): Observable<LessonTipPreview[]> {
     return this.http.get<LessonTipPreview[]>(
       `${this.apiUrl}/${bookId}/lesson-tips`,
+    );
+  }
+
+  public getLessonTipPreviewByBookId(
+    bookId: number,
+  ): Observable<BookLessonTipPreview> {
+    return this.http.get<BookLessonTipPreview>(
+      `${this.apiUrl}/${bookId}/lesson-tips/preview`,
     );
   }
 }

@@ -106,9 +106,8 @@
                 class="action-btn action-button--edit"
                 (click)="goToEditPage(selectedBook.id)"
               >
-                <!-- Zorg dat je 'Pencil' of 'Edit' icoon importeert in TS -->
                 <lucide-icon
-                  name="pencil"
+                  [img]="Pencil"
                   [size]="16"
                   strokeWidth="2.5"
                   style="margin-right: 6px"
@@ -121,9 +120,8 @@
                 class="action-btn action-button--delete"
                 (click)="deleteBook(selectedBook.id)"
               >
-                <!-- Zorg dat je 'Trash2' icoon importeert in TS -->
                 <lucide-icon
-                  name="trash-2"
+                  [img]="Trash2"
                   [size]="16"
                   strokeWidth="2.5"
                   style="margin-right: 6px"
@@ -172,13 +170,18 @@
               <div class="state-panel state-panel--compact">
                 <p>Lestips worden geladen...</p>
               </div>
-            } @else if (lessonTips().length === 0) {
+            } @else if (
+              !lessonTipPreview() || lessonTipPreview()!.lessonTips.length === 0
+            ) {
               <div class="state-panel state-panel--compact">
                 <p>Er zijn nog geen lestips gekoppeld aan dit boek.</p>
               </div>
             } @else {
               <div class="lesson-tip-preview-list">
-                @for (lessonTip of lessonTips(); track lessonTip.id) {
+                @for (
+                  lessonTip of lessonTipPreview()!.lessonTips;
+                  track lessonTip.id
+                ) {
                   <article
                     class="lesson-tip-preview-card"
                     (click)="openLessonTipDetail(lessonTip.id)"
@@ -200,6 +203,23 @@
 
                     <div class="lesson-tip-preview-card__action">Bekijken</div>
                   </article>
+                }
+              </div>
+
+              <div class="lesson-tip-preview-footer">
+                <p class="lesson-tip-preview-count">
+                  {{ lessonTipPreview()!.totalCount }} lestips gekoppeld aan dit
+                  boek.
+                </p>
+
+                @if (lessonTipPreview()!.hasMore) {
+                  <button
+                    type="button"
+                    class="action-button action-button--secondary"
+                    (click)="openAllLessonTipsForBook()"
+                  >
+                    Bekijk alle lestips van dit boek
+                  </button>
                 }
               </div>
             }

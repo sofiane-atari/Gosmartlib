@@ -39,6 +39,12 @@ export interface LessonTipPreview {
   updatedAt: string;
 }
 
+export interface BookLessonTipPreview {
+  lessonTips: LessonTipPreview[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
 export interface CreateLessonTipRequest {
   title: string;
   description: string;
