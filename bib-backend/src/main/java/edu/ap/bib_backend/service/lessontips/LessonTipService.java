@@ -2,10 +2,12 @@ package edu.ap.bib_backend.service.lessontips;
 
 
 import edu.ap.bib_backend.dto.lessontips.CreateLessonTipRequestDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipPreviewResponseDto;
 import edu.ap.bib_backend.dto.lessontips.LessonTipResponseDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
 import edu.ap.bib_backend.mapper.lessontips.LessonTipMapper;
 
@@ -24,6 +26,7 @@ public class LessonTipService {
     private final LessonTipMapper lessonTipMapper;
     private final LessonTipCreatorRoleService lessonTipCreatorRoleService;
     private final LessonTipAuthorizationService lessonTipAuthorizationService;
+    private final BookRepository bookRepository;
 
 
     public LessonTipService(
@@ -31,7 +34,8 @@ public class LessonTipService {
             LessonTipBookLinkService lessonTipBookLinkService,
             LessonTipMapper lessonTipMapper,
             LessonTipCreatorRoleService lessonTipCreatorRoleService,
-            LessonTipAuthorizationService lessonTipAuthorizationService
+            LessonTipAuthorizationService lessonTipAuthorizationService,
+            BookRepository bookRepository
 
     ) {
         this.lessonTipRepository = lessonTipRepository;
@@ -39,6 +43,17 @@ public class LessonTipService {
         this.lessonTipMapper = lessonTipMapper;
         this.lessonTipCreatorRoleService = lessonTipCreatorRoleService;
         this.lessonTipAuthorizationService = lessonTipAuthorizationService;
+        this.bookRepository = bookRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<LessonTipPreviewResponseDto> getLessonTipPreviewsByBookId(Long bookId) {
+        ensureBookExists(bookId);
+
+        List<LessonTip> lessonTips =
+                lessonTipRepository.findAllByBookLinksBookIdOrderByUpdatedAtDesc(bookId);
+
+        return lessonTipMapper.toPreviewResponseList(lessonTips);
     }
 
     @Transactional(readOnly = true)
@@ -113,6 +128,15 @@ public class LessonTipService {
 
         String trimmedValue = value.trim();
         return trimmedValue.isBlank() ? null : trimmedValue;
+    }
+
+    private void ensureBookExists(Long bookId) {
+        if (!bookRepository.existsById(bookId)) {
+            throw new ResourceNotFoundException(
+                    "id",
+                    "Boek niet gevonden met id: " + bookId
+            );
+        }
     }
 
 }

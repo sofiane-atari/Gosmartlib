@@ -4,10 +4,13 @@ import { Observable } from 'rxjs';
 import { Book } from '../../model/book/book.model';
 import { BookPreview } from '../../model/book/book-preview.model';
 import { environment } from '../../../environments/environment';
-import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model'
-import { BookAvailabilityFilter, BookSortOption } from '../../model/book/bookFilter.model';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
+import {
+  BookAvailabilityFilter,
+  BookSortOption,
+} from '../../model/book/bookFilter.model';
 import { BookCandidate } from '../../model/book/book-candidate.model';
-
+import { LessonTipPreview } from '../../model/lesson-tip/lesson-tip.model';
 
 @Injectable({
   providedIn: 'root',
@@ -52,8 +55,8 @@ export class BookService {
       params = params.set('maxPages', maxPages);
     }
 
-    if (readingLevelId !== null && Number.isFinite(readingLevelId) ){
-      params = params.set('readingLevelId', readingLevelId)
+    if (readingLevelId !== null && Number.isFinite(readingLevelId)) {
+      params = params.set('readingLevelId', readingLevelId);
     }
 
     if (genreName && genreName.trim().length > 0) {
@@ -67,7 +70,7 @@ export class BookService {
   getBookById(id: number): Observable<Book> {
     return this.http.get<Book>(`${this.apiUrl}/${id}`);
   }
-  
+
   addBook(book: Book): Observable<Book> {
     return this.http.post<Book>(this.apiUrl, book);
   }
@@ -104,18 +107,24 @@ export class BookService {
     return this.http.get<Book[]>(`${this.apiUrl}/newest?limit=${limit}`);
   }
 
-  uploadBooks(file: File): Observable<any>{
+  uploadBooks(file: File): Observable<any> {
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append('file', file);
 
-    return this.http.post(`${this.apiUrl}/upload`, formData)
+    return this.http.post(`${this.apiUrl}/upload`, formData);
   }
 
   validateBooksStream(tempFileId: string): EventSource {
-    return new EventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`);
+    return new EventSource(
+      `${this.apiUrl}/upload/validate-stream/${tempFileId}`,
+    );
   }
 
-  searchBooksInDb(title?: string, author?: string, releaseYear?: number): Observable<BookCandidate[]> {
+  searchBooksInDb(
+    title?: string,
+    author?: string,
+    releaseYear?: number,
+  ): Observable<BookCandidate[]> {
     let params = new HttpParams();
 
     if (title?.trim()) {
@@ -133,25 +142,39 @@ export class BookService {
     return this.http.get<BookCandidate[]>(`${this.apiUrl}/search`, { params });
   }
 
-  searchBookCandidates(title: string, author: string, releaseYear: number): Observable<BookCandidate[]> {
+  searchBookCandidates(
+    title: string,
+    author: string,
+    releaseYear: number,
+  ): Observable<BookCandidate[]> {
     return this.http.get<BookCandidate[]>(`${this.apiUrl}/search-candidates`, {
-      params: { title, author, releaseYear }
+      params: { title, author, releaseYear },
     });
   }
 
   selectBook(isbn13: string): Observable<Book> {
     return this.http.post<Book>(`${this.apiUrl}/select`, null, {
       params: {
-        isbn13
-      }
+        isbn13,
+      },
     });
   }
   addCopy(bookId: number) {
     return this.http.post<Book>(`${this.apiUrl}/${bookId}/copies`, {});
   }
 
+  getRelatedBooksCarousel(
+    bookId: number,
+    limit: number = 10,
+  ): Observable<Book[]> {
+    return this.http.get<Book[]>(
+      `${this.apiUrl}/${bookId}/related-carousel?limit=${limit}`,
+    );
+  }
 
-  getRelatedBooksCarousel(bookId: number, limit: number = 10): Observable<Book[]> {
-    return this.http.get<Book[]>(`${this.apiUrl}/${bookId}/related-carousel?limit=${limit}`);
+  public getLessonTipsByBookId(bookId: number): Observable<LessonTipPreview[]> {
+    return this.http.get<LessonTipPreview[]>(
+      `${this.apiUrl}/${bookId}/lesson-tips`,
+    );
   }
 }

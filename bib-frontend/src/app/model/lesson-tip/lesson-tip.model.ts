@@ -32,6 +32,13 @@ export interface LessonTip {
   linkedBooks: LessonTipBookSummary[];
 }
 
+export interface LessonTipPreview {
+  id: number;
+  title: string;
+  description: string;
+  updatedAt: string;
+}
+
 export interface CreateLessonTipRequest {
   title: string;
   description: string;

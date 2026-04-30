@@ -17,4 +17,7 @@ public interface LessonTipRepository extends JpaRepository<LessonTip, Long> {
     @Override
     @EntityGraph(attributePaths = {"bookLinks", "bookLinks.book"})
     Optional<LessonTip> findById(Long id);
+
+    List<LessonTip> findAllByBookLinksBookIdOrderByUpdatedAtDesc(Long bookId);
+
 }

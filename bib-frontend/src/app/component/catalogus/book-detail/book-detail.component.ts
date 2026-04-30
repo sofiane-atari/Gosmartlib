@@ -1,8 +1,7 @@
-import { Component, Inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { Book } from '../../../model/book/book.model';
 import {
   LucideAngularModule,
-  Heart,
   BookOpen,
   X,
   Library,
@@ -14,9 +13,8 @@ import {
   Calendar,
   Star,
   MessageCircle,
-  BookPlus,
   Bookmark,
-  Flag
+  Flag,
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -27,21 +25,24 @@ import { Availability } from '../../../model/enums/availability.enum';
 import { Review } from '../../../model/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
-import { ReadingListService, ReadingList } from '../../../services/reading-list/reading-list.service';
+import {
+  ReadingListService,
+  ReadingList,
+} from '../../../services/reading-list/reading-list.service';
 import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
-
+import { LessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
 
 @Component({
   selector: 'app-book-detail',
   standalone: true,
   imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink],
   templateUrl: './book-detail.component.html',
-  styleUrl: './book-detail.component.css'
+  styleUrl: './book-detail.component.css',
 })
-export class BookDetailComponent {
+export class BookDetailComponent implements OnInit {
   readonly X = X;
   readonly Library = Library;
   readonly Minus = Minus;
@@ -69,11 +70,11 @@ export class BookDetailComponent {
   ];
 
   //Reviews//
-  reviews: Review[] = [];
-  newReviewText: string = '';
-  newReviewRating: number = 5;
-  starsArray: number[] = [1, 2, 3, 4, 5];
-  averageRating: number = 0;
+  public reviews: Review[] = [];
+  public newReviewText: string = '';
+  public newReviewRating: number = 5;
+  public readonly starsArray: number[] = [1, 2, 3, 4, 5];
+  public averageRating: number = 0;
 
   // Lists //
   readingLists: ReadingList[] = [];
@@ -81,19 +82,24 @@ export class BookDetailComponent {
   showListPicker: boolean = false;
 
   // Preview //
-  public readonly previewState = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  public readonly previewState = signal<'idle' | 'loading' | 'ready' | 'error'>(
+    'idle',
+  );
   public readonly previewData = signal<BookPreview | null>(null);
   public readonly previewErrorMessage = signal<string>('');
   public readonly embeddedPreviewUrl = signal<SafeResourceUrl | null>(null);
   public readonly previewFallbackUrl = signal<string | null>(null);
   public readonly isPreviewModalOpen = signal<boolean>(false);
 
+  protected readonly lessonTips = signal<LessonTipPreview[]>([]);
+  protected readonly isLoadingLessonTips = signal(false);
+
   Availability = Availability;
 
   // Related Books Carousel //
   relatedBooksCarousel: Book[] = [];
 
-  protected readonly roleService = Inject(RoleService);
+  protected readonly roleService = inject(RoleService);
 
   constructor(
     private route: ActivatedRoute,
@@ -103,22 +109,25 @@ export class BookDetailComponent {
     private reviewService: ReviewService,
     private toastService: ToastService,
     private sanitizer: DomSanitizer,
-    protected authService: AuthService) {
+    protected authService: AuthService,
+  ) {}
 
-  }
-
-  ngOnInit() {
+  public ngOnInit(): void {
     // Ensure current user role is available for picker filtering.
     this.authService.fetchCurrentUser();
 
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
 
       if (id) {
         const numericBookId = +id;
 
-        this.bookService.getBookById(numericBookId).subscribe(book => {
+        this.bookService.getBookById(numericBookId).subscribe((book) => {
           this.selectedBook = book;
+
+          if (book.id) {
+            this.loadLessonTips(book.id);
+          }
         });
 
         this.loadRelatedBooksCarousel(numericBookId);
@@ -137,12 +146,37 @@ export class BookDetailComponent {
       error: (err) => {
         console.error('Problem with loading carousel books', err);
         this.relatedBooksCarousel = [];
-      }
+      },
     });
   }
 
+  private loadLessonTips(bookId: number): void {
+    this.isLoadingLessonTips.set(true);
+
+    this.bookService.getLessonTipsByBookId(bookId).subscribe({
+      next: (lessonTips) => {
+        this.lessonTips.set(lessonTips);
+        this.isLoadingLessonTips.set(false);
+      },
+      error: () => {
+        this.lessonTips.set([]);
+        this.isLoadingLessonTips.set(false);
+        this.toastService.show(
+          'De lestips bij dit boek konden niet worden geladen.',
+          'error',
+        );
+      },
+    });
+  }
+
+  public openLessonTipDetail(lessonTipId: number): void {
+    void this.router.navigate(['/lesson-tips', lessonTipId]);
+  }
+
   scrollCarousel(direction: 'left' | 'right') {
-    const carousel = document.querySelector('.related-books-carousel-container');
+    const carousel = document.querySelector(
+      '.related-books-carousel-container',
+    );
     if (!carousel) return;
 
     const scrollAmount = 240; // 90px kaart + 16px gap + wat padding
@@ -172,7 +206,9 @@ export class BookDetailComponent {
   loadReadingLists() {
     this.readingListService.getLists().subscribe((lists) => {
       this.readingLists = lists;
-      this.pickerReadingLists = lists.filter(list => this.canShowInPicker(list));
+      this.pickerReadingLists = lists.filter((list) =>
+        this.canShowInPicker(list),
+      );
     });
   }
 
@@ -197,21 +233,28 @@ export class BookDetailComponent {
 
   addBookToList(listId: number) {
     if (this.selectedBook?.id) {
-      this.readingListService.addBookToList(listId, this.selectedBook.id).subscribe({
-        next: () => {
-
-          this.toastService.show(`Boek toegevoegd aan leeslijst!`, 'success');
-          this.showListPicker = false;
-        },
-        error: (err: any) => {
-          if (err.error === 'Boek zit al in deze leeslijst') {
-            this.toastService.show("Dit boek staat al in deze leeslijst!", 'error');
-          } else {
-            console.error("Fout bij toevoegen aan leeslijst", err);
-            this.toastService.show("Er is een fout opgetreden bij het toevoegen aan de leeslijst.", 'error');
-          }
-        }
-      });
+      this.readingListService
+        .addBookToList(listId, this.selectedBook.id)
+        .subscribe({
+          next: () => {
+            this.toastService.show(`Boek toegevoegd aan leeslijst!`, 'success');
+            this.showListPicker = false;
+          },
+          error: (err: any) => {
+            if (err.error === 'Boek zit al in deze leeslijst') {
+              this.toastService.show(
+                'Dit boek staat al in deze leeslijst!',
+                'error',
+              );
+            } else {
+              console.error('Fout bij toevoegen aan leeslijst', err);
+              this.toastService.show(
+                'Er is een fout opgetreden bij het toevoegen aan de leeslijst.',
+                'error',
+              );
+            }
+          },
+        });
     }
   }
 
@@ -225,8 +268,8 @@ export class BookDetailComponent {
 
   updateAverage(bookId: number) {
     this.reviewService.getAverageRating(bookId).subscribe({
-      next: (avg) => this.averageRating = avg,
-      error: (err) => console.error('Problem with getting average score', err)
+      next: (avg) => (this.averageRating = avg),
+      error: (err) => console.error('Problem with getting average score', err),
     });
   }
 
@@ -278,15 +321,15 @@ export class BookDetailComponent {
       () => {
         this.reviewService.deleteReview(reviewId).subscribe({
           next: () => {
-            this.reviews = this.reviews.filter(r => r.id !== reviewId);
+            this.reviews = this.reviews.filter((r) => r.id !== reviewId);
             if (this.selectedBook?.id) this.updateAverage(this.selectedBook.id);
             this.toastService.show('Review verwijderd!', 'success');
           },
-          error: () => this.toastService.show('Problem with deleting!', 'error')
+          error: () =>
+            this.toastService.show('Problem with deleting!', 'error'),
         });
       },
-      () => {
-      }
+      () => {},
     );
   }
 
@@ -307,7 +350,10 @@ export class BookDetailComponent {
               this.updateAverage(this.selectedBook.id);
             }
 
-            this.toastService.show('Review succesvol gerapporteerd.', 'success');
+            this.toastService.show(
+              'Review succesvol gerapporteerd.',
+              'success',
+            );
           },
           error: (err) => {
             console.error('Problem with reporting review', err);
@@ -322,7 +368,6 @@ export class BookDetailComponent {
     );
   }
 
-
   public loadPreview(): void {
     const isbn = this.getSelectedBookIsbn();
 
@@ -330,7 +375,9 @@ export class BookDetailComponent {
 
     if (!isbn) {
       this.previewState.set('error');
-      this.previewErrorMessage.set('Geen geldig ISBN beschikbaar voor dit boek.');
+      this.previewErrorMessage.set(
+        'Geen geldig ISBN beschikbaar voor dit boek.',
+      );
       this.previewData.set(null);
       this.embeddedPreviewUrl.set(null);
       this.previewFallbackUrl.set(null);
@@ -375,7 +422,9 @@ export class BookDetailComponent {
         }
 
         this.previewState.set('error');
-        this.previewErrorMessage.set('Er is geen veilige preview-link beschikbaar.');
+        this.previewErrorMessage.set(
+          'Er is geen veilige preview-link beschikbaar.',
+        );
       },
       error: (err) => {
         console.error('Problem with loading preview', err);
@@ -383,15 +432,20 @@ export class BookDetailComponent {
         this.embeddedPreviewUrl.set(null);
         this.previewFallbackUrl.set(null);
         this.previewState.set('error');
-        const backendMessage = typeof err?.error?.message === 'string' ? err.error.message : null;
-        this.previewErrorMessage.set(backendMessage || 'Preview kon niet geladen worden. Probeer later opnieuw.');
-      }
+        const backendMessage =
+          typeof err?.error?.message === 'string' ? err.error.message : null;
+        this.previewErrorMessage.set(
+          backendMessage ||
+            'Preview kon niet geladen worden. Probeer later opnieuw.',
+        );
+      },
     });
   }
 
   private getSelectedBookIsbn(): string | null {
     const normalizedBook = this.selectedBook as Book & { isbn?: string };
-    const isbn = this.selectedBook?.isbn?.trim() || normalizedBook?.isbn?.trim();
+    const isbn =
+      this.selectedBook?.isbn?.trim() || normalizedBook?.isbn?.trim();
     return isbn && isbn.length > 0 ? isbn : null;
   }
 
@@ -404,10 +458,11 @@ export class BookDetailComponent {
       const parsed = new URL(url);
       const isHttps = parsed.protocol === 'https:';
       const host = parsed.hostname.toLowerCase();
-      const allowedHost = host === 'openlibrary.org'
-        || host.endsWith('.openlibrary.org')
-        || host === 'archive.org'
-        || host.endsWith('.archive.org');
+      const allowedHost =
+        host === 'openlibrary.org' ||
+        host.endsWith('.openlibrary.org') ||
+        host === 'archive.org' ||
+        host.endsWith('.archive.org');
 
       return isHttps && allowedHost;
     } catch {
@@ -415,7 +470,9 @@ export class BookDetailComponent {
     }
   }
 
-  private toSafeResourceUrl(url: string | null | undefined): SafeResourceUrl | null {
+  private toSafeResourceUrl(
+    url: string | null | undefined,
+  ): SafeResourceUrl | null {
     if (!this.isSafeExternalUrl(url)) {
       return null;
     }
@@ -428,7 +485,7 @@ export class BookDetailComponent {
     this.embeddedPreviewUrl.set(null);
   }
 
-  public openRelatedBook(bookId?: number): void{
+  public openRelatedBook(bookId?: number): void {
     if (!bookId) {
       return;
     }
@@ -440,7 +497,7 @@ export class BookDetailComponent {
     return this.reviews.some((review) => review.currentUserReview === true);
   }
 
-  public goToEditPage(bookId?: number): void{
+  public goToEditPage(bookId?: number): void {
     if (!bookId) {
       return;
     }
@@ -469,14 +526,12 @@ export class BookDetailComponent {
             const backendMessage = err?.error?.error?.message;
             this.toastService.show(
               backendMessage ?? 'Het boek kon niet verwijderd worden.',
-              'error'
+              'error',
             );
-          }
+          },
         });
       },
-      () => {}
+      () => {},
     );
   }
-
 }
-

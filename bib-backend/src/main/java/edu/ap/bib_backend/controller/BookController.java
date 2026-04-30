@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.lessontips.LessonTipPreviewResponseDto;
+import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.mapper.PageMapper;
@@ -18,6 +20,7 @@ import edu.ap.bib_backend.service.book.BookSearchService;
 import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.book.GoogleBooksClient;
 import edu.ap.bib_backend.service.book.OpenLibraryClient;
+import edu.ap.bib_backend.service.lessontips.LessonTipService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,13 +37,15 @@ public class BookController {
     private final BookSearchService bookSearchService;
     private final GoogleBooksClient googleBooksClient;
     private final OpenLibraryClient openLibraryClient;
+    private final LessonTipService lessonTipService;
 
     public BookController(BookService bookService, BookSearchService bookSearchService,
-            GoogleBooksClient googleBooksClient, OpenLibraryClient openLibraryClient) {
+            GoogleBooksClient googleBooksClient, OpenLibraryClient openLibraryClient, LessonTipService lessonTipService) {
         this.bookService = bookService;
         this.bookSearchService = bookSearchService;
         this.googleBooksClient = googleBooksClient;
         this.openLibraryClient = openLibraryClient;
+        this.lessonTipService = lessonTipService;
     }
 
     @GetMapping
@@ -168,5 +173,12 @@ public class BookController {
     public ResponseEntity<BookDTO> addCopy(@PathVariable Long bookId) {
         BookDTO dto = bookService.addCopyToBook(bookId);
         return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{bookId}/lesson-tips")
+    public ResponseEntity<List<LessonTipPreviewResponseDto>> getLessonTipsByBookId(
+            @PathVariable Long bookId
+    ) {
+        return ResponseEntity.ok(lessonTipService.getLessonTipPreviewsByBookId(bookId));
     }
 }
