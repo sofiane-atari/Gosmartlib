@@ -4,10 +4,12 @@ import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,12 +67,24 @@ class ReadingListIntegrationTest {
     @Autowired
     private RoleEntityRepository roleEntityRepository;
 
+    @Autowired
+    private SchoolRepository schoolRepository;
+
     @BeforeEach
     void setUp() {
         readingListBookRepository.deleteAll();
         readingListRepository.deleteAll();
         userRepository.deleteAll();
         roleEntityRepository.deleteAll();
+        schoolRepository.deleteAll();
+
+        // Create test school
+        School school = new School();
+        school.setDomainName("test.smartschool.be");
+        school.setName("Test School");
+        school.setAddress("Test Address");
+        school.setPostalCode(1000);
+        schoolRepository.save(school);
 
         RoleEntity studentRole = new RoleEntity();
         studentRole.setRole(Role.STUDENT);
@@ -79,11 +93,13 @@ class ReadingListIntegrationTest {
         User user = new User();
         user.setId(USER_ID);
         user.setRole(studentRole);
+        user.setSchool(school);
         userRepository.save(user);
 
         User otherUser = new User();
         otherUser.setId(OTHER_USER_ID);
         otherUser.setRole(studentRole);
+        otherUser.setSchool(school);
         userRepository.save(otherUser);
 
         setSecurityContext();

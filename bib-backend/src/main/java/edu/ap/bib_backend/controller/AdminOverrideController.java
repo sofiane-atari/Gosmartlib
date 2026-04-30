@@ -5,6 +5,7 @@ import edu.ap.bib_backend.dto.AdminOverrideStatusDto;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,17 +29,26 @@ public class AdminOverrideController {
     @PostMapping
     public ResponseEntity<AdminOverrideStatusDto> setOverride(
             Authentication authentication,
-            HttpServletRequest request,
-            @RequestBody AdminOverrideRequestDto payload) {
-        AdminOverrideStatusDto status = adminOverrideService.setOverride(
-                authentication.getName(),
-                payload.enabled(),
-                request.getRemoteAddr());
-        return ResponseEntity.ok(status);
+            @RequestBody AdminOverrideRequestDto request,
+            HttpServletRequest servletRequest) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(
+                adminOverrideService.setOverride(
+                        authentication.getName(),
+                        request.enabled(),
+                        servletRequest.getRemoteAddr()));
     }
 
     @GetMapping("/status")
     public ResponseEntity<AdminOverrideStatusDto> getStatus(Authentication authentication) {
-        return ResponseEntity.ok(adminOverrideService.getStatus(authentication.getName()));
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(
+                adminOverrideService.getStatus(authentication.getName()));
     }
 }

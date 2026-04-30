@@ -23,4 +23,3 @@ class OneRosterClientTest {
         assertEquals(List.of("3A", "4B"), filtered);
     }
 }
-

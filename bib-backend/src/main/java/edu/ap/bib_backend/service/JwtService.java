@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 
@@ -18,7 +20,7 @@ public class JwtService {
     private final long expiration;
 
     public JwtService(@Value("${jwt.secret}") String secret,
-                      @Value("${jwt.expiration}") long expiration) {
+            @Value("${jwt.expiration}") long expiration) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
         this.expiration = expiration;
     }
@@ -49,7 +51,6 @@ public class JwtService {
         return parseClaims(token).get(claimKey);
     }
 
-
     public boolean isValid(String token) {
         try {
             parseClaims(token); // throws if expired or tampered
@@ -65,5 +66,13 @@ public class JwtService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    public Date extractExpiration(String token) {
+        return parseClaims(token).getExpiration();
+    }
+
+    public Instant extractExpirationInstant(String token) {
+        return extractExpiration(token).toInstant();
     }
 }

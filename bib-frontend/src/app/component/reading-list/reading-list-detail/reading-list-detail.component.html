@@ -8,10 +8,11 @@
 
     @if (error && !loading) {
         <div class="error-state">
-            <div class="empty-icon">❌</div>
             <h3>Leeslijst niet gevonden</h3>
             <p>Deze leeslijst bestaat niet of is verwijderd.</p>
-            <button class="btn-primary" routerLink="/reading-list">Terug naar overzicht</button>
+          <button class="btn-secondary" [routerLink]="isSharedView ? '/catalog' : '/reading-list'">
+            {{ isSharedView ? 'Terug naar catalogus' : 'Terug' }}
+          </button>
         </div>
     }
 
@@ -20,7 +21,9 @@
             <div class="page-header">
                 <div>
                     <h1 class="page-title">{{ list.name }}</h1>
-                    <p class="page-subtitle">leeslijst</p>
+                  <p class="page-subtitle">
+                    {{ isSharedView ? 'gedeelde leeslijst · alleen bekijken' : 'leeslijst' }}
+                  </p>
                 </div>
                 <button class="btn-secondary" routerLink="/reading-list">Terug</button>
             </div>

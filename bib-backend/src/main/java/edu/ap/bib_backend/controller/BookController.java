@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/books")
@@ -50,6 +51,7 @@ public class BookController {
 
     @GetMapping("/catalog")
     public PageDTO<BookDTO> getFilteredBooks(
+            Authentication authentication,
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) BookAvailabilityFilter availability,
             @RequestParam(required = false) Integer minPages,
@@ -60,8 +62,8 @@ public class BookController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        // AANGEPAST: We gebruiken nu bookSearchService
         Page<BookDTO> bookPage = bookSearchService.getFilteredBooks(
+                authentication,
                 searchTerm,
                 availability,
                 minPages,
@@ -91,8 +93,11 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO dto) {
-        BookDTO savedBook = bookService.addBook(dto);
+    public ResponseEntity<BookDTO> addBook(
+            Authentication authentication,
+            @RequestBody BookDTO dto
+    ) {
+        BookDTO savedBook = bookService.addBook(authentication, dto);
         return ResponseEntity.ok(savedBook);
     }
 
@@ -118,14 +123,16 @@ public class BookController {
 
     @GetMapping("/most-read")
     public ResponseEntity<List<BookDTO>> getMostReadBooks(
-            @RequestParam(defaultValue = "3", required = false) int limit) {
-        return ResponseEntity.ok(bookService.getMostReadBooks(limit));
+            @RequestParam(defaultValue = "3", required = false) int limit,
+            @RequestParam(required = false) String schoolCode) {
+        return ResponseEntity.ok(bookService.getMostReadBooks(limit, schoolCode));
     }
 
     @GetMapping("/newest")
     public ResponseEntity<List<BookDTO>> getNewestBooks(
-            @RequestParam(defaultValue = "3", required = false) int limit) {
-        return ResponseEntity.ok(bookService.getNewestBooks(limit));
+            @RequestParam(defaultValue = "3", required = false) int limit,
+            @RequestParam(required = false) String schoolCode) {
+        return ResponseEntity.ok(bookService.getNewestBooks(limit, schoolCode));
     }
 
     @GetMapping("/search-candidates")
@@ -165,8 +172,11 @@ public class BookController {
     }
 
     @PostMapping("/{bookId}/copies")
-    public ResponseEntity<BookDTO> addCopy(@PathVariable Long bookId) {
-        BookDTO dto = bookService.addCopyToBook(bookId);
+    public ResponseEntity<BookDTO> addCopy(
+            Authentication authentication,
+            @PathVariable Long bookId
+    ) {
+        BookDTO dto = bookService.addCopyToBook(authentication, bookId);
         return ResponseEntity.ok(dto);
     }
 }

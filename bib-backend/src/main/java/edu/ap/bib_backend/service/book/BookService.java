@@ -2,10 +2,10 @@ package edu.ap.bib_backend.service.book;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import edu.ap.bib_backend.jpa.repository.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -22,17 +22,17 @@ import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.enums.Availability;
-import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
-import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
-import edu.ap.bib_backend.jpa.repository.BookRepository;
-import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
-import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
 import edu.ap.bib_backend.mapper.BookMapper;
 import edu.ap.bib_backend.util.IsbnUtils;
 import jakarta.transaction.Transactional;
+
+import org.springframework.security.core.Authentication;
+import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 
 @Service
 @Transactional
@@ -47,6 +47,7 @@ public class BookService {
     private final BookMapper bookMapper;
     private final BookCandidateMapper bookCandidateMapper;
     private final OpenLibraryClient openLibraryClient;
+    private final UserRepository userRepository;
 
     public BookService(
             BookRepository bookRepository,
@@ -57,7 +58,7 @@ public class BookService {
             ReadingLevelRepository readingLevelRepository,
             BookMapper bookMapper,
             BookCandidateMapper bookCandidateMapper,
-            OpenLibraryClient openLibraryClient) {
+            OpenLibraryClient openLibraryClient, UserRepository userRepository) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.genreRepository = genreRepository;
@@ -67,6 +68,7 @@ public class BookService {
         this.bookMapper = bookMapper;
         this.bookCandidateMapper = bookCandidateMapper;
         this.openLibraryClient = openLibraryClient;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -75,21 +77,27 @@ public class BookService {
     }
 
     @Transactional
-    public BookDTO addCopyToBook(Long bookId) {
+    public BookDTO addCopyToBook(Authentication authentication, Long bookId) {
         Book book = findBookOrThrow(bookId);
-        createAvailableCopy(book);
+        School school = getCurrentUserSchool(authentication);
+
+        createAvailableCopy(book, school);
+
         return bookMapper.toDTO(book);
     }
 
+
     @Transactional
-    public BookDTO addBook(BookDTO dto) {
+    public BookDTO addBook(Authentication authentication, BookDTO dto) {
         String isbn = IsbnUtils.normalizeIsbn(dto.getIsbn());
         dto.setIsbn(isbn);
 
         Book book = findExistingByIsbn(isbn)
                 .orElseGet(() -> createBook(dto));
 
-        createAvailableCopy(book);
+        School school = getCurrentUserSchool(authentication);
+        createAvailableCopy(book, school);
+
         return bookMapper.toDTO(book);
     }
 
@@ -153,8 +161,13 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getMostReadBooks(int limit) {
-        List<Book> books = bookRepository.findMostReadBook(PageRequest.of(0, limit));
+    public List<BookDTO> getMostReadBooks(int limit, String schoolCode) {
+        List<Book> books;
+        if (schoolCode != null && !schoolCode.isBlank()) {
+            books = bookRepository.findMostReadBookBySchool(schoolCode, PageRequest.of(0, limit));
+        } else {
+            books = bookRepository.findMostReadBook(PageRequest.of(0, limit));
+        }
 
         if (books.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen uitgeleende boeken gevonden");
@@ -164,8 +177,13 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getNewestBooks(int limit) {
-        List<Book> books = bookRepository.findNewestBooks(PageRequest.of(0, limit));
+    public List<BookDTO> getNewestBooks(int limit, String schoolCode) {
+        List<Book> books;
+        if (schoolCode != null && !schoolCode.isBlank()) {
+            books = bookRepository.findNewestBooksBySchool(schoolCode, PageRequest.of(0, limit));
+        } else {
+            books = bookRepository.findNewestBooks(PageRequest.of(0, limit));
+        }
         return bookMapper.toDTOList(books);
     }
 
@@ -194,9 +212,10 @@ public class BookService {
         return java.util.Optional.ofNullable(bookRepository.findByIsbn(isbn));
     }
 
-    private void createAvailableCopy(Book book) {
+    private void createAvailableCopy(Book book, School school) {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
+        copy.setSchool(school);
         copy.setAvailability(Availability.AVAILABLE);
         bookCopyRepository.save(copy);
     }
@@ -277,5 +296,22 @@ public class BookService {
         }
         String trimmed = value.trim();
         return trimmed.isBlank() ? null : trimmed;
+    }
+
+    private School getCurrentUserSchool(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new IllegalStateException("Geen geauthenticeerde gebruiker gevonden.");
+        }
+
+        User user = userRepository.findById(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Gebruiker niet gevonden: " + authentication.getName()
+                ));
+
+        if (user.getSchool() == null) {
+            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
+        }
+
+        return user.getSchool();
     }
 }

@@ -211,9 +211,16 @@ export class ReadingListOverviewComponent implements OnInit {
   }
 
   shareList(id: number) {
-    const url = `${window.location.origin}/reading-list/${id}`;
-    navigator.clipboard.writeText(url).then(() => {
-      this.toastService.show('Link gekopieerd naar klembord!', 'success');
+    this.readingListService.shareReadingList(id).subscribe({
+      next: (result) => {
+        navigator.clipboard.writeText(result.url).then(() => {
+          this.toastService.show('Deellink gekopieerd naar klembord!', 'success');
+        });
+      },
+      error: (err) => {
+        console.error('Fout bij delen van leeslijst:', err);
+        this.toastService.show('Delen van leeslijst mislukt', 'error');
+      }
     });
   }
 

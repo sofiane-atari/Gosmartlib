@@ -71,6 +71,12 @@ class OneRosterDataService {
         return new OneRosterClient.AudiencePayload(classes, years, schools);
     }
 
+    List<Map<String, Object>> fetchUsersWithResolvedHost(String host, String accessToken) {
+        URI usersUri = buildApiUri(host, "/users");
+        Map<String, Object> payload = getJsonWithBearer(usersUri, accessToken);
+        return extractRecordCollection(payload, "users");
+    }
+
     private Map<String, Object> getJsonWithBearer(URI uri, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);

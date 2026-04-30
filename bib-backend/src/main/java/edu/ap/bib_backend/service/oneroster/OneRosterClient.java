@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
@@ -61,6 +62,12 @@ public class OneRosterClient {
         return dataService.fetchAudiencePayloadWithResolvedHost(host, accessToken);
     }
 
+    public List<Map<String, Object>> fetchUsers(String schoolCode) {
+        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = tokenService.fetchAccessToken(host);
+        return dataService.fetchUsersWithResolvedHost(host, accessToken);
+    }
+
     public AudiencePayload fetchAudiencePayloadWithBearer(String schoolCode, String bearerToken) {
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
         if (!StringUtils.hasText(bearerToken)) {
@@ -75,6 +82,20 @@ public class OneRosterClient {
         }
     }
 
+    public List<Map<String, Object>> fetchUsersWithBearer(String schoolCode, String bearerToken) {
+        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        if (!StringUtils.hasText(bearerToken)) {
+            return fetchUsers(schoolCode);
+        }
+
+        try {
+            return dataService.fetchUsersWithResolvedHost(host, bearerToken.trim());
+        } catch (ResponseStatusException ex) {
+            // Fallback naar client-credentials flow wanneer delegated token niet werkt.
+            return fetchUsers(schoolCode);
+        }
+    }
+
     private String normalizeApiPath(String rawPath) {
         String path = (rawPath == null || rawPath.isBlank()) ? DEFAULT_ONE_ROSTER_PATH : rawPath.trim();
         if (!path.startsWith("/")) {
@@ -85,5 +106,4 @@ public class OneRosterClient {
         }
         return path;
     }
-
 }

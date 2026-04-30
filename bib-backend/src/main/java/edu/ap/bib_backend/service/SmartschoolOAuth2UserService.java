@@ -1,6 +1,16 @@
 package edu.ap.bib_backend.service;
 
+import edu.ap.bib_backend.dto.SmartschoolGroupDto;
+import edu.ap.bib_backend.jpa.entity.Group;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.service.user.UserService;
+
+import java.util.Collections;
+import java.util.Map;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,15 +26,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import edu.ap.bib_backend.jpa.enums.Role;
-import edu.ap.bib_backend.service.user.UserService;
-import edu.ap.bib_backend.dto.SmartschoolGroupDto;
-import edu.ap.bib_backend.jpa.entity.Group;
-import edu.ap.bib_backend.jpa.entity.User;
-
-import java.util.Collections;
-import java.util.Map;
-
 @Service
 public class SmartschoolOAuth2UserService
         implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
@@ -36,21 +37,25 @@ public class SmartschoolOAuth2UserService
     private final UserService userService;
     private final RoleService roleService;
     private final SmartschoolAudienceResolverService audienceResolverService;
-    private final RestTemplate restTemplate = new RestTemplate();
     private final GroupService groupService;
     private final SmartschoolProfileService smartschoolProfileService;
+    private final SchoolRepository schoolRepository;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public SmartschoolOAuth2UserService(
             UserService userService,
             RoleService roleService,
             SmartschoolAudienceResolverService audienceResolverService,
             GroupService groupService,
-            SmartschoolProfileService smartschoolProfileService) {
+            SmartschoolProfileService smartschoolProfileService,
+            SchoolRepository schoolRepository) {
         this.userService = userService;
         this.roleService = roleService;
         this.audienceResolverService = audienceResolverService;
         this.groupService = groupService;
         this.smartschoolProfileService = smartschoolProfileService;
+        this.schoolRepository = schoolRepository;
     }
 
     @Override
@@ -92,26 +97,51 @@ public class SmartschoolOAuth2UserService
         String yearCode = audienceResolverService.resolveYearCode(attributes, classCode);
         String schoolCode = audienceResolverService.resolveSchoolCode(attributes);
 
-        // Expose audience data as claims carried through JWT/auth context.
         attributes.put(CLAIM_CLASS_CODE, classCode);
         attributes.put(CLAIM_YEAR_CODE, yearCode);
         attributes.put(CLAIM_SCHOOL_CODE, schoolCode);
 
-        User user = userService.getUser(userId)
-                .orElseGet(() -> userService.createUser(userId, roleService.getRoleEntity(basisrol)));
+        School school = resolveSchool(schoolCode);
 
-        SmartschoolGroupDto groupDto = smartschoolProfileService
-                .fetchGroups(userRequest.getAccessToken().getTokenValue());
-        String primaryGroupName = groupDto.primaryGroupName();
-        Group group = null;
-        try {
-            group = groupService.getGroup(primaryGroupName);
-        } catch (RuntimeException e) {
-            group = groupService.createGroup(primaryGroupName);
+        User user = userService.getUser(userId)
+                .orElseGet(() -> userService.createUser(
+                        userId,
+                        roleService.getRoleEntity(basisrol),
+                        school
+                ));
+
+        if (user.getSchool() == null) {
+            user.setSchool(school);
         }
 
-        if (group != null)
-            user.setGroup(group);
+        // Persist the user as soon as we know the school/role, so a later Smartschool
+        // group lookup or create failure cannot prevent the account from being stored.
+        userService.save(user);
+
+        SmartschoolGroupDto groupDto = null;
+        try {
+            groupDto = smartschoolProfileService.fetchGroups(accessToken);
+        } catch (RuntimeException ignored) {
+            // Best effort: the user record already exists, so login should still succeed.
+        }
+
+        if (groupDto != null) {
+            String primaryGroupName = groupDto.primaryGroupName();
+
+            if (primaryGroupName != null && !primaryGroupName.isBlank()) {
+                Group group;
+                try {
+                    group = groupService.getGroup(primaryGroupName);
+                } catch (RuntimeException e) {
+                    group = groupService.createGroup(primaryGroupName);
+                }
+
+                if (group != null) {
+                    user.setGroup(group);
+                    userService.save(user);
+                }
+            }
+        }
 
         String roleString = getOAuthUserRole(user.getRole().getRole());
 
@@ -121,14 +151,91 @@ public class SmartschoolOAuth2UserService
                 "userID");
     }
 
+    private School resolveSchool(String schoolCode) {
+        String domainName = mapSchoolCodeToDomainName(schoolCode);
+
+        // Try to find existing school
+        return schoolRepository.findByDomainName(domainName)
+                .orElseGet(() -> createSchool(domainName));
+    }
+
+    private School createSchool(String domainName) {
+        School school = new School();
+        school.setDomainName(domainName);
+        school.setName(extractSchoolNameFromDomain(domainName));
+        school.setAddress(""); // Placeholder
+        school.setPostalCode(0); // Placeholder
+        return schoolRepository.save(school);
+    }
+
+    private String extractSchoolNameFromDomain(String domainName) {
+        // Extract school name from domain like "zemermin.smartschool.be" → "Zemermin"
+        if (domainName == null || !domainName.contains(".")) {
+            return "Unknown School";
+        }
+        String name = domainName.split("\\.")[0];
+        // Capitalize first letter
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
+    private String mapSchoolCodeToDomainName(String schoolCode) {
+        if (schoolCode == null || schoolCode.isBlank()) {
+            return "aphogeschool.smartschool.be";
+        }
+
+        String normalized = schoolCode.toLowerCase().trim();
+
+        // If it looks like a full URL (e.g., https://aphogeschool.smartschool.be or https://zemermin.smartschool.be),
+        // extract the domain part
+        if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+            String domain = normalized
+                    .replaceFirst("^https?://", "")
+                    .replaceFirst("/$", "");
+
+            // Accept any smartschool.be domain
+            if (domain.endsWith(".smartschool.be") || domain.equals("smartschool.be")) {
+                return normalizeDomainName(domain);
+            }
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("unknown_school_code"),
+                    "Onbekend Smartschool domein: " + domain
+            );
+        }
+
+        // Handle short codes (backward compatibility)
+        String mapped = switch (normalized) {
+            case "aphogeschool", "ap" -> "aphogeschool.smartschool.be";
+            case "bazandpoort" -> "bazandpoort.smartschool.be";
+            case "lachpoort" -> "lachpoort.smartschool.be";
+            default -> null;
+        };
+
+        if (mapped != null) {
+            return mapped;
+        }
+
+        // For unknown short codes, assume it's a school subdomain
+        return normalized + ".smartschool.be";
+    }
+
+    private String normalizeDomainName(String domain) {
+        // Remove www. prefix if present for consistency
+        if (domain.startsWith("www.")) {
+            domain = domain.substring(4);
+        }
+        return domain.toLowerCase();
+    }
+
     private String requireStringAttribute(Map<String, Object> attributes, String key) {
         Object value = attributes.get(key);
         if (value instanceof String str && !str.isBlank()) {
             return str;
         }
 
-        throw new OAuth2AuthenticationException(new OAuth2Error("invalid_user_info"),
-                "Smartschool user info mist veld: " + key);
+        throw new OAuth2AuthenticationException(
+                new OAuth2Error("invalid_user_info"),
+                "Smartschool user info mist veld: " + key
+        );
     }
 
     private String resolveClassCodeFromGroupInfo(String userInfoEndpoint, String accessToken) {
@@ -136,6 +243,7 @@ public class SmartschoolOAuth2UserService
         if (groupInfoEndpoint == null) {
             return null;
         }
+
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
@@ -159,10 +267,9 @@ public class SmartschoolOAuth2UserService
             if (resolved == null || SmartschoolAudienceResolverService.FALLBACK_CLASS_CODE.equalsIgnoreCase(resolved)) {
                 return null;
             }
+
             return resolved;
         } catch (RuntimeException ex) {
-            // groupinfo is best-effort; keep login flow working when scope/endpoint is
-            // unavailable
             return null;
         }
     }
@@ -173,12 +280,15 @@ public class SmartschoolOAuth2UserService
         }
 
         String normalized = userInfoEndpoint.trim();
+
         if (normalized.endsWith("/fulluserinfo")) {
             return normalized.substring(0, normalized.length() - "fulluserinfo".length()) + "groupinfo";
         }
+
         if (normalized.endsWith("/userinfo")) {
             return normalized.substring(0, normalized.length() - "userinfo".length()) + "groupinfo";
         }
+
         return null;
     }
 

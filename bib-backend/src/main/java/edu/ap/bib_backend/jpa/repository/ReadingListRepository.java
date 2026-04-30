@@ -67,4 +67,8 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
     Optional<ReadingList> findFirstByTargetTypeAndTargetValueIgnoreCase(ReadingListTargetType targetType, String targetValue);
 
     Optional<ReadingList> findFirstByTargetType(ReadingListTargetType targetType);
+
+    Optional<ReadingList> findByPublicShareIdAndShareEnabledTrue(String publicShareId);
+
+    boolean existsByPublicShareId(String publicShareId);
 }

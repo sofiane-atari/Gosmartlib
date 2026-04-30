@@ -31,6 +31,11 @@ export interface TeacherAudienceOptions {
   schools: string[];
 }
 
+export interface ReadingListShare {
+  publicShareId: string;
+  url: string;
+}
+
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -75,5 +80,23 @@ export class ReadingListService {
 
   removeBookFromList(listId: number, bookId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${listId}/books/${bookId}`);
+  }
+
+  shareReadingList(listId: number): Observable<ReadingListShare> {
+    return this.http.post<ReadingListShare>(
+      `${this.apiUrl}/${listId}/share`,
+      null,
+      {
+        params: {
+          frontendBaseUrl: window.location.origin
+        }
+      }
+    );
+  }
+
+  getSharedList(publicShareId: string): Observable<ReadingList> {
+    return this.http.get<ReadingList>(
+      `${this.apiUrl}/shared/${publicShareId}`
+    );
   }
 }
