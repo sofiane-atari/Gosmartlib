@@ -32,9 +32,8 @@ export class SessionExpiryModalComponent {
   public refreshSession(): void {
     this.authService.refreshSessionFromWarning();
   }
-  public initiateSmartschoolSSO(): void {
-    this.isLoadingSignal.set(true);
-    this.authService.prepareSessionRelogin();
-    this.loginService.initiateSmartschoolSSO();
+
+  public logout(): void {
+    this.authService.dismissSessionWarningAndLogout();
   }
 }

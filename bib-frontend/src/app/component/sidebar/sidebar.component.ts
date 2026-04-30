@@ -118,9 +118,9 @@ export class SidebarComponent {
     });
   });
 
-  protected readonly userDisplayName = computed(() => {
-    this.userService.getDisplayName(this.currentUser());
-  });
+  protected readonly userDisplayName = computed(() =>
+    this.userService.getDisplayName(this.currentUser()),
+  );
 
   protected readonly userRoleLabel = computed(() =>
     this.userService.getRoleLabel(this.currentUser()?.role),

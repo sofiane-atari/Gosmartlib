@@ -87,17 +87,6 @@ public class TokenStorageService {
                 .orElse(null);
     }
 
-    public void storeSmartschoolAccessToken(String userId, String accessToken) {
-        AuthSession session = authSessionRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("No auth session found for user " + userId));
-
-        session.setSmartschoolAccessToken(accessToken);
-        session.setSmartschoolAccessTokenExpiresAt(
-                Instant.now().plusSeconds(SMARTSCHOOL_ACCESS_TOKEN_EXPIRY_MINUTES * 60));
-
-        authSessionRepository.save(session);
-    }
-
     public void storeSmartschoolTokens(
             String userId,
             String accessToken,

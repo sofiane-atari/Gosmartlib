@@ -24,9 +24,7 @@ import edu.ap.bib_backend.jpa.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class AuthService {
