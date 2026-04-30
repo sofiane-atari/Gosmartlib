@@ -91,7 +91,7 @@ export class SidebarComponent {
     { icon: History, label: 'Geschiedenis', route: '/historiek' },
     { icon: Star, label: 'Mijn reviews', route: '/reviews' },
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
-    { icon: Settings, label: 'Instellingen', route: '/instellingen' },
+    { icon: Settings, label: 'Instellingen', route: '/settings' },
     { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly : true },
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage', staffOnly : true },
     {
