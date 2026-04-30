@@ -1,8 +1,10 @@
 package edu.ap.bib_backend.service.user;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import edu.ap.bib_backend.jpa.entity.School;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
@@ -53,10 +55,11 @@ public class UserService {
         return dtos;
     }
 
-    public User createUser(String userId, RoleEntity role) {
+    public User createUser(String userId, RoleEntity role, School school) {
         if (userRepository.existsById(userId)) {
             throw new RuntimeException("Gebruiker bestaat al");
         }
+
         User user = new User();
         user.setId(userId);
         user.setRole(role);
@@ -77,5 +80,9 @@ public class UserService {
         user.setReviewBlocked(blocked);
         User updatedUser = userRepository.save(user);
         return userMapper.toDto(updatedUser);
+    }
+
+    public User save(User user) {
+        return userRepository.save(user);
     }
 }

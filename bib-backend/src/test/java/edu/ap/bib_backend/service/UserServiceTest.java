@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
@@ -129,68 +130,90 @@ class UserServiceTest {
     // ==================== createUser Tests ====================
 
     @Test
-    void givenNewUserIdAndValidRole_WhenCreateUser_ThenSaveAndReturnUser() {
+    void givenNewUserIdAndValidRoleAndSchool_WhenCreateUser_ThenSaveAndReturnUser() {
         // Arrange
         String newUserId = "newuser";
         RoleEntity mockRole = new RoleEntity();
         mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
+        School mockSchool = createSchool();
         when(userRepository.existsById(newUserId)).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             user.setId(newUserId);
             user.setRole(mockRole);
+            user.setSchool(mockSchool);
             return user;
         });
 
         // Act
-        User result = userService.createUser(newUserId, mockRole);
+        User result = userService.createUser(newUserId, mockRole, mockSchool);
 
         // Assert
         assertNotNull(result);
         assertEquals(newUserId, result.getId());
         assertEquals(mockRole, result.getRole());
+        assertEquals(mockSchool, result.getSchool());
         verify(userRepository, times(1)).existsById(newUserId);
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    void givenExistingUserIdAndAnyRole_WhenCreateUser_ThenThrowRuntimeException() {
+    void givenExistingUserIdAndAnyRoleAndSchool_WhenCreateUser_ThenThrowRuntimeException() {
         // Arrange
         String existingUserId = "existinguser";
         RoleEntity mockRole = new RoleEntity();
         mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
+        School mockSchool = createSchool();
         when(userRepository.existsById(existingUserId)).thenReturn(true);
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> userService.createUser(existingUserId, mockRole));
+                () -> userService.createUser(existingUserId, mockRole, mockSchool));
         assertEquals("Gebruiker bestaat al", exception.getMessage());
         verify(userRepository, times(1)).existsById(existingUserId);
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void givenValidUserIdAndNullRole_WhenCreateUser_ThenSaveUserWithNullRole() {
+    void givenValidUserIdAndNullRoleAndSchool_WhenCreateUser_ThenSaveUserWithNullRole() {
         // Arrange
         String validUserId = "validuser";
         RoleEntity nullRole = null;
+        School mockSchool = createSchool();
         when(userRepository.existsById(validUserId)).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             user.setId(validUserId);
             user.setRole(nullRole);
+            user.setSchool(mockSchool);
             return user;
         });
 
         // Act
-        User result = userService.createUser(validUserId, nullRole);
+        User result = userService.createUser(validUserId, nullRole, mockSchool);
 
         // Assert
         assertNotNull(result);
         assertEquals(validUserId, result.getId());
         assertNull(result.getRole());
+        assertEquals(mockSchool, result.getSchool());
         verify(userRepository, times(1)).existsById(validUserId);
         verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void givenNullSchool_WhenCreateUser_ThenThrowNullPointerException() {
+        // Arrange
+        String validUserId = "validuser";
+        RoleEntity role = new RoleEntity();
+        when(userRepository.existsById(validUserId)).thenReturn(false);
+
+        // Act & Assert
+        NullPointerException exception = assertThrows(NullPointerException.class,
+                () -> userService.createUser(validUserId, role, null));
+        assertEquals("school mag niet null zijn", exception.getMessage());
+        verify(userRepository, times(1)).existsById(validUserId);
+        verify(userRepository, never()).save(any(User.class));
     }
 
     // ==================== setReviewBlocked Tests ====================
@@ -252,5 +275,15 @@ class UserServiceTest {
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, times(1)).save(any(User.class));
         verify(userMapper, times(1)).toDto(updatedUser);
+    }
+
+    private School createSchool() {
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("aphogeschool.smartschool.be");
+        school.setName("AP Hogeschool");
+        school.setAddress("Noorderplaats 2");
+        school.setPostalCode(2000);
+        return school;
     }
 }

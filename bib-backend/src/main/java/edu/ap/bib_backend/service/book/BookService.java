@@ -161,8 +161,13 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getMostReadBooks(int limit) {
-        List<Book> books = bookRepository.findMostReadBook(PageRequest.of(0, limit));
+    public List<BookDTO> getMostReadBooks(int limit, String schoolCode) {
+        List<Book> books;
+        if (schoolCode != null && !schoolCode.isBlank()) {
+            books = bookRepository.findMostReadBookBySchool(schoolCode, PageRequest.of(0, limit));
+        } else {
+            books = bookRepository.findMostReadBook(PageRequest.of(0, limit));
+        }
 
         if (books.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen uitgeleende boeken gevonden");
@@ -172,8 +177,13 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getNewestBooks(int limit) {
-        List<Book> books = bookRepository.findNewestBooks(PageRequest.of(0, limit));
+    public List<BookDTO> getNewestBooks(int limit, String schoolCode) {
+        List<Book> books;
+        if (schoolCode != null && !schoolCode.isBlank()) {
+            books = bookRepository.findNewestBooksBySchool(schoolCode, PageRequest.of(0, limit));
+        } else {
+            books = bookRepository.findNewestBooks(PageRequest.of(0, limit));
+        }
         return bookMapper.toDTOList(books);
     }
 
