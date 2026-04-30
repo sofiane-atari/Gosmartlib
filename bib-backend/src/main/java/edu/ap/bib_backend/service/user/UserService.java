@@ -64,7 +64,7 @@ public class UserService {
         user.setId(userId);
         user.setRole(role);
 
-        School school = schoolRepository.findById(1L)
+        school = schoolRepository.findById(1L)
                 .orElseThrow(() -> new IllegalStateException("Default school not found"));
 
         user.setSchool(school);

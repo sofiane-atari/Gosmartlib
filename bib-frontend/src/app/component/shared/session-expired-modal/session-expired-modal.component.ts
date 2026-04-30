@@ -6,7 +6,7 @@ import { SmartschoolButtonComponent } from "../../login-profile/smartschool-butt
 @Component({
   selector: 'app-session-expired-modal',
   standalone: true,
-  imports: [SmartschoolButtonComponent],
+  imports: [],
   templateUrl: './session-expired-modal.component.html',
   styleUrl: './session-expired-modal.component.css'
 })

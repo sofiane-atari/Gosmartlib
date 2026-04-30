@@ -33,11 +33,14 @@ public class BookCopy {
     @JoinColumn(name = "book_id")
     private Book book;
 
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Availability availability;
 
     @ManyToMany(mappedBy = "copies")
     private List<Loan> loans = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "school_id")
+    private School school;
 }

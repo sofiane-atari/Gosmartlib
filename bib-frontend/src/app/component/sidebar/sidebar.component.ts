@@ -75,6 +75,12 @@ export class SidebarComponent {
     () => this.authService.adminOverrideStatus()?.enabled ?? false,
   );
 
+  protected readonly isStaff = computed(() => {
+    const role = this.currentUser()?.role;
+
+    return role === 'TEACHER' || role === 'LIBRARIAN' || role === 'ADMIN';
+  });
+
   protected readonly adminOverrideLabel = computed(() =>
     this.isAdminOverrideEnabled() ? 'Admin uit (test)' : 'Admin aan (test)',
   );
@@ -86,31 +92,30 @@ export class SidebarComponent {
     { icon: Star, label: 'Mijn reviews', route: '/reviews' },
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/instellingen' },
-    { icon: Package, label: 'BookBox', route: '/bookbox' },
-    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
+    { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly : true },
+    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage', staffOnly : true },
     {
       icon: FolderKanban,
       label: 'Didactisch Materiaal',
       route: `/${DIDACTIC_MATERIAL_PATHS.root}`,
       staffOnly: true,
     },
-    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
-    { icon: Tag, label: 'Genrebeheer', route: '/genre' },
+    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard', staffOnly : true },
+    { icon: Tag, label: 'Genrebeheer', route: '/genre', adminOnly: true },
     { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
-    { icon: Book, label: 'Boekbeheer', route: '/books-management', roles: ['LIBRARIAN', 'TEACHER'] },
+    { icon: Book, label: 'Boekbeheer', route: '/books-management', adminOnly : true },
   ];
 
   protected readonly visibleMenuItems = computed(() => {
     const isAdmin = this.roleService.isAdmin();
-    const canManageDidacticMaterials =
-      this.roleService.canManageDidacticMaterials();
+    const isStaff = this.isStaff();
 
     return this.menuItems.filter((item) => {
       if (item.adminOnly && !isAdmin) {
         return false;
       }
 
-      if (item.staffOnly && !canManageDidacticMaterials) {
+      if (item.staffOnly && !isStaff) {
         return false;
       }
 
