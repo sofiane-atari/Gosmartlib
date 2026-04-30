@@ -12,6 +12,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -26,14 +27,16 @@ public class BookBulkController {
     private final BookBulkService bbs;
 
     @PostMapping("/upload")
-    public ResponseEntity<Map<String, String>> uploadBooks(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> uploadBooks(
+            Authentication authentication,
+            @RequestParam("file") MultipartFile file) {
         if (!file.getOriginalFilename().endsWith(".xlsm")) {
             return ResponseEntity
                     .badRequest()
                     .body(Map.of("message", "Only excel files are supported"));
         }
 
-        bbs.importBooks(file);
+        bbs.importBooks(authentication, file);
         return ResponseEntity.ok(Map.of("message", "Books uploaded successfully"));
     }
 

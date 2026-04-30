@@ -533,18 +533,19 @@ class BookServiceTest {
                                 2022,
                                 4.0,
                                 Set.of());
+                attachSchoolCopy(book, "school1");
 
                 BookDTO dto = new BookDTO();
                 dto.setTitle("Populair Boek");
 
-                given(br.findMostReadBookBySchool("school1", PageRequest.of(0, 5))).willReturn(List.of(book));
+                given(br.findMostReadBook(PageRequest.of(0, 5))).willReturn(List.of(book));
                 given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
                 List<BookDTO> result = bs.getMostReadBooks(5, "school1");
 
                 assertThat(result).hasSize(1);
                 assertThat(result.get(0).getTitle()).isEqualTo("Populair Boek");
-                then(br).should().findMostReadBookBySchool("school1", PageRequest.of(0, 5));
+                then(br).should().findMostReadBook(PageRequest.of(0, 5));
         }
 
         @Test
@@ -561,18 +562,19 @@ class BookServiceTest {
                                 2025,
                                 0.0,
                                 Set.of());
+                attachSchoolCopy(book, "school1");
 
                 BookDTO dto = new BookDTO();
                 dto.setTitle("Nieuw Boek");
 
-                given(br.findNewestBooksBySchool("school1", PageRequest.of(0, 3))).willReturn(List.of(book));
+                given(br.findNewestBooks(PageRequest.of(0, 3))).willReturn(List.of(book));
                 given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
                 List<BookDTO> result = bs.getNewestBooks(3, "school1");
 
                 assertThat(result).hasSize(1);
                 assertThat(result.get(0).getTitle()).isEqualTo("Nieuw Boek");
-                then(br).should().findNewestBooksBySchool("school1", PageRequest.of(0, 3));
+                then(br).should().findNewestBooks(PageRequest.of(0, 3));
         }
 
         @Test
@@ -816,6 +818,22 @@ class BookServiceTest {
                 genre.setColor(color);
                 genre.setDescription(description);
                 return genre;
+        }
+
+        private void attachSchoolCopy(Book book, String domainName) {
+                School school = new School();
+                school.setDomainName(domainName);
+                school.setName("School");
+                school.setAddress("Address");
+                school.setPostalCode(1000);
+                school.setContactEmail("test@example.com");
+                school.setContactPhone("0123456789");
+
+                BookCopy copy = new BookCopy();
+                copy.setBook(book);
+                copy.setSchool(school);
+
+                book.setBookCopies(List.of(copy));
         }
 }
 

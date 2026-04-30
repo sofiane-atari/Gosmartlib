@@ -8,10 +8,12 @@ import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.poi.ss.usermodel.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -42,6 +44,7 @@ public class BookBulkService {
     private final BookCopyRepository bcr;
     private final GenreRepository genreRepository;
     private final ReadingLevelRepository readingLevelRepository;
+    private final UserRepository userRepository;
     private final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
 
     public String storeTempFile(MultipartFile file) throws IOException {
@@ -78,7 +81,9 @@ public class BookBulkService {
     }
 
     @Transactional
-    public void importBooks(MultipartFile file) {
+    public void importBooks(Authentication authentication, MultipartFile file) {
+        School school = getCurrentUserSchool(authentication);
+
         try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
 
@@ -133,7 +138,6 @@ public class BookBulkService {
                 // 5. Als nog niets gevonden: nieuw Book maken
                 if (book == null) {
                     book = mapRowToBook(rw, evaluator);
-                    ;
                     book = br.save(book);
                 }
 
@@ -146,12 +150,28 @@ public class BookBulkService {
                 // 7. Altijd een copy maken
                 BookCopy copy = new BookCopy();
                 copy.setBook(book);
+                copy.setSchool(school);
                 copy.setAvailability(Availability.AVAILABLE);
                 bcr.save(copy);
             }
         } catch (Exception e) {
             throw new RuntimeException("gefailed om boeken te importeren: " + e.getMessage(), e);
         }
+    }
+
+    private School getCurrentUserSchool(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new IllegalStateException("Geen geauthenticeerde gebruiker gevonden.");
+        }
+
+        User user = userRepository.findById(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden: " + authentication.getName()));
+
+        if (user.getSchool() == null) {
+            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
+        }
+
+        return user.getSchool();
     }
 
     private boolean isRowEmpty(Row row, DataFormatter formatter, FormulaEvaluator evaluator) {
