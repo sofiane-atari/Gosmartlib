@@ -18,26 +18,17 @@ import edu.ap.bib_backend.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.TokenStorageService;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtService jwtService;
-    private final TokenStorageService tokenStorageService;
     @Value("${frontend.redirect-url:http://localhost:4200/login}")
     private String frontendRedirectUrl;
 
-    public AuthController(
-            AuthService authService,
-            JwtService jwtService,
-            TokenStorageService tokenStorageService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.jwtService = jwtService;
-        this.tokenStorageService = tokenStorageService;
     }
 
     @GetMapping("/me")

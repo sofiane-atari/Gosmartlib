@@ -126,23 +126,23 @@ class GenreServiceTest {
                 verify(genreRepository, times(1)).save(entity);
         }
 
-        // @Test
-        // void givenInvalidRequest_whenCreateGenre_thenThrowException() {
-        // // Arrange
-        // GenreDTO dto = GenreDTO.builder().build();
-        // Genre entity = new Genre(null, null, null);
+        @Test
+        void givenInvalidRequest_whenCreateGenre_thenThrowException() {
+        // Arrange
+        GenreDTO dto = GenreDTO.builder().build();
+        Genre entity = new Genre(null, null, null);
 
-        // when(genreMapper.toEntity(dto)).thenReturn(entity);
-        // when(genreRepository.save(any(Genre.class)))
-        // .thenThrow(new ConstraintViolationException("Validation failed", null));
+        when(genreMapper.toEntity(dto)).thenReturn(entity);
+        when(genreRepository.save(any(Genre.class)))
+        .thenThrow(new ConstraintViolationException("Validation failed", null));
 
-        // // Act
-        // assertThrows(ConstraintViolationException.class,
-        // () -> genreService.createGenre(dto));
+        // Act
+        assertThrows(ConstraintViolationException.class,
+        () -> genreService.createGenre(dto));
 
-        // // Assert
-        // verify(genreRepository, times(1)).save(any(Genre.class));
-        // }
+        // Assert
+        verify(genreRepository, times(1)).save(any(Genre.class));
+        }
 
         // // ==================== getPage Tests ====================
 

@@ -1,166 +1,210 @@
 package edu.ap.bib_backend.controller;
 
-import edu.ap.bib_backend.config.JwtAuthenticationFilter;
-import edu.ap.bib_backend.config.SecurityConfig;
-import edu.ap.bib_backend.dto.SmartschoolGroupDto;
-import edu.ap.bib_backend.dto.SmartschoolProfileDto;
-import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.JwtTokenDTO;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.service.AuthService;
-import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
-import edu.ap.bib_backend.service.SmartschoolProfileService;
-import edu.ap.bib_backend.service.TokenStorageService;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)
-@TestPropertySource(properties = {"FRONTEND_REDIRECT_URL=http://localhost:4200/login"})
-@Import({SecurityConfig.class, JwtAuthenticationFilter.class})
-@TestPropertySource(properties = {"frontend.redirect-url=http://localhost:4200/login"})
-public class AuthControllerTest {
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-    @Autowired
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+class AuthControllerTest {
+
     private MockMvc mockMvc;
-
-    @MockitoBean
-    private JwtService jwtService;
-
-    @MockitoBean
     private AuthService authService;
 
-    @MockitoBean
-    private TokenStorageService tokenStorageService;
+    @BeforeEach
+    void setUp() {
+        authService = mock(AuthService.class);
 
-    @MockitoBean
-    private OAuth2AuthorizedClientService authorizedClientService;
+        AuthController controller = new AuthController(authService);
 
-    @MockitoBean
-    private SmartschoolProfileService smartschoolProfileService;
+        ReflectionTestUtils.setField(
+                controller,
+                "frontendRedirectUrl",
+                "http://localhost:4200/login");
 
-    @MockitoBean
-    private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
-
-    @MockitoBean
-    private AdminOverrideService adminOverrideService;
-
-
-    @Test
-    void givenUnauthenticated_whenMeCalled_thenReturn302() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/auth/me"))
-                .andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(controller)
+                .setControllerAdvice(new TestExceptionHandler())
+                .build();
     }
 
     @Test
-    void givenUnauthenticated_whenLogoutCalled_thenReturn302() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/auth/logout").with(csrf()))
-                .andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+    void givenUnauthenticated_whenMeCalled_thenReturn401() throws Exception {
+        mockMvc.perform(get("/auth/me"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @WithMockUser(username = "1", authorities = {"ROLE_TEACHER"})
-    void givenUserWithToken_whenMeCalled_thenReturnFullProfile() throws Exception {
-        String mockToken = "valid-smartschool-token";
-        when(tokenStorageService.getSmartschoolAccessToken("1")).thenReturn(mockToken);
-
-        SmartschoolProfileDto profile = new SmartschoolProfileDto("1", "Anna", "Smet", "Anna Smet", "anna@school.be", "platform");
-        SmartschoolGroupDto group = new SmartschoolGroupDto("Leerkrachten", List.of("Personeel"));
-
-        when(smartschoolProfileService.fetchProfile(mockToken)).thenReturn(profile);
-        when(smartschoolProfileService.fetchGroups(mockToken)).thenReturn(group);
-
-        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/auth/me"));
-
-        result.andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value("1"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.role").value("TEACHER"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("Anna")) // Dit is nu succesvol "Anna"
-                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value("anna@school.be"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.primaryGroupName").value("Leerkrachten"));
+    void givenUnauthenticated_whenLogoutCalled_thenReturn401() throws Exception {
+        mockMvc.perform(post("/auth/logout"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @WithMockUser(username = "1", authorities = {"ROLE_STUDENT"})
     void givenAuthenticatedUser_whenMeCalled_thenReturnUserInfo() throws Exception {
-        when(tokenStorageService.getSmartschoolAccessToken("1")).thenReturn(null);
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
 
-        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/auth/me"));
+        Authentication authentication = new UsernamePasswordAuthenticationToken("1", null, authorities);
 
-        result.andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value("1"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.role").value("STUDENT"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName").doesNotExist());
+        AuthUserDto userDto = new AuthUserDto(
+                "1",
+                "Enes",
+                "Taşci",
+                "Taşci Enes",
+                Role.STUDENT,
+                "enes.tasci@student.ap.be",
+                "1",
+                "https://aphogeschool.smartschool.be",
+                "2ITSOF1",
+                List.of("Leerlingen"),
+                false);
+
+        when(authService.getUserDetails(any(Authentication.class))).thenReturn(userDto);
+
+        mockMvc.perform(get("/auth/me").principal(authentication))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"))
+                .andExpect(jsonPath("$.firstName").value("Enes"))
+                .andExpect(jsonPath("$.lastName").value("Taşci"))
+                .andExpect(jsonPath("$.fullName").value("Taşci Enes"))
+                .andExpect(jsonPath("$.role").value("STUDENT"))
+                .andExpect(jsonPath("$.email").value("enes.tasci@student.ap.be"))
+                .andExpect(jsonPath("$.primaryGroupName").value("2ITSOF1"))
+                .andExpect(jsonPath("$.reviewBlocked").value(false));
+
+        verify(authService).getUserDetails(any(Authentication.class));
     }
 
-//     @Test
-//     void givenOAuth2User_whenCallbackCalled_thenRedirectWithToken() throws Exception {
-//         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
-//         OAuth2User principal = new DefaultOAuth2User(authorities, Map.of("sub", "1"), "sub");
-//         OAuth2AuthenticationToken auth = new OAuth2AuthenticationToken(principal, authorities, "smartschool");
+    @Test
+    void givenAuthenticatedUserWithoutDetails_whenMeCalled_thenReturnEmptyOk() throws Exception {
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
 
-//         OAuth2AccessToken smartToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "smart-token", null, null);
-//         OAuth2AuthorizedClient authorizedClient = mock(OAuth2AuthorizedClient.class);
-//         when(authorizedClient.getAccessToken()).thenReturn(smartToken);
-//         when(authorizedClientService.loadAuthorizedClient("smartschool", "1")).thenReturn(authorizedClient);
+        Authentication authentication = new UsernamePasswordAuthenticationToken("1", null, authorities);
 
-//         when(jwtService.generateToken(any(), any())).thenReturn("jwt-token");
+        when(authService.getUserDetails(any(Authentication.class))).thenReturn(null);
 
-//         ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/auth/callback")
-//                 .with(authentication(auth)));
+        mockMvc.perform(get("/auth/me").principal(authentication))
+                .andExpect(status().isOk());
 
-//         result.andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-//                 .andExpect(MockMvcResultMatchers.header().string("Location", containsString("token=jwt-token")));
-        
-//         verify(jwtService).generateToken("1", "ROLE_STUDENT");
-//         verify(tokenStorageService).storeToken("1", "jwt-token");
-//         verify(tokenStorageService).storeUserMetadata("1", "ROLE_STUDENT");
-//         verify(tokenStorageService).storeSmartschoolAccessToken("1", "smart-token");
-//     }
+        verify(authService).getUserDetails(any(Authentication.class));
+    }
 
     @Test
-    void givenOAuth2User_whenLogoutCalled_thenRevokeTokenAndReturnMessage() throws Exception {
-        Collection<? extends GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_STUDENT"));
-        Authentication auth = new UsernamePasswordAuthenticationToken("1", null, authorities);
+    void givenOAuth2User_whenCallbackCalled_thenRedirectWithToken() throws Exception {
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
 
-        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.post("/auth/logout")
-                .with(csrf())
-                .with(authentication(auth)));
+        OAuth2User principal = new DefaultOAuth2User(
+                authorities,
+                Map.of("sub", "1"),
+                "sub");
 
-        result.andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Logged out successfully"));
-        
-        verify(tokenStorageService).revokeToken("1");
-        verify(tokenStorageService).removeUserMetadata("1");
+        OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(principal, authorities, "smartschool");
+
+        when(authService.processCallbackAndGenerateJwt(any(OAuth2AuthenticationToken.class)))
+                .thenReturn("jwt-token");
+
+        mockMvc.perform(get("/auth/callback").principal(authentication))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string(
+                        "Location",
+                        containsString("token=jwt-token")));
+
+        verify(authService).processCallbackAndGenerateJwt(any(OAuth2AuthenticationToken.class));
+    }
+
+    @Test
+    void givenNonOAuthAuthentication_whenCallbackCalled_thenRedirectWithError() throws Exception {
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken("1", null, authorities);
+
+        mockMvc.perform(get("/auth/callback").principal(authentication))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string(
+                        "Location",
+                        containsString("error=authentication_failed")));
+    }
+
+    @Test
+    void givenAuthenticatedUser_whenLogoutCalled_thenLogoutAndReturnMessage() throws Exception {
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STUDENT"));
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken("1", null, authorities);
+
+        mockMvc.perform(post("/auth/logout").principal(authentication))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Logged out successfully"));
+
+        verify(authService).logout("1");
+    }
+
+    @Test
+    void givenValidBearerToken_whenRefreshCalled_thenReturnNewJwtToken() throws Exception {
+        JwtTokenDTO tokenDto = new JwtTokenDTO(
+                "new-jwt-token",
+                Instant.parse("2026-04-30T12:00:00Z"));
+
+        when(authService.refreshJwtToken("old-jwt-token")).thenReturn(tokenDto);
+
+        mockMvc.perform(post("/auth/refresh")
+                .header("Authorization", "Bearer old-jwt-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("new-jwt-token"))
+                .andExpect(jsonPath("$.expiresAt").exists());
+
+        verify(authService).refreshJwtToken("old-jwt-token");
+    }
+
+    @Test
+    void givenMissingBearerToken_whenRefreshCalled_thenReturn401() throws Exception {
+        mockMvc.perform(post("/auth/refresh"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void givenInvalidAuthorizationHeader_whenRefreshCalled_thenReturn401() throws Exception {
+        mockMvc.perform(post("/auth/refresh")
+                .header("Authorization", "Basic invalid-token"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void givenOAuthErrorWithMessage_whenOauthErrorCalled_thenReturn401WithMessage() throws Exception {
+        mockMvc.perform(get("/auth/error")
+                .param("message", "Smartschool login failed"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Smartschool login failed"));
     }
 }
