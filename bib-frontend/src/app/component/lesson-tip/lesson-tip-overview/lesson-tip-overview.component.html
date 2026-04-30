@@ -19,6 +19,23 @@
       </div>
     </div>
 
+    @if (filteredBookId(); as activeBookId) {
+      <section class="state-panel state-panel--compact" @fadeInUp>
+        <p>
+          Je bekijkt momenteel alleen lestips die gekoppeld zijn aan boek
+          {{ activeBookId }}.
+        </p>
+
+        <button
+          type="button"
+          class="action-button action-button--secondary"
+          (click)="clearBookFilter()"
+        >
+          Alle lestips tonen
+        </button>
+      </section>
+    }
+
     @if (isLoading()) {
       <section class="material-list">
         @for (dummy of [1, 2, 3]; track $index) {
@@ -27,17 +44,25 @@
       </section>
     } @else if (lessonTips().length === 0) {
       <section class="state-panel state-panel--empty" @fadeInUp>
-        <p>
-          Nog geen lestips. Voeg een eerste item toe om materiaal beschikbaar te
-          maken voor collega’s.
-        </p>
-        <button
-          type="button"
-          class="action-button action-button--secondary"
-          (click)="navigateToCreatePage()"
-        >
-          Eerste item toevoegen
-        </button>
+        <p>Nog geen lestips gevonden voor deze selectie.</p>
+
+        @if (filteredBookId()) {
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            (click)="clearBookFilter()"
+          >
+            Alle lestips tonen
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            (click)="navigateToCreatePage()"
+          >
+            Eerste item toevoegen
+          </button>
+        }
       </section>
     } @else {
       <section class="material-list">

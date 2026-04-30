@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { from, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
@@ -14,8 +14,14 @@ export class LessonTipService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/lesson-tips`;
 
-  public getAll(): Observable<LessonTip[]> {
-    return this.http.get<LessonTip[]>(this.baseUrl);
+  public getAll(bookId?: number): Observable<LessonTip[]> {
+    let params = new HttpParams();
+
+    if (bookId !== undefined) {
+      params = params.set('bookId', bookId);
+    }
+
+    return this.http.get<LessonTip[]>(this.baseUrl, { params });
   }
 
   public getById(id: number): Observable<LessonTip> {

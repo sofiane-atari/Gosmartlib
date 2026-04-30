@@ -1,6 +1,6 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ToastService } from '../../../services/toast/toast.service';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
@@ -21,17 +21,37 @@ import { LessonTipCardComponent } from '../lesson-tip-card/lesson-tip-card.compo
   templateUrl: './lesson-tip-overview.component.html',
   styleUrl: './lesson-tip-overview.component.css',
 })
-export class LessonTipOverviewComponent {
+export class LessonTipOverviewComponent implements OnInit {
   private readonly lessonTipService = inject(LessonTipService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly lessonTips = signal<LessonTip[]>([]);
   protected readonly isLoading = signal(false);
+  protected readonly filteredBookId = signal<number | null>(null);
 
   public ngOnInit(): void {
-    this.loadLessonTips();
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const bookIdParam = params.get('bookId');
+        const parsedBookId = bookIdParam ? Number(bookIdParam) : null;
+
+        if (
+          parsedBookId !== null &&
+          (!Number.isInteger(parsedBookId) || parsedBookId <= 0)
+        ) {
+          this.filteredBookId.set(null);
+          this.toastService.show('Ongeldig boekfilter.', 'error');
+          this.loadLessonTips();
+          return;
+        }
+
+        this.filteredBookId.set(parsedBookId);
+        this.loadLessonTips(parsedBookId ?? undefined);
+      });
   }
 
   public navigateToCreatePage(): void {
@@ -44,36 +64,15 @@ export class LessonTipOverviewComponent {
     void this.router.navigate([`/${LESSON_TIP_PATHS.root}/${lessonTipId}`]);
   }
 
-  public getlessonTipTypeLabel(
-    lessonTipType: LessonTip['lessonTipType'],
-  ): string {
-    switch (lessonTipType) {
-      case 'LESSON_METHOD':
-        return 'Lesmethode';
-      case 'DIDACTIC_HANDBOOK':
-        return 'Didactisch handboek';
-      case 'EVALUATION_MATERIAL':
-        return 'Evaluatiemateriaal';
-      case 'REFERENCE_WORK':
-        return 'Naslagwerk';
-      case 'LESSON_IDEA':
-        return 'Lesidee';
-      case 'WORKSHEET':
-        return 'Werkblad';
-      case 'PRESENTATION':
-        return 'Presentatie';
-      case 'OTHER':
-        return 'Overig';
-      default:
-        return 'Onbekend';
-    }
+  public clearBookFilter(): void {
+    void this.router.navigate([`/${LESSON_TIP_PATHS.root}`]);
   }
 
-  private loadLessonTips(): void {
+  private loadLessonTips(bookId?: number): void {
     this.isLoading.set(true);
 
     this.lessonTipService
-      .getAll()
+      .getAll(bookId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (lessonTips) => {
@@ -82,7 +81,10 @@ export class LessonTipOverviewComponent {
         },
         error: () => {
           this.isLoading.set(false);
-          this.toastService.show('Lestip kon niet worden geladen.', 'error');
+          this.toastService.show(
+            'Lestips konden niet worden geladen.',
+            'error',
+          );
         },
       });
   }

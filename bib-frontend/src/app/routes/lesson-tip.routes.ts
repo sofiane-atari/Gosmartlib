@@ -6,7 +6,7 @@ import { LessonTipFormPageComponent } from '../component/lesson-tip/lesson-tip-f
 import { LessonTipDetailComponent } from '../component/lesson-tip/lesson-tip-detail/lesson-tip-detail.component';
 
 export const LESSON_TIP_PATHS = {
-  root: 'lesson',
+  root: 'lesson-tips',
   create: 'create',
   edit: 'edit',
 } as const;

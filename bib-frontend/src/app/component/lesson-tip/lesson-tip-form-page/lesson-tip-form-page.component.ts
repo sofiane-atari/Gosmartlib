@@ -228,6 +228,7 @@ export class LessonTipFormPageComponent {
           );
           this.isSubmitting.set(false);
           this.toastService.show('Lestip is bijgewerkt.', 'success');
+          void this.router.navigate([`/${LESSON_TIP_PATHS.root}`]);
         },
         error: () => {
           this.isSubmitting.set(false);

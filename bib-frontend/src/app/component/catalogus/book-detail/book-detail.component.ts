@@ -33,10 +33,8 @@ import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
-import {
-  BookLessonTipPreview,
-  LessonTipPreview,
-} from '../../../model/lesson-tip/lesson-tip.model';
+import { BookLessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
+import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 
 @Component({
   selector: 'app-book-detail',
@@ -175,7 +173,7 @@ export class BookDetailComponent implements OnInit {
   }
 
   public openLessonTipDetail(lessonTipId: number): void {
-    void this.router.navigate(['/lesson', lessonTipId]);
+    void this.router.navigate([`/${LESSON_TIP_PATHS.root}`]);
   }
 
   public openAllLessonTipsForBook(): void {
@@ -185,7 +183,7 @@ export class BookDetailComponent implements OnInit {
       return;
     }
 
-    void this.router.navigate(['/lesson-tips'], {
+    void this.router.navigate([`/${LESSON_TIP_PATHS.root}`], {
       queryParams: { bookId },
     });
   }

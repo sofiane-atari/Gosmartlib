@@ -28,8 +28,8 @@ public class LessonTipController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LessonTipResponseDto>> getAllLessonTips() {
-        return ResponseEntity.ok(lessonTipService.getAllLessonTips());
+    public ResponseEntity<List<LessonTipResponseDto>> getAllLessonTips(@RequestParam(required = false) Long bookId) {
+        return ResponseEntity.ok(lessonTipService.getAllLessonTips(bookId));
     }
 
     @GetMapping("/{id}")

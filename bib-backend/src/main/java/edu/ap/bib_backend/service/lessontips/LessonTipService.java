@@ -79,8 +79,10 @@ public class LessonTipService {
     }
 
     @Transactional(readOnly = true)
-    public List<LessonTipResponseDto> getAllLessonTips() {
-        return lessonTipRepository.findAllByOrderByUpdatedAtDesc().stream()
+    public List<LessonTipResponseDto> getAllLessonTips(Long bookId) {
+        List<LessonTip> lessonTips = resolveLessonTips(bookId);
+
+        return lessonTips.stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -159,6 +161,15 @@ public class LessonTipService {
                     "Boek niet gevonden met id: " + bookId
             );
         }
+    }
+
+    private List<LessonTip> resolveLessonTips(Long bookId) {
+        if (bookId == null) {
+            return lessonTipRepository.findAllByOrderByUpdatedAtDesc();
+        }
+
+        ensureBookExists(bookId);
+        return lessonTipRepository.findAllByBookLinksBookIdOrderByUpdatedAtDesc(bookId);
     }
 
 }
