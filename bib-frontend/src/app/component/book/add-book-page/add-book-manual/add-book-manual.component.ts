@@ -75,12 +75,12 @@ export class AddBookManualComponent extends GenreSelectionBase implements OnInit
       author: this.fb.nonNullable.control('', [Validators.required]),
       pages: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
       imageUrl: this.fb.nonNullable.control(''),
-      description: this.fb.nonNullable.control('', [Validators.required]),
+      description: this.fb.nonNullable.control(''),
       releaseYear: this.fb.control<number | null>(null, [
         Validators.required,
         Validators.min(0)
       ]),
-      readingLevel: this.fb.control<ReadingLevel | null>(null, [Validators.required])
+      readingLevel: this.fb.control<ReadingLevel | null>(null)
     });
   }
 
@@ -232,10 +232,6 @@ private setupCandidateSearch(): void {
       return;
     }
 
-    if (this.selectedGenres.length === 0) {
-      this.ts.show('Selecteer minstens 1 genre', 'error');
-      return;
-    }
 
     if (this.isCandidateLoaded && this.selectedBookId) {
       this.bs.addCopy(this.selectedBookId).subscribe({

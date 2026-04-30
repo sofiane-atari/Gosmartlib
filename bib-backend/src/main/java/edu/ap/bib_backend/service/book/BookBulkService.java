@@ -328,14 +328,10 @@ public class BookBulkService {
 
             seenNaturalKeys.add(naturalKey);
         }
-        // Description
-        if (description.isEmpty())
-            rowErrors.add(new FileValidationError(rowNumber, "Description", "Descriptie is leeg"));
+
 
         // Image URL
-        if (imageUrl.isEmpty()) {
-            rowErrors.add(new FileValidationError(rowNumber, "ImageUrl", "Image URL is leeg"));
-        } else {
+        if (!imageUrl.isEmpty()) {
             try {
                 new URL(imageUrl);
             } catch (MalformedURLException e) {
@@ -358,56 +354,53 @@ public class BookBulkService {
             }
         }
 
-        // Hoofdgenre
-        if (mainGenre.isEmpty()) {
-            rowErrors.add(new FileValidationError(rowNumber, "Hoofdgenre", "Hoofdgenre is verplicht"));
-        } else {
-            Genre mainGenreEntity = genreRepository.findByName(mainGenre).orElse(null);
-            if (mainGenreEntity == null) {
-                rowErrors.add(new FileValidationError(rowNumber, "Hoofdgenre", "Hoofdgenre bestaat niet"));
-            } else if (mainGenreEntity.getParentGenre() != null) {
-                rowErrors.add(new FileValidationError(rowNumber, "Hoofdgenre",
-                        "Hoofdgenre moet een hoofdgenre zijn, geen subgenre"));
-            }
-        }
+        // Hoofdgenre en subgenre
+        boolean hasAnyGenre =
+                !mainGenre.isEmpty()
+                        || !subGenre1.isEmpty()
+                        || !subGenre2.isEmpty()
+                        || !subGenre3.isEmpty();
 
-        List<String> subGenres = new ArrayList<>();
-        if (!subGenre1.isEmpty())
-            subGenres.add(subGenre1);
-        if (!subGenre2.isEmpty())
-            subGenres.add(subGenre2);
-        if (!subGenre3.isEmpty())
-            subGenres.add(subGenre3);
+        if (hasAnyGenre) {
+            if (mainGenre.isEmpty()) {
+                rowErrors.add(new FileValidationError(rowNumber, "Hoofdgenre", "Hoofdgenre is verplicht als je subgenres invult"));
+            } else {
+                Genre mainGenreEntity = genreRepository.findByName(mainGenre).orElse(null);
+                if (mainGenreEntity == null) {
+                    rowErrors.add(new FileValidationError(rowNumber, "Hoofdgenre", "Hoofdgenre bestaat niet"));
+                } else if (mainGenreEntity.getParentGenre() != null) {
+                    rowErrors.add(new FileValidationError(rowNumber, "Hoofdgenre",
+                            "Hoofdgenre moet een hoofdgenre zijn, geen subgenre"));
+                }
 
-        // dedupliceer, maar behoud volgorde
-        List<String> uniqueSubGenres = new ArrayList<>(new java.util.LinkedHashSet<>(subGenres));
+                List<String> subGenres = new ArrayList<>();
+                if (!subGenre1.isEmpty()) subGenres.add(subGenre1);
+                if (!subGenre2.isEmpty()) subGenres.add(subGenre2);
+                if (!subGenre3.isEmpty()) subGenres.add(subGenre3);
 
-        if (uniqueSubGenres.isEmpty()) {
-            rowErrors.add(new FileValidationError(rowNumber, "Subgenres", "Minstens 1 subgenre is verplicht"));
-        } else {
-            Genre mainGenreEntity = genreRepository.findByNameWithParent(mainGenre).orElse(null);
+                List<String> uniqueSubGenres = new ArrayList<>(new java.util.LinkedHashSet<>(subGenres));
 
-            for (String subGenreName : uniqueSubGenres) {
-                Genre subGenreEntity = genreRepository.findByNameWithParent(subGenreName).orElse(null);
+                Genre mainGenreEntityWithParent = genreRepository.findByNameWithParent(mainGenre).orElse(null);
 
-                if (subGenreEntity == null) {
-                    rowErrors.add(
-                            new FileValidationError(rowNumber, "Subgenres", "Subgenre bestaat niet: " + subGenreName));
-                } else if (subGenreEntity.getParentGenre() == null) {
-                    rowErrors.add(new FileValidationError(rowNumber, "Subgenres",
-                            "Subgenre is geen echt subgenre: " + subGenreName));
-                } else if (mainGenreEntity != null
-                        && subGenreEntity.getParentGenre() != null
-                        && !subGenreEntity.getParentGenre().getId().equals(mainGenreEntity.getId())) {
-                    rowErrors.add(new FileValidationError(rowNumber, "Subgenres",
-                            "Subgenre '" + subGenreName + "' hoort niet bij hoofdgenre '" + mainGenre + "'"));
+                for (String subGenreName : uniqueSubGenres) {
+                    Genre subGenreEntity = genreRepository.findByNameWithParent(subGenreName).orElse(null);
+
+                    if (subGenreEntity == null) {
+                        rowErrors.add(new FileValidationError(rowNumber, "Subgenres", "Subgenre bestaat niet: " + subGenreName));
+                    } else if (subGenreEntity.getParentGenre() == null) {
+                        rowErrors.add(new FileValidationError(rowNumber, "Subgenres",
+                                "Subgenre is geen echt subgenre: " + subGenreName));
+                    } else if (mainGenreEntityWithParent != null
+                            && subGenreEntity.getParentGenre() != null
+                            && !subGenreEntity.getParentGenre().getId().equals(mainGenreEntityWithParent.getId())) {
+                        rowErrors.add(new FileValidationError(rowNumber, "Subgenres",
+                                "Subgenre '" + subGenreName + "' hoort niet bij hoofdgenre '" + mainGenre + "'"));
+                    }
                 }
             }
         }
 
-        if (readingLevel.isEmpty()) {
-            rowErrors.add(new FileValidationError(rowNumber, "ReadingLevel", "Leesniveau is verplicht"));
-        } else {
+        if (!readingLevel.isEmpty()) {
             ReadingLevel levelEntity = readingLevelRepository.findByNiveauName(readingLevel);
             if (levelEntity == null) {
                 rowErrors.add(new FileValidationError(rowNumber, "ReadingLevel", "Leesniveau bestaat niet"));
@@ -438,8 +431,8 @@ public class BookBulkService {
         book.setTitle(title);
         book.setAuthor(author);
         book.setPages(Integer.parseInt(pages));
-        book.setDescription(description);
-        book.setImageUrl(imageUrl);
+        book.setDescription(description.isBlank() ? null : description);
+        book.setImageUrl(imageUrl.isBlank() ? null : imageUrl);
         book.setReleaseYear(Integer.parseInt(releaseYear));
 
         Set<String> uniqueSubGenreNames = new java.util.LinkedHashSet<>();
@@ -459,8 +452,12 @@ public class BookBulkService {
 
         book.setGenres(selectedGenres);
 
-        ReadingLevel level = readingLevelRepository.findByNiveauName(readingLevelName);
-        book.setReadingLevel(level);
+        if (!readingLevelName.isBlank()) {
+            ReadingLevel level = readingLevelRepository.findByNiveauName(readingLevelName);
+            book.setReadingLevel(level);
+        } else {
+            book.setReadingLevel(null);
+        }
 
         return book;
     }

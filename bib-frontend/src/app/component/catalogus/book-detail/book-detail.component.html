@@ -175,7 +175,7 @@
       <!-- Genres -->
       <section class="genres-section">
         <h2 class="section-title">Genres</h2>
-        @if (selectedBook.genres.length > 0) {
+        @if ((selectedBook.genres?.length ?? 0) > 0) {
           <div class="genres-tags">
             @for (genre of selectedBook.genres; track genre.name) {
             <span class="genre-tag" [style.background-color]="genre.color">
