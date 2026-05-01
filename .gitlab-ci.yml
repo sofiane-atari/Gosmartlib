@@ -18,8 +18,8 @@ deploy:
     - |
       ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<- EOF
       set -e
-      rm -rf "$DIR/"
-      git clone --depth 1 --branch main $REPO_URL "$DIR/."
+      rm -rf "$DIR"
+      git clone --depth 1 --branch main $REPO_URL "$DIR"
       EOF
     # .env variables
     - |
