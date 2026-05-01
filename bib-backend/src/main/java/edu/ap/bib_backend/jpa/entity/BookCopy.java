@@ -40,4 +40,9 @@ public class BookCopy {
 
     @ManyToMany(mappedBy = "copies")
     private List<Loan> loans = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "school_id")
+    private School school;
+
 }
