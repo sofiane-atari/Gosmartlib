@@ -45,23 +45,25 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
         List<Book> findNewestBooks(Pageable pageable);
 
         @Query("""
-                SELECT DISTINCT b FROM Book b
+                SELECT DISTINCT b 
+                FROM Book b
                 JOIN b.bookCopies bc
                 WHERE bc.school.domainName = :schoolCode
                 ORDER BY b.addedDate DESC
                 """)
         List<Book> findNewestBooksBySchool(@Param("schoolCode") String schoolCode, Pageable pageable);
 
-        @Query("""
-                SELECT b FROM Book b
-                JOIN b.bookCopies bc
-                LEFT JOIN bc.loans bl
-                LEFT JOIN bl.user u
-                WHERE bc.school.domainName = :schoolCode
-                GROUP BY b.id
-                ORDER BY COUNT(DISTINCT u.id) DESC
-                """)
-        List<Book> findMostReadBookBySchool(@Param("schoolCode") String schoolCode, Pageable pageable);
+    @Query("""
+        SELECT b
+        FROM Book b
+        JOIN b.bookCopies bc
+        LEFT JOIN bc.loans bl
+        LEFT JOIN bl.user u
+        WHERE bc.school.domainName = :schoolCode
+        GROUP BY b
+        ORDER BY COUNT(DISTINCT u.id) DESC
+        """)
+    List<Book> findMostReadBookBySchool(@Param("schoolCode") String schoolCode, Pageable pageable);
 
         @Query("""
                         SELECT relatedBook, COUNT(sourceGenre) as sharedGenreCount

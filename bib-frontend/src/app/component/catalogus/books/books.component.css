@@ -305,8 +305,9 @@
 .books-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 16px; /* Iets minder ruimte tussen boeken */
+  gap: 16px;
   align-items: start;
+  width: 100%;
 }
 
 .book-card {
@@ -330,7 +331,6 @@
 
 .book-image {
   flex-shrink: 0; /* Afbeelding mag niet kleiner worden */
-  height: 180px;
   width: 100%;
   height: 170px;
   background: #f3f4f6;
@@ -514,10 +514,13 @@
 .main-content {
   display: flex;
   gap: 24px;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .main-content .books-grid {
   flex: 1;
+  min-width: 0;
 }
 
 .sidebar {

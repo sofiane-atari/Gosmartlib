@@ -161,46 +161,33 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getMostReadBooks(int limit, String schoolCode) {
-        List<Book> books = bookRepository.findMostReadBook(PageRequest.of(0, limit));
+    public List<BookDTO> getMostReadBooks(Authentication authentication, int limit) {
+        School school = getCurrentUserSchool(authentication);
+        int safeLimit = Math.max(1, Math.min(limit, 20));
 
-        if (schoolCode != null && !schoolCode.isBlank()) {
-            books = filterBooksBySchool(books, schoolCode);
-        }
-
-        if (books.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen uitgeleende boeken gevonden");
-        }
+        List<Book> books = bookRepository.findMostReadBookBySchool(
+                school.getDomainName(),
+                PageRequest.of(0, safeLimit)
+        );
 
         return bookMapper.toDTOList(books);
     }
 
     @Transactional
-    public List<BookDTO> getNewestBooks(int limit, String schoolCode) {
-        List<Book> books = bookRepository.findNewestBooks(PageRequest.of(0, limit));
+    public List<BookDTO> getNewestBooks(Authentication authentication, int limit) {
+        School school = getCurrentUserSchool(authentication);
+        int safeLimit = Math.max(1, Math.min(limit, 20));
 
-        if (schoolCode != null && !schoolCode.isBlank()) {
-            books = filterBooksBySchool(books, schoolCode);
-        }
+        List<Book> books = bookRepository.findNewestBooksBySchool(
+                school.getDomainName(),
+                PageRequest.of(0, safeLimit)
+        );
 
         return bookMapper.toDTOList(books);
     }
 
-    private List<Book> filterBooksBySchool(List<Book> books, String schoolCode) {
-        return books.stream()
-                .filter(book -> belongsToSchool(book, schoolCode))
-                .toList();
-    }
 
-    private boolean belongsToSchool(Book book, String schoolCode) {
-        if (book == null || schoolCode == null || schoolCode.isBlank()) {
-            return false;
-        }
 
-        return book.getBookCopies() != null && book.getBookCopies().stream()
-                .filter(copy -> copy != null && copy.getSchool() != null)
-                .anyMatch(copy -> schoolCode.equals(copy.getSchool().getDomainName()));
-    }
 
     public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit) {
         bookRepository.findById(bookId)
