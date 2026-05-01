@@ -35,7 +35,7 @@
         <span class="step-num">Stap 3</span>
         <span class="step-title">Kies genres en voeg toe</span>
         <span class="step-desc">
-          Selecteer minstens één genre en klik daarna op "Boek Toevoegen".
+          (Optioneel) selecteer één genre en klik daarna op "Boek Toevoegen".
         </span>
       </div>
     </div>
@@ -145,7 +145,7 @@
         </div>
 
         <div class="form-group">
-        <label for="readingLevel">Leesniveau *</label>
+        <label for="readingLevel">Leesniveau (optioneel)</label>
 
           <select
             id="readingLevel"
@@ -167,27 +167,21 @@
             </p>
           }
 
-          @if (readingLevel.invalid && readingLevel.touched) {
-            <p class="error-message">Leesniveau is verplicht.</p>
-          }
         </div>
       </div>
 
       <div class="form-group full-width description-field">
-        <label>Beschrijving *</label>
+        <label>Beschrijving (optioneel)</label>
         <textarea
           formControlName="description"
           placeholder="Een korte beschrijving van het boek..."
           [readonly]="isCandidateLoaded"
         ></textarea>
 
-        @if (description.invalid && description.touched) {
-          <p class="error-message">Beschrijving is verplicht.</p>
-        }
       </div>
 
         <div class="form-group full-width genre-section">
-          <label>Genres * (selecteer minimaal 1 subgenre)</label>
+          <label>Genres (optioneel)</label>
 
           <div class="genre-grid main-genre-grid">
             @for (mainGenre of genres; track mainGenre.name) {
@@ -256,7 +250,7 @@
         <button
           type="submit"
           class="btn-submit"
-          [disabled]="form.invalid || selectedGenres.length === 0"
+          [disabled]="form.invalid"
         >
           <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
           {{ isCandidateLoaded ? 'Exemplaar Toevoegen' : 'Boek Toevoegen' }}

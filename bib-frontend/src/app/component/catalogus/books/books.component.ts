@@ -248,25 +248,24 @@ export class BooksComponent implements OnInit {
   }
 
   private loadSidebarBooks(): void {
-    const currentUser = this.authService.currentUser();
-    const schoolCode = currentUser?.platform;
-
-    this.bookService.getMostReadBooks(3, schoolCode).subscribe({
+    this.bookService.getMostReadBooks(3).subscribe({
       next: (books) => {
         this.mostReadBooks.set(books);
         this.mostReadLoading.set(false);
       },
       error: () => {
+        this.mostReadBooks.set([]);
         this.mostReadLoading.set(false);
       },
     });
 
-    this.bookService.getNewestBooks(3, schoolCode).subscribe({
+    this.bookService.getNewestBooks(3).subscribe({
       next: (books) => {
         this.newestBooks.set(books);
         this.newestLoading.set(false);
       },
       error: () => {
+        this.newestBooks.set([]);
         this.newestLoading.set(false);
       },
     });
