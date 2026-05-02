@@ -290,6 +290,13 @@
             <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
             {{ isExistingBookLoaded ? 'Exemplaar toevoegen' : 'Boek toevoegen' }}
           </button>
+
+          @if (!isExistingBookLoaded && bookForm.invalid) {
+            <p class="disabled-submit-hint">
+              Vul eerst alle verplichte velden in: titel, auteur, aantal pagina's en jaar.
+            </p>
+          }
+
         </div>
       </div>
     </form>

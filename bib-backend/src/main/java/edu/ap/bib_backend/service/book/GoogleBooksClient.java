@@ -40,6 +40,7 @@ public class GoogleBooksClient {
                 + "+inauthor:"
                 + encodedAuthor
                 + "&printType=books"
+                + "&langRestrict=nl"
                 + "&maxResults=20"
                 + "&key=" + googleBooksApiKey;
 
@@ -118,7 +119,8 @@ public class GoogleBooksClient {
     }
 
     private boolean matchesCandidate(Map<String, Object> volumeInfo, String title, String author, Integer releaseYear) {
-        return matchesTitle(volumeInfo, title)
+        return isDutchBook(volumeInfo)
+                && matchesTitle(volumeInfo, title)
                 && matchesAuthor(volumeInfo, author);
     }
 
@@ -179,5 +181,15 @@ public class GoogleBooksClient {
                 .toLowerCase()
                 .replaceAll("[^a-z0-9]", "")
                 .trim();
+    }
+
+    private boolean isDutchBook(Map<String, Object> volumeInfo) {
+        Object language = volumeInfo.get("language");
+
+        if (!(language instanceof String lang)) {
+            return false;
+        }
+
+        return "nl".equalsIgnoreCase(lang);
     }
 }

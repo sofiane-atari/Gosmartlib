@@ -17,7 +17,7 @@ export class AuthService {
   private static readonly TOKEN_EXPIRY_STORAGE_KEY = 'authTokenExpiry';
   private static readonly FALLBACK_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
   public readonly isSessionRefreshLoading = signal(false);
-  
+
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -34,7 +34,7 @@ export class AuthService {
 
   public readonly isSessionWarningVisible = signal(false);
   public readonly sessionSecondsRemaining = signal<number | null>(null);
-  
+
 
   private token = signal<string | null>(
     localStorage.getItem(AuthService.TOKEN_STORAGE_KEY),
