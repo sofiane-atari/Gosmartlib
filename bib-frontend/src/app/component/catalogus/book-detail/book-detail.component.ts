@@ -173,7 +173,7 @@ export class BookDetailComponent implements OnInit {
   }
 
   public openLessonTipDetail(lessonTipId: number): void {
-    void this.router.navigate([`/${LESSON_TIP_PATHS.root}`]);
+    void this.router.navigate(['/lesson', lessonTipId]);
   }
 
   public openAllLessonTipsForBook(): void {

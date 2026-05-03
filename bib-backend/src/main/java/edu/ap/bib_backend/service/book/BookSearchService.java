@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BookSearchService {
 
     private final BookRepository bookRepository;
-    private final BookMapper bookMapper; // Veronderstelt dat je de mapper ook hebt gesplitst
+    private final BookMapper bookMapper; 
 
     // Constanten voor "Magic Numbers"
     private static final int MAX_PAGE_SIZE = 50;
