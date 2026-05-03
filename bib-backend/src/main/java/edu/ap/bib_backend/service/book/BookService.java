@@ -12,6 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.security.core.Authentication;
+import edu.ap.bib_backend.service.user.CurrentUserService;
+
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
@@ -47,6 +50,7 @@ public class BookService {
     private final BookMapper bookMapper;
     private final BookCandidateMapper bookCandidateMapper;
     private final OpenLibraryClient openLibraryClient;
+    private final CurrentUserService currentUserService;
 
     public BookService(
             BookRepository bookRepository,
@@ -57,7 +61,8 @@ public class BookService {
             ReadingLevelRepository readingLevelRepository,
             BookMapper bookMapper,
             BookCandidateMapper bookCandidateMapper,
-            OpenLibraryClient openLibraryClient) {
+            OpenLibraryClient openLibraryClient,
+            CurrentUserService currentUserService) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.genreRepository = genreRepository;
@@ -67,6 +72,7 @@ public class BookService {
         this.bookMapper = bookMapper;
         this.bookCandidateMapper = bookCandidateMapper;
         this.openLibraryClient = openLibraryClient;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -153,8 +159,12 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getMostReadBooks(int limit) {
-        List<Book> books = bookRepository.findMostReadBook(PageRequest.of(0, limit));
+    public List<BookDTO> getMostReadBooks(int limit, Authentication authentication) {
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+
+        List<Book> books = bookRepository.findMostReadBook(PageRequest.of(0, limit)).stream()
+                .filter(book -> canSeeDidacticBooks || !book.isDidactic())
+                .toList();
 
         if (books.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen uitgeleende boeken gevonden");
@@ -164,22 +174,70 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getNewestBooks(int limit) {
-        List<Book> books = bookRepository.findNewestBooks(PageRequest.of(0, limit));
-        return bookMapper.toDTOList(books);
+    public List<BookDTO> getNewestBooks(int limit, Authentication authentication) {
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+
+        return bookRepository.findNewestBooks(PageRequest.of(0, limit)).stream()
+                .filter(book -> canSeeDidacticBooks || !book.isDidactic())
+                .map(bookMapper::toDTO)
+                .toList();
     }
 
-    public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit) {
-        bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + bookId));
+    public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit, Authentication authentication) {
+        Book sourceBook = findBookOrThrow(bookId);
+        validateBookVisibility(sourceBook, authentication);
 
-        int safeLimit = Math.max(1, Math.min(limit, 50)); // Max 50 voor performance
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+
+        int safeLimit = Math.max(1, Math.min(limit, 50));
         List<Object[]> results = bookRepository.findRelatedBooksWithScore(bookId, PageRequest.of(0, safeLimit));
 
         return results.stream()
                 .map(row -> (Book) row[0])
+                .filter(book -> canSeeDidacticBooks || !book.isDidactic())
                 .map(bookMapper::toDTO)
+                .toList();
+    }
+
+    public Optional<Book> findExistingByIsbn(String isbn) {
+        if (isbn == null || isbn.isBlank()) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.ofNullable(bookRepository.findByIsbn(isbn));
+    }
+
+    @Transactional
+    public List<BookCandidateDTO> searchBooksInDb(String title, String author, Integer releaseYear) {
+        String cleanTitle = normalize(title);
+        String cleanAuthor = normalize(author);
+
+        boolean noUsefulFilters = cleanTitle == null &&
+                cleanAuthor == null &&
+                releaseYear == null;
+
+        if (noUsefulFilters) {
+            return List.of();
+        }
+
+        Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear);
+
+        return bookRepository.findAll(spec).stream()
+                .limit(10)
+                .map(bookCandidateMapper::toDBCandidateDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BookDTO getBookByISBN(String rawIsbn) {
+        String normalizedIsbn = IsbnUtils.normalizeIsbn(rawIsbn);
+
+        if (normalizedIsbn == null || normalizedIsbn.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ongeldig ISBN");
+        }
+
+        return findExistingByIsbn(normalizedIsbn)
+                .map(bookMapper::toDTO)
+                .orElseGet(() -> openLibraryClient.fetchBookByISBN(normalizedIsbn));
     }
 
     private Book findBookOrThrow(Long id) {
@@ -187,12 +245,6 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
     }
 
-    public java.util.Optional<Book> findExistingByIsbn(String isbn) {
-        if (isbn == null || isbn.isBlank()) {
-            return java.util.Optional.empty();
-        }
-        return java.util.Optional.ofNullable(bookRepository.findByIsbn(isbn));
-    }
 
     private void createAvailableCopy(Book book) {
         BookCopy copy = new BookCopy();
@@ -237,45 +289,19 @@ public class BookService {
                         "Reading level bestaat niet: " + readingLevelDto.getId()));
     }
 
-    @Transactional
-    public List<BookCandidateDTO> searchBooksInDb(String title, String author, Integer releaseYear) {
-        String cleanTitle = normalize(title);
-        String cleanAuthor = normalize(author);
-
-        boolean noUsefulFilters = cleanTitle == null &&
-                cleanAuthor == null &&
-                releaseYear == null;
-
-        if (noUsefulFilters) {
-            return List.of();
-        }
-
-        Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear);
-
-        return bookRepository.findAll(spec).stream()
-                .limit(10)
-                .map(bookCandidateMapper::toDBCandidateDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public BookDTO getBookByISBN(String rawIsbn) {
-        String normalizedIsbn = IsbnUtils.normalizeIsbn(rawIsbn);
-
-        if (normalizedIsbn == null || normalizedIsbn.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ongeldig ISBN");
-        }
-
-        return findExistingByIsbn(normalizedIsbn)
-                .map(bookMapper::toDTO)
-                .orElseGet(() -> openLibraryClient.fetchBookByISBN(normalizedIsbn));
-    }
-
     private String normalize(String value) {
         if (value == null) {
             return null;
         }
         String trimmed = value.trim();
         return trimmed.isBlank() ? null : trimmed;
+    }
+
+    private void validateBookVisibility(Book book, Authentication authentication) {
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+
+        if (book.isDidactic() && !canSeeDidacticBooks) {
+            throw new ResourceNotFoundException("id", "Boek niet gevonden.");
+        }
     }
 }

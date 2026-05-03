@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { AddBookISBNComponent } from "./add-book-isbn/add-book-isbn.component";
-import { AddBookManualComponent } from "./add-book-manual/add-book-manual.component";
-import { AddBookBulkComponent } from "./add-book-bulk/add-book-bulk.component"
+import { AddBookISBNComponent } from './add-book-isbn/add-book-isbn.component';
+import { AddBookManualComponent } from './add-book-manual/add-book-manual.component';
+import { AddBookBulkComponent } from './add-book-bulk/add-book-bulk.component';
 import { BookService } from '../../../services/bookService/book.service';
 import { GenreService } from '../../../services/genre/genre.service';
 import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
@@ -15,18 +15,23 @@ import { Book } from '../../../model/book/book.model';
   standalone: true,
   imports: [AddBookISBNComponent, AddBookManualComponent, AddBookBulkComponent],
   templateUrl: './add-book-page.component.html',
-  styleUrl: './add-book-page.component.css'
+  styleUrl: './add-book-page.component.css',
 })
 export class AddBookPageComponent {
-mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
+  mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
   genres: Genre[] = [];
   readingLevels: ReadingLevel[] = [];
   isLoadingGenres = false;
   isLoadingReadingLevels = false;
 
-  constructor(private bs: BookService, private rt: Router, private gs: GenreService, private rls: ReadingLevelsService){}
+  constructor(
+    private bs: BookService,
+    private rt: Router,
+    private gs: GenreService,
+    private rls: ReadingLevelsService,
+  ) {}
 
-    book: Book = {
+  book: Book = {
     title: '',
     author: '',
     pages: 0,
@@ -34,7 +39,8 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
     description: '',
     releaseYear: new Date().getFullYear(),
     genres: [],
-    readingLevel: undefined
+    didactic: false,
+    readingLevel: undefined,
   };
 
   ngOnInit(): void {
@@ -52,7 +58,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
       },
       error: (err) => {
         this.isLoadingReadingLevels = false;
-      }
+      },
     });
   }
   loadGenres(): void {
@@ -65,7 +71,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
       },
       error: (err) => {
         this.isLoadingGenres = false;
-      }
+      },
     });
   }
   addBook(event: Book) {
@@ -78,7 +84,7 @@ mode: 'isbn' | 'manual' | 'bulk' = 'isbn';
       },
       error: (err) => {
         console.error(err);
-      }
+      },
     });
   }
 }

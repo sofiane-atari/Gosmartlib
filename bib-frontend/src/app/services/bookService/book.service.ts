@@ -86,7 +86,7 @@ export class BookService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  getBookByISBN(isbn: string) {
+  public getBookByISBN(isbn: string): Observable<Book> {
     return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
   }
 
@@ -162,7 +162,8 @@ export class BookService {
       },
     });
   }
-  addCopy(bookId: number) {
+
+  public addCopy(bookId: number): Observable<Book> {
     return this.http.post<Book>(`${this.apiUrl}/${bookId}/copies`, {});
   }
 

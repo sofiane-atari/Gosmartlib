@@ -4,9 +4,10 @@
     <div class="info-content">
       <p><strong>Snel boeken toevoegen</strong></p>
       <p>
-        Voer een geldig 13-cijferig ISBN-nummer in en klik op <strong>"Zoek gegevens"</strong>
-        om het formulier automatisch te vullen.
-        Heeft u geen geldig ISBN? Vul dan titel, auteur en jaar in en klik op
+        Voer een geldig 13-cijferig ISBN-nummer in en klik op
+        <strong>"Zoek gegevens"</strong>
+        om het formulier automatisch te vullen. Heeft u geen geldig ISBN? Vul
+        dan titel, auteur en jaar in en klik op
         <strong>"Zoek gegevens"</strong> om mogelijke boeken te vinden.
         Selecteer daarna het juiste boek uit de lijst met kandidaten.
       </p>
@@ -44,7 +45,6 @@
     <hr class="divider" />
 
     <form (ngSubmit)="save()" #bookForm="ngForm" class="book-form">
-
       <div class="search-section">
         <input
           type="text"
@@ -62,7 +62,8 @@
 
       @if (isExistingBookLoaded) {
         <p class="form-lock-hint">
-          Dit boek bestaat al in de database. Je kan alleen een extra exemplaar toevoegen.
+          Dit boek bestaat al in de database. Je kan alleen een extra exemplaar
+          toevoegen.
         </p>
       }
 
@@ -160,6 +161,23 @@
             </div>
           </div>
 
+          <div class="form-group full-width didactic-card">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="book.didactic"
+                name="didactic"
+                [disabled]="isExistingBookLoaded"
+              />
+              Didactisch boek
+            </label>
+
+            <p class="form-hint">
+              Didactische boeken zijn alleen zichtbaar voor leerkrachten en
+              beheerders.
+            </p>
+          </div>
+
           <div class="form-group full-width description-field">
             <label>Beschrijving *</label>
             <textarea
@@ -203,9 +221,13 @@
                   }
                 </div>
                 <div class="candidate-info">
-                  <p class="candidate-title"><strong>{{ candidate.title }}</strong></p>
+                  <p class="candidate-title">
+                    <strong>{{ candidate.title }}</strong>
+                  </p>
                   <p class="candidate-author">{{ candidate.author }}</p>
-                  <p class="candidate-year">{{ candidate.releaseYear ?? '-' }}</p>
+                  <p class="candidate-year">
+                    {{ candidate.releaseYear ?? "-" }}
+                  </p>
                   <p class="candidate-isbn">{{ candidate.isbn13 }}</p>
                 </div>
               </div>
@@ -223,9 +245,15 @@
               class="genre-option"
               [class.selected]="isMainGenreOpen(mainGenre)"
               [class.disabled]="isExistingBookLoaded"
-              [style.background-color]="isMainGenreOpen(mainGenre) ? mainGenre.color + '33' : '#f5f5f5'"
-              [style.color]="isMainGenreOpen(mainGenre) ? mainGenre.color : '#666'"
-              [style.border-color]="isMainGenreOpen(mainGenre) ? mainGenre.color + '66' : '#e0e0e0'"
+              [style.background-color]="
+                isMainGenreOpen(mainGenre) ? mainGenre.color + '33' : '#f5f5f5'
+              "
+              [style.color]="
+                isMainGenreOpen(mainGenre) ? mainGenre.color : '#666'
+              "
+              [style.border-color]="
+                isMainGenreOpen(mainGenre) ? mainGenre.color + '66' : '#e0e0e0'
+              "
               (click)="!isExistingBookLoaded && toggleMainGenre(mainGenre)"
             >
               <span class="genre-text">{{ mainGenre.name }}</span>
@@ -244,14 +272,27 @@
             </p>
 
             <div class="genre-grid subgenre-grid">
-              @for (subGenre of openedMainGenre.subGenres; track subGenre.name) {
+              @for (
+                subGenre of openedMainGenre.subGenres;
+                track subGenre.name
+              ) {
                 <div
                   class="genre-option"
                   [class.selected]="isSubGenreSelected(subGenre)"
                   [class.disabled]="isExistingBookLoaded"
-                  [style.background-color]="isSubGenreSelected(subGenre) ? subGenre.color + '33' : '#f5f5f5'"
-                  [style.color]="isSubGenreSelected(subGenre) ? subGenre.color : '#666'"
-                  [style.border-color]="isSubGenreSelected(subGenre) ? subGenre.color + '66' : '#e0e0e0'"
+                  [style.background-color]="
+                    isSubGenreSelected(subGenre)
+                      ? subGenre.color + '33'
+                      : '#f5f5f5'
+                  "
+                  [style.color]="
+                    isSubGenreSelected(subGenre) ? subGenre.color : '#666'
+                  "
+                  [style.border-color]="
+                    isSubGenreSelected(subGenre)
+                      ? subGenre.color + '66'
+                      : '#e0e0e0'
+                  "
                   (click)="!isExistingBookLoaded && toggleSubGenre(subGenre)"
                 >
                   <span class="genre-text">{{ subGenre.name }}</span>
@@ -262,23 +303,15 @@
         }
       </div>
 
-<div class="form-actions">
-  <button
-    type="button"
-    class="btn-clear"
-    (click)="clearForm()"
-  >
-    <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
-    Formulier leegmaken
-  </button>
+      <div class="form-actions">
+        <button type="button" class="btn-clear" (click)="clearForm()">
+          <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+          Formulier leegmaken
+        </button>
 
         <div class="action-buttons">
           @if (isExistingBookLoaded) {
-            <button
-              type="button"
-              class="btn-edit"
-              (click)="editBook()"
-            >
+            <button type="button" class="btn-edit" (click)="editBook()">
               <lucide-icon [name]="PencilIcon" class="btn-icon"></lucide-icon>
               Boek wijzigen
             </button>
@@ -287,10 +320,16 @@
           <button
             type="submit"
             class="btn-submit"
-            [disabled]="isExistingBookLoaded ? false : (bookForm.invalid || book.genres.length === 0)"
+            [disabled]="
+              isExistingBookLoaded
+                ? false
+                : bookForm.invalid || book.genres.length === 0
+            "
           >
             <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-            {{ isExistingBookLoaded ? 'Exemplaar toevoegen' : 'Boek toevoegen' }}
+            {{
+              isExistingBookLoaded ? "Exemplaar toevoegen" : "Boek toevoegen"
+            }}
           </button>
         </div>
       </div>

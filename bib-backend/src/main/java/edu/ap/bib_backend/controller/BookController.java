@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -64,7 +65,8 @@ public class BookController {
             @RequestParam(required = false) String genreName,
             @RequestParam(required = false) BookSortOption sortBy,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
 
         // AANGEPAST: We gebruiken nu bookSearchService
         Page<BookDTO> bookPage = bookSearchService.getFilteredBooks(
@@ -76,7 +78,8 @@ public class BookController {
                 genreName,
                 page,
                 size,
-                sortBy);
+                sortBy,
+                authentication);
 
         return new PageDTO<>(
                 bookPage.getContent(),
@@ -84,16 +87,18 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookDTO> getBookById(@PathVariable("id") Long id) {
-        BookDTO book = bookService.getBookById(id);
+    public ResponseEntity<BookDTO> getBookById(
+            @PathVariable("id") Long id ) {
+                BookDTO book = bookService.getBookById(id);
         return ResponseEntity.ok(book);
     }
 
     @GetMapping("/{id}/related-carousel")
     public ResponseEntity<List<BookDTO>> getRelatedBooksCarousel(
             @PathVariable("id") Long id,
-            @RequestParam(defaultValue = "10", required = false) int limit) {
-        return ResponseEntity.ok(bookService.getRelatedBooksCarousel(id, limit));
+            @RequestParam(defaultValue = "10", required = false) int limit,
+            Authentication authentication) {
+        return ResponseEntity.ok(bookService.getRelatedBooksCarousel(id, limit, authentication));
     }
 
     @PostMapping
@@ -124,14 +129,16 @@ public class BookController {
 
     @GetMapping("/most-read")
     public ResponseEntity<List<BookDTO>> getMostReadBooks(
-            @RequestParam(defaultValue = "3", required = false) int limit) {
-        return ResponseEntity.ok(bookService.getMostReadBooks(limit));
+            @RequestParam(defaultValue = "3", required = false) int limit,
+            Authentication authentication) {
+        return ResponseEntity.ok(bookService.getMostReadBooks(limit, authentication));
     }
 
     @GetMapping("/newest")
     public ResponseEntity<List<BookDTO>> getNewestBooks(
-            @RequestParam(defaultValue = "3", required = false) int limit) {
-        return ResponseEntity.ok(bookService.getNewestBooks(limit));
+            @RequestParam(defaultValue = "3", required = false) int limit,
+            Authentication authentication) {
+        return ResponseEntity.ok(bookService.getNewestBooks(limit, authentication));
     }
 
     @GetMapping("/search-candidates")
