@@ -14,6 +14,6 @@ export interface Book {
   totalCopies?: number;
   availableCopies?: number;
   didactic: boolean;
-  genres: Genre[];
+  genres?: Genre[];
   readingLevel?: ReadingLevel;
 }

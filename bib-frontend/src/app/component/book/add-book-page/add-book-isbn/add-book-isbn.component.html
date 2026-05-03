@@ -330,7 +330,7 @@
             [disabled]="
               isExistingBookLoaded
                 ? false
-                : bookForm.invalid || book.genres.length === 0
+                : bookForm.invalid || !book.genres?.length
             "
           >
             <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
