@@ -48,8 +48,8 @@ class LoanControllerTest {
     @Test
     void Given_ValidLoanBody_When_CreateLoan_Then_ReturnsOkAndCreatedLoan() throws Exception {
         // Arrange
-        LoanDTO requestBody = new LoanDTO("user-1", List.of(101L, 202L), "2099-12-31");
-        LoanDTO createdLoan = new LoanDTO("user-1", List.of(101L, 202L), "2099-12-31");
+        LoanDTO requestBody = new LoanDTO(null, "user-1", null, List.of(101L, 202L), null, null, "2099-12-31");
+        LoanDTO createdLoan = new LoanDTO(null, "user-1", null, List.of(101L, 202L), null, null, "2099-12-31");
 
         when(loanService.create(requestBody)).thenReturn(createdLoan);
 

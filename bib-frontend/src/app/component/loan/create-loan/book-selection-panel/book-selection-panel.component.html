@@ -1,45 +1,16 @@
-<div class="panel">
-    <div class="panel-header">
-        <h2>2. Zoek en selecteer boeken</h2>
-        <span class="pill">{{ selectedBooksCount() }} gekozen</span>
-    </div>
-
-    @if (!hasSelectedUser()) {
-    <p class="hint">Selecteer eerst een gebruiker om boeken te zoeken.</p>
-    } @else {
-    <div class="search-row">
-        <label for="bookSearchQuery">Zoek op titel of auteur</label>
-        <input id="bookSearchQuery" type="text" [value]="searchQuery()" (input)="searchQueryChanged.emit($event)"
-            placeholder="Typ een titel of auteur" />
-    </div>
-
-    <div class="search-row">
-        <label for="bookSearchIsbn">Zoek op ISBN</label>
-        <input id="bookSearchIsbn" type="text" [value]="searchIsbn()" (input)="isbnSearchChanged.emit($event)"
-            (keydown)="isbnKeydown.emit($event)" placeholder="Typ een ISBN" />
-    </div>
-
-    @if (isLoadingBooks()) {
-    <p class="hint">Boeken worden geladen...</p>
-    } @else if (!hasBookSearchInput()) {
-    <p class="hint">Vul minstens één zoekveld in om boeken te zoeken.</p>
-    } @else {
-    <div class="list">
-        @for (book of filteredBooks(); track book.id) {
-        <div class="list-item book-item">
-            <div class="book-item-content">
-                <span class="list-item-title">{{ book.title }}</span>
-                <span class="list-item-subtitle">{{ book.author }} · Beschikbaar: {{ book.availableCopies ?? 0 }}</span>
-            </div>
-            <button type="button" class="btn btn-primary" [disabled]="(book.availableCopies ?? 0) < 1"
-                (click)="addBookRequested.emit(book)">
-                Selecteren
-            </button>
-        </div>
-        } @empty {
-        <p class="hint">Geen beschikbare boeken gevonden voor deze zoekterm.</p>
-        }
-    </div>
-    }
-    }
-</div>
+<app-didactic-material-book-selection-panel
+  [panelEyebrow]="'Uitleenbeheer'"
+  [panelTitle]="'Zoek en selecteer boeken'"
+  [hasSelectedUser]="hasSelectedUser()"
+  [searchQuery]="searchQuery()"
+  [searchIsbn]="searchIsbn()"
+  [isLoadingBooks]="isLoadingBooks()"
+  [hasBookSearchInput]="hasBookSearchInput()"
+  [filteredBooks]="bookCandidates()"
+  [selectedBooksCount]="selectedBooksCount()"
+  [selectedBookIds]="selectedBookIds()"
+  (searchQueryChanged)="searchQueryChanged.emit($event)"
+  (isbnSearchChanged)="isbnSearchChanged.emit($event)"
+  (isbnKeydown)="isbnKeydown.emit($event)"
+  (addBookRequested)="handleAddBookRequested($event)"
+></app-didactic-material-book-selection-panel>

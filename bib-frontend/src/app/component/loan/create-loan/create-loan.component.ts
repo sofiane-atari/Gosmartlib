@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
@@ -38,6 +39,7 @@ export class CreateLoanComponent {
   private readonly loansService = inject(LoansService);
   private readonly toastService = inject(ToastService);
   private readonly barcodeScannerRecognizer = inject(BarcodeScannerRecognizerService);
+  private readonly router = inject(Router);
   private readonly catalogSearchSubject = new Subject<string>();
   private readonly isbnSearchSubject = new Subject<string>();
   private suppressNextDebouncedIsbnSearch = false;
@@ -139,6 +141,12 @@ export class CreateLoanComponent {
 
       return hasId && notAlreadySelected && hasCopiesAvailable;
     });
+  });
+
+  public readonly selectedBookIds = computed(() => {
+    return this.selectedBooks()
+      .map((book) => book.id)
+      .filter((bookId): bookId is number => bookId !== undefined);
   });
 
   public onFirstnameSearchChange(event: Event): void {
@@ -277,6 +285,7 @@ export class CreateLoanComponent {
           this.loanForm.reset({ returnDate: '' });
           this.triggerCatalogSearch();
           this.triggerIsbnSearch();
+          void this.router.navigate(['/books-management']);
         },
         error: () => {
           this.isSubmitting.set(false);

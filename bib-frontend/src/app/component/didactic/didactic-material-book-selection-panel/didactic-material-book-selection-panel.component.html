@@ -1,8 +1,10 @@
 <div class="panel">
   <div class="panel-header">
     <div>
-      <p class="panel-eyebrow">Gekoppelde boeken</p>
-      <h2>Zoek en selecteer boeken</h2>
+      @if (panelEyebrow()) {
+        <p class="panel-eyebrow">{{ panelEyebrow() }}</p>
+      }
+      <h2>{{ panelTitle() }}</h2>
     </div>
 
     <span class="pill">{{ selectedBooksCount() }} gekozen</span>
@@ -31,7 +33,11 @@
     />
   </div>
 
-  @if (isLoadingBooks()) {
+  @if (!hasSelectedUser()) {
+    <div class="state-panel state-panel--compact">
+      <p>Selecteer eerst een gebruiker om boeken te zoeken.</p>
+    </div>
+  } @else if (isLoadingBooks()) {
     <div class="state-panel state-panel--compact">
       <p>Boeken worden geladen...</p>
     </div>

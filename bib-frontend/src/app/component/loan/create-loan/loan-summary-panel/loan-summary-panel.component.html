@@ -1,26 +1,39 @@
 <div class="panel">
     <div class="panel-header">
-        <h2>3. Geselecteerde boeken en einddatum</h2>
+        <div>
+            <p class="panel-eyebrow">Uitleenbeheer</p>
+            <h2>Controleer en bevestig</h2>
+        </div>
     </div>
 
     <form [formGroup]="loanForm()" (ngSubmit)="createLoanRequested.emit()" class="loan-form">
-        <label for="returnDate">Terugbrengdatum</label>
-        <input id="returnDate" type="date" formControlName="returnDate" [attr.min]="minReturnDate()" />
+        <div class="date-field">
+            <label for="returnDate">Terugbrengdatum</label>
+            <input id="returnDate" type="date" formControlName="returnDate" [attr.min]="minReturnDate()" />
+        </div>
 
         <div class="selected-books">
-            <h3>Geselecteerde boeken</h3>
+            <div class="selected-books-header">
+                <h3>Geselecteerde boeken</h3>
+                <span class="pill">{{ selectedBooks().length }} gekozen</span>
+            </div>
             @for (book of selectedBooks(); track trackSelectedBook($index, book)) {
             <div class="selected-book-row">
-                <span>{{ book.title }} - {{ book.author }}</span>
-                <button type="button" class="btn btn-danger"
+                <div class="selected-book-content">
+                    <span class="selected-book-title">{{ book.title }}</span>
+                    <span class="selected-book-subtitle">{{ book.author }}</span>
+                </div>
+                <button type="button" class="action-button action-button--danger"
                     (click)="removeBookRequested.emit(book.id)">Verwijderen</button>
             </div>
             } @empty {
-            <p class="hint">Nog geen boeken geselecteerd.</p>
+            <div class="state-panel state-panel--compact">
+                <p>Nog geen boeken geselecteerd.</p>
+            </div>
             }
         </div>
 
-        <button type="submit" class="btn btn-primary submit-btn"
+        <button type="submit" class="action-button action-button--primary submit-btn"
             [disabled]="isSubmitting() || !hasSelectedUser() || selectedBooks().length === 0">
             @if (isSubmitting()) {
             Lening wordt aangemaakt...

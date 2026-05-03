@@ -72,8 +72,7 @@ public class BookSearchService {
         Sort sort = mapSort(sortBy);
         Pageable pageable = PageRequest.of(validatedPage, validatedSize, sort);
 
-        Specification<Book> specification = Specification
-                .where(BookSpecification.hasAvailableCopyInSchool(schoolDomainName))
+        Specification<Book> specification = BookSpecification.hasAvailableCopyInSchool(schoolDomainName)
                 .and(BookSpecification.withFilters(
                         normalizedSearchTerm,
                         availability,

@@ -47,10 +47,10 @@ class LoanServiceTest {
     void Given_ValidLoanDTO_When_Create_Then_ReturnsCreatedLoanDTO() {
         // Arrange
         String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(2).toString();
-        LoanDTO inputLoan = new LoanDTO("user-1", List.of(15L), returnDate);
+        LoanDTO inputLoan = new LoanDTO(null, "user-1", null, List.of(15L), null, null, returnDate);
 
         Loan mappedLoan = new Loan();
-        LoanDTO expectedResult = new LoanDTO("user-1", List.of(15L), returnDate);
+        LoanDTO expectedResult = new LoanDTO(null, "user-1", null, List.of(15L), null, null, returnDate);
 
         BookCopy selectedCopy = new BookCopy();
         Book book = new Book();
@@ -80,7 +80,7 @@ class LoanServiceTest {
     @Test
     void Given_LoanDTOWithInvalidDateFormat_When_Create_Then_ThrowsIllegalStateException() {
         // Arrange
-        LoanDTO inputLoan = new LoanDTO("user-1", List.of(15L), "31-12-2099");
+        LoanDTO inputLoan = new LoanDTO(null, "user-1", null, List.of(15L), null, null, "31-12-2099");
 
         // Act
         IllegalStateException exception = assertThrows(IllegalStateException.class,
@@ -97,7 +97,7 @@ class LoanServiceTest {
     void Given_LoanDTOWithTodayAsReturnDate_When_Create_Then_ThrowsIllegalStateException() {
         // Arrange
         String today = LocalDate.now(ZoneId.of("Europe/Brussels")).toString();
-        LoanDTO inputLoan = new LoanDTO("user-1", List.of(15L), today);
+        LoanDTO inputLoan = new LoanDTO(null, "user-1", null, List.of(15L), null, null, today);
 
         // Act
         IllegalStateException exception = assertThrows(IllegalStateException.class,

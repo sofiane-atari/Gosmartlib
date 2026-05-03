@@ -12,6 +12,9 @@ import { BookCandidate } from '../../../model/book/book-candidate.model';
   styleUrl: './didactic-material-book-selection-panel.component.css',
 })
 export class DidacticMaterialBookSelectionPanelComponent {
+  public readonly panelEyebrow = input<string>('Gekoppelde boeken');
+  public readonly panelTitle = input<string>('Zoek en selecteer boeken');
+  public readonly hasSelectedUser = input<boolean>(true);
   public readonly searchQuery = input.required<string>();
   public readonly searchIsbn = input.required<string>();
   public readonly isLoadingBooks = input.required<boolean>();

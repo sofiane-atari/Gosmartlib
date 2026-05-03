@@ -1,25 +1,53 @@
 <section class="loan-container">
-	<header class="page-header">
-		<p class="eyebrow">Uitleenbeheer</p>
-		<h1>Lening aanmaken</h1>
-		<p class="intro">Kies een gebruiker, selecteer één of meerdere beschikbare boeken en leg een terugbrengdatum
-			vast.</p>
-	</header>
+  <header class="page-header">
+    <div class="header-icon">L</div>
+    <div class="header-content">
+      <p class="eyebrow">Uitleenbeheer</p>
+      <h1>Lening aanmaken</h1>
+      <p class="intro">
+        Kies een gebruiker, selecteer één of meerdere beschikbare boeken en
+        leg een terugbrengdatum vast.
+      </p>
+    </div>
+  </header>
 
-	<app-user-selection-panel [isLoadingUsers]="isLoadingUsers()" [users]="users()" [selectedUser]="selectedUser()"
-		[searchFirstname]="searchFirstname()" [searchLastname]="searchLastname()" [searchId]="searchId()"
-		(firstnameSearchChanged)="onFirstnameSearchChange($event)"
-		(lastnameSearchChanged)="onLastnameSearchChange($event)" (searchIdChanged)="onSearchIdChange($event)"
-		(searchRequested)="searchUsers()" (userSelected)="selectUser($event)"
-		(clearSelectedUserRequested)="clearSelectedUser()" />
+  <section class="step-overview">
+    <div class="step-item">
+      <span class="step-num">Stap 1</span>
+      <span class="step-title">Selecteer een gebruiker</span>
+      <span class="step-desc">Zoek op naam of tijdelijk gebruikers-id.</span>
+    </div>
+    <div class="step-item">
+      <span class="step-num">Stap 2</span>
+      <span class="step-title">Kies boeken</span>
+      <span class="step-desc">Zoek op titel, auteur of ISBN.</span>
+    </div>
+    <div class="step-item">
+      <span class="step-num">Stap 3</span>
+      <span class="step-title">Bevestig de lening</span>
+      <span class="step-desc">Controleer de selectie en datum.</span>
+    </div>
+  </section>
 
-	<app-book-selection-panel [hasSelectedUser]="selectedUser() !== null" [selectedBooksCount]="selectedBooks().length"
-		[searchQuery]="bookSearchQuery()" [searchIsbn]="bookSearchIsbn()" [isLoadingBooks]="isLoadingBooks()"
-		[hasBookSearchInput]="hasBookSearchInput()" [filteredBooks]="filteredBooks()"
-		(searchQueryChanged)="onBookSearchQueryChange($event)" (isbnSearchChanged)="onBookIsbnSearchChange($event)"
-		(isbnKeydown)="onBookIsbnKeydown($event)" (addBookRequested)="addBook($event)" />
+  <app-user-selection-panel [isLoadingUsers]="isLoadingUsers()" [users]="users()" [selectedUser]="selectedUser()"
+    [searchFirstname]="searchFirstname()" [searchLastname]="searchLastname()" [searchId]="searchId()"
+    (firstnameSearchChanged)="onFirstnameSearchChange($event)"
+    (lastnameSearchChanged)="onLastnameSearchChange($event)" (searchIdChanged)="onSearchIdChange($event)"
+    (searchRequested)="searchUsers()" (userSelected)="selectUser($event)"
+    (clearSelectedUserRequested)="clearSelectedUser()" />
 
-	<app-loan-summary-panel [loanForm]="loanForm" [minReturnDate]="minReturnDate()" [selectedBooks]="selectedBooks()"
-		[hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()" (createLoanRequested)="createLoan()"
-		(removeBookRequested)="removeBook($event)" />
+  @if (selectedUser() !== null) {
+    <app-book-selection-panel [hasSelectedUser]="selectedUser() !== null" [selectedBooksCount]="selectedBooks().length"
+      [searchQuery]="bookSearchQuery()" [searchIsbn]="bookSearchIsbn()" [isLoadingBooks]="isLoadingBooks()"
+      [hasBookSearchInput]="hasBookSearchInput()" [filteredBooks]="filteredBooks()"
+      [selectedBookIds]="selectedBookIds()" (searchQueryChanged)="onBookSearchQueryChange($event)"
+      (isbnSearchChanged)="onBookIsbnSearchChange($event)" (isbnKeydown)="onBookIsbnKeydown($event)"
+      (addBookRequested)="addBook($event)" />
+  }
+
+  @if (selectedUser() !== null && selectedBooks().length > 0) {
+    <app-loan-summary-panel [loanForm]="loanForm" [minReturnDate]="minReturnDate()"
+      [selectedBooks]="selectedBooks()" [hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()"
+      (createLoanRequested)="createLoan()" (removeBookRequested)="removeBook($event)" />
+  }
 </section>
