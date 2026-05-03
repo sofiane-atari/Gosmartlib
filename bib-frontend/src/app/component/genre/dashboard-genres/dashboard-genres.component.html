@@ -6,13 +6,9 @@
       <p>Beheer genres voor de boekencatalogus</p>
     </div>
 
-    <app-button-hover-help
-      class="full-button-help"
-      text="Maak een nieuw genre aan voor de boekencatalogus.">
-      <button class="btn-new" (click)="setPopup('create')">
-        + Nieuw genre
-      </button>
-    </app-button-hover-help>
+    <button class="btn-new" (click)="setPopup('create')">
+      + Nieuw genre
+    </button>
   </div>
 
   <div [class.blur-background]="popUp() !== null">
