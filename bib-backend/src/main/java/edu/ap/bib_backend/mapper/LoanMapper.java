@@ -18,6 +18,7 @@ public interface LoanMapper {
     @Mapping(target = "returnDate", ignore = true)
     @Mapping(target = "copies", ignore = true)
     @Mapping(target = "user.id", source = "userId")
+    @Mapping(target = "returnedDate", ignore = true)
     Loan toEntity(LoanDTO dto);
 
     @Mapping(target = "userId", source = "user.id")
@@ -25,6 +26,7 @@ public interface LoanMapper {
     @Mapping(target = "books", expression = "java(mapBooks(loan.getCopies()))")
     @Mapping(target = "loanDate", expression = "java(loan.getLoanDate() != null ? loan.getLoanDate().toString() : null)")
     @Mapping(target = "returnDate", expression = "java(loan.getReturnDate() != null ? loan.getReturnDate().toString() : null)")
+    @Mapping(target = "returnedDate", expression = "java(loan.getReturnedDate() != null ? loan.getReturnedDate().toString() : null)")
     LoanDTO toDto(Loan loan);
 
     default List<Long> mapBookIds(List<BookCopy> copies) {

@@ -18,4 +18,9 @@ export class LoansService {
   public getAllLoans(): Observable<Loan[]> {
     return this.http.get<Loan[]>(`${this.apiUrl}/loans`);
   }
+
+  public returnLoan(loanId: number): Observable<Loan> {
+    return this.http.patch<Loan>(`${this.apiUrl}/loans/${loanId}/return`, {});
+  }
+
 }

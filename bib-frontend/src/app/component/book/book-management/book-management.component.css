@@ -349,6 +349,8 @@ lucide-icon {
   white-space: nowrap;
 }
 
+
+
 @media (max-width: 1024px) {
   .table-card {
     overflow-x: auto;

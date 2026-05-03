@@ -115,15 +115,29 @@ public class LoanService {
                     return LoanDTO.builder()
                             .id(dto.id())
                             .userId(dto.userId())
-                            .userDisplayName(
-                                    displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker")
-                            )
+                            .userDisplayName(displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"))
                             .bookIds(dto.bookIds())
                             .books(dto.books())
                             .loanDate(dto.loanDate())
                             .returnDate(dto.returnDate())
+                            .returnedDate(dto.returnedDate())
                             .build();
                 })
                 .toList();
+    }
+
+    @Transactional
+    public LoanDTO returnLoan(Long loanId) {
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new IllegalStateException("Lening niet gevonden."));
+
+        if (loan.getReturnedDate() != null) {
+            throw new IllegalStateException("Deze lening is al teruggebracht.");
+        }
+
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
+        loan.setReturnedDate(today);
+
+        return loanMapper.toDto(loanRepository.save(loan));
     }
 }

@@ -31,5 +31,12 @@ public record LoanDTO(
 
         @JsonProperty("returnDate")
         @NotBlank(message = "Retourdatum is verplicht")
-        String returnDate
-) {}
+        String returnDate,
+
+        @JsonProperty("returnedDate")
+                String returnedDate
+) {
+    public LoanDTO(String userId, List<Long> bookIds, String returnDate) {
+        this(null, userId, null, bookIds, null, null, returnDate, null);
+    }
+}

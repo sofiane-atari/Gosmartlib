@@ -34,6 +34,7 @@ import { CreateTeacherReadingListComponent } from './component/reading-list/crea
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
+import {ReturnLoanComponent} from "./component/loan/return-loan/return-loan.component";
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -109,6 +110,11 @@ export const routes: Routes = [
   {
     path: 'loans/create',
     component: CreateLoanComponent,
+    canActivate: [authGuard, staffOnlyGuard],
+  },
+  {
+    path: 'loans/return',
+    component: ReturnLoanComponent,
     canActivate: [authGuard, staffOnlyGuard],
   },
   {

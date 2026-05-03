@@ -15,4 +15,5 @@ export interface Loan {
   books?: LoanBook[];
   loanDate?: LocalDate;
   returnDate: LocalDate;
+  returnedDate?: LocalDate | null;
 }

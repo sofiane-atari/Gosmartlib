@@ -55,6 +55,10 @@ export class BookManagementComponent implements OnInit {
   }
 
   protected getLoanStatus(loan: Loan): LoanStatus {
+    if (loan.returnedDate) {
+      return 'Teruggebracht';
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

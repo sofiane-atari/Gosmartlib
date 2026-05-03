@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SchoolService;
+import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.oneroster.OneRosterAudienceService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,6 +49,12 @@ class SchoolControllerTest {
 
         @MockitoBean
         private OneRosterAudienceService oneRosterAudienceService;
+
+
+        @MockitoBean
+        private TokenStorageService tokenStorageService;
+
+
 
         @Test
         void givenSchools_whenGetAll_thenReturnOkWithList() throws Exception {
