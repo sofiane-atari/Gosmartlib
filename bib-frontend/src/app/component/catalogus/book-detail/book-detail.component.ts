@@ -1,22 +1,21 @@
-import { Component, Inject, OnDestroy, signal } from '@angular/core';
+import { Component, Inject, inject, OnDestroy, signal, OnInit } from '@angular/core';
+
 import { Book } from '../../../model/book/book.model';
 import {
   LucideAngularModule,
-  Heart,
   BookOpen,
   X,
   Library,
   Minus,
   Plus,
   CheckCircle,
-  Edit2,
   Trash2,
   Calendar,
   Star,
   MessageCircle,
-  BookPlus,
   Bookmark,
   Flag,
+  Pencil,
   ChevronDown
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
@@ -28,11 +27,16 @@ import { Availability } from '../../../model/enums/availability.enum';
 import { Review } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
-import { ReadingListService, ReadingList } from '../../../services/reading-list/reading-list.service';
+import {
+  ReadingListService,
+  ReadingList,
+} from '../../../services/reading-list/reading-list.service';
 import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
+import { BookLessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
+import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 import { DraftStorageService } from '../../../services/storage/draft-storage.service';
 import { ReviewDraft } from '../../../model/review/review-draft.model';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
@@ -43,15 +47,16 @@ import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-
   standalone: true,
   imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink, ButtonHoverHelpComponent],
   templateUrl: './book-detail.component.html',
-  styleUrl: './book-detail.component.css'
+  styleUrl: './book-detail.component.css',
 })
-export class BookDetailComponent implements OnDestroy {
+
+export class BookDetailComponent implements OnDestroy, OnInit {
   readonly X = X;
   readonly Library = Library;
   readonly Minus = Minus;
   readonly Plus = Plus;
   readonly CheckCircle = CheckCircle;
-  readonly Edit2 = Edit2;
+  readonly Pencil = Pencil;
   readonly Trash2 = Trash2;
   readonly Calendar = Calendar;
   readonly Star = Star;
@@ -66,7 +71,7 @@ export class BookDetailComponent implements OnDestroy {
     { icon: MessageCircle, label: 'Berichten' },
     { icon: Calendar, label: 'Planning' },
     { icon: CheckCircle, label: 'Voltooid' },
-    { icon: Edit2, label: 'Bewerken' },
+    { icon: Pencil, label: 'Bewerken' },
     { icon: Plus, label: 'Toevoegen' },
     { icon: Minus, label: 'Verwijderen' },
     { icon: Trash2, label: 'Prullenbak' },
@@ -74,11 +79,11 @@ export class BookDetailComponent implements OnDestroy {
   ];
 
   //Reviews//
-  reviews: Review[] = [];
-  newReviewText: string = '';
-  newReviewRating: number = 5;
-  starsArray: number[] = [1, 2, 3, 4, 5];
-  averageRating: number = 0;
+  public reviews: Review[] = [];
+  public newReviewText: string = '';
+  public newReviewRating: number = 5;
+  public readonly starsArray: number[] = [1, 2, 3, 4, 5];
+  public averageRating: number = 0;
 
   // Lists //
   readingLists: ReadingList[] = [];
@@ -86,12 +91,19 @@ export class BookDetailComponent implements OnDestroy {
   showListPicker: boolean = false;
 
   // Preview //
-  public readonly previewState = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  public readonly previewState = signal<'idle' | 'loading' | 'ready' | 'error'>(
+    'idle',
+  );
   public readonly previewData = signal<BookPreview | null>(null);
   public readonly previewErrorMessage = signal<string>('');
   public readonly embeddedPreviewUrl = signal<SafeResourceUrl | null>(null);
   public readonly previewFallbackUrl = signal<string | null>(null);
   public readonly isPreviewModalOpen = signal<boolean>(false);
+
+  protected readonly lessonTipPreview = signal<BookLessonTipPreview | null>(
+    null,
+  );
+  protected readonly isLoadingLessonTips = signal(false);
 
   Availability = Availability;
 
@@ -101,7 +113,7 @@ export class BookDetailComponent implements OnDestroy {
   private currentBookId: number | null = null;
   private reviewDraftIntervalId: ReturnType<typeof setInterval> | null = null;
 
-  protected readonly roleService = Inject(RoleService);
+  protected readonly roleService = inject(RoleService);
 
   constructor(
     private route: ActivatedRoute,
@@ -116,17 +128,23 @@ export class BookDetailComponent implements OnDestroy {
   
   ) {
 
-  }
-
-  ngOnInit() {
+  public ngOnInit(): void {
     // Ensure current user role is available for picker filtering.
     this.authService.fetchCurrentUser();
 
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
 
     if (id) {
       const numericBookId = +id;
+
+        this.bookService.getBookById(numericBookId).subscribe((book) => {
+          this.selectedBook = book;
+
+          if (book.id) {
+            this.loadLessonTips(book.id);
+          }
+        });
 
       this.currentBookId = numericBookId;
       this.restoreReviewDraft(numericBookId);
@@ -152,12 +170,49 @@ export class BookDetailComponent implements OnDestroy {
       error: (err) => {
         console.error('Problem with loading carousel books', err);
         this.relatedBooksCarousel = [];
-      }
+      },
+    });
+  }
+
+  private loadLessonTips(bookId: number): void {
+    this.isLoadingLessonTips.set(true);
+
+    this.bookService.getLessonTipPreviewByBookId(bookId).subscribe({
+      next: (preview) => {
+        this.lessonTipPreview.set(preview);
+        this.isLoadingLessonTips.set(false);
+      },
+      error: () => {
+        this.lessonTipPreview.set(null);
+        this.isLoadingLessonTips.set(false);
+        this.toastService.show(
+          'De lestips bij dit boek konden niet worden geladen.',
+          'error',
+        );
+      },
+    });
+  }
+
+  public openLessonTipDetail(lessonTipId: number): void {
+    void this.router.navigate(['/lesson', lessonTipId]);
+  }
+
+  public openAllLessonTipsForBook(): void {
+    const bookId = this.selectedBook?.id;
+
+    if (!bookId) {
+      return;
+    }
+
+    void this.router.navigate([`/${LESSON_TIP_PATHS.root}`], {
+      queryParams: { bookId },
     });
   }
 
   scrollCarousel(direction: 'left' | 'right') {
-    const carousel = document.querySelector('.related-books-carousel-container');
+    const carousel = document.querySelector(
+      '.related-books-carousel-container',
+    );
     if (!carousel) return;
 
     const scrollAmount = 240; // 90px kaart + 16px gap + wat padding
@@ -187,7 +242,9 @@ export class BookDetailComponent implements OnDestroy {
   loadReadingLists() {
     this.readingListService.getLists().subscribe((lists) => {
       this.readingLists = lists;
-      this.pickerReadingLists = lists.filter(list => this.canShowInPicker(list));
+      this.pickerReadingLists = lists.filter((list) =>
+        this.canShowInPicker(list),
+      );
     });
   }
 
@@ -212,21 +269,28 @@ export class BookDetailComponent implements OnDestroy {
 
   addBookToList(listId: number) {
     if (this.selectedBook?.id) {
-      this.readingListService.addBookToList(listId, this.selectedBook.id).subscribe({
-        next: () => {
-
-          this.toastService.show(`Boek toegevoegd aan leeslijst!`, 'success');
-          this.showListPicker = false;
-        },
-        error: (err: any) => {
-          if (err.error === 'Boek zit al in deze leeslijst') {
-            this.toastService.show("Dit boek staat al in deze leeslijst!", 'error');
-          } else {
-            console.error("Fout bij toevoegen aan leeslijst", err);
-            this.toastService.show("Er is een fout opgetreden bij het toevoegen aan de leeslijst.", 'error');
-          }
-        }
-      });
+      this.readingListService
+        .addBookToList(listId, this.selectedBook.id)
+        .subscribe({
+          next: () => {
+            this.toastService.show(`Boek toegevoegd aan leeslijst!`, 'success');
+            this.showListPicker = false;
+          },
+          error: (err: any) => {
+            if (err.error === 'Boek zit al in deze leeslijst') {
+              this.toastService.show(
+                'Dit boek staat al in deze leeslijst!',
+                'error',
+              );
+            } else {
+              console.error('Fout bij toevoegen aan leeslijst', err);
+              this.toastService.show(
+                'Er is een fout opgetreden bij het toevoegen aan de leeslijst.',
+                'error',
+              );
+            }
+          },
+        });
     }
   }
 
@@ -241,8 +305,8 @@ export class BookDetailComponent implements OnDestroy {
 
   updateAverage(bookId: number) {
     this.reviewService.getAverageRating(bookId).subscribe({
-      next: (avg) => this.averageRating = avg,
-      error: (err) => console.error('Problem with getting average score', err)
+      next: (avg) => (this.averageRating = avg),
+      error: (err) => console.error('Problem with getting average score', err),
     });
   }
 
@@ -295,15 +359,15 @@ export class BookDetailComponent implements OnDestroy {
       () => {
         this.reviewService.deleteReview(reviewId).subscribe({
           next: () => {
-            this.reviews = this.reviews.filter(r => r.id !== reviewId);
+            this.reviews = this.reviews.filter((r) => r.id !== reviewId);
             if (this.selectedBook?.id) this.updateAverage(this.selectedBook.id);
             this.toastService.show('Review verwijderd!', 'success');
           },
-          error: () => this.toastService.show('Problem with deleting!', 'error')
+          error: () =>
+            this.toastService.show('Problem with deleting!', 'error'),
         });
       },
-      () => {
-      }
+      () => {},
     );
   }
 
@@ -324,7 +388,10 @@ export class BookDetailComponent implements OnDestroy {
               this.updateAverage(this.selectedBook.id);
             }
 
-            this.toastService.show('Review succesvol gerapporteerd.', 'success');
+            this.toastService.show(
+              'Review succesvol gerapporteerd.',
+              'success',
+            );
           },
           error: (err) => {
             console.error('Problem with reporting review', err);
@@ -339,7 +406,6 @@ export class BookDetailComponent implements OnDestroy {
     );
   }
 
-
   public loadPreview(): void {
     const isbn = this.getSelectedBookIsbn();
 
@@ -347,7 +413,9 @@ export class BookDetailComponent implements OnDestroy {
 
     if (!isbn) {
       this.previewState.set('error');
-      this.previewErrorMessage.set('Geen geldig ISBN beschikbaar voor dit boek.');
+      this.previewErrorMessage.set(
+        'Geen geldig ISBN beschikbaar voor dit boek.',
+      );
       this.previewData.set(null);
       this.embeddedPreviewUrl.set(null);
       this.previewFallbackUrl.set(null);
@@ -392,7 +460,9 @@ export class BookDetailComponent implements OnDestroy {
         }
 
         this.previewState.set('error');
-        this.previewErrorMessage.set('Er is geen veilige preview-link beschikbaar.');
+        this.previewErrorMessage.set(
+          'Er is geen veilige preview-link beschikbaar.',
+        );
       },
       error: (err) => {
         console.error('Problem with loading preview', err);
@@ -400,15 +470,20 @@ export class BookDetailComponent implements OnDestroy {
         this.embeddedPreviewUrl.set(null);
         this.previewFallbackUrl.set(null);
         this.previewState.set('error');
-        const backendMessage = typeof err?.error?.message === 'string' ? err.error.message : null;
-        this.previewErrorMessage.set(backendMessage || 'Preview kon niet geladen worden. Probeer later opnieuw.');
-      }
+        const backendMessage =
+          typeof err?.error?.message === 'string' ? err.error.message : null;
+        this.previewErrorMessage.set(
+          backendMessage ||
+            'Preview kon niet geladen worden. Probeer later opnieuw.',
+        );
+      },
     });
   }
 
   private getSelectedBookIsbn(): string | null {
     const normalizedBook = this.selectedBook as Book & { isbn?: string };
-    const isbn = this.selectedBook?.isbn?.trim() || normalizedBook?.isbn?.trim();
+    const isbn =
+      this.selectedBook?.isbn?.trim() || normalizedBook?.isbn?.trim();
     return isbn && isbn.length > 0 ? isbn : null;
   }
 
@@ -421,10 +496,11 @@ export class BookDetailComponent implements OnDestroy {
       const parsed = new URL(url);
       const isHttps = parsed.protocol === 'https:';
       const host = parsed.hostname.toLowerCase();
-      const allowedHost = host === 'openlibrary.org'
-        || host.endsWith('.openlibrary.org')
-        || host === 'archive.org'
-        || host.endsWith('.archive.org');
+      const allowedHost =
+        host === 'openlibrary.org' ||
+        host.endsWith('.openlibrary.org') ||
+        host === 'archive.org' ||
+        host.endsWith('.archive.org');
 
       return isHttps && allowedHost;
     } catch {
@@ -432,7 +508,9 @@ export class BookDetailComponent implements OnDestroy {
     }
   }
 
-  private toSafeResourceUrl(url: string | null | undefined): SafeResourceUrl | null {
+  private toSafeResourceUrl(
+    url: string | null | undefined,
+  ): SafeResourceUrl | null {
     if (!this.isSafeExternalUrl(url)) {
       return null;
     }
@@ -445,7 +523,7 @@ export class BookDetailComponent implements OnDestroy {
     this.embeddedPreviewUrl.set(null);
   }
 
-  public openRelatedBook(bookId?: number): void{
+  public openRelatedBook(bookId?: number): void {
     if (!bookId) {
       return;
     }
@@ -457,7 +535,7 @@ export class BookDetailComponent implements OnDestroy {
     return this.reviews.some((review) => review.currentUserReview === true);
   }
 
-  public goToEditPage(bookId?: number): void{
+  public goToEditPage(bookId?: number): void {
     if (!bookId) {
       return;
     }
@@ -486,14 +564,15 @@ export class BookDetailComponent implements OnDestroy {
             const backendMessage = err?.error?.error?.message;
             this.toastService.show(
               backendMessage ?? 'Het boek kon niet verwijderd worden.',
-              'error'
+              'error',
             );
-          }
+          },
         });
       },
-      () => {}
+      () => {},
     );
   }
+
   private getReviewDraftKey(bookId: number): string {
     return `book-review-${bookId}`;
   }
@@ -550,5 +629,5 @@ export class BookDetailComponent implements OnDestroy {
       this.reviewDraftIntervalId = null;
     }
   }
-}
 
+}

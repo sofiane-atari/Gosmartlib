@@ -1,11 +1,18 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import {
   FormBuilder,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
-  Validators
+  Validators,
 } from '@angular/forms';
 import {
   catchError,
@@ -14,17 +21,22 @@ import {
   map,
   switchMap,
   takeUntil,
-  tap
+  tap,
 } from 'rxjs/operators';
 
 import { BookService } from '../../../../services/bookService/book.service';
 import { ToastService } from '../../../../services/toast/toast.service';
 import { Book } from '../../../../model/book/book.model';
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
-import { Availability } from '../../../../model/enums/availability.enum';
 import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
-import { Info, LucideAngularModule, Pencil, Plus, Trash2 } from 'lucide-angular';
+import {
+  Info,
+  LucideAngularModule,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-angular';
 import { Subject, of, combineLatest } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
@@ -40,6 +52,7 @@ type BookFormGroup = FormGroup<{
   description: FormControl<string>;
   releaseYear: FormControl<number | null>;
   readingLevel: FormControl<ReadingLevel | null>;
+  didactic: FormControl<boolean>;
 }>;
 
 @Component({
@@ -47,9 +60,12 @@ type BookFormGroup = FormGroup<{
   standalone: true,
   imports: [ReactiveFormsModule, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './add-book-manual.component.html',
-  styleUrl: './add-book-manual.component.css'
+  styleUrl: './add-book-manual.component.css',
 })
-export class AddBookManualComponent extends GenreSelectionBase implements OnInit, OnDestroy {
+export class AddBookManualComponent
+  extends GenreSelectionBase
+  implements OnInit, OnDestroy
+{
   readonly PlusIcon = Plus;
   readonly InfoIcon = Info;
   readonly Trash2Icon = Trash2;
@@ -78,12 +94,15 @@ export class AddBookManualComponent extends GenreSelectionBase implements OnInit
     this.form = this.fb.group({
       title: this.fb.nonNullable.control('', [Validators.required]),
       author: this.fb.nonNullable.control('', [Validators.required]),
-      pages: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
+      pages: this.fb.control<number | null>(null, [
+        Validators.required,
+        Validators.min(1),
+      ]),
       imageUrl: this.fb.nonNullable.control(''),
       description: this.fb.nonNullable.control(''),
       releaseYear: this.fb.control<number | null>(null, [
         Validators.required,
-        Validators.min(0)
+        Validators.min(0),
       ]),
       readingLevel: this.fb.control<ReadingLevel | null>(null)
     });
@@ -101,69 +120,69 @@ export class AddBookManualComponent extends GenreSelectionBase implements OnInit
     this.destroy$.complete();
   }
 
-private setupCandidateSearch(): void {
-  const titleChanges$ = this.form.controls.title.valueChanges.pipe(
-    startWith(this.form.controls.title.value),
-    debounceTime(500),
-    distinctUntilChanged()
-  );
+  private setupCandidateSearch(): void {
+    const titleChanges$ = this.form.controls.title.valueChanges.pipe(
+      startWith(this.form.controls.title.value),
+      debounceTime(500),
+      distinctUntilChanged(),
+    );
 
-  const authorChanges$ = this.form.controls.author.valueChanges.pipe(
-    startWith(this.form.controls.author.value),
-    debounceTime(500),
-    distinctUntilChanged()
-  );
+    const authorChanges$ = this.form.controls.author.valueChanges.pipe(
+      startWith(this.form.controls.author.value),
+      debounceTime(500),
+      distinctUntilChanged(),
+    );
 
-  const releaseYearChanges$ = this.form.controls.releaseYear.valueChanges.pipe(
-    startWith(this.form.controls.releaseYear.value),
-    debounceTime(500),
-    distinctUntilChanged()
-  );
-
-
-  combineLatest([
-    titleChanges$,
-    authorChanges$,
-    releaseYearChanges$
-  ]).pipe(
-    map(([title, author, releaseYear]) => ({
-      title: title?.trim() ?? '',
-      author: author?.trim() ?? '',
-      releaseYear: releaseYear ?? null
-    })),
-    switchMap(filters => {
-      this.isCandidateLoaded = false;
-      this.form.controls.readingLevel.enable();
-
-      const shouldSearch =
-        filters.title.length >= 2 ||
-        filters.author.length >= 2 ||
-        filters.releaseYear !== null;
-
-      if (!shouldSearch) {
-        this.candidateBooks = [];
-        return of([] as BookCandidate[]);
-      }
-
-      this.isSearching = true;
-
-      return this.bs.searchBooksInDb(
-        filters.title || undefined,
-        filters.author || undefined,
-        filters.releaseYear ?? undefined
-      ).pipe(
-        catchError(() => of([] as BookCandidate[])),
-        tap(() => {
-          this.isSearching = false;
-        })
+    const releaseYearChanges$ =
+      this.form.controls.releaseYear.valueChanges.pipe(
+        startWith(this.form.controls.releaseYear.value),
+        debounceTime(500),
+        distinctUntilChanged(),
       );
-    }),
-    takeUntil(this.destroy$)
-  ).subscribe((results: BookCandidate[]) => {
-    this.candidateBooks = results;
-    this.isSearching = false;
-  });
-}
+
+    combineLatest([titleChanges$, authorChanges$, releaseYearChanges$])
+      .pipe(
+        map(([title, author, releaseYear]) => ({
+          title: title?.trim() ?? '',
+          author: author?.trim() ?? '',
+          releaseYear: releaseYear ?? null,
+        })),
+        switchMap((filters) => {
+          this.isCandidateLoaded = false;
+          this.form.controls.readingLevel.enable();
+
+          const shouldSearch =
+            filters.title.length >= 2 ||
+            filters.author.length >= 2 ||
+            filters.releaseYear !== null;
+
+          if (!shouldSearch) {
+            this.candidateBooks = [];
+            return of([] as BookCandidate[]);
+          }
+
+          this.isSearching = true;
+
+          return this.bs
+            .searchBooksInDb(
+              filters.title || undefined,
+              filters.author || undefined,
+              filters.releaseYear ?? undefined,
+            )
+            .pipe(
+              catchError(() => of([] as BookCandidate[])),
+              tap(() => {
+                this.isSearching = false;
+              }),
+            );
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((results: BookCandidate[]) => {
+        this.candidateBooks = results;
+        this.isSearching = false;
+      });
+  }
 
   useCandidate(candidate: BookCandidate): void {
     if (!candidate.id) {
@@ -177,24 +196,29 @@ private setupCandidateSearch(): void {
       next: (book: Book) => {
         this.selectedBookId = book.id ?? candidate.id ?? null;
 
-        this.form.patchValue({
-          title: book.title ?? '',
-          author: book.author ?? '',
-          pages: book.pages ?? null,
-          imageUrl: book.imageUrl ?? '',
-          description: book.description ?? '',
-          releaseYear: book.releaseYear ?? null,
-          readingLevel: book.readingLevel ?? null
-        }, { emitEvent: false });
+        this.form.patchValue(
+          {
+            title: book.title ?? '',
+            author: book.author ?? '',
+            pages: book.pages ?? null,
+            imageUrl: book.imageUrl ?? '',
+            description: book.description ?? '',
+            releaseYear: book.releaseYear ?? null,
+            readingLevel: book.readingLevel ?? null,
+            didactic: book.didactic ?? false,
+          },
+          { emitEvent: false },
+        );
 
         this.selectedGenres = book.genres ?? [];
 
         if (this.selectedGenres.length > 0) {
           const firstSelected = this.selectedGenres[0];
 
-          this.openedMainGenre = this.genres.find(main =>
-            main.subGenres?.some(sub => sub.name === firstSelected.name)
-          ) ?? null;
+          this.openedMainGenre =
+            this.genres.find((main) =>
+              main.subGenres?.some((sub) => sub.name === firstSelected.name),
+            ) ?? null;
         }
         this.candidateBooks = [];
         this.isCandidateLoaded = true;
@@ -207,10 +231,13 @@ private setupCandidateSearch(): void {
       },
       error: () => {
         this.isSearching = false;
-        this.ts.show('Kon het volledige boek niet ophalen uit de database.', 'error');
-      }
+        this.ts.show(
+          'Kon het volledige boek niet ophalen uit de database.',
+          'error',
+        );
+      },
     });
-}
+  }
   clearForm(): void {
     this.clearDraft();
 
@@ -221,6 +248,7 @@ private setupCandidateSearch(): void {
       releaseYear: null,
       imageUrl: '',
       readingLevel: null,
+      didactic: false,
       description: '',
     });
 
@@ -252,7 +280,7 @@ private setupCandidateSearch(): void {
         },
         error: () => {
           this.ts.show('Kon geen exemplaar toevoegen.', 'error');
-        }
+        },
       });
       return;
     }
@@ -266,7 +294,8 @@ private setupCandidateSearch(): void {
       description: formValue.description,
       releaseYear: formValue.releaseYear ?? new Date().getFullYear(),
       genres: this.selectedGenres,
-      readingLevel: formValue.readingLevel ?? undefined
+      readingLevel: formValue.readingLevel ?? undefined,
+      didactic: formValue.didactic,
     };
     this.saveDraft();
     this.bookAdded.emit(book);
@@ -281,7 +310,10 @@ private setupCandidateSearch(): void {
     void this.rt.navigate(['/books/' + this.selectedBookId + '/edit']);
   }
 
-  compareReadingLevels = (a: ReadingLevel | null, b: ReadingLevel | null): boolean => {
+  compareReadingLevels = (
+    a: ReadingLevel | null,
+    b: ReadingLevel | null,
+  ): boolean => {
     return a?.id === b?.id;
   };
 

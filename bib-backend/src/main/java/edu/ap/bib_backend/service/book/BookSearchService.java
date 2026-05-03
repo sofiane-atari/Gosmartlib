@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.service.book;
 
-
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.User;
@@ -11,36 +10,39 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import edu.ap.bib_backend.mapper.BookMapper;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class BookSearchService {
 
-    private final BookRepository bookRepository;
-    private final BookMapper bookMapper; // Veronderstelt dat je de mapper ook hebt gesplitst
-    private final UserRepository userRepository;
-
-    // Constanten voor "Magic Numbers"
     private static final int MAX_PAGE_SIZE = 50;
     private static final int MIN_PAGE_SIZE = 1;
+
+    private final BookRepository bookRepository;
+    private final UserRepository userRepository;
+    private final BookMapper bookMapper;
+    private final CurrentUserService currentUserService;
 
     public BookSearchService(
             BookRepository bookRepository,
             UserRepository userRepository,
-            BookMapper bookMapper
+            BookMapper bookMapper,
+            CurrentUserService currentUserService
     ) {
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
         this.bookMapper = bookMapper;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional(readOnly = true)
     public Page<BookDTO> getFilteredBooks(
-            Authentication authentication,
             String searchTerm,
             BookAvailabilityFilter availabilityFilter,
             Integer minPages,
@@ -49,7 +51,8 @@ public class BookSearchService {
             String genreName,
             int page,
             int size,
-            BookSortOption sortBy
+            BookSortOption sortBy,
+            Authentication authentication
     ) {
         String currentUserId = authentication.getName();
 
@@ -72,6 +75,8 @@ public class BookSearchService {
         Sort sort = mapSort(sortBy);
         Pageable pageable = PageRequest.of(validatedPage, validatedSize, sort);
 
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+
         Specification<Book> specification = Specification
                 .where(BookSpecification.hasAvailableCopyInSchool(schoolDomainName))
                 .and(BookSpecification.withFilters(
@@ -81,7 +86,8 @@ public class BookSearchService {
                         maxPages,
                         readingLevelId,
                         genreName
-                ));
+                ))
+                .and(BookSpecification.visibleForUser(canSeeDidacticBooks));
 
         return bookRepository.findAll(specification, pageable)
                 .map(bookMapper::toDTO);
@@ -101,6 +107,7 @@ public class BookSearchService {
         if (filter == BookAvailabilityFilter.AVAILABLE) {
             return Availability.AVAILABLE;
         }
+
         return null;
     }
 

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
 import { AuthUserDto, Role } from '../../model/auth.model';
-import { DIDACTIC_MATERIAL_PATHS } from '../../routes/didactic-material.routes';
+import { LESSON_TIP_PATHS } from '../../routes/lesson-tip.routes';
 import {
   LucideAngularModule,
   Book,
@@ -96,8 +96,8 @@ export class SidebarComponent {
     { icon: FileText, label: 'Klasrapportages', route: '/klasraportage', staffOnly : true },
     {
       icon: FolderKanban,
-      label: 'Didactisch Materiaal',
-      route: `/${DIDACTIC_MATERIAL_PATHS.root}`,
+      label: 'Lestips',
+      route: `/${LESSON_TIP_PATHS.root}`,
       staffOnly: true,
     },
     { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard', staffOnly : true },
@@ -108,14 +108,14 @@ export class SidebarComponent {
 
   protected readonly visibleMenuItems = computed(() => {
     const isAdmin = this.roleService.isAdmin();
-    const isStaff = this.isStaff();
+    const canManageLessonTip = this.roleService.canManageLessonTip();
 
     return this.menuItems.filter((item) => {
       if (item.adminOnly && !isAdmin) {
         return false;
       }
 
-      if (item.staffOnly && !isStaff) {
+      if (item.staffOnly && !canManageLessonTip) {
         return false;
       }
 

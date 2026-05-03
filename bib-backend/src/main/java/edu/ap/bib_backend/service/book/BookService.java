@@ -2,15 +2,9 @@ package edu.ap.bib_backend.service.book;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import edu.ap.bib_backend.jpa.repository.*;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
@@ -21,18 +15,30 @@ import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
+import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
 import edu.ap.bib_backend.mapper.BookMapper;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.util.IsbnUtils;
+
 import jakarta.transaction.Transactional;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.entity.School;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional
@@ -47,6 +53,7 @@ public class BookService {
     private final BookMapper bookMapper;
     private final BookCandidateMapper bookCandidateMapper;
     private final OpenLibraryClient openLibraryClient;
+    private final CurrentUserService currentUserService;
     private final UserRepository userRepository;
 
     public BookService(
@@ -58,7 +65,10 @@ public class BookService {
             ReadingLevelRepository readingLevelRepository,
             BookMapper bookMapper,
             BookCandidateMapper bookCandidateMapper,
-            OpenLibraryClient openLibraryClient, UserRepository userRepository) {
+            OpenLibraryClient openLibraryClient,
+            CurrentUserService currentUserService,
+            UserRepository userRepository
+    ) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.genreRepository = genreRepository;
@@ -68,6 +78,7 @@ public class BookService {
         this.bookMapper = bookMapper;
         this.bookCandidateMapper = bookCandidateMapper;
         this.openLibraryClient = openLibraryClient;
+        this.currentUserService = currentUserService;
         this.userRepository = userRepository;
     }
 
@@ -77,7 +88,7 @@ public class BookService {
     }
 
     @Transactional
-    public BookDTO addCopyToBook(Authentication authentication, Long bookId) {
+    public BookDTO addCopyToBook(Long bookId, Authentication authentication) {
         Book book = findBookOrThrow(bookId);
         School school = getCurrentUserSchool(authentication);
 
@@ -86,9 +97,8 @@ public class BookService {
         return bookMapper.toDTO(book);
     }
 
-
     @Transactional
-    public BookDTO addBook(Authentication authentication, BookDTO dto) {
+    public BookDTO addBook(BookDTO dto, Authentication authentication) {
         String isbn = IsbnUtils.normalizeIsbn(dto.getIsbn());
         dto.setIsbn(isbn);
 
@@ -161,8 +171,9 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getMostReadBooks(Authentication authentication, int limit) {
+    public List<BookDTO> getMostReadBooks(int limit, Authentication authentication) {
         School school = getCurrentUserSchool(authentication);
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
         List<Book> books = bookRepository.findMostReadBookBySchool(
@@ -170,12 +181,16 @@ public class BookService {
                 PageRequest.of(0, safeLimit)
         );
 
-        return bookMapper.toDTOList(books);
+        return books.stream()
+                .filter(book -> canSeeDidacticBooks || !book.isDidactic())
+                .map(bookMapper::toDTO)
+                .toList();
     }
 
     @Transactional
-    public List<BookDTO> getNewestBooks(Authentication authentication, int limit) {
+    public List<BookDTO> getNewestBooks(int limit, Authentication authentication) {
         School school = getCurrentUserSchool(authentication);
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
         List<Book> books = bookRepository.findNewestBooksBySchool(
@@ -183,79 +198,36 @@ public class BookService {
                 PageRequest.of(0, safeLimit)
         );
 
-        return bookMapper.toDTOList(books);
+        return books.stream()
+                .filter(book -> canSeeDidacticBooks || !book.isDidactic())
+                .map(bookMapper::toDTO)
+                .toList();
     }
 
+    public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit, Authentication authentication) {
+        Book sourceBook = findBookOrThrow(bookId);
+        validateBookVisibility(sourceBook, authentication);
 
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
 
-
-    public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit) {
-        bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + bookId));
-
-        int safeLimit = Math.max(1, Math.min(limit, 50)); // Max 50 voor performance
-        List<Object[]> results = bookRepository.findRelatedBooksWithScore(bookId, PageRequest.of(0, safeLimit));
+        int safeLimit = Math.max(1, Math.min(limit, 50));
+        List<Object[]> results = bookRepository.findRelatedBooksWithScore(
+                bookId,
+                PageRequest.of(0, safeLimit)
+        );
 
         return results.stream()
                 .map(row -> (Book) row[0])
+                .filter(book -> canSeeDidacticBooks || !book.isDidactic())
                 .map(bookMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    private Book findBookOrThrow(Long id) {
-        return bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
-    }
-
-    public java.util.Optional<Book> findExistingByIsbn(String isbn) {
+    public Optional<Book> findExistingByIsbn(String isbn) {
         if (isbn == null || isbn.isBlank()) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
-        return java.util.Optional.ofNullable(bookRepository.findByIsbn(isbn));
-    }
-
-    private void createAvailableCopy(Book book, School school) {
-        BookCopy copy = new BookCopy();
-        copy.setBook(book);
-        copy.setSchool(school);
-        copy.setAvailability(Availability.AVAILABLE);
-        bookCopyRepository.save(copy);
-    }
-
-    private void validateUniqueIsbn(String isbn, Long currentBookId) {
-        if (isbn == null || isbn.isBlank()) {
-            return;
-        }
-
-        Book existing = bookRepository.findByIsbn(isbn);
-        if (existing != null && !existing.getId().equals(currentBookId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Er bestaat al een ander boek met ISBN: " + isbn);
-        }
-    }
-
-    private Set<Genre> genresFromDTO(List<GenreDTO> genresDto) {
-        Set<Genre> genres = new HashSet<>();
-        if (genresDto == null) {
-            return genres;
-        }
-
-        for (GenreDTO genreDto : genresDto) {
-            Genre genre = genreRepository.findByName(genreDto.name())
-                    .orElseThrow(() -> new IllegalArgumentException("Genre bestaat niet: " + genreDto.name()));
-            genres.add(genre);
-        }
-        return genres;
-    }
-
-    private ReadingLevel resolveReadingLevel(ReadingLevelDTO readingLevelDto) {
-        if (readingLevelDto == null || readingLevelDto.getId() == null) {
-            return null;
-        }
-
-        return readingLevelRepository.findById(readingLevelDto.getId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Reading level bestaat niet: " + readingLevelDto.getId()));
+        return Optional.ofNullable(bookRepository.findByIsbn(isbn));
     }
 
     @Transactional
@@ -292,12 +264,72 @@ public class BookService {
                 .orElseGet(() -> openLibraryClient.fetchBookByISBN(normalizedIsbn));
     }
 
+    private Book findBookOrThrow(Long id) {
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
+    }
+
+    private void createAvailableCopy(Book book, School school) {
+        BookCopy copy = new BookCopy();
+        copy.setBook(book);
+        copy.setSchool(school);
+        copy.setAvailability(Availability.AVAILABLE);
+        bookCopyRepository.save(copy);
+    }
+
+    private void validateUniqueIsbn(String isbn, Long currentBookId) {
+        if (isbn == null || isbn.isBlank()) {
+            return;
+        }
+
+        Book existing = bookRepository.findByIsbn(isbn);
+        if (existing != null && !existing.getId().equals(currentBookId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Er bestaat al een ander boek met ISBN: " + isbn
+            );
+        }
+    }
+
+    private Set<Genre> genresFromDTO(List<GenreDTO> genresDto) {
+        Set<Genre> genres = new HashSet<>();
+        if (genresDto == null) {
+            return genres;
+        }
+
+        for (GenreDTO genreDto : genresDto) {
+            Genre genre = genreRepository.findByName(genreDto.name())
+                    .orElseThrow(() -> new IllegalArgumentException("Genre bestaat niet: " + genreDto.name()));
+            genres.add(genre);
+        }
+        return genres;
+    }
+
+    private ReadingLevel resolveReadingLevel(ReadingLevelDTO readingLevelDto) {
+        if (readingLevelDto == null || readingLevelDto.getId() == null) {
+            return null;
+        }
+
+        return readingLevelRepository.findById(readingLevelDto.getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reading level bestaat niet: " + readingLevelDto.getId()));
+    }
+
     private String normalize(String value) {
         if (value == null) {
             return null;
         }
+
         String trimmed = value.trim();
         return trimmed.isBlank() ? null : trimmed;
+    }
+
+    private void validateBookVisibility(Book book, Authentication authentication) {
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+
+        if (book.isDidactic() && !canSeeDidacticBooks) {
+            throw new ResourceNotFoundException("id", "Boek niet gevonden.");
+        }
     }
 
     private School getCurrentUserSchool(Authentication authentication) {

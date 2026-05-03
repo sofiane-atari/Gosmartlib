@@ -22,6 +22,7 @@ public class BookDTO {
     private int releaseYear;
     private double reviewScore;
     private LocalDateTime addedDate;
+    private boolean didactic;
 
     private int totalCopies;
     private int availableCopies;
@@ -60,6 +61,7 @@ public class BookDTO {
                 ", description='" + description + '\'' +
                 ", releaseYear=" + releaseYear +
                 ", reviewScore=" + reviewScore +
+                ", didactic=" + didactic +
                 ", genres=" + genres +
                 ", readingLevel=" + readingLevel +
                 '}';

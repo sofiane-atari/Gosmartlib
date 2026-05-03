@@ -1,5 +1,5 @@
-import { Genre } from "../genre/genre.model";
-import { ReadingLevel } from "../readingLevel.model";
+import { Genre } from '../genre/genre.model';
+import { ReadingLevel } from '../readingLevel.model';
 
 export interface Book {
   id?: number;
@@ -13,6 +13,7 @@ export interface Book {
   reviewScore?: number;
   totalCopies?: number;
   availableCopies?: number;
-  genres?: Genre[];
-  readingLevel?: ReadingLevel | null;
+  didactic: boolean;
+  genres: Genre[];
+  readingLevel?: ReadingLevel;
 }

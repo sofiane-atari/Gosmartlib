@@ -12,7 +12,7 @@ export const staffOnlyGuard: CanActivateFn = () => {
     return router.parseUrl('/login');
   }
 
-  if (roleService.canManageDidacticMaterials()) {
+  if (roleService.canManageLessonTip()) {
     return true;
   }
 
