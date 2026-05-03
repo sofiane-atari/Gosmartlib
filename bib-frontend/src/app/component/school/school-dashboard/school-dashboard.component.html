@@ -11,14 +11,6 @@
     </button>
   </div>
 
-  @if (successMessage()) {
-    <div class="success-message">{{ successMessage() }}</div>
-  }
-
-  @if (errorMessage()) {
-    <div class="error-message">{{ errorMessage() }}</div>
-  }
-
   <section class="stat-cards">
     <app-button-hover-help
       class="stat-card-hover"
@@ -142,7 +134,7 @@
                       class="icon-button icon-button--edit"
                       aria-label="School wijzigen"
                       (click)="openEditModal(school)"
-                      [disabled]="isDeleting() || isUpdating()"
+                      [disabled]="isUpdating()"
                     >
                       <lucide-icon [name]="Pencil"></lucide-icon>
                     </button>
@@ -153,8 +145,8 @@
                       type="button"
                       class="icon-button icon-button--delete"
                       aria-label="School verwijderen"
-                      (click)="openDeleteModal(school)"
-                      [disabled]="isDeleting() || isUpdating()"
+                      (click)="deleteSchool(school)"
+                      [disabled]="isUpdating()"
                     >
                       <lucide-icon [name]="Trash2"></lucide-icon>
                     </button>
@@ -387,50 +379,6 @@
             </button>
           </div>
         </form>
-      </div>
-    </div>
-  }
-
-  @if (isDeleteModalOpen()) {
-    <div
-      class="modal-overlay open"
-      (pointerdown)="onOverlayPointerDown($event)"
-      (click)="onOverlayClick($event, 'delete')"
-    >
-      <div class="modal modal--danger" (click)="$event.stopPropagation()">
-        <h2>School verwijderen</h2>
-
-        @if (selectedSchoolForDelete()) {
-          <p>
-            Weet u zeker dat u de school
-            <strong>{{ selectedSchoolForDelete()?.name }}</strong>
-            wilt verwijderen?
-          </p>
-
-          <p class="modal__warning">
-            Deze actie kan niet ongedaan worden gemaakt.
-          </p>
-        }
-
-        <div class="modal-actions">
-          <button
-            type="button"
-            class="btn-cancel"
-            (click)="closeDeleteModal()"
-            [disabled]="isDeleting()"
-          >
-            Annuleren
-          </button>
-
-          <button
-            type="button"
-            class="btn-danger"
-            (click)="deleteSchool()"
-            [disabled]="isDeleting()"
-          >
-            {{ isDeleting() ? 'Verwijderen...' : 'Verwijderen' }}
-          </button>
-        </div>
       </div>
     </div>
   }

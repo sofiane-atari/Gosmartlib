@@ -3,7 +3,6 @@ import {
   computed,
   inject,
   signal,
-  DestroyRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,20 +11,29 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
+import {
+  LucideAngularModule,
+  Plus,
+  Tag as TagIcon,
+  CheckCircle,
+  CircleOff,
+  Pencil,
+  Trash2,
+} from 'lucide-angular';
+
 import { TagService } from '../../../services/tag/tag.service';
-import { Tag } from '../../../model/tag/tag.model';
+import { ToastService } from '../../../services/toast/toast.service';
+
+import { Tag as TagModel } from '../../../model/tag/tag.model';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 
 import { PagingComponent } from '../../shared/paging/paging.component';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
+import { ToastComponent } from '../../shared/toast/toast.component';
+import { HttpErrorResponse } from '@angular/common/http';
 
 type PopupState = 'create' | 'edit' | null;
-
-interface ErrorItem {
-  field: string;
-  message: string;
-}
 
 @Component({
   selector: 'app-tag-dashboard',
@@ -33,26 +41,26 @@ interface ErrorItem {
   imports: [
     CommonModule,
     FormsModule,
+    LucideAngularModule,
     PagingComponent,
-    SearchBarComponent,
+    SearchBarComponent
   ],
   templateUrl: './tag-dashboard.component.html',
   styleUrls: ['./tag-dashboard.component.css'],
 })
 export class TagDashboardComponent {
-  private tagService = inject(TagService);
-  private destroyRef = inject(DestroyRef);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  protected readonly Plus = Plus;
+  protected readonly TagIcon = TagIcon;
+  protected readonly CheckCircle = CheckCircle;
+  protected readonly CircleOff = CircleOff;
+  protected readonly Pencil = Pencil;
+  protected readonly Trash2 = Trash2;
 
-  private refreshTrigger = signal(false);
+  private refreshTrigger = signal(0);
   private searchSubject = new Subject<string>();
 
-  protected success = signal<string | null>(null);
-  protected errors = signal<ErrorItem[]>([]);
   protected popUp = signal<PopupState>(null);
-
-  protected editingTag = signal<Tag | null>(null);
+  protected editingTag = signal<TagModel | null>(null);
 
   protected bookCountFilter = signal<string>('');
 
@@ -62,7 +70,13 @@ export class TagDashboardComponent {
   protected editName = signal<string>('');
   protected editDescription = signal<string>('');
 
-  constructor() {
+  private backdropPointerStartedOnOverlay = false;
+
+  private readonly tagService = inject(TagService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
+  constructor(private readonly toastService: ToastService) {
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((searchQuery: string) => {
@@ -91,13 +105,18 @@ export class TagDashboardComponent {
           search,
           bookCount,
         },
-        pagingOpt: { page, pageSize },
+        pagingOpt: {
+          page,
+          pageSize,
+        },
       });
     }),
   );
 
   private response = toSignal(
-    toObservable(this.refreshTrigger).pipe(switchMap(() => this.tags$)),
+    toObservable(this.refreshTrigger).pipe(
+      switchMap(() => this.tags$),
+    ),
     {
       initialValue: {
         data: [],
@@ -107,7 +126,7 @@ export class TagDashboardComponent {
           totalItems: 0,
           totalPages: 0,
         },
-      } as PaginatedResponse<Tag>,
+      } as PaginatedResponse<TagModel>,
     },
   );
 
@@ -152,25 +171,21 @@ export class TagDashboardComponent {
     });
   }
 
-  protected setPopup(popup: PopupState): void {
-    this.popUp.set(popup);
-  }
-
   protected openCreatePopup(): void {
     this.createName.set('');
     this.createDescription.set('');
-    this.setPopup('create');
+    this.popUp.set('create');
   }
 
-  protected openEditPopup(tag: Tag): void {
+  protected openEditPopup(tag: TagModel): void {
     this.editingTag.set(tag);
     this.editName.set(tag.name ?? '');
     this.editDescription.set(tag.description ?? '');
-    this.setPopup('edit');
+    this.popUp.set('edit');
   }
 
   protected closePopup(): void {
-    this.setPopup(null);
+    this.popUp.set(null);
     this.editingTag.set(null);
   }
 
@@ -179,7 +194,7 @@ export class TagDashboardComponent {
     const description = this.createDescription().trim();
 
     if (!name) {
-      this.onError('Naam is verplicht.');
+      this.toastService.show('Naam is verplicht.', 'error');
       return;
     }
 
@@ -190,10 +205,12 @@ export class TagDashboardComponent {
       })
       .subscribe({
         next: () => {
-          this.onSuccess('Tag succesvol aangemaakt.');
+          this.toastService.show('Tag succesvol aangemaakt.', 'success');
+          this.refresh();
+          this.closePopup();
         },
         error: (error: HttpErrorResponseError) => {
-          this.onError(error);
+          this.handleError(error);
         },
       });
   }
@@ -202,7 +219,7 @@ export class TagDashboardComponent {
     const tag = this.editingTag();
 
     if (!tag) {
-      this.onError('Geen tag geselecteerd om te bewerken.');
+      this.toastService.show('Geen tag geselecteerd om te bewerken.', 'error');
       return;
     }
 
@@ -210,7 +227,7 @@ export class TagDashboardComponent {
     const description = this.editDescription().trim();
 
     if (!name) {
-      this.onError('Naam is verplicht.');
+      this.toastService.show('Naam is verplicht.', 'error');
       return;
     }
 
@@ -221,95 +238,80 @@ export class TagDashboardComponent {
       })
       .subscribe({
         next: () => {
-          this.onSuccess('Tag succesvol bijgewerkt.');
+          this.toastService.show('Tag succesvol bijgewerkt.', 'success');
+          this.refresh();
+          this.closePopup();
         },
         error: (error: HttpErrorResponseError) => {
-          this.onError(error);
+          this.handleError(error);
         },
       });
   }
 
-  protected deleteTag(tag: Tag): void {
-    const confirmed = confirm(`Ben je zeker dat je "${tag.name}" wilt verwijderen?`);
+  protected deleteTag(tag: TagModel): void {
+    this.toastService.showConfirm(
+      `Weet je zeker dat je de tag "${tag.name}" wilt verwijderen?`,
+      () => {
+        this.tagService.deleteTag(tag.id).subscribe({
+          next: () => {
+            this.toastService.show('Tag succesvol verwijderd.', 'success');
+            this.refresh();
+          },
+          error: (err: HttpErrorResponse) => {
+            this.handleError(err?.error as HttpErrorResponseError);
+          },
+        });
+      },
+      () => {
+        // Cancel action - do nothing
+      },
+    );
+  }
 
-    if (!confirmed) {
+  protected onOverlayPointerDown(event: PointerEvent): void {
+    this.backdropPointerStartedOnOverlay = event.target === event.currentTarget;
+  }
+
+  protected onOverlayClick(
+    event: MouseEvent,
+    modalType: 'create' | 'edit',
+  ): void {
+    const endedOnOverlay = event.target === event.currentTarget;
+
+    if (!(this.backdropPointerStartedOnOverlay && endedOnOverlay)) {
+      this.backdropPointerStartedOnOverlay = false;
       return;
     }
 
-    this.tagService.deleteTag(tag.id).subscribe({
-      next: () => {
-        this.onSuccess('Tag succesvol verwijderd.');
-      },
-      error: (error: HttpErrorResponseError) => {
-        this.onError(error);
-      },
-    });
+    this.backdropPointerStartedOnOverlay = false;
+
+    if (modalType === 'create' || modalType === 'edit') {
+      this.closePopup();
+    }
   }
 
-  protected onSuccess(message: string): void {
-    this.success.set(message);
-
-    this.refreshTrigger.set(true);
-    this.refreshTrigger.set(false);
-
-    this.closePopup();
-
-    const timeoutId = setTimeout(() => {
-      this.success.set(null);
-    }, 5000);
-
-    this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
+  private refresh(): void {
+    this.refreshTrigger.update((value) => value + 1);
   }
 
-  protected onError(error: string | HttpErrorResponseError): void {
-    this.refreshTrigger.set(true);
-    this.refreshTrigger.set(false);
+  private handleError(error: HttpErrorResponseError): void {
+    const errorBody = error?.error;
 
-    if (typeof error === 'string') {
-      this.errors.set([{ field: 'error', message: error }]);
+    if (Array.isArray(errorBody?.details) && errorBody.details.length > 0) {
+      const messages = errorBody.details
+        .map((detail) => detail?.message)
+        .filter(Boolean)
+        .join('\n');
 
-      const timeoutId = setTimeout(() => {
-        this.errors.set([]);
-      }, 5000);
-
-      this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
+      this.toastService.show(messages || 'Er is een fout opgetreden.', 'error');
       return;
     }
 
-    if (error != null) {
-      const errorItems: ErrorItem[] = [
-        {
-          field: 'message',
-          message: error.error.message,
-        },
-      ];
-
-      if (error.error.details && error.error.details.length > 0) {
-        errorItems.push(
-          ...error.error.details.map((d) => ({
-            field: d.field,
-            message: d.message,
-          })),
-        );
-      }
-
-      this.errors.set(errorItems);
-
-      const timeoutId = setTimeout(() => {
-        this.errors.set([]);
-      }, 5000);
-
-      this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
-    } else {
-      this.errors.set([
-        { field: 'error', message: 'Er is een fout opgetreden.' },
-      ]);
-
-      const timeoutId = setTimeout(() => {
-        this.errors.set([]);
-      }, 5000);
-
-      this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
+    if (errorBody?.message) {
+      this.toastService.show(errorBody.message, 'error');
+      return;
     }
+
+    this.toastService.show('Er is een fout opgetreden.', 'error');
   }
 }

@@ -1,86 +1,61 @@
-<div class="dashboard-tags">
-  <!-- Header -->
+<div class="tag-dashboard">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>Tagbeheer</h1>
+      <h1>Tag Beheer</h1>
       <p>Beheer tags voor de boekencatalogus</p>
     </div>
 
-    <button class="btn-new" (click)="openCreatePopup()">
-      + Nieuwe tag
+    <button type="button" class="btn-new" (click)="openCreatePopup()">
+      <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
+      Nieuwe Tag
     </button>
   </div>
 
-  <div [class.blur-background]="popUp() !== null">
-    @if (success()) {
-      <div class="success-message">
-        {{ success() }}
+  <section class="stat-cards">
+    <article class="stat-card stat-card--purple">
+      <div class="stat-card__icon">
+        <lucide-icon [name]="TagIcon"></lucide-icon>
       </div>
-    }
 
-    @if (errors().length > 0) {
-      <div class="error-message">
-        @for (err of errors(); track err.field) {
-          <p>{{ err.message }}</p>
-        }
+      <div>
+        <p>Totaal Tags</p>
+        <strong>{{ stats()?.totalItems ?? 0 }}</strong>
       </div>
-    }
-  </div>
+    </article>
 
-    <!-- StatCards -->
-    <div class="stat-cards">
-    <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--total">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
-        </svg>
-        </div>
+    <article class="stat-card stat-card--green">
+      <div class="stat-card__icon">
+        <lucide-icon [name]="CheckCircle"></lucide-icon>
+      </div>
 
-        <div class="stat-card__body">
-        <div class="stat-card__value">{{ stats()?.totalItems ?? 0 }}</div>
-        <p class="stat-card__label">Totaal tags</p>
-        </div>
-    </div>
+      <div>
+        <p>Gebruikte Tags</p>
+        <strong>{{ totalActive() }}</strong>
+      </div>
+    </article>
 
-    <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 6 9 17l-5-5" />
-        </svg>
-        </div>
+    <article class="stat-card stat-card--orange">
+      <div class="stat-card__icon">
+        <lucide-icon [name]="CircleOff"></lucide-icon>
+      </div>
 
-        <div class="stat-card__body">
-        <div class="stat-card__value">{{ totalActive() }}</div>
-        <p class="stat-card__label">Gebruikte tags</p>
-        </div>
-    </div>
+      <div>
+        <p>Ongebruikte Tags</p>
+        <strong>{{ stats()?.unActiveTags ?? 0 }}</strong>
+      </div>
+    </article>
+  </section>
 
-    <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--unused">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M15 9l-6 6" />
-            <path d="M9 9l6 6" />
-        </svg>
-        </div>
+  <section class="search-panel">
+    <app-search-bar
+      placeholder="Zoek tags op naam..."
+      (searchChange)="onSearch($event)"
+    ></app-search-bar>
+  </section>
 
-        <div class="stat-card__body">
-        <div class="stat-card__value">{{ stats()?.unActiveTags ?? 0 }}</div>
-        <p class="stat-card__label">Ongebruikte tags</p>
-        </div>
-    </div>
-    </div>
-
-  <!-- SearchBar -->
-  <app-search-bar
-    placeholder="Zoek op tagnaam..."
-    (searchChange)="onSearch($event)"
-  />
-
-  <!-- BookCount Filter -->
-  <div class="filter-row">
+  <section class="filter-panel">
     <label class="filter-label">Filter op aantal boeken:</label>
+
     <input
       class="filter-select"
       [value]="bookCountFilter()"
@@ -89,50 +64,91 @@
       min="0"
       (change)="onBookCountFilterChange($any($event.target).value)"
     />
-  </div>
+  </section>
 
-  <!-- Tags Table -->
-  <div class="tags-table-wrapper">
-    <table class="tags-table">
-      <thead>
-        <tr>
-          <th>Naam</th>
-          <th>Beschrijving</th>
-          <th>Aantal boeken</th>
-          <th>Acties</th>
-        </tr>
-      </thead>
+  @if (tags().length === 0) {
+    <section class="state-panel state-panel--empty">
+      <p>Geen tags gevonden.</p>
+    </section>
+  } @else {
+    <section class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Tag</th>
+            <th>Beschrijving</th>
+            <th>Boeken</th>
+            <th class="actions-heading">Acties</th>
+          </tr>
+        </thead>
 
-      <tbody>
-        @if (tags().length > 0) {
+        <tbody>
           @for (tag of tags(); track tag.id) {
             <tr>
-              <td>{{ tag.name }}</td>
-              <td>{{ tag.description || '-' }}</td>
-              <td>{{ tag.bookCount ?? 0 }}</td>
-              <td class="actions">
-                <button class="btn-edit" (click)="openEditPopup(tag)">
-                  Bewerken
-                </button>
+              <td>
+                <div class="tag-cell">
+                  <div class="tag-cell__icon">
+                    <lucide-icon [name]="TagIcon"></lucide-icon>
+                  </div>
 
-                <button class="btn-delete" (click)="deleteTag(tag)">
-                  Verwijderen
-                </button>
+                  <div>
+                    <strong>{{ tag.name }}</strong>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                @if (tag.description) {
+                  <div class="muted-block">
+                    <span>{{ tag.description }}</span>
+                  </div>
+                } @else {
+                  <span class="table-placeholder">Geen beschrijving</span>
+                }
+              </td>
+
+              <td>
+                <span class="count-badge">
+                  {{ tag.bookCount ?? 0 }} boeken
+                </span>
+              </td>
+
+              <td>
+                <div class="table-actions">
+                  <button
+                    type="button"
+                    class="icon-button icon-button--edit"
+                    aria-label="Tag wijzigen"
+                    (click)="openEditPopup(tag)"
+                  >
+                    <lucide-icon [name]="Pencil"></lucide-icon>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="icon-button icon-button--delete"
+                    aria-label="Tag verwijderen"
+                    (click)="deleteTag(tag)"
+                  >
+                    <lucide-icon [name]="Trash2"></lucide-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">
+                <div class="empty-table-state">
+                  Geen tags gevonden voor deze zoekopdracht.
+                </div>
               </td>
             </tr>
           }
-        } @else {
-          <tr>
-            <td colspan="4" class="empty-state">
-              Geen tags gevonden.
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+        </tbody>
+      </table>
+    </section>
+  }
 
-  <!-- Paging -->
   @if (pagingMeta()) {
     <app-paging
       [meta]="pagingMeta()!"
@@ -140,21 +156,20 @@
     />
   }
 
-  <!-- Create Modal -->
   @if (popUp() === 'create') {
     <div class="modal-overlay open">
       <div class="modal">
-        <h2>Nieuwe tag</h2>
+        <h2>Nieuwe tag toevoegen</h2>
         <p>Maak een nieuwe tag aan voor de boekencatalogus.</p>
 
         <div class="modal-field">
-          <label for="create-name">Naam</label>
+          <label for="create-name">Tagnaam</label>
           <input
             id="create-name"
             type="text"
             [ngModel]="createName()"
             (ngModelChange)="createName.set($event)"
-            placeholder="Bijvoorbeeld: Populair"
+            placeholder="bijv. Populair"
           />
         </div>
 
@@ -170,11 +185,11 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn-cancel" (click)="closePopup()">
+          <button type="button" class="btn-cancel" (click)="closePopup()">
             Annuleren
           </button>
 
-          <button class="btn-save" (click)="createTag()">
+          <button type="button" class="btn-save" (click)="createTag()">
             Opslaan
           </button>
         </div>
@@ -182,15 +197,14 @@
     </div>
   }
 
-  <!-- Edit Modal -->
   @if (popUp() === 'edit') {
     <div class="modal-overlay open">
       <div class="modal">
-        <h2>Tag bewerken</h2>
+        <h2>Tag wijzigen</h2>
         <p>Pas de gegevens van deze tag aan.</p>
 
         <div class="modal-field">
-          <label for="edit-name">Naam</label>
+          <label for="edit-name">Tagnaam</label>
           <input
             id="edit-name"
             type="text"
@@ -210,11 +224,11 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn-cancel" (click)="closePopup()">
+          <button type="button" class="btn-cancel" (click)="closePopup()">
             Annuleren
           </button>
 
-          <button class="btn-save" (click)="updateTag()">
+          <button type="button" class="btn-save" (click)="updateTag()">
             Opslaan
           </button>
         </div>
