@@ -963,7 +963,12 @@ select:disabled {
   justify-content: center;
   flex-shrink: 0;
 }
-
+.layout,
+.form-section,
+.book-form,
+.search-section {
+  overflow: visible;
+}
 .btn-icon svg,
 lucide-icon.btn-icon svg {
   width: 18px;

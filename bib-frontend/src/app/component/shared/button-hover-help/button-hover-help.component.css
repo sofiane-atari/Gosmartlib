@@ -95,3 +95,17 @@
   display: block;
   width: 100%;
 }
+:host(.file-upload-help) {
+  display: block;
+  width: 100%;
+}
+
+:host(.file-upload-help) .button-hover-help {
+  display: block;
+  width: 100%;
+}
+
+:host(.file-upload-help) ::ng-deep app-file-upload {
+  display: block;
+  width: 100%;
+}

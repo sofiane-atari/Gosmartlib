@@ -232,14 +232,16 @@
     </div>
 
     <div class="form-actions">
-  <button
-    type="button"
-    class="btn-clear"
-    (click)="clearForm()"
-  >
-    <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
-    Formulier leegmaken
-  </button>
+    <app-button-hover-help text="Maak alle ingevulde velden leeg en start opnieuw met een leeg formulier.">
+      <button
+        type="button"
+        class="btn-clear"
+        (click)="clearForm()"
+      >
+        <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+        Formulier leegmaken
+      </button>
+    </app-button-hover-help>
 
       <div class="action-buttons">
         @if (isCandidateLoaded) {

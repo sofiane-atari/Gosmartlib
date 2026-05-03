@@ -30,6 +30,7 @@ import { startWith } from 'rxjs/operators';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
 import { addBookManualDraft } from '../../../../model/book/add-book-manual-draft.model';
+import { ButtonHoverHelpComponent } from "../../../shared/button-hover-help/button-hover-help.component";
 
 type BookFormGroup = FormGroup<{
   title: FormControl<string>;
@@ -44,7 +45,7 @@ type BookFormGroup = FormGroup<{
 @Component({
   selector: 'app-add-book-manual',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './add-book-manual.component.html',
   styleUrl: './add-book-manual.component.css'
 })
@@ -273,6 +274,7 @@ private setupCandidateSearch(): void {
     };
     this.saveDraft();
     this.bookAdded.emit(book);
+    this.clearForm();
   }
   editBook(): void {
     if (!this.selectedBookId) {

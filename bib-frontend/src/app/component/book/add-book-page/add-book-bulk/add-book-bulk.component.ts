@@ -7,11 +7,13 @@ import { FileValidationError } from '../../../../model/validation/fileValidation
 import { environment } from '../../../../../environments/environment';
 import { FileUploadComponent } from '../../../shared/file-upload/file-upload.component';
 import { CommonModule } from '@angular/common';
+import { ButtonHoverHelpComponent } from "../../../shared/button-hover-help/button-hover-help.component";
+import { UserSettingsService } from '../../../../services/user-settings/user-settings.service';
 
 @Component({
   selector: 'app-add-book-bulk',
   standalone: true,
-  imports: [LucideAngularModule, FileUploadComponent, CommonModule],
+  imports: [LucideAngularModule, FileUploadComponent, CommonModule, ButtonHoverHelpComponent],
   templateUrl: './add-book-bulk.component.html',
   styleUrl: './add-book-bulk.component.css'
 })
@@ -35,7 +37,8 @@ export class AddBookBulkComponent {
   constructor(
     private http: HttpClient,
     private bs: BookService,
-    private ts: ToastService
+    private ts: ToastService,
+    public userSettingsService: UserSettingsService
   ) {}
 
   downloadTemplate() {
