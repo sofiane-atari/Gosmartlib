@@ -1,0 +1,224 @@
+<div class="dashboard-tags">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Tagbeheer</h1>
+      <p>Beheer tags voor de boekencatalogus</p>
+    </div>
+
+    <button class="btn-new" (click)="openCreatePopup()">
+      + Nieuwe tag
+    </button>
+  </div>
+
+  <div [class.blur-background]="popUp() !== null">
+    @if (success()) {
+      <div class="success-message">
+        {{ success() }}
+      </div>
+    }
+
+    @if (errors().length > 0) {
+      <div class="error-message">
+        @for (err of errors(); track err.field) {
+          <p>{{ err.message }}</p>
+        }
+      </div>
+    }
+  </div>
+
+    <!-- StatCards -->
+    <div class="stat-cards">
+    <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--total">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
+        </svg>
+        </div>
+
+        <div class="stat-card__body">
+        <div class="stat-card__value">{{ stats()?.totalItems ?? 0 }}</div>
+        <p class="stat-card__label">Totaal tags</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 6 9 17l-5-5" />
+        </svg>
+        </div>
+
+        <div class="stat-card__body">
+        <div class="stat-card__value">{{ totalActive() }}</div>
+        <p class="stat-card__label">Gebruikte tags</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--unused">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M15 9l-6 6" />
+            <path d="M9 9l6 6" />
+        </svg>
+        </div>
+
+        <div class="stat-card__body">
+        <div class="stat-card__value">{{ stats()?.unActiveTags ?? 0 }}</div>
+        <p class="stat-card__label">Ongebruikte tags</p>
+        </div>
+    </div>
+    </div>
+
+  <!-- SearchBar -->
+  <app-search-bar
+    placeholder="Zoek op tagnaam..."
+    (searchChange)="onSearch($event)"
+  />
+
+  <!-- BookCount Filter -->
+  <div class="filter-row">
+    <label class="filter-label">Filter op aantal boeken:</label>
+    <input
+      class="filter-select"
+      [value]="bookCountFilter()"
+      placeholder="bijv. 1"
+      type="number"
+      min="0"
+      (change)="onBookCountFilterChange($any($event.target).value)"
+    />
+  </div>
+
+  <!-- Tags Table -->
+  <div class="tags-table-wrapper">
+    <table class="tags-table">
+      <thead>
+        <tr>
+          <th>Naam</th>
+          <th>Beschrijving</th>
+          <th>Aantal boeken</th>
+          <th>Acties</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @if (tags().length > 0) {
+          @for (tag of tags(); track tag.id) {
+            <tr>
+              <td>{{ tag.name }}</td>
+              <td>{{ tag.description || '-' }}</td>
+              <td>{{ tag.bookCount ?? 0 }}</td>
+              <td class="actions">
+                <button class="btn-edit" (click)="openEditPopup(tag)">
+                  Bewerken
+                </button>
+
+                <button class="btn-delete" (click)="deleteTag(tag)">
+                  Verwijderen
+                </button>
+              </td>
+            </tr>
+          }
+        } @else {
+          <tr>
+            <td colspan="4" class="empty-state">
+              Geen tags gevonden.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paging -->
+  @if (pagingMeta()) {
+    <app-paging
+      [meta]="pagingMeta()!"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+
+  <!-- Create Modal -->
+  @if (popUp() === 'create') {
+    <div class="modal-overlay open">
+      <div class="modal">
+        <h2>Nieuwe tag</h2>
+        <p>Maak een nieuwe tag aan voor de boekencatalogus.</p>
+
+        <div class="modal-field">
+          <label for="create-name">Naam</label>
+          <input
+            id="create-name"
+            type="text"
+            [ngModel]="createName()"
+            (ngModelChange)="createName.set($event)"
+            placeholder="Bijvoorbeeld: Populair"
+          />
+        </div>
+
+        <div class="modal-field">
+          <label for="create-description">Beschrijving</label>
+          <input
+            id="create-description"
+            type="text"
+            [ngModel]="createDescription()"
+            (ngModelChange)="createDescription.set($event)"
+            placeholder="Optionele beschrijving"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="closePopup()">
+            Annuleren
+          </button>
+
+          <button class="btn-save" (click)="createTag()">
+            Opslaan
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Modal -->
+  @if (popUp() === 'edit') {
+    <div class="modal-overlay open">
+      <div class="modal">
+        <h2>Tag bewerken</h2>
+        <p>Pas de gegevens van deze tag aan.</p>
+
+        <div class="modal-field">
+          <label for="edit-name">Naam</label>
+          <input
+            id="edit-name"
+            type="text"
+            [ngModel]="editName()"
+            (ngModelChange)="editName.set($event)"
+          />
+        </div>
+
+        <div class="modal-field">
+          <label for="edit-description">Beschrijving</label>
+          <input
+            id="edit-description"
+            type="text"
+            [ngModel]="editDescription()"
+            (ngModelChange)="editDescription.set($event)"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="closePopup()">
+            Annuleren
+          </button>
+
+          <button class="btn-save" (click)="updateTag()">
+            Opslaan
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

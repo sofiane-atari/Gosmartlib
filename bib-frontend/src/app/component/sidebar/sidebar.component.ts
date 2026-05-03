@@ -93,7 +93,7 @@ export class SidebarComponent {
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/settings' },
     { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly : true },
-    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage', staffOnly : true },
+    { icon: FileText, label: 'Klasrapportages', route: '/class-report', staffOnly : true },
     {
       icon: FolderKanban,
       label: 'Didactisch Materiaal',
@@ -102,7 +102,8 @@ export class SidebarComponent {
     },
     { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard', staffOnly : true },
     { icon: Tag, label: 'Genrebeheer', route: '/genre', adminOnly: true },
-    { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
+    { icon: Tag, label: 'Labelbeheer', route: '/tag', adminOnly: true },
+    { icon: School, label: 'Schoolbeheer', route: '/schools', adminOnly: true },
     { icon: Book, label: 'Boekbeheer', route: '/books-management', adminOnly : true },
   ];
 

@@ -35,6 +35,7 @@ import { ReadingListDetailComponent } from './component/reading-list/reading-lis
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
 import { SettingsComponent } from './component/settings/settings/settings.component';
+import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashboard.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -114,8 +115,13 @@ export const routes: Routes = [
     canActivate: [authGuard, staffOnlyGuard],
   },
   {
-    path: 'scholen',
+    path: 'schools',
     component: SchoolDashboardComponent,
+    canActivate: [authGuard, adminOnlyGuard],
+  },
+    {
+    path: 'tag',
+    component: TagDashboardComponent,
     canActivate: [authGuard, adminOnlyGuard],
   },
   { path: '**', redirectTo: '/catalog' },
