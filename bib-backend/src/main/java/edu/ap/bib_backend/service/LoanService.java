@@ -3,6 +3,7 @@ package edu.ap.bib_backend.service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -59,5 +60,12 @@ public class LoanService {
         loan.setLoanDate(today);
         loan = loanRepository.save(loan);
         return loanMapper.toDto(loan);
+    }
+
+    public List<LoanDTO> findAll() {
+        return loanRepository.findAll()
+                .stream()
+                .map(loanMapper::toDto)
+                .toList();
     }
 }

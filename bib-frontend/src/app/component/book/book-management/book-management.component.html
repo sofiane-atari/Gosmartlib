@@ -37,7 +37,7 @@
       </div>
       <div>
         <p>Actief uitgeleend</p>
-        <strong>{{ loanStats.active }}</strong>
+        <strong>{{ activeLoans() }}</strong>
       </div>
     </article>
 
@@ -47,7 +47,7 @@
       </div>
       <div>
         <p>Te laat</p>
-        <strong>{{ loanStats.overdue }}</strong>
+        <strong>{{ overdueLoans() }}</strong>
       </div>
     </article>
 
@@ -57,7 +57,7 @@
       </div>
       <div>
         <p>Teruggebracht</p>
-        <strong>{{ loanStats.returned }}</strong>
+        <strong>{{ returnedLoans() }}</strong>
       </div>
     </article>
   </section>
@@ -66,19 +66,73 @@
     <div class="table-card__header">
       <div>
         <h2>Boekoverzicht</h2>
-        <p>Status van alle boeken die uitgeleend zijn of waren.</p>
+        <p>Status van alle uitgeleende boeken.</p>
       </div>
     </div>
 
-    <div class="empty-state">
-      <div class="empty-state__icon">
-        <lucide-icon [name]="LibraryBig"></lucide-icon>
+    @if (isLoading()) {
+      <div class="empty-state">
+        <p>Leningen laden...</p>
       </div>
-      <h3>Nog geen uitleengegevens geladen</h3>
-      <p>
-        Koppel deze tabel aan je bestaande loan-service om actieve, te late en
-        teruggebrachte boeken te tonen.
-      </p>
-    </div>
+    } @else if (errorMessage()) {
+      <div class="empty-state">
+        <p>{{ errorMessage() }}</p>
+      </div>
+    } @else if (loans().length === 0) {
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <lucide-icon [name]="LibraryBig"></lucide-icon>
+        </div>
+        <h3>Geen leningen gevonden</h3>
+        <p>Er zijn momenteel geen boeken uitgeleend.</p>
+      </div>
+    } @else {
+      <table>
+        <thead>
+        <tr>
+          <th>Lening</th>
+          <th>Gebruiker</th>
+          <th>Boek(en)</th>
+          <th>Retourdatum</th>
+          <th>Status</th>
+        </tr>
+        </thead>
+
+        <tbody>
+          @for (loan of loans(); track loan.id) {
+            <tr>
+              <td>
+                <span class="loan-id">#{{ loan.id }}</span>
+              </td>
+
+              <td>
+                <span class="user-id">{{ loan.userId }}</span>
+              </td>
+
+              <td>
+                <div class="book-list">
+                  @for (book of loan.books; track book.id) {
+                    <div class="book-chip">
+                      <strong>{{ book.title }}</strong>
+                      @if (book.author) {
+                        <small>{{ book.author }}</small>
+                      }
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <td>{{ loan.returnDate | date: 'dd/MM/yyyy' }}</td>
+
+              <td>
+          <span [class]="getStatusClass(loan)">
+            {{ getLoanStatus(loan) }}
+          </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
   </section>
 </div>
