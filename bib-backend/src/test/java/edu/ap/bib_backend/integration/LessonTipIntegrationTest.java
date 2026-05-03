@@ -1,4 +1,4 @@
-/*package edu.ap.bib_backend.integration;
+package edu.ap.bib_backend.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.config.JwtAuthenticationFilter;
@@ -9,6 +9,7 @@ import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.jpa.enums.LessonTipType;
 import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
 import edu.ap.bib_backend.mapper.lessontips.LessonTipMapper;
+import edu.ap.bib_backend.mapper.lessontips.LessonTipMapperImpl;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
@@ -51,12 +52,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = DidacticMaterialIntegrationTest.TestApplication.class)
+@SpringBootTest(classes = LessonTipIntegrationTest.TestApplication.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
-class DidacticMaterialIntegrationTest {
+class LessonTipIntegrationTest {
 
-    private static final String BASE_URL = "/didactic-materials";
+    private static final String BASE_URL = "/lesson-tips";
 
     @Autowired
     private MockMvc mockMvc;
@@ -181,7 +182,7 @@ class DidacticMaterialIntegrationTest {
         LessonTip material = new LessonTip();
         material.setTitle(title);
         material.setDescription("Beschrijving");
-        material.setMaterialType(LessonTipType.WORKSHEET);
+        material.setLessonTipType(LessonTipType.WORKSHEET);
         material.setSubject("Nederlands");
         material.setEducationLevel("Eerste graad");
         material.setKeywords("lezen");
@@ -217,8 +218,8 @@ class DidacticMaterialIntegrationTest {
             LessonTipCreatorRoleService.class,
             LessonTipAuthorizationService.class,
             CurrentUserService.class,
-            //DidacticMaterialMapperImpl.class
+            LessonTipMapperImpl.class
     })
     static class TestApplication {
     }
-}*/
+}

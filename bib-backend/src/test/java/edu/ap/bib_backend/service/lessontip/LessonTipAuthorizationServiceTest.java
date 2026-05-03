@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service.didactic;
+package edu.ap.bib_backend.service.lessontip;
 
 import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.service.lessontips.LessonTipAuthorizationService;
@@ -22,7 +22,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
-class DidacticMaterialAuthorizationServiceTest {
+class LessonTipAuthorizationServiceTest {
 
     @Mock
     private CurrentUserService currentUserService;

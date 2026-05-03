@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.controller.didactic;
+package edu.ap.bib_backend.controller.lessontip;
 
 import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.config.JwtAuthenticationFilter;
@@ -25,14 +25,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,9 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(LessonTipAttachmentController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import(TestSecurityConfig.class)
-class DidacticMaterialAttachmentControllerTest {
+class LessonTipAttachmentControllerTest {
 
-    private static final String BASE_URL = "/didactic-materials/{didacticMaterialId}/attachments";
+    private static final String BASE_URL = "/lesson-tips/{lessonTipId}/attachments";
     private static final Long MATERIAL_ID = 7L;
     private static final Long ATTACHMENT_ID = 9L;
 
@@ -85,7 +80,7 @@ class DidacticMaterialAttachmentControllerTest {
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].originalFileName").value("werkblad.docx"));
 
-        then(didacticMaterialAttachmentService).should().getAttachmentsByLessonTipId(ATTACHMENT_ID);
+        then(didacticMaterialAttachmentService).should().getAttachmentsByLessonTipId(MATERIAL_ID);
     }
 
     @Test

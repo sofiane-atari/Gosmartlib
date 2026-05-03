@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service.didactic;
+package edu.ap.bib_backend.service.lessontip;
 
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
@@ -20,7 +20,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
-class DidacticMaterialBookLinkServiceTest {
+class LessonTipBookLinkServiceTest {
 
     @Mock
     private BookRepository bookRepository;

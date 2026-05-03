@@ -1,4 +1,4 @@
-/*package edu.ap.bib_backend.service.didactic;
+package edu.ap.bib_backend.service.lessontip;
 
 import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentDownloadDataDto;
 import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentResponseDto;
@@ -33,7 +33,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
-class DidacticMaterialAttachmentServiceTest {
+class LessonTipAttachmentServiceTest {
 
     private static final Long MATERIAL_ID = 7L;
     private static final Long ATTACHMENT_ID = 9L;
@@ -74,21 +74,21 @@ class DidacticMaterialAttachmentServiceTest {
 
         given(didacticMaterialRepository.findById(MATERIAL_ID))
                 .willReturn(Optional.of(material));
-        given(didacticMaterialAttachmentRepository.findAllByDidacticMaterialIdOrderByUploadedAtDesc(MATERIAL_ID))
+        given(didacticMaterialAttachmentRepository.findAllByLessonTipIdOrderByUploadedAtDesc(MATERIAL_ID))
                 .willReturn(List.of(firstAttachment, secondAttachment));
         given(didacticMaterialAttachmentMapper.toResponseList(List.of(firstAttachment, secondAttachment)))
                 .willReturn(List.of(firstResponse, secondResponse));
 
         // Act
         List<LessonTipAttachmentResponseDto> result =
-                didacticMaterialAttachmentService.getAttachmentsByMaterialId(MATERIAL_ID);
+                didacticMaterialAttachmentService.getAttachmentsByLessonTipId(MATERIAL_ID);
 
         // Assert
         assertThat(result).containsExactly(firstResponse, secondResponse);
 
         then(didacticMaterialRepository).should().findById(MATERIAL_ID);
         then(didacticMaterialAttachmentRepository).should()
-                .findAllByDidacticMaterialIdOrderByUploadedAtDesc(MATERIAL_ID);
+                .findAllByLessonTipIdOrderByUploadedAtDesc(MATERIAL_ID);
     }
 
     @Test
@@ -100,13 +100,13 @@ class DidacticMaterialAttachmentServiceTest {
         // Act
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> didacticMaterialAttachmentService.getAttachmentsByMaterialId(MATERIAL_ID)
+                () -> didacticMaterialAttachmentService.getAttachmentsByLessonTipId(MATERIAL_ID)
         );
 
         // Assert
         then(didacticMaterialRepository).should().findById(MATERIAL_ID);
         then(didacticMaterialAttachmentRepository).should(never())
-                .findAllByDidacticMaterialIdOrderByUploadedAtDesc(any());
+                .findAllByLessonTipIdOrderByUploadedAtDesc(any());
     }
 
     @Test
@@ -151,7 +151,7 @@ class DidacticMaterialAttachmentServiceTest {
         then(didacticMaterialAttachmentRepository).should().save(attachmentCaptor.capture());
 
         LessonTipAttachment capturedAttachment = attachmentCaptor.getValue();
-        assertThat(capturedAttachment.getDidacticMaterial()).isEqualTo(material);
+        assertThat(capturedAttachment.getLessonTip()).isEqualTo(material);
         assertThat(capturedAttachment.getOriginalFileName()).isEqualTo("lesfiche.pdf");
         assertThat(capturedAttachment.getStoredFileName()).isEqualTo("stored-123.pdf");
         assertThat(capturedAttachment.getContentType()).isEqualTo("application/pdf");
@@ -258,7 +258,7 @@ class DidacticMaterialAttachmentServiceTest {
         );
         ByteArrayResource resource = new ByteArrayResource("pdf-content".getBytes());
 
-        given(didacticMaterialAttachmentRepository.findByIdAndDidacticMaterialId(ATTACHMENT_ID, MATERIAL_ID))
+        given(didacticMaterialAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, MATERIAL_ID))
                 .willReturn(Optional.of(attachment));
         given(fileStorageService.loadAsResource("stored-123.pdf"))
                 .willReturn(resource);
@@ -278,7 +278,7 @@ class DidacticMaterialAttachmentServiceTest {
     @Test
     void givenUnknownAttachmentId_whenGetAttachmentDownloadData_thenThrowResourceNotFoundException() {
         // Arrange
-        given(didacticMaterialAttachmentRepository.findByIdAndDidacticMaterialId(ATTACHMENT_ID, MATERIAL_ID))
+        given(didacticMaterialAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, MATERIAL_ID))
                 .willReturn(Optional.empty());
 
         // Act
@@ -302,7 +302,7 @@ class DidacticMaterialAttachmentServiceTest {
                 "stored-123.pdf"
         );
 
-        given(didacticMaterialAttachmentRepository.findByIdAndDidacticMaterialId(ATTACHMENT_ID, MATERIAL_ID))
+        given(didacticMaterialAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, MATERIAL_ID))
                 .willReturn(Optional.of(attachment));
 
         // Act
@@ -317,7 +317,7 @@ class DidacticMaterialAttachmentServiceTest {
     @Test
     void givenUnknownAttachmentId_whenDeleteAttachment_thenThrowResourceNotFoundException() {
         // Arrange
-        given(didacticMaterialAttachmentRepository.findByIdAndDidacticMaterialId(ATTACHMENT_ID, MATERIAL_ID))
+        given(didacticMaterialAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, MATERIAL_ID))
                 .willReturn(Optional.empty());
 
         // Act
@@ -336,7 +336,7 @@ class DidacticMaterialAttachmentServiceTest {
         material.setId(id);
         material.setTitle("Titel");
         material.setDescription("Beschrijving");
-        material.setMaterialType(edu.ap.bib_backend.jpa.enums.LessonTipType.WORKSHEET);
+        material.setLessonTipType(edu.ap.bib_backend.jpa.enums.LessonTipType.WORKSHEET);
         material.setCreatedByUserId(createdByUserId);
         material.setCreatedAt(LocalDateTime.of(2026, 4, 20, 10, 0));
         material.setUpdatedAt(LocalDateTime.of(2026, 4, 21, 11, 0));
@@ -351,7 +351,7 @@ class DidacticMaterialAttachmentServiceTest {
     ) {
         LessonTipAttachment attachment = new LessonTipAttachment();
         attachment.setId(id);
-        attachment.setDidacticMaterial(material);
+        attachment.setLessonTip(material);
         attachment.setOriginalFileName(originalFileName);
         attachment.setStoredFileName(storedFileName);
         attachment.setContentType("application/pdf");
@@ -369,4 +369,4 @@ class DidacticMaterialAttachmentServiceTest {
                 LocalDateTime.of(2026, 4, 21, 14, 15)
         );
     }
-}*/
+}
