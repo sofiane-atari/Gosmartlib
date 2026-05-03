@@ -58,7 +58,6 @@ public class BookController {
 
     @GetMapping("/catalog")
     public PageDTO<BookDTO> getFilteredBooks(
-            Authentication authentication,
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) BookAvailabilityFilter availability,
             @RequestParam(required = false) Integer minPages,
@@ -71,7 +70,6 @@ public class BookController {
             Authentication authentication) {
 
         Page<BookDTO> bookPage = bookSearchService.getFilteredBooks(
-                authentication,
                 searchTerm,
                 availability,
                 minPages,
@@ -108,7 +106,7 @@ public class BookController {
             Authentication authentication,
             @RequestBody BookDTO dto
     ) {
-        BookDTO savedBook = bookService.addBook(authentication, dto);
+        BookDTO savedBook = bookService.addBook(dto, authentication);
         return ResponseEntity.ok(savedBook);
     }
 
@@ -186,7 +184,7 @@ public class BookController {
             Authentication authentication,
             @PathVariable Long bookId
     ) {
-        BookDTO dto = bookService.addCopyToBook(authentication, bookId);
+        BookDTO dto = bookService.addCopyToBook(bookId, authentication);
         return ResponseEntity.ok(dto);
     }
 
