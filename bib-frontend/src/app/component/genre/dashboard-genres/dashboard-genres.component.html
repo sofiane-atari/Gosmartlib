@@ -5,7 +5,14 @@
       <h1>Genrebeheer</h1>
       <p>Beheer genres voor de boekencatalogus</p>
     </div>
-    <button class="btn-new" (click)="setPopup('create')">+ Nieuw genre</button>
+
+    <app-button-hover-help
+      class="full-button-help"
+      text="Maak een nieuw genre aan voor de boekencatalogus.">
+      <button class="btn-new" (click)="setPopup('create')">
+        + Nieuw genre
+      </button>
+    </app-button-hover-help>
   </div>
 
   <div [class.blur-background]="popUp() !== null">
@@ -41,21 +48,35 @@
 
   <!-- StatCards -->
   <div class="stat-cards">
-    <app-stat-card
-      label="Totaal labels"
-      [value]="stats()?.totalItems ?? 0"
-      variant="total"
-    />
-    <app-stat-card
-      label="Actieve labels"
-      [value]="totalActive()"
-      variant="active"
-    />
-    <app-stat-card
-      label="Ongebruikte labels"
-      [value]="stats()?.unActiveGenres ?? 0"
-      variant="unused"
-    />
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het totaal aantal genres in de boekencatalogus.">
+      <app-stat-card
+        label="Totaal genres"
+        [value]="stats()?.totalItems ?? 0"
+        variant="total"
+      />
+    </app-button-hover-help>
+
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het aantal genres dat gebruikt wordt bij één of meerdere boeken.">
+      <app-stat-card
+        label="Gebruikte genres"
+        [value]="totalActive()"
+        variant="active"
+      />
+    </app-button-hover-help>
+
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het aantal genres dat nog niet gekoppeld is aan boeken.">
+      <app-stat-card
+        label="Ongebruikte genres"
+        [value]="stats()?.unActiveGenres ?? 0"
+        variant="unused"
+      />
+    </app-button-hover-help>
   </div>
 
   <!-- SearchBar -->

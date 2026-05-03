@@ -16,7 +16,8 @@ import {
   MessageCircle,
   BookPlus,
   Bookmark,
-  Flag
+  Flag,
+  ChevronDown
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -34,12 +35,13 @@ import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
 import { DraftStorageService } from '../../../services/storage/draft-storage.service';
 import { ReviewDraft } from '../../../model/review/review-draft.model';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink],
+  imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink, ButtonHoverHelpComponent],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css'
 })
@@ -57,6 +59,7 @@ export class BookDetailComponent implements OnDestroy {
   readonly BookOpen = BookOpen;
   readonly Bookmark = Bookmark;
   readonly Flag = Flag;
+  readonly ChevronDown = ChevronDown;
   icons = [
     { icon: Library, label: 'Bibliotheek' },
     { icon: Star, label: 'Reviews' },

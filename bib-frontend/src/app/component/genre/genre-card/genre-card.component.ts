@@ -11,11 +11,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { ToastService } from '../../../services/toast/toast.service';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-genre-card',
   standalone: true,
-  imports: [],
+  imports: [ButtonHoverHelpComponent],
   templateUrl: './genre-card.component.html',
   styleUrls: ['./genre-card.component.css'],
 })

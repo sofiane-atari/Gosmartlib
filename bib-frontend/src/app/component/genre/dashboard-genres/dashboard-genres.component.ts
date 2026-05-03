@@ -23,6 +23,7 @@ import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { Genre } from '../../../model/genre/genre.model';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -42,6 +43,7 @@ interface ErrorItem {
     PagingComponent,
     UpdateGenreComponent,
     GenresListComponent,
+    ButtonHoverHelpComponent,
   ],
   templateUrl: './dashboard-genres.component.html',
   styleUrls: ['./dashboard-genres.component.css'],

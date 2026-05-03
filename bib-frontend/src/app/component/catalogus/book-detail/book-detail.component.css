@@ -819,6 +819,173 @@
   text-overflow: ellipsis;
 }
 
+.review-help-box {
+  margin-bottom: 14px;
+  padding: 0;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #1f2937;
+
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.review-help-box summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 12px 14px;
+
+  background: #f9fafb;
+  color: #1f2937;
+
+  font-size: 0.9rem;
+  font-weight: 700;
+
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.review-help-box summary::-webkit-details-marker {
+  display: none;
+}
+
+.review-help-box summary:hover {
+  background: #f3f4f6;
+  color: var(--main-color, #8a1e41);
+}
+
+.review-help-icon {
+  flex-shrink: 0;
+  color: #6b7280;
+
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.review-help-box summary:hover .review-help-icon {
+  color: var(--main-color, #8a1e41);
+}
+
+.review-help-box[open] summary {
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: var(--main-color, #8a1e41);
+}
+
+.review-help-box[open] .review-help-icon {
+  transform: rotate(180deg);
+  color: var(--main-color, #8a1e41);
+}
+
+.review-help-content {
+  background: #ffffff;
+}
+
+.review-help-content p {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  margin: 0;
+  padding: 11px 14px;
+
+  color: #4b5563;
+  font-size: 0.85rem;
+  line-height: 1.45;
+
+  border-bottom: 1px solid #f3f4f6;
+  background: #ffffff;
+}
+
+.review-help-content p:nth-child(even) {
+  background: #f9fafb;
+}
+
+.review-help-content p:last-child {
+  border-bottom: none;
+}
+
+.review-step-number {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: var(--main-color, #8a1e41);
+
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.review-help-content strong {
+  display: inline-block;
+  margin-bottom: 4px;
+
+  color: #1f2937;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.review-help-box[open] .review-help-content strong {
+  color: var(--main-color, #8a1e41);
+}
+.action-buttons app-button-hover-help {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.action-buttons app-button-hover-help > span,
+.action-buttons app-button-hover-help .button-hover-help {
+  width: 100%;
+}
+
+.action-buttons app-button-hover-help button {
+  width: 100%;
+}
+
+.carousel-controls app-button-hover-help,
+.review-actions app-button-hover-help,
+.preview-modal-header app-button-hover-help {
+  display: inline-flex;
+  width: auto;
+}
+
+.carousel-controls app-button-hover-help button,
+.review-actions app-button-hover-help button,
+.preview-modal-header app-button-hover-help button {
+  width: auto;
+}
+
+.action-buttons,
+.review-actions,
+.carousel-controls,
+.preview-modal-header,
+.management-section,
+.reader-actions-section,
+.reviews-section,
+.review-card,
+.review-header,
+.main-content {
+  overflow: visible;
+}
 /* Responsive (Media Queries) */
 @media (max-width: 768px) {
   .detail-wrapper {
