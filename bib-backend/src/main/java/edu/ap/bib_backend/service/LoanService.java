@@ -4,7 +4,11 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.LoanDTO;
@@ -16,17 +20,20 @@ import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
 
+
 @Service
 public class LoanService {
 
     private final LoanRepository loanRepository;
     private final LoanMapper loanMapper;
     private final BookService bookService;
+    private final ExternalUserDisplayService externalUserDisplayService;
 
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService) {
+    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
+        this.externalUserDisplayService = externalUserDisplayService;
     }
 
     @Transactional
@@ -62,10 +69,61 @@ public class LoanService {
         return loanMapper.toDto(loan);
     }
 
+
+
     public List<LoanDTO> findAll() {
-        return loanRepository.findAll()
-                .stream()
-                .map(loanMapper::toDto)
+        List<Loan> loans = loanRepository.findAll();
+
+        Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
+                .filter(loan -> loan.getUser() != null)
+                .filter(loan -> loan.getUser().getSchool() != null)
+                .filter(loan -> loan.getUser().getSchool().getDomainName() != null)
+                .filter(loan -> loan.getUser().getOneRosterSourcedId() != null)
+                .collect(Collectors.groupingBy(
+                        loan -> loan.getUser().getSchool().getDomainName(),
+                        Collectors.mapping(
+                                loan -> loan.getUser().getOneRosterSourcedId(),
+                                Collectors.toSet()
+                        )
+                ));
+
+        System.out.println("UserIds per school: " + userIdsBySchoolCode);
+
+        Map<String, String> displayNamesByUserId = new java.util.HashMap<>();
+
+        userIdsBySchoolCode.forEach((schoolCode, userIds) -> {
+            System.out.println("SchoolCode: " + schoolCode);
+            System.out.println("UserIds naar OneRoster: " + userIds);
+
+            Map<String, String> names =
+                    externalUserDisplayService.getDisplayNames(schoolCode, userIds);
+
+            System.out.println("Display names van OneRoster: " + names);
+
+            displayNamesByUserId.putAll(names);
+        });
+
+        System.out.println("Alle display names: " + displayNamesByUserId);
+
+
+        return loans.stream()
+                .map(loan -> {
+                    LoanDTO dto = loanMapper.toDto(loan);
+
+                    String lookupId = loan.getUser().getOneRosterSourcedId();
+
+                    return LoanDTO.builder()
+                            .id(dto.id())
+                            .userId(dto.userId())
+                            .userDisplayName(
+                                    displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker")
+                            )
+                            .bookIds(dto.bookIds())
+                            .books(dto.books())
+                            .loanDate(dto.loanDate())
+                            .returnDate(dto.returnDate())
+                            .build();
+                })
                 .toList();
     }
 }

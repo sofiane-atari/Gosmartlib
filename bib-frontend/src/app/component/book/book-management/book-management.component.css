@@ -328,6 +328,27 @@ lucide-icon {
   color: #15803d;
 }
 
+.user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.user-cell strong {
+  color: #1a0a10;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.user-cell span {
+  color: #9b7a84;
+  font-size: 12px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (max-width: 1024px) {
   .table-card {
     overflow-x: auto;

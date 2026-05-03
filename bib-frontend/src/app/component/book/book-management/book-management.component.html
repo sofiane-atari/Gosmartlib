@@ -106,7 +106,9 @@
               </td>
 
               <td>
-                <span class="user-id">{{ loan.userId }}</span>
+                <div class="user-cell">
+                  <strong>{{ loan.userDisplayName ?? 'Onbekende gebruiker' }}</strong>
+                </div>
               </td>
 
               <td>

@@ -8,8 +8,9 @@ export interface LoanBook {
 }
 
 export interface Loan {
-  id: number;
+  id?: number;
   userId: string;
+  userDisplayName?: string;
   bookIds: number[];
   books?: LoanBook[];
   loanDate?: LocalDate;

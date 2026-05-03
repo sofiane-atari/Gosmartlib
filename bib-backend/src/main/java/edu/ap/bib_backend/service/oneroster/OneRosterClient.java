@@ -514,4 +514,91 @@ public class OneRosterClient {
 
         return false;
     }
+
+    public Map<String, String> fetchUserDisplayNames(String schoolCode, Set<String> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = fetchAccessToken(host);
+
+        URI usersUri = buildApiUri(host, "/users");
+        Map<String, Object> payload = getJsonWithBearer(usersUri, accessToken);
+
+        List<Map<String, Object>> users = extractRecordCollection(payload, "users");
+
+        return users.stream()
+                .filter(user -> {
+                    String sourcedId = firstNonBlank(user, "sourcedId", "identifier", "userId", "username");
+                    return sourcedId != null && userIds.contains(sourcedId);
+                })
+                .collect(java.util.stream.Collectors.toMap(
+                        user -> firstNonBlank(user, "sourcedId", "identifier", "userId", "username"),
+                        this::buildDisplayName,
+                        (left, right) -> left
+                ));
+    }
+
+    private String buildDisplayName(Map<String, Object> user) {
+        String fullName = firstNonBlank(user, "fullName", "name", "displayName");
+
+        if (fullName != null) {
+            return fullName;
+        }
+
+        String givenName = firstNonBlank(user, "givenName", "firstName");
+        String familyName = firstNonBlank(user, "familyName", "lastName", "surname");
+
+        String combined = ((givenName == null ? "" : givenName) + " " + (familyName == null ? "" : familyName)).trim();
+
+        if (!combined.isBlank()) {
+            return combined;
+        }
+
+        String username = firstNonBlank(user, "username", "userName");
+
+        return username != null ? username : "Onbekende gebruiker";
+    }
+
+
+
+
+    public String findSourcedIdByLegacyIdentifier(String schoolCode, String legacyIdentifier) {
+        if (legacyIdentifier == null || legacyIdentifier.isBlank()) {
+            return null;
+        }
+
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = fetchAccessToken(host);
+
+        URI usersUri = buildApiUri(host, "/users");
+        Map<String, Object> payload = getJsonWithBearer(usersUri, accessToken);
+
+        List<Map<String, Object>> users = extractRecordCollection(payload, "users");
+
+        return users.stream()
+                .filter(user -> legacyIdentifier.equals(readMetadataString(user, "smsc.legacyIdentifier")))
+                .map(user -> firstNonBlank(user, "sourcedId"))
+                .filter(id -> id != null && !id.isBlank())
+                .findFirst()
+                .orElse(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String readMetadataString(Map<String, Object> user, String key) {
+        Object metadataObject = user.get("metadata");
+
+        if (!(metadataObject instanceof Map<?, ?> metadata)) {
+            return null;
+        }
+
+        Object value = metadata.get(key);
+
+        if (value instanceof String text && !text.isBlank()) {
+            return text;
+        }
+
+        return null;
+    }
 }

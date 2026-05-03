@@ -16,6 +16,9 @@ public record LoanDTO(
         @NotBlank(message = "Gebruiker ID is verplicht")
         String userId,
 
+        @JsonProperty("userDisplayName")
+        String userDisplayName,
+
         @JsonProperty("bookIds")
         @NotEmpty(message = "Minstens één boek is verplicht")
         List<Long> bookIds,
