@@ -9,85 +9,95 @@
       </div>
     </div>
 
-    <div class="review-dashboard__sticky-actions">
-      @if (!isLoading() && reviews().length > 0) {
-        <div class="bulk-actions">
-          <span class="bulk-actions__badge">
-            {{ selectedCount() }} geselecteerd
-          </span>
+<div class="review-dashboard__sticky-actions">
+  @if (!isLoading() && reviews().length > 0) {
+    <div class="bulk-actions">
+      <span class="bulk-actions__badge">
+        {{ selectedCount() }} geselecteerd
+      </span>
 
-          <button
-            type="button"
-            class="bulk-actions__button bulk-actions__button--select"
-            [disabled]="isBulkProcessing() || allVisibleReviewsSelected()"
-            (click)="selectAllVisibleReviews()"
-          >
-            <lucide-angular [img]="Check" size="16"></lucide-angular>
-            Alles selecteren
-          </button>
+      <button
+        type="button"
+        class="bulk-actions__button bulk-actions__button--select"
+        [disabled]="isBulkProcessing() || allVisibleReviewsSelected()"
+        (click)="selectAllVisibleReviews()"
+      >
+        <lucide-angular [img]="Check" size="16"></lucide-angular>
+        Alles selecteren
+      </button>
 
-          <button
-            type="button"
-            class="bulk-actions__button bulk-actions__button--deselect"
-            [disabled]="isBulkProcessing() || selectedCount() === 0"
-            (click)="deselectAll()"
-          >
-            <lucide-angular [img]="eraser" size="16"></lucide-angular>
-            Alles deselecteren
-          </button>
+      <button
+        type="button"
+        class="bulk-actions__button bulk-actions__button--deselect"
+        [disabled]="isBulkProcessing() || selectedCount() === 0"
+        (click)="deselectAll()"
+      >
+        <lucide-angular [img]="eraser" size="16"></lucide-angular>
+        Alles deselecteren
+      </button>
 
-          @if (selectedCount() > 0) {
-            <button
-              type="button"
-              class="bulk-actions__button bulk-actions__button--approve"
-              [disabled]="isBulkProcessing()"
-              (click)="approveSelectedReviews()"
-            >
-              <lucide-angular [img]="Check" size="16"></lucide-angular>
-              @if (isBulkProcessing()) {
-                Verwerken...
-              } @else {
-                Goedkeuren
-              }
-            </button>
-
-            <button
-              type="button"
-              class="bulk-actions__button bulk-actions__button--delete"
-              [disabled]="isBulkProcessing()"
-              (click)="deleteSelectedReviews()"
-            >
-              <lucide-angular [img]="Trash2" size="16"></lucide-angular>
-              @if (isBulkProcessing()) {
-                Verwerken...
-              } @else {
-                Verwijderen
-              }
-            </button>
+      @if (selectedCount() > 0) {
+        <button
+          type="button"
+          class="bulk-actions__button bulk-actions__button--approve"
+          [disabled]="isBulkProcessing()"
+          (click)="approveSelectedReviews()"
+        >
+          <lucide-angular [img]="Check" size="16"></lucide-angular>
+          @if (isBulkProcessing()) {
+            Verwerken...
+          } @else {
+            Goedkeuren
           }
-        </div>
+        </button>
+
+        <button
+          type="button"
+          class="bulk-actions__button bulk-actions__button--delete"
+          [disabled]="isBulkProcessing()"
+          (click)="deleteSelectedReviews()"
+        >
+          <lucide-angular [img]="Trash2" size="16"></lucide-angular>
+          @if (isBulkProcessing()) {
+            Verwerken...
+          } @else {
+            Verwijderen
+          }
+        </button>
       }
     </div>
+  }
+</div>
 
     <div class="review-dashboard__stats">
       <article class="stat-card">
-        <div class="stat-card__icon stat-card__icon--main">
-          <lucide-angular [img]="Flag" size="26"></lucide-angular>
-        </div>
-        <div>
-          <div class="stat-card__value">{{ totalCount() }}</div>
-          <div class="stat-card__label">Totaal gerapporteerd</div>
-        </div>
+        <app-button-hover-help text="Totaal aantal gerapporteerde reviews.">
+          <div class="stat-card__content">
+            <div class="stat-card__icon stat-card__icon--main">
+              <lucide-angular [img]="Flag" size="26"></lucide-angular>
+            </div>
+
+            <div>
+              <div class="stat-card__value">{{ totalCount() }}</div>
+              <div class="stat-card__label">Totaal gerapporteerd</div>
+            </div>
+          </div>
+        </app-button-hover-help>
       </article>
 
       <article class="stat-card">
-        <div class="stat-card__icon stat-card__icon--warning">
-          <lucide-angular [img]="CircleAlert" size="26"></lucide-angular>
-        </div>
-        <div>
-          <div class="stat-card__value">{{ criticalReviewsCount() }}</div>
-          <div class="stat-card__label">Dringende reviews</div>
-        </div>
+        <app-button-hover-help text="Reviews die meer dan 5 keer zijn gerapporteerd.">
+          <div class="stat-card__content">
+            <div class="stat-card__icon stat-card__icon--warning">
+              <lucide-angular [img]="CircleAlert" size="26"></lucide-angular>
+            </div>
+
+            <div>
+              <div class="stat-card__value">{{ criticalReviewsCount() }}</div>
+              <div class="stat-card__label">Dringende reviews</div>
+            </div>
+          </div>
+        </app-button-hover-help>
       </article>
     </div>
 
@@ -159,13 +169,15 @@
             (click)="review.id !== undefined && toggleSelection(review.id)"
           >
             <div class="review-card__select">
-              <input
-                type="checkbox"
-                [checked]="review.id !== undefined && isSelected(review.id)"
-                [disabled]="isBulkProcessing()"
-                (click)="$event.stopPropagation()"
-                (change)="review.id !== undefined && toggleSelection(review.id)"
-              />
+              <app-button-hover-help text="Selecteer deze review voor een bulkactie.">
+                <input
+                  type="checkbox"
+                  [checked]="review.id !== undefined && isSelected(review.id)"
+                  [disabled]="isBulkProcessing()"
+                  (click)="$event.stopPropagation()"
+                  (change)="review.id !== undefined && toggleSelection(review.id)"
+                />
+              </app-button-hover-help>
             </div>
 
             <div class="review-card__cover">
@@ -189,9 +201,11 @@
                   </p>
                 </div>
 
-                <span class="review-card__report-badge">
-                  {{ review.reportCount ?? 0 }}
-                </span>
+                <app-button-hover-help text="Aantal keren dat deze review werd gerapporteerd.">
+                  <span class="review-card__report-badge">
+                    {{ review.reportCount ?? 0 }}
+                  </span>
+                </app-button-hover-help>
               </div>
 
               <div class="review-card__rating">
@@ -224,46 +238,53 @@
               </p>
 
               <div class="review-card__actions">
-                <button
-                  type="button"
-                  class="review-card__action review-card__action--approve"
-                  [disabled]="isBulkProcessing()"
-                  (click)="$event.stopPropagation(); review.id !== undefined && approveReview(review.id)"
-                >
-                  <lucide-angular [img]="Check" size="14"></lucide-angular>
-                  Goedkeuren
-                </button>
+                <app-button-hover-help text="Keur deze review goed en behoud hem op de website.">
+                  <button
+                    type="button"
+                    class="review-card__action review-card__action--approve"
+                    [disabled]="isBulkProcessing()"
+                    (click)="$event.stopPropagation(); review.id !== undefined && approveReview(review.id)"
+                  >
+                    <lucide-angular [img]="Check" size="14"></lucide-angular>
+                    Goedkeuren
+                  </button>
+                </app-button-hover-help>
 
-                <button
-                  type="button"
-                  class="review-card__action review-card__action--delete"
-                  [disabled]="isBulkProcessing()"
-                  (click)="$event.stopPropagation(); review.id !== undefined && deleteReview(review.id)"
-                >
-                  <lucide-angular [img]="Trash2" size="14"></lucide-angular>
-                  Verwijderen
-                </button>
+                <app-button-hover-help text="Verwijder deze review definitief.">
+                  <button
+                    type="button"
+                    class="review-card__action review-card__action--delete"
+                    [disabled]="isBulkProcessing()"
+                    (click)="$event.stopPropagation(); review.id !== undefined && deleteReview(review.id)"
+                  >
+                    <lucide-angular [img]="Trash2" size="14"></lucide-angular>
+                    Verwijderen
+                  </button>
+                </app-button-hover-help>
 
-                <!-- Block/Unblock reviewer buttons for moderators -->
                 @if (roleService.canModerateReviews() && review.reviewerId) {
                   @if (review.reviewerReviewBlocked) {
-                    <button
-                      type="button"
-                      class="review-card__action review-card__action--unblock"
-                      [disabled]="isBulkProcessing()"
-                      (click)="$event.stopPropagation(); unblockReviewer(review)"
-                    >
-                      Deblokkeren
-                    </button>
+                    <app-button-hover-help text="Geef deze gebruiker opnieuw toegang om reviews te plaatsen.">
+                      <button
+                        type="button"
+                        class="review-card__action review-card__action--unblock"
+                        [disabled]="isBulkProcessing()"
+                        (click)="$event.stopPropagation(); unblockReviewer(review)"
+                      >
+                        Deblokkeren
+                      </button>
+                    </app-button-hover-help>
                   } @else {
-                    <button
-                      type="button"
-                      class="review-card__action review-card__action--block"
-                      [disabled]="isBulkProcessing()"
-                      (click)="$event.stopPropagation(); blockReviewer(review)"
-                    >
-                      Blokkeren
-                    </button>
+                    <app-button-hover-help text="Blokkeer deze gebruiker zodat die geen reviews meer kan plaatsen.">
+                      <button
+                        type="button"
+                        class="review-card__action review-card__action--block"
+                        [disabled]="isBulkProcessing()"
+                        (click)="$event.stopPropagation(); blockReviewer(review)"
+                      >
+                        Blokkeren
+                      </button>
+                    </app-button-hover-help>
                   }
                 }
               </div>

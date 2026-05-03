@@ -1,14 +1,17 @@
 <div class="page">
 
-
   <!-- Page header -->
   <div class="page-header">
     <div>
       <h1 class="page-title">Mijn leeslijsten</h1>
-      <p class="page-subtitle">{{ readingLists.length }} leeslijst{{ readingLists.length !== 1 ? 'en' : '' }} aangemaakt
+      <p class="page-subtitle">
+        {{ readingLists.length }} leeslijst{{ readingLists.length !== 1 ? 'en' : '' }} aangemaakt
       </p>
     </div>
-    <button class="btn-primary" [routerLink]="createRoute">+ Nieuwe leeslijst</button>
+
+      <button class="btn-primary" [routerLink]="createRoute">
+        + Nieuwe leeslijst
+      </button>
   </div>
 
   <div class="content-layout">
@@ -18,17 +21,35 @@
       <!-- Filter tabs -->
       <div class="filter-tabs">
         @for (filter of filterOptions; track filter.id) {
-          <button
-            class="filter-tab"
-            [class.active]="selectedFilters.has(filter.id)"
-            (click)="toggleFilter(filter.id)"
-            type="button">
-            <span class="filter-icon">
-              <lucide-angular [img]="filter.icon" size="16"></lucide-angular>
-            </span>
-            <span class="filter-label">{{ filter.label }}</span>
-            <span class="filter-count">{{ getFilterCount(filter.id) }}</span>
-          </button>
+          <app-button-hover-help
+            class="filter-hover-help"
+            [text]="
+              filter.id === 'ALL'
+                ? 'Toon alle leeslijsten.'
+                : filter.id === 'FEATURED'
+                  ? 'Uitgelichte leeslijsten zijn publieke lijsten die voor iedereen zichtbaar zijn.'
+                  : filter.id === 'PERSONAL'
+                    ? 'Persoonlijke leeslijsten zijn alleen zichtbaar voor jou.'
+                    : filter.id === 'CLASS'
+                      ? 'Klaslijsten zijn leeslijsten die door je leerkracht met je klas gedeeld werden.'
+                      : filter.id === 'YEAR'
+                        ? 'Jaarlijsten zijn leeslijsten die gedeeld zijn met jouw leerjaar.'
+                        : filter.id === 'SCHOOL'
+                          ? 'Schoollijsten zijn leeslijsten die gedeeld zijn met de hele school.'
+                          : 'Filter de leeslijsten op: ' + filter.label
+            ">
+            <button
+              class="filter-tab"
+              [class.active]="selectedFilters.has(filter.id)"
+              (click)="toggleFilter(filter.id)"
+              type="button">
+              <span class="filter-icon">
+                <lucide-angular [img]="filter.icon" size="16"></lucide-angular>
+              </span>
+              <span class="filter-label">{{ filter.label }}</span>
+              <span class="filter-count">{{ getFilterCount(filter.id) }}</span>
+            </button>
+          </app-button-hover-help>
         }
       </div>
 
@@ -38,9 +59,15 @@
           <div class="empty-icon">
             <lucide-angular [img]="BookCopy" size="52"></lucide-angular>
           </div>
+
           <h3>Nog geen leeslijsten</h3>
           <p>Maak je eerste leeslijst aan om boeken bij te houden.</p>
-          <button class="btn-primary" [routerLink]="createRoute">+ Nieuwe leeslijst aanmaken</button>
+
+          <app-button-hover-help text="Maak je eerste persoonlijke leeslijst aan om boeken te verzamelen en bij te houden.">
+            <button class="btn-primary" [routerLink]="createRoute">
+              + Nieuwe leeslijst aanmaken
+            </button>
+          </app-button-hover-help>
         </div>
       } @else {
         <!-- Grid of cards -->
@@ -48,11 +75,15 @@
           @for (list of getFilteredLists(); track list.id) {
             <div class="card" [routerLink]="['/reading-list', list.id]">
 
-               <div class="card-cover">
+              <div class="card-cover">
                 @if (listCovers[list.id] && listCovers[list.id].length > 0) {
                   <div class="stacked-covers">
                     @for (cover of listCovers[list.id]; track $index) {
-                      <img [src]="cover" class="stacked-cover" [ngStyle]="getCoverStyle($index, listCovers[list.id].length)" alt="Cover" />
+                      <img
+                        [src]="cover"
+                        class="stacked-cover"
+                        [ngStyle]="getCoverStyle($index, listCovers[list.id].length)"
+                        alt="Cover" />
                     }
                   </div>
                 } @else {
@@ -61,17 +92,30 @@
                   </div>
                 }
               </div>
+
               <div class="card-body">
                 <h3 class="card-title">{{ list.name }}</h3>
                 <p class="card-author">Leeslijst</p>
+
                 <div class="card-actions">
-                  <button class="btn-share" (click)="shareList(list.id); $event.stopPropagation()" title="Delen">
-                    <lucide-angular [img]="Share2" size="18"></lucide-angular>
-                  </button>
-                  @if (canDeleteList(list)) {
-                    <button class="btn-delete" (click)="deleteList(list); $event.stopPropagation()" title="Verwijderen">
-                      <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                  <app-button-hover-help text="Deel deze leeslijst met iemand anders.">
+                    <button
+                      class="btn-share"
+                      type="button"
+                      (click)="shareList(list.id); $event.stopPropagation()">
+                      <lucide-angular [img]="Share2" size="18"></lucide-angular>
                     </button>
+                  </app-button-hover-help>
+
+                  @if (canDeleteList(list)) {
+                    <app-button-hover-help text="Verwijder deze leeslijst.">
+                      <button
+                        class="btn-delete"
+                        type="button"
+                        (click)="deleteList(list); $event.stopPropagation()">
+                        <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                      </button>
+                    </app-button-hover-help>
                   }
                 </div>
               </div>

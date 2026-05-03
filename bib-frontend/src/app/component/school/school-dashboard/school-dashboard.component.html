@@ -20,24 +20,33 @@
   }
 
   <section class="stat-cards">
-    <article class="stat-card stat-card--purple">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="SchoolIcon"></lucide-icon>
-      </div>
-      <div>
-        <p>Totaal Scholen</p>
-        <strong>{{ totalSchools() }}</strong>
-      </div>
-    </article>
-    <article class="stat-card stat-card--green">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="BookOpen"></lucide-icon>
-      </div>
-      <div>
-        <p>Totaal Boeken</p>
-        <strong>{{ totalBooks() }}</strong>
-      </div>
-    </article>
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het totaal aantal scholen dat momenteel in het netwerk staat.">
+      <article class="stat-card stat-card--purple">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="SchoolIcon"></lucide-icon>
+        </div>
+        <div>
+          <p>Totaal Scholen</p>
+          <strong>{{ totalSchools() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
+
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het totaal aantal boeken dat gekoppeld is aan alle scholen samen.">
+      <article class="stat-card stat-card--green">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="BookOpen"></lucide-icon>
+        </div>
+        <div>
+          <p>Totaal Boeken</p>
+          <strong>{{ totalBooks() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
   </section>
 
   <section class="search-panel">
@@ -127,25 +136,29 @@
 
               <td>
                 <div class="table-actions">
-                  <button
-                    type="button"
-                    class="icon-button icon-button--edit"
-                    aria-label="School wijzigen"
-                    (click)="openEditModal(school)"
-                    [disabled]="isDeleting() || isUpdating()"
-                  >
-                    <lucide-icon [name]="Pencil"></lucide-icon>
-                  </button>
+                  <app-button-hover-help text="Wijzig de gegevens van deze school.">
+                    <button
+                      type="button"
+                      class="icon-button icon-button--edit"
+                      aria-label="School wijzigen"
+                      (click)="openEditModal(school)"
+                      [disabled]="isDeleting() || isUpdating()"
+                    >
+                      <lucide-icon [name]="Pencil"></lucide-icon>
+                    </button>
+                  </app-button-hover-help>
 
-                  <button
-                    type="button"
-                    class="icon-button icon-button--delete"
-                    aria-label="School verwijderen"
-                    (click)="openDeleteModal(school)"
-                    [disabled]="isDeleting() || isUpdating()"
-                  >
-                    <lucide-icon [name]="Trash2"></lucide-icon>
-                  </button>
+                  <app-button-hover-help text="Verwijder deze school uit het netwerk.">
+                    <button
+                      type="button"
+                      class="icon-button icon-button--delete"
+                      aria-label="School verwijderen"
+                      (click)="openDeleteModal(school)"
+                      [disabled]="isDeleting() || isUpdating()"
+                    >
+                      <lucide-icon [name]="Trash2"></lucide-icon>
+                    </button>
+                  </app-button-hover-help>
                 </div>
               </td>
             </tr>
@@ -174,7 +187,6 @@
         <p>Vul de gegevens van de nieuwe school in.</p>
 
         <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
-
           <div class="modal-field">
             <label for="name">Schoolnaam</label>
             <input
@@ -292,20 +304,20 @@
             @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
               <small class="field-inline-error">Schoolnaam is verplicht.</small>
             }
-
           </div>
-                    <div class="modal-field">
-            <label for="editDomainName">Domeinnaam</label>
-              <input
-                id="editDomainName"
-                type="text"
-                formControlName="domainName"
-                placeholder="bijv. school.be"
-              />
 
-              @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
-                <small class="field-inline-error">Domeinnaam is verplicht.</small>
-              }
+          <div class="modal-field">
+            <label for="editDomainName">Domeinnaam</label>
+            <input
+              id="editDomainName"
+              type="text"
+              formControlName="domainName"
+              placeholder="bijv. school.be"
+            />
+
+            @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
+              <small class="field-inline-error">Domeinnaam is verplicht.</small>
+            }
           </div>
 
           <div class="modal-field">

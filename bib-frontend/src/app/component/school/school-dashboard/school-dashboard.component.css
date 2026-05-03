@@ -655,6 +655,22 @@ lucide-icon svg {
   color: #9b7a84 !important;
   font-size: 13px;
 }
+.stat-cards app-button-hover-help {
+  display: block;
+  width: 100%;
+}
+
+.table-actions app-button-hover-help,
+.modal-actions app-button-hover-help,
+.page-header app-button-hover-help {
+  display: inline-flex;
+}
+
+.table-actions,
+.modal-actions,
+.stat-cards {
+  overflow: visible;
+}
 /* Responsive */
 @media (max-width: 1024px) {
   .stat-cards {

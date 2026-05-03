@@ -1,15 +1,17 @@
 package edu.ap.bib_backend.config;
 
 import edu.ap.bib_backend.TestSecurityConfig;
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,46 +30,42 @@ class CorsConfigTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private JwtService jwtService;
 
-    @MockBean
+    @MockitoBean
     private TokenStorageService tokenStorageService;
 
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
+
     @Test
-    void givenAllowedOrigin_WhenPreflightRequest_ThenReturnCorsHeaders() throws Exception {
-        // Arrange
+    void givenAllowedOrigin_whenPreflightRequest_thenReturnCorsHeaders() throws Exception {
         String allowedOrigin = "http://localhost:4200";
 
-        // Act
-        var result = mockMvc.perform(options("/cors-test")
+        mockMvc.perform(options("/cors-test")
                 .header("Origin", allowedOrigin)
                 .header("Access-Control-Request-Method", "GET")
-                .header("Access-Control-Request-Headers", "Authorization"));
-
-        // Assert
-        result.andExpect(status().isOk())
+                .header("Access-Control-Request-Headers", "Authorization"))
+                .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", allowedOrigin))
                 .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
     }
 
     @Test
-    void givenDisallowedOrigin_WhenPreflightRequest_ThenReturnForbidden() throws Exception {
-        // Arrange
+    void givenDisallowedOrigin_whenPreflightRequest_thenReturnForbidden() throws Exception {
         String disallowedOrigin = "http://not-allowed.example.com";
 
-        // Act
-        var result = mockMvc.perform(options("/cors-test")
+        mockMvc.perform(options("/cors-test")
                 .header("Origin", disallowedOrigin)
                 .header("Access-Control-Request-Method", "GET")
-                .header("Access-Control-Request-Headers", "Authorization"));
-
-        // Assert
-        result.andExpect(status().isForbidden());
+                .header("Access-Control-Request-Headers", "Authorization"))
+                .andExpect(status().isForbidden());
     }
 
     @RestController
     static class CorsTestController {
+
         @GetMapping("/cors-test")
         public String corsTest() {
             return "ok";

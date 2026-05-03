@@ -1,12 +1,13 @@
 import { Component, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 export type StatCardVariant = 'total' | 'active' | 'unused' | 'default';
 
 @Component({
   selector: 'app-stat-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ButtonHoverHelpComponent],
   templateUrl: './stat-card.component.html',
   styleUrls: ['./stat-card.component.css'],
 })

@@ -2,6 +2,7 @@ package edu.ap.bib_backend.config;
 
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.TokenStorageService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
@@ -38,6 +40,9 @@ class JwtAuthenticationFilterTest {
     @Mock
     private FilterChain filterChain;
 
+    @Mock
+    private TokenStorageService tokenStorageService;
+
     @InjectMocks
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -48,13 +53,13 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void GivenNoAuthHeader_WhenFiltered_ThenContinueWithoutAuth() throws ServletException, IOException {
-        // Arrange 
+        // Arrange
         given(request.getHeader("Authorization")).willReturn(null);
 
-        // Act 
+        // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        // Assert 
+        // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         then(filterChain).should().doFilter(request, response);
         then(jwtService).shouldHaveNoInteractions();
@@ -62,13 +67,13 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void GivenInvalidAuthPrefix_WhenFiltered_ThenContinueWithoutAuth() throws ServletException, IOException {
-        // Arrange 
+        // Arrange
         given(request.getHeader("Authorization")).willReturn("Basic dXNlcm5hbWU6cGFzc3dvcmQ=");
 
-        // Act 
+        // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        // Assert 
+        // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         then(filterChain).should().doFilter(request, response);
         then(jwtService).shouldHaveNoInteractions();
@@ -76,22 +81,22 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void GivenInvalidToken_WhenFiltered_ThenContinueWithoutAuth() throws ServletException, IOException {
-        // Arrange 
+        // Arrange
         String invalidToken = "invalid.jwt.token";
         given(request.getHeader("Authorization")).willReturn("Bearer " + invalidToken);
         given(jwtService.isValid(invalidToken)).willReturn(false);
 
-        // Act 
+        // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        // Assert 
+        // Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         then(filterChain).should().doFilter(request, response);
     }
 
     @Test
     void GivenValidToken_WhenFiltered_ThenSetAuthentication() throws ServletException, IOException {
-        // Arrange 
+        // Arrange
         String validToken = "valid.jwt.token";
         String username = "testleerkracht";
         String role = "ROLE_TEACHER";
@@ -99,15 +104,16 @@ class JwtAuthenticationFilterTest {
         given(request.getHeader("Authorization")).willReturn("Bearer " + validToken);
         given(jwtService.isValid(validToken)).willReturn(true);
         given(jwtService.extractUsername(validToken)).willReturn(username);
+        given(tokenStorageService.isCurrentToken(username, validToken)).willReturn(true);
         given(jwtService.extractClaim(validToken, "roles")).willReturn(role);
         given(adminOverrideService.isAdminOverrideActive(username)).willReturn(false);
 
-        // Act 
+        // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        // Assert 
+        // Assert
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         assertNotNull(authentication, "Authentication mag niet null zijn");
         assertEquals(username, authentication.getName(), "Username moet overeenkomen");
         assertTrue(authentication.getAuthorities().stream()
@@ -125,6 +131,7 @@ class JwtAuthenticationFilterTest {
         given(request.getHeader("Authorization")).willReturn("Bearer " + validToken);
         given(jwtService.isValid(validToken)).willReturn(true);
         given(jwtService.extractUsername(validToken)).willReturn(username);
+        given(tokenStorageService.isCurrentToken(username, validToken)).willReturn(true);
         given(jwtService.extractClaim(validToken, "roles")).willReturn("ROLE_STUDENT");
         given(adminOverrideService.isAdminOverrideActive(username)).willReturn(true);
 
@@ -133,10 +140,36 @@ class JwtAuthenticationFilterTest {
 
         // Assert
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         assertNotNull(authentication, "Authentication mag niet null zijn");
+        assertEquals(username, authentication.getName(), "Username moet overeenkomen");
         assertTrue(authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")), "Gebruiker moet tijdelijk admin rechten krijgen");
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")),
+                "Gebruiker moet tijdelijk admin rechten krijgen");
 
         then(filterChain).should().doFilter(request, response);
+    }
+
+    @Test
+    void GivenValidJwtButNotCurrentToken_WhenFiltered_ThenDoNotSetAuthentication()
+            throws ServletException, IOException {
+        // Arrange
+        String validToken = "old.jwt.token";
+        String username = "student-1";
+
+        given(request.getHeader("Authorization")).willReturn("Bearer " + validToken);
+        given(jwtService.isValid(validToken)).willReturn(true);
+        given(jwtService.extractUsername(validToken)).willReturn(username);
+        given(tokenStorageService.isCurrentToken(username, validToken)).willReturn(false);
+
+        // Act
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // Assert
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        assertNull(authentication, "Authentication moet null blijven bij oude of ingetrokken token");
+        then(filterChain).should().doFilter(request, response);
+        then(jwtService).should(never()).extractClaim(validToken, "roles");
     }
 }

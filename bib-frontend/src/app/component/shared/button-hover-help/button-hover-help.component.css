@@ -1,0 +1,111 @@
+:host {
+  display: inline-flex;
+  position: relative;
+  overflow: visible;
+}
+
+:host(.full-button-help) {
+  display: block;
+  width: 100%;
+}
+
+.button-hover-help {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+:host(.full-button-help) .button-hover-help {
+  display: flex;
+  width: 100%;
+}
+
+:host(.full-button-help) ::ng-deep button {
+  width: 100%;
+}
+
+.button-hover-help__text {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+
+  width: max-content;
+  min-width: 180px;
+  max-width: 260px;
+  padding: 10px 12px;
+
+  border-radius: 10px;
+  border: 1px solid var(--border-color, #e5e7eb);
+
+  background: #f7f3f4;
+  color: var(--text-dark, #1f2937);
+
+  font-family: var(--main-font, inherit);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+
+  box-shadow: 0 12px 28px rgba(26, 10, 16, 0.18);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateX(-50%) translateY(8px) scale(0.96);
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    transform 0.2s ease;
+
+  z-index: 9999;
+}
+
+.button-hover-help__text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+
+  width: 10px;
+  height: 10px;
+
+  background: #f7f3f4;
+  border-right: 1px solid var(--border-color, #e5e7eb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+
+  transform: translateX(-50%) translateY(-5px) rotate(45deg);
+}
+
+.button-hover-help:hover .button-hover-help__text,
+:host:hover .button-hover-help__text {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+:host-context(.stat-cards) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+:host-context(.stat-cards) .button-hover-help {
+  display: block;
+  width: 100%;
+}
+:host(.file-upload-help) {
+  display: block;
+  width: 100%;
+}
+
+:host(.file-upload-help) .button-hover-help {
+  display: block;
+  width: 100%;
+}
+
+:host(.file-upload-help) ::ng-deep app-file-upload {
+  display: block;
+  width: 100%;
+}

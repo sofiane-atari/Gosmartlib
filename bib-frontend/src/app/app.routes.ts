@@ -34,12 +34,14 @@ import { CreateTeacherReadingListComponent } from './component/reading-list/crea
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
+import { SettingsComponent } from './component/settings/settings/settings.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
   { path: 'account', redirectTo: '/profile', pathMatch: 'full' },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
+  { path: 'settings', component: SettingsComponent, canActivate: [authGuard] },
   {
     path: 'review-dashboard',
     component: ReviewDashboardComponent,

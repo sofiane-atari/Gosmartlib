@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -32,10 +33,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.TokenStorageService;
 
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
@@ -57,14 +58,17 @@ class ReviewControllerTest {
         @Autowired
         private ObjectMapper objectMapper;
 
-        @MockBean
+        @MockitoBean
         private ReviewService reviewService;
 
-        @MockBean
+        @MockitoBean
         private JwtService jwtService;
 
-        @MockBean
+        @MockitoBean
         private AdminOverrideService adminOverrideService;
+
+        @MockitoBean
+        private TokenStorageService tokenStorageService;
 
         @Test
         @DisplayName("givenValidBookId whenGetReviewsForBook thenReturn200AndReviewList")

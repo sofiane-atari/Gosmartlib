@@ -26,11 +26,12 @@ import {
   BookCopy,
   LucideIconData
 } from 'lucide-angular';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-reading-list-overview',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, RouterLink, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './reading-list-overview.component.html',
   styleUrl: './reading-list-overview.component.css'
 })

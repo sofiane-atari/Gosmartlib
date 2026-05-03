@@ -42,16 +42,17 @@
   </nav>
 
     <div class="sidebar-footer">
-    <button class="btn btn-emerald" (click)="goToAddBook()">
-        <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-        <span class="btn-text">Boek toevoegen</span>
-    </button>
+      @if(isStaff()){
+        <button class="btn btn-emerald" (click)="goToAddBook()">
+            <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
+            <span class="btn-text">Boek toevoegen</span>
+        </button>
 
-    <button class="btn btn-blue">
-        <lucide-icon [name]="RotateCcwIcon" class="btn-icon"></lucide-icon>
-        <span class="btn-text">Terugbrengen</span>
-    </button>
-
+        <button class="btn btn-blue">
+            <lucide-icon [name]="RotateCcwIcon" class="btn-icon"></lucide-icon>
+            <span class="btn-text">Terugbrengen</span>
+        </button>
+      }
     @if (isAdminOverrideVisible()) {
       <button class="btn btn-amber" (click)="toggleAdminOverride()">
           <lucide-icon [name]="ShieldIcon" class="btn-icon"></lucide-icon>

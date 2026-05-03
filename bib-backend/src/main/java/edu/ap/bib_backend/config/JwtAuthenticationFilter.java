@@ -55,14 +55,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String username = jwtService.extractUsername(token);
-        String role = (String) jwtService.extractClaim(token, "roles");
 
         if (!tokenStorageService.isCurrentToken(username, token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // TEMP_ADMIN_OVERRIDE: grant temporary admin authority for dev/test sessions.
+        String role = (String) jwtService.extractClaim(token, "roles");
+
         if (adminOverrideService.isAdminOverrideActive(username)) {
             role = "ROLE_ADMIN";
         }

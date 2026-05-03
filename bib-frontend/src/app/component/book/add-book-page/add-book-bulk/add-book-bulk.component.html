@@ -35,31 +35,43 @@
 
       <hr class="divider">
 
-      <hr class="divider">
+      @if (userSettingsService.hoverHelpEnabled$ | async) {
+        <div class="upload-help-row">
+          <span class="upload-help-label">Bestand uploaden</span>
 
-      <app-file-upload 
+          <app-button-hover-help
+            text="Klik op de uploadzone om je bestandsverkenner te openen en een Excel-bestand te selecteren. Je kunt het bestand ook naar dit vak slepen.">
+            <span class="upload-help-trigger">Info</span>
+          </app-button-hover-help>
+        </div>
+      }
+
+      <app-file-upload
         [selectedFile]="selectedFile"
-        (fileChanged)="handleFileChange($event)"
-      >
+        (fileChanged)="handleFileChange($event)">
       </app-file-upload>
 
       <input type="file" id="fileInput" accept=".xlsm" (change)="onFileSelected($event)" hidden>
 
       <div class="form-actions">
-        <button type="button" class="btn-secondary" (click)="downloadTemplate()">
-          <lucide-icon [img]="DownloadIcon" class="btn-icon"></lucide-icon>
-          Download template
-        </button>
+        <app-button-hover-help text="Download het Excel-template met de juiste kolommen om boeken in bulk toe te voegen.">
+          <button type="button" class="btn-secondary" (click)="downloadTemplate()">
+            <lucide-icon [img]="DownloadIcon" class="btn-icon"></lucide-icon>
+            Download template
+          </button>
+        </app-button-hover-help>
 
-        <button
-          type="button"
-          class="btn-secondary"
-          (click)="startValidation(selectedFile!)"
-          [disabled]="!selectedFile || validating"
-        >
-          <lucide-icon [img]="CheckIcon" class="btn-icon"></lucide-icon>
-          {{ validating ? 'Bezig...' : 'Controleer Bestand' }}
-        </button>
+        <app-button-hover-help text="Controleer of het Excel-bestand correct is ingevuld en of de boeken toegevoegd kunnen worden.">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="startValidation(selectedFile!)"
+            [disabled]="!selectedFile || validating"
+          >
+            <lucide-icon [img]="CheckIcon" class="btn-icon"></lucide-icon>
+            {{ validating ? 'Bezig...' : 'Controleer Bestand' }}
+          </button>
+        </app-button-hover-help>
 
         <button
           type="button"

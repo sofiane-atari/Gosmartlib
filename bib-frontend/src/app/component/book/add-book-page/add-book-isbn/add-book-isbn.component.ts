@@ -12,11 +12,12 @@ import { ReadingLevel } from '../../../../model/readingLevel.model';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
 import { addBookIsbnDraft } from '../../../../model/book/add-book-isbn-draft.model';
+import { ButtonHoverHelpComponent } from "../../../shared/button-hover-help/button-hover-help.component";
 
 @Component({
   selector: 'app-add-book-isbn',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule, LoadingOverlayComponent],
+  imports: [FormsModule, LucideAngularModule, LoadingOverlayComponent, ButtonHoverHelpComponent],
   templateUrl: './add-book-isbn.component.html',
   styleUrl: './add-book-isbn.component.css'
 
@@ -93,6 +94,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
 
 
     this.bookAdded.emit(this.book);
+    this.clearForm();
   }
 
   editBook() {

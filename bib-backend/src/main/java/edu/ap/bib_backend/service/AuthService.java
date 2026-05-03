@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -202,11 +203,20 @@ public class AuthService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                smartschoolTokenUri,
-                HttpMethod.POST,
-                request,
-                Map.class);
+        ResponseEntity<Map> response;
+
+        try {
+            response = restTemplate.exchange(
+                    smartschoolTokenUri,
+                    HttpMethod.POST,
+                    request,
+                    Map.class);
+        } catch (HttpStatusCodeException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Smartschool refresh failed",
+                    ex);
+        }
 
         Map<String, Object> responseBody = response.getBody();
 

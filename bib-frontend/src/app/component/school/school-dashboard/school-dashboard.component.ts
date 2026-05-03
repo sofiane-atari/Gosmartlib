@@ -18,11 +18,12 @@ import { CreateSchoolRequest, School } from '../../../model/school.model';
 import { SchoolService } from '../../../services/school/school.service';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
+import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
 
 @Component({
   selector: 'app-school-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, ReactiveFormsModule, SearchBarComponent],
+  imports: [CommonModule, LucideAngularModule, ReactiveFormsModule, SearchBarComponent, ButtonHoverHelpComponent],
   templateUrl: './school-dashboard.component.html',
   styleUrl: './school-dashboard.component.css',
 })

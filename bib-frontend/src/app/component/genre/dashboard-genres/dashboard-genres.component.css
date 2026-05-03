@@ -38,7 +38,9 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.18s, transform 0.12s;
+  transition:
+    background 0.18s,
+    transform 0.12s;
   box-shadow: 0 2px 8px rgba(138, 30, 65, 0.25);
 }
 
@@ -162,8 +164,14 @@
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .modal h2 {
@@ -277,7 +285,92 @@
 .filter-select:focus {
   border-color: var(--main-color);
 }
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  overflow: visible;
+}
 
+.stat-cards app-button-hover-help.stat-card-hover {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.stat-cards app-stat-card {
+  display: block;
+  width: 100%;
+}
+
+.page-header app-button-hover-help {
+  display: inline-flex;
+}
+
+.page-header app-button-hover-help button {
+  width: auto;
+}
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-header app-button-hover-help {
+  margin-left: auto;
+  display: inline-flex;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.page-header app-button-hover-help .btn-new,
+.page-header .btn-new {
+  width: auto;
+}
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  overflow: visible;
+}
+
+.stat-cards app-button-hover-help {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.stat-cards app-stat-card {
+  display: block;
+  width: 100%;
+}
+
+.stat-cards .stat-card {
+  width: 100%;
+}
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  width: 100%;
+}
+
+.stat-cards app-stat-card {
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+}
 /* =========================================================
    RESPONSIVE STYLES
    ========================================================= */
@@ -340,6 +433,9 @@
     right: 16px;
     top: 16px;
     z-index: 9999;
+  }
+  .stat-cards {
+    grid-template-columns: 1fr;
   }
 }
 

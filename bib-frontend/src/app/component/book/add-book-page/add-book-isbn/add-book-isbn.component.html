@@ -53,9 +53,11 @@
           class="search-input"
           placeholder="Scan of typ ISBN..."
         />
-        <button type="button" class="btn-search" (click)="searchBookData()">
-          Zoek gegevens
-        </button>
+        <app-button-hover-help text="Zoek automatisch boekgegevens op via ISBN, of via titel, auteur en jaar.">
+          <button type="button" class="btn-search" (click)="searchBookData()">
+            Zoek gegevens
+          </button>
+        </app-button-hover-help>
       </div>
 
       <hr class="divider" />
@@ -261,14 +263,16 @@
       </div>
 
 <div class="form-actions">
-  <button
-    type="button"
-    class="btn-clear"
-    (click)="clearForm()"
-  >
-    <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
-    Formulier leegmaken
-  </button>
+  <app-button-hover-help text="Maak alle ingevulde velden leeg en start opnieuw met een leeg formulier.">
+    <button
+      type="button"
+      class="btn-clear"
+      (click)="clearForm()"
+    >
+      <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+      Formulier leegmaken
+    </button>
+  </app-button-hover-help>
 
         <div class="action-buttons">
           @if (isExistingBookLoaded) {
