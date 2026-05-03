@@ -1,1 +1,84 @@
-<a routerLink="/loans/create">Boekbeheer</a>
+<div class="book-management">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Boekbeheer</h1>
+      <p>Beheer uitleningen, terugnames en de status van boeken.</p>
+    </div>
+  </div>
+
+  <section class="action-cards">
+    <a routerLink="/loans/create" class="action-card action-card--primary">
+      <div class="action-card__icon">
+        <lucide-icon [name]="BookOpen"></lucide-icon>
+      </div>
+
+      <div>
+        <h2>Boek uitlenen</h2>
+        <p>Registreer een nieuwe uitlening voor een leerling of gebruiker.</p>
+      </div>
+    </a>
+
+    <a routerLink="/loans/return" class="action-card action-card--secondary">
+      <div class="action-card__icon">
+        <lucide-icon [name]="RotateCcw"></lucide-icon>
+      </div>
+
+      <div>
+        <h2>Boek terugbrengen</h2>
+        <p>Verwerk teruggebrachte boeken en sluit actieve leningen af.</p>
+      </div>
+    </a>
+  </section>
+
+  <section class="stat-cards">
+    <article class="stat-card stat-card--blue">
+      <div class="stat-card__icon">
+        <lucide-icon [name]="Clock"></lucide-icon>
+      </div>
+      <div>
+        <p>Actief uitgeleend</p>
+        <strong>{{ loanStats.active }}</strong>
+      </div>
+    </article>
+
+    <article class="stat-card stat-card--orange">
+      <div class="stat-card__icon">
+        <lucide-icon [name]="AlertTriangle"></lucide-icon>
+      </div>
+      <div>
+        <p>Te laat</p>
+        <strong>{{ loanStats.overdue }}</strong>
+      </div>
+    </article>
+
+    <article class="stat-card stat-card--green">
+      <div class="stat-card__icon">
+        <lucide-icon [name]="CheckCircle2"></lucide-icon>
+      </div>
+      <div>
+        <p>Teruggebracht</p>
+        <strong>{{ loanStats.returned }}</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="table-card">
+    <div class="table-card__header">
+      <div>
+        <h2>Boekoverzicht</h2>
+        <p>Status van alle boeken die uitgeleend zijn of waren.</p>
+      </div>
+    </div>
+
+    <div class="empty-state">
+      <div class="empty-state__icon">
+        <lucide-icon [name]="LibraryBig"></lucide-icon>
+      </div>
+      <h3>Nog geen uitleengegevens geladen</h3>
+      <p>
+        Koppel deze tabel aan je bestaande loan-service om actieve, te late en
+        teruggebrachte boeken te tonen.
+      </p>
+    </div>
+  </section>
+</div>
