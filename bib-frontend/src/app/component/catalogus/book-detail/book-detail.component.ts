@@ -1,4 +1,11 @@
-import { Component, Inject, inject, OnDestroy, signal, OnInit } from '@angular/core';
+import {
+  Component,
+  Inject,
+  inject,
+  OnDestroy,
+  signal,
+  OnInit,
+} from '@angular/core';
 
 import { Book } from '../../../model/book/book.model';
 import {
@@ -16,7 +23,7 @@ import {
   Bookmark,
   Flag,
   Pencil,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -41,15 +48,19 @@ import { DraftStorageService } from '../../../services/storage/draft-storage.ser
 import { ReviewDraft } from '../../../model/review/review-draft.model';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
-
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink, ButtonHoverHelpComponent],
+  imports: [
+    LucideAngularModule,
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    ButtonHoverHelpComponent,
+  ],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css',
 })
-
 export class BookDetailComponent implements OnDestroy, OnInit {
   readonly X = X;
   readonly Library = Library;
@@ -109,7 +120,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
   // Related Books Carousel //
   relatedBooksCarousel: Book[] = [];
-  
+
   private currentBookId: number | null = null;
   private reviewDraftIntervalId: ReturnType<typeof setInterval> | null = null;
 
@@ -124,9 +135,8 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     private toastService: ToastService,
     private sanitizer: DomSanitizer,
     protected authService: AuthService,
-    private draftStorage: DraftStorageService
-  
-  ) {
+    private draftStorage: DraftStorageService,
+  ) {}
 
   public ngOnInit(): void {
     // Ensure current user role is available for picker filtering.
@@ -135,8 +145,8 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
 
-    if (id) {
-      const numericBookId = +id;
+      if (id) {
+        const numericBookId = +id;
 
         this.bookService.getBookById(numericBookId).subscribe((book) => {
           this.selectedBook = book;
@@ -146,17 +156,17 @@ export class BookDetailComponent implements OnDestroy, OnInit {
           }
         });
 
-      this.currentBookId = numericBookId;
-      this.restoreReviewDraft(numericBookId);
-      this.startReviewDraftAutosave();
+        this.currentBookId = numericBookId;
+        this.restoreReviewDraft(numericBookId);
+        this.startReviewDraftAutosave();
 
-      this.bookService.getBookById(numericBookId).subscribe(book => {
-        this.selectedBook = book;
-      });
+        this.bookService.getBookById(numericBookId).subscribe((book) => {
+          this.selectedBook = book;
+        });
 
-      this.loadRelatedBooksCarousel(numericBookId);
-      this.loadReviews(numericBookId);
-    }
+        this.loadRelatedBooksCarousel(numericBookId);
+        this.loadReviews(numericBookId);
+      }
     });
 
     this.loadReadingLists();
@@ -587,7 +597,10 @@ export class BookDetailComponent implements OnDestroy, OnInit {
       rating: this.newReviewRating,
     };
 
-    this.draftStorage.saveDraft(this.getReviewDraftKey(this.currentBookId), draft);
+    this.draftStorage.saveDraft(
+      this.getReviewDraftKey(this.currentBookId),
+      draft,
+    );
   }
 
   private restoreReviewDraft(bookId: number): void {
@@ -629,5 +642,4 @@ export class BookDetailComponent implements OnDestroy, OnInit {
       this.reviewDraftIntervalId = null;
     }
   }
-
 }

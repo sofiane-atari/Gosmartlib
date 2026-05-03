@@ -99,7 +99,6 @@ class BookSearchServiceTest {
                 .willReturn(pageResult);
 
         bookSearchService.getFilteredBooks(
-                authentication,
                 null,
                 null,
                 null,
@@ -108,7 +107,8 @@ class BookSearchServiceTest {
                 null,
                 0,
                 10,
-                null
+                null,
+                authentication
         );
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -130,7 +130,6 @@ class BookSearchServiceTest {
                 .willReturn(new PageImpl<>(List.of()));
 
         bookSearchService.getFilteredBooks(
-                authentication,
                 null,
                 null,
                 null,
@@ -139,7 +138,8 @@ class BookSearchServiceTest {
                 null,
                 -5,
                 10,
-                null
+                null, 
+                authentication
         );
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -154,7 +154,6 @@ class BookSearchServiceTest {
                 .willReturn(new PageImpl<>(List.of()));
 
         bookSearchService.getFilteredBooks(
-                authentication,
                 null,
                 null,
                 null,
@@ -163,7 +162,8 @@ class BookSearchServiceTest {
                 null,
                 0,
                 0,
-                null
+                null,
+                authentication
         );
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -178,7 +178,6 @@ class BookSearchServiceTest {
                 .willReturn(new PageImpl<>(List.of()));
 
         bookSearchService.getFilteredBooks(
-                authentication,
                 null,
                 null,
                 null,
@@ -187,7 +186,8 @@ class BookSearchServiceTest {
                 null,
                 0,
                 999,
-                null
+                null,
+                authentication
         );
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -199,7 +199,6 @@ class BookSearchServiceTest {
     @Test
     void givenMinPagesGreaterThanMaxPages_whenGetFilteredBooks_thenThrowException() {
         assertThatThrownBy(() -> bookSearchService.getFilteredBooks(
-                authentication,
                 null,
                 null,
                 300,
@@ -208,7 +207,8 @@ class BookSearchServiceTest {
                 null,
                 0,
                 10,
-                null
+                null,
+                authentication
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("minPages mag niet groter zijn dan maxPages.");
@@ -220,7 +220,6 @@ class BookSearchServiceTest {
                 .willReturn(new PageImpl<>(List.of()));
 
         bookSearchService.getFilteredBooks(
-                authentication,
                 null,
                 BookAvailabilityFilter.AVAILABLE,
                 null,
@@ -229,7 +228,8 @@ class BookSearchServiceTest {
                 null,
                 0,
                 10,
-                null
+                null,
+                authentication
         );
 
         then(bookRepository).should().findAll(any(Specification.class), any(Pageable.class));
@@ -241,7 +241,6 @@ class BookSearchServiceTest {
                 .willReturn(new PageImpl<>(List.of()));
 
         bookSearchService.getFilteredBooks(
-                authentication,
                 null,
                 null,
                 null,
@@ -250,7 +249,8 @@ class BookSearchServiceTest {
                 null,
                 0,
                 10,
-                BookSortOption.AUTHOR_ZA
+                BookSortOption.AUTHOR_ZA,
+                authentication
         );
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
@@ -276,7 +276,6 @@ class BookSearchServiceTest {
                 .willReturn(new PageImpl<>(List.of(book)));
 
         Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                authentication,
                 null,
                 null,
                 null,
@@ -285,7 +284,8 @@ class BookSearchServiceTest {
                 null,
                 0,
                 10,
-                BookSortOption.AZ
+                BookSortOption.AZ,
+                authentication
         );
 
         assertThat(result.getTotalElements()).isEqualTo(1);

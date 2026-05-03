@@ -48,6 +48,7 @@ import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
 import edu.ap.bib_backend.mapper.BookMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
+import edu.ap.bib_backend.service.user.UserService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -86,6 +87,9 @@ class BookServiceTest {
         private CurrentUserService currentUserService;
 
         @Mock
+        private UserRepository userRepository;
+
+        @Mock
         private Authentication authentication;
 
         @BeforeEach
@@ -100,7 +104,8 @@ class BookServiceTest {
                     bookMapper1,
                     bookCandidateMapper,
                     openLibraryClient,
-                    currentUserService
+                    currentUserService,
+                    userRepository
             );
         }
 
@@ -175,7 +180,7 @@ class BookServiceTest {
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
-                BookDTO result = bs.addBook(dto);
+                BookDTO result = bs.addBook(dto, authentication);
 
                 assertThat(result).isNotNull();
                 assertThat(result.getId()).isEqualTo(1L);
@@ -216,7 +221,7 @@ class BookServiceTest {
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(bookMapper1.toDTO(existingBook)).willReturn(existingDto);
 
-                BookDTO result = bs.addBook(dto);
+                BookDTO result = bs.addBook(dto, authentication);
 
                 assertThat(dto.getIsbn()).isEqualTo("9781234567890");
                 assertThat(result.getId()).isEqualTo(5L);
@@ -265,7 +270,7 @@ class BookServiceTest {
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
-                bs.addBook(dto);
+                bs.addBook(dto, authentication);
 
                 ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
                 then(br).should().save(captor.capture());
@@ -290,7 +295,7 @@ class BookServiceTest {
                 given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
                 given(gr.findByName("Onbekend")).willReturn(Optional.empty());
 
-                assertThatThrownBy(() -> bs.addBook(dto))
+                assertThatThrownBy(() -> bs.addBook(dto, authentication))
                                 .isInstanceOf(IllegalArgumentException.class)
                                 .hasMessage("Genre bestaat niet: Onbekend");
 
@@ -311,7 +316,7 @@ class BookServiceTest {
                 given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
                 given(rlr.findById(99L)).willReturn(Optional.empty());
 
-                assertThatThrownBy(() -> bs.addBook(dto))
+                assertThatThrownBy(() -> bs.addBook(dto, authentication))
                                 .isInstanceOf(IllegalArgumentException.class)
                                 .hasMessage("Reading level bestaat niet: 99");
 
@@ -357,7 +362,7 @@ class BookServiceTest {
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
-                BookDTO result = bs.addBook(dto);
+                BookDTO result = bs.addBook(dto, authentication);
 
                 assertThat(result.getReadingLevel()).isNotNull();
                 assertThat(result.getReadingLevel().getId()).isEqualTo(2L);
@@ -667,7 +672,7 @@ class BookServiceTest {
                 given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(bookMapper1.toDTO(book)).willReturn(dto);
 
-                BookDTO result = bs.addCopyToBook(11L);
+                BookDTO result = bs.addCopyToBook(11L, authentication);
 
                 assertThat(result.getId()).isEqualTo(11L);
                 then(bcr).should().save(any(BookCopy.class));

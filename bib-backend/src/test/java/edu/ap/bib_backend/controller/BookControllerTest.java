@@ -92,7 +92,6 @@ public class BookControllerTest {
 
                 when(bookSearchService.getFilteredBooks(
                                 null,
-                                "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
                                 500,
@@ -119,7 +118,6 @@ public class BookControllerTest {
 
                 // Assert
                 verify(bookSearchService).getFilteredBooks(
-                                null,
                                 "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
@@ -439,7 +437,7 @@ public class BookControllerTest {
                 savedDTO.setDescription("Beschrijving hier");
                 savedDTO.setReleaseYear(2024);
 
-                Mockito.when(bs.addBook(Mockito.any(), Mockito.any(BookDTO.class))).thenReturn(savedDTO);
+                Mockito.when(bs.addBook(Mockito.any(BookDTO.class), Mockito.any())).thenReturn(savedDTO);
 
                 // Act & Assert
                 mockMvc.perform(post("/books")

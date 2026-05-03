@@ -42,7 +42,7 @@ import { startWith } from 'rxjs/operators';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
 import { addBookManualDraft } from '../../../../model/book/add-book-manual-draft.model';
-import { ButtonHoverHelpComponent } from "../../../shared/button-hover-help/button-hover-help.component";
+import { ButtonHoverHelpComponent } from '../../../shared/button-hover-help/button-hover-help.component';
 
 type BookFormGroup = FormGroup<{
   title: FormControl<string>;
@@ -88,7 +88,7 @@ export class AddBookManualComponent
     private bs: BookService,
     private rt: Router,
     private ts: ToastService,
-    private draftStorage: DraftStorageService
+    private draftStorage: DraftStorageService,
   ) {
     super();
     this.form = this.fb.group({
@@ -104,7 +104,8 @@ export class AddBookManualComponent
         Validators.required,
         Validators.min(0),
       ]),
-      readingLevel: this.fb.control<ReadingLevel | null>(null)
+      didactic: this.fb.nonNullable.control(false),
+      readingLevel: this.fb.control<ReadingLevel | null>(null),
     });
   }
 
@@ -271,7 +272,6 @@ export class AddBookManualComponent
       return;
     }
 
-
     if (this.isCandidateLoaded && this.selectedBookId) {
       this.bs.addCopy(this.selectedBookId).subscribe({
         next: () => {
@@ -354,11 +354,9 @@ export class AddBookManualComponent
     this.ts.show(message, 'error');
   }
   private setupDraftAutosave(): void {
-    this.form.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.saveDraft();
-      });
+    this.form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.saveDraft();
+    });
   }
 
   private saveDraft(): void {
