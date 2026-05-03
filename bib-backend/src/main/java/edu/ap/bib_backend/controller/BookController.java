@@ -123,16 +123,16 @@ public class BookController {
 
     @GetMapping("/most-read")
     public ResponseEntity<List<BookDTO>> getMostReadBooks(
-            @RequestParam(defaultValue = "3", required = false) int limit,
-            @RequestParam(required = false) String schoolCode) {
-        return ResponseEntity.ok(bookService.getMostReadBooks(limit, schoolCode));
+            Authentication authentication,
+            @RequestParam(defaultValue = "3", required = false) int limit) {
+        return ResponseEntity.ok(bookService.getMostReadBooks(authentication, limit));
     }
 
     @GetMapping("/newest")
     public ResponseEntity<List<BookDTO>> getNewestBooks(
-            @RequestParam(defaultValue = "3", required = false) int limit,
-            @RequestParam(required = false) String schoolCode) {
-        return ResponseEntity.ok(bookService.getNewestBooks(limit, schoolCode));
+            Authentication authentication,
+            @RequestParam(defaultValue = "3", required = false) int limit) {
+        return ResponseEntity.ok(bookService.getNewestBooks(authentication, limit));
     }
 
     @GetMapping("/search-candidates")

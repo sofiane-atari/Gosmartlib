@@ -96,19 +96,13 @@ export class BookService {
     return this.http.get<number>(`${this.apiUrl}/pages/min`);
   }
 
-  getMostReadBooks(limit: number = 3, schoolCode?: string | null): Observable<Book[]> {
-    let params = new HttpParams().set('limit', limit);
-    if (schoolCode) {
-      params = params.set('schoolCode', schoolCode);
-    }
+  getMostReadBooks(limit: number = 3): Observable<Book[]> {
+    const params = new HttpParams().set('limit', limit);
     return this.http.get<Book[]>(`${this.apiUrl}/most-read`, { params });
   }
 
-  getNewestBooks(limit: number = 3, schoolCode?: string | null): Observable<Book[]> {
-    let params = new HttpParams().set('limit', limit);
-    if (schoolCode) {
-      params = params.set('schoolCode', schoolCode);
-    }
+  getNewestBooks(limit: number = 3): Observable<Book[]> {
+    const params = new HttpParams().set('limit', limit);
     return this.http.get<Book[]>(`${this.apiUrl}/newest`, { params });
   }
 

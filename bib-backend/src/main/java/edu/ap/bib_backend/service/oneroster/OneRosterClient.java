@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
@@ -94,6 +95,28 @@ public class OneRosterClient {
             // Fallback naar client-credentials flow wanneer delegated token niet werkt.
             return fetchUsers(schoolCode);
         }
+    }
+
+    public Map<String, String> fetchUserDisplayNames(String schoolCode, Set<String> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+
+        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = tokenService.fetchAccessToken(host);
+
+        return dataService.fetchUserDisplayNamesWithResolvedHost(host, accessToken, userIds);
+    }
+
+    public String findSourcedIdByLegacyIdentifier(String schoolCode, String legacyIdentifier) {
+        if (legacyIdentifier == null || legacyIdentifier.isBlank()) {
+            return null;
+        }
+
+        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = tokenService.fetchAccessToken(host);
+
+        return dataService.findSourcedIdByLegacyIdentifierWithResolvedHost(host, accessToken, legacyIdentifier);
     }
 
     private String normalizeApiPath(String rawPath) {

@@ -33,14 +33,15 @@ public class BookCopy {
     @JoinColumn(name = "book_id")
     private Book book;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id")
-    private School school;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Availability availability;
 
     @ManyToMany(mappedBy = "copies")
     private List<Loan> loans = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "school_id")
+    private School school;
+
 }

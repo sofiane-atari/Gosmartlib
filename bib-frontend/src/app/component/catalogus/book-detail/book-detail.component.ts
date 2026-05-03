@@ -39,7 +39,7 @@ import { ReviewDraft } from '../../../model/review/review-draft.model';
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink],
+  imports: [LucideAngularModule, CommonModule, FormsModule],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css'
 })

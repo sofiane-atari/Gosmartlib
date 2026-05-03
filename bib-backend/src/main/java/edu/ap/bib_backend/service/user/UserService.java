@@ -62,12 +62,12 @@ public class UserService {
 
         User user = new User();
         user.setId(userId);
-        user.setRole(role);
 
         school = schoolRepository.findById(1L)
                 .orElseThrow(() -> new IllegalStateException("Default school not found"));
 
         user.setSchool(school);
+        user.setSchool(Objects.requireNonNull(school, "school mag niet null zijn"));
 
         return userRepository.save(user);
     }
