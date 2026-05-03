@@ -1,12 +1,13 @@
 <div class="school-dashboard">
-  <div class="school-dashboard__header">
-    <div>
-      <h1>Schoolbeheer</h1>
-      <p>Overzicht van scholen en domeinen voor platformkoppelingen</p>
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>School Beheer</h1>
+      <p>Beheer scholen in het netwerk</p>
     </div>
+
     <button type="button" class="btn-new" (click)="openCreateModal()">
       <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
-      School toevoegen
+      Nieuwe School
     </button>
   </div>
 
@@ -18,27 +19,42 @@
     <div class="error-message">{{ errorMessage() }}</div>
   }
 
-  <div class="school-dashboard__stats">
-    <article class="stat-card">
-      <div class="stat-card__icon stat-card__icon--main">
-        <lucide-icon [name]="SchoolIcon" class="icon-lg"></lucide-icon>
-      </div>
-      <div>
-        <div class="stat-card__value">{{ totalSchools() }}</div>
-        <div class="stat-card__label">Totaal scholen</div>
-      </div>
-    </article>
+  <section class="stat-cards">
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het totaal aantal scholen dat momenteel in het netwerk staat.">
+      <article class="stat-card stat-card--purple">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="SchoolIcon"></lucide-icon>
+        </div>
+        <div>
+          <p>Totaal Scholen</p>
+          <strong>{{ totalSchools() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card">
-      <div class="stat-card__icon stat-card__icon--alt">
-        <lucide-icon [name]="Building" class="icon-lg"></lucide-icon>
-      </div>
-      <div>
-        <div class="stat-card__value">{{ schools().length }}</div>
-        <div class="stat-card__label">Actieve records</div>
-      </div>
-    </article>
-  </div>
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het totaal aantal boeken dat gekoppeld is aan alle scholen samen.">
+      <article class="stat-card stat-card--green">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="BookOpen"></lucide-icon>
+        </div>
+        <div>
+          <p>Totaal Boeken</p>
+          <strong>{{ totalBooks() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
+  </section>
+
+  <section class="search-panel">
+    <app-search-bar
+      placeholder="Zoek scholen op naam..."
+      (searchChange)="searchTerm.set($event)"
+    ></app-search-bar>
+  </section>
 
   @if (isLoading()) {
     <section class="state-panel">
@@ -49,64 +65,165 @@
       <p>Nog geen scholen geconfigureerd.</p>
     </section>
   } @else {
-    <section class="school-list">
-      @for (school of schools(); track school.domainName) {
-        <article class="school-card">
-          <div class="school-card__content">
-            <h2>{{ school.name }}</h2>
-            <p class="school-card__meta"><strong>Domein:</strong> {{ school.domainName }}</p>
-            <p class="school-card__meta"><strong>Adres:</strong> {{ school.address }}</p>
-            <p class="school-card__meta"><strong>Postcode:</strong> {{ school.postalCode }}</p>
-          </div>
-          <div class="school-card__actions">
-            <button
-              type="button"
-              class="btn-action btn-action--edit"
-              (click)="openEditModal(school)"
-              [disabled]="isDeleting() || isUpdating()"
-            >
-              <lucide-icon [name]="Pencil" class="icon-sm"></lucide-icon>
-              Wijzigen
-            </button>
-            <button
-              type="button"
-              class="btn-delete"
-              (click)="openDeleteModal(school)"
-              [disabled]="isDeleting() || isUpdating()"
-            >
-              <lucide-icon [name]="Trash2" class="icon-sm"></lucide-icon>
-            </button>
-          </div>
-        </article>
-      }
+    <section class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Domein</th>
+            <th>Locatie</th>
+            <th>Contact</th>
+            <th>Boeken</th>
+            <th class="actions-heading">Acties</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (school of filteredSchools(); track school.id) {
+            <tr>
+              <td>
+                <div class="school-cell">
+                  <div class="school-cell__icon">
+                    <lucide-icon [name]="SchoolIcon"></lucide-icon>
+                  </div>
+
+                  <div>
+                    <strong>{{ school.name }}</strong>
+                    <span>
+                      Toegevoegd op {{ school.createdAt ? (school.createdAt | date: 'dd/MM/yyyy') : 'onbekend' }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <div class="muted-block">
+                  <span>{{ school.domainName }}</span>
+                </div>
+              </td>
+
+              <td>
+                <div class="location-cell">
+                  <lucide-icon [name]="MapPin"></lucide-icon>
+                  <div>
+                    <span>{{ school.address }}</span>
+                    <small>{{ school.postalCode }}</small>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <div class="contact-cell">
+                  @if (school.contactPhone || school.contactEmail) {
+                    @if (school.contactPhone) {
+                      <span>{{ school.contactPhone }}</span>
+                    }
+
+                    @if (school.contactEmail) {
+                      <small>{{ school.contactEmail }}</small>
+                    }
+                  } @else {
+                    <span class="table-placeholder">Geen contactinfo</span>
+                  }
+                </div>
+              </td>
+
+              <td>
+                <span class="count-badge">
+                  {{ getBookCount(school.id) }} boeken
+                </span>
+              </td>
+
+              <td>
+                <div class="table-actions">
+                  <app-button-hover-help text="Wijzig de gegevens van deze school.">
+                    <button
+                      type="button"
+                      class="icon-button icon-button--edit"
+                      aria-label="School wijzigen"
+                      (click)="openEditModal(school)"
+                      [disabled]="isDeleting() || isUpdating()"
+                    >
+                      <lucide-icon [name]="Pencil"></lucide-icon>
+                    </button>
+                  </app-button-hover-help>
+
+                  <app-button-hover-help text="Verwijder deze school uit het netwerk.">
+                    <button
+                      type="button"
+                      class="icon-button icon-button--delete"
+                      aria-label="School verwijderen"
+                      (click)="openDeleteModal(school)"
+                      [disabled]="isDeleting() || isUpdating()"
+                    >
+                      <lucide-icon [name]="Trash2"></lucide-icon>
+                    </button>
+                  </app-button-hover-help>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <div class="empty-table-state">
+                  Geen scholen gevonden voor deze zoekopdracht.
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </section>
   }
 
   @if (isCreateModalOpen()) {
-    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'create')">
+    <div
+      class="modal-overlay open"
+      (pointerdown)="onOverlayPointerDown($event)"
+      (click)="onOverlayClick($event, 'create')"
+    >
       <div class="modal" (click)="$event.stopPropagation()">
         <h2>Nieuwe school toevoegen</h2>
+        <p>Vul de gegevens van de nieuwe school in.</p>
 
         <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
           <div class="modal-field">
-            <label for="domainName">Domeinnaam</label>
-            <input id="domainName" type="text" formControlName="domainName" placeholder="bijv. school.be" />
-            @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
-              <small class="field-inline-error">Domeinnaam is verplicht.</small>
-            }
-          </div>
-
-          <div class="modal-field">
             <label for="name">Schoolnaam</label>
-            <input id="name" type="text" formControlName="name" placeholder="bijv. AP Hogeschool" />
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              placeholder="bijv. AP Hogeschool"
+            />
+
             @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
               <small class="field-inline-error">Schoolnaam is verplicht.</small>
             }
           </div>
 
           <div class="modal-field">
+            <label for="domainName">Domeinnaam</label>
+            <input
+              id="domainName"
+              type="text"
+              formControlName="domainName"
+              placeholder="bijv. school.be"
+            />
+
+            @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
+              <small class="field-inline-error">Domeinnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
             <label for="address">Adres</label>
-            <input id="address" type="text" formControlName="address" placeholder="Straat en nummer" />
+            <input
+              id="address"
+              type="text"
+              formControlName="address"
+              placeholder="Straat en nummer"
+            />
+
             @if (schoolForm.controls.address.invalid && schoolForm.controls.address.touched) {
               <small class="field-inline-error">Adres is verplicht.</small>
             }
@@ -114,14 +231,47 @@
 
           <div class="modal-field">
             <label for="postalCode">Postcode</label>
-            <input id="postalCode" type="number" formControlName="postalCode" placeholder="bijv. 2000" />
+            <input
+              id="postalCode"
+              type="number"
+              formControlName="postalCode"
+              placeholder="bijv. 2000"
+            />
+
             @if (schoolForm.controls.postalCode.invalid && schoolForm.controls.postalCode.touched) {
               <small class="field-inline-error">Postcode moet groter zijn dan 0.</small>
             }
           </div>
 
+          <div class="modal-field">
+            <label for="contactPhone">Telefoonnummer</label>
+            <input
+              id="contactPhone"
+              type="text"
+              formControlName="contactPhone"
+              placeholder="bijv. 020-1234567"
+            />
+          </div>
+
+          <div class="modal-field">
+            <label for="contactEmail">E-mailadres</label>
+            <input
+              id="contactEmail"
+              type="email"
+              formControlName="contactEmail"
+              placeholder="bijv. info@school.nl"
+            />
+
+            @if (schoolForm.controls.contactEmail.invalid && schoolForm.controls.contactEmail.touched) {
+              <small class="field-inline-error">Vul een geldig e-mailadres in.</small>
+            }
+          </div>
+
           <div class="modal-actions">
-            <button type="button" class="btn-cancel" (click)="closeCreateModal()">Annuleren</button>
+            <button type="button" class="btn-cancel" (click)="closeCreateModal()">
+              Annuleren
+            </button>
+
             <button type="submit" class="btn-save" [disabled]="isSubmitting()">
               {{ isSubmitting() ? 'Toevoegen...' : 'Opslaan' }}
             </button>
@@ -132,11 +282,30 @@
   }
 
   @if (isEditModalOpen()) {
-    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'edit')">
+    <div
+      class="modal-overlay open"
+      (pointerdown)="onOverlayPointerDown($event)"
+      (click)="onOverlayClick($event, 'edit')"
+    >
       <div class="modal" (click)="$event.stopPropagation()">
         <h2>School wijzigen</h2>
+        <p>Pas de gegevens van deze school aan.</p>
 
         <form [formGroup]="schoolForm" (ngSubmit)="updateSchool()">
+          <div class="modal-field">
+            <label for="editName">Schoolnaam</label>
+            <input
+              id="editName"
+              type="text"
+              formControlName="name"
+              placeholder="bijv. AP Hogeschool"
+            />
+
+            @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
+              <small class="field-inline-error">Schoolnaam is verplicht.</small>
+            }
+          </div>
+
           <div class="modal-field">
             <label for="editDomainName">Domeinnaam</label>
             <input
@@ -144,21 +313,22 @@
               type="text"
               formControlName="domainName"
               placeholder="bijv. school.be"
-              readonly
             />
-          </div>
 
-          <div class="modal-field">
-            <label for="editName">Schoolnaam</label>
-            <input id="editName" type="text" formControlName="name" placeholder="bijv. AP Hogeschool" />
-            @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
-              <small class="field-inline-error">Schoolnaam is verplicht.</small>
+            @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
+              <small class="field-inline-error">Domeinnaam is verplicht.</small>
             }
           </div>
 
           <div class="modal-field">
             <label for="editAddress">Adres</label>
-            <input id="editAddress" type="text" formControlName="address" placeholder="Straat en nummer" />
+            <input
+              id="editAddress"
+              type="text"
+              formControlName="address"
+              placeholder="Straat en nummer"
+            />
+
             @if (schoolForm.controls.address.invalid && schoolForm.controls.address.touched) {
               <small class="field-inline-error">Adres is verplicht.</small>
             }
@@ -166,16 +336,52 @@
 
           <div class="modal-field">
             <label for="editPostalCode">Postcode</label>
-            <input id="editPostalCode" type="number" formControlName="postalCode" placeholder="bijv. 2000" />
+            <input
+              id="editPostalCode"
+              type="number"
+              formControlName="postalCode"
+              placeholder="bijv. 2000"
+            />
+
             @if (schoolForm.controls.postalCode.invalid && schoolForm.controls.postalCode.touched) {
               <small class="field-inline-error">Postcode moet groter zijn dan 0.</small>
             }
           </div>
 
+          <div class="modal-field">
+            <label for="editContactPhone">Telefoonnummer</label>
+            <input
+              id="editContactPhone"
+              type="text"
+              formControlName="contactPhone"
+              placeholder="bijv. 020-1234567"
+            />
+          </div>
+
+          <div class="modal-field">
+            <label for="editContactEmail">E-mailadres</label>
+            <input
+              id="editContactEmail"
+              type="email"
+              formControlName="contactEmail"
+              placeholder="bijv. info@school.nl"
+            />
+
+            @if (schoolForm.controls.contactEmail.invalid && schoolForm.controls.contactEmail.touched) {
+              <small class="field-inline-error">Vul een geldig e-mailadres in.</small>
+            }
+          </div>
+
           <div class="modal-actions">
-            <button type="button" class="btn-cancel" (click)="closeEditModal()" [disabled]="isUpdating()">
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="closeEditModal()"
+              [disabled]="isUpdating()"
+            >
               Annuleren
             </button>
+
             <button type="submit" class="btn-save" [disabled]="isUpdating()">
               {{ isUpdating() ? 'Wijzigen...' : 'Opslaan' }}
             </button>
@@ -186,16 +392,42 @@
   }
 
   @if (isDeleteModalOpen()) {
-    <div class="modal-overlay" (pointerdown)="onOverlayPointerDown($event)" (click)="onOverlayClick($event, 'delete')">
+    <div
+      class="modal-overlay open"
+      (pointerdown)="onOverlayPointerDown($event)"
+      (click)="onOverlayClick($event, 'delete')"
+    >
       <div class="modal modal--danger" (click)="$event.stopPropagation()">
         <h2>School verwijderen</h2>
+
         @if (selectedSchoolForDelete()) {
-          <p>Weet u zeker dat u de school <strong>{{ selectedSchoolForDelete()?.name }}</strong> wilt verwijderen?</p>
-          <p class="modal__warning">Deze actie kan niet ongedaan worden gemaakt.</p>
+          <p>
+            Weet u zeker dat u de school
+            <strong>{{ selectedSchoolForDelete()?.name }}</strong>
+            wilt verwijderen?
+          </p>
+
+          <p class="modal__warning">
+            Deze actie kan niet ongedaan worden gemaakt.
+          </p>
         }
+
         <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="closeDeleteModal()" [disabled]="isDeleting()">Annuleren</button>
-          <button type="button" class="btn-danger" (click)="deleteSchool()" [disabled]="isDeleting()">
+          <button
+            type="button"
+            class="btn-cancel"
+            (click)="closeDeleteModal()"
+            [disabled]="isDeleting()"
+          >
+            Annuleren
+          </button>
+
+          <button
+            type="button"
+            class="btn-danger"
+            (click)="deleteSchool()"
+            [disabled]="isDeleting()"
+          >
             {{ isDeleting() ? 'Verwijderen...' : 'Verwijderen' }}
           </button>
         </div>

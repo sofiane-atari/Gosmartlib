@@ -10,4 +10,6 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
 
     void deleteByBookId(Long bookId);
 
+    long countBySchoolId(Long schoolId);
+
 }

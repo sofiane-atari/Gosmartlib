@@ -103,11 +103,13 @@ export class BookService {
   }
 
   getMostReadBooks(limit: number = 3): Observable<Book[]> {
-    return this.http.get<Book[]>(`${this.apiUrl}/most-read?limit=${limit}`);
+    const params = new HttpParams().set('limit', limit);
+    return this.http.get<Book[]>(`${this.apiUrl}/most-read`, { params });
   }
 
   getNewestBooks(limit: number = 3): Observable<Book[]> {
-    return this.http.get<Book[]>(`${this.apiUrl}/newest?limit=${limit}`);
+    const params = new HttpParams().set('limit', limit);
+    return this.http.get<Book[]>(`${this.apiUrl}/newest`, { params });
   }
 
   uploadBooks(file: File): Observable<any> {

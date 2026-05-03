@@ -1081,6 +1081,8 @@
   top: -1px;
 }
 
+
+
 .btn-icon {
   width: 18px;
   height: 18px;
@@ -1314,4 +1316,16 @@ lucide-icon.btn-icon svg {
   app-file-upload:focus-within {
     border-color: #8a1e41;
   }
+}
+
+.disabled-submit-hint {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  color: #b45309;
+  text-align: right;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

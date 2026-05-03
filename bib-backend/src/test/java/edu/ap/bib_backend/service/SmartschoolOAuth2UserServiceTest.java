@@ -3,8 +3,10 @@ package edu.ap.bib_backend.service;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.user.UserService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,6 +60,7 @@ class SmartschoolOAuth2UserServiceTest {
     private static final String USER_INFO_ENDPOINT = "https://smartschool.example.com/userinfo";
     private static final String GROUP_INFO_ENDPOINT = "https://smartschool.example.com/groupinfo";
     private static final String PLATFORM_URL = "https://aphogeschool.smartschool.be";
+    private static final String SCHOOL_DOMAIN_NAME = "aphogeschool.smartschool.be";
 
     @Autowired
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
@@ -72,6 +77,9 @@ class SmartschoolOAuth2UserServiceTest {
     @MockitoBean
     private SmartschoolProfileService smartschoolProfileService;
 
+    @MockitoBean
+    private SchoolRepository schoolRepository;
+
     private MockRestServiceServer mockRestServiceServer;
 
     @BeforeEach
@@ -79,6 +87,7 @@ class SmartschoolOAuth2UserServiceTest {
         RestTemplate restTemplate = new RestTemplate();
         ReflectionTestUtils.setField(smartschoolOAuth2UserService, "restTemplate", restTemplate);
         mockRestServiceServer = MockRestServiceServer.bindTo(restTemplate).build();
+        when(schoolRepository.findByDomainName(SCHOOL_DOMAIN_NAME)).thenReturn(Optional.of(createSchool()));
     }
 
     @Test
@@ -88,7 +97,7 @@ class SmartschoolOAuth2UserServiceTest {
         String accessTokenValue = "access-token-123";
         OAuth2UserRequest userRequest = createUserRequest(accessTokenValue);
 
-        User existingUser = createUser("existing-user", Role.TEACHER);
+        User existingUser = createUser("existing-user", Role.TEACHER, createSchool());
         Group existingGroup = createGroup("2ITSOF1");
 
         when(userService.getUser("existing-user")).thenReturn(Optional.of(existingUser));
@@ -136,7 +145,7 @@ class SmartschoolOAuth2UserServiceTest {
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")));
 
         verify(userService, times(1)).getUser("existing-user");
-        verify(userService, never()).createUser(anyString(), org.mockito.ArgumentMatchers.any());
+        verify(userService, never()).createUser(anyString(), any(), any());
         verify(roleService, never()).getRoleEntity(anyString());
         verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
         verify(groupService, times(1)).getGroup("2ITSOF1");
@@ -153,12 +162,12 @@ class SmartschoolOAuth2UserServiceTest {
         OAuth2UserRequest userRequest = createUserRequest(accessTokenValue);
 
         RoleEntity studentRole = createRoleEntity(Role.STUDENT);
-        User createdUser = createUser("new-user", Role.STUDENT);
+        User createdUser = createUser("new-user", Role.STUDENT, createSchool());
         Group existingGroup = createGroup("2ITSOF1");
 
         when(userService.getUser("new-user")).thenReturn(Optional.empty());
         when(roleService.getRoleEntity("leerling")).thenReturn(studentRole);
-        when(userService.createUser("new-user", studentRole)).thenReturn(createdUser);
+        when(userService.createUser(eq("new-user"), eq(studentRole), any(School.class))).thenReturn(createdUser);
         when(smartschoolProfileService.fetchGroups(accessTokenValue))
                 .thenReturn(new SmartschoolGroupDto("2ITSOF1", List.of("Leerlingen")));
         when(groupService.getGroup("2ITSOF1")).thenReturn(existingGroup);
@@ -204,7 +213,7 @@ class SmartschoolOAuth2UserServiceTest {
 
         verify(userService, times(1)).getUser("new-user");
         verify(roleService, times(1)).getRoleEntity("leerling");
-        verify(userService, times(1)).createUser("new-user", studentRole);
+        verify(userService, times(1)).createUser(eq("new-user"), eq(studentRole), any(School.class));
         verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
         verify(groupService, times(1)).getGroup("2ITSOF1");
         verify(groupService, never()).createGroup(anyString());
@@ -219,7 +228,7 @@ class SmartschoolOAuth2UserServiceTest {
         String accessTokenValue = "access-token-789";
         OAuth2UserRequest userRequest = createUserRequest(accessTokenValue);
 
-        User existingUser = createUser("group-create-user", Role.STUDENT);
+        User existingUser = createUser("group-create-user", Role.STUDENT, createSchool());
         Group createdGroup = createGroup("2ITSOF1");
 
         when(userService.getUser("group-create-user")).thenReturn(Optional.of(existingUser));
@@ -337,11 +346,22 @@ class SmartschoolOAuth2UserServiceTest {
                 .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON));
     }
 
-    private User createUser(String userId, Role role) {
+    private User createUser(String userId, Role role, School school) {
         User user = new User();
         user.setId(userId);
         user.setRole(createRoleEntity(role));
+        user.setSchool(school);
         return user;
+    }
+
+    private School createSchool() {
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName(SCHOOL_DOMAIN_NAME);
+        school.setName("AP Hogeschool");
+        school.setAddress("Noorderplaats 2");
+        school.setPostalCode(2000);
+        return school;
     }
 
     private RoleEntity createRoleEntity(Role role) {

@@ -22,7 +22,11 @@ export class SmartschoolCallbackComponent implements OnInit {
     }
 
     this.authService.fetchCurrentUser();
-    this.router.navigate(['/catalog']);
+
+    const redirectUrl = localStorage.getItem('redirectAfterLogin') || '/catalog';
+    localStorage.removeItem('redirectAfterLogin');
+
+    this.router.navigateByUrl(redirectUrl);
   }
 
   private resolveTokenFromUrl(): string | null {

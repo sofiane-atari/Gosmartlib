@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, Inject, inject, OnDestroy, signal, OnInit } from '@angular/core';
+
 import { Book } from '../../../model/book/book.model';
 import {
   LucideAngularModule,
@@ -15,6 +16,7 @@ import {
   Bookmark,
   Flag,
   Pencil,
+  ChevronDown
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -22,7 +24,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookService } from '../../../services/bookService/book.service';
 import { Availability } from '../../../model/enums/availability.enum';
-import { Review } from '../../../model/review.model';
+import { Review } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import {
@@ -35,15 +37,20 @@ import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
 import { BookLessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
+import { DraftStorageService } from '../../../services/storage/draft-storage.service';
+import { ReviewDraft } from '../../../model/review/review-draft.model';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+
 
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink],
+  imports: [LucideAngularModule, CommonModule, FormsModule, RouterLink, ButtonHoverHelpComponent],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css',
 })
-export class BookDetailComponent implements OnInit {
+
+export class BookDetailComponent implements OnDestroy, OnInit {
   readonly X = X;
   readonly Library = Library;
   readonly Minus = Minus;
@@ -57,6 +64,7 @@ export class BookDetailComponent implements OnInit {
   readonly BookOpen = BookOpen;
   readonly Bookmark = Bookmark;
   readonly Flag = Flag;
+  readonly ChevronDown = ChevronDown;
   icons = [
     { icon: Library, label: 'Bibliotheek' },
     { icon: Star, label: 'Reviews' },
@@ -101,6 +109,9 @@ export class BookDetailComponent implements OnInit {
 
   // Related Books Carousel //
   relatedBooksCarousel: Book[] = [];
+  
+  private currentBookId: number | null = null;
+  private reviewDraftIntervalId: ReturnType<typeof setInterval> | null = null;
 
   protected readonly roleService = inject(RoleService);
 
@@ -113,7 +124,9 @@ export class BookDetailComponent implements OnInit {
     private toastService: ToastService,
     private sanitizer: DomSanitizer,
     protected authService: AuthService,
-  ) {}
+    private draftStorage: DraftStorageService
+  
+  ) {
 
   public ngOnInit(): void {
     // Ensure current user role is available for picker filtering.
@@ -122,8 +135,8 @@ export class BookDetailComponent implements OnInit {
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
 
-      if (id) {
-        const numericBookId = +id;
+    if (id) {
+      const numericBookId = +id;
 
         this.bookService.getBookById(numericBookId).subscribe((book) => {
           this.selectedBook = book;
@@ -133,9 +146,17 @@ export class BookDetailComponent implements OnInit {
           }
         });
 
-        this.loadRelatedBooksCarousel(numericBookId);
-        this.loadReviews(numericBookId);
-      }
+      this.currentBookId = numericBookId;
+      this.restoreReviewDraft(numericBookId);
+      this.startReviewDraftAutosave();
+
+      this.bookService.getBookById(numericBookId).subscribe(book => {
+        this.selectedBook = book;
+      });
+
+      this.loadRelatedBooksCarousel(numericBookId);
+      this.loadReviews(numericBookId);
+    }
     });
 
     this.loadReadingLists();
@@ -275,6 +296,7 @@ export class BookDetailComponent implements OnInit {
 
   setRating(rating: number) {
     this.newReviewRating = rating;
+    this.saveReviewDraft();
   }
 
   getRoundedAverage(): number {
@@ -311,6 +333,7 @@ export class BookDetailComponent implements OnInit {
         this.reviews.push(savedReview);
         this.newReviewText = '';
         this.newReviewRating = 5;
+        this.clearReviewDraft();
 
         this.updateAverage(bookId);
         this.toastService.show('Review succesvol geplaatst!', 'success');
@@ -549,4 +572,62 @@ export class BookDetailComponent implements OnInit {
       () => {},
     );
   }
+
+  private getReviewDraftKey(bookId: number): string {
+    return `book-review-${bookId}`;
+  }
+
+  private saveReviewDraft(): void {
+    if (!this.currentBookId) {
+      return;
+    }
+
+    const draft: ReviewDraft = {
+      text: this.newReviewText,
+      rating: this.newReviewRating,
+    };
+
+    this.draftStorage.saveDraft(this.getReviewDraftKey(this.currentBookId), draft);
+  }
+
+  private restoreReviewDraft(bookId: number): void {
+    const draft = this.draftStorage.getDraft<ReviewDraft>(
+      this.getReviewDraftKey(bookId),
+    );
+
+    if (!draft) {
+      return;
+    }
+
+    this.newReviewText = draft.text ?? '';
+    this.newReviewRating = draft.rating ?? 5;
+  }
+
+  private clearReviewDraft(): void {
+    if (!this.currentBookId) {
+      return;
+    }
+
+    this.draftStorage.removeDraft(this.getReviewDraftKey(this.currentBookId));
+  }
+
+  private startReviewDraftAutosave(): void {
+    if (this.reviewDraftIntervalId) {
+      return;
+    }
+
+    this.reviewDraftIntervalId = setInterval(() => {
+      this.saveReviewDraft();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    this.saveReviewDraft();
+
+    if (this.reviewDraftIntervalId) {
+      clearInterval(this.reviewDraftIntervalId);
+      this.reviewDraftIntervalId = null;
+    }
+  }
+
 }

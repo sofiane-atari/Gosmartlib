@@ -6,15 +6,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import org.springframework.security.core.Authentication;
-import edu.ap.bib_backend.service.user.CurrentUserService;
-
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
@@ -24,18 +15,30 @@ import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
-import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
 import edu.ap.bib_backend.mapper.BookMapper;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.util.IsbnUtils;
+
 import jakarta.transaction.Transactional;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional
@@ -51,6 +54,7 @@ public class BookService {
     private final BookCandidateMapper bookCandidateMapper;
     private final OpenLibraryClient openLibraryClient;
     private final CurrentUserService currentUserService;
+    private final UserRepository userRepository;
 
     public BookService(
             BookRepository bookRepository,
@@ -62,7 +66,9 @@ public class BookService {
             BookMapper bookMapper,
             BookCandidateMapper bookCandidateMapper,
             OpenLibraryClient openLibraryClient,
-            CurrentUserService currentUserService) {
+            CurrentUserService currentUserService,
+            UserRepository userRepository
+    ) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.genreRepository = genreRepository;
@@ -73,6 +79,7 @@ public class BookService {
         this.bookCandidateMapper = bookCandidateMapper;
         this.openLibraryClient = openLibraryClient;
         this.currentUserService = currentUserService;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -81,21 +88,26 @@ public class BookService {
     }
 
     @Transactional
-    public BookDTO addCopyToBook(Long bookId) {
+    public BookDTO addCopyToBook(Long bookId, Authentication authentication) {
         Book book = findBookOrThrow(bookId);
-        createAvailableCopy(book);
+        School school = getCurrentUserSchool(authentication);
+
+        createAvailableCopy(book, school);
+
         return bookMapper.toDTO(book);
     }
 
     @Transactional
-    public BookDTO addBook(BookDTO dto) {
+    public BookDTO addBook(BookDTO dto, Authentication authentication) {
         String isbn = IsbnUtils.normalizeIsbn(dto.getIsbn());
         dto.setIsbn(isbn);
 
         Book book = findExistingByIsbn(isbn)
                 .orElseGet(() -> createBook(dto));
 
-        createAvailableCopy(book);
+        School school = getCurrentUserSchool(authentication);
+        createAvailableCopy(book, school);
+
         return bookMapper.toDTO(book);
     }
 
@@ -160,24 +172,33 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getMostReadBooks(int limit, Authentication authentication) {
+        School school = getCurrentUserSchool(authentication);
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+        int safeLimit = Math.max(1, Math.min(limit, 20));
 
-        List<Book> books = bookRepository.findMostReadBook(PageRequest.of(0, limit)).stream()
+        List<Book> books = bookRepository.findMostReadBookBySchool(
+                school.getDomainName(),
+                PageRequest.of(0, safeLimit)
+        );
+
+        return books.stream()
                 .filter(book -> canSeeDidacticBooks || !book.isDidactic())
+                .map(bookMapper::toDTO)
                 .toList();
-
-        if (books.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen uitgeleende boeken gevonden");
-        }
-
-        return bookMapper.toDTOList(books);
     }
 
     @Transactional
     public List<BookDTO> getNewestBooks(int limit, Authentication authentication) {
+        School school = getCurrentUserSchool(authentication);
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+        int safeLimit = Math.max(1, Math.min(limit, 20));
 
-        return bookRepository.findNewestBooks(PageRequest.of(0, limit)).stream()
+        List<Book> books = bookRepository.findNewestBooksBySchool(
+                school.getDomainName(),
+                PageRequest.of(0, safeLimit)
+        );
+
+        return books.stream()
                 .filter(book -> canSeeDidacticBooks || !book.isDidactic())
                 .map(bookMapper::toDTO)
                 .toList();
@@ -190,7 +211,10 @@ public class BookService {
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
 
         int safeLimit = Math.max(1, Math.min(limit, 50));
-        List<Object[]> results = bookRepository.findRelatedBooksWithScore(bookId, PageRequest.of(0, safeLimit));
+        List<Object[]> results = bookRepository.findRelatedBooksWithScore(
+                bookId,
+                PageRequest.of(0, safeLimit)
+        );
 
         return results.stream()
                 .map(row -> (Book) row[0])
@@ -201,9 +225,9 @@ public class BookService {
 
     public Optional<Book> findExistingByIsbn(String isbn) {
         if (isbn == null || isbn.isBlank()) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
-        return java.util.Optional.ofNullable(bookRepository.findByIsbn(isbn));
+        return Optional.ofNullable(bookRepository.findByIsbn(isbn));
     }
 
     @Transactional
@@ -245,10 +269,10 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
     }
 
-
-    private void createAvailableCopy(Book book) {
+    private void createAvailableCopy(Book book, School school) {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
+        copy.setSchool(school);
         copy.setAvailability(Availability.AVAILABLE);
         bookCopyRepository.save(copy);
     }
@@ -260,8 +284,10 @@ public class BookService {
 
         Book existing = bookRepository.findByIsbn(isbn);
         if (existing != null && !existing.getId().equals(currentBookId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Er bestaat al een ander boek met ISBN: " + isbn);
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Er bestaat al een ander boek met ISBN: " + isbn
+            );
         }
     }
 
@@ -293,6 +319,7 @@ public class BookService {
         if (value == null) {
             return null;
         }
+
         String trimmed = value.trim();
         return trimmed.isBlank() ? null : trimmed;
     }
@@ -303,5 +330,22 @@ public class BookService {
         if (book.isDidactic() && !canSeeDidacticBooks) {
             throw new ResourceNotFoundException("id", "Boek niet gevonden.");
         }
+    }
+
+    private School getCurrentUserSchool(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new IllegalStateException("Geen geauthenticeerde gebruiker gevonden.");
+        }
+
+        User user = userRepository.findById(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Gebruiker niet gevonden: " + authentication.getName()
+                ));
+
+        if (user.getSchool() == null) {
+            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
+        }
+
+        return user.getSchool();
     }
 }

@@ -18,7 +18,7 @@ import {
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
 
-import { Review, ReviewDashboardStats } from '../../../model/review.model';
+import { Review, ReviewDashboardStats } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
@@ -28,11 +28,12 @@ import {
 } from '../../shared/animations/my-reviews.animations';
 import { UserService } from '../../../services/user/user.service';
 import { RoleService } from '../../../services/role-service/role.service';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-review-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, PagingComponent],
+  imports: [CommonModule, LucideAngularModule, PagingComponent, ButtonHoverHelpComponent],
   templateUrl: './review-dashboard.component.html',
   styleUrl: './review-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

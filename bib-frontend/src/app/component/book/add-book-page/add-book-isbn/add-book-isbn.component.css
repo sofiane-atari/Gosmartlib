@@ -963,7 +963,12 @@ select:disabled {
   justify-content: center;
   flex-shrink: 0;
 }
-
+.layout,
+.form-section,
+.book-form,
+.search-section {
+  overflow: visible;
+}
 .btn-icon svg,
 lucide-icon.btn-icon svg {
   width: 18px;
@@ -1144,6 +1149,8 @@ lucide-icon.btn-icon svg {
     gap: 0.5rem;
   }
 
+
+
   .btn-submit:hover:not(:disabled) {
     background: #bc808b;
     transform: translateY(-1px);
@@ -1172,4 +1179,16 @@ lucide-icon.btn-icon svg {
   app-file-upload:focus-within {
     border-color: #8a1e41;
   }
+}
+
+.disabled-submit-hint {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  color: #b45309;
+  text-align: right;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

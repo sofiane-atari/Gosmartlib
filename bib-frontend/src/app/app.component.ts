@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { ToastComponent } from './component/shared/toast/toast.component';
 import { AuthService } from './services/authorization/auth.service';
+import { SessionExpiryModalComponent } from './component/shared/session-expired-modal/session-expired-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,7 @@ import { AuthService } from './services/authorization/auth.service';
     SidebarComponent,
     RouterOutlet,
     ToastComponent,
+    SessionExpiryModalComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -90,6 +91,7 @@ public class BookControllerTest {
                 Page<BookDTO> page = new PageImpl<>(List.of(book));
 
                 when(bookSearchService.getFilteredBooks(
+                                null,
                                 "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
@@ -117,6 +119,7 @@ public class BookControllerTest {
 
                 // Assert
                 verify(bookSearchService).getFilteredBooks(
+                                null,
                                 "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
@@ -176,7 +179,7 @@ public class BookControllerTest {
                                                 IllegalStateException.class, r.getResolvedException()))
                                 .andExpect(r -> org.junit.jupiter.api.Assertions.assertEquals(
                                                 "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.",
-                                                r.getResolvedException().getMessage()));
+                                                r.getResolvedException() != null ? r.getResolvedException().getMessage() : null));
 
                 // Controleer of de delete methode daadwerkelijk is aangeroepen
                 Mockito.verify(bs, Mockito.times(1)).deleteBook(bookId);
@@ -436,10 +439,11 @@ public class BookControllerTest {
                 savedDTO.setDescription("Beschrijving hier");
                 savedDTO.setReleaseYear(2024);
 
-                Mockito.when(bs.addBook(Mockito.any(BookDTO.class))).thenReturn(savedDTO);
+                Mockito.when(bs.addBook(Mockito.any(), Mockito.any(BookDTO.class))).thenReturn(savedDTO);
 
                 // Act & Assert
                 mockMvc.perform(post("/books")
+                                .principal(new UsernamePasswordAuthenticationToken("test-user", "password"))
                                 .contentType("application/json")
                                 .content(new ObjectMapper().writeValueAsString(requestDTO)))
                                 .andExpect(status().isOk())
@@ -678,7 +682,7 @@ public class BookControllerTest {
                                                 .assertInstanceOf(RuntimeException.class, r.getResolvedException()))
                                 .andExpect(r -> org.junit.jupiter.api.Assertions.assertEquals(
                                                 "Boek niet gevonden met id: 99",
-                                                r.getResolvedException().getMessage()));
+                                                r.getResolvedException() != null ? r.getResolvedException().getMessage() : null));
 
                 Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class));
         }

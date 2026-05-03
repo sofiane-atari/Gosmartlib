@@ -75,6 +75,12 @@ export class SidebarComponent {
     () => this.authService.adminOverrideStatus()?.enabled ?? false,
   );
 
+  protected readonly isStaff = computed(() => {
+    const role = this.currentUser()?.role;
+
+    return role === 'TEACHER' || role === 'LIBRARIAN' || role === 'ADMIN';
+  });
+
   protected readonly adminOverrideLabel = computed(() =>
     this.isAdminOverrideEnabled() ? 'Admin uit (test)' : 'Admin aan (test)',
   );
@@ -85,24 +91,19 @@ export class SidebarComponent {
     { icon: History, label: 'Geschiedenis', route: '/historiek' },
     { icon: Star, label: 'Mijn reviews', route: '/reviews' },
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
-    { icon: Settings, label: 'Instellingen', route: '/instellingen' },
-    { icon: Package, label: 'BookBox', route: '/bookbox' },
-    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage' },
+    { icon: Settings, label: 'Instellingen', route: '/settings' },
+    { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly : true },
+    { icon: FileText, label: 'Klasrapportages', route: '/klasraportage', staffOnly : true },
     {
       icon: FolderKanban,
       label: 'Lestips',
       route: `/${LESSON_TIP_PATHS.root}`,
       staffOnly: true,
     },
-    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard' },
-    { icon: Tag, label: 'Genrebeheer', route: '/genre' },
+    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard', staffOnly : true },
+    { icon: Tag, label: 'Genrebeheer', route: '/genre', adminOnly: true },
     { icon: School, label: 'Schoolbeheer', route: '/scholen', adminOnly: true },
-    {
-      icon: Book,
-      label: 'Boekbeheer',
-      route: '/books-management',
-      roles: ['LIBRARIAN', 'TEACHER'],
-    },
+    { icon: Book, label: 'Boekbeheer', route: '/books-management', adminOnly : true },
   ];
 
   protected readonly visibleMenuItems = computed(() => {
@@ -122,9 +123,9 @@ export class SidebarComponent {
     });
   });
 
-  protected readonly userDisplayName = computed(() => {
-    this.userService.getDisplayName(this.currentUser());
-  });
+  protected readonly userDisplayName = computed(() =>
+    this.userService.getDisplayName(this.currentUser()),
+  );
 
   protected readonly userRoleLabel = computed(() =>
     this.userService.getRoleLabel(this.currentUser()?.role),

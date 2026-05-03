@@ -53,9 +53,11 @@
           class="search-input"
           placeholder="Scan of typ ISBN..."
         />
-        <button type="button" class="btn-search" (click)="searchBookData()">
-          Zoek gegevens
-        </button>
+        <app-button-hover-help text="Zoek automatisch boekgegevens op via ISBN, of via titel, auteur en jaar.">
+          <button type="button" class="btn-search" (click)="searchBookData()">
+            Zoek gegevens
+          </button>
+        </app-button-hover-help>
       </div>
 
       <hr class="divider" />
@@ -134,7 +136,7 @@
             </div>
 
             <div class="form-group">
-              <label for="readingLevel">Leesniveau</label>
+              <label for="readingLevel">Leesniveau (optioneel)</label>
 
               <select
                 [(ngModel)]="book.readingLevel"
@@ -142,7 +144,6 @@
                 #readingLevel="ngModel"
                 [compareWith]="compareReadingLevels"
                 [disabled]="isExistingBookLoaded"
-                required
               >
                 <option [ngValue]="null">Kies een niveau</option>
 
@@ -179,13 +180,12 @@
           </div>
 
           <div class="form-group full-width description-field">
-            <label>Beschrijving *</label>
+            <label>Beschrijving (optioneel)</label>
             <textarea
               [(ngModel)]="book.description"
               name="description"
               placeholder="Een korte beschrijving van het boek..."
               [readonly]="isExistingBookLoaded"
-              required
             ></textarea>
           </div>
         </div>
@@ -237,7 +237,7 @@
       }
 
       <div class="form-group full-width genre-section">
-        <label>Genres * (kies 1 hoofdgenre en 1 tot 3 subgenres)</label>
+        <label>Genres (Optioneel: kies 1 hoofdgenre en 1 tot 3 subgenres)</label>
 
         <div class="genre-grid main-genre-grid">
           @for (mainGenre of genres; track mainGenre.name) {
@@ -262,7 +262,7 @@
         </div>
 
         <p class="genre-hint">
-          Geselecteerd: {{ book.genres.length }}/3 subgenres
+          Geselecteerd: {{ book.genres?.length }}/3 subgenres
         </p>
 
         @if (openedMainGenre && openedMainGenre.subGenres?.length) {
@@ -303,11 +303,18 @@
         }
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn-clear" (click)="clearForm()">
-          <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
-          Formulier leegmaken
-        </button>
+<div class="form-actions">
+  <app-button-hover-help text="Maak alle ingevulde velden leeg en start opnieuw met een leeg formulier.">
+    <button
+      type="button"
+      class="btn-clear"
+      (click)="clearForm()"
+    >
+      <lucide-icon [name]="Trash2Icon" class="clear-icon"></lucide-icon>
+      Formulier leegmaken
+    </button>
+  </app-button-hover-help>
+
 
         <div class="action-buttons">
           @if (isExistingBookLoaded) {
@@ -331,6 +338,13 @@
               isExistingBookLoaded ? "Exemplaar toevoegen" : "Boek toevoegen"
             }}
           </button>
+
+          @if (!isExistingBookLoaded && bookForm.invalid) {
+            <p class="disabled-submit-hint">
+              Vul eerst alle verplichte velden in: titel, auteur, aantal pagina's en jaar.
+            </p>
+          }
+
         </div>
       </div>
     </form>

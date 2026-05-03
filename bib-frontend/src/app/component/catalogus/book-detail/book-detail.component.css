@@ -1,887 +1,3 @@
-:host {
-  display: block;
-  font-family: var(
-    --main-font
-  ); /* Dit forceert jouw globale font voor de hele component! */
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.page-container {
-  min-height: 100vh;
-  background: linear-gradient(
-    to bottom,
-    #f9fafb 0%,
-    #f3f4f6 100%
-  ); /* Meer neutrale grijze achtergrond */
-  padding: 16px 8px;
-}
-
-.detail-wrapper {
-  max-width: 960px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 16px;
-}
-
-/* Sidebar */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.cover-container {
-  background: white;
-  border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.book-cover {
-  width: 100%;
-  aspect-ratio: 2/3;
-  object-fit: cover;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-.quick-stats {
-  background: white;
-  border-radius: 8px;
-  padding: 12px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.stat-item {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stat-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1f2937; /* Aangepast naar dark-gray */
-}
-
-.stat-label {
-  font-size: 0.65rem;
-  color: #6b7280; /* Aangepast naar medium-gray */
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.availability-badge {
-  background: #fef2f2; /* Match met badge-red */
-  border-radius: 6px;
-  padding: 8px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--error-color, #ef4444);
-  border: 1px solid #fecaca;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.availability-badge.available {
-  color: var(--success-color, #10b981);
-  border-color: #a7f3d0;
-  background: #ecfdf5; /* Match met badge-green */
-}
-
-/* Main Content */
-.main-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.content-header {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.title-section {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.book-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #1f2937;
-  line-height: 1.2;
-}
-
-.book-author {
-  font-size: 1rem;
-  color: var(--sec-color, #bc808b); /* Roze/Bordeaux accent */
-  font-weight: 600;
-}
-
-.section-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Reader Actions Section */
-.reader-actions-section {
-  display: contents;
-}
-
-.reader-actions-section .action-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-/* Management Section */
-.management-section {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.management-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-/* ========== LIST PICKER DROPDOWN ========== */
-.list-picker-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  width: 200px;
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e5e7eb;
-  z-index: 100;
-  text-align: left;
-  overflow: hidden;
-  animation: slideDown 0.2s ease-out;
-  color: #374151;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.list-picker-header {
-  padding: 8px 12px;
-  font-weight: 600;
-  font-size: 11px;
-  border-bottom: 1px solid #f3f4f6;
-  background: #f9fafb;
-  color: #6b7280;
-}
-
-.list-picker-items {
-  max-height: 160px;
-  overflow-y: auto;
-}
-
-.list-picker-item {
-  padding: 8px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-  color: #1f2937;
-}
-
-.list-picker-item:hover {
-  background: var(--main-light-color, #fff5f8); /* Zacht roze highlight */
-  color: var(--main-color, #8a1e41);
-  font-weight: 600;
-}
-
-.list-picker-empty {
-  padding: 12px;
-  font-size: 11px;
-  color: #9ca3af;
-  text-align: center;
-  font-style: italic;
-}
-
-.management-card {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 12px;
-  border: 1px solid #e5e7eb;
-}
-
-.card-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.qty-btn {
-  width: 30px;
-  height: 30px;
-  border: 1px solid #d1d5db;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  color: #374151;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.qty-btn:hover:not(:disabled) {
-  background: var(--main-color, #8a1e41);
-  color: white;
-  border-color: var(--main-color, #8a1e41);
-}
-
-.qty-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.qty-input {
-  flex: 1;
-  height: 30px;
-  text-align: center;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: #1f2937;
-  background: white;
-}
-
-.status-select {
-  width: 100%;
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #1f2937;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.status-select:focus {
-  outline: none;
-  border-color: var(--main-color, #8a1e41);
-  box-shadow: 0 0 0 2px rgba(138, 30, 65, 0.1);
-}
-
-.action-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit; /* Zorgt dat hij je globale font pakt */
-}
-
-.action-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.action-button--secondary {
-  background-color: var(--bg-surface, #ffffff);
-  border: 1px solid var(--border-color, #f0e4e8);
-  color: var(--main-color, #8a1e41);
-}
-
-.action-button--secondary:hover:not(:disabled) {
-  background-color: var(--main-light-color, #fff5f8);
-  border-color: var(--main-color, #8a1e41);
-  transform: translateY(-1px);
-}
-
-.action-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.action-btn {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  font-weight: 600;
-  font-size: 0.8rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.action-btn.primary {
-  background-color: var(--main-color, #8a1e41);
-  color: white;
-  box-shadow: 0 2px 6px rgba(138, 30, 65, 0.2);
-}
-
-.action-btn.primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(138, 30, 65, 0.3);
-}
-
-.action-btn.danger {
-  background: white;
-  color: var(--error-color, #ef4444);
-  border-color: #fecaca;
-}
-
-.action-btn.danger:hover {
-  background: #fef2f2;
-}
-
-/* --- NIEUWE KNOPPEN STYLING (Outline stijl) --- */
-.action-button--edit {
-  background-color: white !important;
-  color: var(--main-color, #8a1e41) !important;
-  border: 1.5px solid rgba(138, 30, 65, 0.2) !important;
-  box-shadow: none !important;
-}
-
-.action-button--edit lucide-icon {
-  color: var(--main-color, #8a1e41);
-}
-
-.action-button--edit:hover:not(:disabled) {
-  background-color: var(--main-light-color, #fff5f8) !important;
-  border-color: var(--main-color, #8a1e41) !important;
-}
-
-.action-button--delete {
-  background-color: white !important;
-  color: var(--error-color, #ef4444) !important;
-  border: 1.5px solid rgba(239, 68, 68, 0.2) !important;
-  box-shadow: none !important;
-}
-
-.action-button--delete lucide-icon {
-  color: var(--error-color, #ef4444);
-}
-
-.action-button--delete:hover:not(:disabled) {
-  background-color: #fef2f2 !important;
-  border-color: var(--error-color, #ef4444) !important;
-}
-
-/* Meta Section, enz. */
-.meta-section,
-.summary-section,
-.genres-section,
-.reviews-section {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.meta-grid {
-  display: grid;
-  gap: 8px;
-}
-
-.meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: #f9fafb;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-}
-
-.meta-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #6b7280;
-}
-
-.meta-label svg {
-  color: var(--main-color, #8a1e41);
-  width: 14px;
-  height: 14px;
-}
-
-.meta-value {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.meta-placeholder {
-  color: #9ca3af;
-  font-weight: 500;
-  font-style: italic;
-}
-
-/* Summary Section */
-.summary-text {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: #4b5563;
-}
-
-/* Genres Section */
-.genres-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.genre-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 25px;
-  padding: 0.38rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.84rem;
-  font-weight: 600;
-  line-height: 1.1;
-  color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  user-select: none;
-  -webkit-user-select: none;
-  white-space: nowrap;
-}
-
-/* Reviews Section */
-.empty-state {
-  text-align: center;
-  padding: 24px 12px;
-  color: #6b7280;
-}
-
-.empty-state svg {
-  margin-bottom: 8px;
-  opacity: 0.5;
-  width: 24px;
-  height: 24px;
-}
-
-.empty-state p {
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.reviews-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.review-card {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 12px;
-  border: 1px solid #e5e7eb;
-}
-
-.review-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-  color: #1f2937;
-}
-
-.review-text {
-  color: #4b5563;
-  line-height: 1.4;
-  font-size: 0.8rem;
-}
-
-.delete-review-btn {
-  background: transparent;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.delete-review-btn:hover {
-  background: #fef2f2;
-  color: var(--error-color, #ef4444);
-}
-
-/* Sterren */
-.star {
-  color: #e5e7eb;
-  font-size: 1rem;
-}
-
-.star.filled {
-  color: #f59e0b; /* Aangepast naar oranje uit books */
-}
-
-/* Nieuwe Review Formulier */
-.add-review-container {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 16px;
-  border: 1px dashed #d1d5db;
-}
-
-.add-review-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 8px;
-}
-
-.rating-input-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.rating-label {
-  font-weight: 600;
-  color: #6b7280;
-  font-size: 0.8rem;
-}
-
-.review-textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  font-family: inherit;
-  font-size: 0.85rem;
-  color: #1f2937;
-  resize: vertical;
-  margin-bottom: 8px;
-}
-
-.review-textarea:focus {
-  outline: none;
-  border-color: var(--main-color, #8a1e41);
-  box-shadow: 0 0 0 2px rgba(138, 30, 65, 0.1);
-}
-
-/* Preview Feedback Section */
-.preview-feedback-section {
-  background: white;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.preview-feedback {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #374151;
-  font-size: 0.8rem;
-}
-
-.preview-error {
-  color: var(--error-color, #ef4444);
-}
-
-.embedded-preview-wrapper {
-  margin-top: 10px;
-  display: grid;
-  gap: 8px;
-}
-
-.embedded-preview-frame {
-  width: 100%;
-  min-height: 500px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #fff;
-}
-
-.embedded-preview-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.preview-hint {
-  color: #6b7280;
-  font-size: 0.75rem;
-}
-
-/* Preview Modal */
-.preview-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(
-    31,
-    41,
-    55,
-    0.7
-  ); /* Aangepast naar neutralere dark overlay */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  z-index: 1000;
-}
-
-.preview-modal {
-  width: min(800px, 100%);
-  max-height: 90vh;
-  overflow: auto;
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-}
-
-.preview-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-/* Related Books Section */
-.related-books-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 16px; /* Iets meer ademruimte (van 12px naar 16px) */
-}
-
-.related-book-card {
-  /* Reset voor de default <button> styling */
-  appearance: none;
-  font-family: inherit;
-
-  /* Card styling */
-  border: 1px solid #e5e7eb;
-  border-radius: 10px; /* Iets rondere, zachtere hoeken */
-  background: white;
-  padding: 12px; /* Meer padding zorgt voor een luxere look */
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.related-book-card:hover,
-.related-book-card:focus-visible {
-  transform: translateY(-4px); /* Iets meer lift bij een hover */
-  /* Een zachtere, modernere schaduw (Tailwind-style 'shadow-md') */
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  border-color: #d1d5db; /* Rand kleurt lichtjes mee */
-  outline: none;
-}
-
-.related-book-cover {
-  width: 100%; /* Fix: 50% zag er raar uit in een kolom. 100% vult de kaart nu mooi. */
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  border-radius: 6px;
-  background: #f3f4f6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtiele schaduw achter de cover zelf */
-}
-
-.related-book-title {
-  font-size: 0.95rem; /* Net een fractie beter leesbaar */
-  font-weight: 600;
-  color: #1f2937;
-  line-height: 1.4;
-
-  /* Belangrijk: voorkomt dat extreem lange titels de kaart lay-out kapot maken */
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* Beperkt de titel tot max 2 regels */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Related Books Carousel Section */
-.carousel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.carousel-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.carousel-btn {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6b7280;
-  transition: all 0.2s ease;
-}
-
-.carousel-btn:hover {
-  background: var(--main-light-color, #fff5f8);
-  border-color: var(--main-color, #8a1e41);
-  color: var(--main-color, #8a1e41);
-}
-
-.carousel-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.related-books-carousel-wrapper {
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  /* Beperk breedte tot 6 boeken max zichtbaar */
-  /* Berekening: (breedte boek 110px * 6) + (gap 12px * 5) + (padding 4px * 2) */
-  max-width: calc((110px * 6) + (12px * 5) + 8px);
-}
-
-.related-books-carousel-container {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding: 4px;
-  /* Verberg scrollbar */
-  scrollbar-width: none;
-}
-
-.related-books-carousel-container::-webkit-scrollbar {
-  display: none;
-}
-
-.carousel-book-card {
-  flex: 0 0 auto;
-  width: 110px;
-
-  /* Reset button styling */
-  appearance: none;
-  font-family: inherit;
-
-  /* Card styling */
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: white;
-  padding: 8px;
-  text-align: center;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.carousel-book-card:hover,
-.carousel-book-card:focus-visible {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.1);
-  border-color: var(--main-color, #8a1e41);
-  outline: none;
-}
-
-.carousel-book-cover {
-  width: 100%;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  border-radius: 4px;
-  background: #f3f4f6;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.carousel-book-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #1f2937;
-  line-height: 1.2;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .carousel-book-author {
   font-size: 0.65rem;
   color: #6b7280;
@@ -893,6 +9,7 @@
   text-overflow: ellipsis;
 }
 
+/* Lesson Tip Preview Section */
 .lesson-tip-preview-list {
   display: grid;
   gap: 12px;
@@ -959,7 +76,7 @@
   font-size: 13px;
   line-height: 1.5;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Truncates after 2 lines */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -977,6 +94,161 @@
   font-size: 13px;
   font-weight: 700;
   padding-top: 2px;
+}
+
+/* Review Help Box */
+.review-help-box {
+  margin-bottom: 14px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.review-help-box summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f9fafb;
+  color: #1f2937;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.review-help-box summary::-webkit-details-marker {
+  display: none;
+}
+
+.review-help-box summary:hover {
+  background: #f3f4f6;
+  color: var(--main-color, #8a1e41);
+}
+
+.review-help-icon {
+  flex-shrink: 0;
+  color: #6b7280;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.review-help-box summary:hover .review-help-icon {
+  color: var(--main-color, #8a1e41);
+}
+
+.review-help-box[open] summary {
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: var(--main-color, #8a1e41);
+}
+
+.review-help-box[open] .review-help-icon {
+  transform: rotate(180deg);
+  color: var(--main-color, #8a1e41);
+}
+
+.review-help-content {
+  background: #ffffff;
+}
+
+.review-help-content p {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 11px 14px;
+  color: #4b5563;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  border-bottom: 1px solid #f3f4f6;
+  background: #ffffff;
+}
+
+.review-help-content p:nth-child(even) {
+  background: #f9fafb;
+}
+
+.review-help-content p:last-child {
+  border-bottom: none;
+}
+
+.review-step-number {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: var(--main-color, #8a1e41);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.review-help-content strong {
+  display: inline-block;
+  margin-bottom: 4px;
+  color: #1f2937;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.review-help-box[open] .review-help-content strong {
+  color: var(--main-color, #8a1e41);
+}
+
+/* Button Hover Help fixes */
+.action-buttons app-button-hover-help {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.action-buttons app-button-hover-help > span,
+.action-buttons app-button-hover-help .button-hover-help {
+  width: 100%;
+}
+
+.action-buttons app-button-hover-help button {
+  width: 100%;
+}
+
+.carousel-controls app-button-hover-help,
+.review-actions app-button-hover-help,
+.preview-modal-header app-button-hover-help {
+  display: inline-flex;
+  width: auto;
+}
+
+.carousel-controls app-button-hover-help button,
+.review-actions app-button-hover-help button,
+.preview-modal-header app-button-hover-help button {
+  width: auto;
+}
+
+.action-buttons,
+.review-actions,
+.carousel-controls,
+.preview-modal-header,
+.management-section,
+.reader-actions-section,
+.reviews-section,
+.review-card,
+.review-header,
+.main-content {
+  overflow: visible;
 }
 
 /* Responsive (Media Queries) */

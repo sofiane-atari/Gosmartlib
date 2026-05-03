@@ -75,9 +75,6 @@ lucide-angular.star-filled ::ng-deep polygon {
 }
 
 .stat-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -512,7 +509,21 @@ lucide-angular.star-filled ::ng-deep polygon {
   height: 28px;
   border-radius: 7px;
 }
+.stat-card {
+  display: block;
+}
 
+.stat-card app-button-hover-help {
+  display: block;
+  width: 100%;
+}
+
+.stat-card__content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
 @keyframes skeleton-loading {
   0% {
     background-position: 200% 0;

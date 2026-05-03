@@ -33,4 +33,10 @@ public class ReadingList {
 
     @Column(name = "target_value")
     private String targetValue;
+
+    @Column(name = "public_share_id", unique = true, length = 64)
+    private String publicShareId;
+
+    @Column(name = "share_enabled", nullable = false)
+    private boolean shareEnabled = false;
 }

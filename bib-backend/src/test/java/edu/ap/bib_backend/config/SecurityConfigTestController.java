@@ -16,7 +16,7 @@ class SecurityConfigTestController {
         return "ok";
     }
 
-    @GetMapping("/genre/test")
+    @GetMapping("/genres/test")
     public String genres() {
         return "ok";
     }

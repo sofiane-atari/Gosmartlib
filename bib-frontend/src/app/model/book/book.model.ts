@@ -7,8 +7,8 @@ export interface Book {
   title: string;
   author: string;
   pages: number;
-  imageUrl: string;
-  description: string;
+  imageUrl?: string;
+  description?: string;
   releaseYear: number;
   reviewScore?: number;
   totalCopies?: number;

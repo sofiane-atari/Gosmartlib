@@ -2,18 +2,17 @@ package edu.ap.bib_backend.service.book;
 
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import edu.ap.bib_backend.mapper.BookMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -26,13 +25,18 @@ public class BookSearchService {
     private static final int MIN_PAGE_SIZE = 1;
 
     private final BookRepository bookRepository;
-    private final BookMapper bookMapper; 
-    private final CurrentUserService currentUserService; 
+    private final UserRepository userRepository;
+    private final BookMapper bookMapper;
+    private final CurrentUserService currentUserService;
 
-
-
-    public BookSearchService(BookRepository bookRepository, BookMapper bookMapper, CurrentUserService currentUserService) {
+    public BookSearchService(
+            BookRepository bookRepository,
+            UserRepository userRepository,
+            BookMapper bookMapper,
+            CurrentUserService currentUserService
+    ) {
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
         this.bookMapper = bookMapper;
         this.currentUserService = currentUserService;
     }
@@ -48,7 +52,18 @@ public class BookSearchService {
             int page,
             int size,
             BookSortOption sortBy,
-            Authentication authentication) {
+            Authentication authentication
+    ) {
+        String currentUserId = authentication.getName();
+
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden: " + currentUserId));
+
+        if (user.getSchool() == null) {
+            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
+        }
+
+        String schoolDomainName = user.getSchool().getDomainName();
 
         String normalizedSearchTerm = normalizeSearchTerm(searchTerm);
         validatePageRange(minPages, maxPages);
@@ -62,13 +77,16 @@ public class BookSearchService {
 
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
 
-        Specification<Book> specification = BookSpecification.withFilters(
+        Specification<Book> specification = Specification
+                .where(BookSpecification.hasAvailableCopyInSchool(schoolDomainName))
+                .and(BookSpecification.withFilters(
                         normalizedSearchTerm,
                         availability,
                         minPages,
                         maxPages,
                         readingLevelId,
-                        genreName)
+                        genreName
+                ))
                 .and(BookSpecification.visibleForUser(canSeeDidacticBooks));
 
         return bookRepository.findAll(specification, pageable)

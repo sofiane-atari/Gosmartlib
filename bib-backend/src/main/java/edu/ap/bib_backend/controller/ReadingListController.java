@@ -22,6 +22,8 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+import edu.ap.bib_backend.dto.ReadingListShareDTO;
+
 @RestController
 @RequestMapping("/reading-lists")
 public class ReadingListController {
@@ -40,6 +42,15 @@ public class ReadingListController {
     @GetMapping
     public ResponseEntity<List<ReadingList>> getAllReadingLists(Principal principal) {
         return ResponseEntity.ok(readingListService.getAllLists(requireUserId(principal)));
+    }
+
+    @GetMapping("/shared/{publicShareId}")
+    public ResponseEntity<ReadingList> getSharedReadingList(
+            @PathVariable String publicShareId,
+            Principal principal) {
+
+        requireUserId(principal); // verplicht ingelogd zijn
+        return ResponseEntity.ok(readingListService.getSharedList(publicShareId));
     }
 
     @GetMapping("/{id}")
@@ -72,6 +83,22 @@ public class ReadingListController {
         ReadingListBook addedBook = readingListService.addBookToFavorites(requireUserId(principal), dto.bookId());
         return ResponseEntity.status(HttpStatus.CREATED).body(addedBook);
     }
+
+    @PostMapping("/{id}/share")
+    public ResponseEntity<ReadingListShareDTO> shareReadingList(
+            @PathVariable("id") Long id,
+            @RequestParam(required = false) String frontendBaseUrl,
+            Principal principal) {
+
+        return ResponseEntity.ok(
+                readingListService.enableSharing(
+                        requireUserId(principal),
+                        id,
+                        frontendBaseUrl
+                )
+        );
+    }
+
 
     @DeleteMapping("/{listId}/books/{bookId}")
     public ResponseEntity<Void> removeBookFromList(@PathVariable("listId") Long listId,

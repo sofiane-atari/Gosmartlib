@@ -40,6 +40,9 @@ import {
 import { Subject, of, combineLatest } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
+import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
+import { addBookManualDraft } from '../../../../model/book/add-book-manual-draft.model';
+import { ButtonHoverHelpComponent } from "../../../shared/button-hover-help/button-hover-help.component";
 
 type BookFormGroup = FormGroup<{
   title: FormControl<string>;
@@ -55,7 +58,7 @@ type BookFormGroup = FormGroup<{
 @Component({
   selector: 'app-add-book-manual',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule],
+  imports: [ReactiveFormsModule, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './add-book-manual.component.html',
   styleUrl: './add-book-manual.component.css',
 })
@@ -67,6 +70,7 @@ export class AddBookManualComponent
   readonly InfoIcon = Info;
   readonly Trash2Icon = Trash2;
   readonly PencilIcon = Pencil;
+  private readonly draftKey = 'add-book-manual';
   @Input() readingLevels: ReadingLevel[] = [];
   @Output() bookAdded = new EventEmitter<Book>();
 
@@ -84,6 +88,7 @@ export class AddBookManualComponent
     private bs: BookService,
     private rt: Router,
     private ts: ToastService,
+    private draftStorage: DraftStorageService
   ) {
     super();
     this.form = this.fb.group({
@@ -94,23 +99,23 @@ export class AddBookManualComponent
         Validators.min(1),
       ]),
       imageUrl: this.fb.nonNullable.control(''),
-      description: this.fb.nonNullable.control('', [Validators.required]),
+      description: this.fb.nonNullable.control(''),
       releaseYear: this.fb.control<number | null>(null, [
         Validators.required,
         Validators.min(0),
       ]),
-      readingLevel: this.fb.control<ReadingLevel | null>(null, [
-        Validators.required,
-      ]),
-      didactic: this.fb.nonNullable.control(false),
+      readingLevel: this.fb.control<ReadingLevel | null>(null)
     });
   }
 
   ngOnInit(): void {
+    this.restoreDraft();
+    this.setupDraftAutosave();
     this.setupCandidateSearch();
   }
 
   ngOnDestroy(): void {
+    this.saveDraft();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -222,6 +227,7 @@ export class AddBookManualComponent
         this.openedMainGenre = this.findMainGenreForSelectedGenres();
 
         this.ts.show('Boekgegevens uit de database ingevuld.');
+        this.saveDraft();
       },
       error: () => {
         this.isSearching = false;
@@ -233,6 +239,8 @@ export class AddBookManualComponent
     });
   }
   clearForm(): void {
+    this.clearDraft();
+
     this.form.reset({
       title: '',
       author: '',
@@ -263,10 +271,6 @@ export class AddBookManualComponent
       return;
     }
 
-    if (this.selectedGenres.length === 0) {
-      this.ts.show('Selecteer minstens 1 genre', 'error');
-      return;
-    }
 
     if (this.isCandidateLoaded && this.selectedBookId) {
       this.bs.addCopy(this.selectedBookId).subscribe({
@@ -293,8 +297,9 @@ export class AddBookManualComponent
       readingLevel: formValue.readingLevel ?? undefined,
       didactic: formValue.didactic,
     };
-
+    this.saveDraft();
     this.bookAdded.emit(book);
+    this.clearForm();
   }
   editBook(): void {
     if (!this.selectedBookId) {
@@ -342,9 +347,53 @@ export class AddBookManualComponent
 
   protected setSelectedGenres(genres: Genre[]): void {
     this.selectedGenres = genres;
+    this.saveDraft();
   }
 
   protected showGenreError(message: string): void {
     this.ts.show(message, 'error');
+  }
+  private setupDraftAutosave(): void {
+    this.form.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.saveDraft();
+      });
+  }
+
+  private saveDraft(): void {
+    const draft: addBookManualDraft = {
+      formValue: this.form.getRawValue(),
+      selectedGenres: this.selectedGenres,
+      selectedBookId: this.selectedBookId,
+      candidateBooks: this.candidateBooks,
+      isCandidateLoaded: this.isCandidateLoaded,
+      openedMainGenre: this.openedMainGenre,
+    };
+
+    this.draftStorage.saveDraft(this.draftKey, draft);
+  }
+
+  private restoreDraft(): void {
+    const draft = this.draftStorage.getDraft<addBookManualDraft>(this.draftKey);
+
+    if (!draft) {
+      return;
+    }
+
+    this.form.patchValue(draft.formValue, { emitEvent: false });
+    this.selectedGenres = draft.selectedGenres ?? [];
+    this.selectedBookId = draft.selectedBookId ?? null;
+    this.candidateBooks = draft.candidateBooks ?? [];
+    this.isCandidateLoaded = draft.isCandidateLoaded ?? false;
+    this.openedMainGenre = draft.openedMainGenre ?? null;
+
+    if (this.isCandidateLoaded) {
+      this.form.controls.readingLevel.disable({ emitEvent: false });
+    }
+  }
+
+  private clearDraft(): void {
+    this.draftStorage.removeDraft(this.draftKey);
   }
 }

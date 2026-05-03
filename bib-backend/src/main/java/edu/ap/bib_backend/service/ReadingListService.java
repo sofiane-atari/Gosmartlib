@@ -17,12 +17,17 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import edu.ap.bib_backend.dto.ReadingListShareDTO;
+import java.security.SecureRandom;
+import java.util.Base64;
+
 @Service
 public class ReadingListService {
     private final ReadingListRepository readingListRepository;
     private final ReadingListBookRepository readingListBookRepository;
     private final UserRepository userRepository;
     private static final String FAVORITES_NAME = "Favorieten";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     public ReadingListService(ReadingListRepository readingListRepository,
             ReadingListBookRepository readingListBookRepository,
@@ -309,4 +314,58 @@ public class ReadingListService {
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch("ROLE_TEACHER"::equals);
     }
+
+    public ReadingListShareDTO enableSharing(String userId, Long listId, String frontendBaseUrl) {
+        ReadingList list = getListById(userId, listId);
+
+        if (!list.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Je kan alleen je eigen leeslijsten delen");
+        }
+
+        if (list.getPublicShareId() == null || list.getPublicShareId().isBlank()) {
+            list.setPublicShareId(generateUniquePublicShareId());
+        }
+
+        list.setShareEnabled(true);
+        ReadingList saved = readingListRepository.save(list);
+
+        String baseUrl = frontendBaseUrl == null || frontendBaseUrl.isBlank()
+                ? "http://localhost:4200"
+                : frontendBaseUrl.replaceAll("/+$", "");
+
+        return new ReadingListShareDTO(
+                saved.getPublicShareId(),
+                baseUrl + "/reading-list/shared/" + saved.getPublicShareId()
+        );
+    }
+
+    public ReadingList getSharedList(String publicShareId) {
+        if (publicShareId == null || publicShareId.isBlank()) {
+            throw new IllegalArgumentException("Ongeldige share id");
+        }
+
+        return readingListRepository.findByPublicShareIdAndShareEnabledTrue(publicShareId)
+                .orElseThrow(() -> new IllegalArgumentException("Gedeelde leeslijst niet gevonden"));
+    }
+
+    private String generateUniquePublicShareId() {
+        String id;
+
+        do {
+            id = "rl_" + randomUrlSafeToken(18);
+        } while (readingListRepository.existsByPublicShareId(id));
+
+        return id;
+    }
+
+    private String randomUrlSafeToken(int byteLength) {
+        byte[] bytes = new byte[byteLength];
+        SECURE_RANDOM.nextBytes(bytes);
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
+    }
 }
+
+

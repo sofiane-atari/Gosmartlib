@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/books")
@@ -57,6 +58,7 @@ public class BookController {
 
     @GetMapping("/catalog")
     public PageDTO<BookDTO> getFilteredBooks(
+            Authentication authentication,
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) BookAvailabilityFilter availability,
             @RequestParam(required = false) Integer minPages,
@@ -68,8 +70,8 @@ public class BookController {
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
 
-        // AANGEPAST: We gebruiken nu bookSearchService
         Page<BookDTO> bookPage = bookSearchService.getFilteredBooks(
+                authentication,
                 searchTerm,
                 availability,
                 minPages,
@@ -102,8 +104,11 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookDTO> addBook(@RequestBody BookDTO dto) {
-        BookDTO savedBook = bookService.addBook(dto);
+    public ResponseEntity<BookDTO> addBook(
+            Authentication authentication,
+            @RequestBody BookDTO dto
+    ) {
+        BookDTO savedBook = bookService.addBook(authentication, dto);
         return ResponseEntity.ok(savedBook);
     }
 
@@ -177,8 +182,11 @@ public class BookController {
     }
 
     @PostMapping("/{bookId}/copies")
-    public ResponseEntity<BookDTO> addCopy(@PathVariable Long bookId) {
-        BookDTO dto = bookService.addCopyToBook(bookId);
+    public ResponseEntity<BookDTO> addCopy(
+            Authentication authentication,
+            @PathVariable Long bookId
+    ) {
+        BookDTO dto = bookService.addCopyToBook(authentication, bookId);
         return ResponseEntity.ok(dto);
     }
 

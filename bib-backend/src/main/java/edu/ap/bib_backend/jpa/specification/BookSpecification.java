@@ -74,6 +74,22 @@ public final class BookSpecification {
 
     }
 
+    public static Specification<Book> hasAvailableCopyInSchool(String schoolDomainName) {
+        return (root, query, criteriaBuilder) -> {
+            Join<Book, BookCopy> bookCopyJoin = root.join("bookCopies");
+
+            query.distinct(true);
+
+            // Only filter by the school's domain here. Availability filtering should be
+            // controlled by the availability parameter passed into `withFilters` so that
+            // callers can request ALL vs AVAILABLE correctly.
+            return criteriaBuilder.equal(
+                    bookCopyJoin.get("school").get("domainName"),
+                    schoolDomainName
+            );
+        };
+    }
+
     public static Specification<Book> withCandidateFilters(
             String title,
             String author,

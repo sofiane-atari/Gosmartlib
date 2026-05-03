@@ -33,16 +33,19 @@ import { CreateReadingListComponent } from './component/reading-list/create-read
 import { CreateTeacherReadingListComponent } from './component/reading-list/create-teacher-reading-list/create-teacher-reading-list.component';
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
+import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
+import { SettingsComponent } from './component/settings/settings/settings.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
   { path: 'account', redirectTo: '/profile', pathMatch: 'full' },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
+  { path: 'settings', component: SettingsComponent, canActivate: [authGuard] },
   {
     path: 'review-dashboard',
     component: ReviewDashboardComponent,
-    canActivate: [reviewModerationGuard, authGuard],
+    canActivate: [reviewModerationGuard, authGuard, staffOnlyGuard],
   },
 
   ...LessonTipRoutes,
@@ -59,7 +62,7 @@ export const routes: Routes = [
   {
     path: 'genre',
     component: DashboardGenresComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminOnlyGuard],
   },
   {
     path: 'reading-list',
@@ -77,6 +80,12 @@ export const routes: Routes = [
     canActivate: [authGuard, teacherOnlyGuard],
   },
   {
+    path: 'reading-list/shared/:publicShareId',
+    component: ReadingListDetailComponent,
+    canActivate: [authGuard],
+    data: { shared: true }
+  },
+  {
     path: 'reading-list/:id',
     component: ReadingListDetailComponent,
     canActivate: [authGuard],
@@ -84,7 +93,7 @@ export const routes: Routes = [
   {
     path: 'add-book',
     component: AddBookPageComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, staffOnlyGuard],
   },
   { path: 'reviews', component: MyReviewsComponent, canActivate: [authGuard] },
   { path: 'login', component: LoginComponent, canActivate: [publicOnlyGuard] },
@@ -96,12 +105,12 @@ export const routes: Routes = [
   {
     path: 'books-management',
     component: BookManagementComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminOnlyGuard],
   },
   {
     path: 'loans/create',
     component: CreateLoanComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, staffOnlyGuard],
   },
   {
     path: 'scholen',

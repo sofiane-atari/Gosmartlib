@@ -1,9 +1,10 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.SchoolDTO;
-import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -25,87 +26,199 @@ class SchoolServiceTest {
     @Mock
     private SchoolRepository schoolRepository;
 
+    @Mock
+    private BookCopyRepository bookCopyRepository;
+
     @InjectMocks
     private SchoolService schoolService;
 
     @Test
-    void givenValidSchool_whenCreateSchool_thenSaveAndReturnDto() {
-        SchoolDTO input = new SchoolDTO("  MySchool.be  ", "  AP Hogeschool  ", "  Noorderplaats 2  ", 2000);
+    void givenValidSchool_whenCreate_thenSaveAndReturnDto() {
+        SchoolDTO input = schoolDto(
+                null,
+                "  MySchool.be  ",
+                "  AP Hogeschool  ",
+                "  Noorderplaats 2  ",
+                2000);
 
-        when(schoolRepository.existsByDomainNameIgnoreCase("myschool.be")).thenReturn(false);
-        when(schoolRepository.existsByNameIgnoreCase("AP Hogeschool")).thenReturn(false);
-        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> {
+            School school = invocation.getArgument(0);
+            school.setId(1L);
+            return school;
+        });
 
-        SchoolDTO output = schoolService.createSchool(input);
+        SchoolDTO output = schoolService.create(input);
 
+        assertEquals(1L, output.id());
         assertEquals("myschool.be", output.domainName());
         assertEquals("AP Hogeschool", output.name());
         assertEquals("Noorderplaats 2", output.address());
         assertEquals(2000, output.postalCode());
+        assertEquals("03 123 45 67", output.contactPhone());
+        assertEquals("info@ap.be", output.contactEmail());
+
+        verify(schoolRepository).save(any(School.class));
     }
 
     @Test
-    void givenDuplicateDomain_whenCreateSchool_thenThrowConflict() {
-        SchoolDTO input = new SchoolDTO("school.be", "AP Hogeschool", "Noorderplaats 2", 2000);
-        when(schoolRepository.existsByDomainNameIgnoreCase("school.be")).thenReturn(true);
+    void givenSchoolsExist_whenGetAll_thenReturnDtos() {
+        School school = schoolEntity(
+                1L,
+                "ap.be",
+                "AP",
+                "Noorderplaats 2",
+                2000);
 
-        assertThrows(ResourceAlreadyExistsException.class, () -> schoolService.createSchool(input));
-
-        verify(schoolRepository, never()).save(any(School.class));
-    }
-
-    @Test
-    void givenSchoolsExist_whenGetAll_thenReturnDtosSortedByRepositoryOrder() {
-        School school = new School();
-        school.setDomainName("ap.be");
-        school.setName("AP");
-        school.setAdres("Noorderplaats 2");
-        school.setPostalCode(2000);
-
-        when(schoolRepository.findAll(any(org.springframework.data.domain.Sort.class))).thenReturn(List.of(school));
+        when(schoolRepository.findAll()).thenReturn(List.of(school));
 
         List<SchoolDTO> result = schoolService.getAll();
 
         assertEquals(1, result.size());
+        assertEquals(1L, result.getFirst().id());
         assertEquals("AP", result.getFirst().name());
+        assertEquals("ap.be", result.getFirst().domainName());
     }
 
     @Test
-    void givenValidUpdate_whenUpdateSchool_thenSaveAndReturnUpdatedDto() {
-        School existingSchool = new School();
-        existingSchool.setDomainName("ap.be");
-        existingSchool.setName("AP");
-        existingSchool.setAdres("Noorderplaats 2");
-        existingSchool.setPostalCode(2000);
+    void givenValidUpdate_whenUpdate_thenSaveAndReturnUpdatedDto() {
+        Long schoolId = 1L;
 
-        SchoolDTO update = new SchoolDTO("ap.be", "AP Campus Noord", "Ellermanstraat 33", 2030);
+        School existingSchool = schoolEntity(
+                schoolId,
+                "ap.be",
+                "AP",
+                "Noorderplaats 2",
+                2000);
 
-        when(schoolRepository.findById("ap.be")).thenReturn(Optional.of(existingSchool));
-        when(schoolRepository.existsByNameIgnoreCaseAndDomainNameNot("AP Campus Noord", "ap.be"))
-                .thenReturn(false);
+        SchoolDTO update = schoolDto(
+                null,
+                "nieuw.be",
+                "AP Campus Noord",
+                "Ellermanstraat 33",
+                2030);
+
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(existingSchool));
         when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        SchoolDTO result = schoolService.updateSchool("ap.be", update);
+        SchoolDTO result = schoolService.update(schoolId, update);
 
-        assertEquals("ap.be", result.domainName());
+        assertEquals(1L, result.id());
+        assertEquals("nieuw.be", result.domainName());
         assertEquals("AP Campus Noord", result.name());
         assertEquals("Ellermanstraat 33", result.address());
         assertEquals(2030, result.postalCode());
+        assertEquals("03 123 45 67", result.contactPhone());
+        assertEquals("info@ap.be", result.contactEmail());
+
+        verify(schoolRepository).findById(schoolId);
+        verify(schoolRepository).save(existingSchool);
     }
 
     @Test
-    void givenDuplicateNameOnUpdate_whenUpdateSchool_thenThrowConflict() {
-        School existingSchool = new School();
-        existingSchool.setDomainName("ap.be");
-        existingSchool.setName("AP");
+    void givenUnknownSchoolId_whenUpdate_thenThrowException() {
+        Long schoolId = 999L;
 
-        SchoolDTO update = new SchoolDTO("ap.be", "KDG", "Noorderplaats 2", 2000);
+        SchoolDTO update = schoolDto(
+                null,
+                "ap.be",
+                "AP Campus Noord",
+                "Ellermanstraat 33",
+                2030);
 
-        when(schoolRepository.findById("ap.be")).thenReturn(Optional.of(existingSchool));
-        when(schoolRepository.existsByNameIgnoreCaseAndDomainNameNot("KDG", "ap.be")).thenReturn(true);
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceAlreadyExistsException.class, () -> schoolService.updateSchool("ap.be", update));
+        assertThrows(IllegalArgumentException.class, () -> schoolService.update(schoolId, update));
 
         verify(schoolRepository, never()).save(any(School.class));
+    }
+
+    @Test
+    void givenExistingSchoolId_whenDelete_thenDeleteById() {
+        Long schoolId = 1L;
+
+        when(schoolRepository.existsById(schoolId)).thenReturn(true);
+
+        schoolService.delete(schoolId);
+
+        verify(schoolRepository).deleteById(schoolId);
+    }
+
+    @Test
+    void givenUnknownSchoolId_whenDelete_thenThrowException() {
+        Long schoolId = 999L;
+
+        when(schoolRepository.existsById(schoolId)).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () -> schoolService.delete(schoolId));
+
+        verify(schoolRepository, never()).deleteById(schoolId);
+    }
+
+    @Test
+    void givenExistingSchoolId_whenGetBookCountBySchool_thenReturnCount() {
+        Long schoolId = 1L;
+
+        when(schoolRepository.existsById(schoolId)).thenReturn(true);
+        when(bookCopyRepository.countBySchoolId(schoolId)).thenReturn(12L);
+
+        long result = schoolService.getBookCountBySchool(schoolId);
+
+        assertEquals(12L, result);
+        verify(bookCopyRepository).countBySchoolId(schoolId);
+    }
+
+    @Test
+    void givenUnknownSchoolId_whenGetBookCountBySchool_thenThrowException() {
+        Long schoolId = 999L;
+
+        when(schoolRepository.existsById(schoolId)).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () -> schoolService.getBookCountBySchool(schoolId));
+
+        verify(bookCopyRepository, never()).countBySchoolId(schoolId);
+    }
+
+    @Test
+    void whenGetTotalBookCount_thenReturnCount() {
+        when(bookCopyRepository.count()).thenReturn(50L);
+
+        long result = schoolService.getTotalBookCount();
+
+        assertEquals(50L, result);
+    }
+
+    private SchoolDTO schoolDto(
+            Long id,
+            String domainName,
+            String name,
+            String address,
+            Integer postalCode) {
+        return new SchoolDTO(
+                id,
+                domainName,
+                name,
+                address,
+                postalCode,
+                "03 123 45 67",
+                "info@ap.be",
+                LocalDateTime.of(2026, 4, 28, 12, 0));
+    }
+
+    private School schoolEntity(
+            Long id,
+            String domainName,
+            String name,
+            String address,
+            Integer postalCode) {
+        School school = new School();
+        school.setId(id);
+        school.setDomainName(domainName);
+        school.setName(name);
+        school.setAddress(address);
+        school.setPostalCode(postalCode);
+        school.setContactPhone("03 123 45 67");
+        school.setContactEmail("info@ap.be");
+        school.setCreatedAt(LocalDateTime.of(2026, 4, 28, 12, 0));
+        return school;
     }
 }

@@ -26,11 +26,12 @@ import {
   BookCopy,
   LucideIconData
 } from 'lucide-angular';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-reading-list-overview',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, RouterLink, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './reading-list-overview.component.html',
   styleUrl: './reading-list-overview.component.css'
 })
@@ -211,9 +212,16 @@ export class ReadingListOverviewComponent implements OnInit {
   }
 
   shareList(id: number) {
-    const url = `${window.location.origin}/reading-list/${id}`;
-    navigator.clipboard.writeText(url).then(() => {
-      this.toastService.show('Link gekopieerd naar klembord!', 'success');
+    this.readingListService.shareReadingList(id).subscribe({
+      next: (result) => {
+        navigator.clipboard.writeText(result.url).then(() => {
+          this.toastService.show('Deellink gekopieerd naar klembord!', 'success');
+        });
+      },
+      error: (err) => {
+        console.error('Fout bij delen van leeslijst:', err);
+        this.toastService.show('Delen van leeslijst mislukt', 'error');
+      }
     });
   }
 

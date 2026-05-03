@@ -4,6 +4,7 @@ import edu.ap.bib_backend.dto.ReadingListDTO;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListBook;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
@@ -390,6 +391,17 @@ class ReadingListServiceTest {
     private User makeUser() {
         User user = new User();
         user.setId(USER_ID);
+        user.setSchool(makeSchool());
         return user;
+    }
+
+    private School makeSchool() {
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+        school.setName("Test School");
+        school.setAddress("Test Address");
+        school.setPostalCode(1000);
+        return school;
     }
 }
