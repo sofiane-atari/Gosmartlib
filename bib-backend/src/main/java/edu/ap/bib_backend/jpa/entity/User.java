@@ -16,6 +16,9 @@ public class User {
     @Id
     private String id;
 
+    @Column(name = "oneroster_sourced_id")
+    private String oneRosterSourcedId;
+
     @OneToMany(mappedBy = "user")
     private List<Loan> loans = new ArrayList<>();
 

@@ -28,6 +28,7 @@ public class Loan {
 
     private LocalDate loanDate;
     private LocalDate returnDate;
+    private LocalDate returnedDate;
 
     @ManyToMany
     @JoinTable(name = "loan_copies", joinColumns = @JoinColumn(name = "loan_id"), inverseJoinColumns = @JoinColumn(name = "book_copy_id"))

@@ -3,51 +3,58 @@ package edu.ap.bib_backend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
+import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SchoolService;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
+import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.oneroster.OneRosterAudienceService;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
+@WebMvcTest(SchoolController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class SchoolControllerTest {
 
+        @Autowired
         private MockMvc mockMvc;
+
+        @Autowired
         private ObjectMapper objectMapper;
+
+        @MockitoBean
         private SchoolService schoolService;
 
-        @BeforeEach
-        void setUp() {
-                schoolService = mock(SchoolService.class);
-                objectMapper = new ObjectMapper();
-                objectMapper.findAndRegisterModules();
+        @MockitoBean
+        private edu.ap.bib_backend.service.JwtService jwtService;
 
-                SchoolController controller = new SchoolController(schoolService);
+        @MockitoBean
+        private AdminOverrideService adminOverrideService;
 
-                mockMvc = MockMvcBuilders
-                                .standaloneSetup(controller)
-                                .setControllerAdvice(new TestExceptionHandler())
-                                .build();
-        }
+        @MockitoBean
+        private OneRosterAudienceService oneRosterAudienceService;
+
+
+        @MockitoBean
+        private TokenStorageService tokenStorageService;
+
+
 
         @Test
         void givenSchools_whenGetAll_thenReturnOkWithList() throws Exception {

@@ -9,7 +9,34 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 
 @Builder
-public record LoanDTO(@JsonProperty("userId") @NotBlank(message = "Gebruiker ID is verplicht") String userId,
-		@JsonProperty("bookIds") @NotEmpty(message = "Minstens één boek is verplicht") List<Long> bookIds,
-		@JsonProperty("returnDate") @NotBlank(message = "Retourdatum is verplicht") String returnDate) {
+public record LoanDTO(
+        @JsonProperty("id") Long id,
+
+        @JsonProperty("userId")
+        @NotBlank(message = "Gebruiker ID is verplicht")
+        String userId,
+
+        @JsonProperty("userDisplayName")
+        String userDisplayName,
+
+        @JsonProperty("bookIds")
+        @NotEmpty(message = "Minstens één boek is verplicht")
+        List<Long> bookIds,
+
+        @JsonProperty("books")
+        List<LoanBookDTO> books,
+
+        @JsonProperty("loanDate")
+        String loanDate,
+
+        @JsonProperty("returnDate")
+        @NotBlank(message = "Retourdatum is verplicht")
+        String returnDate,
+
+        @JsonProperty("returnedDate")
+                String returnedDate
+) {
+    public LoanDTO(String userId, List<Long> bookIds, String returnDate) {
+        this(null, userId, null, bookIds, null, null, returnDate, null);
+    }
 }

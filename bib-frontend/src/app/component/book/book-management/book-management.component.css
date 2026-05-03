@@ -1,30 +1,384 @@
-a {
-  display: inline-block;
-  padding: 12px 28px;
-  background-color: var(--main-color);
-  color: white;
+.book-management {
+  max-width: 1232px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.page-header__text h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a0a10;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.page-header__text p {
+  font-size: 14px;
+  color: #7a5560;
+  margin: 4px 0 0;
+}
+
+.action-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.action-card {
+  min-height: 150px;
+  border-radius: 16px;
+  padding: 28px;
   text-decoration: none;
-  border-radius: 6px;
-  font-family: var(--main-font);
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  border: 2px solid var(--main-color);
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 
-a:hover {
-  background-color: var(--sec-color);
-  border-color: var(--main-color);
-  color: white;
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(138, 30, 65, 0.13);
 }
 
-a:active {
-  transform: scale(0.98);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+.action-card--primary {
+  background: #fff7fb;
+  border: solid 2px var(--main-color);
 }
 
-a:focus {
-  outline: 2px solid var(--main-light-color);
-  outline-offset: 2px;
+.action-card--secondary {
+  background: #fff7fb;
+  border: solid 2px var(--main-color);
+}
+
+.action-card__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex: 0 0 auto;
+}
+
+.action-card--primary .action-card__icon {
+  background: var(--main-color);
+
+}
+
+.action-card--secondary .action-card__icon {
+  background: var(--main-color);
+}
+
+.action-card__icon lucide-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.action-card h2 {
+  color: #1a0a10;
+  font-size: 20px;
+  margin: 0 0 6px;
+}
+
+.action-card p {
+  color: #7a5560;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.stat-card {
+  min-height: 102px;
+  border-radius: 14px;
+  padding: 26px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #f0e4e8;
+  background: #fff;
+}
+
+.stat-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex: 0 0 auto;
+}
+
+.stat-card__icon lucide-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.stat-card p {
+  color: #7a5560;
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+
+.stat-card strong {
+  color: #1a0a10;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.stat-card--blue {
+  background: #f2f9ff;
+  border-color: #bfddff;
+}
+
+.stat-card--blue .stat-card__icon {
+  background: #2563eb;
+}
+
+.stat-card--orange {
+  background: #ffe5e5;
+  border-color: #e87979;
+}
+
+.stat-card--orange .stat-card__icon {
+  background: red;
+}
+
+.stat-card--green {
+  background: #f1fff6;
+  border-color: #bbf7d0;
+}
+
+.stat-card--green .stat-card__icon {
+  background: #16a34a;
+}
+
+.table-card {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.table-card__header {
+  padding: 22px 24px;
+  border-bottom: 1px solid #f0e4e8;
+}
+
+.table-card__header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1a0a10;
+}
+
+.table-card__header p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #7a5560;
+}
+
+.empty-state {
+  padding: 56px 24px;
+  text-align: center;
+  color: #7a5560;
+}
+
+.empty-state__icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: #f9f4f6;
+  color: var(--main-color);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+}
+
+.empty-state__icon lucide-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.empty-state h3 {
+  margin: 0 0 6px;
+  color: #1a0a10;
+  font-size: 18px;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.table-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-card th {
+  text-align: left;
+  color: #1a0a10;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f0e4e8;
+  background: #fff;
+}
+
+.table-card td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #f0e4e8;
+  vertical-align: middle;
+  color: #1a0a10;
+  font-size: 14px;
+}
+
+.table-card tr:last-child td {
+  border-bottom: none;
+}
+
+.loan-id {
+  font-weight: 700;
+  color: var(--main-color);
+}
+
+.user-id {
+  max-width: 180px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #7a5560;
+}
+
+.book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.book-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  width: fit-content;
+  background: #f9f4f6;
+  border: 1px solid #f0e4e8;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.book-chip strong {
+  font-size: 13px;
+  color: #1a0a10;
+}
+
+.book-chip small {
+  font-size: 12px;
+  color: #7a5560;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge--active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-badge--overdue {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-badge--returned {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.user-cell strong {
+  color: #1a0a10;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.user-cell span {
+  color: #9b7a84;
+  font-size: 12px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+@media (max-width: 1024px) {
+  .table-card {
+    overflow-x: auto;
+  }
+
+  .table-card table {
+    min-width: 850px;
+  }
+}
+
+@media (max-width: 900px) {
+  .action-cards,
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .book-management {
+    gap: 20px;
+  }
+
+  .page-header__text h1 {
+    font-size: 24px;
+  }
+
+  .action-card {
+    align-items: flex-start;
+    padding: 22px;
+  }
 }
