@@ -60,26 +60,33 @@ class BookSearchServiceTest {
         school.setDomainName("school1");
         user.setSchool(school);
         // ensure the repository returns the user for the authentication used in tests
-        org.mockito.Mockito.lenient().when(userRepository.findById("test-user")).thenReturn(java.util.Optional.of(user));
+        org.mockito.Mockito.lenient().when(userRepository.findById("test-user"))
+                .thenReturn(java.util.Optional.of(user));
 
-        // Default mapping behavior for Book -> BookDTO to avoid nulls in tests that assert mapped DTOs
-        given(bookMapper.toDTO(any(Book.class))).willAnswer(invocation -> {
-            Book b = invocation.getArgument(0);
-            BookDTO d = new BookDTO();
-            d.setId(b.getId());
-            d.setTitle(b.getTitle());
-            d.setAuthor(b.getAuthor());
-            d.setReviewScore(b.getReviewScore() == null ? 0.0 : b.getReviewScore());
-            d.setReleaseYear(b.getReleaseYear());
-            return d;
-        });
+        // Default mapping behavior for Book -> BookDTO to avoid nulls in tests that
+        // assert mapped DTOs
+        org.mockito.Mockito.lenient()
+                .when(bookMapper.toDTO(any(Book.class)))
+                .thenAnswer(invocation -> {
+                    Book b = invocation.getArgument(0);
+
+                    BookDTO d = new BookDTO();
+                    d.setId(b.getId());
+                    d.setTitle(b.getTitle());
+                    d.setAuthor(b.getAuthor());
+                    d.setReviewScore(b.getReviewScore() == null ? 0.0 : b.getReviewScore());
+                    d.setReleaseYear(b.getReleaseYear());
+
+                    return d;
+                });
     }
 
     @Test
     @DisplayName("Given no filters, when getFilteredBooks is called, then use default paging and title ascending sort")
     void givenNoFilters_whenGetFilteredBooks_thenUseDefaultPagingAndSort() {
         Page<Book> pageResult = new PageImpl<>(List.of());
-        given(br.findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), any(Pageable.class))).willReturn(pageResult);
+        given(br.findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), any(Pageable.class)))
+                .willReturn(pageResult);
 
         service.getFilteredBooks(authentication, null, null, null, null, null, null, 0, 10, null);
 
@@ -114,7 +121,7 @@ class BookSearchServiceTest {
         given(br.findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(authentication, null, null, null, null, null, null,  0, 0, null);
+        service.getFilteredBooks(authentication, null, null, null, null, null, null, 0, 0, null);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         then(br).should().findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), pageableCaptor.capture());
@@ -128,7 +135,7 @@ class BookSearchServiceTest {
         given(br.findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(authentication, null, null, null, null, null, null,  0, 999, null);
+        service.getFilteredBooks(authentication, null, null, null, null, null, null, 0, 999, null);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         then(br).should().findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), pageableCaptor.capture());
@@ -139,7 +146,8 @@ class BookSearchServiceTest {
     @Test
     @DisplayName("Given minPages greater than maxPages, when getFilteredBooks is called, then throw exception")
     void givenMinPagesGreaterThanMaxPages_whenGetFilteredBooks_thenThrowException() {
-        assertThatThrownBy(() -> service.getFilteredBooks(authentication, null, null, 300, 100, null, null,  0, 10, null))
+        assertThatThrownBy(
+                () -> service.getFilteredBooks(authentication, null, null, 300, 100, null, null, 0, 10, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("minPages mag niet groter zijn dan maxPages.");
     }
@@ -150,7 +158,8 @@ class BookSearchServiceTest {
         given(br.findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(authentication, null, BookAvailabilityFilter.AVAILABLE, null, null, null, null,  0, 10, null);
+        service.getFilteredBooks(authentication, null, BookAvailabilityFilter.AVAILABLE, null, null, null, null, 0, 10,
+                null);
 
         then(br).should().findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), any(Pageable.class));
     }
@@ -161,7 +170,7 @@ class BookSearchServiceTest {
         given(br.findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of()));
 
-        service.getFilteredBooks(authentication, null, null, null, null, null, null,  0, 10, BookSortOption.AUTHOR_ZA);
+        service.getFilteredBooks(authentication, null, null, null, null, null, null, 0, 10, BookSortOption.AUTHOR_ZA);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         then(br).should().findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), pageableCaptor.capture());
@@ -185,7 +194,8 @@ class BookSearchServiceTest {
         given(br.findAll(org.mockito.ArgumentMatchers.<Specification<Book>>any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(book)));
 
-        Page<BookDTO> result = service.getFilteredBooks(authentication, null, null, null, null, null, null,  0, 10, BookSortOption.AZ);
+        Page<BookDTO> result = service.getFilteredBooks(authentication, null, null, null, null, null, null, 0, 10,
+                BookSortOption.AZ);
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).hasSize(1);

@@ -1,18 +1,20 @@
 package edu.ap.bib_backend.config;
 
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,7 +24,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = SecurityConfigTestController.class)
-@Import({ SecurityConfig.class })
+@Import({
+        SecurityConfig.class,
+        JwtAuthenticationFilter.class
+})
+@TestPropertySource(properties = {
+        "frontend.redirect-url=http://localhost:4200/login"
+})
 class SecurityConfigTest {
 
     @Autowired
@@ -30,6 +38,15 @@ class SecurityConfigTest {
 
     @Autowired
     private SecurityConfig securityConfig;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private TokenStorageService tokenStorageService;
+
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
 
     @MockitoBean
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
@@ -40,73 +57,37 @@ class SecurityConfigTest {
     @MockitoBean
     private OAuth2AuthorizedClientService authorizedClientService;
 
-    @MockBean
-    private JwtService jwtService;
-
-    @MockBean
-    private TokenStorageService tokenStorageService;
-
-
     @Test
-    void givenNoAuthentication_WhenGetAuthMeEndpoint_ThenReturnOk() throws Exception {
-        // Arrange
-        String endpoint = "/auth/me";
-
-        // Act
-        var result = mockMvc.perform(get(endpoint));
-
-        // Assert
-        result.andExpect(status().is3xxRedirection());
+    void givenNoAuthentication_whenGetAuthMeEndpoint_thenReturnRedirectToOAuthLogin() throws Exception {
+        mockMvc.perform(get("/auth/me"))
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test
-    void givenNoAuthentication_WhenGetBooksEndpoint_ThenReturnRedirectToOAuthLogin() throws Exception {
-        // Arrange
-        String endpoint = "/books/test";
-
-        // Act
-        var result = mockMvc.perform(get(endpoint));
-
-        // Assert
-        result.andExpect(status().is3xxRedirection());
+    void givenNoAuthentication_whenGetBooksEndpoint_thenReturnRedirectToOAuthLogin() throws Exception {
+        mockMvc.perform(get("/books/test"))
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test
-    void givenStudentRoleAuthentication_WhenGetBooksEndpoint_ThenReturnOk() throws Exception {
-        // Arrange
-        String endpoint = "/books/test";
-
-        // Act
-        var result = mockMvc.perform(get(endpoint)
-                .with(user("student-user").roles("STUDENT")));
-
-        // Assert
-        result.andExpect(status().isOk());
+    void givenStudentRoleAuthentication_whenGetBooksEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/books/test")
+                .with(user("student-user").roles("STUDENT")))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void givenAdminRoleAuthentication_WhenGetGenresEndpoint_ThenReturnOk() throws Exception {
-        // Arrange
-        String endpoint = "/genre/test";
-
-        // Act
-        var result = mockMvc.perform(get(endpoint)
-                .with(user("admin-user").roles("ADMIN")));
-
-        // Assert
-        result.andExpect(status().isOk());
+    void givenAdminRoleAuthentication_whenGetGenresEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/genres/test")
+                .with(user("admin-user").roles("ADMIN")))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void givenSecurityConfig_WhenAccessTokenResponseClientCreated_ThenReturnClientInstance() {
-        // Arrange
-
-        // Act
+    void givenSecurityConfig_whenAccessTokenResponseClientCreated_thenReturnClientInstance() {
         OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> client = securityConfig
                 .accessTokenResponseClient();
 
-        // Assert
         assertNotNull(client);
     }
-
 }
