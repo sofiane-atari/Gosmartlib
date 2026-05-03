@@ -32,6 +32,7 @@ import { PagingComponent } from '../../shared/paging/paging.component';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { ToastComponent } from '../../shared/toast/toast.component';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -43,8 +44,9 @@ type PopupState = 'create' | 'edit' | null;
     FormsModule,
     LucideAngularModule,
     PagingComponent,
-    SearchBarComponent
-  ],
+    SearchBarComponent,
+    ButtonHoverHelpComponent
+],
   templateUrl: './tag-dashboard.component.html',
   styleUrls: ['./tag-dashboard.component.css'],
 })

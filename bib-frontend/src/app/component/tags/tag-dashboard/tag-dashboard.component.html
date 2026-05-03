@@ -12,38 +12,50 @@
   </div>
 
   <section class="stat-cards">
-    <article class="stat-card stat-card--purple">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="TagIcon"></lucide-icon>
-      </div>
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het totaal aantal tags in de boekencatalogus.">
+      <article class="stat-card stat-card--purple">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="TagIcon"></lucide-icon>
+        </div>
 
-      <div>
-        <p>Totaal Tags</p>
-        <strong>{{ stats()?.totalItems ?? 0 }}</strong>
-      </div>
-    </article>
+        <div>
+          <p>Totaal Tags</p>
+          <strong>{{ stats()?.totalItems ?? 0 }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card stat-card--green">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="CheckCircle"></lucide-icon>
-      </div>
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het aantal tags dat gekoppeld is aan één of meerdere boeken.">
+      <article class="stat-card stat-card--green">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="CheckCircle"></lucide-icon>
+        </div>
 
-      <div>
-        <p>Gebruikte Tags</p>
-        <strong>{{ totalActive() }}</strong>
-      </div>
-    </article>
+        <div>
+          <p>Gebruikte Tags</p>
+          <strong>{{ totalActive() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card stat-card--orange">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="CircleOff"></lucide-icon>
-      </div>
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het aantal tags dat nog niet gekoppeld is aan boeken.">
+      <article class="stat-card stat-card--orange">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="CircleOff"></lucide-icon>
+        </div>
 
-      <div>
-        <p>Ongebruikte Tags</p>
-        <strong>{{ stats()?.unActiveTags ?? 0 }}</strong>
-      </div>
-    </article>
+        <div>
+          <p>Ongebruikte Tags</p>
+          <strong>{{ stats()?.unActiveTags ?? 0 }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
   </section>
 
   <section class="search-panel">
@@ -115,23 +127,27 @@
 
               <td>
                 <div class="table-actions">
-                  <button
-                    type="button"
-                    class="icon-button icon-button--edit"
-                    aria-label="Tag wijzigen"
-                    (click)="openEditPopup(tag)"
-                  >
-                    <lucide-icon [name]="Pencil"></lucide-icon>
-                  </button>
+                  <app-button-hover-help text="Wijzig de gegevens van deze tag.">
+                    <button
+                      type="button"
+                      class="icon-button icon-button--edit"
+                      aria-label="Tag wijzigen"
+                      (click)="openEditPopup(tag)"
+                    >
+                      <lucide-icon [name]="Pencil"></lucide-icon>
+                    </button>
+                  </app-button-hover-help>
 
-                  <button
-                    type="button"
-                    class="icon-button icon-button--delete"
-                    aria-label="Tag verwijderen"
-                    (click)="deleteTag(tag)"
-                  >
-                    <lucide-icon [name]="Trash2"></lucide-icon>
-                  </button>
+                  <app-button-hover-help text="Verwijder deze tag uit de boekencatalogus.">
+                    <button
+                      type="button"
+                      class="icon-button icon-button--delete"
+                      aria-label="Tag verwijderen"
+                      (click)="deleteTag(tag)"
+                    >
+                      <lucide-icon [name]="Trash2"></lucide-icon>
+                    </button>
+                  </app-button-hover-help>
                 </div>
               </td>
             </tr>

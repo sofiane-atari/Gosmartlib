@@ -216,7 +216,7 @@
   background: #fff;
   border: 1px solid #f0e4e8;
   border-radius: 14px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .table-card table {
@@ -655,7 +655,19 @@ lucide-icon svg {
   display: block;
   width: 100%;
 }
+.stat-cards app-button-hover-help {
+  display: block;
+  width: 100%;
+}
 
+.table-actions app-button-hover-help {
+  display: inline-flex;
+}
+
+.stat-cards,
+.table-actions {
+  overflow: visible;
+}
 /* Responsive */
 @media (max-width: 1024px) {
   .stat-cards {
