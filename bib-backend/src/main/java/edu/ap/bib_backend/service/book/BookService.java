@@ -161,31 +161,33 @@ public class BookService {
     }
 
     @Transactional
-    public List<BookDTO> getMostReadBooks(int limit, String schoolCode) {
-        List<Book> books;
-        if (schoolCode != null && !schoolCode.isBlank()) {
-            books = bookRepository.findMostReadBookBySchool(schoolCode, PageRequest.of(0, limit));
-        } else {
-            books = bookRepository.findMostReadBook(PageRequest.of(0, limit));
-        }
+    public List<BookDTO> getMostReadBooks(Authentication authentication, int limit) {
+        School school = getCurrentUserSchool(authentication);
+        int safeLimit = Math.max(1, Math.min(limit, 20));
 
-        if (books.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Geen uitgeleende boeken gevonden");
-        }
+        List<Book> books = bookRepository.findMostReadBookBySchool(
+                school.getDomainName(),
+                PageRequest.of(0, safeLimit)
+        );
 
         return bookMapper.toDTOList(books);
     }
 
     @Transactional
-    public List<BookDTO> getNewestBooks(int limit, String schoolCode) {
-        List<Book> books;
-        if (schoolCode != null && !schoolCode.isBlank()) {
-            books = bookRepository.findNewestBooksBySchool(schoolCode, PageRequest.of(0, limit));
-        } else {
-            books = bookRepository.findNewestBooks(PageRequest.of(0, limit));
-        }
+    public List<BookDTO> getNewestBooks(Authentication authentication, int limit) {
+        School school = getCurrentUserSchool(authentication);
+        int safeLimit = Math.max(1, Math.min(limit, 20));
+
+        List<Book> books = bookRepository.findNewestBooksBySchool(
+                school.getDomainName(),
+                PageRequest.of(0, safeLimit)
+        );
+
         return bookMapper.toDTOList(books);
     }
+
+
+
 
     public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit) {
         bookRepository.findById(bookId)

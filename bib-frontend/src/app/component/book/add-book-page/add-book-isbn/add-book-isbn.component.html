@@ -135,7 +135,7 @@
             </div>
 
             <div class="form-group">
-              <label for="readingLevel">Leesniveau</label>
+              <label for="readingLevel">Leesniveau (optioneel)</label>
 
               <select
                 [(ngModel)]="book.readingLevel"
@@ -143,7 +143,6 @@
                 #readingLevel="ngModel"
                 [compareWith]="compareReadingLevels"
                 [disabled]="isExistingBookLoaded"
-                required
               >
                 <option [ngValue]="null">Kies een niveau</option>
 
@@ -163,13 +162,12 @@
           </div>
 
           <div class="form-group full-width description-field">
-            <label>Beschrijving *</label>
+            <label>Beschrijving (optioneel)</label>
             <textarea
               [(ngModel)]="book.description"
               name="description"
               placeholder="Een korte beschrijving van het boek..."
               [readonly]="isExistingBookLoaded"
-              required
             ></textarea>
           </div>
         </div>
@@ -217,7 +215,7 @@
       }
 
       <div class="form-group full-width genre-section">
-        <label>Genres * (kies 1 hoofdgenre en 1 tot 3 subgenres)</label>
+        <label>Genres (Optioneel: kies 1 hoofdgenre en 1 tot 3 subgenres)</label>
 
         <div class="genre-grid main-genre-grid">
           @for (mainGenre of genres; track mainGenre.name) {
@@ -236,7 +234,7 @@
         </div>
 
         <p class="genre-hint">
-          Geselecteerd: {{ book.genres.length }}/3 subgenres
+          Geselecteerd: {{ book.genres?.length }}/3 subgenres
         </p>
 
         @if (openedMainGenre && openedMainGenre.subGenres?.length) {
@@ -291,11 +289,18 @@
           <button
             type="submit"
             class="btn-submit"
-            [disabled]="isExistingBookLoaded ? false : (bookForm.invalid || book.genres.length === 0)"
+            [disabled]="isExistingBookLoaded ? false : (bookForm.invalid)"
           >
             <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
             {{ isExistingBookLoaded ? 'Exemplaar toevoegen' : 'Boek toevoegen' }}
           </button>
+
+          @if (!isExistingBookLoaded && bookForm.invalid) {
+            <p class="disabled-submit-hint">
+              Vul eerst alle verplichte velden in: titel, auteur, aantal pagina's en jaar.
+            </p>
+          }
+
         </div>
       </div>
     </form>
