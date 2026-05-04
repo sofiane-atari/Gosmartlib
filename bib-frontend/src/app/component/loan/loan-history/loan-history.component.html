@@ -2,39 +2,101 @@
   <header class="page-header">
     <h1>Uitleengeschiedenis</h1>
     <p>
-      {{ activeLoanItems().length }} boek(en) momenteel uitgeleend •
+      {{ activeLoanItems().length }} actieve uitleningen •
       {{ returnedLoanItems().length }} boek(en) teruggebracht
     </p>
   </header>
 
   <section class="stat-grid">
-    <article class="stat-card stat-card--blue">
-      <lucide-icon [name]="Clock"></lucide-icon>
-      <div>
-        <strong>{{ activeLoanItems().length }}</strong>
-        <span>Nu Uitgeleend</span>
-      </div>
-    </article>
+    <app-button-hover-help
+      class="stat-help"
+      text="Aantal uitleningen die nog actief zijn."
+    >
+      <article class="stat-card stat-card--blue">
+        <lucide-icon [name]="Clock"></lucide-icon>
+        <div>
+          <strong>{{ activeLoanItems().length }}</strong>
+          <span>Actieve uitleningen</span>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card stat-card--green">
-      <lucide-icon [name]="CheckCircle2"></lucide-icon>
-      <div>
-        <strong>{{ returnedLoanItems().length }}</strong>
-        <span>Teruggebracht</span>
-      </div>
-    </article>
+    <app-button-hover-help
+      class="stat-help"
+      text="Aantal boeken dat je al hebt teruggebracht."
+    >
+      <article class="stat-card stat-card--green">
+        <lucide-icon [name]="CheckCircle2"></lucide-icon>
+        <div>
+          <strong>{{ returnedLoanItems().length }}</strong>
+          <span>Teruggebracht</span>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card stat-card--purple">
-      <lucide-icon [name]="BookOpen"></lucide-icon>
-      <div>
-        <strong>{{ totalLoanedBooks() }}</strong>
-        <span>Totaal Uitgeleend</span>
-      </div>
-    </article>
+    <app-button-hover-help
+      class="stat-help"
+      text="Totaal aantal boeken dat in deze historiek voorkomt."
+    >
+      <article class="stat-card stat-card--purple">
+        <lucide-icon [name]="BookOpen"></lucide-icon>
+        <div>
+          <strong>{{ totalLoanedBooks() }}</strong>
+          <span>Totaal Uitgeleend</span>
+        </div>
+      </article>
+    </app-button-hover-help>
   </section>
 
   @if (isLoading()) {
-    <div class="empty-state">Uitleningen laden...</div>
+    <section class="loan-section">
+      <!-- Neppe titel (Momenteel Uitgeleend) -->
+      <div
+        class="skeleton"
+        style="
+          width: 220px;
+          height: 26px;
+          margin-bottom: 16px;
+          border-radius: 6px;
+        "
+      ></div>
+
+      <div class="loan-list">
+        <!-- We tonen 2 skeleton kaarten als placeholder -->
+        @for (dummy of [1, 2]; track dummy) {
+          <article class="loan-card loan-card--skeleton">
+            <!-- Skeleton Cover -->
+            <div class="skeleton skeleton--cover-loan"></div>
+
+            <div class="loan-card__content">
+              <div class="loan-card__top">
+                <div style="flex: 1">
+                  <!-- Skeleton Titel & Auteur -->
+                  <div class="skeleton skeleton--title-loan"></div>
+                  <div class="skeleton skeleton--author-loan"></div>
+                </div>
+                <!-- Skeleton Status Badge -->
+                <div class="skeleton skeleton--badge-loan"></div>
+              </div>
+
+              <div class="loan-card__dates">
+                <div>
+                  <div class="skeleton skeleton--meta-loan"></div>
+                  <div class="skeleton skeleton--date-loan"></div>
+                </div>
+                <div>
+                  <div class="skeleton skeleton--meta-loan"></div>
+                  <div class="skeleton skeleton--date-loan"></div>
+                </div>
+              </div>
+
+              <!-- Skeleton Warning Box -->
+              <div class="skeleton skeleton--warning-loan"></div>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
   } @else if (errorMessage()) {
     <div class="empty-state">{{ errorMessage() }}</div>
   } @else if (loans().length === 0) {
@@ -56,11 +118,18 @@
           @for (loan of activeLoanItems(); track loan.id) {
             @for (book of loan.books; track book.id) {
               <article class="loan-card loan-card--active">
-                <img
-                  class="loan-card__cover"
-                  [src]="book.imageUrl || 'assets/images/book-placeholder.png'"
-                  [alt]="book.title"
-                />
+                <app-button-hover-help
+                  class="loan-card__cover-wrapper"
+                  text="Boekomslag van dit boek."
+                >
+                  <img
+                    class="loan-card__cover"
+                    [src]="
+                      book.imageUrl || 'assets/images/book-placeholder.png'
+                    "
+                    [alt]="book.title"
+                  />
+                </app-button-hover-help>
 
                 <div class="loan-card__content">
                   <div class="loan-card__top">
@@ -69,9 +138,14 @@
                       <p>{{ book.author || "Onbekende auteur" }}</p>
                     </div>
 
-                    <span [class]="getStatusClass(loan.status)">
-                      {{ getLoanStatusLabel(loan.status) }}
-                    </span>
+                    <app-button-hover-help
+                      class="loan-card__status-wrapper"
+                      text="De huidige uitleenstatus van dit boek."
+                    >
+                      <span [class]="getStatusClass(loan.status)">
+                        {{ getLoanStatusLabel(loan.status) }}
+                      </span>
+                    </app-button-hover-help>
                   </div>
 
                   <div class="loan-card__dates">
@@ -98,10 +172,17 @@
                     </div>
                   </div>
 
-                  <div class="loan-warning">
-                    ⚠ Vergeet niet om dit boek in te leveren voor
-                    <strong>{{ loan.returnDate | date: "dd-MM-yyyy" }}</strong>
-                  </div>
+                  <app-button-hover-help
+                    class="loan-card__warning-help"
+                    text="Herinnering voor de uiterste inleverdatum."
+                  >
+                    <div class="loan-warning">
+                      ⚠ Vergeet niet om dit boek in te leveren voor
+                      <strong>{{
+                        loan.returnDate | date: "dd-MM-yyyy"
+                      }}</strong>
+                    </div>
+                  </app-button-hover-help>
                 </div>
               </article>
             }
@@ -122,11 +203,18 @@
           @for (loan of returnedLoanItems(); track loan.id) {
             @for (book of loan.books; track book.id) {
               <article class="loan-card loan-card--returned">
-                <img
-                  class="loan-card__cover"
-                  [src]="book.imageUrl || 'assets/images/book-placeholder.png'"
-                  [alt]="book.title"
-                />
+                <app-button-hover-help
+                  class="loan-card__cover-wrapper"
+                  text="Boekomslag van dit teruggebrachte boek."
+                >
+                  <img
+                    class="loan-card__cover"
+                    [src]="
+                      book.imageUrl || 'assets/images/book-placeholder.png'
+                    "
+                    [alt]="book.title"
+                  />
+                </app-button-hover-help>
 
                 <div class="loan-card__content">
                   <div class="loan-card__top">
@@ -135,23 +223,40 @@
                       <p>{{ book.author || "Onbekende auteur" }}</p>
                     </div>
 
-                    <span [class]="getStatusClass(loan.status)">
-                      {{ getLoanStatusLabel(loan.status) }}
-                    </span>
+                    <app-button-hover-help
+                      class="loan-card__status-wrapper"
+                      text="Dit boek is teruggebracht."
+                    >
+                      <span [class]="getStatusClass(loan.status)">
+                        {{ getLoanStatusLabel(loan.status) }}
+                      </span>
+                    </app-button-hover-help>
                   </div>
 
                   <div class="loan-card__dates">
-                    <div>
-                      <span>Uitgeleend op</span>
-                      <strong>{{ loan.loanDate | date: "dd-MM-yyyy" }}</strong>
-                    </div>
+                    <app-button-hover-help
+                      class="loan-card__date-help"
+                      text="De datum waarop je dit boek hebt uitgeleend."
+                    >
+                      <div>
+                        <span>Uitgeleend op</span>
+                        <strong>{{
+                          loan.loanDate | date: "dd-MM-yyyy"
+                        }}</strong>
+                      </div>
+                    </app-button-hover-help>
 
-                    <div>
-                      <span>Teruggebracht op</span>
-                      <strong>{{
-                        loan.returnedDate | date: "dd-MM-yyyy"
-                      }}</strong>
-                    </div>
+                    <app-button-hover-help
+                      class="loan-card__date-help"
+                      text="De datum waarop je dit boek hebt teruggebracht."
+                    >
+                      <div>
+                        <span>Teruggebracht op</span>
+                        <strong>{{
+                          loan.returnedDate | date: "dd-MM-yyyy"
+                        }}</strong>
+                      </div>
+                    </app-button-hover-help>
                   </div>
                 </div>
               </article>

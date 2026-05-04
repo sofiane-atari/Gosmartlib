@@ -13,11 +13,12 @@ import {
 import { Loan, LoanStatus } from '../../../model/loan.model';
 import { LoansService } from '../../../services/loan/loans.service';
 import { ToastService } from '../../../services/toast/toast.service';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-loan-history',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './loan-history.component.html',
   styleUrl: './loan-history.component.css',
 })
