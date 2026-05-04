@@ -1,7 +1,21 @@
 <aside class="sidebar" [class.mobile-open]="mobileOpen()">
   <!-- Mobile Close Button -->
-  <button class="mobile-close-btn" (click)="closeOnMobile()" aria-label="Close menu">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <button
+    class="mobile-close-btn"
+    (click)="closeOnMobile()"
+    aria-label="Close menu"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <line x1="18" y1="6" x2="6" y2="18"></line>
       <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
@@ -22,47 +36,50 @@
 
   <nav class="sidebar-nav">
     @for (item of visibleMenuItems(); track $index) {
-        <div class="menu-wrapper" >
-            @if ($index === 5) {
-                <div class="divider"></div>
-            }
-            <button
-                type="button"
-                [routerLink]="item.route"
-                routerLinkActive="active"
-                [routerLinkActiveOptions]="{exact: true}"
-                class="menu-item"
-                (click)="closeOnMobile()"
-            >
-                <lucide-icon [name]="item.icon" class="icon-md"></lucide-icon>
-                <span class="menu-label">{{ item.label }}</span>
-            </button>
-        </div>
+      <div class="menu-wrapper">
+        @if ($index === 5) {
+          <div class="divider"></div>
+        }
+        <button
+          type="button"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="menu-item"
+          (click)="closeOnMobile()"
+        >
+          <lucide-icon [name]="item.icon" class="icon-md"></lucide-icon>
+          <span class="menu-label">{{ item.label }}</span>
+        </button>
+      </div>
     }
   </nav>
 
-    <div class="sidebar-footer">
-      @if(isStaff()){
-        <button class="btn btn-emerald" (click)="goToAddBook()">
-            <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
-            <span class="btn-text">Boek toevoegen</span>
-        </button>
+  <div class="sidebar-footer">
+    @if (isStaff()) {
+      <button class="btn btn-emerald" (click)="goToAddBook()">
+        <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">Boek toevoegen</span>
+      </button>
 
-        <button class="btn btn-blue" (click)="goToBookManagement()">
-            <lucide-icon [name]="RotateCcwIcon" class="btn-icon"></lucide-icon>
-            <span class="btn-text">Uitleningen </span>
-        </button>
-      }
+      <button class="btn btn-blue" (click)="goToBookManagement()">
+        <lucide-icon [name]="RotateCcwIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">Uitleningen </span>
+      </button>
+    }
+    @if (roleService.isTeacher() || roleService.isStudent()) {
+      <app-sidebar-active-loans></app-sidebar-active-loans>
+    }
     @if (isAdminOverrideVisible()) {
       <button class="btn btn-amber" (click)="toggleAdminOverride()">
-          <lucide-icon [name]="ShieldIcon" class="btn-icon"></lucide-icon>
-          <span class="btn-text">{{ adminOverrideLabel() }}</span>
+        <lucide-icon [name]="ShieldIcon" class="btn-icon"></lucide-icon>
+        <span class="btn-text">{{ adminOverrideLabel() }}</span>
       </button>
     }
 
     <button class="btn btn-rose" (click)="logout()">
-        <lucide-icon [name]="LogOutIcon" class="btn-icon"></lucide-icon>
-        <span class="btn-text">Log uit</span>
+      <lucide-icon [name]="LogOutIcon" class="btn-icon"></lucide-icon>
+      <span class="btn-text">Log uit</span>
     </button>
-    </div>
+  </div>
 </aside>
