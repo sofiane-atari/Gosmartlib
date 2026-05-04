@@ -89,12 +89,17 @@ export class SidebarComponent {
   menuItems = [
     { icon: Book, label: 'Catalogus', route: '/catalog' },
     { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },
-    { icon: History, label: 'Geschiedenis', route: '/historiek' },
+    { icon: History, label: 'Geschiedenis', route: '/history' },
     { icon: Star, label: 'Mijn reviews', route: '/reviews' },
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/settings' },
-    { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly : true },
-    { icon: FileText, label: 'Klasrapportages', route: '/class-report', staffOnly : true },
+    { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly: true },
+    {
+      icon: FileText,
+      label: 'Klasrapportages',
+      route: '/class-report',
+      staffOnly: true,
+    },
     {
       icon: FolderKanban,
       label: 'Lestips',
@@ -105,7 +110,6 @@ export class SidebarComponent {
     { icon: LibraryBig, label: 'Genrebeheer', route: '/genre', adminOnly: true },
     { icon: Tag, label: 'Labelbeheer', route: '/tag', adminOnly: true },
     { icon: School, label: 'Schoolbeheer', route: '/schools', adminOnly: true },
-    // { icon: Book, label: 'Boekbeheer', route: '/books-management', adminOnly : true },
   ];
 
   protected readonly visibleMenuItems = computed(() => {

@@ -1,10 +1,12 @@
 package edu.ap.bib_backend.controller;
 
-import edu.ap.bib_backend.dto.LoanDTO;
 import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,10 +45,16 @@ public class LoanController {
         return ResponseEntity.ok(loanService.returnLoan(loanId));
     }
 
+<<<<<<< bib-backend/src/main/java/edu/ap/bib_backend/controller/LoanController.java
     @GetMapping("/active")
     public ResponseEntity<PageDTO<LoanDTO>> getActiveLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
         return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize));
+=======
+    @GetMapping("/me/history")
+    public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(Authentication authentication) {
+        return ResponseEntity.ok(loanService.findHistoryForCurrentUser(authentication));
+>>>>>>> bib-backend/src/main/java/edu/ap/bib_backend/controller/LoanController.java
     }
 }

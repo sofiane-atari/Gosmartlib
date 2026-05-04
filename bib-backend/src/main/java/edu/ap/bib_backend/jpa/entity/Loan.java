@@ -1,9 +1,11 @@
 package edu.ap.bib_backend.jpa.entity;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -37,4 +39,16 @@ public class Loan {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    public LoanStatus getStatus() {
+        if (returnedDate != null) {
+            return LoanStatus.RETURNED;
+        }
+
+        if (returnDate != null && returnDate.isBefore(LocalDate.now(ZoneId.of("Europe/Brussels")))) {
+            return LoanStatus.OVERDUE;
+        }
+
+        return LoanStatus.ACTIVE;
+    }
 }

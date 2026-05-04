@@ -2,7 +2,7 @@ package edu.ap.bib_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.TestSecurityConfig;
-import edu.ap.bib_backend.dto.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.LoanService;

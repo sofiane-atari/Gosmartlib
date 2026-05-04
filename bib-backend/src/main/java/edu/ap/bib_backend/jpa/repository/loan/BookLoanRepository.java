@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.jpa.repository;
+package edu.ap.bib_backend.jpa.repository.loan;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
