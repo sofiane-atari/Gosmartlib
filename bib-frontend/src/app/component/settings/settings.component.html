@@ -1,0 +1,44 @@
+<section class="settings">
+  <header class="settings__header">
+    <p class="settings__eyebrow">Beheer</p>
+    <h1 class="settings__title">Instellingen</h1>
+    <p class="settings__subtitle">
+      Beheer synchronisaties en systeemtaken voor de bibliotheek.
+    </p>
+  </header>
+
+  <div class="settings__card">
+    <div class="settings__card-body">
+      <h2>OneRoster-synchronisatie</h2>
+      <p>
+        Start handmatig een synchronisatie om gebruikers en klassen bij te werken.
+      </p>
+      <div class="settings__actions">
+        <button
+          type="button"
+          class="settings__button"
+          [disabled]="isSyncing()"
+          (click)="syncNow()"
+        >
+          @if (isSyncing()) {
+            Synchroniseren...
+          } @else {
+            Synchronisatie starten
+          }
+        </button>
+      </div>
+
+      @if (successMessage()) {
+        <div class="settings__alert settings__alert--success">
+          {{ successMessage() }}
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="settings__alert settings__alert--error">
+          {{ errorMessage() }}
+        </div>
+      }
+    </div>
+  </div>
+</section>

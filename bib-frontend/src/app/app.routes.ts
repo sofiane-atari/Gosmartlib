@@ -33,6 +33,7 @@ import { CreateReadingListComponent } from './component/reading-list/create-read
 import { CreateTeacherReadingListComponent } from './component/reading-list/create-teacher-reading-list/create-teacher-reading-list.component';
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
+import { SettingsComponent } from './component/settings/settings.component';
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
 
 export const routes: Routes = [
@@ -114,6 +115,11 @@ export const routes: Routes = [
   {
     path: 'scholen',
     component: SchoolDashboardComponent,
+    canActivate: [authGuard, adminOnlyGuard],
+  },
+  {
+    path: 'instellingen',
+    component: SettingsComponent,
     canActivate: [authGuard, adminOnlyGuard],
   },
   { path: '**', redirectTo: '/catalog' },
