@@ -3,6 +3,7 @@ package edu.ap.bib_backend.controller;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,6 +31,7 @@ import edu.ap.bib_backend.service.book.BookSearchService;
 import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.book.GoogleBooksClient;
 import edu.ap.bib_backend.service.book.OpenLibraryClient;
+import edu.ap.bib_backend.service.lessontips.LessonTipService;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -66,10 +68,16 @@ public class BookControllerTest {
         private AdminOverrideService adminOverrideService;
 
         @MockitoBean
+        private LessonTipService lessonTipService;
+
+        @MockitoBean
         private GoogleBooksClient gbc;
 
         @MockitoBean
         private OpenLibraryClient olc;
+
+        @Mock
+        private Authentication authentication;
 
         @Test
         void givenFilters_whenGetFilteredBooks_thenReturnsPagedResult() throws Exception {
@@ -84,7 +92,6 @@ public class BookControllerTest {
 
                 when(bookSearchService.getFilteredBooks(
                                 null,
-                                "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
                                 500,
@@ -92,7 +99,7 @@ public class BookControllerTest {
                                 null,
                                 0,
                                 10,
-                                BookSortOption.AZ)).thenReturn(page);
+                                BookSortOption.AZ, null)).thenReturn(page);
 
                 // Act
                 mockMvc.perform(get("/books/catalog")
@@ -111,7 +118,6 @@ public class BookControllerTest {
 
                 // Assert
                 verify(bookSearchService).getFilteredBooks(
-                                null,
                                 "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
@@ -120,7 +126,7 @@ public class BookControllerTest {
                                 null,
                                 0,
                                 10,
-                                BookSortOption.AZ);
+                                BookSortOption.AZ, null);
         }
 
         @Test
@@ -179,80 +185,99 @@ public class BookControllerTest {
 
         @Test
         void givenNoFilters_whenGetFilteredBooks_thenReturnsPagedResultWithDefaultParams() throws Exception {
-                // Arrange
-                Page<BookDTO> page = new org.springframework.data.domain.PageImpl<>(List.of());
+            // Arrange
+            Page<BookDTO> page = new PageImpl<>(List.of());
 
-                Mockito.when(bookSearchService.getFilteredBooks(
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                0,
-                                10,
-                                null)).thenReturn(page);
+            Mockito.when(bookSearchService.getFilteredBooks(
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.eq(0),
+                    Mockito.eq(10),
+                    Mockito.isNull(),
+                    Mockito.nullable(Authentication.class)))
+                    .thenReturn(page);
 
-                // Act & Assert
-                mockMvc.perform(get("/books/catalog"))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.data").isArray())
-                                .andExpect(jsonPath("$.meta").exists());
+            // Act
+            var result = mockMvc.perform(get("/books/catalog"));
 
-                Mockito.verify(bookSearchService).getFilteredBooks(
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                0,
-                                10,
-                                null);
+            // Assert
+            result.andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data").isArray())
+                    .andExpect(jsonPath("$.meta").exists());
+
+            Mockito.verify(bookSearchService).getFilteredBooks(
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.eq(0),
+                    Mockito.eq(10),
+                    Mockito.isNull(),
+                    Mockito.nullable(Authentication.class));
         }
 
         @Test
         void givenBookIdAndLimit_whenGetRelatedBooksCarousel_thenReturnsListOfRelatedBooks() throws Exception {
-                // Arrange
-                BookDTO related1 = new BookDTO();
-                related1.setId(2L);
-                related1.setTitle("Related Book 1");
+            // Arrange
+            BookDTO related1 = new BookDTO();
+            related1.setId(2L);
+            related1.setTitle("Related Book 1");
 
-                BookDTO related2 = new BookDTO();
-                related2.setId(3L);
-                related2.setTitle("Related Book 2");
+            BookDTO related2 = new BookDTO();
+            related2.setId(3L);
+            related2.setTitle("Related Book 2");
 
-                Mockito.when(bs.getRelatedBooksCarousel(1L, 5))
-                                 .thenReturn(List.of(related1, related2));
+            Mockito.when(bs.getRelatedBooksCarousel(
+                    Mockito.eq(1L),
+                    Mockito.eq(5),
+                    Mockito.nullable(Authentication.class)))
+                    .thenReturn(List.of(related1, related2));
 
-                // Act & Assert
-                mockMvc.perform(get("/books/1/related-carousel")
-                                .param("limit", "5"))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$[0].title").value("Related Book 1"))
-                                .andExpect(jsonPath("$[1].title").value("Related Book 2"));
+            // Act
+            var result = mockMvc.perform(get("/books/1/related-carousel")
+                    .param("limit", "5"));
 
-                Mockito.verify(bs).getRelatedBooksCarousel(1L, 5);
+            // Assert
+            result.andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].title").value("Related Book 1"))
+                    .andExpect(jsonPath("$[1].title").value("Related Book 2"));
+
+            Mockito.verify(bs).getRelatedBooksCarousel(
+                    Mockito.eq(1L),
+                    Mockito.eq(5),
+                    Mockito.nullable(Authentication.class));
         }
 
         @Test
         void givenBookId_whenGetRelatedBooksCarousel_thenReturnsListWithDefaultLimit() throws Exception {
-                // Arrange
-                BookDTO related = new BookDTO();
-                related.setId(2L);
-                related.setTitle("Default Related Book");
+            // Arrange
+            BookDTO related = new BookDTO();
+            related.setId(2L);
+            related.setTitle("Default Related Book");
 
-                Mockito.when(bs.getRelatedBooksCarousel(1L, 10))
-                                 .thenReturn(List.of(related));
+            Mockito.when(bs.getRelatedBooksCarousel(
+                    Mockito.eq(1L),
+                    Mockito.eq(10),
+                    Mockito.nullable(Authentication.class)))
+                    .thenReturn(List.of(related));
 
-                // Act & Assert
-                mockMvc.perform(get("/books/1/related-carousel"))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$[0].title").value("Default Related Book"));
+            // Act
+            var result = mockMvc.perform(get("/books/1/related-carousel"));
 
-                Mockito.verify(bs).getRelatedBooksCarousel(1L, 10);
+            // Assert
+            result.andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].title").value("Default Related Book"));
+
+            Mockito.verify(bs).getRelatedBooksCarousel(
+                    Mockito.eq(1L),
+                    Mockito.eq(10),
+                    Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -412,7 +437,7 @@ public class BookControllerTest {
                 savedDTO.setDescription("Beschrijving hier");
                 savedDTO.setReleaseYear(2024);
 
-                Mockito.when(bs.addBook(Mockito.any(), Mockito.any(BookDTO.class))).thenReturn(savedDTO);
+                Mockito.when(bs.addBook(Mockito.any(BookDTO.class), Mockito.any())).thenReturn(savedDTO);
 
                 // Act & Assert
                 mockMvc.perform(post("/books")
@@ -431,106 +456,136 @@ public class BookControllerTest {
 
         // ==================== getMostReadBooks Tests ====================
 
-    @Test
-    void givenDefaultLimit_whenGetMostReadBooks_thenReturnThreeBooks() throws Exception {
-        BookDTO book1 = new BookDTO();
-        book1.setId(1L);
-        book1.setTitle("Most Read Book 1");
-        book1.setAuthor("Author A");
+        @Test
+        void givenDefaultLimit_whenGetMostReadBooks_thenReturnThreeBooks() throws Exception {
+            // Arrange
+            BookDTO book1 = new BookDTO();
+            book1.setId(1L);
+            book1.setTitle("Most Read Book 1");
+            book1.setAuthor("Author A");
 
-        BookDTO book2 = new BookDTO();
-        book2.setId(2L);
-        book2.setTitle("Most Read Book 2");
-        book2.setAuthor("Author B");
+            BookDTO book2 = new BookDTO();
+            book2.setId(2L);
+            book2.setTitle("Most Read Book 2");
+            book2.setAuthor("Author B");
 
-        BookDTO book3 = new BookDTO();
-        book3.setId(3L);
-        book3.setTitle("Most Read Book 3");
-        book3.setAuthor("Author C");
+            BookDTO book3 = new BookDTO();
+            book3.setId(3L);
+            book3.setTitle("Most Read Book 3");
+            book3.setAuthor("Author C");
 
-        Mockito.when(bs.getMostReadBooks(Mockito.any(Authentication.class), Mockito.eq(3)))
-                .thenReturn(List.of(book1, book2, book3));
+            Mockito.when(bs.getMostReadBooks(
+                    Mockito.eq(3),
+                    Mockito.nullable(Authentication.class)))
+                    .thenReturn(List.of(book1, book2, book3));
 
-        mockMvc.perform(get("/books/most-read")
-                        .principal(new UsernamePasswordAuthenticationToken("test-user", "password")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Most Read Book 1"))
-                .andExpect(jsonPath("$[1].title").value("Most Read Book 2"))
-                .andExpect(jsonPath("$[2].title").value("Most Read Book 3"));
+            // Act
+            var result = mockMvc.perform(get("/books/most-read"));
 
-        Mockito.verify(bs).getMostReadBooks(Mockito.any(Authentication.class), Mockito.eq(3));
-    }
+            // Assert
+            result.andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].title").value("Most Read Book 1"))
+                    .andExpect(jsonPath("$[1].title").value("Most Read Book 2"))
+                    .andExpect(jsonPath("$[2].title").value("Most Read Book 3"));
 
-    @Test
-    void givenCustomLimit_whenGetMostReadBooks_thenReturnRequestedNumberOfBooks() throws Exception {
-        BookDTO book1 = new BookDTO();
-        book1.setId(1L);
-        book1.setTitle("Popular Book");
+            Mockito.verify(bs).getMostReadBooks(
+                    Mockito.eq(3),
+                    Mockito.nullable(Authentication.class));
+        }
 
-        Mockito.when(bs.getMostReadBooks(Mockito.any(Authentication.class), Mockito.eq(5)))
-                .thenReturn(List.of(book1));
+        @Test
+        void givenCustomLimit_whenGetMostReadBooks_thenReturnRequestedNumberOfBooks() throws Exception {
+            // Arrange
+            BookDTO book1 = new BookDTO();
+            book1.setId(1L);
+            book1.setTitle("Popular Book");
 
-        mockMvc.perform(get("/books/most-read")
-                        .principal(new UsernamePasswordAuthenticationToken("test-user", "password"))
-                        .param("limit", "5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Popular Book"))
-                .andExpect(jsonPath("$").isArray());
+            Mockito.when(bs.getMostReadBooks(
+                    Mockito.eq(5),
+                    Mockito.nullable(Authentication.class)))
+                    .thenReturn(List.of(book1));
 
-        Mockito.verify(bs).getMostReadBooks(Mockito.any(Authentication.class), Mockito.eq(5));
-    }
+            // Act
+            var result = mockMvc.perform(get("/books/most-read")
+                    .param("limit", "5"));
 
-    @Test
-    void givenDefaultLimit_whenGetNewestBooks_thenReturnThreeBooks() throws Exception {
-        BookDTO book1 = new BookDTO();
-        book1.setId(1L);
-        book1.setTitle("Newest Book 1");
-        book1.setAuthor("Author A");
-        book1.setReleaseYear(2024);
+            // Assert
+            result.andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].title").value("Popular Book"))
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$").hasJsonPath());
 
-        BookDTO book2 = new BookDTO();
-        book2.setId(2L);
-        book2.setTitle("Newest Book 2");
-        book2.setAuthor("Author B");
-        book2.setReleaseYear(2023);
+            Mockito.verify(bs).getMostReadBooks(
+                    Mockito.eq(5),
+                    Mockito.nullable(Authentication.class));
+        }
 
-        BookDTO book3 = new BookDTO();
-        book3.setId(3L);
-        book3.setTitle("Newest Book 3");
-        book3.setAuthor("Author C");
-        book3.setReleaseYear(2022);
+        @Test
+        void givenDefaultLimit_whenGetNewestBooks_thenReturnThreeBooks() throws Exception {
+            // Arrange
+            BookDTO book1 = new BookDTO();
+            book1.setId(1L);
+            book1.setTitle("Newest Book 1");
+            book1.setAuthor("Author A");
+            book1.setReleaseYear(2024);
 
-        Mockito.when(bs.getNewestBooks(Mockito.any(Authentication.class), Mockito.eq(3)))
-                .thenReturn(List.of(book1, book2, book3));
+            BookDTO book2 = new BookDTO();
+            book2.setId(2L);
+            book2.setTitle("Newest Book 2");
+            book2.setAuthor("Author B");
+            book2.setReleaseYear(2023);
 
-        mockMvc.perform(get("/books/newest")
-                        .principal(new UsernamePasswordAuthenticationToken("test-user", "password")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Newest Book 1"))
-                .andExpect(jsonPath("$[1].title").value("Newest Book 2"))
-                .andExpect(jsonPath("$[2].title").value("Newest Book 3"));
+            BookDTO book3 = new BookDTO();
+            book3.setId(3L);
+            book3.setTitle("Newest Book 3");
+            book3.setAuthor("Author C");
+            book3.setReleaseYear(2022);
 
-        Mockito.verify(bs).getNewestBooks(Mockito.any(Authentication.class), Mockito.eq(3));
-    }
+            Mockito.when(bs.getNewestBooks(
+                    Mockito.eq(3),
+                    Mockito.nullable(Authentication.class)))
+                    .thenReturn(List.of(book1, book2, book3));
 
-    @Test
-    void givenCustomLimit_whenGetNewestBooks_thenReturnRequestedNumberOfBooks() throws Exception {
-        BookDTO book1 = new BookDTO();
-        book1.setId(1L);
-        book1.setTitle("Recently Added Book");
+            // Act
+            var result = mockMvc.perform(get("/books/newest"));
 
-        Mockito.when(bs.getNewestBooks(Mockito.any(Authentication.class), Mockito.eq(10)))
-                .thenReturn(List.of(book1));
+            // Assert
+            result.andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].title").value("Newest Book 1"))
+                    .andExpect(jsonPath("$[1].title").value("Newest Book 2"))
+                    .andExpect(jsonPath("$[2].title").value("Newest Book 3"));
 
-        mockMvc.perform(get("/books/newest")
-                        .principal(new UsernamePasswordAuthenticationToken("test-user", "password"))
-                        .param("limit", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Recently Added Book"))
-                .andExpect(jsonPath("$").isArray());
+            Mockito.verify(bs).getNewestBooks(
+                    Mockito.eq(3),
+                    Mockito.nullable(Authentication.class));
+        }
 
-        Mockito.verify(bs).getNewestBooks(Mockito.any(Authentication.class), Mockito.eq(10));
-    }
+        @Test
+        void givenCustomLimit_whenGetNewestBooks_thenReturnRequestedNumberOfBooks() throws Exception {
+            // Arrange
+            BookDTO book1 = new BookDTO();
+            book1.setId(1L);
+            book1.setTitle("Recently Added Book");
+
+            Mockito.when(bs.getNewestBooks(
+                    Mockito.eq(10),
+                    Mockito.nullable(Authentication.class)))
+                    .thenReturn(List.of(book1));
+
+            // Act
+            var result = mockMvc.perform(get("/books/newest")
+                    .param("limit", "10"));
+
+            // Assert
+            result.andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].title").value("Recently Added Book"))
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$").hasJsonPath());
+
+            Mockito.verify(bs).getNewestBooks(
+                    Mockito.eq(10),
+                    Mockito.nullable(Authentication.class));
+        }
 
         @Test
         void getBookByISBN_returnsJSONBook() throws Exception {

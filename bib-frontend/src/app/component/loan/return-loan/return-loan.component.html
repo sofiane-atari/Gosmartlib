@@ -1,0 +1,98 @@
+<div class="return-loan-page">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Boek terugbrengen</h1>
+      <p>Zoek een actieve lening en markeer het boek als teruggebracht.</p>
+    </div>
+
+    <button type="button" class="back-button" (click)="goBack()">
+      <lucide-icon [name]="ArrowLeft"></lucide-icon>
+      <span>Terug naar boekoverzicht</span>
+    </button>
+  </div>
+
+  @if (successMessage()) {
+    <div class="success-message">{{ successMessage() }}</div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-message">{{ errorMessage() }}</div>
+  }
+
+  <section class="search-panel">
+    <div class="search-box">
+      <lucide-icon [name]="Search"></lucide-icon>
+      <input
+        type="text"
+        placeholder="Zoek op leerling, gebruiker of boektitel..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+    </div>
+  </section>
+
+  <section class="table-card">
+    @if (isLoading()) {
+      <div class="state-panel">Leningen laden...</div>
+    } @else if (filteredLoans().length === 0) {
+      <div class="state-panel">Geen actieve leningen gevonden.</div>
+    } @else {
+      <table>
+        <thead>
+        <tr>
+          <th>Gebruiker</th>
+          <th>Boek(en)</th>
+          <th>Retourdatum</th>
+          <th>Status</th>
+          <th class="actions-heading">Actie</th>
+        </tr>
+        </thead>
+
+        <tbody>
+          @for (loan of filteredLoans(); track loan.id) {
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <strong>{{ loan.userDisplayName ?? 'Onbekende gebruiker' }}</strong>
+                </div>
+              </td>
+
+              <td>
+                <div class="book-list">
+                  @for (book of loan.books ?? []; track book.id) {
+                    <div class="book-chip">
+                      <strong>{{ book.title }}</strong>
+                      @if (book.author) {
+                        <small>{{ book.author }}</small>
+                      }
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <td>{{ loan.returnDate | date: 'dd/MM/yyyy' }}</td>
+
+              <td>
+                <span class="status-badge">Actief uitgeleend</span>
+              </td>
+
+              <td>
+                <div class="table-actions">
+                  <button
+                    type="button"
+                    class="btn-return"
+                    (click)="returnLoan(loan)"
+                    [disabled]="returningLoanId() === loan.id"
+                  >
+                    <lucide-icon [name]="RotateCcw"></lucide-icon>
+                    {{ returningLoanId() === loan.id ? 'Bezig...' : 'Terugbrengen' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</div>

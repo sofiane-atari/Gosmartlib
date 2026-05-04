@@ -1,0 +1,79 @@
+<div class="didactic-material-overview">
+  <div class="didactic-material-overview__container">
+    <div class="didactic-material-overview__header" @fadeInUp>
+      <div class="header-content">
+        <h1 class="didactic-material-overview__title">Lestips</h1>
+        <p class="didactic-material-overview__subtitle">
+          Bekijk en beheer lestips.
+        </p>
+      </div>
+
+      <div class="didactic-material-overview__actions">
+        <button
+          type="button"
+          class="action-button action-button--primary"
+          (click)="navigateToCreatePage()"
+        >
+          Lestip toevoegen
+        </button>
+      </div>
+    </div>
+
+    @if (filteredBookId(); as activeBookId) {
+      <section class="state-panel state-panel--compact" @fadeInUp>
+        <p>
+          Je bekijkt momenteel alleen lestips die gekoppeld zijn aan boek
+          {{ activeBookId }}.
+        </p>
+
+        <button
+          type="button"
+          class="action-button action-button--secondary"
+          (click)="clearBookFilter()"
+        >
+          Alle lestips tonen
+        </button>
+      </section>
+    }
+
+    @if (isLoading()) {
+      <section class="material-list">
+        @for (dummy of [1, 2, 3]; track $index) {
+          <app-lesson-tip-card [isLoading]="true" />
+        }
+      </section>
+    } @else if (lessonTips().length === 0) {
+      <section class="state-panel state-panel--empty" @fadeInUp>
+        <p>Nog geen lestips gevonden voor deze selectie.</p>
+
+        @if (filteredBookId()) {
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            (click)="clearBookFilter()"
+          >
+            Alle lestips tonen
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            (click)="navigateToCreatePage()"
+          >
+            Eerste item toevoegen
+          </button>
+        }
+      </section>
+    } @else {
+      <section class="material-list">
+        @for (lessonTip of lessonTips(); track lessonTip.id; let i = $index) {
+          <app-lesson-tip-card
+            [lessonTip]="lessonTip"
+            (openRequested)="navigateToDetailPage($event)"
+            [@fadeInUp]="{ value: '', params: { delay: i * 100 } }"
+          />
+        }
+      </section>
+    }
+  </div>
+</div>

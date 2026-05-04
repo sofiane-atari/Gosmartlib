@@ -1,472 +1,440 @@
-@if(selectedBook) {
-<div class="page-container">
-  <div class="detail-wrapper">
-
-    <!-- Sidebar met Cover en Snelle Acties -->
-    <aside class="sidebar">
-      <div class="cover-container">
-        <img [src]="selectedBook.imageUrl" [alt]="selectedBook.title" class="book-cover" />
-      </div>
-
-      <div class="quick-stats">
-        <div class="stat-item">
-          <span class="stat-value">{{ selectedBook.pages }}</span>
-          <span class="stat-label">Pagina's</span>
+@if (selectedBook) {
+  <div class="page-container">
+    <div class="detail-wrapper">
+      <aside class="sidebar">
+        <div class="cover-container">
+          <img
+            [src]="selectedBook.imageUrl"
+            [alt]="selectedBook.title"
+            class="book-cover"
+          />
         </div>
-        <div class="stat-item">
-          <span class="stat-value">{{ selectedBook.releaseYear }}</span>
-          <span class="stat-label">Jaar</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">{{ selectedBook.readingLevel?.niveauName || '-' }}</span>
-          <span class="stat-label">Leesniveau</span>
-        </div>
-      </div>
-    </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
-
-      <!-- Header -->
-      <header class="content-header">
-        <div class="title-section">
-          <h1 class="book-title">{{ selectedBook.title }}</h1>
-          <p class="book-author">Geschreven door {{ selectedBook.author }}</p>
-        </div>
-      </header>
-
-      <!-- Lezer Acties -->
-      <section class="reader-actions-section">
-        <div class="action-buttons">
-
-          <app-button-hover-help
-            class="full-button-help"
-            text="Bekijk een korte preview van dit boek.">
-            <button class="action-btn secondary" (click)="loadPreview()">
-              <lucide-icon [img]="BookOpen" [size]="18" style="margin-right: 8px;"></lucide-icon>
-              <span>Preview</span>
-            </button>
-          </app-button-hover-help>
-
-          <app-button-hover-help
-            class="full-button-help"
-            text="Voeg dit boek toe aan één van je leeslijsten.">
-            <button class="action-btn primary" style="position: relative;" (click)="toggleListPicker()">
-              <lucide-icon [img]="Bookmark" [size]="18" style="margin-right: 8px;"></lucide-icon>
-              <span>Aan leeslijst toevoegen</span>
-
-              @if (showListPicker) {
-                <div class="list-picker-dropdown" (click)="$event.stopPropagation()">
-                  <div class="list-picker-header">Kies een leeslijst</div>
-
-                  @if (pickerReadingLists.length > 0) {
-                    <div class="list-picker-items">
-                      @for (list of pickerReadingLists; track list.id) {
-                        <div class="list-picker-item" (click)="addBookToList(list.id)">
-                          {{ list.name }}
-                        </div>
-                      }
-                    </div>
-                  } @else {
-                    <div class="list-picker-empty">
-                      Geen leeslijsten gevonden. Maak er eerst een aan in het overzicht.
-                    </div>
-                  }
-                </div>
-              }
-            </button>
-          </app-button-hover-help>
-
-        </div>
-      </section>
-
-      <!-- Bibliotheekbeheer -->
-      <section class="management-section">
-        <h2 class="section-title">Bibliotheekbeheer</h2>
-
-        <div class="action-buttons">
-
-          <app-button-hover-help
-            class="full-button-help"
-            text="Pas de gegevens van dit boek aan.">
-            <button type="button" class="action-btn secondary" (click)="goToEditPage(selectedBook.id)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2">
-                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-              </svg>
-              <span>Bewerken</span>
-            </button>
-          </app-button-hover-help>
-
-          <app-button-hover-help
-            class="full-button-help"
-            text="Verwijder dit boek uit de bibliotheek.">
-            <button type="button" class="action-btn danger" (click)="deleteBook(selectedBook.id)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-              <span>Verwijderen</span>
-            </button>
-          </app-button-hover-help>
-
-        </div>
-      </section>
-
-      <!-- Meta Informatie -->
-      <section class="meta-section">
-        <h2 class="section-title">Details</h2>
-        <div class="meta-grid">
-          <div class="meta-row">
-            <span class="meta-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-              </svg>
-              Pagina's
+        <div class="quick-stats">
+          <div class="stat-item">
+            <span class="stat-value">{{ selectedBook.pages }}</span>
+            <span class="stat-label">Pagina's</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ selectedBook.releaseYear }}</span>
+            <span class="stat-label">Jaar</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">
+              {{ selectedBook.readingLevel?.niveauName || "-" }}
             </span>
-            <span class="meta-value">{{ selectedBook.pages }}</span>
-          </div>
-
-          <div class="meta-row">
-            <span class="meta-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-              Publicatiejaar
-            </span>
-            <span class="meta-value">{{ selectedBook.releaseYear }}</span>
-          </div>
-
-          <div class="meta-row">
-            <span class="meta-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2">
-                <polygon
-                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                </polygon>
-              </svg>
-              Rating
-            </span>
-
-            @if (reviews.length > 0) {
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div class="stars-display" style="display: flex; gap: 2px; font-size: 1.1rem;">
-                  @for (star of starsArray; track $index) {
-                    <span [style.color]="star <= getRoundedAverage() ? '#fbbf24' : '#e2e8f0'">★</span>
-                  }
-                </div>
-                <span class="meta-value" style="font-size: 0.9rem;">({{ averageRating | number:'1.1-1' }})</span>
-              </div>
-            } @else {
-              <span class="meta-value meta-placeholder">Nog geen beoordelingen</span>
-            }
-          </div>
-
-          <div class="meta-row">
-            <span class="meta-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              Reviews
-            </span>
-            @if (reviews.length > 0) {
-              <span class="meta-value">{{ reviews.length }} reviews</span>
-            } @else {
-              <span class="meta-value meta-placeholder">Nog geen reviews</span>
-            }
+            <span class="stat-label">Leesniveau</span>
           </div>
         </div>
-      </section>
+      </aside>
 
-      <!-- Samenvatting -->
-      <section class="summary-section">
-        <h2 class="section-title">Samenvatting</h2>
-        <p class="summary-text">{{ selectedBook.description }}</p>
-      </section>
-
-      <!-- Genres -->
-      <section class="genres-section">
-        <h2 class="section-title">Genres</h2>
-        @if ((selectedBook.genres?.length ?? 0) > 0) {
-          <div class="genres-tags">
-            @for (genre of selectedBook.genres; track genre.name) {
-              <span class="genre-tag" [style.background-color]="genre.color">
-                {{ genre.name }}
-              </span>
-            }
+      <main class="main-content">
+        <header class="content-header">
+          <div class="title-section">
+            <h1 class="book-title">{{ selectedBook.title }}</h1>
+            <p class="book-author">Geschreven door {{ selectedBook.author }}</p>
           </div>
-        } @else {
-          <span class="meta-value meta-placeholder">Geen genres beschikbaar</span>
-        }
-      </section>
+        </header>
 
-      <!-- Gerelateerde boeken Carrousel -->
-      <section class="genres-section">
-        <div class="carousel-header">
-          <h2 class="section-title">Gerelateerde boeken</h2>
-
-          @if (relatedBooksCarousel.length > 0) {
-            <div class="carousel-controls">
-
-              <app-button-hover-help text="Bekijk vorige gerelateerde boeken.">
-                <button class="carousel-btn prev" (click)="scrollCarousel('left')" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                </button>
-              </app-button-hover-help>
-
-              <app-button-hover-help text="Bekijk volgende gerelateerde boeken.">
-                <button class="carousel-btn next" (click)="scrollCarousel('right')" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </button>
-              </app-button-hover-help>
-
-            </div>
-          }
-        </div>
-
-        @if (relatedBooksCarousel.length > 0) {
-          <div class="related-books-carousel-wrapper">
-            <div class="related-books-carousel-container">
-              @for (book of relatedBooksCarousel; track book.id) {
-                <button class="carousel-book-card" type="button" (click)="openRelatedBook(book.id)">
-                  <img class="carousel-book-cover" [src]="book.imageUrl" [alt]="book.title" />
-                  <span class="carousel-book-title">{{ book.title }}</span>
-                  <span class="carousel-book-author">{{ book.author }}</span>
-                </button>
-              }
-            </div>
-          </div>
-        } @else {
-          <div class="empty-state">
-            <p>Geen gerelateerde boeken gevonden.</p>
-          </div>
-        }
-      </section>
-
-      <!-- Reviews -->
-      <section class="reviews-section">
-        <h2 class="section-title">Reviews</h2>
-
-        @if (reviews.length === 0) {
-          <div class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-            <p>Nog geen reviews beschikbaar. Wees de eerste!</p>
-          </div>
-        } @else {
-          <div class="reviews-list">
-            @for (review of reviews; track review.id) {
-              <div class="review-card">
-                <div class="review-header">
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    <strong>Anonieme lezer</strong>
-                    <div class="stars-display" style="display: flex; gap: 2px;">
-                      @for (star of starsArray; track $index) {
-                        <span class="star" [class.filled]="star <= review.rating">★</span>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="review-actions" style="display: flex; gap: 8px;">
-
-                    <app-button-hover-help
-                      [text]="review.reportedByCurrentUser
-                        ? 'Je hebt deze review al gerapporteerd.'
-                        : 'Rapporteer deze review als de inhoud ongepast is.'">
-                      <button
-                        class="delete-review-btn"
-                        [disabled]="review.reportedByCurrentUser"
-                        (click)="reportReview(review)"
-                        [style.opacity]="review.reportedByCurrentUser ? '0.5' : '1'">
-                        <lucide-angular
-                          [img]="Flag"
-                          size="18"
-                          [style.color]="review.reportedByCurrentUser ? '#f87171' : 'inherit'">
-                        </lucide-angular>
-
-                        @if (review.reportedByCurrentUser) {
-                          <span style="font-size: 0.8rem; color: #f87171; margin-left: 4px;">
-                            Gerapporteerd
-                          </span>
-                        }
-                      </button>
-                    </app-button-hover-help>
-
-                    <app-button-hover-help text="Verwijder deze review.">
-                      <button
-                        class="delete-review-btn"
-                        (click)="deleteReview(review.id)">
-                        <lucide-angular [img]="Trash2" size="18"></lucide-angular>
-                      </button>
-                    </app-button-hover-help>
-
-                  </div>
-                </div>
-
-                <p class="review-text">{{ review.comment }}</p>
-              </div>
-            }
-          </div>
-        }
-
-        <div class="add-review-container">
-          <h3 class="add-review-title">Laat een review achter</h3>
-
-          @if (authService.currentUser()?.reviewBlocked) {
-            <div class="review-blocked-message" style="color: #ef4444; background: #fee2e2; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-              Je kunt momenteel geen reviews plaatsen omdat deze functionaliteit voor jou is geblokkeerd. Neem contact op met een bibliotheekbeheerder voor meer informatie.
-            </div>
-          } @else {
-            <div class="rating-input-group">
-              <span class="rating-label">Jouw beoordeling:</span>
-              <div class="stars-clickable">
-                @for (star of starsArray; track $index) {
-                  <span class="star clickable" [class.filled]="star <= newReviewRating" (click)="setRating(star)">
-                    ★
-                  </span>
-                }
-              </div>
-            </div>
-
-            <details class="review-help-box">
-              <summary>
-                <span>Hoe schrijf ik een goede review?</span>
-
-                <lucide-angular
-                  class="review-help-icon"
-                  [img]="ChevronDown"
-                  size="18">
-                </lucide-angular>
-              </summary>
-
-              <div class="review-help-content">
-                <p>
-                  <span class="review-step-number">1</span>
-                  <span>
-                    <strong>Korte samenvatting</strong><br>
-                    Dit boek gaat over ...
-                  </span>
-                </p>
-
-                <p>
-                  <span class="review-step-number">2</span>
-                  <span>
-                    <strong>Mijn mening</strong><br>
-                    Ik vond het boek ... omdat ...
-                  </span>
-                </p>
-
-                <p>
-                  <span class="review-step-number">3</span>
-                  <span>
-                    <strong>Personage</strong><br>
-                    Mijn favoriete personage was ... omdat ...
-                  </span>
-                </p>
-
-                <p>
-                  <span class="review-step-number">4</span>
-                  <span>
-                    <strong>Aanrader</strong><br>
-                    Ik zou dit boek wel/niet aanraden, want ...
-                  </span>
-                </p>
-              </div>
-            </details>
-
-            <textarea
-              [(ngModel)]="newReviewText"
-              rows="4"
-              class="review-textarea"
-              placeholder="Wat vond je van dit boek?">
-            </textarea>
+        <section class="reader-actions-section">
+          <div class="action-buttons">
+            <app-button-hover-help
+              class="full-button-help"
+              text="Bekijk een korte preview van dit boek."
+            >
+              <button class="action-btn secondary" (click)="loadPreview()">
+                <lucide-icon [img]="BookOpen" [size]="18" style="margin-right: 8px"></lucide-icon>
+                <span>Preview</span>
+              </button>
+            </app-button-hover-help>
 
             <app-button-hover-help
               class="full-button-help"
-              [text]="!newReviewText.trim()
-                ? 'Schrijf eerst een review voordat je deze kunt plaatsen.'
-                : 'Plaats je review bij dit boek.'">
-              <button
-                (click)="submitReview()"
-                [disabled]="!newReviewText.trim()"
-                class="action-btn primary submit-review-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                  </polygon>
-                </svg>
-                <span>Plaats review</span>
+              text="Voeg dit boek toe aan één van je leeslijsten."
+            >
+              <button class="action-btn primary" style="position: relative" (click)="toggleListPicker()">
+                <lucide-icon [img]="Bookmark" [size]="18" style="margin-right: 8px"></lucide-icon>
+                <span>Aan leeslijst toevoegen</span>
+
+                @if (showListPicker) {
+                  <div class="list-picker-dropdown" (click)="$event.stopPropagation()">
+                    <div class="list-picker-header">Kies een leeslijst</div>
+                    @if (pickerReadingLists.length > 0) {
+                      <div class="list-picker-items">
+                        @for (list of pickerReadingLists; track list.id) {
+                          <div class="list-picker-item" (click)="addBookToList(list.id)">
+                            {{ list.name }}
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <div class="list-picker-empty">
+                        Geen leeslijsten gevonden. Maak er eerst een aan in het overzicht.
+                      </div>
+                    }
+                  </div>
+                }
               </button>
             </app-button-hover-help>
-          }
-        </div>
-      </section>
+          </div>
+        </section>
 
-      <!-- Preview Feedback -->
-      @if (isPreviewModalOpen()) {
-        <div class="preview-modal-overlay" (click)="closePreviewModal()">
-          <div class="preview-modal" (click)="$event.stopPropagation()">
-            <div class="preview-modal-header">
-              <h3>Boek preview</h3>
+        @if (roleService.canManageLessonTip()) {
+          <section class="management-section">
+            <h2 class="section-title">Bibliotheekbeheer</h2>
 
-              <app-button-hover-help text="Sluit de preview van dit boek.">
-                <button class="action-btn secondary" type="button" (click)="closePreviewModal()">
-                  Sluiten
+            <div class="action-buttons">
+              <app-button-hover-help class="full-button-help" text="Pas de gegevens van dit boek aan.">
+                <button type="button" class="action-btn action-button--edit" (click)="goToEditPage(selectedBook.id)">
+                  <lucide-icon [img]="Pencil" [size]="16" strokeWidth="2.5" style="margin-right: 6px"></lucide-icon>
+                  <span>Bewerken</span>
+                </button>
+              </app-button-hover-help>
+
+              <app-button-hover-help class="full-button-help" text="Verwijder dit boek uit de bibliotheek.">
+                <button type="button" class="action-btn action-button--delete" (click)="deleteBook(selectedBook.id)">
+                  <lucide-icon [img]="Trash2" [size]="16" strokeWidth="2.5" style="margin-right: 6px"></lucide-icon>
+                  <span>Verwijderen</span>
                 </button>
               </app-button-hover-help>
             </div>
+          </section>
 
-            @if (previewState() === 'loading') {
-              <p class="preview-feedback">Preview wordt geladen...</p>
+          <section
+            class="detail-section"
+            style="background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06)"
+          >
+            <div class="detail-section__header" style="margin-bottom: 16px">
+              <p
+                class="detail-section__eyebrow"
+                style="margin: 0 0 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--main-color, #8a1e41)"
+              >
+                Lestips
+              </p>
+              <h2
+                class="detail-section__title"
+                style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #1f2937"
+              >
+                Lestips bij dit boek
+              </h2>
+            </div>
+
+            @if (isLoadingLessonTips()) {
+              <div class="state-panel state-panel--compact">
+                <p>Lestips worden geladen...</p>
+              </div>
+            } @else if (!lessonTipPreview() || lessonTipPreview()!.lessonTips.length === 0) {
+              <div class="state-panel state-panel--compact">
+                <p>Er zijn nog geen lestips gekoppeld aan dit boek.</p>
+              </div>
+            } @else {
+              <div class="lesson-tip-preview-list">
+                @for (lessonTip of lessonTipPreview()!.lessonTips; track lessonTip.id) {
+                  <article class="lesson-tip-preview-card" (click)="openLessonTipDetail(lessonTip.id)">
+                    <div class="lesson-tip-preview-card__content">
+                      <h3 class="lesson-tip-preview-card__title">{{ lessonTip.title }}</h3>
+                      <p class="lesson-tip-preview-card__description">{{ lessonTip.description }}</p>
+                      <span class="lesson-tip-preview-card__meta">
+                        Laatst bijgewerkt op {{ lessonTip.updatedAt | date: "dd/MM/yyyy" }}
+                      </span>
+                    </div>
+
+                    <div class="lesson-tip-preview-card__action">Bekijken</div>
+                  </article>
+                }
+              </div>
+
+              <div class="lesson-tip-preview-footer">
+                <p class="lesson-tip-preview-count">
+                  {{ lessonTipPreview()!.totalCount }} lestips gekoppeld aan dit boek.
+                </p>
+
+                @if (lessonTipPreview()!.hasMore) {
+                  <button
+                    type="button"
+                    class="action-button action-button--secondary"
+                    (click)="openAllLessonTipsForBook()"
+                  >
+                    Bekijk alle lestips van dit boek
+                  </button>
+                }
+              </div>
             }
+          </section>
+        }
 
-            @if (previewState() === 'error') {
-              <p class="preview-feedback preview-error">{{ previewErrorMessage() }}</p>
-            }
+        <section class="meta-section">
+          <h2 class="section-title">Details</h2>
+          <div class="meta-grid">
+            <div class="meta-row">
+              <span class="meta-label">Pagina's</span>
+              <span class="meta-value">{{ selectedBook.pages }}</span>
+            </div>
 
-            @if (previewState() === 'ready') {
-              @if (previewData(); as preview) {
-                <div class="preview-feedback">
-                  <p>{{ preview.message }}</p>
-                </div>
+            <div class="meta-row">
+              <span class="meta-label">Publicatiejaar</span>
+              <span class="meta-value">{{ selectedBook.releaseYear }}</span>
+            </div>
 
-                @if (embeddedPreviewUrl(); as safeEmbedUrl) {
-                  <div class="embedded-preview-wrapper">
-                    <iframe
-                      class="embedded-preview-frame"
-                      [src]="safeEmbedUrl"
-                      title="Boek preview"
-                      loading="lazy"
-                      referrerpolicy="no-referrer"
-                      sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox">
-                    </iframe>
+            <div class="meta-row">
+              <span class="meta-label">Rating</span>
+              @if (reviews.length > 0) {
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <div class="stars-display" style="display: flex; gap: 2px; font-size: 1.1rem">
+                    @for (star of starsArray; track $index) {
+                      <span [style.color]="star <= getRoundedAverage() ? '#fbbf24' : '#e2e8f0'">★</span>
+                    }
                   </div>
+                  <span class="meta-value" style="font-size: 0.9rem">
+                    ({{ averageRating | number: "1.1-1" }})
+                  </span>
+                </div>
+              } @else {
+                <span class="meta-value meta-placeholder">Nog geen beoordelingen</span>
+              }
+            </div>
+
+            <div class="meta-row">
+              <span class="meta-label">Reviews</span>
+              @if (reviews.length > 0) {
+                <span class="meta-value">{{ reviews.length }} reviews</span>
+              } @else {
+                <span class="meta-value meta-placeholder">Nog geen reviews</span>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="summary-section">
+          <h2 class="section-title">Samenvatting</h2>
+          <p class="summary-text">{{ selectedBook.description }}</p>
+        </section>
+
+        <section class="genres-section">
+          <h2 class="section-title">Genres</h2>
+          @if ((selectedBook.genres?.length ?? 0) > 0) {
+            <div class="genres-tags">
+              @for (genre of selectedBook.genres; track genre.name) {
+                <span class="genre-tag" [style.background-color]="genre.color">
+                  {{ genre.name }}
+                </span>
+              }
+            </div>
+          } @else {
+            <span class="meta-value meta-placeholder">Geen genres beschikbaar</span>
+          }
+        </section>
+
+        <section class="genres-section">
+          <div class="carousel-header">
+            <h2 class="section-title">Gerelateerde boeken</h2>
+
+            @if (relatedBooksCarousel.length > 0) {
+              <div class="carousel-controls">
+                <app-button-hover-help text="Bekijk vorige gerelateerde boeken.">
+                  <button class="carousel-btn prev" (click)="scrollCarousel('left')" type="button" title="Vorige">
+                    ‹
+                  </button>
+                </app-button-hover-help>
+
+                <app-button-hover-help text="Bekijk volgende gerelateerde boeken.">
+                  <button class="carousel-btn next" (click)="scrollCarousel('right')" type="button" title="Volgende">
+                    ›
+                  </button>
+                </app-button-hover-help>
+              </div>
+            }
+          </div>
+
+          @if (relatedBooksCarousel.length > 0) {
+            <div class="related-books-carousel-wrapper">
+              <div class="related-books-carousel-container">
+                @for (book of relatedBooksCarousel; track book.id) {
+                  <button class="carousel-book-card" type="button" (click)="openRelatedBook(book.id)">
+                    <img class="carousel-book-cover" [src]="book.imageUrl" [alt]="book.title" />
+                    <span class="carousel-book-title">{{ book.title }}</span>
+                    <span class="carousel-book-author">{{ book.author }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="empty-state">
+              <p>Geen gerelateerde boeken gevonden.</p>
+            </div>
+          }
+        </section>
+
+        <section class="reviews-section">
+          <h2 class="section-title">Reviews</h2>
+
+          @if (reviews.length === 0) {
+            <div class="empty-state">
+              <p>Nog geen reviews beschikbaar. Wees de eerste!</p>
+            </div>
+          } @else {
+            <div class="reviews-list">
+              @for (review of reviews; track review.id) {
+                <div class="review-card">
+                  <div class="review-header">
+                    <div style="display: flex; align-items: center; gap: 12px">
+                      <strong>Anonieme lezer</strong>
+                      <div class="stars-display" style="display: flex; gap: 2px">
+                        @for (star of starsArray; track $index) {
+                          <span class="star" [class.filled]="star <= review.rating">★</span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="review-actions" style="display: flex; gap: 8px">
+                      <app-button-hover-help
+                        [text]="review.reportedByCurrentUser
+                          ? 'Je hebt deze review al gerapporteerd.'
+                          : 'Rapporteer deze review als de inhoud ongepast is.'"
+                      >
+                        <button
+                          class="delete-review-btn"
+                          [disabled]="review.reportedByCurrentUser"
+                          (click)="reportReview(review)"
+                          [style.opacity]="review.reportedByCurrentUser ? '0.5' : '1'"
+                        >
+                          <lucide-angular
+                            [img]="Flag"
+                            size="18"
+                            [style.color]="review.reportedByCurrentUser ? '#f87171' : 'inherit'"
+                          ></lucide-angular>
+
+                          @if (review.reportedByCurrentUser) {
+                            <span style="font-size: 0.8rem; color: #f87171; margin-left: 4px">
+                              Gerapporteerd
+                            </span>
+                          }
+                        </button>
+                      </app-button-hover-help>
+
+                      <app-button-hover-help text="Verwijder deze review.">
+                        <button class="delete-review-btn" (click)="deleteReview(review.id)">
+                          <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                        </button>
+                      </app-button-hover-help>
+                    </div>
+                  </div>
+
+                  <p class="review-text">{{ review.comment }}</p>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="add-review-container">
+            <h3 class="add-review-title">Laat een review achter</h3>
+
+            @if (authService.currentUser()?.reviewBlocked) {
+              <div
+                class="review-blocked-message"
+                style="color: #ef4444; background: #fee2e2; padding: 12px; border-radius: 8px; margin-bottom: 16px"
+              >
+                Je kunt momenteel geen reviews plaatsen omdat deze functionaliteit voor jou is geblokkeerd.
+                Neem contact op met een bibliotheekbeheerder voor meer informatie.
+              </div>
+            } @else {
+              <div class="rating-input-group">
+                <span class="rating-label">Jouw beoordeling:</span>
+                <div class="stars-clickable">
+                  @for (star of starsArray; track $index) {
+                    <span class="star clickable" [class.filled]="star <= newReviewRating" (click)="setRating(star)">
+                      ★
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <details class="review-help-box">
+                <summary>
+                  <span>Hoe schrijf ik een goede review?</span>
+                  <lucide-angular class="review-help-icon" [img]="ChevronDown" size="18"></lucide-angular>
+                </summary>
+
+                <div class="review-help-content">
+                  <p><span class="review-step-number">1</span><span><strong>Korte samenvatting</strong><br />Dit boek gaat over ...</span></p>
+                  <p><span class="review-step-number">2</span><span><strong>Mijn mening</strong><br />Ik vond het boek ... omdat ...</span></p>
+                  <p><span class="review-step-number">3</span><span><strong>Personage</strong><br />Mijn favoriete personage was ... omdat ...</span></p>
+                  <p><span class="review-step-number">4</span><span><strong>Aanrader</strong><br />Ik zou dit boek wel/niet aanraden, want ...</span></p>
+                </div>
+              </details>
+
+              <textarea
+                [(ngModel)]="newReviewText"
+                rows="4"
+                class="review-textarea"
+                placeholder="Wat vond je van dit boek?"
+              ></textarea>
+
+              <app-button-hover-help
+                class="full-button-help"
+                [text]="!newReviewText.trim()
+                  ? 'Schrijf eerst een review voordat je deze kunt plaatsen.'
+                  : 'Plaats je review bij dit boek.'"
+              >
+                <button
+                  (click)="submitReview()"
+                  [disabled]="!newReviewText.trim()"
+                  class="action-btn primary submit-review-btn"
+                >
+                  <span>Plaats review</span>
+                </button>
+              </app-button-hover-help>
+            }
+          </div>
+        </section>
+
+        @if (isPreviewModalOpen()) {
+          <div class="preview-modal-overlay" (click)="closePreviewModal()">
+            <div class="preview-modal" (click)="$event.stopPropagation()">
+              <div class="preview-modal-header">
+                <h3>Boek preview</h3>
+
+                <app-button-hover-help text="Sluit de preview van dit boek.">
+                  <button class="action-btn secondary" type="button" (click)="closePreviewModal()">
+                    Sluiten
+                  </button>
+                </app-button-hover-help>
+              </div>
+
+              @if (previewState() === "loading") {
+                <p class="preview-feedback">Preview wordt geladen...</p>
+              }
+
+              @if (previewState() === "error") {
+                <p class="preview-feedback preview-error">
+                  {{ previewErrorMessage() }}
+                </p>
+              }
+
+              @if (previewState() === "ready") {
+                @if (previewData(); as preview) {
+                  <div class="preview-feedback">
+                    <p>{{ preview.message }}</p>
+                  </div>
+
+                  @if (embeddedPreviewUrl(); as safeEmbedUrl) {
+                    <div class="embedded-preview-wrapper">
+                      <iframe
+                        class="embedded-preview-frame"
+                        [src]="safeEmbedUrl"
+                        title="Boek preview"
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+                      ></iframe>
+                    </div>
+                  }
                 }
               }
-            }
-
+            </div>
           </div>
-        </div>
-      }
-
-    </main>
+        }
+      </main>
+    </div>
   </div>
-</div>
 }

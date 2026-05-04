@@ -98,7 +98,7 @@ export class RoleService {
    * Too many methods for the same roles
    * refactor LATER //////////////////////////////////////////////////////////////////////////
    */
-  public canManageDidacticMaterials(): boolean {
+  public canManageLessonTip(): boolean {
     return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
   }
 
@@ -146,9 +146,7 @@ export class RoleService {
     return this.hasRole('ADMIN');
   }
 
-  public canModifyDidacticMaterial(
-    ownerUserId: string | null | undefined,
-  ): boolean {
+  public canModifyLessonTip(ownerUserId: string | null | undefined): boolean {
     const currentUserId = this.authService.currentUser()?.id;
 
     if (this.isAdmin()) {

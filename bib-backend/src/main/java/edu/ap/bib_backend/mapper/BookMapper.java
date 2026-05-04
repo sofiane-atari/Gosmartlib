@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.mapper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -28,6 +27,7 @@ public class BookMapper {
         dto.setReleaseYear(book.getReleaseYear());
         dto.setReviewScore(book.getReviewScore() != null ? book.getReviewScore() : 0.0);
         dto.setAddedDate(book.getAddedDate());
+        dto.setDidactic(book.isDidactic());
         dto.setTotalCopies(book.getTotalCopies() != null ? book.getTotalCopies() : 0);
         dto.setAvailableCopies(book.getAvailableCopies() != null ? book.getAvailableCopies() : 0);
 
@@ -63,6 +63,7 @@ public class BookMapper {
         book.setImageUrl(dto.getImageUrl());
         book.setDescription(dto.getDescription());
         book.setReleaseYear(dto.getReleaseYear());
+        book.setDidactic(dto.isDidactic());
     }
 
     public List<BookDTO> toDTOList(List<Book> books) {

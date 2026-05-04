@@ -6,9 +6,12 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.user.UserService;
 
+import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpEntity;
@@ -40,6 +43,7 @@ public class SmartschoolOAuth2UserService
     private final GroupService groupService;
     private final SmartschoolProfileService smartschoolProfileService;
     private final SchoolRepository schoolRepository;
+    private final OneRosterClient oneRosterClient;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -49,13 +53,14 @@ public class SmartschoolOAuth2UserService
             SmartschoolAudienceResolverService audienceResolverService,
             GroupService groupService,
             SmartschoolProfileService smartschoolProfileService,
-            SchoolRepository schoolRepository) {
+            SchoolRepository schoolRepository, OneRosterClient oneRosterClient) {
         this.userService = userService;
         this.roleService = roleService;
         this.audienceResolverService = audienceResolverService;
         this.groupService = groupService;
         this.smartschoolProfileService = smartschoolProfileService;
         this.schoolRepository = schoolRepository;
+        this.oneRosterClient = oneRosterClient;
     }
 
     @Override
@@ -97,6 +102,9 @@ public class SmartschoolOAuth2UserService
         String yearCode = audienceResolverService.resolveYearCode(attributes, classCode);
         String schoolCode = audienceResolverService.resolveSchoolCode(attributes);
 
+        //debug
+
+
         attributes.put(CLAIM_CLASS_CODE, classCode);
         attributes.put(CLAIM_YEAR_CODE, yearCode);
         attributes.put(CLAIM_SCHOOL_CODE, schoolCode);
@@ -109,6 +117,13 @@ public class SmartschoolOAuth2UserService
                         roleService.getRoleEntity(basisrol),
                         school
                 ));
+
+        String oneRosterSourcedId =
+                oneRosterClient.findSourcedIdByLegacyIdentifier(schoolCode, userId);
+
+        if (oneRosterSourcedId != null && !oneRosterSourcedId.isBlank()) {
+            user.setOneRosterSourcedId(oneRosterSourcedId);
+        }
 
         if (user.getSchool() == null) {
             user.setSchool(school);
@@ -295,4 +310,6 @@ public class SmartschoolOAuth2UserService
     private String getOAuthUserRole(Role role) {
         return "ROLE_" + role.name();
     }
+
+
 }

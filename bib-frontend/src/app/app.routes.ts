@@ -3,7 +3,8 @@ import { BookDetailComponent } from './component/catalogus/book-detail/book-deta
 import { AddBookPageComponent } from './component/book/add-book-page/add-book-page.component';
 import { BookEditPageComponent } from './component/book/book-edit-page/book-edit-page.component';
 import { BookManagementComponent } from './component/book/book-management/book-management.component';
-import { didacticMaterialRoutes } from './routes/didactic-material.routes';
+import { LessonTipRoutes } from './routes/lesson-tip.routes';
+import { SettingsComponent } from './component/settings/settings/settings.component';
 
 // Genre
 import { DashboardGenresComponent } from './component/genre/dashboard-genres/dashboard-genres.component';
@@ -36,21 +37,20 @@ import { SchoolDashboardComponent } from './component/school/school-dashboard/sc
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
 import { SettingsComponent } from './component/settings/settings/settings.component';
 import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashboard.component';
+import {ReturnLoanComponent} from "./component/loan/return-loan/return-loan.component";
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
   { path: 'account', redirectTo: '/profile', pathMatch: 'full' },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
-  { path: 'settings', component: SettingsComponent, canActivate: [authGuard] },
   {
     path: 'review-dashboard',
     component: ReviewDashboardComponent,
     canActivate: [reviewModerationGuard, authGuard, staffOnlyGuard],
   },
 
-  // didactic Routes
-  ...didacticMaterialRoutes,
+  ...LessonTipRoutes,
   {
     path: 'book/:id',
     component: BookDetailComponent,
@@ -119,10 +119,20 @@ export const routes: Routes = [
     component: SchoolDashboardComponent,
     canActivate: [authGuard, adminOnlyGuard],
   },
-    {
+  {
     path: 'tag',
     component: TagDashboardComponent,
     canActivate: [authGuard, adminOnlyGuard],
+  },
+  {
+    path: 'loans/return',
+    component: ReturnLoanComponent,
+    canActivate: [authGuard, staffOnlyGuard],
+  },
+  {
+    path: 'settings',
+    component: SettingsComponent,
+    canActivate: [authGuard],
   },
   { path: '**', redirectTo: '/catalog' },
 ];

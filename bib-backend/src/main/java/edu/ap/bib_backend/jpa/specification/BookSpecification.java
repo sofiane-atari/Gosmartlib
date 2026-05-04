@@ -68,9 +68,10 @@ public final class BookSpecification {
                 ));
                 query.distinct(true);
             }
-
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+
+
     }
 
     public static Specification<Book> hasAvailableCopyInSchool(String schoolDomainName) {
@@ -113,6 +114,16 @@ public final class BookSpecification {
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Book> visibleForUser(boolean canSeeDidacticBooks) {
+        return (root, query, criteriaBuilder) -> {
+            if (canSeeDidacticBooks) {
+                return criteriaBuilder.conjunction();
+            }
+
+            return criteriaBuilder.isFalse(root.get("didactic"));
         };
     }
 }
