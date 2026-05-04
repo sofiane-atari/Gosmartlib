@@ -52,7 +52,8 @@ public interface LoanMapper {
                         copy.getBook().getId(),
                         copy.getBook().getTitle(),
                         copy.getBook().getAuthor(),
-                        copy.getBook().getIsbn()
+                        copy.getBook().getIsbn(),
+                        copy.getBook().getImageUrl()
                 ))
                 .toList();
     }

@@ -1,1 +1,164 @@
-<p>loan-history works!</p>
+<div class="loan-history">
+  <header class="page-header">
+    <h1>Uitleengeschiedenis</h1>
+    <p>
+      {{ activeLoanItems().length }} boek(en) momenteel uitgeleend •
+      {{ returnedLoanItems().length }} boek(en) teruggebracht
+    </p>
+  </header>
+
+  <section class="stat-grid">
+    <article class="stat-card stat-card--blue">
+      <lucide-icon [name]="Clock"></lucide-icon>
+      <div>
+        <strong>{{ activeLoanItems().length }}</strong>
+        <span>Nu Uitgeleend</span>
+      </div>
+    </article>
+
+    <article class="stat-card stat-card--green">
+      <lucide-icon [name]="CheckCircle2"></lucide-icon>
+      <div>
+        <strong>{{ returnedLoanItems().length }}</strong>
+        <span>Teruggebracht</span>
+      </div>
+    </article>
+
+    <article class="stat-card stat-card--purple">
+      <lucide-icon [name]="BookOpen"></lucide-icon>
+      <div>
+        <strong>{{ totalLoanedBooks() }}</strong>
+        <span>Totaal Uitgeleend</span>
+      </div>
+    </article>
+  </section>
+
+  @if (isLoading()) {
+    <div class="empty-state">Uitleningen laden...</div>
+  } @else if (errorMessage()) {
+    <div class="empty-state">{{ errorMessage() }}</div>
+  } @else if (loans().length === 0) {
+    <div class="empty-state">
+      <lucide-icon [name]="LibraryBig"></lucide-icon>
+      <h3>Geen uitleningen gevonden</h3>
+      <p>Je hebt nog geen boeken geleend.</p>
+    </div>
+  } @else {
+    <section class="loan-section">
+      <h2>Momenteel Uitgeleend</h2>
+
+      @if (activeLoanItems().length === 0) {
+        <div class="empty-state empty-state--small">
+          Je hebt momenteel geen boeken uitgeleend.
+        </div>
+      } @else {
+        <div class="loan-list">
+          @for (loan of activeLoanItems(); track loan.id) {
+            @for (book of loan.books; track book.id) {
+              <article class="loan-card loan-card--active">
+                <img
+                  class="loan-card__cover"
+                  [src]="book.imageUrl || 'assets/images/book-placeholder.png'"
+                  [alt]="book.title"
+                />
+
+                <div class="loan-card__content">
+                  <div class="loan-card__top">
+                    <div>
+                      <h3>{{ book.title }}</h3>
+                      <p>{{ book.author || "Onbekende auteur" }}</p>
+                    </div>
+
+                    <span [class]="getStatusClass(loan.status)">
+                      {{ getLoanStatusLabel(loan.status) }}
+                    </span>
+                  </div>
+
+                  <div class="loan-card__dates">
+                    <div>
+                      <lucide-icon
+                        [img]="Calendar"
+                        [size]="14"
+                        style="margin-right: 4px; color: #6b7280"
+                      ></lucide-icon>
+                      <span>Uitgeleend op</span>
+                      <strong>{{ loan.loanDate | date: "dd-MM-yyyy" }}</strong>
+                    </div>
+
+                    <div>
+                      <lucide-icon
+                        [img]="Calendar"
+                        [size]="14"
+                        style="margin-right: 4px; color: #6b7280"
+                      ></lucide-icon>
+                      <span>Inleveren voor</span>
+                      <strong [class.date-overdue]="loan.status === 'OVERDUE'">
+                        {{ loan.returnDate | date: "dd-MM-yyyy" }}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div class="loan-warning">
+                    ⚠ Vergeet niet om dit boek in te leveren voor
+                    <strong>{{ loan.returnDate | date: "dd-MM-yyyy" }}</strong>
+                  </div>
+                </div>
+              </article>
+            }
+          }
+        </div>
+      }
+    </section>
+
+    <section class="loan-section">
+      <h2>Teruggebrachte Boeken</h2>
+
+      @if (returnedLoanItems().length === 0) {
+        <div class="empty-state empty-state--small">
+          Je hebt nog geen boeken teruggebracht.
+        </div>
+      } @else {
+        <div class="loan-list">
+          @for (loan of returnedLoanItems(); track loan.id) {
+            @for (book of loan.books; track book.id) {
+              <article class="loan-card loan-card--returned">
+                <img
+                  class="loan-card__cover"
+                  [src]="book.imageUrl || 'assets/images/book-placeholder.png'"
+                  [alt]="book.title"
+                />
+
+                <div class="loan-card__content">
+                  <div class="loan-card__top">
+                    <div>
+                      <h3>{{ book.title }}</h3>
+                      <p>{{ book.author || "Onbekende auteur" }}</p>
+                    </div>
+
+                    <span [class]="getStatusClass(loan.status)">
+                      {{ getLoanStatusLabel(loan.status) }}
+                    </span>
+                  </div>
+
+                  <div class="loan-card__dates">
+                    <div>
+                      <span>Uitgeleend op</span>
+                      <strong>{{ loan.loanDate | date: "dd-MM-yyyy" }}</strong>
+                    </div>
+
+                    <div>
+                      <span>Teruggebracht op</span>
+                      <strong>{{
+                        loan.returnedDate | date: "dd-MM-yyyy"
+                      }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            }
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

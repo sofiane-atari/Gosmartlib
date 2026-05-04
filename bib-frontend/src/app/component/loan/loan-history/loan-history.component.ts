@@ -1,12 +1,102 @@
-import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  AlertTriangle,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  LibraryBig,
+  LucideAngularModule,
+  Calendar,
+} from 'lucide-angular';
+
+import { Loan, LoanStatus } from '../../../model/loan.model';
+import { LoansService } from '../../../services/loan/loans.service';
+import { ToastService } from '../../../services/toast/toast.service';
 
 @Component({
   selector: 'app-loan-history',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './loan-history.component.html',
-  styleUrl: './loan-history.component.css'
+  styleUrl: './loan-history.component.css',
 })
-export class LoanHistoryComponent {
+export class LoanHistoryComponent implements OnInit {
+  private readonly loansService = inject(LoansService);
 
+  protected readonly BookOpen = BookOpen;
+  protected readonly Clock = Clock;
+  protected readonly CheckCircle2 = CheckCircle2;
+  protected readonly AlertTriangle = AlertTriangle;
+  protected readonly LibraryBig = LibraryBig;
+  protected readonly Calendar = Calendar;
+
+  protected readonly loans = signal<Loan[]>([]);
+  protected readonly isLoading = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
+  private readonly toastService = inject(ToastService);
+
+  protected activeLoanItems(): Loan[] {
+    return this.loans().filter(
+      (loan) => loan.status === 'ACTIVE' || loan.status === 'OVERDUE',
+    );
+  }
+
+  protected returnedLoanItems(): Loan[] {
+    return this.loans().filter((loan) => loan.status === 'RETURNED');
+  }
+
+  protected totalLoanedBooks = computed(() =>
+    this.loans().reduce(
+      (total, loan) => total + (loan.books?.length ?? loan.bookIds.length),
+      0,
+    ),
+  );
+
+  public ngOnInit(): void {
+    this.loadLoanHistory();
+  }
+
+  protected getLoanStatusLabel(status?: LoanStatus): string {
+    if (status === 'RETURNED') {
+      return 'Teruggebracht';
+    }
+
+    if (status === 'OVERDUE') {
+      return 'Te laat';
+    }
+
+    return 'Actief uitgeleend';
+  }
+
+  protected getStatusClass(status?: LoanStatus): string {
+    if (status === 'OVERDUE') {
+      return 'status-badge status-badge--overdue';
+    }
+
+    if (status === 'RETURNED') {
+      return 'status-badge status-badge--returned';
+    }
+
+    return 'status-badge status-badge--active';
+  }
+
+  private loadLoanHistory(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    this.loansService.getMyLoanHistory().subscribe({
+      next: (loans) => {
+        this.loans.set(loans);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        const message = 'Je uitleengeschiedenis kon niet geladen worden.';
+
+        this.errorMessage.set(message);
+        this.toastService.show(message, 'error');
+        this.isLoading.set(false);
+      },
+    });
+  }
 }

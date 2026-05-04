@@ -126,6 +126,7 @@ public class LoanService {
                             .loanDate(dto.loanDate())
                             .returnDate(dto.returnDate())
                             .returnedDate(dto.returnedDate())
+                            .status(dto.status())
                             .build();
                 })
                 .toList();
