@@ -58,7 +58,7 @@ export class ReturnLoanComponent implements OnInit {
   });
 
   public ngOnInit(): void {
-    this.loadLoans();
+    // this.loadLoans();
   }
 
   protected goBack(): void {
@@ -91,19 +91,21 @@ export class ReturnLoanComponent implements OnInit {
     });
   }
 
-  private loadLoans(): void {
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
+  // private loadLoans(): void {
+  //   this.isLoading.set(true);
+  //   this.errorMessage.set(null);
 
-    this.loansService.getAllLoans().subscribe({
-      next: (loans) => {
-        this.loans.set(loans);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.errorMessage.set('Leningen konden niet geladen worden.');
-        this.isLoading.set(false);
-      },
-    });
-  }
+  //   this.loansService.getLoans(this.page(), this.pageSize()).subscribe({
+  //     next: (response) => {
+  //       this.loans.set(response.data);
+  //       this.totalItems.set(response.meta.totalItems);
+  //       this.totalPages.set(response.meta.totalPages);
+  //       this.isLoading.set(false);
+  //     },
+  //     error: () => {
+  //       this.errorMessage.set('Leningen konden niet geladen worden.');
+  //       this.isLoading.set(false);
+  //     }
+  //   });
+  // }
 }

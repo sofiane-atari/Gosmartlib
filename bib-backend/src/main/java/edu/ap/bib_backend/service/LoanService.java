@@ -3,6 +3,7 @@ package edu.ap.bib_backend.service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +15,8 @@ import edu.ap.bib_backend.service.smartschool.SmartschoolNotificationService;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.LoanDTO;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.jpa.entity.AuthSession;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -90,7 +93,7 @@ public class LoanService {
         return loanMapper.toDto(loan);
     }
 
-    public List<LoanDTO> findAll() {
+    public PageDTO<LoanDTO> findAll(int page, int pageSize) {
         List<Loan> loans = loanRepository.findAll();
 
         Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
@@ -121,7 +124,13 @@ public class LoanService {
 
         System.out.println("Alle display names: " + displayNamesByUserId);
 
-        return loans.stream()
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
+
+        List<LoanDTO> sortedDtos = loans.stream()
+                .sorted(
+                        Comparator
+                                .comparingInt((Loan loan) -> getLoanSortPriority(loan, today))
+                                .thenComparing(Loan::getReturnDate))
                 .map(loan -> {
                     LoanDTO dto = loanMapper.toDto(loan);
 
@@ -139,6 +148,27 @@ public class LoanService {
                             .build();
                 })
                 .toList();
+
+        int safePage = Math.max(page, 0);
+        int safePageSize = Math.max(pageSize, 1);
+
+        int totalItems = sortedDtos.size();
+        int totalPages = (int) Math.ceil((double) totalItems / safePageSize);
+
+        int fromIndex = safePage * safePageSize;
+        int toIndex = Math.min(fromIndex + safePageSize, totalItems);
+
+        List<LoanDTO> pageData = fromIndex >= totalItems
+                ? List.of()
+                : sortedDtos.subList(fromIndex, toIndex);
+
+        PaginatedMeta meta = new PaginatedMeta(
+                safePage,
+                safePageSize,
+                totalItems,
+                totalPages);
+
+        return new PageDTO<>(pageData, meta);
     }
 
     @Transactional
@@ -218,8 +248,7 @@ public class LoanService {
                     + ".";
 
             String notificationUrl = normalizeFrontendBaseUrl(frontendBaseUrl)
-                    + "/history"
-                    + loan.getId();
+                    + "/history";
 
             smartschoolNotificationService.sendNotification(
                     smartschoolBaseUrl,
@@ -245,5 +274,17 @@ public class LoanService {
         }
 
         return normalized;
+    }
+
+    private int getLoanSortPriority(Loan loan, LocalDate today) {
+        if (loan.getReturnedDate() == null && loan.getReturnDate().isBefore(today)) {
+            return 1; // Te laat
+        }
+
+        if (loan.getReturnedDate() == null) {
+            return 2; // Uitgeleend
+        }
+
+        return 3; // Teruggebracht
     }
 }
