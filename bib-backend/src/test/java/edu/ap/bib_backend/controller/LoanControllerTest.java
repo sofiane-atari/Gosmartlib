@@ -2,6 +2,8 @@ package edu.ap.bib_backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.ap.bib_backend.TestSecurityConfig;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
@@ -33,111 +35,125 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestSecurityConfig.class)
 class LoanControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private JwtService jwtService;
+        @MockitoBean
+        private JwtService jwtService;
 
-    @MockitoBean
-    private AdminOverrideService adminOverrideService;
+        @MockitoBean
+        private AdminOverrideService adminOverrideService;
 
-    @MockitoBean
-    private LoanService loanService;
+        @MockitoBean
+        private LoanService loanService;
 
-    @MockitoBean
-    private TokenStorageService tokenStorageService;
+        @MockitoBean
+        private TokenStorageService tokenStorageService;
 
-    @Test
-    void Given_ValidLoanBody_When_CreateLoan_Then_ReturnsOkAndCreatedLoan() throws Exception {
-        // Arrange
-        LoanDTO requestBody = new LoanDTO("user-1", List.of(101L, 202L), "2099-12-31");
-        LoanDTO createdLoan = new LoanDTO("user-1", List.of(101L, 202L), "2099-12-31");
+        @Test
+        void Given_ValidLoanBody_When_CreateLoan_Then_ReturnsOkAndCreatedLoan() throws Exception {
+                // Arrange
+                LoanDTO requestBody = new LoanDTO("user-1", List.of(101L, 202L), "2099-12-31");
+                LoanDTO createdLoan = new LoanDTO("user-1", List.of(101L, 202L), "2099-12-31");
 
-        when(loanService.create(requestBody)).thenReturn(createdLoan);
+                when(loanService.create(requestBody)).thenReturn(createdLoan);
 
-        // Act
-        ResultActions result = mockMvc.perform(post("/loans")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestBody)));
+                // Act
+                ResultActions result = mockMvc.perform(post("/loans")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestBody)));
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value("user-1"))
-                .andExpect(jsonPath("$.bookIds[0]").value(101))
-                .andExpect(jsonPath("$.bookIds[1]").value(202))
-                .andExpect(jsonPath("$.returnDate").value("2099-12-31"));
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.userId").value("user-1"))
+                                .andExpect(jsonPath("$.bookIds[0]").value(101))
+                                .andExpect(jsonPath("$.bookIds[1]").value(202))
+                                .andExpect(jsonPath("$.returnDate").value("2099-12-31"));
 
-        verify(loanService).create(requestBody);
-    }
+                verify(loanService).create(requestBody);
+        }
 
-    @Test
-    void Given_InvalidLoanBody_When_CreateLoan_Then_ReturnsBadRequest() throws Exception {
-        // Arrange
-        String invalidRequestBody = """
-                {
-                  "userId": "",
-                  "bookIds": [],
-                  "returnDate": ""
-                }
-                """;
+        @Test
+        void Given_InvalidLoanBody_When_CreateLoan_Then_ReturnsBadRequest() throws Exception {
+                // Arrange
+                String invalidRequestBody = """
+                                {
+                                  "userId": "",
+                                  "bookIds": [],
+                                  "returnDate": ""
+                                }
+                                """;
 
-        // Act
-        ResultActions result = mockMvc.perform(post("/loans")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidRequestBody));
+                // Act
+                ResultActions result = mockMvc.perform(post("/loans")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(invalidRequestBody));
 
-        // Assert
-        result.andExpect(status().isBadRequest());
-        verifyNoInteractions(loanService);
-    }
+                // Assert
+                result.andExpect(status().isBadRequest());
+                verifyNoInteractions(loanService);
+        }
 
-    @Test
-    void Given_LoansExist_When_GetAllLoans_Then_ReturnsOkAndLoans() throws Exception {
-        // Arrange
-        List<LoanDTO> loans = List.of(
-                new LoanDTO("user-1", List.of(101L), "2099-12-31"),
-                new LoanDTO("user-2", List.of(202L, 303L), "2099-11-30")
-        );
+        @Test
+        void Given_LoansExist_When_GetAllLoans_Then_ReturnsOkAndLoans() throws Exception {
+                // Arrange
+                List<LoanDTO> loans = List.of(
+                                new LoanDTO("user-1", List.of(101L), "2099-12-31"),
+                                new LoanDTO("user-2", List.of(202L, 303L), "2099-11-30"));
 
-        when(loanService.findAll()).thenReturn(loans);
+                PageDTO<LoanDTO> response = new PageDTO<>(
+                                loans,
+                                new PaginatedMeta(
+                                                0, // currentPage
+                                                10, // pageSize
+                                                2, // totalItems
+                                                1 // totalPages
+                                ));
 
-        // Act
-        ResultActions result = mockMvc.perform(get("/loans"));
+                when(loanService.findAll(0, 10)).thenReturn(response);
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].userId").value("user-1"))
-                .andExpect(jsonPath("$[0].bookIds[0]").value(101))
-                .andExpect(jsonPath("$[0].returnDate").value("2099-12-31"))
-                .andExpect(jsonPath("$[1].userId").value("user-2"))
-                .andExpect(jsonPath("$[1].bookIds[0]").value(202))
-                .andExpect(jsonPath("$[1].bookIds[1]").value(303))
-                .andExpect(jsonPath("$[1].returnDate").value("2099-11-30"));
+                // Act
+                ResultActions result = mockMvc.perform(get("/loans"));
 
-        verify(loanService).findAll();
-    }
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data[0].userId").value("user-1"))
+                                .andExpect(jsonPath("$.data[0].bookIds[0]").value(101))
+                                .andExpect(jsonPath("$.data[0].returnDate").value("2099-12-31"))
 
-    @Test
-    void Given_ExistingLoanId_When_ReturnLoan_Then_ReturnsOkAndReturnedLoan() throws Exception {
-        // Arrange
-        Long loanId = 1L;
-        LoanDTO returnedLoan = new LoanDTO("user-1", List.of(101L), "2026-05-03");
+                                .andExpect(jsonPath("$.data[1].userId").value("user-2"))
+                                .andExpect(jsonPath("$.data[1].bookIds[0]").value(202))
+                                .andExpect(jsonPath("$.data[1].bookIds[1]").value(303))
+                                .andExpect(jsonPath("$.data[1].returnDate").value("2099-11-30"))
 
-        when(loanService.returnLoan(loanId)).thenReturn(returnedLoan);
+                                .andExpect(jsonPath("$.meta.currentPage").value(0))
+                                .andExpect(jsonPath("$.meta.pageSize").value(10))
+                                .andExpect(jsonPath("$.meta.totalItems").value(2))
+                                .andExpect(jsonPath("$.meta.totalPages").value(1));
 
-        // Act
-        ResultActions result = mockMvc.perform(patch("/loans/{loanId}/return", loanId));
+                verify(loanService).findAll(0, 10);
+        }
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value("user-1"))
-                .andExpect(jsonPath("$.bookIds[0]").value(101))
-                .andExpect(jsonPath("$.returnDate").value("2026-05-03"));
+        @Test
+        void Given_ExistingLoanId_When_ReturnLoan_Then_ReturnsOkAndReturnedLoan() throws Exception {
+                // Arrange
+                Long loanId = 1L;
+                LoanDTO returnedLoan = new LoanDTO("user-1", List.of(101L), "2026-05-03");
 
-        verify(loanService).returnLoan(loanId);
-    }
+                when(loanService.returnLoan(loanId)).thenReturn(returnedLoan);
+
+                // Act
+                ResultActions result = mockMvc.perform(patch("/loans/{loanId}/return", loanId));
+
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.userId").value("user-1"))
+                                .andExpect(jsonPath("$.bookIds[0]").value(101))
+                                .andExpect(jsonPath("$.returnDate").value("2026-05-03"));
+
+                verify(loanService).returnLoan(loanId);
+        }
 }

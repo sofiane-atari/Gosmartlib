@@ -45,16 +45,15 @@ public class LoanController {
         return ResponseEntity.ok(loanService.returnLoan(loanId));
     }
 
-<<<<<<< bib-backend/src/main/java/edu/ap/bib_backend/controller/LoanController.java
     @GetMapping("/active")
     public ResponseEntity<PageDTO<LoanDTO>> getActiveLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
         return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize));
-=======
+    }
+
     @GetMapping("/me/history")
     public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(Authentication authentication) {
         return ResponseEntity.ok(loanService.findHistoryForCurrentUser(authentication));
->>>>>>> bib-backend/src/main/java/edu/ap/bib_backend/controller/LoanController.java
     }
 }
