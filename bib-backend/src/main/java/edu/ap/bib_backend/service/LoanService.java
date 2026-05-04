@@ -9,17 +9,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolNotificationService;
+
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.LoanDTO;
+import edu.ap.bib_backend.jpa.entity.AuthSession;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.repository.AuthSessionRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
-
 
 @Service
 public class LoanService {
@@ -28,12 +31,19 @@ public class LoanService {
     private final LoanMapper loanMapper;
     private final BookService bookService;
     private final ExternalUserDisplayService externalUserDisplayService;
+    private final SmartschoolNotificationService smartschoolNotificationService;
+    private final AuthSessionRepository authSessionRepository;
 
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService) {
+    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService,
+            ExternalUserDisplayService externalUserDisplayService,
+            SmartschoolNotificationService smartschoolNotificationService,
+            AuthSessionRepository authSessionRepository) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
         this.externalUserDisplayService = externalUserDisplayService;
+        this.smartschoolNotificationService = smartschoolNotificationService;
+        this.authSessionRepository = authSessionRepository;
     }
 
     @Transactional
@@ -66,10 +76,11 @@ public class LoanService {
 
         loan.setLoanDate(today);
         loan = loanRepository.save(loan);
+
+        sendSmartschoolLoanNotification(loan);
+
         return loanMapper.toDto(loan);
     }
-
-
 
     public List<LoanDTO> findAll() {
         List<Loan> loans = loanRepository.findAll();
@@ -83,9 +94,7 @@ public class LoanService {
                         loan -> loan.getUser().getSchool().getDomainName(),
                         Collectors.mapping(
                                 loan -> loan.getUser().getOneRosterSourcedId(),
-                                Collectors.toSet()
-                        )
-                ));
+                                Collectors.toSet())));
 
         System.out.println("UserIds per school: " + userIdsBySchoolCode);
 
@@ -95,8 +104,7 @@ public class LoanService {
             System.out.println("SchoolCode: " + schoolCode);
             System.out.println("UserIds naar OneRoster: " + userIds);
 
-            Map<String, String> names =
-                    externalUserDisplayService.getDisplayNames(schoolCode, userIds);
+            Map<String, String> names = externalUserDisplayService.getDisplayNames(schoolCode, userIds);
 
             System.out.println("Display names van OneRoster: " + names);
 
@@ -104,7 +112,6 @@ public class LoanService {
         });
 
         System.out.println("Alle display names: " + displayNamesByUserId);
-
 
         return loans.stream()
                 .map(loan -> {
@@ -139,5 +146,80 @@ public class LoanService {
         loan.setReturnedDate(today);
 
         return loanMapper.toDto(loanRepository.save(loan));
+    }
+
+    private void sendSmartschoolLoanNotification(Loan loan) {
+        try {
+            System.out.println("START Smartschool notification voor loanId: " + loan.getId());
+
+            if (loan.getUser() == null) {
+                System.err.println("STOP: loan.getUser() is null");
+                return;
+            }
+
+            String userId = loan.getUser().getId();
+            System.out.println("UserId voor notification: " + userId);
+
+            AuthSession authSession = authSessionRepository.findById(userId)
+                    .orElse(null);
+
+            if (authSession == null) {
+                System.err.println("STOP: Geen AuthSession gevonden voor userId: " + userId);
+                return;
+            }
+
+            System.out.println("AuthSession gevonden voor userId: " + userId);
+
+            String accessToken = authSession.getSmartschoolAccessToken();
+
+            if (accessToken == null || accessToken.isBlank()) {
+                System.err.println("STOP: Geen Smartschool access token gevonden voor userId: " + userId);
+                return;
+            }
+
+            System.out.println("Smartschool access token gevonden");
+
+            String smartschoolBaseUrl = loan.getCopies().stream()
+                    .findFirst()
+                    .map(copy -> copy.getSchool())
+                    .map(school -> school.getDomainName())
+                    .orElse(null);
+
+            System.out.println("Smartschool base URL: " + smartschoolBaseUrl);
+
+            if (smartschoolBaseUrl == null || smartschoolBaseUrl.isBlank()) {
+                System.err.println("STOP: Geen Smartschool domainName gevonden via book copy school.");
+                return;
+            }
+
+            String bookTitles = loan.getCopies().stream()
+                    .map(copy -> copy.getBook().getTitle())
+                    .collect(Collectors.joining(", "));
+
+            String title = "Boek uitgeleend";
+
+            String description = "Je hebt het volgende boek uitgeleend: "
+                    + bookTitles
+                    + ". Terugbrengen voor "
+                    + loan.getReturnDate()
+                    + ".";
+
+            String notificationUrl = "https://jouw-frontend-url.be/loans/" + loan.getId();
+
+            System.out.println("Smartschool notification wordt verstuurd...");
+
+            smartschoolNotificationService.sendNotification(
+                    smartschoolBaseUrl,
+                    accessToken,
+                    title,
+                    description,
+                    notificationUrl);
+
+            System.out.println("Smartschool notificatie verstuurd voor lening " + loan.getId());
+
+        } catch (Exception e) {
+            System.err.println("Smartschool notificatie kon niet verstuurd worden: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

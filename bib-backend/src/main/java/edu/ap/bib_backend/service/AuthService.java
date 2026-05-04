@@ -22,6 +22,8 @@ import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.SmartschoolRefreshResult;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;

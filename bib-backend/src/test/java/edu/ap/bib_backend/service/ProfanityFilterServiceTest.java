@@ -10,6 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import edu.ap.bib_backend.service.review.ProfanityFilterService;
+
 class ProfanityFilterServiceTest {
 
     private ProfanityFilterService profanityFilterService;

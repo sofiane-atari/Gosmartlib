@@ -25,8 +25,8 @@ import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.options.GenreGetOptions;
 import edu.ap.bib_backend.service.GenreService;
 import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;

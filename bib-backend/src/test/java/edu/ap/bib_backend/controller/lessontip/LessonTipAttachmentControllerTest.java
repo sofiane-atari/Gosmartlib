@@ -7,9 +7,9 @@ import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentDownloadDataDto;
 import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentResponseDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.lessontips.LessonTipAttachmentService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

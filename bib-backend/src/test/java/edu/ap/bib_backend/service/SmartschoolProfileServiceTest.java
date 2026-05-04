@@ -28,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
+import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
 
 @ExtendWith(MockitoExtension.class)
 class SmartschoolProfileServiceTest {

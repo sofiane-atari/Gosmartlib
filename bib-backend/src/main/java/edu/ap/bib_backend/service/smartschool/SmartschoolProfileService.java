@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.smartschool;
 
 import java.util.ArrayList;
 import java.util.List;

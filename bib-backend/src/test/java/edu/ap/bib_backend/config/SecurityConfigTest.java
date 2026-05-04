@@ -2,8 +2,8 @@ package edu.ap.bib_backend.config;
 
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 
 import org.junit.jupiter.api.Test;
 
