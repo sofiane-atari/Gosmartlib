@@ -13,6 +13,7 @@ import { Loan } from '../../../model/loan.model';
 import { Router } from '@angular/router';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
+import { ToastService } from '../../../services/toast/toast.service';
 
 @Component({
   selector: 'app-return-loan',
@@ -33,8 +34,6 @@ export class ReturnLoanComponent implements OnInit {
   protected readonly loans = signal<Loan[]>([]);
   protected readonly searchTerm = signal('');
   protected readonly isLoading = signal(false);
-  protected readonly errorMessage = signal<string | null>(null);
-  protected readonly successMessage = signal<string | null>(null);
   protected readonly returningLoanId = signal<number | null>(null);
 
   protected readonly page = signal(0);
@@ -42,6 +41,7 @@ export class ReturnLoanComponent implements OnInit {
   protected readonly totalItems = signal(0);
   protected readonly totalPages = signal(0);
 
+  private readonly toastService = inject(ToastService);
   protected readonly expandedLoanIds = new Set<number>();
   
   protected readonly pagingMeta = computed<PagingMeta>(() => ({
@@ -89,33 +89,20 @@ export class ReturnLoanComponent implements OnInit {
       return;
     }
 
-    this.returningLoanId.set(loan.id);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
+    const bookCount = loan.books?.length ?? 0;
+    const firstBookTitle = loan.books?.[0]?.title ?? 'deze lening';
 
-    this.loansService.returnLoan(loan.id).subscribe({
-      next: (updatedLoan) => {
-        this.loans.update(loans =>
-          loans.map(existingLoan =>
-            existingLoan.id === updatedLoan.id ? updatedLoan : existingLoan,
-          ),
-        );
+    const message = bookCount > 1
+      ? `Weet je zeker dat je deze lening met ${bookCount} boeken wilt terugbrengen?`
+      : `Weet je zeker dat je "${firstBookTitle}" wilt terugbrengen?`;
 
-        this.successMessage.set('Boek succesvol teruggebracht.');
-        this.returningLoanId.set(null);
-
-        this.loadLoans();
-      },
-      error: () => {
-        this.errorMessage.set('Boek kon niet teruggebracht worden.');
-        this.returningLoanId.set(null);
-      },
+    this.toastService.showConfirm(message, () => {
+      this.confirmReturnLoan(loan);
     });
   }
 
   private loadLoans(): void {
     this.isLoading.set(true);
-    this.errorMessage.set(null);
 
     this.loansService.getActiveLoans(this.page(), this.pageSize()).subscribe({
       next: (response) => {
@@ -125,7 +112,7 @@ export class ReturnLoanComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Leningen konden niet geladen worden.');
+        this.toastService.show('Leningen konden niet geladen worden.', 'error');
         this.isLoading.set(false);
       }
     });
@@ -270,5 +257,24 @@ export class ReturnLoanComponent implements OnInit {
 
   protected onSearchChange(value: string): void {
     this.searchTerm.set(value);
+  }
+  private confirmReturnLoan(loan: Loan): void {
+    if (!loan.id) {
+      return;
+    }
+
+    this.returningLoanId.set(loan.id);
+
+    this.loansService.returnLoan(loan.id).subscribe({
+      next: () => {
+        this.toastService.show('Boek succesvol teruggebracht.', 'success');
+        this.returningLoanId.set(null);
+        this.loadLoans();
+      },
+      error: () => {
+        this.toastService.show('Boek kon niet teruggebracht worden.', 'error');
+        this.returningLoanId.set(null);
+      },
+    });
   }
 }

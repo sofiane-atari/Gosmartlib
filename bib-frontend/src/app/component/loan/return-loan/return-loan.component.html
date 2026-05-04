@@ -11,14 +11,6 @@
     </button>
   </div>
 
-  @if (successMessage()) {
-    <div class="success-message">{{ successMessage() }}</div>
-  }
-
-  @if (errorMessage()) {
-    <div class="error-message">{{ errorMessage() }}</div>
-  }
-
   <section class="search-panel">
     <app-search-bar
       placeholder="Zoek op leerling, gebruiker of boektitel..."
@@ -36,10 +28,6 @@
     @if (isLoading()) {
       <div class="empty-state">
         <p>Leningen laden...</p>
-      </div>
-    } @else if (errorMessage()) {
-      <div class="empty-state">
-        <p>{{ errorMessage() }}</p>
       </div>
     } @else if (filteredLoans().length === 0) {
       <div class="empty-state">
