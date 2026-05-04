@@ -41,9 +41,9 @@ public class LoanService {
     private final LoanMapper loanMapper;
     private final BookService bookService;
     private final ExternalUserDisplayService externalUserDisplayService;
-<<<<<<< bib-backend/src/main/java/edu/ap/bib_backend/service/LoanService.java
     private final SmartschoolNotificationService smartschoolNotificationService;
     private final AuthSessionRepository authSessionRepository;
+    private final CurrentUserService currentUserService;
     @Value("${app.frontend-base-url:http://localhost:4200}")
     String frontendBaseUrl;
 
@@ -54,23 +54,16 @@ public class LoanService {
             ExternalUserDisplayService externalUserDisplayService,
             AuthSessionRepository authSessionRepository,
             SmartschoolNotificationService smartschoolNotificationService,
-            @Value("${app.frontend-base-url:http://localhost:4200}") String frontendBaseUrl) {
-=======
-    private final CurrentUserService currentUserService;
-
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService, CurrentUserService currentUserService) {
->>>>>>> bib-backend/src/main/java/edu/ap/bib_backend/service/LoanService.java
+            @Value("${app.frontend-base-url:http://localhost:4200}") String frontendBaseUrl,
+        CurrentUserService currentUserService) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
         this.externalUserDisplayService = externalUserDisplayService;
-<<<<<<< bib-backend/src/main/java/edu/ap/bib_backend/service/LoanService.java
         this.authSessionRepository = authSessionRepository;
         this.smartschoolNotificationService = smartschoolNotificationService;
         this.frontendBaseUrl = frontendBaseUrl;
-=======
         this.currentUserService = currentUserService;
->>>>>>> bib-backend/src/main/java/edu/ap/bib_backend/service/LoanService.java
     }
 
     @Transactional
