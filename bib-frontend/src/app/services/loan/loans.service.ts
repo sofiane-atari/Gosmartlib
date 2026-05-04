@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Loan } from '../../model/loan.model';
+import { Loan, LoanHistory } from '../../model/loan.model';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -23,7 +23,7 @@ export class LoansService {
     return this.http.patch<Loan>(`${this.apiUrl}/loans/${loanId}/return`, {});
   }
 
-  public getMyLoanHistory(): Observable<Loan[]> {
-    return this.http.get<Loan[]>(`${this.apiUrl}/loans/me/history`);
+  public getMyLoanHistory(): Observable<LoanHistory> {
+    return this.http.get<LoanHistory>(`${this.apiUrl}/loans/me/history`);
   }
 }

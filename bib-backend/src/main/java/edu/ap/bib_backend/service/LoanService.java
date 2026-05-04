@@ -15,9 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import edu.ap.bib_backend.jpa.repository.loan.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
@@ -147,12 +149,32 @@ public class LoanService {
         return loanMapper.toDto(loanRepository.save(loan));
     }
 
-    public List<LoanDTO> findHistoryForCurrentUser(Authentication authentication) {
+    public LoanHistoryDTO findHistoryForCurrentUser(Authentication authentication) {
         String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
-        return loanRepository.findByUserIdOrderByLoanDateDesc(currentUserId)
+        List<LoanDTO> loans = loanRepository.findByUserIdOrderByLoanDateDesc(currentUserId)
                 .stream()
                 .map(loanMapper::toDto)
                 .toList();
+
+        List<LoanDTO> activeLoans = loans.stream()
+                .filter(loan -> loan.status() == LoanStatus.ACTIVE || loan.status() == LoanStatus.OVERDUE)
+                .toList();
+
+        List<LoanDTO> returnedLoans = loans.stream()
+                .filter(loan -> loan.status() == LoanStatus.RETURNED)
+                .toList();
+
+        int totalLoanedBookCount = loans.stream()
+                .mapToInt(loan -> loan.books() != null ? loan.books().size() : loan.bookIds().size())
+                .sum();
+
+        return LoanHistoryDTO.builder()
+                .activeLoanCount(activeLoans.size())
+                .returnedLoanCount(returnedLoans.size())
+                .totalLoanedBookCount(totalLoanedBookCount)
+                .activeLoans(activeLoans)
+                .returnedLoans(returnedLoans)
+                .build();
     }
 }

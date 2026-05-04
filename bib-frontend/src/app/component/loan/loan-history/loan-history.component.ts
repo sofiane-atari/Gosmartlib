@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   AlertTriangle,
   BookOpen,
@@ -10,7 +10,7 @@ import {
   Calendar,
 } from 'lucide-angular';
 
-import { Loan, LoanStatus } from '../../../model/loan.model';
+import { Loan, LoanHistory, LoanStatus } from '../../../model/loan.model';
 import { LoansService } from '../../../services/loan/loans.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
@@ -35,24 +35,9 @@ export class LoanHistoryComponent implements OnInit {
   protected readonly loans = signal<Loan[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly history = signal<LoanHistory | null>(null);
+
   private readonly toastService = inject(ToastService);
-
-  protected activeLoanItems(): Loan[] {
-    return this.loans().filter(
-      (loan) => loan.status === 'ACTIVE' || loan.status === 'OVERDUE',
-    );
-  }
-
-  protected returnedLoanItems(): Loan[] {
-    return this.loans().filter((loan) => loan.status === 'RETURNED');
-  }
-
-  protected totalLoanedBooks = computed(() =>
-    this.loans().reduce(
-      (total, loan) => total + (loan.books?.length ?? loan.bookIds.length),
-      0,
-    ),
-  );
 
   public ngOnInit(): void {
     this.loadLoanHistory();
@@ -87,13 +72,12 @@ export class LoanHistoryComponent implements OnInit {
     this.errorMessage.set(null);
 
     this.loansService.getMyLoanHistory().subscribe({
-      next: (loans) => {
-        this.loans.set(loans);
+      next: (history) => {
+        this.history.set(history);
         this.isLoading.set(false);
       },
       error: () => {
         const message = 'Je uitleengeschiedenis kon niet geladen worden.';
-
         this.errorMessage.set(message);
         this.toastService.show(message, 'error');
         this.isLoading.set(false);

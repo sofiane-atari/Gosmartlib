@@ -2,8 +2,8 @@
   <header class="page-header">
     <h1>Uitleengeschiedenis</h1>
     <p>
-      {{ activeLoanItems().length }} actieve uitleningen •
-      {{ returnedLoanItems().length }} boek(en) teruggebracht
+      {{ history()?.activeLoanCount ?? 0 }} actieve uitleningen •
+      {{ history()?.returnedLoanCount ?? 0 }} boek(en) teruggebracht
     </p>
   </header>
 
@@ -15,7 +15,7 @@
       <article class="stat-card stat-card--blue">
         <lucide-icon [name]="Clock"></lucide-icon>
         <div>
-          <strong>{{ activeLoanItems().length }}</strong>
+          <strong>{{ history()?.activeLoanCount ?? 0 }}</strong>
           <span>Actieve uitleningen</span>
         </div>
       </article>
@@ -28,7 +28,7 @@
       <article class="stat-card stat-card--green">
         <lucide-icon [name]="CheckCircle2"></lucide-icon>
         <div>
-          <strong>{{ returnedLoanItems().length }}</strong>
+          <strong>{{ history()?.returnedLoanCount ?? 0 }}</strong>
           <span>Teruggebracht</span>
         </div>
       </article>
@@ -41,7 +41,7 @@
       <article class="stat-card stat-card--purple">
         <lucide-icon [name]="BookOpen"></lucide-icon>
         <div>
-          <strong>{{ totalLoanedBooks() }}</strong>
+          <strong>{{ history()?.totalLoanedBookCount ?? 0 }}</strong>
           <span>Totaal Uitgeleend</span>
         </div>
       </article>
@@ -99,7 +99,11 @@
     </section>
   } @else if (errorMessage()) {
     <div class="empty-state">{{ errorMessage() }}</div>
-  } @else if (loans().length === 0) {
+  } @else if (
+    !history() ||
+    ((history()?.activeLoans?.length ?? 0) === 0 &&
+      (history()?.returnedLoans?.length ?? 0) === 0)
+  ) {
     <div class="empty-state">
       <lucide-icon [name]="LibraryBig"></lucide-icon>
       <h3>Geen uitleningen gevonden</h3>
@@ -109,13 +113,13 @@
     <section class="loan-section">
       <h2>Momenteel Uitgeleend</h2>
 
-      @if (activeLoanItems().length === 0) {
+      @if ((history()?.activeLoanCount ?? 0) === 0) {
         <div class="empty-state empty-state--small">
           Je hebt momenteel geen boeken uitgeleend.
         </div>
       } @else {
         <div class="loan-list">
-          @for (loan of activeLoanItems(); track loan.id) {
+          @for (loan of history()?.activeLoans ?? []; track loan.id) {
             @for (book of loan.books; track book.id) {
               <article class="loan-card loan-card--active">
                 <app-button-hover-help
@@ -194,13 +198,13 @@
     <section class="loan-section">
       <h2>Teruggebrachte Boeken</h2>
 
-      @if (returnedLoanItems().length === 0) {
+      @if ((history()?.returnedLoanCount ?? 0) === 0) {
         <div class="empty-state empty-state--small">
           Je hebt nog geen boeken teruggebracht.
         </div>
       } @else {
         <div class="loan-list">
-          @for (loan of returnedLoanItems(); track loan.id) {
+          @for (loan of history()?.returnedLoans ?? []; track loan.id) {
             @for (book of loan.books; track book.id) {
               <article class="loan-card loan-card--returned">
                 <app-button-hover-help

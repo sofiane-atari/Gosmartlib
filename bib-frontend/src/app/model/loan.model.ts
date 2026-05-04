@@ -21,3 +21,11 @@ export interface Loan {
   returnedDate?: LocalDate | null;
   status?: LoanStatus;
 }
+
+export interface LoanHistory {
+  activeLoanCount: number;
+  returnedLoanCount: number;
+  totalLoanedBookCount: number;
+  activeLoans: Loan[];
+  returnedLoans: Loan[];
+}

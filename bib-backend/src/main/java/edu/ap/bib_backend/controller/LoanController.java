@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +42,7 @@ public class LoanController {
     }
 
     @GetMapping("/me/history")
-    public ResponseEntity<List<LoanDTO>> getMyLoanHistory(Authentication authentication) {
+    public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(Authentication authentication) {
         return ResponseEntity.ok(loanService.findHistoryForCurrentUser(authentication));
     }
 }
