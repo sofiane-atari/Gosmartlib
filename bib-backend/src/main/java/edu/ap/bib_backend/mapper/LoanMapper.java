@@ -45,11 +45,15 @@ public interface LoanMapper {
 
         return copies.stream()
                 .filter(copy -> copy.getBook() != null)
-                .map(copy -> new LoanBookDTO(
-                        copy.getBook().getId(),
-                        copy.getBook().getTitle(),
-                        copy.getBook().getAuthor(),
-                        copy.getBook().getIsbn()
+                .collect(java.util.stream.Collectors.groupingBy(BookCopy::getBook))
+                .entrySet()
+                .stream()
+                .map(entry -> new LoanBookDTO(
+                        entry.getKey().getId(),
+                        entry.getKey().getTitle(),
+                        entry.getKey().getAuthor(),
+                        entry.getKey().getIsbn(),
+                        entry.getValue().size()
                 ))
                 .toList();
     }

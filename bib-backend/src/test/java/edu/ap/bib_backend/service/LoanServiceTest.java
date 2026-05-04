@@ -4,7 +4,9 @@ import edu.ap.bib_backend.dto.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
+import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
 
@@ -40,6 +42,12 @@ class LoanServiceTest {
     @Mock
     private BookService bookService;
 
+    @Mock
+    private ExternalUserDisplayService externalUserDisplayService;
+
+    @Mock
+    private BookCopyRepository bookCopyRepository;
+
     @InjectMocks
     private LoanService loanService;
 
@@ -59,6 +67,7 @@ class LoanServiceTest {
         when(loanMapper.toEntity(inputLoan)).thenReturn(mappedLoan);
         when(loanRepository.save(mappedLoan)).thenReturn(mappedLoan);
         when(bookService.getBookById(15L, true)).thenReturn(book);
+        when(bookCopyRepository.findAvailableCopiesByBookId(15L)).thenReturn(List.of(selectedCopy));
         when(loanMapper.toDto(mappedLoan)).thenReturn(expectedResult);
 
         // Act
@@ -74,6 +83,7 @@ class LoanServiceTest {
         verify(loanMapper).toEntity(inputLoan);
         verify(loanRepository, times(2)).save(mappedLoan);
         verify(bookService).getBookById(15L, true);
+        verify(bookCopyRepository).findAvailableCopiesByBookId(15L);
         verify(loanMapper).toDto(mappedLoan);
     }
 

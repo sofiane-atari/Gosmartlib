@@ -15,6 +15,7 @@ import edu.ap.bib_backend.dto.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
@@ -28,12 +29,14 @@ public class LoanService {
     private final LoanMapper loanMapper;
     private final BookService bookService;
     private final ExternalUserDisplayService externalUserDisplayService;
+    private final BookCopyRepository bookCopyRepository;
 
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService) {
+    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService, BookCopyRepository bookCopyRepository) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
         this.externalUserDisplayService = externalUserDisplayService;
+        this.bookCopyRepository = bookCopyRepository;
     }
 
     @Transactional
@@ -57,16 +60,35 @@ public class LoanService {
         // saving to ensure we have an ID for the loan before associating book copies
         loan = loanRepository.save(loan);
 
-        for (var id : loanDTO.bookIds()) {
+        for (var bookId : loanDTO.bookIds()) {
+            Book book = bookService.getBookById(bookId, true);
+            int copiesNeeded = resolveCopiesCount(loanDTO, bookId);
 
-            Book book = bookService.getBookById(id, true);
-            BookCopy copy = book.getBookCopies().getFirst();
-            loan.getCopies().add(copy);
+            List<BookCopy> availableCopies = bookCopyRepository.findAvailableCopiesByBookId(bookId);
+            if (availableCopies.size() < copiesNeeded) {
+                throw new IllegalStateException("Niet genoeg beschikbare exemplaren voor boek: " + book.getTitle());
+            }
+
+            for (int i = 0; i < copiesNeeded; i++) {
+                loan.getCopies().add(availableCopies.get(i));
+            }
         }
 
         loan.setLoanDate(today);
         loan = loanRepository.save(loan);
         return loanMapper.toDto(loan);
+    }
+
+    private int resolveCopiesCount(LoanDTO loanDTO, Long bookId) {
+        if (loanDTO.books() == null) {
+            return 1;
+        }
+
+        return loanDTO.books().stream()
+                .filter(book -> bookId.equals(book.id()))
+                .findFirst()
+                .map(book -> book.copiesCount() != null ? book.copiesCount() : 1)
+                .orElse(1);
     }
 
 
