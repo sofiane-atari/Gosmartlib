@@ -13,10 +13,10 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { toLocalDate } from '../../../shared/types/local-date.type';
 import { ToastService } from '../../../services/toast/toast.service';
-import { BarcodeScannerRecognizerService } from '../../../services/barcode/barcode-scanner-recognizer.service';
 import { UserSelectionPanelComponent } from './user-selection-panel/user-selection-panel.component';
 import { BookSelectionPanelComponent } from './book-selection-panel/book-selection-panel.component';
 import { LoanSummaryPanelComponent } from './loan-summary-panel/loan-summary-panel.component';
+import { ScanIsbnComponent } from './scan-isbn/scan-isbn.component';
 
 @Component({
   selector: 'app-create-loan',
@@ -27,6 +27,7 @@ import { LoanSummaryPanelComponent } from './loan-summary-panel/loan-summary-pan
     UserSelectionPanelComponent,
     BookSelectionPanelComponent,
     LoanSummaryPanelComponent,
+    ScanIsbnComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrl: './create-loan.component.css',
@@ -38,7 +39,6 @@ export class CreateLoanComponent {
   private readonly bookService = inject(BookService);
   private readonly loansService = inject(LoansService);
   private readonly toastService = inject(ToastService);
-  private readonly barcodeScannerRecognizer = inject(BarcodeScannerRecognizerService);
   private readonly router = inject(Router);
   private readonly catalogSearchSubject = new Subject<string>();
   private readonly isbnSearchSubject = new Subject<string>();
@@ -185,7 +185,6 @@ export class CreateLoanComponent {
     this.selectedBooks.set([]);
     this.catalogBooks.set([]);
     this.isbnBooks.set([]);
-    this.barcodeScannerRecognizer.resetTracking();
     this.bookSearchQuery.set('');
     this.bookSearchIsbn.set('');
   }
@@ -199,28 +198,6 @@ export class CreateLoanComponent {
   public onBookIsbnSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.bookSearchIsbn.set(target.value);
-    this.triggerIsbnSearch(this.barcodeScannerRecognizer.normalizeIsbnInput(target.value));
-  }
-
-  public onBookIsbnKeydown(event: KeyboardEvent): void {
-    const scanResult = this.barcodeScannerRecognizer.processKeydown(event, this.bookSearchIsbn());
-
-    if (scanResult.preventDefault) {
-      event.preventDefault();
-    }
-
-    if (!scanResult.normalizedIsbn) {
-      return;
-    }
-
-    if (!scanResult.isValidIsbn) {
-      this.showError('Het ingevoerde ISBN-formaat is ongeldig. Gebruik een geldig ISBN-10 of ISBN-13.');
-      return;
-    }
-
-    this.suppressNextDebouncedIsbnSearch = true;
-    this.bookSearchIsbn.set(scanResult.normalizedIsbn);
-    this.fetchBookByIsbn(scanResult.normalizedIsbn, scanResult.isLikelyScanner);
   }
 
   public addBook(book: Book): void {
@@ -299,7 +276,7 @@ export class CreateLoanComponent {
     this.isLoadingUsers.set(true);
 
     this.userService
-      .getUsers({ WithfirstName: firstName, WithlastName: lastName , WithId: id})
+      .getUsers({ WithfirstName: firstName, WithlastName: lastName, WithId: id })
       .subscribe({
         next: (users) => {
           this.users.set(users);
@@ -377,6 +354,17 @@ export class CreateLoanComponent {
         this.isLoadingIsbnBooks.set(false);
       },
     });
+  }
+
+  public handleScannedIsbn(isbn: string): void {
+    const cleanedIsbn = isbn.trim();
+    if (!cleanedIsbn) {
+      return;
+    }
+
+    this.bookSearchIsbn.set(cleanedIsbn);
+    this.suppressNextDebouncedIsbnSearch = true;
+    this.fetchBookByIsbn(cleanedIsbn, true);
   }
 
   private selectScannedBook(book: Book): void {

@@ -1,0 +1,32 @@
+<div class="scan-card" #scanCard tabindex="0" role="button">
+  <div class="scan-card__content">
+    <h3>Boek scannen</h3>
+    <p>
+      Klik op de kaart om de scanner te activeren. Daarna scan je het boek om
+      het automatisch toe te voegen.
+    </p>
+  </div>
+
+  @if (!isArmed()) {
+    <button type="button" class="scan-card__button" (click)="armScanner()">
+      Klik om te scannen
+    </button>
+  } @else {
+    <div class="scan-card__status" role="status">Scan nu een boek…</div>
+    <button type="button" class="scan-card__link" (click)="disarmScanner()">
+      Stoppen met scannen
+    </button>
+  }
+
+  <input
+    #focusTrap
+    class="scan-card__focus-trap"
+    type="text"
+    tabindex="-1"
+    autocomplete="off"
+    spellcheck="false"
+    aria-hidden="true"
+    (blur)="onFocusTrapBlur()"
+  />
+
+</div>
