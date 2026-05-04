@@ -223,7 +223,7 @@ public class AuthService {
         if (!response.getStatusCode().is2xxSuccessful() || responseBody == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Smartschool refresh failed");
         }
-
+        
         Object accessToken = responseBody.get("access_token");
         Object newRefreshToken = responseBody.get("refresh_token");
 

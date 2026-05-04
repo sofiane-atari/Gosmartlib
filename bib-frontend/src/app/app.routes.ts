@@ -35,6 +35,8 @@ import { CreateTeacherReadingListComponent } from './component/reading-list/crea
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
+import { SettingsComponent } from './component/settings/settings/settings.component';
+import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashboard.component';
 import {ReturnLoanComponent} from "./component/loan/return-loan/return-loan.component";
 
 export const routes: Routes = [
@@ -113,14 +115,19 @@ export const routes: Routes = [
     canActivate: [authGuard, staffOnlyGuard],
   },
   {
+    path: 'schools',
+    component: SchoolDashboardComponent,
+    canActivate: [authGuard, adminOnlyGuard],
+  },
+  {
+    path: 'tag',
+    component: TagDashboardComponent,
+    canActivate: [authGuard, adminOnlyGuard],
+  },
+  {
     path: 'loans/return',
     component: ReturnLoanComponent,
     canActivate: [authGuard, staffOnlyGuard],
-  },
-  {
-    path: 'scholen',
-    component: SchoolDashboardComponent,
-    canActivate: [authGuard, adminOnlyGuard],
   },
   {
     path: 'settings',

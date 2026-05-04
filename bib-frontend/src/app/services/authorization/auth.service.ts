@@ -200,9 +200,6 @@ private scheduleTokenTimers(expiresAt: number): void {
   const warningTimeoutMs = warningAt - now;
   const expiryTimeoutMs = expiresAt - now;
 
-  console.log('Token expires at:', new Date(expiresAt));
-  console.log('Session warning at:', new Date(warningAt));
-
   if (expiryTimeoutMs <= 0) {
     this.clearToken();
     this.router.navigate(['/login']);

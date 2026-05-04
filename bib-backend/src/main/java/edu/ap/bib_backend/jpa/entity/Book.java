@@ -8,6 +8,8 @@ import java.util.Set;
 
 import org.hibernate.annotations.Formula;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Setter;
 import lombok.Getter;
@@ -83,6 +85,11 @@ public class Book {
     @ManyToOne
     @JoinColumn(name = "reading_level_id")
     private ReadingLevel readingLevel;
+
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(name = "book_tags", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    private Set<Tag> tags = new HashSet<>();
 
     @Override
     public String toString() {
