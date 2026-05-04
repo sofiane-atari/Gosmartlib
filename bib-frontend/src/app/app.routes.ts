@@ -4,7 +4,6 @@ import { AddBookPageComponent } from './component/book/add-book-page/add-book-pa
 import { BookEditPageComponent } from './component/book/book-edit-page/book-edit-page.component';
 import { BookManagementComponent } from './component/book/book-management/book-management.component';
 import { LessonTipRoutes } from './routes/lesson-tip.routes';
-import { SettingsComponent } from './component/settings/settings/settings.component';
 
 // Genre
 import { DashboardGenresComponent } from './component/genre/dashboard-genres/dashboard-genres.component';

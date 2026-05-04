@@ -74,7 +74,6 @@
 
 .action-card--primary .action-card__icon {
   background: var(--main-color);
-
 }
 
 .action-card--secondary .action-card__icon {
@@ -348,8 +347,81 @@ lucide-icon {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.text-center {
+  text-align: center;
+}
 
+.table-card th.text-center,
+.table-card td.text-center {
+  text-align: center;
+}
 
+.user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.user-cell strong {
+  color: #1a0a10;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.user-cell span {
+  color: #9b7a84;
+  font-size: 13px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-list--compact {
+  max-height: 98px;
+  overflow: hidden;
+}
+
+.book-chip {
+  max-width: 260px;
+}
+
+.book-chip strong,
+.book-chip small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-more {
+  width: fit-content;
+  border: 1px solid #f0e4e8;
+  background: #fff7fb;
+  color: var(--main-color);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: default;
+}
+
+.time-left {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #f9f4f6;
+  color: #7a5560;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.time-left--urgent {
+  background: #fee2e2;
+  color: #dc2626;
+}
 
 @media (max-width: 1024px) {
   .table-card {

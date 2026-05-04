@@ -5,7 +5,6 @@ services:
     restart: on-failure
     depends_on:
       - mysql
-      - redis
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_PORT: "${SPRING_PORT}"
@@ -21,8 +20,6 @@ services:
       SMART_SCHOOL_CLIENT_SECRET: "${SMART_SCHOOL_CLIENT_SECRET}"
       JWT_SECRET: "${JWT_SECRET}"
       FRONTEND_REDIRECT_URL: "${FRONTEND_REDIRECT_URL}"
-      REDIS_HOST: "${REDIS_HOST}"
-      REDIS_PORT: "${REDIS_PORT}"
       ONE_ROSTER_CLIENT_ID: "${ONE_ROSTER_CLIENT_ID}"
       ONE_ROSTER_CLIENT_SECRET: "${ONE_ROSTER_CLIENT_SECRET}"
       
@@ -49,13 +46,5 @@ services:
       MYSQL_PASSWORD: "${DB_USER_PASS}"
     volumes:
       - mysql-data:/var/lib/mysql
-    networks:
-      - proxy
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    restart: always
-    volumes:
-      - redis-data:/data
     networks:
       - proxy

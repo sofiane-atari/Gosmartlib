@@ -4,7 +4,6 @@ include:
 
 volumes:
   mysql-data:
-  redis-data:
 
 networks:
   proxy:
