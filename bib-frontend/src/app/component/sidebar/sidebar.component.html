@@ -48,9 +48,9 @@
             <span class="btn-text">Boek toevoegen</span>
         </button>
 
-        <button class="btn btn-blue">
+        <button class="btn btn-blue" (click)="goToBookManagement()">
             <lucide-icon [name]="RotateCcwIcon" class="btn-icon"></lucide-icon>
-            <span class="btn-text">Terugbrengen</span>
+            <span class="btn-text">Uitleningen </span>
         </button>
       }
     @if (isAdminOverrideVisible()) {

@@ -3,7 +3,6 @@ package edu.ap.bib_backend.service.review;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.dto.ReviewDTO;
-import edu.ap.bib_backend.service.ProfanityFilterService;
 
 @Service
 public class ReviewValidationService {

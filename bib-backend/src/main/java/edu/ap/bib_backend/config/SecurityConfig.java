@@ -2,7 +2,7 @@ package edu.ap.bib_backend.config;
 
 import edu.ap.bib_backend.interceptor.LoggingInterceptor;
 import edu.ap.bib_backend.jpa.enums.Role;
-import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 
 import java.util.ArrayList;
 import java.util.List;

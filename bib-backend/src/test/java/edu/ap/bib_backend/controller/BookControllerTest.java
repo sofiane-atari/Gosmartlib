@@ -25,13 +25,13 @@ import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.book.BookSearchService;
 import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.book.GoogleBooksClient;
 import edu.ap.bib_backend.service.book.OpenLibraryClient;
 import edu.ap.bib_backend.service.lessontips.LessonTipService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;

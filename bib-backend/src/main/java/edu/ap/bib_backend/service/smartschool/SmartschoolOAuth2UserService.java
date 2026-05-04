@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.smartschool;
 
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.jpa.entity.Group;
@@ -6,6 +6,8 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.service.GroupService;
+import edu.ap.bib_backend.service.RoleService;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.user.UserService;
 

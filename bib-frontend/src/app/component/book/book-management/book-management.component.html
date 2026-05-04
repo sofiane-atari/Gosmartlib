@@ -31,42 +31,53 @@
   </section>
 
   <section class="stat-cards">
-    <article class="stat-card stat-card--blue">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="Clock"></lucide-icon>
-      </div>
-      <div>
-        <p>Actief uitgeleend</p>
-        <strong>{{ activeLoans() }}</strong>
-      </div>
-    </article>
+    <app-button-hover-help
+      text="Aantal leningen die momenteel actief zijn en nog niet zijn teruggebracht."
+    >
+      <article class="stat-card stat-card--blue">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="Clock"></lucide-icon>
+        </div>
+        <div>
+          <p>Uitgeleend</p>
+          <strong>{{ activeLoans() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card stat-card--orange">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="AlertTriangle"></lucide-icon>
-      </div>
-      <div>
-        <p>Te laat</p>
-        <strong>{{ overdueLoans() }}</strong>
-      </div>
-    </article>
+    <app-button-hover-help
+      text="Aantal actieve leningen waarvan de retourdatum al verstreken is."
+    >
+      <article class="stat-card stat-card--orange">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="AlertTriangle"></lucide-icon>
+        </div>
+        <div>
+          <p>Te laat</p>
+          <strong>{{ overdueLoans() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card stat-card--green">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="CheckCircle2"></lucide-icon>
-      </div>
-      <div>
-        <p>Teruggebracht</p>
-        <strong>{{ returnedLoans() }}</strong>
-      </div>
-    </article>
+    <app-button-hover-help
+      text="Aantal leningen die al teruggebracht en afgesloten zijn."
+    >
+      <article class="stat-card stat-card--green">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="CheckCircle2"></lucide-icon>
+        </div>
+        <div>
+          <p>Teruggebracht</p>
+          <strong>{{ returnedLoans() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
   </section>
 
   <section class="table-card">
     <div class="table-card__header">
       <div>
         <h2>Boekoverzicht</h2>
-        <p>Status van alle uitgeleende boeken.</p>
       </div>
     </div>
 
@@ -89,52 +100,100 @@
     } @else {
       <table>
         <thead>
-        <tr>
-          <th>Lening</th>
-          <th>Gebruiker</th>
-          <th>Boek(en)</th>
-          <th>Retourdatum</th>
-          <th>Status</th>
-        </tr>
+          <tr>
+            <th class="text-center">Gebruiker</th>
+            <th class="text-center">Boek</th>
+            <th class="text-center">Aantal boeken</th>
+            <th class="text-center">Retourdatum</th>
+            <th class="text-center">Tijd over</th>
+            <th class="text-center">Status</th>
+          </tr>
         </thead>
 
         <tbody>
           @for (loan of loans(); track loan.id) {
-            <tr>
-              <td>
-                <span class="loan-id">#{{ loan.id }}</span>
-              </td>
-
-              <td>
-                <div class="user-cell">
-                  <strong>{{ loan.userDisplayName ?? 'Onbekende gebruiker' }}</strong>
+            <tr
+              class="loan-row"
+              [class.loan-row--expanded]="isLoanExpanded(loan.id)"
+              (click)="toggleLoan(loan.id)"
+            >
+              <td class="text-center">
+                <div class="user-cell user-cell--center">
+                  <strong>{{ getFirstName(loan.userDisplayName) }}</strong>
+                  <span>{{ getLastName(loan.userDisplayName) }}</span>
                 </div>
               </td>
 
-              <td>
-                <div class="book-list">
-                  @for (book of loan.books; track book.id) {
-                    <div class="book-chip">
-                      <strong>{{ book.title }}</strong>
-                      @if (book.author) {
-                        <small>{{ book.author }}</small>
-                      }
-                    </div>
-                  }
-                </div>
+              <td class="text-center">
+                @if (firstBook(loan)) {
+                  <div class="book-cell">
+                    <strong>{{ firstBook(loan).title }}</strong>
+
+                    @if (firstBook(loan).author) {
+                      <small>{{ firstBook(loan).author }}</small>
+                    }
+                  </div>
+                } @else {
+                  <span class="muted">Geen boek gekoppeld</span>
+                }
               </td>
 
-              <td>{{ loan.returnDate | date: 'dd/MM/yyyy' }}</td>
+              <td class="text-center">
+                <span class="book-count">
+                  {{ bookCount(loan) }}
+                </span>
+              </td>
 
-              <td>
-          <span [class]="getStatusClass(loan)">
-            {{ getLoanStatus(loan) }}
-          </span>
+              <td class="text-center">
+                {{ loan.returnDate | date: 'dd/MM/yyyy' }}
+              </td>
+
+              <td class="text-center">
+                <span [class]="getTimeLeftClass(loan)">
+                  {{ getTimeLeftText(loan) }}
+                </span>
+              </td>
+
+              <td class="text-center">
+                <span [class]="getStatusClass(loan)">
+                  {{ getLoanStatus(loan) }}
+                </span>
               </td>
             </tr>
+
+            @if (isLoanExpanded(loan.id)) {
+              <tr class="loan-details-row">
+                <td colspan="6">
+                  <div class="loan-details">
+                    <div class="loan-details__header">
+                      <strong>Alle boeken in deze lening</strong>
+                      <span>{{ bookCount(loan) }} boek(en)</span>
+                    </div>
+
+                    <div class="loan-details__books">
+                      @for (book of loan.books; track book.id) {
+                        <div class="loan-details__book">
+                          <strong>{{ book.title }}</strong>
+
+                          @if (book.author) {
+                            <small>{{ book.author }}</small>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>
+      @if (totalPages() > 1) {
+        <app-paging
+          [meta]="pagingMeta()"
+          (pageChange)="onPageChange($event)"
+        />
+      }
     }
   </section>
 </div>

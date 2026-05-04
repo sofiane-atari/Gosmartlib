@@ -6,8 +6,8 @@ import edu.ap.bib_backend.dto.JwtTokenDTO;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.AuthService;
 import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.SmartschoolProfileService;
 import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

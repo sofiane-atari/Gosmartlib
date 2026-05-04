@@ -23,6 +23,7 @@ import {
   School,
   Shield,
   FolderKanban,
+  LibraryBig,
 } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
@@ -105,21 +106,10 @@ export class SidebarComponent {
       route: `/${LESSON_TIP_PATHS.root}`,
       staffOnly: true,
     },
-    {
-      icon: Flag,
-      label: 'Reviewbeheer',
-      route: '/review-dashboard',
-      staffOnly: true,
-    },
-    { icon: Tag, label: 'Genrebeheer', route: '/genre', adminOnly: true },
+    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard', staffOnly : true },
+    { icon: LibraryBig, label: 'Genrebeheer', route: '/genre', adminOnly: true },
     { icon: Tag, label: 'Labelbeheer', route: '/tag', adminOnly: true },
     { icon: School, label: 'Schoolbeheer', route: '/schools', adminOnly: true },
-    {
-      icon: Book,
-      label: 'Boekbeheer',
-      route: '/books-management',
-      adminOnly: true,
-    },
   ];
 
   protected readonly visibleMenuItems = computed(() => {
@@ -152,6 +142,11 @@ export class SidebarComponent {
     this.closeOnMobile();
   }
 
+  public goToBookManagement(): void {
+    this.router.navigate(['/books-management']);
+    this.closeOnMobile();
+  }
+
   public logout(): void {
     this.authService.clearToken();
     this.closeOnMobile();
@@ -168,4 +163,5 @@ export class SidebarComponent {
     const enable = !this.isAdminOverrideEnabled();
     this.authService.setAdminOverride(enable);
   }
+
 }

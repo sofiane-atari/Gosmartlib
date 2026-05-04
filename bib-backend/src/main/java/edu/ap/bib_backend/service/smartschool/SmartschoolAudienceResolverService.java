@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.smartschool;
 
 import org.springframework.stereotype.Service;
 

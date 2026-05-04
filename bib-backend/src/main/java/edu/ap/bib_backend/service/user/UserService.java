@@ -17,7 +17,7 @@ import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
 import edu.ap.bib_backend.service.GroupService;
-import edu.ap.bib_backend.service.ProfanityFilterService;
+import edu.ap.bib_backend.service.review.ProfanityFilterService;
 
 @Service
 public class UserService {

@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.review;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.ClassPathResource;
