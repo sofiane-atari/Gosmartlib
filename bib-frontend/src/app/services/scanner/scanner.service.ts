@@ -22,7 +22,6 @@ export class ScannerService {
   private windowSize: number = 1000; // 1 second window
   private idleResetMs: number = 120;
   private isListening = false;
-  private keyPressHandler: ((event: KeyboardEvent) => void) | null = null;
   private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
   // This now emits the actual characters
@@ -40,26 +39,20 @@ export class ScannerService {
     this.isListening = true;
     this.resetBuffer();
 
-    this.keyPressHandler = this.handleKeyPress.bind(this);
     this.keyDownHandler = this.handleKeyPress.bind(this);
 
     this.ngZone.runOutsideAngular(() => {
       window.addEventListener('keydown', this.keyDownHandler!, true);
-      window.addEventListener('keypress', this.keyPressHandler!, true);
     });
   }
 
   stopListening(): void {
-    if (!this.isListening || !this.keyPressHandler) return;
+    if (!this.isListening || !this.keyDownHandler) return;
 
     this.isListening = false;
     if (this.keyDownHandler) {
       window.removeEventListener('keydown', this.keyDownHandler, true);
     }
-    if (this.keyPressHandler) {
-      window.removeEventListener('keypress', this.keyPressHandler, true);
-    }
-    this.keyPressHandler = null;
     this.keyDownHandler = null;
     this.resetBuffer();
   }
