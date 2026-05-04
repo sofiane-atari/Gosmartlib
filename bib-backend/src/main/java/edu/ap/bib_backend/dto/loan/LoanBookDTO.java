@@ -4,5 +4,6 @@ public record LoanBookDTO(
         Long id,
         String title,
         String author,
-        String isbn
+        String isbn,
+        String imageUrl
 ) {}

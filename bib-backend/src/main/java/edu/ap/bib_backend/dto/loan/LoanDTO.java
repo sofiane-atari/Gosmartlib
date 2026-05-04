@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
@@ -35,9 +36,12 @@ public record LoanDTO(
         String returnDate,
 
         @JsonProperty("returnedDate")
-                String returnedDate
+        String returnedDate,
+
+        @JsonProperty("status")
+        LoanStatus status
 ) {
     public LoanDTO(String userId, List<Long> bookIds, String returnDate) {
-        this(null, userId, null, bookIds, null, null, returnDate, null);
+        this(null, userId, null, bookIds, null, null, returnDate, null, null);
     }
 }
