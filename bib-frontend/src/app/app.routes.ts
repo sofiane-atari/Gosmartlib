@@ -4,7 +4,7 @@ import { AddBookPageComponent } from './component/book/add-book-page/add-book-pa
 import { BookEditPageComponent } from './component/book/book-edit-page/book-edit-page.component';
 import { BookManagementComponent } from './component/book/book-management/book-management.component';
 import { LessonTipRoutes } from './routes/lesson-tip.routes';
-import { SettingsComponent } from './component/settings/settings/settings.component';
+import { LoanHistoryComponent } from './component/loan/loan-history/loan-history.component';
 
 // Genre
 import { DashboardGenresComponent } from './component/genre/dashboard-genres/dashboard-genres.component';
@@ -37,13 +37,18 @@ import { SchoolDashboardComponent } from './component/school/school-dashboard/sc
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
 import { SettingsComponent } from './component/settings/settings/settings.component';
 import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashboard.component';
-import {ReturnLoanComponent} from "./component/loan/return-loan/return-loan.component";
+import { ReturnLoanComponent } from './component/loan/return-loan/return-loan.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
   { path: 'account', redirectTo: '/profile', pathMatch: 'full' },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'catalog', component: BooksComponent, canActivate: [authGuard] },
+  {
+    path: 'history',
+    component: LoanHistoryComponent,
+    canActivate: [authGuard],
+  },
   {
     path: 'review-dashboard',
     component: ReviewDashboardComponent,
@@ -85,7 +90,7 @@ export const routes: Routes = [
     path: 'reading-list/shared/:publicShareId',
     component: ReadingListDetailComponent,
     canActivate: [authGuard],
-    data: { shared: true }
+    data: { shared: true },
   },
   {
     path: 'reading-list/:id',

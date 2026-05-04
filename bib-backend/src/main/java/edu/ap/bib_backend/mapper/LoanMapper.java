@@ -5,8 +5,8 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import edu.ap.bib_backend.dto.LoanBookDTO;
-import edu.ap.bib_backend.dto.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanBookDTO;
+import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
 
@@ -27,6 +27,7 @@ public interface LoanMapper {
     @Mapping(target = "loanDate", expression = "java(loan.getLoanDate() != null ? loan.getLoanDate().toString() : null)")
     @Mapping(target = "returnDate", expression = "java(loan.getReturnDate() != null ? loan.getReturnDate().toString() : null)")
     @Mapping(target = "returnedDate", expression = "java(loan.getReturnedDate() != null ? loan.getReturnedDate().toString() : null)")
+    @Mapping(target = "status", expression = "java(loan.getStatus())")
     LoanDTO toDto(Loan loan);
 
     default List<Long> mapBookIds(List<BookCopy> copies) {
@@ -51,7 +52,8 @@ public interface LoanMapper {
                         copy.getBook().getId(),
                         copy.getBook().getTitle(),
                         copy.getBook().getAuthor(),
-                        copy.getBook().getIsbn()
+                        copy.getBook().getIsbn(),
+                        copy.getBook().getImageUrl()
                 ))
                 .toList();
     }

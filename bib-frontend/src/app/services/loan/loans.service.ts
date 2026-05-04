@@ -1,11 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Loan } from '../../model/loan.model';
+import { Loan, LoanHistory } from '../../model/loan.model';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LoansService {
   private http = inject(HttpClient);
@@ -23,4 +23,7 @@ export class LoansService {
     return this.http.patch<Loan>(`${this.apiUrl}/loans/${loanId}/return`, {});
   }
 
+  public getMyLoanHistory(): Observable<LoanHistory> {
+    return this.http.get<LoanHistory>(`${this.apiUrl}/loans/me/history`);
+  }
 }

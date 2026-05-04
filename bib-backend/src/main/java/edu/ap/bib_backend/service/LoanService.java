@@ -9,13 +9,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
-import org.springframework.stereotype.Service;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 
-import edu.ap.bib_backend.dto.LoanDTO;
+import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+
+import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
-import edu.ap.bib_backend.jpa.repository.LoanRepository;
+import edu.ap.bib_backend.jpa.enums.LoanStatus;
+import edu.ap.bib_backend.jpa.repository.loan.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
@@ -28,12 +33,14 @@ public class LoanService {
     private final LoanMapper loanMapper;
     private final BookService bookService;
     private final ExternalUserDisplayService externalUserDisplayService;
+    private final CurrentUserService currentUserService;
 
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService) {
+    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService, CurrentUserService currentUserService) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
         this.externalUserDisplayService = externalUserDisplayService;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -121,6 +128,7 @@ public class LoanService {
                             .loanDate(dto.loanDate())
                             .returnDate(dto.returnDate())
                             .returnedDate(dto.returnedDate())
+                            .status(dto.status())
                             .build();
                 })
                 .toList();
@@ -139,5 +147,34 @@ public class LoanService {
         loan.setReturnedDate(today);
 
         return loanMapper.toDto(loanRepository.save(loan));
+    }
+
+    public LoanHistoryDTO findHistoryForCurrentUser(Authentication authentication) {
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
+
+        List<LoanDTO> loans = loanRepository.findByUserIdOrderByLoanDateDesc(currentUserId)
+                .stream()
+                .map(loanMapper::toDto)
+                .toList();
+
+        List<LoanDTO> activeLoans = loans.stream()
+                .filter(loan -> loan.status() == LoanStatus.ACTIVE || loan.status() == LoanStatus.OVERDUE)
+                .toList();
+
+        List<LoanDTO> returnedLoans = loans.stream()
+                .filter(loan -> loan.status() == LoanStatus.RETURNED)
+                .toList();
+
+        int totalLoanedBookCount = loans.stream()
+                .mapToInt(loan -> loan.books() != null ? loan.books().size() : loan.bookIds().size())
+                .sum();
+
+        return LoanHistoryDTO.builder()
+                .activeLoanCount(activeLoans.size())
+                .returnedLoanCount(returnedLoans.size())
+                .totalLoanedBookCount(totalLoanedBookCount)
+                .activeLoans(activeLoans)
+                .returnedLoans(returnedLoans)
+                .build();
     }
 }
