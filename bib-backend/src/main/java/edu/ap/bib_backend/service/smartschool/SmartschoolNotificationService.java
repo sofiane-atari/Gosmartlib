@@ -1,6 +1,12 @@
 package edu.ap.bib_backend.service.smartschool;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -16,14 +22,29 @@ public class SmartschoolNotificationService {
             String description,
             String url) {
         String requestUrl = UriComponentsBuilder
-                .fromUriString(normalizeBaseUrl(smartschoolBaseUrl) + "/Api/V1/sendnotif")
-                .queryParam("access_token", accessToken)
-                .queryParam("notifTitle", title)
-                .queryParam("notifDesc", description)
-                .queryParam("notifUrl", url)
+                .fromUriString(normalizeBaseUrl(smartschoolBaseUrl))
+                .path("/Api/V1/sendnotif")
+                .build()
                 .toUriString();
 
-        restTemplate.getForObject(requestUrl, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("access_token", accessToken);
+        body.add("notifTitle", title);
+        body.add("notifDesc", description);
+        body.add("notifUrl", url);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                requestUrl,
+                request,
+                String.class);
+
+        System.out.println("Smartschool sendnotif status: " + response.getStatusCode());
+        System.out.println("Smartschool sendnotif response: " + response.getBody());
     }
 
     private String normalizeBaseUrl(String baseUrl) {
@@ -31,10 +52,16 @@ public class SmartschoolNotificationService {
             throw new IllegalStateException("Smartschool base URL ontbreekt.");
         }
 
-        if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-            return "https://" + baseUrl;
+        String normalized = baseUrl.trim();
+
+        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+            normalized = "https://" + normalized;
         }
 
-        return baseUrl;
+        if (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+
+        return normalized;
     }
 }

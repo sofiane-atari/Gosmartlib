@@ -23,6 +23,7 @@ import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class LoanService {
@@ -33,17 +34,24 @@ public class LoanService {
     private final ExternalUserDisplayService externalUserDisplayService;
     private final SmartschoolNotificationService smartschoolNotificationService;
     private final AuthSessionRepository authSessionRepository;
+    @Value("${app.frontend-base-url:http://localhost:4200}")
+    String frontendBaseUrl;
 
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService,
+    public LoanService(
+            LoanRepository loanRepository,
+            LoanMapper loanMapper,
+            BookService bookService,
             ExternalUserDisplayService externalUserDisplayService,
+            AuthSessionRepository authSessionRepository,
             SmartschoolNotificationService smartschoolNotificationService,
-            AuthSessionRepository authSessionRepository) {
+            @Value("${app.frontend-base-url:http://localhost:4200}") String frontendBaseUrl) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
         this.externalUserDisplayService = externalUserDisplayService;
-        this.smartschoolNotificationService = smartschoolNotificationService;
         this.authSessionRepository = authSessionRepository;
+        this.smartschoolNotificationService = smartschoolNotificationService;
+        this.frontendBaseUrl = frontendBaseUrl;
     }
 
     @Transactional
@@ -150,34 +158,25 @@ public class LoanService {
 
     private void sendSmartschoolLoanNotification(Loan loan) {
         try {
-            System.out.println("START Smartschool notification voor loanId: " + loan.getId());
 
             if (loan.getUser() == null) {
-                System.err.println("STOP: loan.getUser() is null");
                 return;
             }
 
             String userId = loan.getUser().getId();
-            System.out.println("UserId voor notification: " + userId);
 
             AuthSession authSession = authSessionRepository.findById(userId)
                     .orElse(null);
 
             if (authSession == null) {
-                System.err.println("STOP: Geen AuthSession gevonden voor userId: " + userId);
                 return;
             }
-
-            System.out.println("AuthSession gevonden voor userId: " + userId);
 
             String accessToken = authSession.getSmartschoolAccessToken();
 
             if (accessToken == null || accessToken.isBlank()) {
-                System.err.println("STOP: Geen Smartschool access token gevonden voor userId: " + userId);
                 return;
             }
-
-            System.out.println("Smartschool access token gevonden");
 
             String smartschoolBaseUrl = loan.getCopies().stream()
                     .findFirst()
@@ -185,10 +184,7 @@ public class LoanService {
                     .map(school -> school.getDomainName())
                     .orElse(null);
 
-            System.out.println("Smartschool base URL: " + smartschoolBaseUrl);
-
             if (smartschoolBaseUrl == null || smartschoolBaseUrl.isBlank()) {
-                System.err.println("STOP: Geen Smartschool domainName gevonden via book copy school.");
                 return;
             }
 
@@ -196,17 +192,34 @@ public class LoanService {
                     .map(copy -> copy.getBook().getTitle())
                     .collect(Collectors.joining(", "));
 
+            long daysUntilReturn = java.time.temporal.ChronoUnit.DAYS.between(
+                    LocalDate.now(ZoneId.of("Europe/Brussels")),
+                    loan.getReturnDate());
+
             String title = "Boek uitgeleend";
 
-            String description = "Je hebt het volgende boek uitgeleend: "
+            String returnLabel = daysUntilReturn == 1 ? "dag" : "dagen";
+
+            String bookPart = loan.getCopies().size() == 1
+                    ? "het volgende boek"
+                    : "de volgende boeken";
+
+            String mustPart = loan.getCopies().size() == 1
+                    ? "Dit moet"
+                    : "Deze moeten";
+
+            String description = "U heeft " + bookPart + " uitgeleend: "
                     + bookTitles
-                    + ". Terugbrengen voor "
+                    + ". " + mustPart + " binnen "
+                    + daysUntilReturn
+                    + " " + returnLabel
+                    + " terug binnen zijn, ten laatste op "
                     + loan.getReturnDate()
                     + ".";
 
-            String notificationUrl = "https://jouw-frontend-url.be/loans/" + loan.getId();
-
-            System.out.println("Smartschool notification wordt verstuurd...");
+            String notificationUrl = normalizeFrontendBaseUrl(frontendBaseUrl)
+                    + "/history"
+                    + loan.getId();
 
             smartschoolNotificationService.sendNotification(
                     smartschoolBaseUrl,
@@ -215,11 +228,22 @@ public class LoanService {
                     description,
                     notificationUrl);
 
-            System.out.println("Smartschool notificatie verstuurd voor lening " + loan.getId());
-
         } catch (Exception e) {
-            System.err.println("Smartschool notificatie kon niet verstuurd worden: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private String normalizeFrontendBaseUrl(String baseUrl) {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return "http://localhost:4200";
+        }
+
+        String normalized = baseUrl.trim();
+
+        if (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+
+        return normalized;
     }
 }
