@@ -1,9 +1,10 @@
 package edu.ap.bib_backend.controller;
 
-import edu.ap.bib_backend.dto.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,5 +38,10 @@ public class LoanController {
     @PatchMapping("/{loanId}/return")
     public ResponseEntity<LoanDTO> returnLoan(@PathVariable("loanId") Long loanId) {
         return ResponseEntity.ok(loanService.returnLoan(loanId));
+    }
+
+    @GetMapping("/me/history")
+    public ResponseEntity<List<LoanDTO>> getMyLoanHistory(Authentication authentication) {
+        return ResponseEntity.ok(loanService.findHistoryForCurrentUser(authentication));
     }
 }

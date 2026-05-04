@@ -9,13 +9,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
-import org.springframework.stereotype.Service;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 
-import edu.ap.bib_backend.dto.LoanDTO;
+import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+
+import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
-import edu.ap.bib_backend.jpa.repository.LoanRepository;
+import edu.ap.bib_backend.jpa.repository.loan.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
@@ -28,12 +31,14 @@ public class LoanService {
     private final LoanMapper loanMapper;
     private final BookService bookService;
     private final ExternalUserDisplayService externalUserDisplayService;
+    private final CurrentUserService currentUserService;
 
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService) {
+    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService, CurrentUserService currentUserService) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
         this.externalUserDisplayService = externalUserDisplayService;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -139,5 +144,14 @@ public class LoanService {
         loan.setReturnedDate(today);
 
         return loanMapper.toDto(loanRepository.save(loan));
+    }
+
+    public List<LoanDTO> findHistoryForCurrentUser(Authentication authentication) {
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
+
+        return loanRepository.findByUserIdOrderByLoanDateDesc(currentUserId)
+                .stream()
+                .map(loanMapper::toDto)
+                .toList();
     }
 }

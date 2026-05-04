@@ -1,5 +1,5 @@
 
-package edu.ap.bib_backend.dto;
+package edu.ap.bib_backend.dto.loan;
 
 import java.util.List;
 
