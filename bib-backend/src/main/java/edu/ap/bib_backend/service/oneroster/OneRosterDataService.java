@@ -129,6 +129,9 @@ class OneRosterDataService {
                     });
 
             return response.getBody() == null ? Map.of() : response.getBody();
+        } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized unauthorized) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED,
+                    "OneRoster access token ongeldig", unauthorized);
         } catch (RestClientException exception) {
             throw new ResponseStatusException(BAD_GATEWAY, "OneRoster data ophalen mislukt", exception);
         }

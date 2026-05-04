@@ -13,6 +13,11 @@ import java.util.Set;
 
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
+import edu.ap.bib_backend.jpa.repository.OneRosterTokenRepository;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+
 @Service
 public class OneRosterClient {
     private static final String DEFAULT_ONE_ROSTER_PATH = "/ims/oneroster/v1p1";
@@ -23,11 +28,10 @@ public class OneRosterClient {
     private final OneRosterHostValidator hostValidator;
     private final OneRosterTokenService tokenService;
     private final OneRosterDataService dataService;
+    private final SchoolRepository schoolRepository;
 
     public OneRosterClient(
             RestTemplateBuilder restTemplateBuilder,
-            @Value("${oneroster.client-id}") String clientId,
-            @Value("${oneroster.client-secret}") String clientSecret,
             @Value("${oneroster.token-url:https://oauth.smartschool.be/OAuth/index/token}") String tokenUrl,
             @Value("${oneroster.api-path:" + DEFAULT_ONE_ROSTER_PATH + "}") String apiPath,
             @Value("${oneroster.allowed-host-suffixes:.smartschool.be}") String allowedHostSuffixes,
@@ -35,7 +39,10 @@ public class OneRosterClient {
             @Value("${oneroster.read-timeout-ms:7000}") int readTimeoutMs,
             @Value("${oneroster.token-auth-method:basic}") String tokenAuthMethod,
             @Value("${oneroster.token-endpoint-mode:auto}") String tokenEndpointMode,
-            @Value("${oneroster.scope:}") String tokenScope) {
+            @Value("${oneroster.scope:}") String tokenScope,
+            OneRosterCredentialRepository credentialRepository,
+            OneRosterTokenRepository tokenRepository,
+            SchoolRepository schoolRepository) {
         RestTemplate template = restTemplateBuilder.build();
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(connectTimeoutMs);
@@ -45,28 +52,49 @@ public class OneRosterClient {
         this.hostValidator = new OneRosterHostValidator(allowedHostSuffixes);
         this.tokenService = new OneRosterTokenService(
                 template,
-                clientId,
-                clientSecret,
                 tokenUrl,
                 tokenAuthMethod,
                 tokenEndpointMode,
-                tokenScope);
+                tokenScope,
+                credentialRepository,
+                tokenRepository);
         this.dataService = new OneRosterDataService(
                 template,
                 normalizeApiPath(apiPath),
                 new OneRosterLabelFilter());
+        this.schoolRepository = schoolRepository;
     }
 
     public AudiencePayload fetchAudiencePayload(String schoolCode) {
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        String accessToken = tokenService.fetchAccessToken(host);
-        return dataService.fetchAudiencePayloadWithResolvedHost(host, accessToken);
+        School school = resolveSchool(schoolCode);
+        String accessToken = tokenService.fetchAccessToken(school, host);
+        try {
+            return dataService.fetchAudiencePayloadWithResolvedHost(host, accessToken);
+        } catch (ResponseStatusException ex) {
+            if (ex.getStatusCode().value() == 401) {
+                tokenService.invalidateToken(school);
+                String refreshed = tokenService.fetchAccessToken(school, host);
+                return dataService.fetchAudiencePayloadWithResolvedHost(host, refreshed);
+            }
+            throw ex;
+        }
     }
 
     public List<Map<String, Object>> fetchUsers(String schoolCode) {
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        String accessToken = tokenService.fetchAccessToken(host);
-        return dataService.fetchUsersWithResolvedHost(host, accessToken);
+        School school = resolveSchool(schoolCode);
+        String accessToken = tokenService.fetchAccessToken(school, host);
+        try {
+            return dataService.fetchUsersWithResolvedHost(host, accessToken);
+        } catch (ResponseStatusException ex) {
+            if (ex.getStatusCode().value() == 401) {
+                tokenService.invalidateToken(school);
+                String refreshed = tokenService.fetchAccessToken(school, host);
+                return dataService.fetchUsersWithResolvedHost(host, refreshed);
+            }
+            throw ex;
+        }
     }
 
     public AudiencePayload fetchAudiencePayloadWithBearer(String schoolCode, String bearerToken) {
@@ -103,9 +131,18 @@ public class OneRosterClient {
         }
 
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        String accessToken = tokenService.fetchAccessToken(host);
-
-        return dataService.fetchUserDisplayNamesWithResolvedHost(host, accessToken, userIds);
+        School school = resolveSchool(schoolCode);
+        String accessToken = tokenService.fetchAccessToken(school, host);
+        try {
+            return dataService.fetchUserDisplayNamesWithResolvedHost(host, accessToken, userIds);
+        } catch (ResponseStatusException ex) {
+            if (ex.getStatusCode().value() == 401) {
+                tokenService.invalidateToken(school);
+                String refreshed = tokenService.fetchAccessToken(school, host);
+                return dataService.fetchUserDisplayNamesWithResolvedHost(host, refreshed, userIds);
+            }
+            throw ex;
+        }
     }
 
     public String findSourcedIdByLegacyIdentifier(String schoolCode, String legacyIdentifier) {
@@ -114,9 +151,40 @@ public class OneRosterClient {
         }
 
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        String accessToken = tokenService.fetchAccessToken(host);
+        School school = resolveSchool(schoolCode);
+        String accessToken = tokenService.fetchAccessToken(school, host);
+        try {
+            return dataService.findSourcedIdByLegacyIdentifierWithResolvedHost(host, accessToken, legacyIdentifier);
+        } catch (ResponseStatusException ex) {
+            if (ex.getStatusCode().value() == 401) {
+                tokenService.invalidateToken(school);
+                String refreshed = tokenService.fetchAccessToken(school, host);
+                return dataService.findSourcedIdByLegacyIdentifierWithResolvedHost(host, refreshed, legacyIdentifier);
+            }
+            throw ex;
+        }
+    }
 
-        return dataService.findSourcedIdByLegacyIdentifierWithResolvedHost(host, accessToken, legacyIdentifier);
+    private School resolveSchool(String schoolCode) {
+        String normalized = normalizeSchoolCode(schoolCode);
+        return schoolRepository.findByDomainName(normalized)
+                .orElseThrow(() -> new ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_REQUEST,
+                        "School niet gevonden voor domain: " + normalized));
+    }
+
+    private String normalizeSchoolCode(String schoolCode) {
+        if (!StringUtils.hasText(schoolCode)) {
+            return schoolCode;
+        }
+
+        String trimmed = schoolCode.trim();
+        String withoutScheme = trimmed.replaceFirst("^https?://", "");
+        int slashIndex = withoutScheme.indexOf('/');
+        if (slashIndex > -1) {
+            return withoutScheme.substring(0, slashIndex);
+        }
+        return withoutScheme;
     }
 
     private String normalizeApiPath(String rawPath) {
