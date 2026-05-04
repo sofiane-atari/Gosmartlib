@@ -93,82 +93,17 @@ public class LoanService {
         return loanMapper.toDto(loan);
     }
 
-    public PageDTO<LoanDTO> findAll(int page, int pageSize) {
-        List<Loan> loans = loanRepository.findAll();
-
-        Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
-                .filter(loan -> loan.getUser() != null)
-                .filter(loan -> loan.getUser().getSchool() != null)
-                .filter(loan -> loan.getUser().getSchool().getDomainName() != null)
-                .filter(loan -> loan.getUser().getOneRosterSourcedId() != null)
-                .collect(Collectors.groupingBy(
-                        loan -> loan.getUser().getSchool().getDomainName(),
-                        Collectors.mapping(
-                                loan -> loan.getUser().getOneRosterSourcedId(),
-                                Collectors.toSet())));
-
-        System.out.println("UserIds per school: " + userIdsBySchoolCode);
-
-        Map<String, String> displayNamesByUserId = new java.util.HashMap<>();
-
-        userIdsBySchoolCode.forEach((schoolCode, userIds) -> {
-            System.out.println("SchoolCode: " + schoolCode);
-            System.out.println("UserIds naar OneRoster: " + userIds);
-
-            Map<String, String> names = externalUserDisplayService.getDisplayNames(schoolCode, userIds);
-
-            System.out.println("Display names van OneRoster: " + names);
-
-            displayNamesByUserId.putAll(names);
-        });
-
-        System.out.println("Alle display names: " + displayNamesByUserId);
-
-        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
-
-        List<LoanDTO> sortedDtos = loans.stream()
-                .sorted(
-                        Comparator
-                                .comparingInt((Loan loan) -> getLoanSortPriority(loan, today))
-                                .thenComparing(Loan::getReturnDate))
-                .map(loan -> {
-                    LoanDTO dto = loanMapper.toDto(loan);
-
-                    String lookupId = loan.getUser().getOneRosterSourcedId();
-
-                    return LoanDTO.builder()
-                            .id(dto.id())
-                            .userId(dto.userId())
-                            .userDisplayName(displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"))
-                            .bookIds(dto.bookIds())
-                            .books(dto.books())
-                            .loanDate(dto.loanDate())
-                            .returnDate(dto.returnDate())
-                            .returnedDate(dto.returnedDate())
-                            .build();
-                })
+    public PageDTO<LoanDTO> findActiveLoans(int page, int pageSize) {
+        List<Loan> loans = loanRepository.findAll().stream()
+                .filter(loan -> loan.getReturnedDate() == null)
                 .toList();
 
-        int safePage = Math.max(page, 0);
-        int safePageSize = Math.max(pageSize, 1);
+        return toPagedLoanDtoResponse(loans, page, pageSize);
+    }
 
-        int totalItems = sortedDtos.size();
-        int totalPages = (int) Math.ceil((double) totalItems / safePageSize);
-
-        int fromIndex = safePage * safePageSize;
-        int toIndex = Math.min(fromIndex + safePageSize, totalItems);
-
-        List<LoanDTO> pageData = fromIndex >= totalItems
-                ? List.of()
-                : sortedDtos.subList(fromIndex, toIndex);
-
-        PaginatedMeta meta = new PaginatedMeta(
-                safePage,
-                safePageSize,
-                totalItems,
-                totalPages);
-
-        return new PageDTO<>(pageData, meta);
+    public PageDTO<LoanDTO> findAll(int page, int pageSize) {
+        List<Loan> loans = loanRepository.findAll();
+        return toPagedLoanDtoResponse(loans, page, pageSize);
     }
 
     @Transactional
@@ -286,5 +221,72 @@ public class LoanService {
         }
 
         return 3; // Teruggebracht
+    }
+
+    private PageDTO<LoanDTO> toPagedLoanDtoResponse(List<Loan> loans, int page, int pageSize) {
+        Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
+                .filter(loan -> loan.getUser() != null)
+                .filter(loan -> loan.getUser().getSchool() != null)
+                .filter(loan -> loan.getUser().getSchool().getDomainName() != null)
+                .filter(loan -> loan.getUser().getOneRosterSourcedId() != null)
+                .collect(Collectors.groupingBy(
+                        loan -> loan.getUser().getSchool().getDomainName(),
+                        Collectors.mapping(
+                                loan -> loan.getUser().getOneRosterSourcedId(),
+                                Collectors.toSet())));
+
+        Map<String, String> displayNamesByUserId = new java.util.HashMap<>();
+
+        userIdsBySchoolCode.forEach((schoolCode, userIds) -> {
+            Map<String, String> names = externalUserDisplayService.getDisplayNames(schoolCode, userIds);
+
+            displayNamesByUserId.putAll(names);
+        });
+
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
+
+        List<LoanDTO> sortedDtos = loans.stream()
+                .sorted(
+                        Comparator
+                                .comparingInt((Loan loan) -> getLoanSortPriority(loan, today))
+                                .thenComparing(Loan::getReturnDate))
+                .map(loan -> {
+                    LoanDTO dto = loanMapper.toDto(loan);
+
+                    String lookupId = loan.getUser().getOneRosterSourcedId();
+
+                    return LoanDTO.builder()
+                            .id(dto.id())
+                            .userId(dto.userId())
+                            .userDisplayName(displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"))
+                            .bookIds(dto.bookIds())
+                            .books(dto.books())
+                            .loanDate(dto.loanDate())
+                            .returnDate(dto.returnDate())
+                            .returnedDate(dto.returnedDate())
+                            .build();
+                })
+                .toList();
+
+        int safePage = Math.max(page, 0);
+        int safePageSize = Math.max(pageSize, 1);
+
+        int totalItems = sortedDtos.size();
+        int totalPages = (int) Math.ceil((double) totalItems / safePageSize);
+
+        int fromIndex = safePage * safePageSize;
+        int toIndex = Math.min(fromIndex + safePageSize, totalItems);
+
+        List<LoanDTO> pageData = fromIndex >= totalItems
+                ? List.of()
+                : sortedDtos.subList(fromIndex, toIndex);
+
+        PaginatedMeta meta = new PaginatedMeta(
+                safePage,
+                safePageSize,
+                totalItems,
+                totalPages);
+
+        return new PageDTO<>(pageData, meta);
     }
 }

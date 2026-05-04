@@ -25,9 +25,17 @@ export class LoansService {
     });
   }
 
+  public getActiveLoans(page: number, pageSize: number): Observable<PaginatedResponse<Loan>> {
+    return this.http.get<PaginatedResponse<Loan>>(`${this.apiUrl}/loans/active`, {
+      params: {
+        page: page.toString(),
+        pageSize: pageSize.toString()
+      }
+    });
+  }
+
   public returnLoan(loanId: number): Observable<Loan> {
     return this.http.patch<Loan>(`${this.apiUrl}/loans/${loanId}/return`, {});
   }
   
-
 }

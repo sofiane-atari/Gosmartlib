@@ -118,7 +118,7 @@ export class ReturnLoanComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    this.loansService.getLoans(this.page(), this.pageSize()).subscribe({
+    this.loansService.getActiveLoans(this.page(), this.pageSize()).subscribe({
       next: (response) => {
         this.loans.set(response.data);
         this.totalItems.set(response.meta.totalItems);

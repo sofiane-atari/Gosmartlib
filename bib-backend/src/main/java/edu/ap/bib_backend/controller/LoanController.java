@@ -42,4 +42,11 @@ public class LoanController {
     public ResponseEntity<LoanDTO> returnLoan(@PathVariable("loanId") Long loanId) {
         return ResponseEntity.ok(loanService.returnLoan(loanId));
     }
+
+    @GetMapping("/active")
+    public ResponseEntity<PageDTO<LoanDTO>> getActiveLoans(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize));
+    }
 }
