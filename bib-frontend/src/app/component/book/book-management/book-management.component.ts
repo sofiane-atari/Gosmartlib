@@ -14,13 +14,14 @@ import {
 import { LoansService} from "../../../services/loan/loans.service";
 import {Loan} from "../../../model/loan.model";
 import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
+import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
 
 type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
 
 @Component({
   selector: 'app-book-management',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule, PagingComponent],
+  imports: [CommonModule, RouterLink, LucideAngularModule, PagingComponent, ButtonHoverHelpComponent],
   templateUrl: './book-management.component.html',
   styleUrl: './book-management.component.css',
 })

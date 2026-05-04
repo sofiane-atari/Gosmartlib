@@ -31,35 +31,47 @@
   </section>
 
   <section class="stat-cards">
-    <article class="stat-card stat-card--blue">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="Clock"></lucide-icon>
-      </div>
-      <div>
-        <p>uitgeleend</p>
-        <strong>{{ activeLoans() }}</strong>
-      </div>
-    </article>
+    <app-button-hover-help
+      text="Aantal leningen die momenteel actief zijn en nog niet zijn teruggebracht."
+    >
+      <article class="stat-card stat-card--blue">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="Clock"></lucide-icon>
+        </div>
+        <div>
+          <p>Uitgeleend</p>
+          <strong>{{ activeLoans() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card stat-card--orange">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="AlertTriangle"></lucide-icon>
-      </div>
-      <div>
-        <p>Te laat</p>
-        <strong>{{ overdueLoans() }}</strong>
-      </div>
-    </article>
+    <app-button-hover-help
+      text="Aantal actieve leningen waarvan de retourdatum al verstreken is."
+    >
+      <article class="stat-card stat-card--orange">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="AlertTriangle"></lucide-icon>
+        </div>
+        <div>
+          <p>Te laat</p>
+          <strong>{{ overdueLoans() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
 
-    <article class="stat-card stat-card--green">
-      <div class="stat-card__icon">
-        <lucide-icon [name]="CheckCircle2"></lucide-icon>
-      </div>
-      <div>
-        <p>Teruggebracht</p>
-        <strong>{{ returnedLoans() }}</strong>
-      </div>
-    </article>
+    <app-button-hover-help
+      text="Aantal leningen die al teruggebracht en afgesloten zijn."
+    >
+      <article class="stat-card stat-card--green">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="CheckCircle2"></lucide-icon>
+        </div>
+        <div>
+          <p>Teruggebracht</p>
+          <strong>{{ returnedLoans() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
   </section>
 
   <section class="table-card">
