@@ -1,0 +1,27 @@
+@if (canShow() && activeLoans().length > 0) {
+  <section class="sidebar-loans">
+    <div class="sidebar-loans__header">
+      <lucide-icon [img]="BookOpen" [size]="14"></lucide-icon>
+      <span>Mijn uitleningen ({{ activeLoans().length }})</span>
+    </div>
+
+    <div class="sidebar-loans__list">
+      @for (loan of activeLoans(); track loan.id) {
+        @for (book of loan.books?.slice(0, 1) ?? []; track book.id) {
+          <a
+            class="sidebar-loan-item"
+            [routerLink]="['/history']"
+            [title]="book.title"
+          >
+            <span class="sidebar-loan-item__title">{{ book.title }}</span>
+
+            <span class="sidebar-loan-item__date">
+              <lucide-icon [img]="Calendar" [size]="12"></lucide-icon>
+              {{ loan.returnDate | date: "dd-MM-yyyy" }}
+            </span>
+          </a>
+        }
+      }
+    </div>
+  </section>
+}

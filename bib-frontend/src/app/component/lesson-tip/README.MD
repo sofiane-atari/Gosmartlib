@@ -1,25 +1,25 @@
-# Didactic components overview
+# Lesson Tip components overview
 
-Korte uitleg per component binnen de didactic feature.
+Korte uitleg per component binnen de lesson tip feature.
 
 ---
 
-## `didactic-material-overview`
+## `lesson-tip-overview`
 
-**Main functie:** overzichtspagina van alle didactische materialen.
+**Main functie:** overzichtspagina van alle lestips.
 
 **Verantwoordelijkheden:**
 
-- lijst van didactische materialen ophalen
-- materialen tonen in cards
+- lijst van lestips ophalen
+- lestips tonen in cards
 - lege/loading states tonen
 - navigeren naar detail of create
 
 ---
 
-## `didactic-material-card`
+## `lesson-tip-card`
 
-**Main functie:** 1 didactisch materiaal visueel voorstellen in de overview.
+**Main functie:** 1 lestip visueel voorstellen in de overview.
 
 **Verantwoordelijkheden:**
 
@@ -30,13 +30,13 @@ Korte uitleg per component binnen de didactic feature.
 
 ---
 
-## `didactic-material-detail`
+## `lesson-tip-detail`
 
-**Main functie:** detailpagina van 1 didactisch materiaal.
+**Main functie:** detailpagina van 1 lestip.
 
 **Verantwoordelijkheden:**
 
-- volledig materiaal tonen
+- volledige lestip tonen
 - metadata, trefwoorden en gekoppelde boeken tonen
 - creator info tonen
 - bewerken/verwijderen mogelijk maken indien toegestaan
@@ -44,7 +44,7 @@ Korte uitleg per component binnen de didactic feature.
 
 ---
 
-## `didactic-material-form-page`
+## `lesson-tip-form-page`
 
 **Main functie:** pagina-orchestratie voor create en edit.
 
@@ -58,9 +58,9 @@ Korte uitleg per component binnen de didactic feature.
 
 ---
 
-## `didactic-material-form`
+## `lesson-tip-form`
 
-**Main functie:** formulier met de basisgegevens van een didactisch materiaal.
+**Main functie:** formulier met de basisgegevens van een lestip.
 
 **Verantwoordelijkheden:**
 
@@ -70,9 +70,9 @@ Korte uitleg per component binnen de didactic feature.
 
 ---
 
-## `didactic-material-attachments-panel`
+## `lesson-tip-attachments-panel`
 
-**Main functie:** beheer van opgeslagen bijlagen van een bestaand didactisch materiaal.
+**Main functie:** beheer van opgeslagen bijlagen van een bestaande lestip.
 
 **Verantwoordelijkheden:**
 
@@ -84,7 +84,7 @@ Korte uitleg per component binnen de didactic feature.
 
 ---
 
-## `didactic-material-attachment-queue`
+## `lesson-tip-attachment-queue`
 
 **Main functie:** tijdelijke wachtrij voor bestanden tijdens create flow.
 
@@ -97,7 +97,7 @@ Korte uitleg per component binnen de didactic feature.
 
 ---
 
-## `didactic-material-book-selection-panel`
+## `lesson-tip-book-selection-panel`
 
 **Main functie:** UI voor zoeken en selecteren van gekoppelde boeken.
 
@@ -129,19 +129,19 @@ Korte uitleg per component binnen de didactic feature.
 
 Deze components sturen de flow aan:
 
-- `didactic-material-overview`
-- `didactic-material-detail`
-- `didactic-material-form-page`
+- `lesson-tip-overview`
+- `lesson-tip-detail`
+- `lesson-tip-form-page`
 
 ## Presentational components
 
 Deze components tonen vooral UI en krijgen data via inputs:
 
-- `didactic-material-card`
-- `didactic-material-form`
-- `didactic-material-book-selection-panel`
-- `didactic-material-attachment-queue`
-- `didactic-material-attachments-panel`
+- `lesson-tip-card`
+- `lesson-tip-form`
+- `lesson-tip-book-selection-panel`
+- `lesson-tip-attachment-queue`
+- `lesson-tip-attachments-panel`
 
 ## Shared component
 
@@ -153,19 +153,19 @@ Deze components tonen vooral UI en krijgen data via inputs:
 
 ## Create
 
-- `didactic-material-form-page`
-- `didactic-material-form`
-- `didactic-material-book-selection-panel`
-- `didactic-material-attachment-queue`
+- `lesson-tip-form-page`
+- `lesson-tip-form`
+- `lesson-tip-book-selection-panel`
+- `lesson-tip-attachment-queue`
 
 ## Edit
 
-- `didactic-material-form-page`
-- `didactic-material-form`
-- `didactic-material-book-selection-panel`
-- `didactic-material-attachments-panel`
+- `lesson-tip-form-page`
+- `lesson-tip-form`
+- `lesson-tip-book-selection-panel`
+- `lesson-tip-attachments-panel`
 
 ## Detail
 
-- `didactic-material-detail`
-- `didactic-material-attachments-panel`
+- `lesson-tip-detail`
+- `lesson-tip-attachments-panel`

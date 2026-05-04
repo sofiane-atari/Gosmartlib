@@ -2,7 +2,7 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
-import { AuthUserDto, Role } from '../../model/auth.model';
+import { AuthUserDto } from '../../model/auth.model';
 import { LESSON_TIP_PATHS } from '../../routes/lesson-tip.routes';
 import {
   LucideAngularModule,
@@ -28,11 +28,18 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
 import { UserService } from '../../services/user/user.service';
+import { SidebarActiveLoansComponent } from './sidebar-active-loans/sidebar-active-loans.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, RouterModule, FormsModule],
+  imports: [
+    CommonModule,
+    LucideAngularModule,
+    RouterModule,
+    FormsModule,
+    SidebarActiveLoansComponent,
+  ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
 })
@@ -45,7 +52,7 @@ export class SidebarComponent {
   public readonly FolderKanbanIcon = FolderKanban;
 
   public readonly authService = inject(AuthService);
-  private readonly roleService = inject(RoleService);
+  public readonly roleService = inject(RoleService);
   private readonly userService = inject(UserService);
 
   // Input for mobile state
@@ -106,8 +113,18 @@ export class SidebarComponent {
       route: `/${LESSON_TIP_PATHS.root}`,
       staffOnly: true,
     },
-    { icon: Flag, label: 'Reviewbeheer', route: '/review-dashboard', staffOnly : true },
-    { icon: LibraryBig, label: 'Genrebeheer', route: '/genre', adminOnly: true },
+    {
+      icon: Flag,
+      label: 'Reviewbeheer',
+      route: '/review-dashboard',
+      staffOnly: true,
+    },
+    {
+      icon: LibraryBig,
+      label: 'Genrebeheer',
+      route: '/genre',
+      adminOnly: true,
+    },
     { icon: Tag, label: 'Labelbeheer', route: '/tag', adminOnly: true },
     { icon: School, label: 'Schoolbeheer', route: '/schools', adminOnly: true },
   ];
@@ -163,5 +180,4 @@ export class SidebarComponent {
     const enable = !this.isAdminOverrideEnabled();
     this.authService.setAdminOverride(enable);
   }
-
 }
