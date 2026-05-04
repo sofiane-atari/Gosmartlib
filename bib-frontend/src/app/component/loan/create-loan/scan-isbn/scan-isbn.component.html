@@ -1,32 +1,86 @@
-<div class="scan-card" #scanCard tabindex="0" role="button">
-  <div class="scan-card__content">
-    <h3>Boek scannen</h3>
-    <p>
-      Klik op de kaart om de scanner te activeren. Daarna scan je het boek om
-      het automatisch toe te voegen.
-    </p>
+<section class="scan-shell">
+  <div class="scan-card" #scanCard tabindex="0" role="button">
+    <div class="scan-card__badge">Scanmodus</div>
+    <div class="scan-card__content">
+      <h3>Boeken snel toevoegen</h3>
+      <p>
+        Activeer de scanner en scan meerdere boeken na elkaar. Je sluit de
+        scanmodus wanneer je klaar bent.
+      </p>
+    </div>
+
+    @if (!isArmed()) {
+      <button type="button" class="scan-card__button" (click)="armScanner()">
+        Scanmodus starten
+      </button>
+    } @else {
+      <div class="scan-card__status" role="status">Scanmodus actief</div>
+      <button type="button" class="scan-card__link" (click)="disarmScanner()">
+        Scanmodus stoppen
+      </button>
+    }
+
+    <input
+      #focusTrap
+      class="scan-card__focus-trap"
+      type="text"
+      tabindex="-1"
+      autocomplete="off"
+      spellcheck="false"
+      (blur)="onFocusTrapBlur()"
+    />
   </div>
 
-  @if (!isArmed()) {
-    <button type="button" class="scan-card__button" (click)="armScanner()">
-      Klik om te scannen
-    </button>
-  } @else {
-    <div class="scan-card__status" role="status">Scan nu een boek…</div>
-    <button type="button" class="scan-card__link" (click)="disarmScanner()">
-      Stoppen met scannen
-    </button>
+  @if (isArmed()) {
+    <div class="scan-overlay" role="dialog" aria-modal="true">
+      <div class="scan-modal">
+        <div class="scan-modal__header">
+          <div>
+            <p class="scan-modal__eyebrow">Scanmodus</p>
+            <h4>Scan nu je boeken</h4>
+          </div>
+          <button type="button" class="scan-modal__close" (click)="disarmScanner()">
+            Sluiten
+          </button>
+        </div>
+
+        <div class="scan-modal__body">
+          <div class="scan-modal__pulse"></div>
+          <p>
+            Houd de scanner klaar en scan elk boek. Je kunt blijven scannen tot
+            je de scanmodus sluit.
+          </p>
+          @if (lastScan().length > 0) {
+            <div class="scan-modal__last">
+              Laatst gescand: <span>{{ lastScan() }}</span>
+            </div>
+          }
+          @if (scannedBooks().length > 0) {
+            <div class="scan-modal__list">
+              <div class="scan-modal__list-header">
+                <span>Gescande boeken</span>
+                <button
+                  type="button"
+                  class="scan-modal__link"
+                  (click)="handleRemoveLastScanned()"
+                >
+                  Laatste verwijderen
+                </button>
+              </div>
+              <div class="scan-modal__list-items">
+                @for (book of scannedBooks(); track trackScannedBook($index, book)) {
+                  <app-selected-book-item [book]="book" />
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="scan-modal__footer">
+          <span>Tip: houd de scanner dicht bij het ISBN-label.</span>
+        </div>
+      </div>
+
+    </div>
   }
-
-  <input
-    #focusTrap
-    class="scan-card__focus-trap"
-    type="text"
-    tabindex="-1"
-    autocomplete="off"
-    spellcheck="false"
-    aria-hidden="true"
-    (blur)="onFocusTrapBlur()"
-  />
-
-</div>
+</section>

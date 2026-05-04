@@ -37,7 +37,11 @@
     (clearSelectedUserRequested)="clearSelectedUser()" />
 
   @if (selectedUser() !== null) {
-    <app-scan-isbn (scannedIsbn)="handleScannedIsbn($event)" />
+    <app-scan-isbn
+      [scannedBooks]="scannedBooks()"
+      (scannedIsbn)="handleScannedIsbn($event)"
+      (removeLastScannedRequested)="removeLastScannedBook()"
+    />
     <app-book-selection-panel [hasSelectedUser]="selectedUser() !== null" [selectedBooksCount]="selectedBooks().length"
       [searchQuery]="bookSearchQuery()" [searchIsbn]="bookSearchIsbn()" [isLoadingBooks]="isLoadingBooks()"
       [hasBookSearchInput]="hasBookSearchInput()" [filteredBooks]="filteredBooks()"

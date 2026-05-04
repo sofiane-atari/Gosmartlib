@@ -1,12 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, ElementRef, inject, output, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import { ScannerService } from '../../../../services/scanner/scanner.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Book } from '../../../../model/book/book.model';
+import { SelectedBookItemComponent } from '../selected-book-item/selected-book-item.component';
 
 @Component({
   selector: 'app-scan-isbn',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SelectedBookItemComponent],
   templateUrl: './scan-isbn.component.html',
   styleUrl: './scan-isbn.component.css',
 })
@@ -17,9 +19,20 @@ export class ScanIsbnComponent {
   private readonly focusTrap = viewChild.required<ElementRef<HTMLInputElement>>('focusTrap');
   private focusLockInterval: ReturnType<typeof setInterval> | null = null;
 
+  public readonly scannedBooks = input<Book[]>([]);
   public readonly scannedIsbn = output<string>();
+  public readonly removeLastScannedRequested = output<void>();
   public readonly isArmed = signal(false);
   public readonly lastScan = signal('');
+
+  public trackScannedBook(index: number, book: Book): number | string {
+    return book.id ?? `scanned-${book.isbn ?? index}`;
+  }
+
+  public handleRemoveLastScanned(): void {
+    this.lastScan.set('');
+    this.removeLastScannedRequested.emit();
+  }
 
   public armScanner(): void {
     if (this.isArmed()) {

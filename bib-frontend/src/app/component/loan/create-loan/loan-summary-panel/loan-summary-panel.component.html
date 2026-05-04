@@ -18,14 +18,11 @@
                 <span class="pill">{{ selectedBooks().length }} gekozen</span>
             </div>
             @for (book of selectedBooks(); track trackSelectedBook($index, book)) {
-            <div class="selected-book-row">
-                <div class="selected-book-content">
-                    <span class="selected-book-title">{{ book.title }}</span>
-                    <span class="selected-book-subtitle">{{ book.author }}</span>
-                </div>
-                <button type="button" class="action-button action-button--danger"
-                    (click)="removeBookRequested.emit(book.id)">Verwijderen</button>
-            </div>
+            <app-selected-book-item
+              [book]="book"
+              [showRemove]="true"
+              (removeRequested)="removeBookRequested.emit($event)"
+            />
             } @empty {
             <div class="state-panel state-panel--compact">
                 <p>Nog geen boeken geselecteerd.</p>

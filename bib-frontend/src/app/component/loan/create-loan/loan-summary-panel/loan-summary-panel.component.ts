@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Book } from '../../../../model/book/book.model';
+import { SelectedBookItemComponent } from '../selected-book-item/selected-book-item.component';
 
 @Component({
   selector: 'app-loan-summary-panel',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SelectedBookItemComponent],
   templateUrl: './loan-summary-panel.component.html',
   styleUrl: './loan-summary-panel.component.css',
 })

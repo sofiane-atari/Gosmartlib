@@ -61,6 +61,7 @@ export class CreateLoanComponent {
   public readonly isbnBooks = signal<Book[]>([]);
   public readonly selectedUser = signal<AuthUserDto | null>(null);
   public readonly selectedBooks = signal<Book[]>([]);
+  public readonly scannedBooks = signal<Book[]>([]);
   public readonly minReturnDate = signal(this.buildMinReturnDate());
 
   public readonly isLoadingBooks = computed(() => {
@@ -176,6 +177,7 @@ export class CreateLoanComponent {
   public selectUser(user: AuthUserDto): void {
     this.selectedUser.set(user);
     this.selectedBooks.set([]);
+    this.scannedBooks.set([]);
     this.triggerCatalogSearch();
     this.triggerIsbnSearch();
   }
@@ -183,6 +185,7 @@ export class CreateLoanComponent {
   public clearSelectedUser(): void {
     this.selectedUser.set(null);
     this.selectedBooks.set([]);
+    this.scannedBooks.set([]);
     this.catalogBooks.set([]);
     this.isbnBooks.set([]);
     this.bookSearchQuery.set('');
@@ -198,6 +201,7 @@ export class CreateLoanComponent {
   public onBookIsbnSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.bookSearchIsbn.set(target.value);
+    this.triggerIsbnSearch();
   }
 
   public addBook(book: Book): void {
@@ -342,7 +346,10 @@ export class CreateLoanComponent {
         this.isLoadingIsbnBooks.set(false);
 
         if (autoSelect) {
-          this.selectScannedBook(book);
+          const wasAdded = this.selectScannedBook(book);
+          if (wasAdded) {
+            this.scannedBooks.update((entries) => [...entries, book]);
+          }
         }
       },
       error: () => {
@@ -362,30 +369,43 @@ export class CreateLoanComponent {
       return;
     }
 
-    this.bookSearchIsbn.set(cleanedIsbn);
-    this.suppressNextDebouncedIsbnSearch = true;
     this.fetchBookByIsbn(cleanedIsbn, true);
   }
 
-  private selectScannedBook(book: Book): void {
+  private selectScannedBook(book: Book): boolean {
     if (book.id === undefined) {
-      return;
+      return false;
     }
 
     const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
     if (!hasCopiesAvailable) {
       this.showError('Het gescande boek is niet beschikbaar voor uitlening.');
-      return;
+      return false;
     }
 
     const isAlreadySelected = this.selectedBooks().some((selectedBook) => selectedBook.id === book.id);
     if (isAlreadySelected) {
       this.showSuccess('Het gescande boek was al geselecteerd.');
-      return;
+      return false;
     }
 
     this.addBook(book);
     this.showSuccess('Boek succesvol gescand en toegevoegd.');
+    return true;
+  }
+
+  public removeLastScannedBook(): void {
+    const scanned = this.scannedBooks();
+    if (scanned.length === 0) {
+      return;
+    }
+
+    const last = scanned[scanned.length - 1];
+    this.scannedBooks.set(scanned.slice(0, -1));
+
+    if (last.id !== undefined) {
+      this.removeBook(last.id);
+    }
   }
 
   private triggerCatalogSearch(): void {
