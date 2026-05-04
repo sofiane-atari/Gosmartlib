@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import {
   LucideAngularModule,
   RotateCcw,
-  Search,
   CheckCircle2,
   AlertTriangle,
   ArrowLeft
@@ -13,11 +12,12 @@ import { LoansService } from '../../../services/loan/loans.service';
 import { Loan } from '../../../model/loan.model';
 import { Router } from '@angular/router';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
+import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
 
 @Component({
   selector: 'app-return-loan',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, PagingComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, PagingComponent, SearchBarComponent],
   templateUrl: './return-loan.component.html',
   styleUrl: './return-loan.component.css',
 })
@@ -26,7 +26,6 @@ export class ReturnLoanComponent implements OnInit {
   private readonly router = inject(Router);
 
   protected readonly RotateCcw = RotateCcw;
-  protected readonly Search = Search;
   protected readonly CheckCircle2 = CheckCircle2;
   protected readonly AlertTriangle = AlertTriangle;
   protected readonly ArrowLeft = ArrowLeft;
@@ -267,5 +266,9 @@ export class ReturnLoanComponent implements OnInit {
     }
 
     return this.expandedLoanIds.has(loanId);
+  }
+
+  protected onSearchChange(value: string): void {
+    this.searchTerm.set(value);
   }
 }

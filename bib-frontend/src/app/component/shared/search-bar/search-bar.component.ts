@@ -25,4 +25,5 @@ export class SearchBarComponent {
   onInput(): void {
     this.searchChange.emit(this.query);
   }
+  
 }

@@ -20,22 +20,16 @@
   }
 
   <section class="search-panel">
-    <div class="search-box">
-      <lucide-icon [name]="Search"></lucide-icon>
-      <input
-        type="text"
-        placeholder="Zoek op leerling, gebruiker of boektitel..."
-        [ngModel]="searchTerm()"
-        (ngModelChange)="searchTerm.set($event)"
-      />
-    </div>
+    <app-search-bar
+      placeholder="Zoek op leerling, gebruiker of boektitel..."
+      (searchChange)="onSearchChange($event)"
+    />
   </section>
 
   <section class="table-card">
     <div class="table-card__header">
       <div>
-        <h2>Actieve leningen</h2>
-        <p>Selecteer een lening om het boek terug te brengen.</p>
+        <h2>Leningen</h2>
       </div>
     </div>
 
