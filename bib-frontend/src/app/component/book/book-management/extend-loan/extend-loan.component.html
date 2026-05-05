@@ -17,7 +17,8 @@
       </div>
 
       <div>
-        <strong>Lening #{{ loan().id }}</strong>
+        <strong> {{ loanTitle() }}</strong>
+        <strong>Lening van {{ loanOwnerName() }}</strong>
         <span
           >Huidige retourdatum:
           {{ loan().returnDate | date: "dd/MM/yyyy" }}</span
@@ -78,6 +79,7 @@
         <lucide-icon [img]="Calendar" [size]="18"></lucide-icon>
         <input
           type="date"
+          [min]="minimumCustomReturnDate()"
           [ngModel]="customReturnDate()"
           (ngModelChange)="updateCustomReturnDate($event)"
         />

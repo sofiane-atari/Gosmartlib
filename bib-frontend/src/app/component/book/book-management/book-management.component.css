@@ -3,7 +3,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px; /* Was 24px */
 }
 
 .page-header {
@@ -11,10 +11,11 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+  margin-bottom: 4px;
 }
 
 .page-header__text h1 {
-  font-size: 28px;
+  font-size: 24px; /* Was 28px */
   font-weight: 700;
   color: #1a0a10;
   letter-spacing: -0.5px;
@@ -22,25 +23,27 @@
 }
 
 .page-header__text p {
-  font-size: 14px;
+  font-size: 13px; /* Was 14px */
   color: #7a5560;
   margin: 4px 0 0;
 }
 
+/* =========================================================
+   ACTION CARDS (Bovenste knoppen)
+   ========================================================= */
 .action-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
+  gap: 16px; /* Was 24px */
 }
 
 .action-card {
-  min-height: 150px;
-  border-radius: 16px;
-  padding: 28px;
+  border-radius: 12px; /* Was 16px */
+  padding: 20px; /* Was 28px */
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px; /* Was 20px */
   transition:
     transform 0.15s,
     box-shadow 0.15s,
@@ -49,76 +52,71 @@
 
 .action-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(138, 30, 65, 0.13);
+  box-shadow: 0 8px 20px rgba(138, 30, 65, 0.1);
 }
 
-.action-card--primary {
-  background: #fff7fb;
-  border: solid 2px var(--main-color);
-}
-
+.action-card--primary,
 .action-card--secondary {
   background: #fff7fb;
   border: solid 2px var(--main-color);
 }
 
 .action-card__icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: 44px; /* Was 56px */
+  height: 44px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   color: #fff;
   flex: 0 0 auto;
 }
 
-.action-card--primary .action-card__icon {
-  background: var(--main-color);
-}
-
+.action-card--primary .action-card__icon,
 .action-card--secondary .action-card__icon {
   background: var(--main-color);
 }
 
 .action-card__icon lucide-icon {
-  width: 28px;
-  height: 28px;
+  width: 22px; /* Was 28px */
+  height: 22px;
 }
 
 .action-card h2 {
   color: #1a0a10;
-  font-size: 20px;
-  margin: 0 0 6px;
+  font-size: 17px; /* Was 20px */
+  margin: 0 0 4px;
 }
 
 .action-card p {
   color: #7a5560;
-  font-size: 14px;
+  font-size: 13px; /* Was 14px */
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
+/* =========================================================
+   STAT CARDS (Middelste blokjes)
+   ========================================================= */
 .stat-cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  gap: 16px; /* Was 24px */
 }
 
 .stat-card {
-  min-height: 102px;
-  border-radius: 14px;
-  padding: 26px 24px;
+  border-radius: 12px;
+  padding: 16px 20px; /* Was 26px 24px */
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   border: 1px solid #f0e4e8;
   background: #fff;
 }
 
 .stat-card__icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 40px; /* Was 48px */
+  height: 40px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   color: #fff;
@@ -126,27 +124,27 @@
 }
 
 .stat-card__icon lucide-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
 .stat-card p {
   color: #7a5560;
-  font-size: 13px;
-  margin: 0 0 6px;
+  font-size: 12px; /* Was 13px */
+  margin: 0 0 2px;
 }
 
 .stat-card strong {
   color: #1a0a10;
-  font-size: 24px;
+  font-size: 20px; /* Was 24px */
   font-weight: 700;
+  line-height: 1;
 }
 
 .stat-card--blue {
   background: #f2f9ff;
   border-color: #bfddff;
 }
-
 .stat-card--blue .stat-card__icon {
   background: #2563eb;
 }
@@ -155,7 +153,6 @@
   background: #ffe5e5;
   border-color: #e87979;
 }
-
 .stat-card--orange .stat-card__icon {
   background: red;
 }
@@ -164,73 +161,35 @@
   background: #f1fff6;
   border-color: #bbf7d0;
 }
-
 .stat-card--green .stat-card__icon {
   background: #16a34a;
 }
 
+/* =========================================================
+   TABLE CARD & TABEL
+   ========================================================= */
 .table-card {
   background: #fff;
   border: 1px solid #f0e4e8;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
 }
 
 .table-card__header {
-  padding: 22px 24px;
+  padding: 16px 20px; /* Was 22px 24px */
   border-bottom: 1px solid #f0e4e8;
 }
 
 .table-card__header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px; /* Was 20px */
   color: #1a0a10;
 }
 
 .table-card__header p {
-  margin: 4px 0 0;
-  font-size: 14px;
+  margin: 2px 0 0;
+  font-size: 13px;
   color: #7a5560;
-}
-
-.empty-state {
-  padding: 56px 24px;
-  text-align: center;
-  color: #7a5560;
-}
-
-.empty-state__icon {
-  width: 58px;
-  height: 58px;
-  border-radius: 16px;
-  background: #f9f4f6;
-  color: var(--main-color);
-  display: grid;
-  place-items: center;
-  margin: 0 auto 16px;
-}
-
-.empty-state__icon lucide-icon {
-  width: 28px;
-  height: 28px;
-}
-
-.empty-state h3 {
-  margin: 0 0 6px;
-  color: #1a0a10;
-  font-size: 18px;
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 14px;
-}
-
-lucide-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
 }
 
 .table-card table {
@@ -241,212 +200,76 @@ lucide-icon {
 .table-card th {
   text-align: left;
   color: #1a0a10;
-  font-size: 13px;
+  font-size: 12px; /* Was 13px */
   font-weight: 700;
-  padding: 14px 18px;
+  padding: 12px 16px; /* Was 14px 18px */
   border-bottom: 1px solid #f0e4e8;
   background: #fff;
 }
 
 .table-card td {
-  padding: 16px 18px;
+  padding: 10px 16px; /* Veel compacter verticaal (Was 16px) */
   border-bottom: 1px solid #f0e4e8;
   vertical-align: middle;
   color: #1a0a10;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .table-card tr:last-child td {
   border-bottom: none;
 }
 
-.book-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.book-chip {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-  width: fit-content;
-  background: #f9f4f6;
-  border: 1px solid #f0e4e8;
-  border-radius: 10px;
-  padding: 8px 12px;
-}
-
-.book-chip strong {
-  font-size: 13px;
-  color: #1a0a10;
-}
-
-.book-chip small {
-  font-size: 12px;
-  color: #7a5560;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.status-badge--active {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.status-badge--overdue {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.status-badge--returned {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.user-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.user-cell strong {
-  color: #1a0a10;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.user-cell span {
-  color: #9b7a84;
-  font-size: 12px;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .text-center {
   text-align: center;
 }
-
 .table-card th.text-center,
 .table-card td.text-center {
   text-align: center;
 }
 
+/* =========================================================
+   TABEL ELEMENTEN (Cellen, Badges, Knoppen)
+   ========================================================= */
 .user-cell {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
-
-.user-cell strong {
-  color: #1a0a10;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.user-cell span {
-  color: #9b7a84;
-  font-size: 13px;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.book-list--compact {
-  max-height: 98px;
-  overflow: hidden;
-}
-
-.book-chip {
-  max-width: 260px;
-}
-
-.book-chip strong,
-.book-chip small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.book-more {
-  width: fit-content;
-  border: 1px solid #f0e4e8;
-  background: #fff7fb;
-  color: var(--main-color);
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: default;
-}
-
-.time-left {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  padding: 6px 12px;
-  background: #f9f4f6;
-  color: #7a5560;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.time-left--urgent {
-  background: #fee2e2;
-  color: #dc2626;
-}
-.table-card th,
-.table-card td {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.loan-row {
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.loan-row:hover {
-  background: #fff7fb;
-}
-
-.loan-row--expanded {
-  background: #fff7fb;
-}
-
 .user-cell--center {
   align-items: center;
   text-align: center;
 }
 
+.user-cell strong {
+  color: #1a0a10;
+  font-size: 13px; /* Was 14px */
+  font-weight: 700;
+}
+
+.user-cell span {
+  color: #9b7a84;
+  font-size: 11px; /* Was 12px */
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .book-cell {
-  max-width: 280px;
+  max-width: 250px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   background: #f9f4f6;
   border: 1px solid #f0e4e8;
-  border-radius: 10px;
-  padding: 8px 12px;
+  border-radius: 8px; /* Was 10px */
+  padding: 6px 10px; /* Compacter (Was 8px 12px) */
 }
 
 .book-cell strong {
   color: #1a0a10;
-  font-size: 13px;
+  font-size: 12px; /* Was 13px */
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -455,7 +278,7 @@ lucide-icon {
 
 .book-cell small {
   color: #7a5560;
-  font-size: 12px;
+  font-size: 11px; /* Was 12px */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -465,75 +288,56 @@ lucide-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
-  height: 30px;
+  min-width: 28px; /* Was 36px */
+  height: 24px; /* Was 30px */
   border-radius: 999px;
   background: #f9f4f6;
   border: 1px solid #f0e4e8;
   color: #1a0a10;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.loan-details-row td {
-  padding: 0;
-  background: #fffafd;
-}
-
-.loan-details {
-  padding: 18px 24px 22px;
-  border-top: 1px solid #f0e4e8;
-  text-align: left;
-}
-
-.loan-details__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.loan-details__header strong {
-  color: #1a0a10;
-  font-size: 14px;
-}
-
-.loan-details__header span {
-  color: #7a5560;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.loan-details__books {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-}
-
-.loan-details__book {
-  background: #fff;
-  border: 1px solid #f0e4e8;
-  border-radius: 10px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.loan-details__book strong {
-  color: #1a0a10;
-  font-size: 13px;
-}
-
-.loan-details__book small {
-  color: #7a5560;
   font-size: 12px;
+  font-weight: 700;
 }
 
-.muted {
-  color: #9b7a84;
-  font-size: 13px;
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 4px 10px; /* Was 6px 12px */
+  font-size: 11px; /* Was 12px */
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge--active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.status-badge--overdue {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.status-badge--returned {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.time-left {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #f9f4f6;
+  color: #7a5560;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.time-left--urgent {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .extend-loan-btn {
@@ -541,9 +345,9 @@ lucide-icon {
   border-radius: 999px;
   background: var(--main-light-color);
   color: var(--main-color);
-  padding: 7px 14px;
+  padding: 5px 12px; /* Compacter (Was 7px 14px) */
   font-family: var(--main-font);
-  font-size: 12px;
+  font-size: 11px; /* Was 12px */
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -558,9 +362,121 @@ lucide-icon {
   transform: translateY(-1px);
 }
 
+.muted {
+  color: #9b7a84;
+  font-size: 12px;
+}
+
+.loan-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.loan-row:hover,
+.loan-row--expanded {
+  background: #fff7fb;
+}
+
 /* =========================================================
-   SKELETON LOADING (Boekbeheer Tabel)
+   EXPANDED DETAILS
    ========================================================= */
+.loan-details-row td {
+  padding: 0;
+  background: #fffafd;
+}
+
+.loan-details {
+  padding: 14px 20px 18px; /* Was 18px 24px 22px */
+  border-top: 1px solid #f0e4e8;
+  text-align: left;
+}
+
+.loan-details__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.loan-details__header strong {
+  color: #1a0a10;
+  font-size: 13px;
+}
+.loan-details__header span {
+  color: #7a5560;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.loan-details__books {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.loan-details__book {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loan-details__book strong {
+  color: #1a0a10;
+  font-size: 12px;
+}
+.loan-details__book small {
+  color: #7a5560;
+  font-size: 11px;
+}
+
+/* =========================================================
+   EMPTY STATE & SKELETON LOADING
+   ========================================================= */
+.empty-state {
+  padding: 40px 24px;
+  text-align: center;
+  color: #7a5560;
+}
+
+.empty-state__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f9f4f6;
+  color: var(--main-color);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 12px;
+}
+
+.empty-state__icon lucide-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.empty-state h3 {
+  margin: 0 0 4px;
+  color: #1a0a10;
+  font-size: 16px;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 13px;
+}
+
+lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
 @keyframes skeleton-loading {
   0% {
     background-position: 200% 0;
@@ -577,13 +493,11 @@ lucide-icon {
   border-radius: 6px;
 }
 
-/* Zorg dat je niet per ongeluk op een ladende rij kunt klikken */
 .loan-row--skeleton {
   pointer-events: none;
   background-color: transparent !important;
 }
 
-/* Centreer de nep-tekstblokken in de kolommen */
 .skeleton-cell-content {
   display: flex;
   flex-direction: column;
@@ -592,50 +506,46 @@ lucide-icon {
 }
 
 .skeleton--text-main {
-  width: 100px;
-  height: 16px;
+  width: 90px;
+  height: 14px;
 }
-
 .skeleton--text-sub {
-  width: 70px;
-  height: 12px;
+  width: 60px;
+  height: 10px;
 }
-
 .skeleton--badge {
-  width: 30px;
-  height: 24px;
-  border-radius: 999px; /* Pill vorm */
-  margin: 0 auto;
-}
-
-.skeleton--date {
-  width: 80px;
-  height: 16px;
-  margin: 0 auto;
-}
-
-.skeleton--badge-wide {
-  width: 85px;
-  height: 26px;
+  width: 28px;
+  height: 22px;
   border-radius: 999px;
   margin: 0 auto;
 }
-
-/* Skeleton voor de 'Verlengen' knop */
+.skeleton--date {
+  width: 75px;
+  height: 14px;
+  margin: 0 auto;
+}
+.skeleton--badge-wide {
+  width: 75px;
+  height: 22px;
+  border-radius: 999px;
+  margin: 0 auto;
+}
 .skeleton--button {
-  width: 85px;
-  height: 32px;
+  width: 75px;
+  height: 26px;
   border-radius: 8px;
   margin: 0 auto;
 }
 
+/* =========================================================
+   MEDIA QUERIES
+   ========================================================= */
 @media (max-width: 1024px) {
   .table-card {
     overflow-x: auto;
   }
-
   .table-card table {
-    min-width: 850px;
+    min-width: 800px;
   }
 }
 
@@ -648,15 +558,13 @@ lucide-icon {
 
 @media (max-width: 768px) {
   .book-management {
-    gap: 20px;
+    gap: 16px;
   }
-
   .page-header__text h1 {
-    font-size: 24px;
+    font-size: 20px;
   }
-
   .action-card {
     align-items: flex-start;
-    padding: 22px;
+    padding: 16px;
   }
 }

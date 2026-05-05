@@ -47,6 +47,13 @@ export class ExtendLoanComponent {
     () => this.selectedExtensionType() === 'CUSTOM_DATE',
   );
 
+  protected readonly minimumCustomReturnDate = computed(() => {
+    const currentReturnDate = new Date(this.loan().returnDate);
+    currentReturnDate.setDate(currentReturnDate.getDate() + 1);
+
+    return currentReturnDate.toISOString().slice(0, 10);
+  });
+
   protected readonly canSubmit = computed(() => {
     if (!this.isCustomDateSelected()) {
       return true;
@@ -103,4 +110,30 @@ export class ExtendLoanComponent {
       },
     });
   }
+
+  protected readonly loanTitle = computed(() => {
+    const loan = this.loan();
+
+    if (!loan.books || loan.books.length === 0) {
+      return 'Onbekende lening';
+    }
+
+    const firstBook = loan.books[0];
+
+    if (loan.books.length === 1) {
+      return `${firstBook.title}`;
+    }
+
+    return `${firstBook.title} (+${loan.books.length - 1} boek(en))`;
+  });
+
+  protected readonly loanOwnerName = computed(() => {
+    const displayName = this.loan().userDisplayName?.trim();
+
+    if (!displayName) {
+      return 'Onbekende gebruiker';
+    }
+
+    return displayName;
+  });
 }
