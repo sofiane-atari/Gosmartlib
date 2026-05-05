@@ -7,6 +7,7 @@ import {
   GamificationProgress,
 } from '../../../model/gamification/gamification.model';
 import { GamificationBadgeFilters } from '../../../services/gamification/gamification.service';
+import { BadgeCollectionCardComponent } from '../badge-collection-card/badge-collection-card.component';
 
 type BadgeStatusFilter = 'ALL' | 'COMPLETED' | 'LOCKED';
 type BadgeCategoryFilter = 'ALL' | GamificationBadgeCategory;
@@ -20,7 +21,7 @@ interface BadgeFilterOption<TValue> {
 @Component({
   selector: 'app-badge-collection',
   standalone: true,
-  imports: [BadgeProgressCardComponent],
+  imports: [BadgeProgressCardComponent, BadgeCollectionCardComponent],
   templateUrl: './badge-collection.component.html',
   styleUrl: './badge-collection.component.css',
 })

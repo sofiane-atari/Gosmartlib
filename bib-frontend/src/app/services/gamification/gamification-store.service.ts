@@ -34,6 +34,21 @@ export class GamificationStoreService {
   public readonly isLoading = this.isLoadingSignal.asReadonly();
   public readonly errorMessage = this.errorMessageSignal.asReadonly();
 
+  private readonly almostEarnedBadgesSignal = signal<GamificationProgress[]>(
+    [],
+  );
+  private readonly almostEarnedBadgesLoadingSignal = signal<boolean>(false);
+  private readonly almostEarnedBadgesErrorMessageSignal = signal<string | null>(
+    null,
+  );
+
+  public readonly almostEarnedBadges =
+    this.almostEarnedBadgesSignal.asReadonly();
+  public readonly almostEarnedBadgesLoading =
+    this.almostEarnedBadgesLoadingSignal.asReadonly();
+  public readonly almostEarnedBadgesErrorMessage =
+    this.almostEarnedBadgesErrorMessageSignal.asReadonly();
+
   public readonly totalPoints = computed<number>(() => {
     return this.profileSignal()?.totalPoints ?? 0;
   });
@@ -94,6 +109,25 @@ export class GamificationStoreService {
         this.badgesSignal.set([]);
         this.badgesErrorMessageSignal.set('Badges konden niet worden geladen.');
         this.badgesLoadingSignal.set(false);
+      },
+    });
+  }
+
+  public loadCurrentUserAlmostEarnedBadges(): void {
+    this.almostEarnedBadgesLoadingSignal.set(true);
+    this.almostEarnedBadgesErrorMessageSignal.set(null);
+
+    this.gamificationService.getCurrentUserAlmostEarnedBadges().subscribe({
+      next: (badges: GamificationProgress[]) => {
+        this.almostEarnedBadgesSignal.set(badges);
+        this.almostEarnedBadgesLoadingSignal.set(false);
+      },
+      error: () => {
+        this.almostEarnedBadgesSignal.set([]);
+        this.almostEarnedBadgesErrorMessageSignal.set(
+          'Badges die bijna behaald zijn konden niet worden geladen.',
+        );
+        this.almostEarnedBadgesLoadingSignal.set(false);
       },
     });
   }

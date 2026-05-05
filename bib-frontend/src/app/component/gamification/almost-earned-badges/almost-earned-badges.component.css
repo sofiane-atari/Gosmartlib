@@ -1,0 +1,46 @@
+.almost-earned-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.almost-earned-badges__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.almost-earned-badges__description {
+  margin: 4px 0 0;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.almost-earned-badges__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.almost-earned-badges__empty {
+  padding: 24px 18px;
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-surface, #ffffff);
+  border: 1px dashed var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.almost-earned-badges__empty--error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+@media (max-width: 600px) {
+  .almost-earned-badges__grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -89,7 +89,7 @@
   } @else {
     <div class="badge-collection__grid">
       @for (badge of badges(); track badge.badgeCode) {
-        <app-badge-progress-card [progress]="badge"></app-badge-progress-card>
+        <app-badge-collection-card [badge]="badge"></app-badge-collection-card>
       }
     </div>
   }

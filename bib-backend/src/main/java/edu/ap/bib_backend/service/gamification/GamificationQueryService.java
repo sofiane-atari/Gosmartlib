@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.gamification;
 
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import edu.ap.bib_backend.jpa.entity.gamification.GamificationProfile;
 import edu.ap.bib_backend.jpa.enums.gamification.BadgeCategory;
 import edu.ap.bib_backend.jpa.enums.gamification.BadgeRarity;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.jpa.repository.gamification.BadgeProgressRepository;
 import edu.ap.bib_backend.jpa.repository.gamification.PointTransactionRepository;
 import edu.ap.bib_backend.jpa.repository.gamification.UserBadgeRepository;
 import edu.ap.bib_backend.mapper.gamification.GamificationMapper;
@@ -26,10 +28,13 @@ import edu.ap.bib_backend.service.user.CurrentUserService;
 @Service
 public class GamificationQueryService {
 
+    private static final int ALMOST_EARNED_BADGE_LIMIT = 3;
+
     private final UserRepository userRepository;
     private final GamificationProfileService gamificationProfileService;
     private final BadgeService badgeService;
     private final BadgeProgressService badgeProgressService;
+    private final BadgeProgressRepository badgeProgressRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final PointTransactionRepository pointTransactionRepository;
     private final GamificationMapper gamificationMapper;
@@ -40,6 +45,7 @@ public class GamificationQueryService {
             GamificationProfileService gamificationProfileService,
             BadgeService badgeService,
             BadgeProgressService badgeProgressService,
+            BadgeProgressRepository badgeProgressRepository,
             UserBadgeRepository userBadgeRepository,
             PointTransactionRepository pointTransactionRepository,
             GamificationMapper gamificationMapper,
@@ -49,25 +55,23 @@ public class GamificationQueryService {
         this.gamificationProfileService = gamificationProfileService;
         this.badgeService = badgeService;
         this.badgeProgressService = badgeProgressService;
+        this.badgeProgressRepository = badgeProgressRepository;
         this.userBadgeRepository = userBadgeRepository;
         this.pointTransactionRepository = pointTransactionRepository;
         this.gamificationMapper = gamificationMapper;
         this.currentUserService = currentUserService;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public GamificationProfileDTO getCurrentUserProfile(Authentication authentication) {
         String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
         return getProfileForUserId(currentUserId);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public GamificationProfileDTO getProfileForUserId(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
-
-        GamificationProfile profile = gamificationProfileService.getOrCreateProfile(user);
+        GamificationProfile profile = getOrCreateProfileForUserId(userId);
 
         List<GamificationBadgeDTO> latestAchievements = getLatestAchievements(profile);
         List<GamificationBadgeDTO> earnedBadges = getEarnedBadges(profile);
@@ -104,13 +108,7 @@ public class GamificationQueryService {
             BadgeRarity rarity,
             Boolean completed
     ) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "userId",
-                        "Gebruiker niet gevonden met id: " + userId
-                ));
-
-        GamificationProfile profile = gamificationProfileService.getOrCreateProfile(user);
+        GamificationProfile profile = getOrCreateProfileForUserId(userId);
 
         return badgeService.findActiveBadges(category, rarity)
                 .stream()
@@ -120,6 +118,36 @@ public class GamificationQueryService {
                 .toList();
     }
 
+    @Transactional
+    public List<GamificationProgressDTO> getCurrentUserAlmostEarnedBadges(Authentication authentication) {
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
+
+        return getAlmostEarnedBadgesForUserId(currentUserId);
+    }
+
+    @Transactional
+    public List<GamificationProgressDTO> getAlmostEarnedBadgesForUserId(String userId) {
+        GamificationProfile profile = getOrCreateProfileForUserId(userId);
+
+        List<BadgeProgress> almostEarnedBadges = badgeProgressRepository.findAlmostEarnedBadgesByProfile(
+                profile,
+                PageRequest.of(0, ALMOST_EARNED_BADGE_LIMIT)
+        );
+
+        return almostEarnedBadges.stream()
+                .map(gamificationMapper::toProgressDTO)
+                .toList();
+    }
+
+    private GamificationProfile getOrCreateProfileForUserId(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "userId",
+                        "Gebruiker niet gevonden met id: " + userId
+                ));
+
+        return gamificationProfileService.getOrCreateProfile(user);
+    }
 
     private boolean matchesCompletedFilter(BadgeProgress progress, Boolean completed) {
         return completed == null || progress.isCompleted() == completed;

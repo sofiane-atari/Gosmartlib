@@ -22,6 +22,7 @@ export interface GamificationBadgeFilters {
 export class GamificationService {
   private readonly profileApiUrl = `${environment.apiUrl}/gamification/me`;
   private readonly badgesApiUrl = `${environment.apiUrl}/gamification/me/badges`;
+  private readonly almostEarnedBadgesApiUrl = `${environment.apiUrl}/gamification/me/badges/almost-earned`;
 
   private readonly httpClient = inject(HttpClient);
 
@@ -49,5 +50,13 @@ export class GamificationService {
     return this.httpClient.get<GamificationProgress[]>(this.badgesApiUrl, {
       params,
     });
+  }
+
+  public getCurrentUserAlmostEarnedBadges(): Observable<
+    GamificationProgress[]
+  > {
+    return this.httpClient.get<GamificationProgress[]>(
+      this.almostEarnedBadgesApiUrl,
+    );
   }
 }

@@ -125,8 +125,8 @@
 /* --- GRID & EMPTY STATES --- */
 .badge-collection__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
 }
 
 .badge-collection__empty {

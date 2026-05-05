@@ -1,0 +1,61 @@
+<article
+  class="badge-collection-card"
+  [class.badge-collection-card--locked]="!badge().completed"
+  [class]="rarityClass"
+>
+  <div class="badge-collection-card__top">
+    <span class="badge-collection-card__rarity">
+      {{ rarityLabel }}
+    </span>
+
+    <span
+      class="badge-collection-card__status"
+      [class.badge-collection-card__status--completed]="badge().completed"
+    >
+      {{ statusLabel }}
+    </span>
+  </div>
+
+  <div
+    class="badge-collection-card__visual"
+    [style.border-color]="badge().themeColor"
+  >
+    @if (!hasImageError()) {
+      <img
+        class="badge-collection-card__image"
+        [src]="badgeAssetPath"
+        [alt]="badgeAltText"
+        (error)="markImageAsFailed()"
+      />
+    } @else {
+      <span class="badge-collection-card__fallback">
+        {{ badgeInitial }}
+      </span>
+    }
+  </div>
+
+  <div class="badge-collection-card__content">
+    <h4 class="badge-collection-card__title">
+      {{ badge().badgeName }}
+    </h4>
+
+    <p class="badge-collection-card__description">
+      {{ badge().badgeDescription }}
+    </p>
+  </div>
+
+  <div class="badge-collection-card__progress">
+    <div class="badge-collection-card__progress-meta">
+      <span>Voortgang</span>
+      <strong>{{ badge().currentValue }} / {{ badge().targetValue }}</strong>
+    </div>
+
+    <div class="badge-collection-card__progress-track" aria-hidden="true">
+      <div
+        class="badge-collection-card__progress-fill"
+        [style.width.%]="badge().progressPercentage"
+        [style.background-color]="badge().themeColor"
+      ></div>
+    </div>
+  </div>
+</article>

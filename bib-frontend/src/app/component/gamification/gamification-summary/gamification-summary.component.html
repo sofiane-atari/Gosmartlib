@@ -72,7 +72,13 @@
       }
     </section>
 
-    <!-- BADGE VOORTGANG -->
+    <app-almost-earned-badges
+      [badges]="gamificationStore.almostEarnedBadges()"
+      [isLoading]="gamificationStore.almostEarnedBadgesLoading()"
+      [errorMessage]="gamificationStore.almostEarnedBadgesErrorMessage()"
+    ></app-almost-earned-badges>
+
+    <!-- ALLE BADGES -->
     <app-badge-collection
       [badges]="gamificationStore.badges()"
       [isLoading]="gamificationStore.badgesLoading()"

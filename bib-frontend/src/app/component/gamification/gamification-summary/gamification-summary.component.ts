@@ -5,6 +5,7 @@ import { BadgeProgressCardComponent } from '../badge-progress-card/badge-progres
 import { Target, Award, Star, LucideAngularModule } from 'lucide-angular';
 import { BadgeCollectionComponent } from '../badge-collection/badge-collection.component';
 import { GamificationBadgeFilters } from '../../../services/gamification/gamification.service';
+import { AlmostEarnedBadgesComponent } from '../almost-earned-badges/almost-earned-badges.component';
 
 @Component({
   selector: 'app-gamification-summary',
@@ -14,6 +15,7 @@ import { GamificationBadgeFilters } from '../../../services/gamification/gamific
     BadgeProgressCardComponent,
     LucideAngularModule,
     BadgeCollectionComponent,
+    AlmostEarnedBadgesComponent,
   ],
   templateUrl: './gamification-summary.component.html',
   styleUrl: './gamification-summary.component.css',
@@ -28,6 +30,7 @@ export class GamificationSummaryComponent implements OnInit {
   public ngOnInit(): void {
     this.gamificationStore.loadCurrentUserProfile();
     this.gamificationStore.loadCurrentUserBadges();
+    this.gamificationStore.loadCurrentUserAlmostEarnedBadges();
   }
 
   protected onBadgeFiltersChanged(filters: GamificationBadgeFilters): void {

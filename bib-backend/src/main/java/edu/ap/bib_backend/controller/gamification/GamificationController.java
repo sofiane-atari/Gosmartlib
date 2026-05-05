@@ -48,4 +48,14 @@ public class GamificationController {
 
         return ResponseEntity.ok(badges);
     }
+
+    @GetMapping("/me/badges/almost-earned")
+    public ResponseEntity<List<GamificationProgressDTO>> getMyAlmostEarnedBadges(
+            Authentication authentication
+    ) {
+        List<GamificationProgressDTO> badges =
+                gamificationQueryService.getCurrentUserAlmostEarnedBadges(authentication);
+
+        return ResponseEntity.ok(badges);
+    }
 }

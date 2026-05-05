@@ -1,0 +1,176 @@
+.badge-collection-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 320px;
+  padding: 18px;
+  overflow: hidden;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 18px;
+  font-family: var(--main-font, inherit);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.badge-collection-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.18);
+}
+
+.badge-collection-card--locked {
+  opacity: 0.82;
+}
+
+.badge-collection-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.badge-collection-card__rarity,
+.badge-collection-card__status {
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+}
+
+.badge-collection-card__rarity {
+  color: var(--text-muted, #6b7280);
+  background: var(--main-light-color, #f3f4f6);
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.badge-collection-card__status {
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.badge-collection-card__status--completed {
+  color: #15803d;
+  background: #dcfce7;
+  border-color: #bbf7d0;
+}
+
+.badge-collection-card__visual {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 124px;
+  height: 124px;
+  margin-top: 2px;
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(255, 255, 255, 0.9),
+      transparent 58%
+    ),
+    var(--bg-surface, #ffffff);
+  border: 4px solid;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.06),
+    0 12px 24px -14px rgba(0, 0, 0, 0.35);
+}
+
+.badge-collection-card__image {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+}
+
+.badge-collection-card--locked .badge-collection-card__image {
+  filter: grayscale(1);
+  opacity: 0.72;
+}
+
+.badge-collection-card__fallback {
+  color: var(--text-dark, #1f2937);
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.badge-collection-card__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.badge-collection-card__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.badge-collection-card__description {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.badge-collection-card__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.badge-collection-card__progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.badge-collection-card__progress-meta strong {
+  color: var(--text-dark, #1f2937);
+}
+
+.badge-collection-card__progress-track {
+  height: 8px;
+  overflow: hidden;
+  background: var(--border-color, #e5e7eb);
+  border-radius: 999px;
+}
+
+.badge-collection-card__progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.35s ease;
+}
+
+/* Rarity accents: nu al klaar voor Epic en Legendary. */
+.badge-collection-card--common {
+  border-color: rgba(79, 142, 247, 0.35);
+}
+
+.badge-collection-card--rare {
+  border-color: rgba(242, 140, 40, 0.38);
+}
+
+.badge-collection-card--epic {
+  border-color: rgba(124, 58, 237, 0.38);
+}
+
+.badge-collection-card--legendary {
+  border-color: rgba(217, 119, 6, 0.42);
+}
