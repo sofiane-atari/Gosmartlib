@@ -73,19 +73,8 @@
     </section>
 
     <!-- BADGE VOORTGANG -->
-    <section class="gamification-summary__section">
-      <h3 class="gamification-summary__section-title">Badgevoortgang</h3>
-
-      <div class="gamification-summary__progress-list">
-        @for (
-          progress of gamificationStore.badgeProgress();
-          track progress.badgeCode
-        ) {
-          <app-badge-progress-card
-            [progress]="progress"
-          ></app-badge-progress-card>
-        }
-      </div>
-    </section>
+    <app-badge-collection
+      [badges]="gamificationStore.badgeProgress()"
+    ></app-badge-collection>
   }
 </section>

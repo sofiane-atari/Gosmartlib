@@ -3,6 +3,7 @@ import { GamificationStoreService } from '../../../services/gamification/gamific
 import { BadgeCardComponent } from '../badge-card/badge-card.component';
 import { BadgeProgressCardComponent } from '../badge-progress-card/badge-progress-card.component';
 import { Target, Award, Star, LucideAngularModule } from 'lucide-angular';
+import { BadgeCollectionComponent } from '../badge-collection/badge-collection.component';
 
 @Component({
   selector: 'app-gamification-summary',
@@ -11,6 +12,7 @@ import { Target, Award, Star, LucideAngularModule } from 'lucide-angular';
     BadgeCardComponent,
     BadgeProgressCardComponent,
     LucideAngularModule,
+    BadgeCollectionComponent,
   ],
   templateUrl: './gamification-summary.component.html',
   styleUrl: './gamification-summary.component.css',

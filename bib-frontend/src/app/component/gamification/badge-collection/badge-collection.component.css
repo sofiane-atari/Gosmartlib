@@ -1,0 +1,46 @@
+.badge-collection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.badge-collection__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.badge-collection__title {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.badge-collection__description {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.badge-collection__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 16px;
+}
+
+.badge-collection__empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .badge-collection__grid {
+    grid-template-columns: 1fr;
+  }
+}

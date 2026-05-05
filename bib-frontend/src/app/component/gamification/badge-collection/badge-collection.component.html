@@ -1,0 +1,23 @@
+<section class="badge-collection">
+  <div class="badge-collection__header">
+    <div>
+      <h3 class="badge-collection__title">Alle badges</h3>
+      <p class="badge-collection__description">
+        Verzamel badges door boeken te lezen, recensies te schrijven en boeken
+        op tijd terug te brengen.
+      </p>
+    </div>
+  </div>
+
+  @if (badges().length === 0) {
+    <div class="badge-collection__empty">
+      Er zijn nog geen badges beschikbaar.
+    </div>
+  } @else {
+    <div class="badge-collection__grid">
+      @for (badge of badges(); track badge.badgeCode) {
+        <app-badge-progress-card [progress]="badge"></app-badge-progress-card>
+      }
+    </div>
+  }
+</section>
