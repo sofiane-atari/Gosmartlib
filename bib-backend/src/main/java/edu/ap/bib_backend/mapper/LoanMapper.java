@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 import edu.ap.bib_backend.dto.loan.LoanBookDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.entity.loan.Loan;
 
 @Mapper(componentModel = "spring")
 public interface LoanMapper {

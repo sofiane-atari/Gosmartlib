@@ -2,7 +2,7 @@ package edu.ap.bib_backend.jpa.repository.loan;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.entity.loan.Loan;
 
 public interface BookLoanRepository extends JpaRepository<Loan, Long> {
 
