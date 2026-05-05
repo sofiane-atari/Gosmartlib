@@ -36,7 +36,18 @@ export class ReportSelectorComponent {
   }
 
   navigateToCampusReport(): void {
-    console.log('navigateToCampusReport() called (disabled)');
+    console.log('navigateToCampusReport() called');
+    try {
+      const result = this.router.navigate(['/reports/campus']);
+      console.log('Navigate result:', result);
+      result.then(success => {
+        console.log('Navigation successful:', success);
+      }).catch(error => {
+        console.error('Navigation error:', error);
+      });
+    } catch (error) {
+      console.error('Exception during navigation:', error);
+    }
   }
 }
 

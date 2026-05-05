@@ -39,6 +39,7 @@ import { SettingsComponent } from './component/settings/settings/settings.compon
 import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashboard.component';
 import { ReturnLoanComponent } from './component/loan/return-loan/return-loan.component';
 import { ClassReportComponent } from './component/class-report/class-report/class-report.component';
+import { CampusReportComponent } from './component/class-report/campus-report/campus-report.component';
 import { ReportSelectorComponent } from './component/class-report/report-selector/report-selector.component';
 
 export const routes: Routes = [
@@ -156,8 +157,8 @@ export const routes: Routes = [
       },
       {
         path: 'campus',
-        redirectTo: '/reports',
-        pathMatch: 'full'
+        component: CampusReportComponent,
+        canActivate: [authGuard, staffOnlyGuard]
       }
     ]
   },
