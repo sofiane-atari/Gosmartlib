@@ -492,7 +492,27 @@ lucide-icon svg {
   font-weight: 600;
   white-space: nowrap;
 }
+.table-card__header--with-search {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
 
+.table-card__header app-search-bar {
+  width: 280px;
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .table-card__header--with-search {
+    flex-direction: column;
+  }
+
+  .table-card__header app-search-bar {
+    width: 100%;
+  }
+}
 .muted-value {
   color: #9b7a84;
   font-size: 13px;

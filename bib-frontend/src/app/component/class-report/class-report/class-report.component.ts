@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { ClassReport } from '../../../model/class-report.model';
+import { ClassReport, ReportRow } from '../../../model/class-report.model';
 import { TeacherClassReportService } from '../../../services/class-report/class-report.service';
 import { CommonModule } from '@angular/common';
+import { SearchBarComponent } from '../../shared/search-bar/search-bar.component'; // pas path aan indien nodig
 import {
   LucideAngularModule,
   BookOpen,
@@ -9,35 +10,33 @@ import {
   LibraryBig,
   Clock3,
   Star,
-  Trophy,
-  Tags,
   UserRound
 } from 'lucide-angular';
+
 @Component({
   selector: 'app-teacher-class-report',
   standalone: true,
   templateUrl: './class-report.component.html',
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, SearchBarComponent],
   styleUrls: ['./class-report.component.css']
 })
 export class ClassReportComponent implements OnInit {
-
   reports: ClassReport[] = [];
   loading = false;
   errorMessage = '';
 
-  constructor(private reportService: TeacherClassReportService) {}
-  
+  studentSearchQuery = '';
+
   readonly icons = {
     library: LibraryBig,
     users: Users,
     bookOpen: BookOpen,
     clock: Clock3,
     star: Star,
-    trophy: Trophy,
-    tags: Tags,
     user: UserRound
   };
+
+  constructor(private reportService: TeacherClassReportService) {}
 
   ngOnInit(): void {
     this.loadReports();
@@ -60,20 +59,31 @@ export class ClassReportComponent implements OnInit {
     });
   }
 
+  onStudentSearchChange(query: string): void {
+    this.studentSearchQuery = query;
+  }
+
+  getFilteredStudents(report: ClassReport): ReportRow[] {
+    const query = this.studentSearchQuery.trim().toLowerCase();
+
+    if (!query) {
+      return report.students;
+    }
+
+    return report.students.filter(student =>
+      student.displayName.toLowerCase().includes(query)
+      || student.studentSourcedId.toLowerCase().includes(query)
+      || this.getReadingActivity(student).toLowerCase().includes(query)
+      || this.getStudentStatus(student).toLowerCase().includes(query)
+    );
+  }
+
   getLinkedPercentage(report: ClassReport): number {
     if (report.studentCount === 0) {
       return 0;
     }
 
     return Math.round((report.linkedStudentCount / report.studentCount) * 100);
-  }
-
-  getReturnRate(student: { totalLoans: number; returnedLoans: number }): number {
-    if (student.totalLoans === 0) {
-      return 0;
-    }
-
-    return Math.round((student.returnedLoans / student.totalLoans) * 100);
   }
 
   getReadingActivity(student: { totalLoans: number }): string {
@@ -86,7 +96,7 @@ export class ClassReportComponent implements OnInit {
     }
 
     if (student.totalLoans <= 5) {
-      return 'Actieve lezer';
+      return 'Actief';
     }
 
     return 'Sterke lezer';

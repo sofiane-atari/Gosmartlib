@@ -4,10 +4,6 @@
       <h1>Leesdashboard</h1>
       <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
     </div>
-
-    <button type="button" class="btn-refresh" (click)="loadReports()">
-      Vernieuwen
-    </button>
   </div>
 
   @if (loading) {
@@ -167,14 +163,19 @@
       </section>
 
       <section class="table-card">
-        <div class="table-card__header">
-          <div>
+        <div class="table-card__header table-card__header--with-search">
+        <div>
             <h3>Leerlingen</h3>
             <p>Gesorteerd op totaal aantal uitleningen en teruggebrachte boeken.</p>
-         </div>
         </div>
 
-        @if (report.students.length === 0) {
+        <app-search-bar
+            placeholder="Zoek leerling..."
+            (searchChange)="onStudentSearchChange($event)">
+        </app-search-bar>
+        </div>
+
+        @if (getFilteredStudents(report).length === 0) {
           <div class="empty-table-state">
             Geen leerlingen gevonden voor deze klas.
           </div>
@@ -193,7 +194,7 @@
             </thead>
 
             <tbody>
-                @for (student of report.students; track student.studentSourcedId) {
+                @for (student of getFilteredStudents(report); track student.studentSourcedId) {
                 <tr [class.needs-return]="student.activeLoans > 0">
                     <td>
                     <div class="student-cell">
