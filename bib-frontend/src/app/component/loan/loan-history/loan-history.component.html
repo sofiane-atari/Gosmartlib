@@ -2,21 +2,18 @@
   <header class="page-header">
     <h1>Uitleengeschiedenis</h1>
     <p>
-      {{ history()?.activeLoanCount ?? 0 }} actieve uitleningen •
+      {{ history()?.activeLoanCount ?? 0 }} uitleningen •
       {{ history()?.returnedLoanCount ?? 0 }} boek(en) teruggebracht
     </p>
   </header>
 
   <section class="stat-grid">
-    <app-button-hover-help
-      class="stat-help"
-      text="Aantal uitleningen die nog actief zijn."
-    >
+    <app-button-hover-help class="stat-help" text="Aantal uitleningen.">
       <article class="stat-card stat-card--blue">
         <lucide-icon [name]="Clock"></lucide-icon>
         <div>
           <strong>{{ history()?.activeLoanCount ?? 0 }}</strong>
-          <span>Actieve uitleningen</span>
+          <span>Uitleningen</span>
         </div>
       </article>
     </app-button-hover-help>

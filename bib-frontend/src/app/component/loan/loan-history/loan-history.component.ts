@@ -52,7 +52,7 @@ export class LoanHistoryComponent implements OnInit {
       return 'Te laat';
     }
 
-    return 'Actief uitgeleend';
+    return 'Uitgeleend';
   }
 
   protected getStatusClass(status?: LoanStatus): string {

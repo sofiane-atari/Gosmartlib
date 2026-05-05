@@ -1,7 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { BookOpen, Calendar, LucideAngularModule } from 'lucide-angular';
+import {
+  BookOpen,
+  Calendar,
+  LucideAngularModule,
+  ChevronRight,
+} from 'lucide-angular';
 
 import { Loan } from '../../../model/loan.model';
 import { LoansService } from '../../../services/loan/loans.service';
@@ -20,6 +25,7 @@ export class SidebarActiveLoansComponent implements OnInit {
 
   protected readonly BookOpen = BookOpen;
   protected readonly Calendar = Calendar;
+  protected readonly ChevronRight = ChevronRight;
 
   protected readonly activeLoans = signal<Loan[]>([]);
 
