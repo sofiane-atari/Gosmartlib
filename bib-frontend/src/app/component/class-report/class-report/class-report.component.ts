@@ -15,6 +15,7 @@ import {
   UserRound
 } from 'lucide-angular';
 import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
+import { ToastService } from '../../../services/toast/toast.service';
 
 @Component({
   selector: 'app-teacher-class-report',
@@ -33,7 +34,6 @@ export class ClassReportComponent implements OnInit {
 
   reports: ClassReport[] = [];
   loading = false;
-  errorMessage = '';
 
   studentSearchQuery = '';
 
@@ -49,7 +49,7 @@ export class ClassReportComponent implements OnInit {
     user: UserRound
   };
 
-  constructor(private reportService: TeacherClassReportService) {}
+  constructor(private reportService: TeacherClassReportService, private toastService: ToastService) {}
 
   ngOnInit(): void {
     this.loadReports();
@@ -57,7 +57,6 @@ export class ClassReportComponent implements OnInit {
 
   loadReports(): void {
     this.loading = true;
-    this.errorMessage = '';
 
     this.reportService.getMyClassReports().subscribe({
       next: reports => {
@@ -67,7 +66,7 @@ export class ClassReportComponent implements OnInit {
       },
       error: error => {
         console.error(error);
-        this.errorMessage = 'Klasrapporten konden niet geladen worden.';
+        this.toastService.show('Fout bij het laden van rapporten', 'error');
         this.loading = false;
       }
     });

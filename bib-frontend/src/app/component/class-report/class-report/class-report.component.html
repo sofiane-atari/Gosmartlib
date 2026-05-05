@@ -6,24 +6,141 @@
     </div>
   </div>
 
-  @if (loading) {
-    <section class="state-panel">
-      <p>Klasrapporten worden geladen...</p>
-    </section>
-  }
+    @if (loading) {
+    <article class="report-card report-card--skeleton">
+        <div class="report-card__header">
+        <div>
+            <span class="skeleton-block skeleton-label"></span>
+            <span class="skeleton-block skeleton-title"></span>
+            <span class="skeleton-block skeleton-text skeleton-text--wide"></span>
+        </div>
 
-  @if (errorMessage) {
-    <div class="error-message">
-      {{ errorMessage }}
-    </div>
-  }
+        <span class="skeleton-block skeleton-count-badge"></span>
+        </div>
 
-  @if (!loading && !errorMessage && reports.length === 0) {
-    <section class="state-panel state-panel--empty">
-      <p>Er zijn geen klassen gevonden voor deze gebruiker.</p>
-    </section>
-  }
+        <section class="stat-cards">
+        @for (item of [1, 2, 3, 4]; track item) {
+            <article class="stat-card skeleton-stat-card">
+            <div class="stat-card__icon skeleton-icon"></div>
 
+            <div>
+                <span class="skeleton-block skeleton-stat-label"></span>
+                <span class="skeleton-block skeleton-stat-number"></span>
+            </div>
+            </article>
+        }
+        </section>
+
+        <section class="insight-grid">
+        @for (panel of [1, 2]; track panel) {
+            <section class="insight-card skeleton-insight-card">
+            <div class="insight-card__header">
+                <div>
+                <span class="skeleton-block skeleton-panel-title"></span>
+                <span class="skeleton-block skeleton-panel-subtitle"></span>
+                </div>
+            </div>
+
+            <div class="ranking-list">
+                @for (row of [1, 2, 3, 4]; track row) {
+                <div class="ranking-row skeleton-ranking-row">
+                    <span class="skeleton-block skeleton-rank"></span>
+                    <span class="skeleton-block skeleton-dot"></span>
+
+                    <div class="ranking-main">
+                    <span class="skeleton-block skeleton-row-title"></span>
+                    <span class="skeleton-block skeleton-row-subtitle"></span>
+                    </div>
+
+                    <span class="skeleton-block skeleton-row-badge"></span>
+                </div>
+                }
+            </div>
+            </section>
+        }
+        </section>
+
+        <section class="search-panel">
+        <div class="skeleton-block skeleton-search"></div>
+        </section>
+
+        <section class="table-card">
+        <div class="table-card__header">
+            <div>
+            <span class="skeleton-block skeleton-panel-title"></span>
+            <span class="skeleton-block skeleton-panel-subtitle"></span>
+            </div>
+        </div>
+
+        <div class="table-scroll">
+            <table>
+            <thead>
+                <tr>
+                <th>Leerling</th>
+                <th class="center-col">Totaal</th>
+                <th class="center-col">Teruggebracht</th>
+                <th class="center-col">Nog uitgeleend</th>
+                <th class="center-col">Reviews</th>
+                <th class="center-col">Leesactiviteit</th>
+                <th class="center-col">Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (row of [1, 2, 3, 4, 5]; track row) {
+                <tr>
+                    <td>
+                    <div class="student-cell">
+                        <div class="student-cell__icon skeleton-avatar"></div>
+
+                        <div>
+                        <span class="skeleton-block skeleton-student-name"></span>
+                        <span class="skeleton-block skeleton-student-badge"></span>
+                        </div>
+                    </div>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-badge"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-wide-badge"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-wide-badge"></span>
+                    </td>
+                </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <div class="table-paging skeleton-paging-wrapper">
+            <span class="skeleton-block skeleton-page-button"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-button"></span>
+        </div>
+        </section>
+    </article>
+    }
+
+  @if (!loading) {
   @for (report of reports; track report.classSourcedId) {
     <article class="report-card">
       <div class="report-card__header">
@@ -330,5 +447,6 @@
         }
       </section>
     </article>
-  }
+    }
+    }
 </section>
