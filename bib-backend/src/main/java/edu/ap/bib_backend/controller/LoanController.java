@@ -3,7 +3,10 @@ package edu.ap.bib_backend.controller;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
-import edu.ap.bib_backend.service.LoanService;
+import edu.ap.bib_backend.dto.loanextension.LoanExtensionDTO;
+import edu.ap.bib_backend.dto.loanextension.LoanExtensionRequestDTO;
+import edu.ap.bib_backend.service.loan.LoanExtensionService;
+import edu.ap.bib_backend.service.loan.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,9 +26,11 @@ import java.util.List;
 public class LoanController {
 
     private final LoanService loanService;
+    private final LoanExtensionService loanExtensionService;
 
-    public LoanController(LoanService loanService) {
+    public LoanController(LoanService loanService, LoanExtensionService loanExtensionService) {
         this.loanService = loanService;
+        this.loanExtensionService = loanExtensionService;
     }
 
     @PostMapping
@@ -55,5 +60,14 @@ public class LoanController {
     @GetMapping("/me/history")
     public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(Authentication authentication) {
         return ResponseEntity.ok(loanService.findHistoryForCurrentUser(authentication));
+    }
+
+    @PatchMapping("/{loanId}/extend")
+    public ResponseEntity<LoanDTO> extendLoan(
+            @PathVariable("loanId") Long loanId,
+            @Valid @RequestBody LoanExtensionRequestDTO request,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(loanExtensionService.extendLoan(loanId, request, authentication));
     }
 }

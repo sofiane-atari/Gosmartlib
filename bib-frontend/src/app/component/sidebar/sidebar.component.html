@@ -55,6 +55,12 @@
     }
   </nav>
 
+  <div class="sidebar-bottom-content">
+    @if (roleService.isTeacher() || roleService.isStudent()) {
+      <app-sidebar-active-loans></app-sidebar-active-loans>
+    }
+  </div>
+
   <div class="sidebar-footer">
     @if (isStaff()) {
       <button class="btn btn-emerald" (click)="goToAddBook()">
@@ -66,9 +72,6 @@
         <lucide-icon [name]="RotateCcwIcon" class="btn-icon"></lucide-icon>
         <span class="btn-text">Uitleningen </span>
       </button>
-    }
-    @if (roleService.isTeacher() || roleService.isStudent()) {
-      <app-sidebar-active-loans></app-sidebar-active-loans>
     }
     @if (isAdminOverrideVisible()) {
       <button class="btn btn-amber" (click)="toggleAdminOverride()">

@@ -2,7 +2,7 @@
   <header class="page-header">
     <h1>Uitleengeschiedenis</h1>
     <p>
-      {{ history()?.activeLoanCount ?? 0 }} actieve uitleningen •
+      {{ history()?.activeLoanCount ?? 0 }} uitleningen •
       {{ history()?.returnedLoanCount ?? 0 }} boek(en) teruggebracht
     </p>
   </header>
@@ -10,13 +10,22 @@
   <section class="stat-grid">
     <app-button-hover-help
       class="stat-help"
-      text="Aantal uitleningen die nog actief zijn."
+      text="Totaal aantal boeken dat in deze historiek voorkomt."
     >
+      <article class="stat-card stat-card--purple">
+        <lucide-icon [name]="BookOpen"></lucide-icon>
+        <div>
+          <strong>{{ history()?.totalLoanedBookCount ?? 0 }}</strong>
+          <span>Totaal Uitgeleend</span>
+        </div>
+      </article>
+    </app-button-hover-help>
+    <app-button-hover-help class="stat-help" text="Aantal uitleningen.">
       <article class="stat-card stat-card--blue">
         <lucide-icon [name]="Clock"></lucide-icon>
         <div>
           <strong>{{ history()?.activeLoanCount ?? 0 }}</strong>
-          <span>Actieve uitleningen</span>
+          <span>Uitleningen</span>
         </div>
       </article>
     </app-button-hover-help>
@@ -30,19 +39,6 @@
         <div>
           <strong>{{ history()?.returnedLoanCount ?? 0 }}</strong>
           <span>Teruggebracht</span>
-        </div>
-      </article>
-    </app-button-hover-help>
-
-    <app-button-hover-help
-      class="stat-help"
-      text="Totaal aantal boeken dat in deze historiek voorkomt."
-    >
-      <article class="stat-card stat-card--purple">
-        <lucide-icon [name]="BookOpen"></lucide-icon>
-        <div>
-          <strong>{{ history()?.totalLoanedBookCount ?? 0 }}</strong>
-          <span>Totaal Uitgeleend</span>
         </div>
       </article>
     </app-button-hover-help>

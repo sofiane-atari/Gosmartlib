@@ -39,9 +39,12 @@ public record LoanDTO(
         String returnedDate,
 
         @JsonProperty("status")
-        LoanStatus status
+        LoanStatus status,
+
+        @JsonProperty("extensionCount")
+        int extensionCount
 ) {
     public LoanDTO(String userId, List<Long> bookIds, String returnDate) {
-        this(null, userId, null, bookIds, null, null, returnDate, null, null);
+        this(null, userId, null, bookIds, null, null, returnDate, null, null,0);
     }
 }

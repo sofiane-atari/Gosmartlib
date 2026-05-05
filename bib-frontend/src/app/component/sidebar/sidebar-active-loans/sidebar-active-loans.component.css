@@ -1,5 +1,5 @@
 /* =========================================================
-   SIDEBAR LOANS (Ultra Minimal)
+   SIDEBAR LOANS (Subtiel & Clickable)
    ========================================================= */
 .sidebar-loans {
   padding: 16px 20px;
@@ -13,7 +13,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: rgba(255, 255, 255, 0.45); /* Nog iets zachter */
+  color: rgba(255, 255, 255, 0.45);
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -23,48 +23,49 @@
 .sidebar-loans__list {
   display: flex;
   flex-direction: column;
-  gap: 2px; /* Items staan nu heel strak op elkaar */
+  gap: 6px;
 }
 
-/* Geen 'cards' meer, maar subtiele lijst-items */
+/* De clickable link styling */
 .sidebar-loan-item {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: transparent; /* Geen opvallende achtergrond meer */
+  justify-content: space-between; /* Drukt het pijltje naar rechts */
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02); /* Een hint van een achtergrond */
+  border: 1px solid rgba(255, 255, 255, 0.04); /* Minuscuul randje */
   text-decoration: none;
-  transition: all 0.15s ease;
-  border-left: 2px solid transparent; /* Ruimte voor hover-accent */
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* Subtiele hover-state */
 .sidebar-loan-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-left-color: rgba(
-    255,
-    255,
-    255,
-    0.3
-  ); /* Subtiel wit streepje aan de linkerkant */
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Titel forceren op 1 regel */
+.sidebar-loan-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0; /* Belangrijk: zorgt dat tekst netjes afbreekt en niet het pijltje wegdrukt */
+}
+
 .sidebar-loan-item__title {
-  color: rgba(255, 255, 255, 0.85); /* Net niet spierwit voor rust */
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.82rem;
   font-weight: 500;
-  white-space: nowrap; /* Blijft op 1 lijn! */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.2s ease;
 }
 
 .sidebar-loan-item:hover .sidebar-loan-item__title {
   color: #ffffff;
 }
 
-/* Datum nóg subtieler en strakker */
 .sidebar-loan-item__date {
   display: flex;
   align-items: center;
@@ -75,4 +76,17 @@
 
 .sidebar-loan-item__date lucide-icon {
   opacity: 0.6;
+}
+
+/* Styling & Animatie voor het pijltje */
+.sidebar-loan-item__arrow {
+  color: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+/* Als je over de kaart hovert, licht het pijltje op en schuift het naar rechts */
+.sidebar-loan-item:hover .sidebar-loan-item__arrow {
+  color: rgba(255, 255, 255, 0.8);
+  transform: translateX(3px);
 }

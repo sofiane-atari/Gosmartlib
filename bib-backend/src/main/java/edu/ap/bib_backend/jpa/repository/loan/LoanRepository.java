@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.projection.report.PopularGenreProjection;
+
+import edu.ap.bib_backend.jpa.entity.loan.Loan;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
 

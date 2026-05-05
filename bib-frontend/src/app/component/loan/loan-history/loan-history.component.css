@@ -12,21 +12,21 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px; /* Was 32px - compacter */
 }
 
 .page-header h1 {
   margin: 0;
   color: var(--text-dark, #1f2937);
-  font-size: 1.8rem;
+  font-size: 1.5rem; /* Was 1.8rem */
   font-weight: 700;
   letter-spacing: -0.5px;
 }
 
 .page-header p {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: var(--text-muted, #6b7280);
-  font-size: 0.95rem;
+  font-size: 0.85rem; /* Was 0.95rem */
 }
 
 /* =========================================================
@@ -34,21 +34,21 @@
    ========================================================= */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(220px, 1fr)
+  ); /* Iets smaller toegestaan */
   gap: 16px;
 }
 
-/* Basis van de kaart: Wit met een subtiele schaduw */
+/* Basis van de kaart: compacter */
 .stat-card {
-  min-height: 106px;
   border-radius: 12px;
-  padding: 20px 24px;
+  padding: 16px 20px; /* Was 20px 24px */
   display: flex;
   align-items: center;
-  gap: 18px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  gap: 14px; /* Was 18px */
+  border: 2px solid #e5e7eb;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -56,97 +56,108 @@
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.08); /* Iets subtielere schaduw */
 }
 
-/* Tekst Container: We draaien de volgorde om met flexbox! 
-   Hierdoor staat 'Nu Uitgeleend' boven en het cijfer onder */
+/* Tekst Container */
 .stat-card div {
   display: flex;
   flex-direction: column-reverse;
-  gap: 4px;
+  gap: 2px; /* Compacter */
 }
 
-/* Het grote cijfer (nu onderaan) */
+/* Het grote cijfer */
 .stat-card strong {
   display: block;
-  font-size: 2rem;
+  font-size: 1.6rem; /* Was 2rem */
   line-height: 1;
   font-weight: 800;
-  color: #1f2937; /* Donkergrijs/Zwart voor goede leesbaarheid */
+  color: #1f2937;
 }
 
-/* Het kleine label (nu bovenaan) */
+/* Het kleine label */
 .stat-card span {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.75rem; /* Was 0.85rem */
   font-weight: 600;
-  color: #6b7280; /* Subtiel grijs */
+  color: #6b7280;
 }
 
-/* Het Icoon Blokje (Zoals in je screenshot) */
+/* Het Icoon Blokje */
 .stat-card lucide-icon {
-  width: 52px;
-  height: 52px;
+  width: 44px; /* Was 52px */
+  height: 44px; /* Was 52px */
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px; /* Mooie afgeronde hoeken */
-  color: #ffffff; /* Wit icoon aan de binnenkant */
+  border-radius: 12px; /* Was 14px */
+  color: #ffffff;
   flex-shrink: 0;
 }
 
-/* --- De Kleur Accenten voor de Icoon Blokjes --- */
+/* --- De Kleur Accenten inclusief lichte background voor de card --- */
 
-/* 1. Nu Uitgeleend: Jouw Bordeaux huisstijlkleur */
+/* 1. Nu Uitgeleend (Jouw Bordeaux) */
+.stat-card--blue {
+  background: #fff5f8;
+  border-color: #fce8ef;
+}
 .stat-card--blue lucide-icon {
   background-color: var(--main-color, #8a1e41);
-  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.25); /* Subtiele gloed */
+  box-shadow: 0 4px 10px rgba(138, 30, 65, 0.2);
 }
 
-/* 2. Teruggebracht: Fris en duidelijk Groen */
+/* 2. Teruggebracht (Groen) */
+.stat-card--green {
+  background: #f1fff6;
+  border-color: #bbf7d0;
+}
 .stat-card--green lucide-icon {
-  background-color: #10b981;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  background-color: #16a34a; /* Aangepast naar iets donkerder groen voor contrast */
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2);
 }
 
-/* 3. Totaal Uitgeleend: Donkerblauw/Paars voor contrast */
+/* 3. Totaal Uitgeleend (Paars/Blauw) */
+.stat-card--purple {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
 .stat-card--purple lucide-icon {
   background-color: #4f46e5;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
 }
 
 /* =========================================================
-   3. LIJSTEN & KAARTEN
+   3. LIJSTEN & KAARTEN (Compacter gemaakt)
    ========================================================= */
 .loan-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px; /* Was 16px */
 }
 
 .loan-section h2 {
   margin: 0;
   color: var(--text-dark, #1f2937);
-  font-size: 1.4rem;
+  font-size: 1.25rem; /* Was 1.4rem */
   font-weight: 600;
 }
 
 .loan-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px; /* Was 16px */
 }
 
 .loan-card {
   position: relative;
   display: grid;
-  grid-template-columns: 100px 1fr;
-  gap: 24px;
-  padding: 24px;
+  grid-template-columns: 80px 1fr; /* Cover smaller gemaakt (Was 100px) */
+  gap: 20px; /* Was 24px */
+  padding: 16px 20px; /* Was 24px */
   border-radius: 12px;
   background: var(--bg-surface, #ffffff);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Subtielere schaduw */
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -154,10 +165,9 @@
 
 .loan-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(138, 30, 65, 0.08);
+  box-shadow: 0 4px 12px rgba(138, 30, 65, 0.08);
 }
 
-/* Actieve lening krijgt een rand in jouw huisstijlkleur i.p.v. felblauw */
 .loan-card--active {
   border: 1.5px solid var(--main-color, #8a1e41);
 }
@@ -173,7 +183,7 @@
   border-radius: 6px;
   object-fit: cover;
   background: #f3f4f6;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .loan-card__content {
@@ -186,40 +196,39 @@
 .loan-card__top {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   align-items: flex-start;
 }
 
 .loan-card__top h3 {
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
   color: var(--text-dark, #1f2937);
-  font-size: 1.2rem;
+  font-size: 1.1rem; /* Was 1.2rem */
   font-weight: 600;
 }
 
 .loan-card__top p {
   margin: 0;
   color: var(--text-muted, #6b7280);
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Was 0.9rem */
 }
 
-/* Layout van de datums (Naast elkaar zoals in screenshot) */
 .loan-card__dates {
   display: flex;
-  gap: 48px;
-  margin-top: 16px;
-  margin-bottom: 16px;
+  gap: 32px; /* Was 48px */
+  margin-top: 12px;
+  margin-bottom: 12px;
 }
 
 .loan-card__dates div {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .loan-card__dates span {
   color: var(--text-muted, #6b7280);
-  font-size: 0.75rem;
+  font-size: 0.7rem; /* Was 0.75rem */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -227,7 +236,7 @@
 
 .loan-card__dates strong {
   color: var(--text-dark, #1f2937);
-  font-size: 0.95rem;
+  font-size: 0.85rem; /* Was 0.95rem */
   font-weight: 600;
 }
 
@@ -236,18 +245,18 @@
 }
 
 /* =========================================================
-   4. BADGES & WARNINGS
+   4. BADGES & WARNINGS (Compacter)
    ========================================================= */
 .loan-warning {
-  padding: 12px 16px;
+  padding: 10px 14px; /* Was 12px 16px */
   border: 1px solid #fde047;
   border-radius: 8px;
   background: #fefce8;
   color: #a16207;
-  font-size: 0.85rem;
+  font-size: 0.8rem; /* Was 0.85rem */
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .loan-warning strong {
@@ -259,24 +268,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px; /* Pill-vorm zoals in de screenshot */
-  padding: 4px 12px;
-  font-size: 0.75rem;
+  border-radius: 999px;
+  padding: 4px 10px; /* Was 4px 12px */
+  font-size: 0.7rem; /* Was 0.75rem */
   font-weight: 700;
   white-space: nowrap;
 }
 
-/* Badges gebruiken jouw merkkleuren */
 .status-badge--active {
   background: var(--main-color, #8a1e41);
   color: #ffffff;
 }
-
 .status-badge--overdue {
   background: #fee2e2;
   color: var(--error-color, #dc2626);
 }
-
 .status-badge--returned {
   background: #dcfce7;
   color: #15803d;
@@ -287,7 +293,7 @@
    5. EMPTY STATES
    ========================================================= */
 .empty-state {
-  padding: 48px 24px;
+  padding: 32px 20px; /* Was 48px 24px */
   text-align: center;
   color: var(--text-muted, #6b7280);
   background: var(--bg-surface, #ffffff);
@@ -296,32 +302,30 @@
 }
 
 .empty-state--small {
-  padding: 24px;
+  padding: 20px;
 }
 
 .empty-state lucide-icon {
-  width: 48px;
-  height: 48px;
+  width: 40px; /* Was 48px */
+  height: 40px;
   color: var(--sec-color, #bc808b);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .empty-state h3 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: var(--text-dark, #1f2937);
-  font-size: 1.2rem;
+  font-size: 1.1rem; /* Was 1.2rem */
 }
 
 .empty-state p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Was 0.9rem */
 }
 
 /* =========================================================
    FIX VOOR HOVER-HELP IN DE GRID & KAARTEN (MET ::NG-DEEP)
    ========================================================= */
-
-/* 1. Zorg dat de Angular tag (de buitenkant) de hele grid-cel vult */
 .stat-grid app-button-hover-help.stat-help {
   display: block;
   width: 100%;
@@ -329,14 +333,12 @@
   position: relative;
 }
 
-/* 2. CRUCIAAL: ::ng-deep breekt in op het onderliggende component */
 .stat-grid app-button-hover-help.stat-help ::ng-deep .button-hover-help {
   display: block !important;
   width: 100% !important;
   height: 100% !important;
 }
 
-/* 3. Zorg dat de kaart meerekt met de wrapper */
 .stat-grid .stat-card {
   width: 100%;
   height: 100%;
@@ -344,7 +346,6 @@
   margin: 0;
 }
 
-/* 4. Fixes voor de loan-cards lijst met dezelfde ::ng-deep truc */
 .loan-card app-button-hover-help {
   display: inline-block;
   position: relative;
@@ -363,7 +364,6 @@
 .loan-card__date-help {
   display: block;
 }
-
 .loan-card__date-help ::ng-deep .button-hover-help {
   display: block !important;
 }
@@ -372,20 +372,17 @@
   display: block;
   width: 100%;
 }
-
 .loan-card__warning-help ::ng-deep .button-hover-help {
   display: block !important;
   width: 100% !important;
 }
-
 .loan-card__warning-help .loan-warning {
   width: 100%;
 }
 
 /* =========================================================
-   SKELETON LOADING (Uitleningen)
+   SKELETON LOADING (Aangepast aan de nieuwe compactere formaten)
    ========================================================= */
-
 @keyframes skeleton-loading {
   0% {
     background-position: 200% 0;
@@ -405,11 +402,11 @@
 .loan-card--skeleton {
   pointer-events: none;
   border: 1px solid var(--border-color, #e5e7eb);
-  box-shadow: none; /* Geen hover of schaduw tijdens het laden */
+  box-shadow: none;
 }
 
 .skeleton--cover-loan {
-  width: 100px;
+  width: 80px; /* Was 100px */
   aspect-ratio: 2 / 3;
   border-radius: 6px;
   flex-shrink: 0;
@@ -417,45 +414,41 @@
 
 .skeleton--title-loan {
   width: 65%;
-  height: 20px;
-  margin-bottom: 8px;
+  height: 18px; /* Was 20px */
+  margin-bottom: 6px;
 }
 
 .skeleton--author-loan {
   width: 40%;
-  height: 14px;
-}
-
+  height: 12px;
+} /* Was 14px */
 .skeleton--badge-loan {
-  width: 80px;
-  height: 26px;
-  border-radius: 999px; /* Pill vorm zoals de echte badges */
-}
-
-.skeleton--meta-loan {
   width: 70px;
-  height: 11px;
+  height: 22px;
+  border-radius: 999px;
+} /* Compacter */
+.skeleton--meta-loan {
+  width: 60px;
+  height: 10px;
   margin-bottom: 6px;
 }
-
 .skeleton--date-loan {
-  width: 90px;
-  height: 15px;
+  width: 80px;
+  height: 14px;
 }
-
 .skeleton--warning-loan {
   width: 100%;
-  height: 44px; /* Zelfde hoogte als de gele waarschuwingsbalk */
+  height: 38px;
   border-radius: 8px;
-  margin-top: auto; /* Duwt het blok netjes naar beneden */
-}
+  margin-top: auto;
+} /* Was 44px */
 
 /* =========================================================
    6. RESPONSIVENESS (Mobiel)
    ========================================================= */
 @media (max-width: 768px) {
   .loan-card {
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: 70px 1fr; /* Cover nóg iets kleiner op tablet */
     gap: 16px;
     padding: 16px;
   }
@@ -468,7 +461,7 @@
 
 @media (max-width: 600px) {
   .page-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .loan-card {
@@ -476,7 +469,7 @@
   }
 
   .loan-card__cover {
-    width: 120px;
+    width: 100px;
     margin: 0 auto;
   }
 
