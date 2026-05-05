@@ -32,6 +32,11 @@ import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
+import edu.ap.bib_backend.dto.oneroster.OneRosterClassDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterUserDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
+
 @Service
 public class OneRosterClient {
     private static final String DEFAULT_ONE_ROSTER_PATH = "/ims/oneroster/v1p1";
@@ -123,8 +128,10 @@ public class OneRosterClient {
                 "sourcedId",
                 "title",
                 "name"));
-        List<String> years = extractDistinctSortedLabels(yearPayload, "academicSessions", "title", "schoolYear", "identifier", "sourcedId");
-        List<String> schools = extractDistinctSortedLabels(schoolPayload, "schools", "name", "title", "identifier", "sourcedId");
+        List<String> years = extractDistinctSortedLabels(yearPayload, "academicSessions", "title", "schoolYear",
+                "identifier", "sourcedId");
+        List<String> schools = extractDistinctSortedLabels(schoolPayload, "schools", "name", "title", "identifier",
+                "sourcedId");
 
         if (schools.isEmpty()) {
             schools = extractDistinctSortedLabels(schoolPayload, "orgs", "name", "title", "identifier", "sourcedId");
@@ -145,7 +152,8 @@ public class OneRosterClient {
 
             TokenAttemptResult postAttempt = TokenAttemptResult.notAttempted();
             if (tokenAuthMethod == TokenAuthMethod.POST || tokenAuthMethod == TokenAuthMethod.AUTO) {
-                // client_secret_post is optioneel en uitgeschakeld by default om secret-leaks in request-body logs te vermijden.
+                // client_secret_post is optioneel en uitgeschakeld by default om secret-leaks
+                // in request-body logs te vermijden.
                 postAttempt = fetchAccessTokenWithClientSecretPost(endpoint);
                 if (postAttempt.token() != null) {
                     return postAttempt.token();
@@ -171,11 +179,13 @@ public class OneRosterClient {
 
         switch (tokenEndpointMode) {
             case GLOBAL -> {
-                if (!globalEndpoint.isEmpty()) candidates.add(globalEndpoint);
+                if (!globalEndpoint.isEmpty())
+                    candidates.add(globalEndpoint);
             }
             case SCHOOL -> candidates.add(schoolEndpoint);
             case AUTO -> {
-                if (!globalEndpoint.isEmpty()) candidates.add(globalEndpoint);
+                if (!globalEndpoint.isEmpty())
+                    candidates.add(globalEndpoint);
                 if (!globalEndpoint.equalsIgnoreCase(schoolEndpoint)) {
                     candidates.add(schoolEndpoint);
                 }
@@ -267,7 +277,10 @@ public class OneRosterClient {
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
+
         try {
+            System.out.println("OneRoster GET = " + uri);
+
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     uri,
                     HttpMethod.GET,
@@ -276,8 +289,28 @@ public class OneRosterClient {
                     });
 
             return response.getBody() == null ? Map.of() : response.getBody();
+
+        } catch (HttpStatusCodeException exception) {
+            System.out.println("OneRoster ERROR URI = " + uri);
+            System.out.println("OneRoster ERROR STATUS = " + exception.getStatusCode());
+            System.out.println("OneRoster ERROR BODY = " + exception.getResponseBodyAsString());
+
+            throw new ResponseStatusException(
+                    BAD_GATEWAY,
+                    "OneRoster data ophalen mislukt: "
+                            + exception.getStatusCode()
+                            + " "
+                            + sanitizeBody(exception.getResponseBodyAsString()),
+                    exception);
+
         } catch (RestClientException exception) {
-            throw new ResponseStatusException(BAD_GATEWAY, "OneRoster data ophalen mislukt", exception);
+            System.out.println("OneRoster TRANSPORT ERROR URI = " + uri);
+            exception.printStackTrace();
+
+            throw new ResponseStatusException(
+                    BAD_GATEWAY,
+                    "OneRoster data ophalen mislukt: " + exception.getClass().getSimpleName(),
+                    exception);
         }
     }
 
@@ -420,7 +453,8 @@ public class OneRosterClient {
         return java.util.Arrays.stream(suffixesSource.split(","))
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
-                .map(value -> value.startsWith(".") ? value.toLowerCase(Locale.ROOT) : "." + value.toLowerCase(Locale.ROOT))
+                .map(value -> value.startsWith(".") ? value.toLowerCase(Locale.ROOT)
+                        : "." + value.toLowerCase(Locale.ROOT))
                 .toList();
     }
 
@@ -507,7 +541,8 @@ public class OneRosterClient {
             }
 
             char nextChar = other.charAt(candidate.length());
-            if (Character.isDigit(nextChar) || nextChar == '-' || nextChar == '_' || nextChar == '/' || nextChar == '.') {
+            if (Character.isDigit(nextChar) || nextChar == '-' || nextChar == '_' || nextChar == '/'
+                    || nextChar == '.') {
                 return true;
             }
         }
@@ -536,8 +571,7 @@ public class OneRosterClient {
                 .collect(java.util.stream.Collectors.toMap(
                         user -> firstNonBlank(user, "sourcedId", "identifier", "userId", "username"),
                         this::buildDisplayName,
-                        (left, right) -> left
-                ));
+                        (left, right) -> left));
     }
 
     private String buildDisplayName(Map<String, Object> user) {
@@ -560,9 +594,6 @@ public class OneRosterClient {
 
         return username != null ? username : "Onbekende gebruiker";
     }
-
-
-
 
     public String findSourcedIdByLegacyIdentifier(String schoolCode, String legacyIdentifier) {
         if (legacyIdentifier == null || legacyIdentifier.isBlank()) {
@@ -597,6 +628,243 @@ public class OneRosterClient {
 
         if (value instanceof String text && !text.isBlank()) {
             return text;
+        }
+
+        return null;
+    }
+
+    public List<OneRosterClassDTO> fetchClassesWithBearer(String schoolCode, String bearerToken) {
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+
+        if (StringUtils.hasText(bearerToken)) {
+            try {
+                URI classUri = buildApiUri(host, "/classes");
+                Map<String, Object> payload = getJsonWithBearer(classUri, bearerToken.trim());
+
+                return extractRecordCollection(payload, "classes").stream()
+                        .map(this::toOneRosterClass)
+                        .filter(item -> item.sourcedId() != null && !item.sourcedId().isBlank())
+                        .sorted(Comparator.comparing(OneRosterClassDTO::title, String.CASE_INSENSITIVE_ORDER))
+                        .toList();
+
+            } catch (ResponseStatusException ex) {
+                return fetchClasses(schoolCode);
+            }
+        }
+
+        return fetchClasses(schoolCode);
+    }
+
+    private List<OneRosterClassDTO> fetchClasses(String schoolCode) {
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = fetchAccessToken(host);
+
+        URI classUri = buildApiUri(host, "/classes");
+        Map<String, Object> payload = getJsonWithBearer(classUri, accessToken);
+
+        return extractRecordCollection(payload, "classes").stream()
+                .map(this::toOneRosterClass)
+                .filter(item -> item.sourcedId() != null && !item.sourcedId().isBlank())
+                .sorted(Comparator.comparing(OneRosterClassDTO::title, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    public List<OneRosterUserDTO> fetchStudentsForClassWithBearer(
+            String schoolCode,
+            String bearerToken,
+            String classSourcedId) {
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+
+        if (StringUtils.hasText(bearerToken)) {
+            try {
+                return fetchStudentsForClassWithResolvedHost(host, bearerToken.trim(), classSourcedId);
+            } catch (ResponseStatusException ex) {
+                return fetchStudentsForClass(schoolCode, classSourcedId);
+            }
+        }
+
+        return fetchStudentsForClass(schoolCode, classSourcedId);
+    }
+
+    public List<OneRosterEnrollmentDTO> fetchEnrollmentsWithBearer(String schoolCode, String bearerToken) {
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+
+        if (StringUtils.hasText(bearerToken)) {
+            try {
+                URI enrollmentsUri = buildApiUri(host, "/enrollments");
+                Map<String, Object> payload = getJsonWithBearer(enrollmentsUri, bearerToken.trim());
+
+                return extractRecordCollection(payload, "enrollments").stream()
+                        .map(this::toOneRosterEnrollment)
+                        .filter(enrollment -> enrollment.userSourcedId() != null
+                                && !enrollment.userSourcedId().isBlank())
+                        .filter(enrollment -> enrollment.classSourcedId() != null
+                                && !enrollment.classSourcedId().isBlank())
+                        .toList();
+
+            } catch (ResponseStatusException ex) {
+                return fetchEnrollments(schoolCode);
+            }
+        }
+
+        return fetchEnrollments(schoolCode);
+    }
+
+    public List<OneRosterUserDTO> fetchUsersWithBearer(String schoolCode, String bearerToken) {
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+
+        if (StringUtils.hasText(bearerToken)) {
+            try {
+                URI usersUri = buildApiUri(host, "/users");
+                Map<String, Object> payload = getJsonWithBearer(usersUri, bearerToken.trim());
+
+                return extractRecordCollection(payload, "users").stream()
+                        .map(this::toOneRosterUser)
+                        .filter(user -> user.sourcedId() != null && !user.sourcedId().isBlank())
+                        .sorted(Comparator.comparing(OneRosterUserDTO::displayName, String.CASE_INSENSITIVE_ORDER))
+                        .toList();
+
+            } catch (ResponseStatusException ex) {
+                return fetchUsers(schoolCode);
+            }
+        }
+
+        return fetchUsers(schoolCode);
+    }
+
+    private List<OneRosterUserDTO> fetchUsers(String schoolCode) {
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = fetchAccessToken(host);
+
+        URI usersUri = buildApiUri(host, "/users");
+        Map<String, Object> payload = getJsonWithBearer(usersUri, accessToken);
+
+        return extractRecordCollection(payload, "users").stream()
+                .map(this::toOneRosterUser)
+                .filter(user -> user.sourcedId() != null && !user.sourcedId().isBlank())
+                .sorted(Comparator.comparing(OneRosterUserDTO::displayName, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    private List<OneRosterEnrollmentDTO> fetchEnrollments(String schoolCode) {
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = fetchAccessToken(host);
+
+        URI enrollmentsUri = buildApiUri(host, "/enrollments");
+        Map<String, Object> payload = getJsonWithBearer(enrollmentsUri, accessToken);
+
+        return extractRecordCollection(payload, "enrollments").stream()
+                .map(this::toOneRosterEnrollment)
+                .filter(enrollment -> enrollment.userSourcedId() != null && !enrollment.userSourcedId().isBlank())
+                .filter(enrollment -> enrollment.classSourcedId() != null && !enrollment.classSourcedId().isBlank())
+                .toList();
+    }
+
+    private List<OneRosterUserDTO> fetchStudentsForClass(
+            String schoolCode,
+            String classSourcedId) {
+        String host = normalizeAndValidateSchoolHost(schoolCode);
+        String accessToken = fetchAccessToken(host);
+
+        return fetchStudentsForClassWithResolvedHost(host, accessToken, classSourcedId);
+    }
+
+    private List<OneRosterUserDTO> fetchStudentsForClassWithResolvedHost(
+            String host,
+            String accessToken,
+            String classSourcedId) {
+        if (!StringUtils.hasText(classSourcedId)) {
+            throw new ResponseStatusException(BAD_REQUEST, "Geen geldige klas geselecteerd");
+        }
+
+        URI studentsUri = buildApiUri(host, "/classes/" + classSourcedId + "/students");
+
+        try {
+            Map<String, Object> payload = getJsonWithBearer(studentsUri, accessToken);
+
+            List<Map<String, Object>> students = extractRecordCollection(payload, "users");
+
+            if (students.isEmpty()) {
+                students = extractRecordCollection(payload, "students");
+            }
+
+            return students.stream()
+                    .map(this::toOneRosterUser)
+                    .filter(user -> user.sourcedId() != null && !user.sourcedId().isBlank())
+                    .sorted(Comparator.comparing(OneRosterUserDTO::displayName, String.CASE_INSENSITIVE_ORDER))
+                    .toList();
+
+        } catch (ResponseStatusException ex) {
+            System.out.println("Kon leerlingen niet ophalen via " + studentsUri);
+            System.out.println("Fallback nodig voor classSourcedId = " + classSourcedId);
+            return List.of();
+        }
+    }
+
+    private OneRosterClassDTO toOneRosterClass(Map<String, Object> source) {
+        String sourcedId = firstNonBlank(source, "sourcedId", "identifier");
+        String title = firstNonBlank(source, "title", "name", "classCode", "identifier", "sourcedId");
+        String classCode = firstNonBlank(source, "classCode", "code", "identifier");
+
+        if (title == null) {
+            title = "Onbekende klas";
+        }
+
+        return new OneRosterClassDTO(
+                sourcedId,
+                title,
+                classCode);
+    }
+
+    private OneRosterUserDTO toOneRosterUser(Map<String, Object> source) {
+        String sourcedId = firstNonBlank(source, "sourcedId", "identifier", "userId", "username");
+        String givenName = firstNonBlank(source, "givenName", "firstName");
+        String familyName = firstNonBlank(source, "familyName", "lastName", "surname");
+        String username = firstNonBlank(source, "username", "userName");
+        String role = firstNonBlank(source, "role", "roles");
+
+        String displayName = buildDisplayName(source);
+
+        return new OneRosterUserDTO(
+                sourcedId,
+                displayName,
+                givenName,
+                familyName,
+                username,
+                role);
+    }
+
+    private OneRosterEnrollmentDTO toOneRosterEnrollment(Map<String, Object> source) {
+        String sourcedId = firstNonBlank(source, "sourcedId", "identifier");
+        String role = firstNonBlank(source, "role");
+
+        String userSourcedId = firstNonBlank(source, "userSourcedId", "userId", "user", "user_id");
+        String classSourcedId = firstNonBlank(source, "classSourcedId", "classId", "class", "class_id");
+
+        Object userObject = source.get("user");
+        if ((userSourcedId == null || userSourcedId.isBlank()) && userObject instanceof Map<?, ?> userMap) {
+            userSourcedId = firstNonBlankFromRawMap(userMap, "sourcedId", "identifier", "userId", "username");
+        }
+
+        Object classObject = source.get("class");
+        if ((classSourcedId == null || classSourcedId.isBlank()) && classObject instanceof Map<?, ?> classMap) {
+            classSourcedId = firstNonBlankFromRawMap(classMap, "sourcedId", "identifier", "classCode");
+        }
+
+        return new OneRosterEnrollmentDTO(
+                sourcedId,
+                role,
+                userSourcedId,
+                classSourcedId);
+    }
+
+    private String firstNonBlankFromRawMap(Map<?, ?> source, String... keys) {
+        for (String key : keys) {
+            Object value = source.get(key);
+
+            if (value instanceof String text && !text.isBlank()) {
+                return text.trim();
+            }
         }
 
         return null;

@@ -1,0 +1,88 @@
+.report-page {
+  padding: 2rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 500;
+}
+
+input,
+select,
+button {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.report-card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: white;
+}
+
+.summary {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.summary div {
+  flex: 1;
+  min-width: 180px;
+  padding: 1rem;
+  border-radius: 10px;
+  background: #f5f5f5;
+}
+
+.summary strong {
+  display: block;
+  font-size: 1.5rem;
+}
+
+.summary span {
+  color: #666;
+}
+
+.sort-row {
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.error {
+  color: #c0392b;
+  font-weight: 500;
+}

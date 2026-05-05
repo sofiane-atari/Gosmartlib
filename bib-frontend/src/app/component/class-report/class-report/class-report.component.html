@@ -1,0 +1,62 @@
+<section class="report-page">
+  <h1>Mijn klasrapporten</h1>
+
+  <p *ngIf="loading">Klasrapporten worden geladen...</p>
+
+  <p class="error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </p>
+
+  <p *ngIf="!loading && !errorMessage && reports.length === 0">
+    Er zijn geen klassen gevonden voor deze leerkracht.
+  </p>
+
+  <article class="report-card" *ngFor="let report of reports">
+    <header>
+      <h2>{{ report.classTitle }}</h2>
+
+      <div class="summary">
+        <div>
+          <strong>{{ report.studentCount }}</strong>
+          <span>Leerlingen</span>
+        </div>
+
+        <div>
+          <strong>{{ report.classAverageProgress }}%</strong>
+          <span>Gemiddelde voortgang</span>
+        </div>
+
+        <div>
+          <strong>{{ report.classAverageScore }}</strong>
+          <span>Gemiddelde score</span>
+        </div>
+      </div>
+    </header>
+
+    <table *ngIf="report.students.length > 0">
+      <thead>
+        <tr>
+          <th>Leerling</th>
+          <th>Voltooid</th>
+          <th>Voortgang</th>
+          <th>Score</th>
+          <th>Tijd</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let student of report.students">
+          <td>{{ student.displayName }}</td>
+          <td>{{ student.completedItems }} / {{ student.totalItems }}</td>
+          <td>{{ student.progressPercentage }}%</td>
+          <td>{{ student.averageScore }}</td>
+          <td>{{ student.totalTimeMinutes }} min</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p *ngIf="report.students.length === 0">
+      Geen leerlingen gevonden voor deze klas.
+    </p>
+  </article>
+</section>

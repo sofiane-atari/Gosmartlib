@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
+import edu.ap.bib_backend.dto.groupinfo.SmartschoolGroupInfoDTO;
 
 @Service
 public class SmartschoolProfileService {
@@ -90,7 +91,6 @@ public class SmartschoolProfileService {
                 throw new IllegalStateException("Smartschool group response was empty");
             }
 
-
             String primaryGroupName = null;
             List<String> parentGroupNames = new ArrayList<>();
 
@@ -117,11 +117,34 @@ public class SmartschoolProfileService {
                 }
             }
 
-
             return new SmartschoolGroupDto(primaryGroupName, parentGroupNames);
         } catch (RestClientException exception) {
             throw new IllegalStateException("Failed to fetch Smartschool groups", exception);
         }
+    }
+
+    public SmartschoolGroupInfoDTO fetchGroupInfo(String accessToken, String platform) {
+        String baseUrl = normalizePlatform(platform);
+
+        ResponseEntity<SmartschoolGroupInfoDTO> response = new RestTemplate().getForEntity(
+                baseUrl + "/Api/V1/groupinfo?access_token=" + accessToken,
+                SmartschoolGroupInfoDTO.class);
+
+        return response.getBody();
+    }
+
+    private String normalizePlatform(String platform) {
+        if (platform == null || platform.isBlank()) {
+            throw new IllegalArgumentException("Geen Smartschool platform gevonden");
+        }
+
+        String trimmed = platform.trim();
+
+        if (trimmed.endsWith("/")) {
+            return trimmed.substring(0, trimmed.length() - 1);
+        }
+
+        return trimmed;
     }
 
     private String readString(Map<String, Object> source, String key) {
