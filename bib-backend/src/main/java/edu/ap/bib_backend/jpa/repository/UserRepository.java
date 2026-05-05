@@ -13,6 +13,8 @@ import edu.ap.bib_backend.jpa.enums.Role;
 public interface UserRepository extends JpaRepository<User, String> {
     public List<User> findByIdContaining(String Id);
 
+    Optional<User> findByOneRosterSourcedId(String oneRosterSourcedId);
+
     long countBySchoolIdAndRole(Long schoolId, Role role);
 
     long countByRole(Role role);

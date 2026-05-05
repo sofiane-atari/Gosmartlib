@@ -38,6 +38,7 @@ import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
 import { SettingsComponent } from './component/settings/settings/settings.component';
 import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashboard.component';
 import { ReturnLoanComponent } from './component/loan/return-loan/return-loan.component';
+import { ClassReportComponent } from './component/class-report/class-report/class-report.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -138,6 +139,10 @@ export const routes: Routes = [
     path: 'settings',
     component: SettingsComponent,
     canActivate: [authGuard],
+  },
+  {
+    path: 'class-report',
+    component: ClassReportComponent
   },
   { path: '**', redirectTo: '/catalog' },
 ];

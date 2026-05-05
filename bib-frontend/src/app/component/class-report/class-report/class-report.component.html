@@ -1,0 +1,452 @@
+<section class="class-report-dashboard">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Klasrapportage</h1>
+      <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
+    </div>
+  </div>
+
+    @if (loading) {
+    <article class="report-card report-card--skeleton">
+        <div class="report-card__header">
+        <div>
+            <span class="skeleton-block skeleton-label"></span>
+            <span class="skeleton-block skeleton-title"></span>
+            <span class="skeleton-block skeleton-text skeleton-text--wide"></span>
+        </div>
+
+        <span class="skeleton-block skeleton-count-badge"></span>
+        </div>
+
+        <section class="stat-cards">
+        @for (item of [1, 2, 3, 4]; track item) {
+            <article class="stat-card skeleton-stat-card">
+            <div class="stat-card__icon skeleton-icon"></div>
+
+            <div>
+                <span class="skeleton-block skeleton-stat-label"></span>
+                <span class="skeleton-block skeleton-stat-number"></span>
+            </div>
+            </article>
+        }
+        </section>
+
+        <section class="insight-grid">
+        @for (panel of [1, 2]; track panel) {
+            <section class="insight-card skeleton-insight-card">
+            <div class="insight-card__header">
+                <div>
+                <span class="skeleton-block skeleton-panel-title"></span>
+                <span class="skeleton-block skeleton-panel-subtitle"></span>
+                </div>
+            </div>
+
+            <div class="ranking-list">
+                @for (row of [1, 2, 3, 4]; track row) {
+                <div class="ranking-row skeleton-ranking-row">
+                    <span class="skeleton-block skeleton-rank"></span>
+                    <span class="skeleton-block skeleton-dot"></span>
+
+                    <div class="ranking-main">
+                    <span class="skeleton-block skeleton-row-title"></span>
+                    <span class="skeleton-block skeleton-row-subtitle"></span>
+                    </div>
+
+                    <span class="skeleton-block skeleton-row-badge"></span>
+                </div>
+                }
+            </div>
+            </section>
+        }
+        </section>
+
+        <section class="search-panel">
+        <div class="skeleton-block skeleton-search"></div>
+        </section>
+
+        <section class="table-card">
+        <div class="table-card__header">
+            <div>
+            <span class="skeleton-block skeleton-panel-title"></span>
+            <span class="skeleton-block skeleton-panel-subtitle"></span>
+            </div>
+        </div>
+
+        <div class="table-scroll">
+            <table>
+            <thead>
+                <tr>
+                <th>Leerling</th>
+                <th class="center-col">Totaal</th>
+                <th class="center-col">Teruggebracht</th>
+                <th class="center-col">Nog uitgeleend</th>
+                <th class="center-col">Reviews</th>
+                <th class="center-col">Leesactiviteit</th>
+                <th class="center-col">Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (row of [1, 2, 3, 4, 5]; track row) {
+                <tr>
+                    <td>
+                    <div class="student-cell">
+                        <div class="student-cell__icon skeleton-avatar"></div>
+
+                        <div>
+                        <span class="skeleton-block skeleton-student-name"></span>
+                        <span class="skeleton-block skeleton-student-badge"></span>
+                        </div>
+                    </div>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-badge"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-wide-badge"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-wide-badge"></span>
+                    </td>
+                </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <div class="table-paging skeleton-paging-wrapper">
+            <span class="skeleton-block skeleton-page-button"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-button"></span>
+        </div>
+        </section>
+    </article>
+    }
+
+  @if (!loading) {
+  @for (report of reports; track report.classSourcedId) {
+    <article class="report-card">
+      <div class="report-card__header">
+        <div>
+          <span class="section-label">Klasrapport</span>
+          <h2>{{ report.classTitle }}</h2>
+          <p>
+            {{ report.linkedStudentCount }} van {{ report.studentCount }} leerlingen zijn gekoppeld
+            — {{ getLinkedPercentage(report) }}%
+          </p>
+        </div>
+
+        <span class="count-badge">
+          {{ report.studentCount }} leerlingen
+        </span>
+      </div>
+
+      <section class="stat-cards">
+        <app-button-hover-help
+          class="stat-card-hover"
+          text="Het totaal aantal boekexemplaren dat door gekoppelde leerlingen van deze klas ooit werd uitgeleend.">
+          <article class="stat-card stat-card--purple">
+            <div class="stat-card__icon">
+              <lucide-icon [img]="icons.library"></lucide-icon>
+            </div>
+
+            <div>
+              <p>Totaal uitgeleend</p>
+              <strong>{{ report.totalLoans }}</strong>
+            </div>
+          </article>
+        </app-button-hover-help>
+
+        <app-button-hover-help
+          class="stat-card-hover"
+          text="Aantal leerlingen waarvan de Smartschool/OneRoster identiteit gekoppeld is aan een gebruiker in deze applicatie. Alleen gekoppelde leerlingen hebben uitleen- en reviewstatistieken.">
+          <article class="stat-card stat-card--blue">
+            <div class="stat-card__icon">
+              <lucide-icon [img]="icons.users"></lucide-icon>
+            </div>
+
+            <div>
+              <p>Gekoppelde leerlingen</p>
+              <strong>{{ report.linkedStudentCount }}/{{ report.studentCount }}</strong>
+            </div>
+          </article>
+        </app-button-hover-help>
+
+        <app-button-hover-help
+          class="stat-card-hover"
+          text="Het gemiddeld aantal uitgeleende boeken per gekoppelde leerling. Niet-gekoppelde leerlingen tellen hier niet mee.">
+          <article class="stat-card stat-card--green">
+            <div class="stat-card__icon">
+              <lucide-icon [img]="icons.bookOpen"></lucide-icon>
+            </div>
+
+            <div>
+              <p>Gemiddeld gelezen</p>
+              <strong>{{ report.averageLoansPerLinkedStudent }}</strong>
+            </div>
+          </article>
+        </app-button-hover-help>
+
+        <app-button-hover-help
+          class="stat-card-hover"
+          text="Aantal boeken dat op dit moment nog niet werd teruggebracht door leerlingen uit deze klas.">
+          <article class="stat-card stat-card--orange">
+            <div class="stat-card__icon">
+              <lucide-icon [img]="icons.clock"></lucide-icon>
+            </div>
+
+            <div>
+              <p>Momenteel uitgeleend</p>
+              <strong>{{ report.activeLoans }}</strong>
+            </div>
+          </article>
+        </app-button-hover-help>
+      </section>
+
+      <section class="insight-grid">
+        <app-button-hover-help
+          class="insight-card-hover"
+          text="Deze lijst toont welke genres het vaakst voorkomen bij boeken die door deze klas werden uitgeleend.">
+          <section class="insight-card">
+            <div class="insight-card__header">
+              <div>
+                <h3>Populaire genres</h3>
+                <p>Meest uitgeleend door deze klas</p>
+              </div>
+            </div>
+
+            @if (report.popularGenres.length === 0) {
+              <div class="empty-table-state">
+                Geen genredata beschikbaar.
+              </div>
+            } @else {
+              <div class="ranking-list">
+                @for (genre of report.popularGenres; track genre.genreId; let index = $index) {
+                  <div class="ranking-row">
+                    <span class="rank-badge">#{{ index + 1 }}</span>
+
+                    <span
+                      class="genre-dot"
+                      [style.background]="genre.color || 'var(--main-color)'">
+                    </span>
+
+                    <div class="ranking-main">
+                      <strong>{{ genre.name }}</strong>
+                      <span>Genre</span>
+                    </div>
+
+                    <span class="count-badge">
+                      {{ genre.loanCount }} boeken
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </app-button-hover-help>
+
+        <app-button-hover-help
+          class="insight-card-hover"
+          text="Deze boeken kregen de hoogste gemiddelde rating van gekoppelde leerlingen uit deze klas.">
+          <section class="insight-card">
+            <div class="insight-card__header">
+              <div>
+                <h3>Hoogst beoordeelde boeken</h3>
+                <p>Ratings gegeven door deze klas</p>
+              </div>
+            </div>
+
+            @if (report.topRatedBooks.length === 0) {
+              <div class="empty-table-state">
+                Geen ratings beschikbaar.
+              </div>
+            } @else {
+              <div class="book-list">
+                @for (book of report.topRatedBooks; track book.bookId) {
+                  <div class="book-row">
+                    <div class="book-cover">
+                      @if (book.imageUrl) {
+                        <img [src]="book.imageUrl" [alt]="book.title">
+                      } @else {
+                        <lucide-icon [img]="icons.bookOpen"></lucide-icon>
+                      }
+                    </div>
+
+                    <div class="book-info">
+                      <strong>{{ book.title }}</strong>
+                      <span>{{ book.author || 'Onbekende auteur' }}</span>
+                      <small>{{ book.reviewCount }} reviews</small>
+                    </div>
+
+                    <span class="rating-badge">
+                      <lucide-icon [img]="icons.star"></lucide-icon>
+                      {{ book.averageRating }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </app-button-hover-help>
+      </section>
+
+      <section class="search-panel">
+        <app-search-bar
+          placeholder="Zoek leerling..."
+          (searchChange)="onStudentSearchChange($event)">
+        </app-search-bar>
+      </section>
+
+      <section class="table-card">
+        <div class="table-card__header">
+          <div>
+            <h3>Leerlingen</h3>
+            <p>Gesorteerd op totaal aantal uitleningen en teruggebrachte boeken.</p>
+          </div>
+        </div>
+
+        @if (getFilteredStudents(report).length === 0) {
+          <div class="empty-table-state">
+            Geen leerlingen gevonden voor deze zoekopdracht.
+          </div>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Leerling</th>
+                <th class="center-col">Totaal</th>
+                <th class="center-col">Teruggebracht</th>
+                <th class="center-col">Nog uitgeleend</th>
+                <th class="center-col">Reviews</th>
+                <th class="center-col">Leesactiviteit</th>
+                <th class="center-col">Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (student of getPagedStudents(report); track student.studentSourcedId) {
+                <tr [class.needs-return]="student.activeLoans > 0">
+                  <td>
+                    <app-button-hover-help
+                      text="Deze rij toont de uitleen- en reviewstatistieken van deze leerling.">
+                      <div class="student-cell">
+                        <div class="student-cell__icon">
+                          <lucide-icon [img]="icons.user"></lucide-icon>
+                        </div>
+
+                        <div>
+                          <strong>{{ student.displayName }}</strong>
+
+                          <div class="student-badges">
+                            @if (!student.linkedUserId) {
+                              <span class="status-badge status-badge--muted">
+                                Niet gekoppeld
+                              </span>
+                            } @else {
+                              <span class="status-badge">
+                                Gekoppeld
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Het totaal aantal boeken dat deze leerling heeft uitgeleend.">
+                      <span class="count-badge">{{ student.totalLoans }}</span>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Aantal boeken dat deze leerling al heeft teruggebracht.">
+                      <span>{{ student.returnedLoans }}</span>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Aantal boeken dat deze leerling momenteel nog moet terugbrengen.">
+                      @if (student.activeLoans > 0) {
+                        <span class="open-loans-badge">
+                          {{ student.activeLoans }}
+                        </span>
+                      } @else {
+                        <span class="muted-value">0</span>
+                      }
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Aantal reviews dat deze leerling geplaatst heeft.">
+                      <span>{{ student.reviewCount }}</span>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Een eenvoudige categorie op basis van het totaal aantal uitleningen: geen activiteit, starter, actief of sterke lezer.">
+                      <span class="activity-badge">
+                        {{ getReadingActivity(student) }}
+                      </span>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Toont of de leerling gekoppeld is en of er nog boeken teruggebracht moeten worden.">
+                      @if (!student.linkedUserId) {
+                        <span class="status-badge status-badge--muted">
+                          Niet gekoppeld
+                        </span>
+                      } @else if (student.activeLoans > 0) {
+                        <span class="status-badge status-badge--warning">
+                          Terugbrengen
+                        </span>
+                      } @else {
+                        <span class="status-badge">
+                          In orde
+                        </span>
+                      }
+                    </app-button-hover-help>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (shouldShowStudentPaging(report)) {
+            <div class="table-paging">
+              <app-paging
+                [meta]="getStudentPagingMeta(report)"
+                (pageChange)="onStudentPageChange($event)">
+              </app-paging>
+            </div>
+          }
+        }
+      </section>
+    </article>
+    }
+    }
+</section>
