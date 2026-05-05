@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -11,6 +13,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,14 +23,11 @@ import edu.ap.bib_backend.dto.JwtTokenDTO;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.SmartschoolRefreshResult;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.util.MultiValueMap;
 
 @Service
 public class AuthService {
@@ -47,11 +47,13 @@ public class AuthService {
     @Value("${spring.security.oauth2.client.provider.smartschool.token-uri}")
     private String smartschoolTokenUri;
 
-    public AuthService(JwtService jwtService,
+    public AuthService(
+            JwtService jwtService,
             TokenStorageService tokenStorageService,
             OAuth2AuthorizedClientService authorizedClientService,
             SmartschoolProfileService smartschoolProfileService,
-            UserRepository userRepository) {
+            UserRepository userRepository
+    ) {
         this.jwtService = jwtService;
         this.tokenStorageService = tokenStorageService;
         this.authorizedClientService = authorizedClientService;
@@ -63,28 +65,62 @@ public class AuthService {
         String userId = authentication.getName();
         Role role = extractRole(authentication.getAuthorities());
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
-        boolean reviewBlocked = userRepository.findById(userId)
-                .map(user -> user.isReviewBlocked())
-                .orElse(false);
 
-        // 1. Probeer Smartschool API details op te halen
+        User user = userRepository.findById(userId).orElse(null);
+
+        boolean reviewBlocked = user != null && user.isReviewBlocked();
+        Long schoolId = user != null && user.getSchool() != null ? user.getSchool().getId() : null;
+        String schoolName = user != null && user.getSchool() != null ? user.getSchool().getName() : null;
+        Long campusId = user != null && user.getCampus() != null ? user.getCampus().getId() : null;
+        String campusName = user != null && user.getCampus() != null ? user.getCampus().getName() : null;
+
         if (smartschoolToken != null && !smartschoolToken.isBlank()) {
             try {
                 SmartschoolProfileDto profile = smartschoolProfileService.fetchProfile(smartschoolToken);
                 SmartschoolGroupDto groups = smartschoolProfileService.fetchGroups(smartschoolToken);
 
                 return new AuthUserDto(
-                        userId, profile.firstName(), profile.lastName(), profile.fullName(),
-                        role, profile.email(), profile.userId(), profile.platform(),
-                        groups.primaryGroupName(), groups.parentGroupNames(), reviewBlocked);
+                        userId,
+                        profile.firstName(),
+                        profile.lastName(),
+                        profile.fullName(),
+                        role,
+                        profile.email(),
+                        profile.userId(),
+                        profile.platform(),
+                        groups.primaryGroupName(),
+                        groups.parentGroupNames(),
+                        reviewBlocked,
+                        schoolId,
+                        schoolName,
+                        campusId,
+                        campusName
+                );
             } catch (Exception ignored) {
-                /* Fallback */ }
+                // fallback hieronder
+            }
         }
 
-        // 2. Fallback naar OAuth2 principal
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             String name = oauthToken.getPrincipal().getAttribute("name");
-            return new AuthUserDto(userId, name, null, name, role, null, null, null, null, List.of(), reviewBlocked);
+
+            return new AuthUserDto(
+                    userId,
+                    name,
+                    null,
+                    name,
+                    role,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(),
+                    reviewBlocked,
+                    schoolId,
+                    schoolName,
+                    campusId,
+                    campusName
+            );
         }
 
         return null;
@@ -92,10 +128,17 @@ public class AuthService {
 
     public String processCallbackAndGenerateJwt(OAuth2AuthenticationToken oauthToken) {
         String userId = oauthToken.getName();
+
         String roleStr = oauthToken.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No role found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden na Smartschool login: " + userId));
+
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        Long campusId = user.getCampus() != null ? user.getCampus().getId() : null;
 
         Map<String, Object> claims = Map.of(
                 SmartschoolOAuth2UserService.CLAIM_CLASS_CODE,
@@ -103,7 +146,12 @@ public class AuthService {
                 SmartschoolOAuth2UserService.CLAIM_YEAR_CODE,
                 getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, "0"),
                 SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL"));
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL"),
+                "schoolId",
+                schoolId,
+                "campusId",
+                campusId
+        );
 
         String jwt = jwtService.generateToken(userId, roleStr, claims);
 
@@ -111,10 +159,13 @@ public class AuthService {
                 userId,
                 jwt,
                 roleStr,
-                jwtService.extractExpirationInstant(jwt));
+                jwtService.extractExpirationInstant(jwt)
+        );
 
         OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
-                oauthToken.getAuthorizedClientRegistrationId(), userId);
+                oauthToken.getAuthorizedClientRegistrationId(),
+                userId
+        );
 
         if (client != null && client.getAccessToken() != null) {
             String smartschoolAccessToken = client.getAccessToken().getTokenValue();
@@ -126,7 +177,8 @@ public class AuthService {
             tokenStorageService.storeSmartschoolTokens(
                     userId,
                     smartschoolAccessToken,
-                    smartschoolRefreshToken);
+                    smartschoolRefreshToken
+            );
         }
 
         return jwt;
@@ -171,24 +223,35 @@ public class AuthService {
 
         SmartschoolRefreshResult refreshResult = refreshSmartschoolAccessToken(smartschoolRefreshToken);
 
-        String newToken = jwtService.generateToken(userId, role);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        Map<String, Object> claims = Map.of(
+                "schoolId", user.getSchool() != null ? user.getSchool().getId() : null,
+                "campusId", user.getCampus() != null ? user.getCampus().getId() : null
+        );
+
+        String newToken = jwtService.generateToken(userId, role, claims);
 
         tokenStorageService.replaceToken(
                 userId,
                 newToken,
                 role,
-                jwtService.extractExpirationInstant(newToken));
+                jwtService.extractExpirationInstant(newToken)
+        );
 
         tokenStorageService.storeSmartschoolTokens(
                 userId,
                 refreshResult.accessToken(),
                 refreshResult.refreshToken() != null
                         ? refreshResult.refreshToken()
-                        : smartschoolRefreshToken);
+                        : smartschoolRefreshToken
+        );
 
         return new JwtTokenDTO(
                 newToken,
-                jwtService.extractExpirationInstant(newToken));
+                jwtService.extractExpirationInstant(newToken)
+        );
     }
 
     private SmartschoolRefreshResult refreshSmartschoolAccessToken(String refreshToken) {
@@ -212,12 +275,14 @@ public class AuthService {
                     smartschoolTokenUri,
                     HttpMethod.POST,
                     request,
-                    Map.class);
+                    Map.class
+            );
         } catch (HttpStatusCodeException ex) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "Smartschool refresh failed",
-                    ex);
+                    ex
+            );
         }
 
         Map<String, Object> responseBody = response.getBody();
@@ -225,7 +290,7 @@ public class AuthService {
         if (!response.getStatusCode().is2xxSuccessful() || responseBody == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Smartschool refresh failed");
         }
-        
+
         Object accessToken = responseBody.get("access_token");
         Object newRefreshToken = responseBody.get("refresh_token");
 
@@ -235,6 +300,7 @@ public class AuthService {
 
         return new SmartschoolRefreshResult(
                 accessTokenString,
-                newRefreshToken instanceof String refreshTokenString ? refreshTokenString : null);
+                newRefreshToken instanceof String refreshTokenString ? refreshTokenString : null
+        );
     }
 }

@@ -55,28 +55,17 @@ export class SidebarComponent {
   public readonly roleService = inject(RoleService);
   private readonly userService = inject(UserService);
 
-  // Input for mobile state
   public mobileOpen = input<boolean>(false);
-
-  // Output for closing sidebar on mobile
   public sidebarClosed = output<void>();
 
-  public constructor(private readonly router: Router) {
-    void [
-      this.ShieldIcon,
-      this.isAdminOverrideVisible,
-      this.adminOverrideLabel,
-      this.toggleAdminOverride,
-    ];
-  }
+  public constructor(private readonly router: Router) {}
 
   protected readonly currentUser = computed<AuthUserDto | null>(() =>
     this.authService.currentUser(),
   );
 
   protected readonly isAdminOverrideVisible = computed(
-    () =>
-      this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser(),
+    () => this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser(),
   );
 
   protected readonly isAdminOverrideEnabled = computed(
@@ -85,12 +74,43 @@ export class SidebarComponent {
 
   protected readonly isStaff = computed(() => {
     const role = this.currentUser()?.role;
-
     return role === 'TEACHER' || role === 'LIBRARIAN' || role === 'ADMIN';
   });
 
   protected readonly adminOverrideLabel = computed(() =>
     this.isAdminOverrideEnabled() ? 'Admin uit (test)' : 'Admin aan (test)',
+  );
+
+  protected readonly userDisplayName = computed(() => {
+    const user = this.currentUser();
+
+    if (!user) {
+      return 'Gebruiker';
+    }
+
+    const fullName = user.fullName?.trim();
+    if (fullName) {
+      return fullName;
+    }
+
+    const firstName = user.firstName?.trim();
+    const lastName = user.lastName?.trim();
+
+    const combinedName = [firstName, lastName].filter(Boolean).join(' ').trim();
+    if (combinedName) {
+      return combinedName;
+    }
+
+    const email = user.email?.trim();
+    if (email) {
+      return email;
+    }
+
+    return this.userService.getRoleLabel(user.role);
+  });
+
+  protected readonly userRoleLabel = computed(() =>
+    this.userService.getRoleLabel(this.currentUser()?.role),
   );
 
   menuItems = [
@@ -145,14 +165,6 @@ export class SidebarComponent {
       return true;
     });
   });
-
-  protected readonly userDisplayName = computed(() =>
-    this.userService.getDisplayName(this.currentUser()),
-  );
-
-  protected readonly userRoleLabel = computed(() =>
-    this.userService.getRoleLabel(this.currentUser()?.role),
-  );
 
   public goToAddBook(): void {
     this.router.navigate(['/add-book']);

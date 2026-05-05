@@ -24,15 +24,25 @@ import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.jpa.entity.AuthSession;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.entity.loan.Loan;
+import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
+import edu.ap.bib_backend.jpa.repository.AuthSessionRepository;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.loan.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
+import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolNotificationService;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
 
 @Service
 public class LoanService {
@@ -40,10 +50,12 @@ public class LoanService {
     private final LoanRepository loanRepository;
     private final LoanMapper loanMapper;
     private final BookService bookService;
+    private final BookCopyRepository bookCopyRepository;
     private final ExternalUserDisplayService externalUserDisplayService;
     private final SmartschoolNotificationService smartschoolNotificationService;
     private final AuthSessionRepository authSessionRepository;
     private final CurrentUserService currentUserService;
+
     @Value("${app.frontend-base-url:http://localhost:4200}")
     String frontendBaseUrl;
 
@@ -51,6 +63,7 @@ public class LoanService {
             LoanRepository loanRepository,
             LoanMapper loanMapper,
             BookService bookService,
+            BookCopyRepository bookCopyRepository,
             ExternalUserDisplayService externalUserDisplayService,
             AuthSessionRepository authSessionRepository,
             SmartschoolNotificationService smartschoolNotificationService,
@@ -59,6 +72,7 @@ public class LoanService {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
+        this.bookCopyRepository = bookCopyRepository;
         this.externalUserDisplayService = externalUserDisplayService;
         this.authSessionRepository = authSessionRepository;
         this.smartschoolNotificationService = smartschoolNotificationService;
@@ -67,7 +81,9 @@ public class LoanService {
     }
 
     @Transactional
-    public LoanDTO create(LoanDTO loanDTO) {
+    public LoanDTO create(LoanDTO loanDTO, Authentication authentication) {
+        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
         LocalDate parsedReturnDate;
 
@@ -82,6 +98,7 @@ public class LoanService {
         }
 
         Loan loan = loanMapper.toEntity(loanDTO);
+        loan.setCampus(campus);
         loan.setReturnDate(parsedReturnDate);
 
         // saving to ensure we have an ID for the loan before associating book copies
@@ -95,30 +112,52 @@ public class LoanService {
         }
 
         loan.setLoanDate(today);
-        loan = loanRepository.save(loan);
 
-        sendSmartschoolLoanNotification(loan);
+        for (Long bookId : loanDTO.bookIds()) {
+            Book book = bookService.getBookByIdForCurrentCampus(bookId, authentication);
 
-        return loanMapper.toDto(loan);
+            BookCopy copy = bookCopyRepository
+                    .findFirstByBookIdAndCampusIdAndAvailability(book.getId(), campus.getId(), Availability.AVAILABLE)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Geen beschikbaar exemplaar gevonden voor boek: " + book.getTitle()
+                    ));
+
+            copy.setAvailability(Availability.BORROWED);
+            loan.getCopies().add(copy);
+        }
+
+        Loan saved = loanRepository.save(loan);
+        sendSmartschoolLoanNotification(saved);
+
+        return loanMapper.toDto(saved);
     }
 
-    public PageDTO<LoanDTO> findActiveLoans(int page, int pageSize) {
-        List<Loan> loans = loanRepository.findAll().stream()
-                .filter(loan -> loan.getReturnedDate() == null)
-                .toList();
+    public PageDTO<LoanDTO> findActiveLoans(int page, int pageSize, Authentication authentication) {
+        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+
+        List<Loan> loans = loanRepository.findByCampusIdAndReturnedDateIsNull(campus.getId());
 
         return toPagedLoanDtoResponse(loans, page, pageSize);
     }
 
-    public PageDTO<LoanDTO> findAll(int page, int pageSize) {
-        List<Loan> loans = loanRepository.findAll();
+    public PageDTO<LoanDTO> findAll(int page, int pageSize, Authentication authentication) {
+        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+
+        List<Loan> loans = loanRepository.findByCampusId(campus.getId());
+
         return toPagedLoanDtoResponse(loans, page, pageSize);
     }
 
     @Transactional
-    public LoanDTO returnLoan(Long loanId) {
+    public LoanDTO returnLoan(Long loanId, Authentication authentication) {
+        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new IllegalStateException("Lening niet gevonden."));
+
+        if (loan.getCampus() == null || !loan.getCampus().getId().equals(campus.getId())) {
+            throw new IllegalStateException("Lening niet gevonden in deze campus.");
+        }
 
         if (loan.getReturnedDate() != null) {
             throw new IllegalStateException("Deze lening is al teruggebracht.");
@@ -127,12 +166,15 @@ public class LoanService {
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
         loan.setReturnedDate(today);
 
+        for (BookCopy copy : loan.getCopies()) {
+            copy.setAvailability(Availability.AVAILABLE);
+        }
+
         return loanMapper.toDto(loanRepository.save(loan));
     }
 
     private void sendSmartschoolLoanNotification(Loan loan) {
         try {
-
             if (loan.getUser() == null) {
                 return;
             }
@@ -154,7 +196,8 @@ public class LoanService {
 
             String smartschoolBaseUrl = loan.getCopies().stream()
                     .findFirst()
-                    .map(copy -> copy.getSchool())
+                    .map(BookCopy::getCampus)
+                    .map(Campus::getSchool)
                     .map(school -> school.getDomainName())
                     .orElse(null);
 
@@ -248,7 +291,6 @@ public class LoanService {
 
         userIdsBySchoolCode.forEach((schoolCode, userIds) -> {
             Map<String, String> names = externalUserDisplayService.getDisplayNames(schoolCode, userIds);
-
             displayNamesByUserId.putAll(names);
         });
 
@@ -274,7 +316,6 @@ public class LoanService {
                             .returnDate(dto.returnDate())
                             .returnedDate(dto.returnedDate())
                             .status(dto.status())
-                            .extensionCount(dto.extensionCount())
                             .build();
                 })
                 .toList();
@@ -302,9 +343,11 @@ public class LoanService {
     }
 
     public LoanHistoryDTO findHistoryForCurrentUser(Authentication authentication) {
+        Campus campus = currentUserService.getCurrentUserCampus(authentication);
         String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
-        List<LoanDTO> loans = loanRepository.findByUserIdOrderByLoanDateDesc(currentUserId)
+        List<LoanDTO> loans = loanRepository
+                .findByUserIdAndCampusIdOrderByLoanDateDesc(currentUserId, campus.getId())
                 .stream()
                 .map(loanMapper::toDto)
                 .toList();

@@ -5,15 +5,19 @@ import java.util.List;
 import edu.ap.bib_backend.jpa.enums.Role;
 
 public record AuthUserDto(
-    String id,
-    String firstName,
-    String lastName,
-    String fullName,
-    Role role,
-    String email,
-    String smartschoolId,
-    String platform,
-    String primaryGroupName,
-    List<String> parentGroupNames,
-    boolean reviewBlocked
-) {}
+        String id,
+        String firstName,
+        String lastName,
+        String fullName,
+        Role role,
+        String email,
+        String smartschoolId,
+        String platform,
+        String primaryGroupName,
+        List<String> parentGroupNames,
+        boolean reviewBlocked,
+        Long schoolId,
+        String schoolName,
+        Long campusId,
+        String campusName
+) {}git

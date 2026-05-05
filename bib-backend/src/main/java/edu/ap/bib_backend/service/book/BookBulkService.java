@@ -2,16 +2,19 @@ package edu.ap.bib_backend.service.book;
 
 import edu.ap.bib_backend.dto.FileValidationError;
 import edu.ap.bib_backend.dto.ValidationProgress;
-import edu.ap.bib_backend.jpa.entity.*;
+import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
+import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -21,30 +24,23 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.Year;
-import java.util.UUID;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.*;
+import java.time.Year;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class BookBulkService {
+
     private final BookRepository br;
     private final BookCopyRepository bcr;
     private final GenreRepository genreRepository;
     private final ReadingLevelRepository readingLevelRepository;
-    private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
+
     private final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
 
     public String storeTempFile(MultipartFile file) throws IOException {
@@ -82,7 +78,7 @@ public class BookBulkService {
 
     @Transactional
     public void importBooks(Authentication authentication, MultipartFile file) {
-        School school = getCurrentUserSchool(authentication);
+        Campus campus = currentUserService.getCurrentUserCampus(authentication);
 
         try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
@@ -114,78 +110,45 @@ public class BookBulkService {
 
                 Book book = null;
 
-                // 1. Eerst zoeken binnen huidige import op ISBN
                 if (!isbn.isEmpty() && importedBooksByIsbn.containsKey(isbn)) {
                     book = importedBooksByIsbn.get(isbn);
                 }
 
-                // 2. Daarna zoeken binnen huidige import op title+author+year
                 if (book == null && importedBooksByNaturalKey.containsKey(naturalKey)) {
                     book = importedBooksByNaturalKey.get(naturalKey);
                 }
 
-                // 3. Daarna zoeken in database op ISBN
                 if (book == null && !isbn.isEmpty()) {
-                    book = br.findByIsbn(isbn);
+                    book = br.findByIsbnAndCampusId(isbn, campus.getId()).orElse(null);
                 }
 
-                // 4. Daarna zoeken in database op title+author+year
                 if (book == null) {
                     book = br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear)
+                            .filter(existingBook -> existingBook.getCampus() != null
+                                    && existingBook.getCampus().getId().equals(campus.getId()))
                             .orElse(null);
                 }
 
-                // 5. Als nog niets gevonden: nieuw Book maken
                 if (book == null) {
-                    book = mapRowToBook(rw, evaluator);
+                    book = mapRowToBook(rw, evaluator, campus);
                     book = br.save(book);
                 }
 
-                // 6. In caches steken voor deze import-run
                 if (!isbn.isEmpty()) {
                     importedBooksByIsbn.put(isbn, book);
                 }
+
                 importedBooksByNaturalKey.put(naturalKey, book);
 
-                // 7. Altijd een copy maken
                 BookCopy copy = new BookCopy();
                 copy.setBook(book);
-                copy.setSchool(school);
+                copy.setCampus(campus);
                 copy.setAvailability(Availability.AVAILABLE);
                 bcr.save(copy);
             }
         } catch (Exception e) {
-            throw new RuntimeException("gefailed om boeken te importeren: " + e.getMessage(), e);
+            throw new RuntimeException("Gefailed om boeken te importeren: " + e.getMessage(), e);
         }
-    }
-
-    private School getCurrentUserSchool(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new IllegalStateException("Geen geauthenticeerde gebruiker gevonden.");
-        }
-
-        User user = userRepository.findById(authentication.getName())
-                .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden: " + authentication.getName()));
-
-        if (user.getSchool() == null) {
-            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
-        }
-
-        return user.getSchool();
-    }
-
-    private boolean isRowEmpty(Row row, DataFormatter formatter, FormulaEvaluator evaluator) {
-        if (row == null)
-            return true;
-
-        for (int i = 0; i <= 11; i++) {
-            Cell cell = row.getCell(i);
-            String value = formatter.formatCellValue(cell, evaluator).trim();
-            if (!value.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public SseEmitter validateBooksStream(File file) {
@@ -193,7 +156,6 @@ public class BookBulkService {
 
         new Thread(() -> {
             try (InputStream is = new FileInputStream(file); Workbook wb = WorkbookFactory.create(is)) {
-
                 Sheet sheet = wb.getSheetAt(0);
                 int totalRows = sheet.getLastRowNum();
                 DataFormatter formatter = new DataFormatter();
@@ -205,18 +167,28 @@ public class BookBulkService {
 
                 for (int i = 1; i <= totalRows; i++) {
                     Row row = sheet.getRow(i);
-                    if (row == null || isRowEmpty(row, formatter, evaluator))
+                    if (row == null || isRowEmpty(row, formatter, evaluator)) {
                         continue;
+                    }
 
-                    List<FileValidationError> rowErrors = validateRow(row, i, formatter, evaluator, existingIsbns,
-                            seenIsbns, seenNaturalKeys);
+                    List<FileValidationError> rowErrors = validateRow(
+                            row,
+                            i,
+                            formatter,
+                            evaluator,
+                            existingIsbns,
+                            seenIsbns,
+                            seenNaturalKeys
+                    );
+
                     int progress = (int) (((double) i / totalRows) * 100);
 
                     ValidationProgress update = new ValidationProgress(
                             i,
                             totalRows,
                             progress,
-                            rowErrors);
+                            rowErrors
+                    );
 
                     emitter.send(SseEmitter.event().name("progress").data(update));
                     Thread.sleep(40);
@@ -233,9 +205,31 @@ public class BookBulkService {
         return emitter;
     }
 
-    private List<FileValidationError> validateRow(Row row, int rowIndex, DataFormatter formatter,
-            FormulaEvaluator evaluator, Set<String> existingIsbns, Set<String> seenIsbns, Set<String> seenNaturalKeys) {
+    private boolean isRowEmpty(Row row, DataFormatter formatter, FormulaEvaluator evaluator) {
+        if (row == null) {
+            return true;
+        }
 
+        for (int i = 0; i <= 11; i++) {
+            Cell cell = row.getCell(i);
+            String value = formatter.formatCellValue(cell, evaluator).trim();
+            if (!value.isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private List<FileValidationError> validateRow(
+            Row row,
+            int rowIndex,
+            DataFormatter formatter,
+            FormulaEvaluator evaluator,
+            Set<String> existingIsbns,
+            Set<String> seenIsbns,
+            Set<String> seenNaturalKeys
+    ) {
         List<FileValidationError> rowErrors = new ArrayList<>();
         int rowNumber = rowIndex + 1;
 
@@ -243,7 +237,6 @@ public class BookBulkService {
         String title = formatter.formatCellValue(row.getCell(1), evaluator).trim();
         String author = formatter.formatCellValue(row.getCell(2), evaluator).trim();
         String pagesStr = formatter.formatCellValue(row.getCell(3), evaluator).trim();
-        String description = formatter.formatCellValue(row.getCell(4), evaluator).trim();
         String imageUrl = formatter.formatCellValue(row.getCell(5), evaluator).trim();
         String yearStr = formatter.formatCellValue(row.getCell(6), evaluator).trim();
         String mainGenre = formatter.formatCellValue(row.getCell(7), evaluator).trim();
@@ -252,7 +245,6 @@ public class BookBulkService {
         String subGenre3 = formatter.formatCellValue(row.getCell(10), evaluator).trim();
         String readingLevel = formatter.formatCellValue(row.getCell(11), evaluator).trim();
 
-        // ISBN
         boolean hasIsbnMatch = false;
 
         if (!isbn.isEmpty()) {
@@ -264,14 +256,16 @@ public class BookBulkService {
                             rowNumber,
                             "ISBN",
                             "ISBN komt dubbel voor in het bestand. Er zal een exemplaar toegevoegd worden met de gegevens van de eerst voorkomende rij",
-                            "warning"));
+                            "warning"
+                    ));
                     hasIsbnMatch = true;
                 } else if (existingIsbns.contains(isbn)) {
                     rowErrors.add(new FileValidationError(
                             rowNumber,
                             "ISBN",
                             "ISBN bestaat al in de database. Er zal een exemplaar toegevoegd worden met de gegevens in de database",
-                            "warning"));
+                            "warning"
+                    ));
                     hasIsbnMatch = true;
                 }
 
@@ -279,22 +273,22 @@ public class BookBulkService {
             }
         }
 
-        // Title
-        if (title.isEmpty())
+        if (title.isEmpty()) {
             rowErrors.add(new FileValidationError(rowNumber, "Title", "Titel is leeg"));
+        }
 
-        // Author
-        if (author.isEmpty())
+        if (author.isEmpty()) {
             rowErrors.add(new FileValidationError(rowNumber, "Author", "Auteur is leeg"));
+        }
 
-        // Pages
         if (pagesStr.isEmpty()) {
             rowErrors.add(new FileValidationError(rowNumber, "Pages", "Pagina's is leeg"));
         } else {
             try {
                 int pages = Integer.parseInt(pagesStr);
-                if (pages <= 0)
+                if (pages <= 0) {
                     rowErrors.add(new FileValidationError(rowNumber, "Pages", "Pagina's moeten meer dan 0 zijn"));
+                }
             } catch (NumberFormatException e) {
                 rowErrors.add(new FileValidationError(rowNumber, "Pages", "Pagina's moet een nummer zijn"));
             }
@@ -316,21 +310,20 @@ public class BookBulkService {
                         rowNumber,
                         "Title/Author/ReleaseYear",
                         "De combinatie titel + auteur + jaar komt dubbel voor in het bestand. Er zal een exemplaar toegevoegd worden met de gegevens van de eerst voorkomende rij.",
-                        "warning"));
-            } else if (br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear)
-                    .isPresent()) {
+                        "warning"
+                ));
+            } else if (br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear).isPresent()) {
                 rowErrors.add(new FileValidationError(
                         rowNumber,
                         "Title/Author/ReleaseYear",
                         "De combinatie titel + auteur + jaar bestaat al in de database. Er zal een exemplaar toegevoegd worden met de bestaande boekgegevens.",
-                        "warning"));
+                        "warning"
+                ));
             }
 
             seenNaturalKeys.add(naturalKey);
         }
 
-
-        // Image URL
         if (!imageUrl.isEmpty()) {
             try {
                 new URL(imageUrl);
@@ -339,7 +332,6 @@ public class BookBulkService {
             }
         }
 
-        // Release Year
         if (yearStr.isEmpty()) {
             rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Uitgave jaar is leeg"));
         } else {
@@ -347,14 +339,14 @@ public class BookBulkService {
                 int year = Integer.parseInt(yearStr);
                 int currentYear = Year.now().getValue();
 
-                if (year < 1000 || year > currentYear)
+                if (year < 1000 || year > currentYear) {
                     rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Invalide jaar"));
+                }
             } catch (NumberFormatException e) {
                 rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Uitgave jaar moet een nummer zijn"));
             }
         }
 
-        // Hoofdgenre en subgenre
         boolean hasAnyGenre =
                 !mainGenre.isEmpty()
                         || !subGenre1.isEmpty()
@@ -378,8 +370,7 @@ public class BookBulkService {
                 if (!subGenre2.isEmpty()) subGenres.add(subGenre2);
                 if (!subGenre3.isEmpty()) subGenres.add(subGenre3);
 
-                List<String> uniqueSubGenres = new ArrayList<>(new java.util.LinkedHashSet<>(subGenres));
-
+                List<String> uniqueSubGenres = new ArrayList<>(new LinkedHashSet<>(subGenres));
                 Genre mainGenreEntityWithParent = genreRepository.findByNameWithParent(mainGenre).orElse(null);
 
                 for (String subGenreName : uniqueSubGenres) {
@@ -410,7 +401,7 @@ public class BookBulkService {
         return rowErrors;
     }
 
-    private Book mapRowToBook(Row row, FormulaEvaluator evaluator) {
+    private Book mapRowToBook(Row row, FormulaEvaluator evaluator, Campus campus) {
         Book book = new Book();
         DataFormatter formatter = new DataFormatter();
 
@@ -421,12 +412,12 @@ public class BookBulkService {
         String description = formatter.formatCellValue(row.getCell(4), evaluator).trim();
         String imageUrl = formatter.formatCellValue(row.getCell(5), evaluator).trim();
         String releaseYear = formatter.formatCellValue(row.getCell(6), evaluator).trim();
-        String mainGenreName = formatter.formatCellValue(row.getCell(7), evaluator).trim();
         String subGenre1 = formatter.formatCellValue(row.getCell(8), evaluator).trim();
         String subGenre2 = formatter.formatCellValue(row.getCell(9), evaluator).trim();
         String subGenre3 = formatter.formatCellValue(row.getCell(10), evaluator).trim();
         String readingLevelName = formatter.formatCellValue(row.getCell(11), evaluator).trim();
 
+        book.setCampus(campus);
         book.setIsbn(isbn.isEmpty() ? null : isbn);
         book.setTitle(title);
         book.setAuthor(author);
@@ -435,14 +426,11 @@ public class BookBulkService {
         book.setImageUrl(imageUrl.isBlank() ? null : imageUrl);
         book.setReleaseYear(Integer.parseInt(releaseYear));
 
-        Set<String> uniqueSubGenreNames = new java.util.LinkedHashSet<>();
+        Set<String> uniqueSubGenreNames = new LinkedHashSet<>();
 
-        if (!subGenre1.isBlank())
-            uniqueSubGenreNames.add(subGenre1);
-        if (!subGenre2.isBlank())
-            uniqueSubGenreNames.add(subGenre2);
-        if (!subGenre3.isBlank())
-            uniqueSubGenreNames.add(subGenre3);
+        if (!subGenre1.isBlank()) uniqueSubGenreNames.add(subGenre1);
+        if (!subGenre2.isBlank()) uniqueSubGenreNames.add(subGenre2);
+        if (!subGenre3.isBlank()) uniqueSubGenreNames.add(subGenre3);
 
         Set<Genre> selectedGenres = new HashSet<>();
 
@@ -469,5 +457,4 @@ public class BookBulkService {
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase();
     }
-
 }

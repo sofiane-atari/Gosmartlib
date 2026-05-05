@@ -54,6 +54,9 @@ public class Book {
     @Formula("(SELECT COUNT(*) FROM book_copies bc WHERE bc.book_id = id AND bc.availability = 'AVAILABLE')")
     private Integer availableCopies;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campus_id", nullable = false)
+    private Campus campus;
 
     @PrePersist
     protected void onCreate() {
@@ -63,20 +66,24 @@ public class Book {
     public Book() {
     }
 
-    public Book(String isbn, String title, String author, int pages, String image_url, String description,
-            int release_year) {
+    public Book(String isbn, String title, String author, int pages, String imageUrl, String description,
+                int releaseYear) {
         this.isbn = isbn;
         this.title = title;
         this.author = author;
         this.pages = pages;
-        this.imageUrl = image_url;
+        this.imageUrl = imageUrl;
         this.description = description;
-        this.releaseYear = release_year;
+        this.releaseYear = releaseYear;
     }
 
     @ManyToMany
-    @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "genre_id"), uniqueConstraints = @UniqueConstraint(columnNames = {
-            "book_id", "genre_id" }))
+    @JoinTable(
+            name = "book_genres",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"book_id", "genre_id"})
+    )
     private Set<Genre> genres = new HashSet<>();
 
     @OneToMany(mappedBy = "book")
@@ -88,7 +95,11 @@ public class Book {
 
     @JsonIgnore
     @ManyToMany
-    @JoinTable(name = "book_tags", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @JoinTable(
+            name = "book_tags",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
     private Set<Tag> tags = new HashSet<>();
 
     @Override

@@ -19,6 +19,7 @@ public interface LoanMapper {
     @Mapping(target = "copies", ignore = true)
     @Mapping(target = "user.id", source = "userId")
     @Mapping(target = "returnedDate", ignore = true)
+    @Mapping(target = "campus", ignore = true)
     Loan toEntity(LoanDTO dto);
 
     @Mapping(target = "userId", source = "user.id")

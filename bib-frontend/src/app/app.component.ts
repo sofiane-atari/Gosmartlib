@@ -6,6 +6,7 @@ import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { ToastComponent } from './component/shared/toast/toast.component';
 import { AuthService } from './services/authorization/auth.service';
 import { SessionExpiryModalComponent } from './component/shared/session-expired-modal/session-expired-modal.component';
+import { CampusSelectorModalComponent} from "./shared/campus-selector-modal/campus-selector-modal.component";
 
 @Component({
   selector: 'app-root',
@@ -16,7 +17,8 @@ import { SessionExpiryModalComponent } from './component/shared/session-expired-
     SidebarComponent,
     RouterOutlet,
     ToastComponent,
-    SessionExpiryModalComponent
+    SessionExpiryModalComponent,
+    CampusSelectorModalComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -24,7 +26,6 @@ import { SessionExpiryModalComponent } from './component/shared/session-expired-
 export class AppComponent {
   protected readonly authService = inject(AuthService);
 
-  // Signal to track sidebar visibility on mobile
   protected isSidebarOpen = signal(false);
 
   cards = [
@@ -36,17 +37,17 @@ export class AppComponent {
     'Rapporteer',
   ];
 
-  toggleSidebar() {
-    this.isSidebarOpen.update((v) => !v);
-  }
-
-  closeSidebar() {
-    this.isSidebarOpen.set(false);
-  }
-
   public constructor() {
     if (this.authService.isAuthenticated()) {
       this.authService.fetchCurrentUser();
     }
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarOpen.update((v) => !v);
+  }
+
+  closeSidebar(): void {
+    this.isSidebarOpen.set(false);
   }
 }

@@ -10,14 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.lessontips.BookLessonTipPreviewResponseDto;
 import edu.ap.bib_backend.dto.lessontips.LessonTipPreviewResponseDto;
-import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.mapper.PageMapper;
-import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.service.book.BookSearchService;
 import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.book.GoogleBooksClient;
@@ -31,19 +30,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/books")
 public class BookController {
+
     private final BookService bookService;
     private final BookSearchService bookSearchService;
     private final GoogleBooksClient googleBooksClient;
     private final OpenLibraryClient openLibraryClient;
     private final LessonTipService lessonTipService;
 
-    public BookController(BookService bookService, BookSearchService bookSearchService,
-            GoogleBooksClient googleBooksClient, OpenLibraryClient openLibraryClient, LessonTipService lessonTipService) {
+    public BookController(
+            BookService bookService,
+            BookSearchService bookSearchService,
+            GoogleBooksClient googleBooksClient,
+            OpenLibraryClient openLibraryClient,
+            LessonTipService lessonTipService
+    ) {
         this.bookService = bookService;
         this.bookSearchService = bookSearchService;
         this.googleBooksClient = googleBooksClient;
@@ -52,8 +56,8 @@ public class BookController {
     }
 
     @GetMapping
-    public List<BookDTO> getAllBooks() {
-        return bookService.getAllBooks();
+    public List<BookDTO> getAllBooks(Authentication authentication) {
+        return bookService.getAllBooks(authentication);
     }
 
     @GetMapping("/catalog")
@@ -67,8 +71,8 @@ public class BookController {
             @RequestParam(required = false) BookSortOption sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            Authentication authentication) {
-
+            Authentication authentication
+    ) {
         Page<BookDTO> bookPage = bookSearchService.getFilteredBooks(
                 searchTerm,
                 availability,
@@ -79,17 +83,21 @@ public class BookController {
                 page,
                 size,
                 sortBy,
-                authentication);
+                authentication
+        );
 
         return new PageDTO<>(
                 bookPage.getContent(),
-                PageMapper.toPaginatedMeta(bookPage));
+                PageMapper.toPaginatedMeta(bookPage)
+        );
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<BookDTO> getBookById(
-            @PathVariable("id") Long id ) {
-                BookDTO book = bookService.getBookById(id);
+            @PathVariable("id") Long id,
+            Authentication authentication
+    ) {
+        BookDTO book = bookService.getBookById(id, authentication);
         return ResponseEntity.ok(book);
     }
 
@@ -97,7 +105,8 @@ public class BookController {
     public ResponseEntity<List<BookDTO>> getRelatedBooksCarousel(
             @PathVariable("id") Long id,
             @RequestParam(defaultValue = "10", required = false) int limit,
-            Authentication authentication) {
+            Authentication authentication
+    ) {
         return ResponseEntity.ok(bookService.getRelatedBooksCarousel(id, limit, authentication));
     }
 
@@ -111,8 +120,11 @@ public class BookController {
     }
 
     @GetMapping("/isbn/{isbn}")
-    public ResponseEntity<BookDTO> getBookByISBN(@PathVariable String isbn) {
-        return ResponseEntity.ok(bookService.getBookByISBN(isbn));
+    public ResponseEntity<BookDTO> getBookByISBN(
+            @PathVariable String isbn,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(bookService.getBookByISBN(isbn, authentication));
     }
 
     @GetMapping("/isbn/{isbn}/preview")
@@ -133,14 +145,16 @@ public class BookController {
     @GetMapping("/most-read")
     public ResponseEntity<List<BookDTO>> getMostReadBooks(
             @RequestParam(defaultValue = "3", required = false) int limit,
-            Authentication authentication) {
+            Authentication authentication
+    ) {
         return ResponseEntity.ok(bookService.getMostReadBooks(limit, authentication));
     }
 
     @GetMapping("/newest")
     public ResponseEntity<List<BookDTO>> getNewestBooks(
             @RequestParam(defaultValue = "3", required = false) int limit,
-            Authentication authentication) {
+            Authentication authentication
+    ) {
         return ResponseEntity.ok(bookService.getNewestBooks(limit, authentication));
     }
 
@@ -148,7 +162,8 @@ public class BookController {
     public ResponseEntity<List<BookCandidateDTO>> searchBookCandidates(
             @RequestParam String title,
             @RequestParam String author,
-            @RequestParam Integer releaseYear) {
+            @RequestParam Integer releaseYear
+    ) {
         List<BookCandidateDTO> candidates = googleBooksClient.searchBookCandidates(title, author, releaseYear);
         return ResponseEntity.ok(candidates);
     }
@@ -157,25 +172,37 @@ public class BookController {
     public ResponseEntity<List<BookCandidateDTO>> searchBooksInDb(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String author,
-            @RequestParam(required = false) Integer releaseYear) {
-        return ResponseEntity.ok(bookService.searchBooksInDb(title, author, releaseYear));
+            @RequestParam(required = false) Integer releaseYear,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(bookService.searchBooksInDb(title, author, releaseYear, authentication));
     }
 
     @PostMapping("/select")
-    public ResponseEntity<BookDTO> selectBook(@RequestParam String isbn13) {
-        BookDTO book = bookService.getBookByISBN(isbn13);
+    public ResponseEntity<BookDTO> selectBook(
+            @RequestParam String isbn13,
+            Authentication authentication
+    ) {
+        BookDTO book = bookService.getBookByISBN(isbn13, authentication);
         return ResponseEntity.ok(book);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookDTO> updateBook(@PathVariable Long id, @RequestBody BookDTO dto) {
-        BookDTO updatedBook = bookService.updateBook(id, dto);
+    public ResponseEntity<BookDTO> updateBook(
+            @PathVariable Long id,
+            @RequestBody BookDTO dto,
+            Authentication authentication
+    ) {
+        BookDTO updatedBook = bookService.updateBook(id, dto, authentication);
         return ResponseEntity.ok(updatedBook);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
-        bookService.deleteBook(id);
+    public ResponseEntity<Void> deleteBook(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        bookService.deleteBook(id, authentication);
         return ResponseEntity.noContent().build();
     }
 

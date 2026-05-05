@@ -10,13 +10,17 @@ import {
   MapPin,
   Users,
   BookOpen,
+  Landmark,
 } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, of, switchMap } from 'rxjs';
 
 import { CreateSchoolRequest, School } from '../../../model/school.model';
+import { Campus, CreateCampusRequest } from '../../../model/campus.model';
 import { SchoolService } from '../../../services/school/school.service';
+import { CampusService } from '../../../services/campus/campus.service';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
@@ -37,6 +41,7 @@ import { ToastService } from '../../../services/toast/toast.service';
 })
 export class SchoolDashboardComponent implements OnInit {
   private readonly schoolService = inject(SchoolService);
+  private readonly campusService = inject(CampusService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
@@ -49,11 +54,19 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly MapPin = MapPin;
   protected readonly Users = Users;
   protected readonly BookOpen = BookOpen;
+  protected readonly Landmark = Landmark;
 
   protected readonly schools = signal<School[]>([]);
+  protected readonly campusesBySchoolId = signal<Record<number, Campus[]>>({});
+  protected readonly selectedSchoolForCampus = signal<School | null>(null);
+  protected readonly selectedCampusForEdit = signal<Campus | null>(null);
+
   protected readonly isLoading = signal(false);
   protected readonly isSubmitting = signal(false);
   protected readonly isUpdating = signal(false);
+  protected readonly isCampusSubmitting = signal(false);
+  protected readonly isCampusModalOpen = signal(false);
+  protected readonly isCampusEditModalOpen = signal(false);
   protected readonly isCreateModalOpen = signal(false);
   protected readonly isEditModalOpen = signal(false);
   protected readonly selectedSchoolForEdit = signal<School | null>(null);
@@ -65,15 +78,16 @@ export class SchoolDashboardComponent implements OnInit {
 
   protected readonly totalSchools = computed(() => this.schools().length);
 
-  protected readonly uniquePostalCodes = computed(
-    () => new Set(this.schools().map((school) => school.postalCode)).size,
+  protected readonly totalCampuses = computed(() =>
+    Object.values(this.campusesBySchoolId()).reduce(
+      (total, campuses) => total + campuses.length,
+      0,
+    ),
   );
 
   protected readonly totalBooks = computed(() =>
     Object.values(this.schoolBookCounts()).reduce((total, count) => total + count, 0),
   );
-
-  protected readonly activeSchools = computed(() => this.schools().length);
 
   protected readonly filteredSchools = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
@@ -94,6 +108,14 @@ export class SchoolDashboardComponent implements OnInit {
     postalCode: [null as number | null, [Validators.required, Validators.min(1)]],
     contactPhone: [''],
     contactEmail: ['', [Validators.email]],
+    campusName: ['Default campus', [Validators.required]],
+    campusCode: ['default-campus', [Validators.required]],
+  });
+
+  protected readonly campusForm = this.formBuilder.group({
+    name: ['', [Validators.required]],
+    code: ['', [Validators.required]],
+    defaultCampus: [false],
   });
 
   public ngOnInit(): void {
@@ -104,9 +126,12 @@ export class SchoolDashboardComponent implements OnInit {
     return this.schoolBookCounts()[id] ?? 0;
   }
 
+  protected getCampusesForSchool(schoolId: number): Campus[] {
+    return this.campusesBySchoolId()[schoolId] ?? [];
+  }
+
   protected openCreateModal(): void {
     this.isCreateModalOpen.set(true);
-    this.schoolForm.controls.domainName.enable();
     this.schoolForm.reset({
       domainName: '',
       name: '',
@@ -114,6 +139,8 @@ export class SchoolDashboardComponent implements OnInit {
       postalCode: null,
       contactPhone: '',
       contactEmail: '',
+      campusName: 'Default campus',
+      campusCode: 'default-campus',
     });
   }
 
@@ -127,8 +154,6 @@ export class SchoolDashboardComponent implements OnInit {
     this.selectedSchoolForEdit.set(school);
     this.isEditModalOpen.set(true);
 
-    this.schoolForm.controls.domainName.enable();
-
     this.schoolForm.reset({
       domainName: school.domainName,
       name: school.name,
@@ -136,15 +161,54 @@ export class SchoolDashboardComponent implements OnInit {
       postalCode: school.postalCode,
       contactPhone: school.contactPhone ?? '',
       contactEmail: school.contactEmail ?? '',
+      campusName: 'Default campus',
+      campusCode: 'default-campus',
     });
   }
 
   protected closeEditModal(): void {
     this.isEditModalOpen.set(false);
     this.selectedSchoolForEdit.set(null);
-    this.schoolForm.controls.domainName.enable();
     this.schoolForm.markAsPristine();
     this.schoolForm.markAsUntouched();
+  }
+
+  protected openCampusModal(school: School): void {
+    this.selectedSchoolForCampus.set(school);
+    this.isCampusModalOpen.set(true);
+
+    this.campusForm.reset({
+      name: '',
+      code: '',
+      defaultCampus: false,
+    });
+  }
+
+  protected closeCampusModal(): void {
+    this.isCampusModalOpen.set(false);
+    this.selectedSchoolForCampus.set(null);
+    this.campusForm.markAsPristine();
+    this.campusForm.markAsUntouched();
+  }
+
+  protected openCampusEditModal(school: School, campus: Campus): void {
+    this.selectedSchoolForCampus.set(school);
+    this.selectedCampusForEdit.set(campus);
+    this.isCampusEditModalOpen.set(true);
+
+    this.campusForm.reset({
+      name: campus.name,
+      code: campus.code,
+      defaultCampus: campus.defaultCampus,
+    });
+  }
+
+  protected closeCampusEditModal(): void {
+    this.isCampusEditModalOpen.set(false);
+    this.selectedSchoolForCampus.set(null);
+    this.selectedCampusForEdit.set(null);
+    this.campusForm.markAsPristine();
+    this.campusForm.markAsUntouched();
   }
 
   protected createSchool(): void {
@@ -164,11 +228,25 @@ export class SchoolDashboardComponent implements OnInit {
       postalCode: Number(formValue.postalCode),
       contactPhone: formValue.contactPhone?.trim() ?? '',
       contactEmail: formValue.contactEmail?.trim() ?? '',
+      createdAt: undefined,
+    };
+
+    const campus: CreateCampusRequest = {
+      name: formValue.campusName?.trim() ?? 'Default campus',
+      code: formValue.campusCode?.trim() ?? 'default-campus',
+      defaultCampus: true,
     };
 
     this.schoolService
       .create(school)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        switchMap((createdSchool) =>
+          this.campusService.create(createdSchool.id, campus).pipe(
+            switchMap(() => of(createdSchool)),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (createdSchool) => {
           this.schools.set(
@@ -179,7 +257,8 @@ export class SchoolDashboardComponent implements OnInit {
 
           this.isSubmitting.set(false);
           this.closeCreateModal();
-          this.showSuccess('School succesvol toegevoegd.');
+          this.loadSchools();
+          this.showSuccess('School en default-campus succesvol toegevoegd.');
         },
         error: (error: HttpErrorResponse) => {
           this.isSubmitting.set(false);
@@ -195,20 +274,25 @@ export class SchoolDashboardComponent implements OnInit {
       return;
     }
 
-    if (this.schoolForm.invalid) {
+    if (this.schoolForm.controls.domainName.invalid
+      || this.schoolForm.controls.name.invalid
+      || this.schoolForm.controls.address.invalid
+      || this.schoolForm.controls.postalCode.invalid
+      || this.schoolForm.controls.contactEmail.invalid) {
       this.schoolForm.markAllAsTouched();
       return;
     }
 
     const formValue = this.schoolForm.getRawValue();
 
-    const updatedSchool = {
+    const updatedSchool: CreateSchoolRequest = {
       domainName: formValue.domainName?.trim() ?? '',
       name: formValue.name?.trim() ?? '',
       address: formValue.address?.trim() ?? '',
       postalCode: Number(formValue.postalCode),
       contactPhone: formValue.contactPhone?.trim() ?? '',
       contactEmail: formValue.contactEmail?.trim() ?? '',
+      createdAt: schoolToUpdate.createdAt,
     };
 
     this.isUpdating.set(true);
@@ -238,6 +322,85 @@ export class SchoolDashboardComponent implements OnInit {
       });
   }
 
+  protected createCampus(): void {
+    const school = this.selectedSchoolForCampus();
+
+    if (!school) {
+      return;
+    }
+
+    if (this.campusForm.invalid) {
+      this.campusForm.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.campusForm.getRawValue();
+
+    const campus: CreateCampusRequest = {
+      name: formValue.name?.trim() ?? '',
+      code: formValue.code?.trim() ?? '',
+      defaultCampus: !!formValue.defaultCampus,
+    };
+
+    this.isCampusSubmitting.set(true);
+
+    this.campusService
+      .create(school.id, campus)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isCampusSubmitting.set(false);
+          this.closeCampusModal();
+          this.loadCampusesForSchool(school.id);
+          this.showSuccess('Campus succesvol toegevoegd.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isCampusSubmitting.set(false);
+          this.handleError(error, 'Campus kon niet toegevoegd worden.');
+        },
+      });
+  }
+
+  protected updateCampus(): void {
+    const school = this.selectedSchoolForCampus();
+    const campusToUpdate = this.selectedCampusForEdit();
+
+    if (!school || !campusToUpdate) {
+      return;
+    }
+
+    if (this.campusForm.invalid) {
+      this.campusForm.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.campusForm.getRawValue();
+
+    const campus: CreateCampusRequest = {
+      name: formValue.name?.trim() ?? '',
+      code: formValue.code?.trim() ?? '',
+      defaultCampus: !!formValue.defaultCampus,
+    };
+
+    this.isCampusSubmitting.set(true);
+
+    this.campusService
+      .update(campusToUpdate.id, campus)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isCampusSubmitting.set(false);
+          this.closeCampusEditModal();
+          this.loadCampusesForSchool(school.id);
+          this.showSuccess('Campus succesvol bijgewerkt.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isCampusSubmitting.set(false);
+          this.handleError(error, 'Campus kon niet bijgewerkt worden.');
+        },
+      });
+  }
+
   protected deleteSchool(school: School): void {
     this.toastService.showConfirm(
       `Weet je zeker dat je de school "${school.name}" wilt verwijderen?`,
@@ -259,9 +422,7 @@ export class SchoolDashboardComponent implements OnInit {
             },
           });
       },
-      () => {
-        // Cancel action - do nothing
-      },
+      () => {},
     );
   }
 
@@ -269,7 +430,7 @@ export class SchoolDashboardComponent implements OnInit {
     this.backdropPointerStartedOnOverlay = event.target === event.currentTarget;
   }
 
-  protected onOverlayClick(event: MouseEvent, modalType: 'create' | 'edit'): void {
+  protected onOverlayClick(event: MouseEvent, modalType: 'create' | 'edit' | 'campus' | 'campusEdit'): void {
     const endedOnOverlay = event.target === event.currentTarget;
 
     if (!(this.backdropPointerStartedOnOverlay && endedOnOverlay)) {
@@ -284,7 +445,17 @@ export class SchoolDashboardComponent implements OnInit {
       return;
     }
 
-    this.closeEditModal();
+    if (modalType === 'edit') {
+      this.closeEditModal();
+      return;
+    }
+
+    if (modalType === 'campus') {
+      this.closeCampusModal();
+      return;
+    }
+
+    this.closeCampusEditModal();
   }
 
   private loadSchools(): void {
@@ -301,6 +472,7 @@ export class SchoolDashboardComponent implements OnInit {
 
           this.schools.set(sortedSchools);
           this.loadSchoolCounts(sortedSchools);
+          this.loadCampuses(sortedSchools);
           this.isLoading.set(false);
         },
         error: () => {
@@ -326,6 +498,51 @@ export class SchoolDashboardComponent implements OnInit {
     });
   }
 
+  private loadCampuses(schools: School[]): void {
+    if (schools.length === 0) {
+      this.campusesBySchoolId.set({});
+      return;
+    }
+
+    const requests = schools.map((school) =>
+      this.campusService.getBySchool(school.id),
+    );
+
+    forkJoin(requests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (campusLists) => {
+          const nextValue: Record<number, Campus[]> = {};
+
+          schools.forEach((school, index) => {
+            nextValue[school.id] = campusLists[index].sort((a, b) =>
+              Number(b.defaultCampus) - Number(a.defaultCampus)
+              || a.name.localeCompare(b.name),
+            );
+          });
+
+          this.campusesBySchoolId.set(nextValue);
+        },
+      });
+  }
+
+  private loadCampusesForSchool(schoolId: number): void {
+    this.campusService
+      .getBySchool(schoolId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (campuses) => {
+          this.campusesBySchoolId.update((current) => ({
+            ...current,
+            [schoolId]: campuses.sort((a, b) =>
+              Number(b.defaultCampus) - Number(a.defaultCampus)
+              || a.name.localeCompare(b.name),
+            ),
+          }));
+        },
+      });
+  }
+
   private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
     const backendError = error.error as HttpErrorResponseError | undefined;
 
@@ -335,6 +552,11 @@ export class SchoolDashboardComponent implements OnInit {
         .join('\n');
 
       this.showError(message);
+      return;
+    }
+
+    if (typeof error.error === 'string') {
+      this.showError(error.error);
       return;
     }
 

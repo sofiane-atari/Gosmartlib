@@ -33,11 +33,13 @@ public final class BookSpecification {
 
                 Predicate titleMatch = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("title")),
-                        likePattern);
+                        likePattern
+                );
 
                 Predicate authorMatch = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("author")),
-                        likePattern);
+                        likePattern
+                );
 
                 predicates.add(criteriaBuilder.or(titleMatch, authorMatch));
             }
@@ -56,7 +58,7 @@ public final class BookSpecification {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("pages"), maxPages));
             }
 
-            if (readingLevelId != null){
+            if (readingLevelId != null) {
                 predicates.add(criteriaBuilder.equal(root.get("readingLevel").get("id"), readingLevelId));
             }
 
@@ -68,24 +70,24 @@ public final class BookSpecification {
                 ));
                 query.distinct(true);
             }
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
-
-
     }
 
-    public static Specification<Book> hasAvailableCopyInSchool(String schoolDomainName) {
+    public static Specification<Book> belongsToCampus(Long campusId) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("campus").get("id"), campusId);
+    }
+
+    public static Specification<Book> hasCopyInCampus(Long campusId) {
         return (root, query, criteriaBuilder) -> {
             Join<Book, BookCopy> bookCopyJoin = root.join("bookCopies");
-
             query.distinct(true);
 
-            // Only filter by the school's domain here. Availability filtering should be
-            // controlled by the availability parameter passed into `withFilters` so that
-            // callers can request ALL vs AVAILABLE correctly.
             return criteriaBuilder.equal(
-                    bookCopyJoin.get("school").get("domainName"),
-                    schoolDomainName
+                    bookCopyJoin.get("campus").get("id"),
+                    campusId
             );
         };
     }
@@ -93,20 +95,23 @@ public final class BookSpecification {
     public static Specification<Book> withCandidateFilters(
             String title,
             String author,
-            Integer releaseYear) {
+            Integer releaseYear
+    ) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (title != null && !title.isBlank()) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("title")),
-                        "%" + title.toLowerCase() + "%"));
+                        "%" + title.toLowerCase() + "%"
+                ));
             }
 
             if (author != null && !author.isBlank()) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("author")),
-                        "%" + author.toLowerCase() + "%"));
+                        "%" + author.toLowerCase() + "%"
+                ));
             }
 
             if (releaseYear != null) {

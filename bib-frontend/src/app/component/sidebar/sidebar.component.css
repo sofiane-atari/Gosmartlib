@@ -78,6 +78,7 @@ lucide-icon {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .avatar {
@@ -87,14 +88,11 @@ lucide-icon {
   border-radius: 50%;
   display: flex;
   align-items: center;
-  padding-left: 12px;
+  justify-content: center;
+  padding-left: 0;
   box-sizing: border-box;
   position: relative;
-}
-
-.avatar lucide-icon {
-  width: 24px;
-  height: 24px;
+  flex: 0 0 48px;
 }
 
 .profile-info {
@@ -102,6 +100,18 @@ lucide-icon {
   flex-direction: column;
   justify-content: center;
   gap: 2px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.welcome-text,
+.user-name,
+.user-role {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .welcome-text {

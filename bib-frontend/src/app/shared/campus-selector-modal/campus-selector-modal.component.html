@@ -1,0 +1,60 @@
+@if (isOpen()) {
+  <div class="campus-modal-backdrop">
+    <section class="campus-modal">
+      <div class="campus-modal__header">
+        <div class="campus-modal__icon">
+          <lucide-icon [name]="Building2"></lucide-icon>
+        </div>
+
+        <div>
+          <h2>Kies je campus</h2>
+          <p>
+            Je school heeft meerdere campussen. Kies de campus waarvan je de catalogus,
+            uitleningen en administratie wilt gebruiken.
+          </p>
+        </div>
+      </div>
+
+      @if (isLoading()) {
+        <div class="campus-modal__state">
+          Campussen laden...
+        </div>
+      } @else {
+        <div class="campus-list">
+          @for (campus of campuses(); track campus.id) {
+            <button
+              type="button"
+              class="campus-option"
+              [class.campus-option--active]="campus.id === currentCampusId()"
+              [disabled]="isSaving()"
+              (click)="selectCampus(campus)"
+            >
+              <div>
+                <strong>{{ campus.name }}</strong>
+                <span>{{ campus.code }}</span>
+              </div>
+
+              @if (campus.defaultCampus) {
+                <small>Default</small>
+              }
+
+              @if (campus.id === currentCampusId()) {
+                <lucide-icon [name]="Check" class="campus-option__check"></lucide-icon>
+              }
+            </button>
+          }
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <p class="campus-modal__error">{{ errorMessage() }}</p>
+      }
+
+      <div class="campus-modal__footer">
+        <button type="button" class="btn-secondary" (click)="close()" [disabled]="isSaving()">
+          Later kiezen
+        </button>
+      </div>
+    </section>
+  </div>
+}

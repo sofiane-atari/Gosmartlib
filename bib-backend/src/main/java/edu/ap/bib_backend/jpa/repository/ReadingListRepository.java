@@ -12,61 +12,88 @@ import java.util.Optional;
 
 @Repository
 public interface ReadingListRepository extends JpaRepository<ReadingList, Long> {
+
     @Query("""
             SELECT rl
             FROM ReadingList rl
-            WHERE (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
-               OR (:includeOwnShared = true
-                   AND rl.user.id = :userId
-                   AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
-               OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
-                   AND (
-                       LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
-                       OR (COALESCE(rl.targetValue, '') <> ''
-                           AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
-                   ))
-               OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.YEAR AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:yearCode))
-               OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SCHOOL AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:schoolCode))
-               OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
+            WHERE rl.campus.id = :campusId
+              AND (
+                    (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
+                 OR (:includeOwnShared = true
+                     AND rl.user.id = :userId
+                     AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
+                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
+                     AND (
+                         LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
+                         OR (COALESCE(rl.targetValue, '') <> ''
+                             AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
+                     ))
+                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.YEAR
+                     AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:yearCode))
+                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SCHOOL
+                     AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:schoolCode))
+                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
+              )
             """)
-    List<ReadingList> findVisibleForUser(@Param("userId") String userId,
+    List<ReadingList> findVisibleForUser(
+            @Param("userId") String userId,
+            @Param("campusId") Long campusId,
             @Param("classCode") String classCode,
             @Param("yearCode") String yearCode,
             @Param("schoolCode") String schoolCode,
-            @Param("includeOwnShared") boolean includeOwnShared);
+            @Param("includeOwnShared") boolean includeOwnShared
+    );
 
     @Query("""
             SELECT rl
             FROM ReadingList rl
             WHERE rl.id = :id
-              AND ((rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
-                OR (:includeOwnShared = true
-                    AND rl.user.id = :userId
-                    AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
-                OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
-                    AND (
-                        LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
-                        OR (COALESCE(rl.targetValue, '') <> ''
-                            AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
-                    ))
-                OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.YEAR AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:yearCode))
-                OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SCHOOL AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:schoolCode))
-                OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM))
+              AND rl.campus.id = :campusId
+              AND (
+                    (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
+                 OR (:includeOwnShared = true
+                     AND rl.user.id = :userId
+                     AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
+                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
+                     AND (
+                         LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
+                         OR (COALESCE(rl.targetValue, '') <> ''
+                             AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
+                     ))
+                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.YEAR
+                     AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:yearCode))
+                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SCHOOL
+                     AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:schoolCode))
+                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
+              )
             """)
-    Optional<ReadingList> findVisibleById(@Param("id") Long id,
+    Optional<ReadingList> findVisibleById(
+            @Param("id") Long id,
             @Param("userId") String userId,
+            @Param("campusId") Long campusId,
             @Param("classCode") String classCode,
             @Param("yearCode") String yearCode,
             @Param("schoolCode") String schoolCode,
-            @Param("includeOwnShared") boolean includeOwnShared);
+            @Param("includeOwnShared") boolean includeOwnShared
+    );
 
-    Optional<ReadingList> findByNameIgnoreCaseAndUser_IdAndTargetType(String name,
+    Optional<ReadingList> findByNameIgnoreCaseAndUser_IdAndTargetTypeAndCampusId(
+            String name,
             String userId,
-            ReadingListTargetType targetType);
+            ReadingListTargetType targetType,
+            Long campusId
+    );
 
-    Optional<ReadingList> findFirstByTargetTypeAndTargetValueIgnoreCase(ReadingListTargetType targetType, String targetValue);
+    Optional<ReadingList> findFirstByTargetTypeAndTargetValueIgnoreCaseAndCampusId(
+            ReadingListTargetType targetType,
+            String targetValue,
+            Long campusId
+    );
 
-    Optional<ReadingList> findFirstByTargetType(ReadingListTargetType targetType);
+    Optional<ReadingList> findFirstByTargetTypeAndCampusId(
+            ReadingListTargetType targetType,
+            Long campusId
+    );
 
     Optional<ReadingList> findByPublicShareIdAndShareEnabledTrue(String publicShareId);
 

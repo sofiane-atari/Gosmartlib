@@ -14,16 +14,24 @@ import edu.ap.bib_backend.jpa.enums.Role;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    // Maps a User entity to an AuthUserDto, using a custom converter for the role
-    // field
     @Mapping(target = "role", source = "role", qualifiedByName = "roleEntityToRole")
     @Mapping(target = "primaryGroupName", source = "group.name")
+    @Mapping(target = "parentGroupNames", expression = "java(java.util.List.of())")
+    @Mapping(target = "firstName", ignore = true)
+    @Mapping(target = "lastName", ignore = true)
+    @Mapping(target = "fullName", source = "id")
+    @Mapping(target = "email", ignore = true)
+    @Mapping(target = "smartschoolId", ignore = true)
+    @Mapping(target = "platform", ignore = true)
     @Mapping(target = "reviewBlocked", source = "reviewBlocked")
+    @Mapping(target = "schoolId", source = "school.id")
+    @Mapping(target = "schoolName", source = "school.name")
+    @Mapping(target = "campusId", source = "campus.id")
+    @Mapping(target = "campusName", source = "campus.name")
     AuthUserDto toDto(User user);
 
     List<AuthUserDto> toDtoList(List<User> users);
 
-    // Extracts the Role enum from a RoleEntity
     @Named("roleEntityToRole")
     default Role roleEntityToRole(RoleEntity roleEntity) {
         if (roleEntity == null) {

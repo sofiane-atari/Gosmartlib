@@ -12,4 +12,8 @@ export interface AuthUserDto {
   primaryGroupName?: string | null;
   parentGroupNames?: string[] | null;
   reviewBlocked?: boolean;
+  schoolId?: number | null;
+  schoolName?: string | null;
+  campusId?: number | null;
+  campusName?: string | null;
 }
