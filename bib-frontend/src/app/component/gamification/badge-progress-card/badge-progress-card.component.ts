@@ -17,4 +17,18 @@ export class BadgeProgressCardComponent {
   protected get badgeInitial(): string {
     return this.progress().badgeName.charAt(0).toUpperCase();
   }
+
+  protected get badgeAssetPath(): string {
+    const assetKey = this.progress().completed
+      ? this.progress().assetKey
+      : this.progress().lockedAssetKey;
+
+    return `assets/gamification/badges/${assetKey}.svg`;
+  }
+
+  protected get badgeAltText(): string {
+    return this.progress().completed
+      ? this.progress().badgeName
+      : `Vergrendelde badge: ${this.progress().badgeName}`;
+  }
 }

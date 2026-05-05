@@ -128,3 +128,36 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+.badge-progress-card--locked {
+  opacity: 0.88;
+}
+
+.badge-progress-card__image {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+}
+
+.badge-progress-card--locked .badge-progress-card__image {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
+
+.badge-progress-card__fallback {
+  display: none;
+}
+
+.badge-progress-card__locked {
+  width: fit-content;
+  margin: 0;
+  padding: 4px 10px;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

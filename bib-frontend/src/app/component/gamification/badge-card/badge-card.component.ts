@@ -15,7 +15,7 @@ export class BadgeCardComponent {
   }
 
   protected get badgeAssetPath(): string {
-    return `assets/gamification/badges/${this.badge().assetKey}.webp`;
+    return `assets/gamification/badges/${this.badge().assetKey}.svg`;
   }
 
   protected get rarityLabel(): string {

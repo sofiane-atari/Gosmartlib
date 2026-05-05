@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="bg" cx="45%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#3a3a4a"/>
+      <stop offset="100%" stop-color="#14141e"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="112" fill="url(#bg)"/>
+  <circle cx="128" cy="128" r="112" fill="none" stroke="#3a3a50" stroke-width="6"/>
+  <circle cx="128" cy="128" r="105" fill="none" stroke="white" stroke-width="1.5" opacity="0.06"/>
+
+  <rect x="76" y="72" width="72" height="92" rx="7" fill="none" stroke="#555568" stroke-width="7"/>
+  <line x1="98" y1="72" x2="98" y2="164" stroke="#555568" stroke-width="5" opacity="0.5"/>
+  <line x1="108" y1="94" x2="138" y2="94" stroke="#555568" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="108" y1="108" x2="138" y2="108" stroke="#555568" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="108" y1="122" x2="128" y2="122" stroke="#555568" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="158" cy="158" r="26" fill="#2a2a3a" stroke="#555568" stroke-width="5"/>
+  <polyline points="146,158 155,167 171,149" fill="none" stroke="#555568" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g transform="translate(128,118)">
+    <rect x="-22" y="-4" width="44" height="34" rx="7" fill="#2a2a3a" stroke="#555568" stroke-width="3"/>
+    <path d="M-13 -4 v-12 a13 13 0 0 1 26 0 v12" fill="none" stroke="#555568" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="0" cy="13" r="5" fill="#555568"/>
+    <line x1="0" y1="18" x2="0" y2="24" stroke="#555568" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+</svg>
