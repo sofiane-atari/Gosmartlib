@@ -16,8 +16,9 @@ public record AuthUserDto(
         String primaryGroupName,
         List<String> parentGroupNames,
         boolean reviewBlocked,
+
         Long schoolId,
         String schoolName,
         Long campusId,
         String campusName
-) {}git
+) {}

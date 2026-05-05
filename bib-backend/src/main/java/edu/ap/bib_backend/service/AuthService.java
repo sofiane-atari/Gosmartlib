@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -13,7 +11,6 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,6 +25,10 @@ import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.util.MultiValueMap;
 
 @Service
 public class AuthService {
@@ -66,13 +67,25 @@ public class AuthService {
         Role role = extractRole(authentication.getAuthorities());
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
 
-        User user = userRepository.findById(userId).orElse(null);
+        User dbUser = userRepository.findById(userId).orElse(null);
 
-        boolean reviewBlocked = user != null && user.isReviewBlocked();
-        Long schoolId = user != null && user.getSchool() != null ? user.getSchool().getId() : null;
-        String schoolName = user != null && user.getSchool() != null ? user.getSchool().getName() : null;
-        Long campusId = user != null && user.getCampus() != null ? user.getCampus().getId() : null;
-        String campusName = user != null && user.getCampus() != null ? user.getCampus().getName() : null;
+        boolean reviewBlocked = dbUser != null && dbUser.isReviewBlocked();
+
+        Long schoolId = dbUser != null && dbUser.getSchool() != null
+                ? dbUser.getSchool().getId()
+                : null;
+
+        String schoolName = dbUser != null && dbUser.getSchool() != null
+                ? dbUser.getSchool().getName()
+                : null;
+
+        Long campusId = dbUser != null && dbUser.getCampus() != null
+                ? dbUser.getCampus().getId()
+                : null;
+
+        String campusName = dbUser != null && dbUser.getCampus() != null
+                ? dbUser.getCampus().getName()
+                : null;
 
         if (smartschoolToken != null && !smartschoolToken.isBlank()) {
             try {
@@ -97,7 +110,7 @@ public class AuthService {
                         campusName
                 );
             } catch (Exception ignored) {
-                // fallback hieronder
+                // Fallback hieronder
             }
         }
 
@@ -123,22 +136,31 @@ public class AuthService {
             );
         }
 
-        return null;
+        return new AuthUserDto(
+                userId,
+                null,
+                null,
+                null,
+                role,
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                reviewBlocked,
+                schoolId,
+                schoolName,
+                campusId,
+                campusName
+        );
     }
 
     public String processCallbackAndGenerateJwt(OAuth2AuthenticationToken oauthToken) {
         String userId = oauthToken.getName();
-
         String roleStr = oauthToken.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No role found"));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden na Smartschool login: " + userId));
-
-        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
-        Long campusId = user.getCampus() != null ? user.getCampus().getId() : null;
 
         Map<String, Object> claims = Map.of(
                 SmartschoolOAuth2UserService.CLAIM_CLASS_CODE,
@@ -146,11 +168,7 @@ public class AuthService {
                 SmartschoolOAuth2UserService.CLAIM_YEAR_CODE,
                 getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, "0"),
                 SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL"),
-                "schoolId",
-                schoolId,
-                "campusId",
-                campusId
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL")
         );
 
         String jwt = jwtService.generateToken(userId, roleStr, claims);
@@ -223,15 +241,7 @@ public class AuthService {
 
         SmartschoolRefreshResult refreshResult = refreshSmartschoolAccessToken(smartschoolRefreshToken);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
-
-        Map<String, Object> claims = Map.of(
-                "schoolId", user.getSchool() != null ? user.getSchool().getId() : null,
-                "campusId", user.getCampus() != null ? user.getCampus().getId() : null
-        );
-
-        String newToken = jwtService.generateToken(userId, role, claims);
+        String newToken = jwtService.generateToken(userId, role);
 
         tokenStorageService.replaceToken(
                 userId,
