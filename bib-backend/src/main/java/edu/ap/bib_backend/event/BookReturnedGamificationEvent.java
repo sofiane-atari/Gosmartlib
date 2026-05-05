@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import edu.ap.bib_backend.jpa.enums.gamification.GamificationEventType;
 
 public record BookReturnedGamificationEvent(
-        String userId,
+        String targetUserId,
         Long loanId,
         boolean returnedOnTime,
         LocalDate dueDate,
@@ -15,11 +15,14 @@ public record BookReturnedGamificationEvent(
 ) implements GamificationEvent {
 
     @Override
-    public GamificationEventType type() {
-        if (returnedOnTime) {
-            return GamificationEventType.BOOK_RETURNED_ON_TIME;
-        }
+    public String userId() {
+        return targetUserId;
+    }
 
-        return GamificationEventType.BOOK_RETURNED;
+    @Override
+    public GamificationEventType type() {
+        return returnedOnTime
+                ? GamificationEventType.BOOK_RETURNED_ON_TIME
+                : GamificationEventType.BOOK_RETURNED;
     }
 }

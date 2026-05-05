@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.event;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import edu.ap.bib_backend.jpa.entity.gamification.GamificationProfile;
@@ -32,7 +33,7 @@ public class GamificationEventService {
         this.badgeProgressService = badgeProgressService;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleBookReturned(BookReturnedGamificationEvent event) {
         GamificationProfile profile = gamificationProfileService.getOrCreateProfileByUserId(event.userId());
         String sourceId = String.valueOf(event.loanId());
@@ -58,7 +59,7 @@ public class GamificationEventService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleReviewCreated(ReviewCreatedGamificationEvent event) {
         GamificationProfile profile = gamificationProfileService.getOrCreateProfileByUserId(event.userId());
         String sourceId = String.valueOf(event.reviewId());

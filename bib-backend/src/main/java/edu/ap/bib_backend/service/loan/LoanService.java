@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.service.loan;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.Comparator;
@@ -24,6 +25,7 @@ import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.loan.Loan;
@@ -33,6 +35,7 @@ import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Service
 public class LoanService {
@@ -44,6 +47,8 @@ public class LoanService {
     private final SmartschoolNotificationService smartschoolNotificationService;
     private final AuthSessionRepository authSessionRepository;
     private final CurrentUserService currentUserService;
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     @Value("${app.frontend-base-url:http://localhost:4200}")
     String frontendBaseUrl;
 
@@ -55,7 +60,8 @@ public class LoanService {
             AuthSessionRepository authSessionRepository,
             SmartschoolNotificationService smartschoolNotificationService,
             @Value("${app.frontend-base-url:http://localhost:4200}") String frontendBaseUrl,
-        CurrentUserService currentUserService) {
+            CurrentUserService currentUserService,
+            ApplicationEventPublisher applicationEventPublisher) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
@@ -64,6 +70,7 @@ public class LoanService {
         this.smartschoolNotificationService = smartschoolNotificationService;
         this.frontendBaseUrl = frontendBaseUrl;
         this.currentUserService = currentUserService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Transactional
@@ -127,7 +134,30 @@ public class LoanService {
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
         loan.setReturnedDate(today);
 
-        return loanMapper.toDto(loanRepository.save(loan));
+        Loan savedLoan = loanRepository.save(loan);
+
+        publishBookReturnedEvent(savedLoan, today);
+
+        return loanMapper.toDto(savedLoan);
+    }
+
+    private void publishBookReturnedEvent(Loan loan, LocalDate returnedDate) {
+        if (loan.getUser() == null || loan.getUser().getId() == null) {
+            return;
+        }
+
+        boolean returnedOnTime = !returnedDate.isAfter(loan.getReturnDate());
+
+        applicationEventPublisher.publishEvent(
+                new BookReturnedGamificationEvent(
+                        loan.getUser().getId(),
+                        loan.getId(),
+                        returnedOnTime,
+                        loan.getReturnDate(),
+                        returnedDate,
+                        LocalDateTime.now()
+                )
+        );
     }
 
     private void sendSmartschoolLoanNotification(Loan loan) {

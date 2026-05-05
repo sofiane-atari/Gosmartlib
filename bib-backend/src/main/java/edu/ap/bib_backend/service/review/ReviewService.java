@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.review;
 
 import edu.ap.bib_backend.dto.ReviewDTO;
 import edu.ap.bib_backend.dto.ReviewDashboardStatsDTO;
+import edu.ap.bib_backend.event.ReviewCreatedGamificationEvent;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
@@ -9,22 +10,23 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.entity.review.Review;
 import edu.ap.bib_backend.jpa.entity.review.ReviewReport;
 import edu.ap.bib_backend.jpa.enums.ReviewModerationStatus;
-import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewReportRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.mapper.ReviewMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
-import jakarta.transaction.Transactional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -37,6 +39,7 @@ public class ReviewService {
         private final ReviewMapper reviewMapper;
         private final ReviewValidationService reviewValidationService;
         private final CurrentUserService currentUserService;
+        private final ApplicationEventPublisher applicationEventPublisher;
 
         public ReviewService(
                         ReviewRepository reviewRepository,
@@ -45,7 +48,8 @@ public class ReviewService {
                         UserRepository userRepository,
                         ReviewMapper reviewMapper,
                         ReviewValidationService reviewValidationService,
-                        CurrentUserService currentUserService) {
+                        CurrentUserService currentUserService,
+                        ApplicationEventPublisher applicationEventPublisher) {
                 this.reviewRepository = reviewRepository;
                 this.reviewReportRepository = reviewReportRepository;
                 this.bookRepository = bookRepository;
@@ -53,6 +57,7 @@ public class ReviewService {
                 this.reviewMapper = reviewMapper;
                 this.reviewValidationService = reviewValidationService;
                 this.currentUserService = currentUserService;
+                this.applicationEventPublisher = applicationEventPublisher;
         }
 
         public List<ReviewDTO> getReviewsForBook(Long bookId, Authentication authentication) {
@@ -100,6 +105,7 @@ public class ReviewService {
                                 .map(review -> reviewMapper.toDto(review, currentUserId));
         }
 
+        @Transactional
         public ReviewDTO addReviewToBook(Long bookId, ReviewDTO reviewDto, Authentication authentication) {
                 Book book = bookRepository.findById(bookId)
                                 .orElseThrow(() -> new ResourceNotFoundException("bookId",
@@ -139,6 +145,10 @@ public class ReviewService {
                                 currentUser);
 
                 Review savedReview = reviewRepository.save(review);
+
+
+                publishReviewCreatedEvent(savedReview);
+
                 return reviewMapper.toDto(savedReview, currentUserId);
         }
 
@@ -219,5 +229,25 @@ public class ReviewService {
                 return new ReviewDashboardStatsDTO(
                                 totalFlaggedReviews,
                                 criticalFlaggedReviews);
+        }
+
+        private void publishReviewCreatedEvent(Review review) {
+                if (review.getUser() == null || review.getUser().getId() == null) {
+                        return;
+                }
+
+                if (review.getBook() == null || review.getBook().getId() == null) {
+                        return;
+                }
+
+
+                applicationEventPublisher.publishEvent(
+                        new ReviewCreatedGamificationEvent(
+                                review.getUser().getId(),
+                                review.getId(),
+                                review.getBook().getId(),
+                                LocalDateTime.now()
+                        )
+                );
         }
 }
