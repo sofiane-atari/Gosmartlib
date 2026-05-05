@@ -1,7 +1,8 @@
 package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.report.ClassReportDTO;
-import edu.ap.bib_backend.service.statistic.ClassReportService;
+import edu.ap.bib_backend.service.report.ClassReportService;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
