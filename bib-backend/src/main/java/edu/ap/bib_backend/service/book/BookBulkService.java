@@ -3,7 +3,6 @@ package edu.ap.bib_backend.service.book;
 import edu.ap.bib_backend.dto.FileValidationError;
 import edu.ap.bib_backend.dto.ValidationProgress;
 import edu.ap.bib_backend.jpa.entity.*;
-import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
@@ -151,7 +150,6 @@ public class BookBulkService {
                 BookCopy copy = new BookCopy();
                 copy.setBook(book);
                 copy.setSchool(school);
-                copy.setAvailability(Availability.AVAILABLE);
                 bcr.save(copy);
             }
         } catch (Exception e) {

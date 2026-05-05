@@ -4,11 +4,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.enums.Availability;
 
 public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
 
-    boolean existsByBookIdAndAvailability(Long bookId, Availability availability);
+    @Query("""
+            SELECT CASE WHEN COUNT(bc) > 0 THEN true ELSE false END
+            FROM BookCopy bc
+            JOIN bc.loans bl
+            WHERE bc.book.id = :bookId
+              AND bl.returnedDate IS NULL
+            """)
+    boolean existsByBookIdAndActiveLoan(@Param("bookId") Long bookId);
 
     void deleteByBookId(Long bookId);
 

@@ -8,9 +8,10 @@ import org.springframework.data.jpa.domain.Specification;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
-import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.entity.Loan;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Subquery;
 
 public final class BookSpecification {
 
@@ -19,7 +20,6 @@ public final class BookSpecification {
 
     public static Specification<Book> withFilters(
             String searchTerm,
-            Availability availability,
             Integer minPages,
             Integer maxPages,
             Long readingLevelId,
@@ -40,12 +40,6 @@ public final class BookSpecification {
                         likePattern);
 
                 predicates.add(criteriaBuilder.or(titleMatch, authorMatch));
-            }
-
-            if (availability != null) {
-                Join<Book, BookCopy> bookCopyJoin = root.join("bookCopies");
-                predicates.add(criteriaBuilder.equal(bookCopyJoin.get("availability"), availability));
-                query.distinct(true);
             }
 
             if (minPages != null) {
@@ -73,15 +67,40 @@ public final class BookSpecification {
         };
     }
 
+    public static Specification<Book> hasAnyAvailableCopy() {
+        return (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+
+            Subquery<Long> availableCopySubquery = query.subquery(Long.class);
+            var copyRoot = availableCopySubquery.from(BookCopy.class);
+            Join<BookCopy, Loan> loanJoin = copyRoot.join("loans", jakarta.persistence.criteria.JoinType.LEFT);
+
+            availableCopySubquery.select(copyRoot.get("id"))
+                    .where(criteriaBuilder.equal(copyRoot.get("book"), root))
+                    .groupBy(copyRoot.get("id"))
+                    .having(criteriaBuilder.equal(
+                            criteriaBuilder.sum(
+                                    criteriaBuilder.<Integer>selectCase()
+                                            .when(criteriaBuilder.and(
+                                                    criteriaBuilder.isNotNull(loanJoin.get("id")),
+                                                    criteriaBuilder.isNull(loanJoin.get("returnedDate"))
+                                            ), 1)
+                                            .otherwise(0)
+                            ),
+                            0
+                    ));
+
+            return criteriaBuilder.exists(availableCopySubquery);
+        };
+    }
+
     public static Specification<Book> hasAvailableCopyInSchool(String schoolDomainName) {
         return (root, query, criteriaBuilder) -> {
             Join<Book, BookCopy> bookCopyJoin = root.join("bookCopies");
 
             query.distinct(true);
 
-            // Only filter by the school's domain here. Availability filtering should be
-            // controlled by the availability parameter passed into `withFilters` so that
-            // callers can request ALL vs AVAILABLE correctly.
+            // Alleen filteren op school. Beschikbaarheid gebeurt in hasAnyAvailableCopy.
             return criteriaBuilder.equal(
                     bookCopyJoin.get("school").get("domainName"),
                     schoolDomainName

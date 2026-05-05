@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.ap.bib_backend.jpa.enums.Availability;
-import jakarta.persistence.Column;
+import org.hibernate.annotations.Formula;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,8 +34,22 @@ public class BookCopy {
     @JoinColumn(name = "book_id")
     private Book book;
 
+    @Setter(AccessLevel.NONE)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Formula("""
+            (
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM loan_copies lc
+                        JOIN loans l ON l.id = lc.loan_id
+                        WHERE lc.book_copy_id = id
+                          AND l.returned_date IS NULL
+                    ) THEN 'BORROWED'
+                    ELSE 'AVAILABLE'
+                END
+            )
+            """)
     private Availability availability;
 
     @ManyToMany(mappedBy = "copies")

@@ -21,7 +21,6 @@ import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
-import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
@@ -112,7 +111,7 @@ public class BookService {
     public void deleteBook(Long id) {
         Book book = findBookOrThrow(id);
 
-        if (bookCopyRepository.existsByBookIdAndAvailability(id, Availability.BORROWED)) {
+        if (bookCopyRepository.existsByBookIdAndActiveLoan(id)) {
             throw new IllegalStateException(
                     "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.");
         }
@@ -218,7 +217,6 @@ public class BookService {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
         copy.setSchool(school);
-        copy.setAvailability(Availability.AVAILABLE);
         bookCopyRepository.save(copy);
     }
 

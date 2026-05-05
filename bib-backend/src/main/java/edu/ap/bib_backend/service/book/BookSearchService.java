@@ -4,7 +4,6 @@ package edu.ap.bib_backend.service.book;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
@@ -68,19 +67,21 @@ public class BookSearchService {
         int validatedPage = Math.max(page, 0);
         int validatedSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
 
-        Availability availability = mapAvailabilityFilter(availabilityFilter);
         Sort sort = mapSort(sortBy);
         Pageable pageable = PageRequest.of(validatedPage, validatedSize, sort);
 
         Specification<Book> specification = BookSpecification.hasAvailableCopyInSchool(schoolDomainName)
                 .and(BookSpecification.withFilters(
                         normalizedSearchTerm,
-                        availability,
                         minPages,
                         maxPages,
                         readingLevelId,
                         genreName
                 ));
+
+        if (availabilityFilter == BookAvailabilityFilter.AVAILABLE) {
+            specification = specification.and(BookSpecification.hasAnyAvailableCopy());
+        }
 
         return bookRepository.findAll(specification, pageable)
                 .map(bookMapper::toDTO);
@@ -94,13 +95,6 @@ public class BookSearchService {
         if (minPages != null && maxPages != null && minPages > maxPages) {
             throw new IllegalArgumentException("minPages mag niet groter zijn dan maxPages.");
         }
-    }
-
-    private Availability mapAvailabilityFilter(BookAvailabilityFilter filter) {
-        if (filter == BookAvailabilityFilter.AVAILABLE) {
-            return Availability.AVAILABLE;
-        }
-        return null;
     }
 
     private Sort mapSort(BookSortOption sortBy) {
