@@ -137,17 +137,29 @@ export class CreateLoanComponent {
 
     return Array.from(mergedBooksByKey.values()).filter((book) => {
       const hasId = book.id !== undefined;
-      const notAlreadySelected = !selectedBookIds.has(book.id);
       const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
 
-      return hasId && notAlreadySelected && hasCopiesAvailable;
+      return hasId && hasCopiesAvailable;
     });
   });
 
   public readonly selectedBookIds = computed(() => {
-    return this.selectedBooks()
+    const ids = this.selectedBooks()
       .map((book) => book.id)
       .filter((bookId): bookId is number => bookId !== undefined);
+
+    return Array.from(new Set(ids));
+  });
+
+  public readonly selectedBookCounts = computed(() => {
+    return this.selectedBooks().reduce<Record<number, number>>((counts, book) => {
+      if (book.id === undefined) {
+        return counts;
+      }
+
+      counts[book.id] = (counts[book.id] ?? 0) + 1;
+      return counts;
+    }, {});
   });
 
   public onFirstnameSearchChange(event: Event): void {
@@ -209,8 +221,11 @@ export class CreateLoanComponent {
       return;
     }
 
-    const isAlreadySelected = this.selectedBooks().some((selectedBook) => selectedBook.id === book.id);
-    if (isAlreadySelected) {
+    const selectedCount = this.selectedBooks().filter((selectedBook) => selectedBook.id === book.id).length;
+    const availableCopies = book.availableCopies ?? 0;
+
+    if (selectedCount >= availableCopies) {
+      this.showError('Er zijn niet genoeg beschikbare exemplaren voor dit boek.');
       return;
     }
 
@@ -222,7 +237,17 @@ export class CreateLoanComponent {
       return;
     }
 
-    this.selectedBooks.update((books) => books.filter((book) => book.id !== bookId));
+    let removed = false;
+    this.selectedBooks.update((books) =>
+      books.filter((book) => {
+        if (removed || book.id !== bookId) {
+          return true;
+        }
+
+        removed = true;
+        return false;
+      }),
+    );
   }
 
   public createLoan(): void {
@@ -240,22 +265,32 @@ export class CreateLoanComponent {
       return;
     }
 
-    const bookIds = books
-      .map((book) => book.id)
-      .filter((bookId): bookId is number => bookId !== undefined);
-
-    if (bookIds.length !== books.length) {
+    const hasInvalidBook = books.some((book) => book.id === undefined);
+    if (hasInvalidBook) {
       this.showError('Eén of meerdere geselecteerde boeken zijn ongeldig.');
       return;
     }
 
     this.isSubmitting.set(true);
 
+    const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
+      id: Number(id),
+      copiesCount: count,
+    }));
+
+    if (booksPayload.length === 0) {
+      this.showError('Er zijn geen geldige boeken geselecteerd.');
+      return;
+    }
+
+    const bookIds = booksPayload.map((entry) => entry.id);
+
     this.loansService
       .createLoan({
         id: 0,
         userId: user.id,
         bookIds: bookIds,
+        books: booksPayload,
         returnDate: toLocalDate(new Date(returnDate)),
       })
       .subscribe({
@@ -380,12 +415,6 @@ export class CreateLoanComponent {
     const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
     if (!hasCopiesAvailable) {
       this.showError('Het gescande boek is niet beschikbaar voor uitlening.');
-      return false;
-    }
-
-    const isAlreadySelected = this.selectedBooks().some((selectedBook) => selectedBook.id === book.id);
-    if (isAlreadySelected) {
-      this.showSuccess('Het gescande boek was al geselecteerd.');
       return false;
     }
 

@@ -5,6 +5,11 @@
     @if (book().isbn) {
       <span class="selected-book-item__meta">ISBN: {{ book().isbn }}</span>
     }
+    @if (quantity() > 1) {
+      <span class="selected-book-item__meta">
+        Aantal geselecteerd: <strong>{{ quantity() }}</strong>
+      </span>
+    }
   </div>
   @if (showRemove()) {
     <button

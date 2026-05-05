@@ -151,6 +151,12 @@
   word-break: break-word;
 }
 
+.list-item-meta {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .book-item--with-cover {
   display: grid;
   grid-template-columns: 48px 1fr auto;

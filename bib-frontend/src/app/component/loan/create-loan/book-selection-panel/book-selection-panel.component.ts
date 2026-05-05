@@ -20,6 +20,7 @@ export class BookSelectionPanelComponent {
   public readonly hasBookSearchInput = input.required<boolean>();
   public readonly filteredBooks = input.required<Book[]>();
   public readonly selectedBookIds = input.required<number[]>();
+  public readonly selectedBookCounts = input.required<Record<number, number>>();
 
   public readonly searchQueryChanged = output<Event>();
   public readonly isbnSearchChanged = output<Event>();
@@ -34,6 +35,8 @@ export class BookSelectionPanelComponent {
       isbn13: book.isbn ?? '',
       releaseYear: book.releaseYear ?? null,
       imageUrl: book.imageUrl,
+      availableCopies: book.availableCopies,
+      selectedCount: book.id !== undefined ? (this.selectedBookCounts()[book.id] ?? 0) : 0,
     }));
   });
 

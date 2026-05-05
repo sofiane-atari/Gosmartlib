@@ -13,4 +13,5 @@ export class SelectedBookItemComponent {
   public readonly book = input.required<Book>();
   public readonly showRemove = input<boolean>(false);
   public readonly removeRequested = output<number | undefined>();
+  public readonly quantity = input<number>(1);
 }

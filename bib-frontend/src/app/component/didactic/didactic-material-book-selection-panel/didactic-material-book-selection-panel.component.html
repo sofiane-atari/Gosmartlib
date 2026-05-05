@@ -74,18 +74,24 @@
                 · ISBN: {{ book.isbn13 }}
               }
             </span>
+            @if (getAvailableCopiesLabel(book) || getSelectedCopiesLabel(book)) {
+              <span class="list-item-meta">
+                {{ getAvailableCopiesLabel(book) }}
+                @if (getSelectedCopiesLabel(book)) {
+                  · {{ getSelectedCopiesLabel(book) }}
+                }
+              </span>
+            }
           </div>
 
           @if (book.id !== undefined) {
             <button
               type="button"
               class="action-button action-button--secondary"
-              [disabled]="isBookAlreadySelected(book.id)"
+              [disabled]="isSelectDisabled(book)"
               (click)="addBookRequested.emit(book)"
             >
-              {{
-                isBookAlreadySelected(book.id) ? "Geselecteerd" : "Selecteren"
-              }}
+              {{ getActionLabel(book) }}
             </button>
           } @else {
             <button

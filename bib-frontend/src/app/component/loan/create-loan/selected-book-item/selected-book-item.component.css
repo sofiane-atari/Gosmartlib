@@ -32,6 +32,11 @@
   font-size: 12px;
 }
 
+.selected-book-item__meta strong {
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
 .action-button {
   display: inline-flex;
   align-items: center;

@@ -15,6 +15,7 @@ export class DidacticMaterialBookSelectionPanelComponent {
   public readonly panelEyebrow = input<string>('Gekoppelde boeken');
   public readonly panelTitle = input<string>('Zoek en selecteer boeken');
   public readonly hasSelectedUser = input<boolean>(true);
+  public readonly allowMultipleSelection = input<boolean>(false);
   public readonly searchQuery = input.required<string>();
   public readonly searchIsbn = input.required<string>();
   public readonly isLoadingBooks = input.required<boolean>();
@@ -30,5 +31,76 @@ export class DidacticMaterialBookSelectionPanelComponent {
 
   protected isBookAlreadySelected(bookId: number): boolean {
     return this.selectedBookIds().includes(bookId);
+  }
+
+  protected isSelectDisabled(book: BookCandidate): boolean {
+    if (book.id === undefined) {
+      return true;
+    }
+
+    if (!this.allowMultipleSelection()) {
+      return this.isBookAlreadySelected(book.id);
+    }
+
+    const availableCopies = book.availableCopies ?? 0;
+    const selectedCount = book.selectedCount ?? 0;
+    return availableCopies === 0 || selectedCount >= availableCopies;
+  }
+
+  protected getActionLabel(book: BookCandidate): string {
+    if (book.id === undefined) {
+      return 'Niet beschikbaar';
+    }
+
+    if (!this.allowMultipleSelection()) {
+      return this.isBookAlreadySelected(book.id)
+        ? 'Geselecteerd'
+        : 'Selecteren';
+    }
+
+    const availableCopies = book.availableCopies ?? 0;
+    const selectedCount = book.selectedCount ?? 0;
+
+    if (availableCopies === 0) {
+      return 'Niet beschikbaar';
+    }
+
+    if (selectedCount >= availableCopies) {
+      return 'Volzet';
+    }
+
+    return 'Selecteren';
+  }
+
+  protected getAvailableCopiesLabel(book: BookCandidate): string {
+    if (book.availableCopies === undefined) {
+      return '';
+    }
+
+    if (book.availableCopies === 0) {
+      return 'Geen exemplaren beschikbaar';
+    }
+
+    if (book.availableCopies === 1) {
+      return '1 exemplaar beschikbaar';
+    }
+
+    return `${book.availableCopies} exemplaren beschikbaar`;
+  }
+
+  protected getSelectedCopiesLabel(book: BookCandidate): string {
+    if (!this.allowMultipleSelection()) {
+      return '';
+    }
+
+    if (!book.selectedCount) {
+      return '';
+    }
+
+    if (book.selectedCount === 1) {
+      return '1 geselecteerd';
+    }
+
+    return `${book.selectedCount} geselecteerd`;
   }
 }

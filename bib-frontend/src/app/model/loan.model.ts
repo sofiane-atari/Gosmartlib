@@ -2,9 +2,10 @@ import { LocalDate } from "../shared/types/local-date.type";
 
 export interface LoanBook {
   id: number;
-  title: string;
+  title?: string;
   author?: string;
   isbn?: string;
+  copiesCount?: number;
 }
 
 export interface Loan {

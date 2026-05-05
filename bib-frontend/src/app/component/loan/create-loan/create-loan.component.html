@@ -45,14 +45,15 @@
     <app-book-selection-panel [hasSelectedUser]="selectedUser() !== null" [selectedBooksCount]="selectedBooks().length"
       [searchQuery]="bookSearchQuery()" [searchIsbn]="bookSearchIsbn()" [isLoadingBooks]="isLoadingBooks()"
       [hasBookSearchInput]="hasBookSearchInput()" [filteredBooks]="filteredBooks()"
-      [selectedBookIds]="selectedBookIds()" (searchQueryChanged)="onBookSearchQueryChange($event)"
-      (isbnSearchChanged)="onBookIsbnSearchChange($event)"
+      [selectedBookIds]="selectedBookIds()" [selectedBookCounts]="selectedBookCounts()"
+      (searchQueryChanged)="onBookSearchQueryChange($event)" (isbnSearchChanged)="onBookIsbnSearchChange($event)"
       (addBookRequested)="addBook($event)" />
   }
 
   @if (selectedUser() !== null && selectedBooks().length > 0) {
     <app-loan-summary-panel [loanForm]="loanForm" [minReturnDate]="minReturnDate()"
-      [selectedBooks]="selectedBooks()" [hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()"
-      (createLoanRequested)="createLoan()" (removeBookRequested)="removeBook($event)" />
+      [selectedBooks]="selectedBooks()" [selectedBookCounts]="selectedBookCounts()"
+      [hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()" (createLoanRequested)="createLoan()"
+      (removeBookRequested)="removeBook($event)" />
   }
 </section>

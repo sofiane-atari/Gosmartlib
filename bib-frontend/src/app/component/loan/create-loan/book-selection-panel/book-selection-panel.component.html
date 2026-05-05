@@ -9,6 +9,7 @@
   [filteredBooks]="bookCandidates()"
   [selectedBooksCount]="selectedBooksCount()"
   [selectedBookIds]="selectedBookIds()"
+  [allowMultipleSelection]="true"
   (searchQueryChanged)="searchQueryChanged.emit($event)"
   (isbnSearchChanged)="isbnSearchChanged.emit($event)"
   (isbnKeydown)="isbnKeydown.emit($event)"
