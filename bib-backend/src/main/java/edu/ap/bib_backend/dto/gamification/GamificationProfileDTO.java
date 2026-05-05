@@ -1,5 +1,14 @@
 package edu.ap.bib_backend.dto.gamification;
 
-public class GamificationProfileDTO {
-    
+import java.util.List;
+
+public record GamificationProfileDTO(
+        int totalPoints,
+        int currentLevel,
+        int pointsUntilNextLevel,
+        List<GamificationBadgeDTO> latestAchievements,
+        List<GamificationBadgeDTO> earnedBadges,
+        List<GamificationProgressDTO> badgeProgress,
+        List<GamificationRecentEventDTO> recentEvents
+) {
 }

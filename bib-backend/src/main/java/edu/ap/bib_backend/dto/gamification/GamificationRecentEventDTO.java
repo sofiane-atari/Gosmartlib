@@ -1,5 +1,11 @@
 package edu.ap.bib_backend.dto.gamification;
 
-public class GamificationRecentEventDTO {
-    
+import java.time.LocalDateTime;
+
+public record GamificationRecentEventDTO(
+        String type,
+        int points,
+        String reason,
+        LocalDateTime createdAt
+) {
 }

@@ -1,5 +1,8 @@
 package edu.ap.bib_backend.dto.gamification;
 
-public class GamificationPointsDTO {
-    
+public record GamificationPointsDTO(
+        int totalPoints,
+        int currentLevel,
+        int pointsUntilNextLevel
+) {
 }
