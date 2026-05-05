@@ -2,13 +2,14 @@ package edu.ap.bib_backend.mapper;
 
 import java.util.List;
 
+import edu.ap.bib_backend.jpa.entity.loan.Loan;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import edu.ap.bib_backend.dto.loan.LoanBookDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.entity.loan.Loan;
+
 
 @Mapper(componentModel = "spring")
 public interface LoanMapper {

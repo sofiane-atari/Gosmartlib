@@ -39,6 +39,7 @@ import { SettingsComponent } from './component/settings/settings/settings.compon
 import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashboard.component';
 import { ReturnLoanComponent } from './component/loan/return-loan/return-loan.component';
 import { ClassReportComponent } from './component/class-report/class-report/class-report.component';
+import { ReportSelectorComponent } from './component/class-report/report-selector/report-selector.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -141,8 +142,24 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'class-report',
-    component: ClassReportComponent
+    path: 'reports',
+    children: [
+      {
+        path: '',
+        component: ReportSelectorComponent,
+        canActivate: [authGuard, staffOnlyGuard]
+      },
+      {
+        path: 'class',
+        component: ClassReportComponent,
+        canActivate: [authGuard, staffOnlyGuard]
+      },
+      {
+        path: 'campus',
+        redirectTo: '/reports',
+        pathMatch: 'full'
+      }
+    ]
   },
   { path: '**', redirectTo: '/catalog' },
 ];

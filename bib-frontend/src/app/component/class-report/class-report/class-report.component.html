@@ -1,5 +1,9 @@
 <section class="class-report-dashboard">
   <div class="page-header">
+    <button class="back-button" (click)="goBackToReports()" title="Terug naar rapportage menu">
+      <lucide-icon [name]="icons.arrowLeft" width="20" height="20"></lucide-icon>
+      <span>Terug</span>
+    </button>
     <div class="page-header__text">
       <h1>Klasrapportage</h1>
       <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>

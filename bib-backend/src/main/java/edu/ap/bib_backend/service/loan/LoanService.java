@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import edu.ap.bib_backend.jpa.entity.loan.Loan;
 import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolNotificationService;
 
@@ -28,7 +29,7 @@ import edu.ap.bib_backend.jpa.entity.AuthSession;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
-import edu.ap.bib_backend.jpa.entity.Loan;
+
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import edu.ap.bib_backend.jpa.repository.AuthSessionRepository;

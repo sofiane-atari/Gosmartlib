@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.jpa.entity;
+package edu.ap.bib_backend.jpa.entity.loan;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.ap.bib_backend.jpa.entity.BookCopy;
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import jakarta.persistence.CascadeType;

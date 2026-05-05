@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ClassReport, ReportRow } from '../../../model/class-report.model';
 import { TeacherClassReportService } from '../../../services/class-report/class-report.service';
 import { CommonModule } from '@angular/common';
-import { SearchBarComponent } from '../../shared/search-bar/search-bar.component'; 
+import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
+import { Router } from '@angular/router';
 
 import {
   LucideAngularModule,
@@ -12,7 +13,8 @@ import {
   LibraryBig,
   Clock3,
   Star,
-  UserRound
+  UserRound,
+  ArrowLeft
 } from 'lucide-angular';
 import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
 import { ToastService } from '../../../services/toast/toast.service';
@@ -46,10 +48,11 @@ export class ClassReportComponent implements OnInit {
     bookOpen: BookOpen,
     clock: Clock3,
     star: Star,
-    user: UserRound
+    user: UserRound,
+    arrowLeft: ArrowLeft
   };
 
-  constructor(private reportService: TeacherClassReportService, private toastService: ToastService) {}
+  constructor(private reportService: TeacherClassReportService, private toastService: ToastService, private router: Router) {}
 
   ngOnInit(): void {
     this.loadReports();
@@ -155,5 +158,9 @@ export class ClassReportComponent implements OnInit {
     }
 
     return 'In orde';
+  }
+
+  goBackToReports(): void {
+    this.router.navigate(['/reports']);
   }
 }

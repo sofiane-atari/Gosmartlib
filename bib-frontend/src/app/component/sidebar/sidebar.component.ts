@@ -123,8 +123,8 @@ export class SidebarComponent {
     { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly: true },
     {
       icon: FileText,
-      label: 'Klasrapportages',
-      route: '/class-report',
+      label: 'Rapportages',
+      route: '/reports',
       staffOnly: true,
     },
     {
