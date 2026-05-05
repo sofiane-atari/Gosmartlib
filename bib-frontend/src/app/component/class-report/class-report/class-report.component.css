@@ -148,8 +148,25 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
+  align-items: stretch;
+}
+.insight-grid app-button-hover-help,
+.insight-card-hover {
+  display: block;
+  width: 100%;
+  min-width: 0;
 }
 
+.insight-grid app-button-hover-help .button-hover-help {
+  display: block;
+  width: 100%;
+}
+
+.insight-grid app-button-hover-help .insight-card,
+.insight-card-hover .insight-card {
+  width: 100%;
+  height: 100%;
+}
 .insight-card,
 .table-card,
 .state-panel {
@@ -503,14 +520,51 @@ lucide-icon svg {
   width: 280px;
   max-width: 100%;
 }
-
-.table-paging {
-  padding: 16px 18px;
-  border-top: 1px solid #f0e4e8;
-  display: flex;
-  justify-content: center;
+.stat-card-hover,
+.insight-card-hover {
+  display: block;
+  width: 100%;
+  min-width: 0;
 }
 
+.stat-card-hover .stat-card,
+.insight-card-hover .insight-card {
+  height: 100%;
+}
+
+.class-report-dashboard,
+.report-card,
+.report-card__header,
+.stat-cards,
+.stat-card,
+.insight-grid,
+.insight-card,
+.table-card,
+.table-card td {
+  overflow: visible;
+}
+
+.table-card {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 14px;
+  overflow: visible;
+}
+
+.table-card app-button-hover-help {
+  display: inline-flex;
+}
+
+.table-card td:first-child app-button-hover-help {
+  display: flex;
+}
+
+.search-panel {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 14px;
+  padding: 16px;
+}
 @media (max-width: 768px) {
   .table-card__header--with-search {
     flex-direction: column;

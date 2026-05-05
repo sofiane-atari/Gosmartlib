@@ -14,6 +14,7 @@ import {
   Star,
   UserRound
 } from 'lucide-angular';
+import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
 
 @Component({
   selector: 'app-teacher-class-report',
@@ -23,8 +24,9 @@ import {
     CommonModule,
     LucideAngularModule,
     SearchBarComponent,
-    PagingComponent
-  ],
+    PagingComponent,
+    ButtonHoverHelpComponent
+],
   styleUrls: ['./class-report.component.css']
 })
 export class ClassReportComponent implements OnInit {
