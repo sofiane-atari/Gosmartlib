@@ -55,11 +55,10 @@ export class CreateLoanComponent {
 
   public readonly searchFirstname = signal('');
   public readonly searchLastname = signal('');
-  // TODO: TEMPORARY - Remove this signal when searchId feature is no longer needed
-  public readonly searchId = signal('');
   public readonly bookSearchQuery = signal('');
   public readonly bookSearchIsbn = signal('');
   public readonly users = signal<AuthUserDto[]>([]);
+
   public readonly catalogBooks = signal<Book[]>([]);
   public readonly isbnBooks = signal<Book[]>([]);
   public readonly selectedUser = signal<AuthUserDto | null>(null);
@@ -127,7 +126,8 @@ export class CreateLoanComponent {
 
         this.fetchBookByIsbn(isbn, false);
       });
-  }
+
+}
 
   public readonly filteredBooks = computed(() => {
     const selectedBookIds = new Set(this.selectedBooks().map((book) => book.id));
@@ -167,28 +167,18 @@ export class CreateLoanComponent {
     }, {});
   });
 
-  public onFirstnameSearchChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchFirstname.set(target.value);
+  public onFirstnameSearchChange(value: string): void {
+    this.searchFirstname.set(value);
   }
 
-  public onLastnameSearchChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchLastname.set(target.value);
-  }
-
-  // TODO: TEMPORARY - Remove this method when searchId feature is no longer needed
-  public onSearchIdChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchId.set(target.value);
+  public onLastnameSearchChange(value: string): void {
+    this.searchLastname.set(value);
   }
 
   public searchUsers(): void {
     const firstName = this.searchFirstname().trim();
     const lastName = this.searchLastname().trim();
-    // TODO: TEMPORARY - Remove searchId parameter when feature is no longer needed
-    const id = this.searchId().trim();
-    this.loadUsers(firstName, lastName, id);
+    this.loadUsers(firstName, lastName);
   }
 
   public selectUser(user: AuthUserDto): void {
@@ -317,23 +307,25 @@ export class CreateLoanComponent {
       });
   }
 
-  // TODO: TEMPORARY - Remove 'id' parameter when searchId feature is no longer needed
-  private loadUsers(firstName: string = '', lastName: string = '', id: string = ''): void {
+  private loadUsers(firstName: string = '', lastName: string = ''): void {
     this.isLoadingUsers.set(true);
 
     this.userService
-      .getUsers({ WithfirstName: firstName, WithlastName: lastName, WithId: id })
+      .getUsers({ WithfirstName: firstName, WithlastName: lastName })
       .subscribe({
         next: (users) => {
           this.users.set(users);
           this.isLoadingUsers.set(false);
+          if (users.length === 1 && !this.selectedUser()) {
+            this.selectUser(users[0]);
+          }
         },
         error: (err: any) => {
           this.users.set([]);
           this.isLoadingUsers.set(false);
           this.showError('Gebruikers konden niet worden geladen.');
           console.log('Error loading users:', err);
-          console.log('Error loading users with parameters:', { firstName, lastName, id });
+          console.log('Error loading users with parameters:', { firstName, lastName });
         },
       });
   }

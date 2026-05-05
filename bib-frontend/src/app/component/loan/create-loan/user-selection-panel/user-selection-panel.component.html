@@ -10,25 +10,19 @@
     <div class="search-row">
         <label for="firstnameSearch">Voornaam</label>
         <div class="search-action-row">
-            <input id="firstnameSearch" type="text" [value]="searchFirstname()"
-                (input)="firstnameSearchChanged.emit($event)" placeholder="Typ voornaam" />
+            <input id="firstnameSearch" type="text"
+                   [value]="searchFirstname()"
+                   (input)="onFirstnameChange($event)"
+                   placeholder="Typ voornaam" />
         </div>
     </div>
     <div class="search-row">
         <label for="lastnameSearch">Achternaam</label>
         <div class="search-action-row">
-            <input id="lastnameSearch" type="text" [value]="searchLastname()"
-                (input)="lastnameSearchChanged.emit($event)" placeholder="Typ achternaam" />
-        </div>
-    </div>
-
-    <div class="search-row">
-        <label for="searchId">Gebruikers-ID (tijdelijk)</label>
-        <div class="search-action-row">
-            <input id="searchId" type="text" [value]="searchId()" (input)="searchIdChanged.emit($event)"
-                placeholder="Typ gebruikers-ID" />
-            <button type="button" class="action-button action-button--primary"
-                (click)="searchRequested.emit()">Zoeken</button>
+            <input id="lastnameSearch" type="text"
+                   [value]="searchLastname()"
+                   (input)="onLastnameChange($event)"
+                   placeholder="Typ achternaam" />
         </div>
     </div>
 
@@ -40,7 +34,7 @@
     <div class="list user-results">
         @for (user of users(); track user.id) {
         <button type="button" class="list-item user-item" [class.active]="selectedUser()?.id === user.id"
-            (click)="userSelected.emit(user)">
+                (click)="userSelected.emit(user)">
             <div class="user-item-content">
                 <div class="user-item-header">
                     <span class="list-item-title">
@@ -64,6 +58,7 @@
         </div>
         }
     </div>
+    }
 
     @if (selectedUser()) {
     <div class="selected-user selected-user--primary">
@@ -71,10 +66,9 @@
             Geselecteerde gebruiker: <strong>{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }}</strong>
         </span>
         <button type="button" class="action-button action-button--secondary"
-            (click)="clearSelectedUserRequested.emit()">
+                (click)="clearSelectedUserRequested.emit()">
             Gebruiker wissen
         </button>
     </div>
-    }
     }
 </div>

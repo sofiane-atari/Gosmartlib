@@ -15,7 +15,7 @@
     <div class="step-item">
       <span class="step-num">Stap 1</span>
       <span class="step-title">Selecteer een gebruiker</span>
-      <span class="step-desc">Zoek op naam of tijdelijk gebruikers-id.</span>
+      <span class="step-desc">Zoek op naam.</span>
     </div>
     <div class="step-item">
       <span class="step-num">Stap 2</span>
@@ -30,10 +30,11 @@
   </section>
 
   <app-user-selection-panel [isLoadingUsers]="isLoadingUsers()" [users]="users()" [selectedUser]="selectedUser()"
-    [searchFirstname]="searchFirstname()" [searchLastname]="searchLastname()" [searchId]="searchId()"
-    (firstnameSearchChanged)="onFirstnameSearchChange($event)"
-    (lastnameSearchChanged)="onLastnameSearchChange($event)" (searchIdChanged)="onSearchIdChange($event)"
-    (searchRequested)="searchUsers()" (userSelected)="selectUser($event)"
+    [searchFirstname]="searchFirstname()" [searchLastname]="searchLastname()"
+    (firstnameChanged)="onFirstnameSearchChange($event)"
+    (lastnameChanged)="onLastnameSearchChange($event)"
+    (searchTriggered)="searchUsers()"
+    (userSelected)="selectUser($event)"
     (clearSelectedUserRequested)="clearSelectedUser()" />
 
   @if (selectedUser() !== null) {

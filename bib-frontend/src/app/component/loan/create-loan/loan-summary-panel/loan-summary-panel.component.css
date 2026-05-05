@@ -87,7 +87,6 @@
 }
 
 .custom-date-btn {
-  display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
@@ -101,6 +100,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  width: 25%;
 }
 
 .custom-date-btn:hover {
