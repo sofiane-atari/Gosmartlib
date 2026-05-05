@@ -373,3 +373,8 @@ CREATE TABLE `users` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-04-29 17:25:10
+
+--
+-- Add default_loan_duration_days column to schools table
+--
+ALTER TABLE `schools` ADD COLUMN `default_loan_duration_days` int NOT NULL DEFAULT 15;

@@ -89,7 +89,8 @@ class AuthControllerTest {
                 "https://aphogeschool.smartschool.be",
                 "2ITSOF1",
                 List.of("Leerlingen"),
-                false);
+                false,
+                null);
 
         when(authService.getUserDetails(any(Authentication.class))).thenReturn(userDto);
 

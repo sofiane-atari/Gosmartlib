@@ -9,7 +9,28 @@
     <form [formGroup]="loanForm()" (ngSubmit)="createLoanRequested.emit()" class="loan-form">
         <div class="date-field">
             <label for="returnDate">Terugbrengdatum</label>
-            <input id="returnDate" type="date" formControlName="returnDate" [attr.min]="minReturnDate()" />
+            <div class="date-input-wrapper">
+                <input id="returnDate"
+                       type="date"
+                       formControlName="returnDate"
+                       [attr.min]="minReturnDate()"
+                       [readonly]="!isCustomDate()"
+                       [class.disabled]="!isCustomDate()" />
+                @if (daysUntilReturn() !== null) {
+                    <span class="days-hint">
+                        ({{ daysUntilReturn() }} dagen vanaf vandaag)
+                    </span>
+                }
+            </div>
+            @if (!isCustomDate()) {
+                <button type="button" class="custom-date-btn" (click)="customDateRequested.emit()">
+                    Kies andere datum
+                </button>
+            } @else {
+                <button type="button" class="custom-date-btn active" (click)="useDefaultRequested.emit()">
+                    Standaard gebruiken
+                </button>
+            }
         </div>
 
     <div class="selected-books">

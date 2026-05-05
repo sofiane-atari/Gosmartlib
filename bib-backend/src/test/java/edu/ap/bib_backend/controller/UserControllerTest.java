@@ -56,16 +56,13 @@ class UserControllerTest {
 
     @Test
     void GivenUsersExist_WhenGetUsers_ThenReturn200WithUsers() throws Exception {
-        // Arrange
-        AuthUserDto firstUser = new AuthUserDto("s001", null, null, null, Role.STUDENT, null, null, null, null, null, false);
-        AuthUserDto secondUser = new AuthUserDto("t001", null, null, null, Role.TEACHER, null, null, null, null, null, true);
+        AuthUserDto firstUser = new AuthUserDto("s001", null, null, null, Role.STUDENT, null, null, null, null, null, false, null);
+        AuthUserDto secondUser = new AuthUserDto("t001", null, null, null, Role.TEACHER, null, null, null, null, null, true, null);
         List<AuthUserDto> response = List.of(firstUser, secondUser);
         given(userService.getUsers(any(UserGetOptions.class))).willReturn(response);
 
-        // Act
         ResultActions result = mockMvc.perform(get("/users"));
 
-        // Assert
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("s001"))
                 .andExpect(jsonPath("$[0].role").value("STUDENT"))
@@ -77,13 +74,10 @@ class UserControllerTest {
 
     @Test
     void GivenNoUsersExist_WhenGetUsers_ThenReturn200WithEmptyList() throws Exception {
-        // Arrange
         given(userService.getUsers(any(UserGetOptions.class))).willReturn(List.of());
 
-        // Act
         ResultActions result = mockMvc.perform(get("/users"));
 
-        // Assert
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -91,32 +85,26 @@ class UserControllerTest {
 
     @Test
     void GivenIdFilterInQuery_WhenGetUsers_ThenPassOptionsToService() throws Exception {
-        // Arrange
         given(userService.getUsers(any(UserGetOptions.class))).willReturn(List.of());
 
-        // Act
         mockMvc.perform(get("/users").param("id", "abc"));
 
-        // Assert
         then(userService).should(times(1)).getUsers(argThat(options -> "abc".equals(options.getId())));
     }
 
     @Test
     void GivenModerator_WhenPatchReviewAccess_ThenReturnUpdatedUser() throws Exception {
-        // Arrange
-        AuthUserDto updated = new AuthUserDto("s001", null, null, null, Role.STUDENT, null, null, null, null, null, true);
+        AuthUserDto updated = new AuthUserDto("s001", null, null, null, Role.STUDENT, null, null, null, null, null, true, null);
 
         given(currentUserService.isModerator(any())).willReturn(true);
         given(userService.setReviewBlocked("s001", true)).willReturn(updated);
 
-        // Act
         ResultActions result = mockMvc.perform(
                 patch("/users/{userId}/review-access", "s001")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"blocked\":true}")
         );
 
-        // Assert
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("s001"))
                 .andExpect(jsonPath("$.reviewBlocked").value(true));

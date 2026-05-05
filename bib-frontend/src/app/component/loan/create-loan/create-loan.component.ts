@@ -6,7 +6,8 @@ import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { LoansService } from '../../../services/loan/loans.service';
 import { UserService } from '../../../services/user/user.service';
-import { AuthUserDto } from '../../../model/auth.model';
+import { AuthService } from '../../../services/authorization/auth.service';
+import { AuthUserDto, SchoolSummaryDto } from '../../../model/auth.model';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -45,6 +46,8 @@ export class CreateLoanComponent {
   private suppressNextDebouncedIsbnSearch = false;
   private latestIsbnRequestSequence = 0;
 
+  private readonly authService = inject(AuthService);
+
   public readonly isLoadingUsers = signal(false);
   public readonly isLoadingCatalogBooks = signal(false);
   public readonly isLoadingIsbnBooks = signal(false);
@@ -62,6 +65,8 @@ export class CreateLoanComponent {
   public readonly selectedUser = signal<AuthUserDto | null>(null);
   public readonly selectedBooks = signal<Book[]>([]);
   public readonly scannedBooks = signal<Book[]>([]);
+  public readonly schoolSummary = signal<SchoolSummaryDto | null>(null);
+  public readonly isCustomDate = signal(false);
   public readonly minReturnDate = signal(this.buildMinReturnDate());
 
   public readonly isLoadingBooks = computed(() => {
@@ -190,6 +195,8 @@ export class CreateLoanComponent {
     this.selectedUser.set(user);
     this.selectedBooks.set([]);
     this.scannedBooks.set([]);
+    this.schoolSummary.set(user.school ?? null);
+    this.updateDefaultReturnDate();
     this.triggerCatalogSearch();
     this.triggerIsbnSearch();
   }
@@ -457,5 +464,67 @@ export class CreateLoanComponent {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return toLocalDate(tomorrow);
+  }
+
+  private updateDefaultReturnDate(): void {
+    if (this.isCustomDate()) {
+      return;
+    }
+    const school = this.schoolSummary();
+    const defaultDays = school?.defaultLoanDurationDays ?? 15;
+    const today = new Date();
+    today.setDate(today.getDate() + defaultDays);
+    this.loanForm.controls.returnDate.setValue(toLocalDate(today));
+  }
+
+  public onCustomDate(): void {
+    this.isCustomDate.set(true);
+    setTimeout(() => {
+      const input = document.getElementById('returnDate') as HTMLInputElement | null;
+      input?.focus();
+      input?.showPicker?.();
+    });
+  }
+
+  public onUseDefaultDate(): void {
+    this.isCustomDate.set(false);
+    this.updateDefaultReturnDate();
+  }
+
+  public onChangeDefaultDays(): void {
+    const currentDays = this.schoolSummary()?.defaultLoanDurationDays ?? 15;
+    const input = window.prompt('Wijzig de standaard uitleentermijn (in dagen):', currentDays.toString());
+
+    if (input === null) {
+      return;
+    }
+
+    const newDays = parseInt(input, 10);
+    if (isNaN(newDays) || newDays < 1 || newDays > 365) {
+      this.showError('Voer een geldig aantal dagen in (1-365).');
+      return;
+    }
+
+    const school = this.schoolSummary();
+    if (!school?.id) {
+      this.showError('Geen school gevonden om bij te werken.');
+      return;
+    }
+
+    this.updateSchoolDefaultDays(school.id, newDays);
+  }
+
+  private updateSchoolDefaultDays(schoolId: number, newDays: number): void {
+    // TODO: Replace with actual API call to update school settings
+    // For now, update the local signal
+    const currentSummary = this.schoolSummary();
+    if (currentSummary) {
+      this.schoolSummary.set({
+        ...currentSummary,
+        defaultLoanDurationDays: newDays,
+      });
+      this.updateDefaultReturnDate();
+      this.showSuccess(`Standaard uitleentermijn gewijzigd naar ${newDays} dagen.`);
+    }
   }
 }

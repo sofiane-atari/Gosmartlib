@@ -15,5 +15,6 @@ public record AuthUserDto(
     String platform,
     String primaryGroupName,
     List<String> parentGroupNames,
-    boolean reviewBlocked
+    boolean reviewBlocked,
+    SchoolSummaryDto school
 ) {}

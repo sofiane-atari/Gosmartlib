@@ -201,6 +201,7 @@ class SchoolServiceTest {
                 postalCode,
                 "03 123 45 67",
                 "info@ap.be",
+                15,
                 LocalDateTime.of(2026, 4, 28, 12, 0));
     }
 

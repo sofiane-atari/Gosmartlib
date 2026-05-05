@@ -53,7 +53,11 @@
   @if (selectedUser() !== null && selectedBooks().length > 0) {
     <app-loan-summary-panel [loanForm]="loanForm" [minReturnDate]="minReturnDate()"
       [selectedBooks]="selectedBooks()" [selectedBookCounts]="selectedBookCounts()"
-      [hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()" (createLoanRequested)="createLoan()"
-      (removeBookRequested)="removeBook($event)" />
+      [hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()"
+      [isCustomDate]="isCustomDate()"
+      (createLoanRequested)="createLoan()"
+      (removeBookRequested)="removeBook($event)"
+      (customDateRequested)="onCustomDate()"
+      (useDefaultRequested)="onUseDefaultDate()" />
   }
 </section>

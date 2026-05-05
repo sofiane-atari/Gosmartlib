@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
@@ -128,6 +129,8 @@ public class UserService {
 
         String email = firstNonBlank(rosterUser, "email", "emailAddress", "mail");
 
+        SchoolSummaryDto schoolSummary = getCurrentUserSchool(id).getSchoolSummaryDto();
+
         return new AuthUserDto(
                 id,
                 firstName,
@@ -139,7 +142,8 @@ public class UserService {
                 null,
                 null,
                 List.of(),
-                false);
+                false,
+                schoolSummary);
     }
 
     private boolean matchesOptions(AuthUserDto dto, UserGetOptions options) {

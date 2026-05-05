@@ -37,6 +37,7 @@ public class SchoolService {
         school.setPostalCode(dto.postalCode());
         school.setContactPhone(trimOrNull(dto.contactPhone()));
         school.setContactEmail(trimOrNull(dto.contactEmail()));
+        school.setDefaultLoanDurationDays(dto.defaultLoanDurationDays() != null ? dto.defaultLoanDurationDays() : 15);
 
         return toDto(schoolRepository.save(school));
     }
@@ -51,6 +52,9 @@ public class SchoolService {
         school.setPostalCode(dto.postalCode());
         school.setContactPhone(dto.contactPhone());
         school.setContactEmail(dto.contactEmail());
+        if (dto.defaultLoanDurationDays() != null) {
+            school.setDefaultLoanDurationDays(dto.defaultLoanDurationDays());
+        }
 
         return toDto(schoolRepository.save(school));
     }
@@ -84,6 +88,7 @@ public class SchoolService {
                 school.getPostalCode(),
                 school.getContactPhone(),
                 school.getContactEmail(),
+                school.getDefaultLoanDurationDays(),
                 school.getCreatedAt());
     }
 

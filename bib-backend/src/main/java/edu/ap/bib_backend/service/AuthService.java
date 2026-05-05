@@ -16,10 +16,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.JwtTokenDTO;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.SmartschoolRefreshResult;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ public class AuthService {
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final SmartschoolProfileService smartschoolProfileService;
     private final UserRepository userRepository;
+    private final SchoolRepository schoolRepository;
 
     @Value("${spring.security.oauth2.client.registration.smartschool.client-id}")
     private String smartschoolClientId;
@@ -48,12 +51,14 @@ public class AuthService {
             TokenStorageService tokenStorageService,
             OAuth2AuthorizedClientService authorizedClientService,
             SmartschoolProfileService smartschoolProfileService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            SchoolRepository schoolRepository) {
         this.jwtService = jwtService;
         this.tokenStorageService = tokenStorageService;
         this.authorizedClientService = authorizedClientService;
         this.smartschoolProfileService = smartschoolProfileService;
         this.userRepository = userRepository;
+        this.schoolRepository = schoolRepository;
     }
 
     public AuthUserDto getUserDetails(Authentication authentication) {
@@ -64,6 +69,11 @@ public class AuthService {
                 .map(user -> user.isReviewBlocked())
                 .orElse(false);
 
+        SchoolSummaryDto schoolSummary = userRepository.findById(userId)
+                .map(user -> user.getSchool())
+                .map(school -> school.getSchoolSummaryDto())
+                .orElse(null);
+
         // 1. Probeer Smartschool API details op te halen
         if (smartschoolToken != null && !smartschoolToken.isBlank()) {
             try {
@@ -73,7 +83,7 @@ public class AuthService {
                 return new AuthUserDto(
                         userId, profile.firstName(), profile.lastName(), profile.fullName(),
                         role, profile.email(), profile.userId(), profile.platform(),
-                        groups.primaryGroupName(), groups.parentGroupNames(), reviewBlocked);
+                        groups.primaryGroupName(), groups.parentGroupNames(), reviewBlocked, schoolSummary);
             } catch (Exception ignored) {
                 /* Fallback */ }
         }
@@ -81,7 +91,7 @@ public class AuthService {
         // 2. Fallback naar OAuth2 principal
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             String name = oauthToken.getPrincipal().getAttribute("name");
-            return new AuthUserDto(userId, name, null, name, role, null, null, null, null, List.of(), reviewBlocked);
+            return new AuthUserDto(userId, name, null, name, role, null, null, null, null, List.of(), reviewBlocked, schoolSummary);
         }
 
         return null;

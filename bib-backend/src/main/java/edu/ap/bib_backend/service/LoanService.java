@@ -18,6 +18,7 @@ import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
 
@@ -30,13 +31,15 @@ public class LoanService {
     private final BookService bookService;
     private final ExternalUserDisplayService externalUserDisplayService;
     private final BookCopyRepository bookCopyRepository;
+    private final UserRepository userRepository;
 
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService, BookCopyRepository bookCopyRepository) {
+    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService, BookCopyRepository bookCopyRepository, UserRepository userRepository) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
         this.externalUserDisplayService = externalUserDisplayService;
         this.bookCopyRepository = bookCopyRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -44,14 +47,18 @@ public class LoanService {
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
         LocalDate parsedReturnDate;
 
-        try {
-            parsedReturnDate = LocalDate.parse(loanDTO.returnDate());
-        } catch (DateTimeParseException e) {
-            throw new IllegalStateException("Retourdatum heeft een ongeldig formaat.");
-        }
+        if (loanDTO.returnDate() != null && !loanDTO.returnDate().isBlank()) {
+            try {
+                parsedReturnDate = LocalDate.parse(loanDTO.returnDate());
+            } catch (DateTimeParseException e) {
+                throw new IllegalStateException("Retourdatum heeft een ongeldig formaat.");
+            }
 
-        if (!parsedReturnDate.isAfter(today)) {
-            throw new IllegalStateException("Retourdatum moet minimaal één dag in de toekomst liggen.");
+            if (!parsedReturnDate.isAfter(today)) {
+                throw new IllegalStateException("Retourdatum moet minimaal één dag in de toekomst liggen.");
+            }
+        } else {
+            parsedReturnDate = calculateDefaultReturnDate(loanDTO.userId());
         }
 
         Loan loan = loanMapper.toEntity(loanDTO);
@@ -89,6 +96,18 @@ public class LoanService {
                 .findFirst()
                 .map(book -> book.copiesCount() != null ? book.copiesCount() : 1)
                 .orElse(1);
+    }
+
+    private LocalDate calculateDefaultReturnDate(String userId) {
+        return userRepository.findById(userId)
+                .map(user -> {
+                    Integer durationDays = user.getSchool().getDefaultLoanDurationDays();
+                    if (durationDays == null) {
+                        durationDays = 15;
+                    }
+                    return LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(durationDays);
+                })
+                .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden."));
     }
 
 

@@ -18,9 +18,25 @@ export class LoanSummaryPanelComponent {
   public readonly selectedBookCounts = input.required<Record<number, number>>();
   public readonly hasSelectedUser = input.required<boolean>();
   public readonly isSubmitting = input.required<boolean>();
+  public readonly defaultLoanDays = input<number>();
+  public readonly isCustomDate = input<boolean>(false);
+  public readonly isCustomDateChange = output<boolean>();
 
   public readonly createLoanRequested = output<void>();
   public readonly removeBookRequested = output<number | undefined>();
+  public readonly customDateRequested = output<void>();
+  public readonly useDefaultRequested = output<void>();
+
+  public readonly daysUntilReturn = computed(() => {
+    const returnDateStr = this.loanForm().value.returnDate;
+    if (!returnDateStr) return null;
+
+    const returnDate = new Date(returnDateStr);
+    const today = new Date();
+    const diffTime = returnDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  });
 
   public readonly groupedSelectedBooks = computed(() => {
     const counts = this.selectedBookCounts();
@@ -53,4 +69,6 @@ export class LoanSummaryPanelComponent {
 
     return this.selectedBookCounts()[book.id] ?? 1;
   }
+
 }
+
