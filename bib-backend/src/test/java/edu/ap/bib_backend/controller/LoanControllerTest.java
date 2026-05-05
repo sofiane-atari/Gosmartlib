@@ -7,8 +7,9 @@ import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.LoanService;
 import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.loan.LoanService;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

@@ -10,15 +10,22 @@
         @for (book of loan.books?.slice(0, 1) ?? []; track book.id) {
           <a
             class="sidebar-loan-item"
-            [routerLink]="['/history']"
+            routerLink="/history"
             [title]="book.title"
           >
-            <span class="sidebar-loan-item__title">{{ book.title }}</span>
+            <div class="sidebar-loan-item__content">
+              <span class="sidebar-loan-item__title">{{ book.title }}</span>
+              <span class="sidebar-loan-item__date">
+                <lucide-icon [img]="Calendar" [size]="12"></lucide-icon>
+                {{ loan.returnDate | date: "dd-MM-yyyy" }}
+              </span>
+            </div>
 
-            <span class="sidebar-loan-item__date">
-              <lucide-icon [img]="Calendar" [size]="12"></lucide-icon>
-              {{ loan.returnDate | date: "dd-MM-yyyy" }}
-            </span>
+            <lucide-icon
+              class="sidebar-loan-item__arrow"
+              [img]="ChevronRight"
+              [size]="16"
+            ></lucide-icon>
           </a>
         }
       }

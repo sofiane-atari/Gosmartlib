@@ -11,6 +11,11 @@
   transition: width 0.3s ease;
 }
 
+.sidebar-bottom-content {
+  flex: 0 0 auto;
+  margin-top: auto;
+}
+
 /* Forceer iconen om zichtbaar te zijn */
 lucide-icon {
   display: inline-flex;

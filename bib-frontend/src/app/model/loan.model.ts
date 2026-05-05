@@ -20,6 +20,7 @@ export interface Loan {
   returnDate: LocalDate;
   returnedDate?: LocalDate | null;
   status?: LoanStatus;
+  extensionCount?: number;
 }
 
 export interface LoanHistory {
