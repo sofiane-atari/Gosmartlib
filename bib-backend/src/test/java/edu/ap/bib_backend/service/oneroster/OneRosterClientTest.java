@@ -3,6 +3,8 @@ package edu.ap.bib_backend.service.oneroster;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 
+import edu.ap.bib_backend.mapper.OneRosterMapper;
+
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,13 +13,14 @@ class OneRosterClientTest {
 
     private final OneRosterClient client = new OneRosterClient(
             new RestTemplateBuilder(),
+            new OneRosterMapper(),
             "client-id",
             "client-secret",
             "https://oauth.smartschool.be/OAuth/index/token",
             "/ims/oneroster/v1p1",
             ".smartschool.be",
-            1000,
-            1000,
+            5000,
+            7000,
             "basic",
             "auto",
             "");
@@ -36,4 +39,3 @@ class OneRosterClientTest {
         assertEquals(List.of("3A", "4B"), filtered);
     }
 }
-

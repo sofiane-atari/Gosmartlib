@@ -1,62 +1,269 @@
-<section class="report-page">
-  <h1>Mijn klasrapporten</h1>
+<section class="class-report-dashboard">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Leesdashboard</h1>
+      <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
+    </div>
 
-  <p *ngIf="loading">Klasrapporten worden geladen...</p>
+    <button type="button" class="btn-refresh" (click)="loadReports()">
+      Vernieuwen
+    </button>
+  </div>
 
-  <p class="error" *ngIf="errorMessage">
-    {{ errorMessage }}
-  </p>
+  @if (loading) {
+    <div class="state-panel">
+      Klasrapporten worden geladen...
+    </div>
+  }
 
-  <p *ngIf="!loading && !errorMessage && reports.length === 0">
-    Er zijn geen klassen gevonden voor deze leerkracht.
-  </p>
+  @if (errorMessage) {
+    <div class="error-message">
+      {{ errorMessage }}
+    </div>
+  }
 
-  <article class="report-card" *ngFor="let report of reports">
-    <header>
-      <h2>{{ report.classTitle }}</h2>
+  @if (!loading && !errorMessage && reports.length === 0) {
+    <div class="state-panel">
+      Er zijn geen klassen gevonden voor deze gebruiker.
+    </div>
+  }
 
-      <div class="summary">
+  @for (report of reports; track report.classSourcedId) {
+    <article class="report-card">
+      <div class="report-card__header">
         <div>
-          <strong>{{ report.studentCount }}</strong>
-          <span>Leerlingen</span>
+          <span class="section-label">Klasrapport</span>
+          <h2>{{ report.classTitle }}</h2>
+          <p>
+            {{ report.linkedStudentCount }} van {{ report.studentCount }} leerlingen zijn gekoppeld
+            — {{ getLinkedPercentage(report) }}%
+          </p>
         </div>
 
-        <div>
-          <strong>{{ report.classAverageProgress }}%</strong>
-          <span>Gemiddelde voortgang</span>
-        </div>
-
-        <div>
-          <strong>{{ report.classAverageScore }}</strong>
-          <span>Gemiddelde score</span>
-        </div>
+        <span class="count-badge">
+          {{ report.studentCount }} leerlingen
+        </span>
       </div>
-    </header>
 
-    <table *ngIf="report.students.length > 0">
-      <thead>
-        <tr>
-          <th>Leerling</th>
-          <th>Voltooid</th>
-          <th>Voortgang</th>
-          <th>Score</th>
-          <th>Tijd</th>
-        </tr>
-      </thead>
+      <section class="stat-cards">
+        <div class="stat-card stat-card--purple">
+            <div class="stat-card__icon">
+            <lucide-icon [img]="icons.library"></lucide-icon>
+            </div>
+            <div>
+            <p>Totaal uitgeleend</p>
+            <strong>{{ report.totalLoans }}</strong>
+            </div>
+        </div>
 
-      <tbody>
-        <tr *ngFor="let student of report.students">
-          <td>{{ student.displayName }}</td>
-          <td>{{ student.completedItems }} / {{ student.totalItems }}</td>
-          <td>{{ student.progressPercentage }}%</td>
-          <td>{{ student.averageScore }}</td>
-          <td>{{ student.totalTimeMinutes }} min</td>
-        </tr>
-      </tbody>
-    </table>
+        <div class="stat-card stat-card--blue">
+            <div class="stat-card__icon">
+            <lucide-icon [img]="icons.users"></lucide-icon>
+            </div>
+            <div>
+            <p>Gekoppelde leerlingen</p>
+            <strong>{{ report.linkedStudentCount }}/{{ report.studentCount }}</strong>
+            </div>
+        </div>
 
-    <p *ngIf="report.students.length === 0">
-      Geen leerlingen gevonden voor deze klas.
-    </p>
-  </article>
+        <div class="stat-card stat-card--green">
+            <div class="stat-card__icon">
+            <lucide-icon [img]="icons.bookOpen"></lucide-icon>
+            </div>
+            <div>
+            <p>Gemiddeld gelezen</p>
+            <strong>{{ report.averageLoansPerLinkedStudent }}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card stat-card--orange">
+            <div class="stat-card__icon">
+            <lucide-icon [img]="icons.clock"></lucide-icon>
+            </div>
+            <div>
+            <p>Momenteel uitgeleend</p>
+            <strong>{{ report.activeLoans }}</strong>
+            </div>
+        </div>
+        </section>
+
+      <section class="insight-grid">
+        <div class="insight-card">
+          <div class="insight-card__header">
+            <div>
+              <h3>Populaire genres</h3>
+              <p>Meest uitgeleend door deze klas</p>
+            </div>
+          </div>
+
+          @if (report.popularGenres.length === 0) {
+            <div class="empty-table-state">
+              Geen genredata beschikbaar.
+            </div>
+          } @else {
+            <div class="ranking-list">
+              @for (genre of report.popularGenres; track genre.genreId; let index = $index) {
+                <div class="ranking-row">
+                  <span class="rank-badge">#{{ index + 1 }}</span>
+
+                  <span
+                    class="genre-dot"
+                    [style.background]="genre.color || 'var(--main-color)'">
+                  </span>
+
+                  <div class="ranking-main">
+                    <strong>{{ genre.name }}</strong>
+                    <span>Genre</span>
+                  </div>
+
+                  <span class="count-badge">
+                    {{ genre.loanCount }} boeken
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-card__header">
+            <div>
+              <h3>Hoogst beoordeelde boeken</h3>
+              <p>Ratings gegeven door deze klas</p>
+            </div>
+          </div>
+
+          @if (report.topRatedBooks.length === 0) {
+            <div class="empty-table-state">
+              Geen ratings beschikbaar.
+            </div>
+          } @else {
+            <div class="book-list">
+              @for (book of report.topRatedBooks; track book.bookId) {
+                <div class="book-row">
+                    <div class="book-cover">
+                    @if (book.imageUrl) {
+                        <img [src]="book.imageUrl" [alt]="book.title">
+                    } @else {
+                        <lucide-icon [img]="icons.bookOpen"></lucide-icon>
+                    }
+                    </div>
+
+                    <div class="book-info">
+                        <strong>{{ book.title }}</strong>
+                        <span>{{ book.author || 'Onbekende auteur' }}</span>
+                        <small>{{ book.reviewCount }} reviews</small>
+                    </div>
+
+                    <span class="rating-badge">
+                    <lucide-icon [img]="icons.star"></lucide-icon>
+                    {{ book.averageRating }}
+                    </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="table-card">
+        <div class="table-card__header">
+          <div>
+            <h3>Leerlingen</h3>
+            <p>Gesorteerd op totaal aantal uitleningen en teruggebrachte boeken.</p>
+         </div>
+        </div>
+
+        @if (report.students.length === 0) {
+          <div class="empty-table-state">
+            Geen leerlingen gevonden voor deze klas.
+          </div>
+        } @else {
+         <table>
+            <thead>
+                <tr>
+                <th>Leerling</th>
+                <th class="center-col">Totaal</th>
+                <th class="center-col">Teruggebracht</th>
+                <th class="center-col">Nog uitgeleend</th>
+                <th class="center-col">Reviews</th>
+                <th class="center-col">Leesactiviteit</th>
+                <th class="center-col">Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (student of report.students; track student.studentSourcedId) {
+                <tr [class.needs-return]="student.activeLoans > 0">
+                    <td>
+                    <div class="student-cell">
+                        <div class="student-cell__icon">
+                        <lucide-icon [img]="icons.user"></lucide-icon>
+                        </div>
+
+                        <div>
+                        <strong>{{ student.displayName }}</strong>
+
+                        <div class="student-badges">
+                            @if (!student.linkedUserId) {
+                            <span class="status-badge status-badge--muted">
+                                Niet gekoppeld
+                            </span>
+                            } @else {
+                            <span class="status-badge">
+                                Gekoppeld
+                            </span>
+                            }
+                        </div>
+                        </div>
+                    </div>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="count-badge">{{ student.totalLoans }}</span>
+                    </td>
+
+                    <td class="center-col">{{ student.returnedLoans }}</td>
+
+                    <td class="center-col">
+                    @if (student.activeLoans > 0) {
+                        <span class="open-loans-badge">
+                        {{ student.activeLoans }}
+                        </span>
+                    } @else {
+                        <span class="muted-value">0</span>
+                    }
+                    </td>
+
+                    <td class="center-col">{{ student.reviewCount }}</td>
+
+                    <td class="center-col">
+                    <span class="activity-badge">
+                        {{ getReadingActivity(student) }}
+                    </span>
+                    </td>
+
+                    <td class="center-col">
+                    @if (!student.linkedUserId) {
+                        <span class="status-badge status-badge--muted">
+                        Niet gekoppeld
+                        </span>
+                    } @else if (student.activeLoans > 0) {
+                        <span class="status-badge status-badge--warning">
+                        Terugbrengen
+                        </span>
+                    } @else {
+                        <span class="status-badge">
+                        In orde
+                        </span>
+                    }
+                    </td>
+                </tr>
+                }
+            </tbody>
+            </table>
+        }
+      </section>
+    </article>
+  }
 </section>
