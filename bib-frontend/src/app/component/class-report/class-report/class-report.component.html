@@ -194,7 +194,7 @@
             </thead>
 
             <tbody>
-                @for (student of getFilteredStudents(report); track student.studentSourcedId) {
+                @for (student of getPagedStudents(report); track student.studentSourcedId) {
                 <tr [class.needs-return]="student.activeLoans > 0">
                     <td>
                     <div class="student-cell">
@@ -263,6 +263,14 @@
                 }
             </tbody>
             </table>
+            @if (shouldShowStudentPaging(report)) {
+                <div class="table-paging">
+                    <app-paging
+                    [meta]="getStudentPagingMeta(report)"
+                    (pageChange)="onStudentPageChange($event)">
+                    </app-paging>
+                </div>
+                }
         }
       </section>
     </article>

@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ClassReport, ReportRow } from '../../../model/class-report.model';
 import { TeacherClassReportService } from '../../../services/class-report/class-report.service';
 import { CommonModule } from '@angular/common';
-import { SearchBarComponent } from '../../shared/search-bar/search-bar.component'; // pas path aan indien nodig
+import { SearchBarComponent } from '../../shared/search-bar/search-bar.component'; 
+import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
+
 import {
   LucideAngularModule,
   BookOpen,
@@ -17,15 +19,24 @@ import {
   selector: 'app-teacher-class-report',
   standalone: true,
   templateUrl: './class-report.component.html',
-  imports: [CommonModule, LucideAngularModule, SearchBarComponent],
+  imports: [
+    CommonModule,
+    LucideAngularModule,
+    SearchBarComponent,
+    PagingComponent
+  ],
   styleUrls: ['./class-report.component.css']
 })
 export class ClassReportComponent implements OnInit {
+
   reports: ClassReport[] = [];
   loading = false;
   errorMessage = '';
 
   studentSearchQuery = '';
+
+  currentStudentPage = 0;
+  studentPageSize = 5;
 
   readonly icons = {
     library: LibraryBig,
@@ -49,6 +60,7 @@ export class ClassReportComponent implements OnInit {
     this.reportService.getMyClassReports().subscribe({
       next: reports => {
         this.reports = reports;
+        this.currentStudentPage = 0;
         this.loading = false;
       },
       error: error => {
@@ -61,6 +73,11 @@ export class ClassReportComponent implements OnInit {
 
   onStudentSearchChange(query: string): void {
     this.studentSearchQuery = query;
+    this.currentStudentPage = 0;
+  }
+
+  onStudentPageChange(page: number): void {
+    this.currentStudentPage = page;
   }
 
   getFilteredStudents(report: ClassReport): ReportRow[] {
@@ -76,6 +93,31 @@ export class ClassReportComponent implements OnInit {
       || this.getReadingActivity(student).toLowerCase().includes(query)
       || this.getStudentStatus(student).toLowerCase().includes(query)
     );
+  }
+
+  getPagedStudents(report: ClassReport): ReportRow[] {
+    const filteredStudents = this.getFilteredStudents(report);
+
+    const start = this.currentStudentPage * this.studentPageSize;
+    const end = start + this.studentPageSize;
+
+    return filteredStudents.slice(start, end);
+  }
+
+  getStudentPagingMeta(report: ClassReport): PagingMeta {
+    const totalItems = this.getFilteredStudents(report).length;
+    const totalPages = Math.ceil(totalItems / this.studentPageSize);
+
+    return {
+      currentPage: this.currentStudentPage,
+      pageSize: this.studentPageSize,
+      totalItems,
+      totalPages
+    };
+  }
+
+  shouldShowStudentPaging(report: ClassReport): boolean {
+    return this.getFilteredStudents(report).length > this.studentPageSize;
   }
 
   getLinkedPercentage(report: ClassReport): number {
