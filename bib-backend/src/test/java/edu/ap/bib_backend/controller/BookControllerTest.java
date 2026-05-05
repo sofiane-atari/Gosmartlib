@@ -133,7 +133,7 @@ public class BookControllerTest {
         void givenExistingBookId_whenDeleteBook_thenReturn204() throws Exception {
                 // Arrange
                 Long bookId = 1L;
-                Mockito.doNothing().when(bs).deleteBook(bookId);
+                Mockito.doNothing().when(bs).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
 
                 // Act
                 var result = mockMvc.perform(delete("/books/{id}", bookId));
@@ -141,7 +141,7 @@ public class BookControllerTest {
                 // Assert
                 result.andExpect(status().isNoContent());
 
-                Mockito.verify(bs, Mockito.times(1)).deleteBook(bookId);
+                Mockito.verify(bs, Mockito.times(1)).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -150,14 +150,14 @@ public class BookControllerTest {
                 Long bookId = 99L;
                 Mockito.doThrow(new edu.ap.bib_backend.exception.ResourceNotFoundException("id",
                                 "Boek niet gevonden met id: 99"))
-                                .when(bs).deleteBook(bookId);
+                                .when(bs).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
 
                 // Act
                 var result = mockMvc.perform(delete("/books/{id}", bookId));
 
                 // Assert
                 result.andExpect(status().isNotFound());
-                Mockito.verify(bs, Mockito.times(1)).deleteBook(bookId);
+                Mockito.verify(bs, Mockito.times(1)).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -166,7 +166,7 @@ public class BookControllerTest {
                 Long bookId = 2L;
                 Mockito.doThrow(new IllegalStateException(
                                 "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend."))
-                                .when(bs).deleteBook(bookId);
+                                .when(bs).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
 
                 // Act
                 var result = mockMvc.perform(delete("/books/{id}", bookId));
@@ -180,7 +180,7 @@ public class BookControllerTest {
                                                 r.getResolvedException() != null ? r.getResolvedException().getMessage() : null));
 
                 // Controleer of de delete methode daadwerkelijk is aangeroepen
-                Mockito.verify(bs, Mockito.times(1)).deleteBook(bookId);
+                Mockito.verify(bs, Mockito.times(1)).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -323,7 +323,7 @@ public class BookControllerTest {
                 book.setAuthor("Selected Author");
                 book.setIsbn("9789999999999");
 
-                Mockito.when(bs.getBookByISBN("9789999999999")).thenReturn(book);
+                Mockito.when(bs.getBookByISBN(Mockito.eq("9789999999999"), Mockito.nullable(Authentication.class))).thenReturn(book);
 
                 mockMvc.perform(post("/books/select")
                                 .param("isbn13", "9789999999999"))
@@ -333,7 +333,7 @@ public class BookControllerTest {
                                 .andExpect(jsonPath("$.author").value("Selected Author"))
                                 .andExpect(jsonPath("$.isbn").value("9789999999999"));
 
-                Mockito.verify(bs).getBookByISBN("9789999999999");
+                Mockito.verify(bs).getBookByISBN(Mockito.eq("9789999999999"), Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -343,7 +343,7 @@ public class BookControllerTest {
                 candidate.setAuthor("Frank Herbert");
                 candidate.setReleaseYear(1965);
 
-                Mockito.when(bs.searchBooksInDb("Dune", "Frank Herbert", null))
+                Mockito.when(bs.searchBooksInDb(Mockito.eq("Dune"), Mockito.eq("Frank Herbert"), Mockito.isNull(), Mockito.nullable(Authentication.class)))
                                 .thenReturn(List.of(candidate));
 
                 mockMvc.perform(get("/books/search")
@@ -354,7 +354,7 @@ public class BookControllerTest {
                                 .andExpect(jsonPath("$[0].author").value("Frank Herbert"))
                                 .andExpect(jsonPath("$[0].releaseYear").value(1965));
 
-                Mockito.verify(bs).searchBooksInDb("Dune", "Frank Herbert", null);
+                Mockito.verify(bs).searchBooksInDb(Mockito.eq("Dune"), Mockito.eq("Frank Herbert"), Mockito.isNull(), Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -379,7 +379,7 @@ public class BookControllerTest {
                 book.setDescription("dede de d e d ed e d e d e de d e d");
                 book.setReleaseYear(2017);
 
-                Mockito.when(bs.getAllBooks()).thenReturn(List.of(book));
+                Mockito.when(bs.getAllBooks(Mockito.nullable(Authentication.class))).thenReturn(List.of(book));
 
                 mockMvc.perform(get("/books"))
                                 .andExpect(status().isOk())
@@ -405,7 +405,7 @@ public class BookControllerTest {
                 book.setImageUrl("https://example.com/image.jpg");
                 book.setReleaseYear(2021);
 
-                Mockito.when(bs.getBookById(1L)).thenReturn(book);
+                Mockito.when(bs.getBookById(Mockito.eq(1L), Mockito.nullable(Authentication.class))).thenReturn(book);
 
                 mockMvc.perform(get("/books/1"))
                                 .andExpect(status().isOk())
@@ -599,7 +599,7 @@ public class BookControllerTest {
                 book.setDescription("Beschrijving van het boek");
                 book.setReleaseYear(2022);
 
-                Mockito.when(bs.getBookByISBN("9781234567890")).thenReturn(book);
+                Mockito.when(bs.getBookByISBN(Mockito.eq("9781234567890"), Mockito.nullable(Authentication.class))).thenReturn(book);
 
                 mockMvc.perform(get("/books/isbn/9781234567890"))
                                 .andExpect(status().isOk())
@@ -612,7 +612,7 @@ public class BookControllerTest {
                                 .andExpect(jsonPath("$.description").value("Beschrijving van het boek"))
                                 .andExpect(jsonPath("$.releaseYear").value(2022));
 
-                Mockito.verify(bs).getBookByISBN("9781234567890");
+                Mockito.verify(bs).getBookByISBN(Mockito.eq("9781234567890"), Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -641,7 +641,7 @@ public class BookControllerTest {
                 updatedDto.setAuthor("Nieuwe Auteur");
                 updatedDto.setPages(400);
 
-                Mockito.when(bs.updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class)))
+                Mockito.when(bs.updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class), Mockito.nullable(Authentication.class)))
                                 .thenReturn(updatedDto);
 
                 // Act
@@ -656,7 +656,7 @@ public class BookControllerTest {
                                 .andExpect(jsonPath("$.author").value("Nieuwe Auteur"))
                                 .andExpect(jsonPath("$.pages").value(400));
 
-                Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class));
+                Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class), Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -666,7 +666,7 @@ public class BookControllerTest {
                 BookDTO requestDto = new BookDTO();
                 requestDto.setTitle("Spook Boek");
 
-                Mockito.when(bs.updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class)))
+                Mockito.when(bs.updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class), Mockito.nullable(Authentication.class)))
                                 .thenThrow(new RuntimeException("Boek niet gevonden met id: 99"));
 
                 // Act
@@ -682,6 +682,6 @@ public class BookControllerTest {
                                                 "Boek niet gevonden met id: 99",
                                                 r.getResolvedException() != null ? r.getResolvedException().getMessage() : null));
                                                 
-                Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class));
+                Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class), Mockito.nullable(Authentication.class));
         }
 }

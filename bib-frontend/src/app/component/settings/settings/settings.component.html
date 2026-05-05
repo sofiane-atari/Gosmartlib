@@ -36,12 +36,11 @@
         <span class="muted">Je school heeft maar één campus.</span>
       } @else {
         <select
-          [value]="currentUser()?.campusId ?? ''"
           [disabled]="isSavingCampus()"
           (change)="changeCampus($event)"
         >
           @for (campus of campuses(); track campus.id) {
-            <option [value]="campus.id">
+            <option [value]="campus.id" [selected]="currentUser()?.campusId === campus.id">
               {{ campus.name }}{{ campus.defaultCampus ? ' (default)' : '' }}
             </option>
           }

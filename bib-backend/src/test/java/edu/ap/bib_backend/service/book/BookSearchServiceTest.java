@@ -56,7 +56,6 @@ class BookSearchServiceTest {
     void setUp() {
         bookSearchService = new BookSearchService(
                 bookRepository,
-                userRepository,
                 bookMapper,
                 currentUserService
         );

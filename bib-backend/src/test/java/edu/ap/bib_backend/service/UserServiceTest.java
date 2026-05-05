@@ -85,8 +85,8 @@ class UserServiceTest {
         List<User> users = List.of(firstUser, secondUser);
 
         List<AuthUserDto> expectedDtos = List.of(
-                new AuthUserDto("s001", null, null, null, null, null, null, null, null, null, false),
-                new AuthUserDto("t001", null, null, null, null, null, null, null, null, null, false));
+                new AuthUserDto("s001", null, null, null, null, null, null, null, null, null, false, null, null, null, null),
+                new AuthUserDto("t001", null, null, null, null, null, null, null, null, null, false, null, null, null, null));
 
         when(userRepository.findAll()).thenReturn(users);
         when(userMapper.toDtoList(users)).thenReturn(expectedDtos);
@@ -112,7 +112,7 @@ class UserServiceTest {
         List<User> users = List.of(user);
 
         List<AuthUserDto> expectedDtos = List
-                .of(new AuthUserDto("abc123", null, null, null, null, null, null, null, null, null, false));
+                .of(new AuthUserDto("abc123", null, null, null, null, null, null, null, null, null, false, null, null, null, null));
 
         when(userRepository.findByIdContaining("ab")).thenReturn(users);
         when(userMapper.toDtoList(users)).thenReturn(expectedDtos);
@@ -230,7 +230,7 @@ class UserServiceTest {
         updatedUser.setId(userId);
         updatedUser.setReviewBlocked(true);
 
-        AuthUserDto expectedDto = new AuthUserDto(userId, null, null, null, null, null, null, null, null, null, true);
+        AuthUserDto expectedDto = new AuthUserDto(userId, null, null, null, null, null, null, null, null, null, true, null, null, null, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
@@ -260,7 +260,7 @@ class UserServiceTest {
         updatedUser.setId(userId);
         updatedUser.setReviewBlocked(false);
 
-        AuthUserDto expectedDto = new AuthUserDto(userId, null, null, null, null, null, null, null, null, null, false);
+        AuthUserDto expectedDto = new AuthUserDto(userId, null, null, null, null, null, null, null, null, null, false, null, null, null, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);

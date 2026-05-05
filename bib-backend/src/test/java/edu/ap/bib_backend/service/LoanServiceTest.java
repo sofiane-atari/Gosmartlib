@@ -63,7 +63,7 @@ class LoanServiceTest {
         when(loanMapper.toDto(mappedLoan)).thenReturn(expectedResult);
 
         // Act
-        LoanDTO result = loanService.create(inputLoan);
+        LoanDTO result = loanService.create(inputLoan, null);
 
         // Assert
         assertEquals(expectedResult, result);
@@ -85,7 +85,7 @@ class LoanServiceTest {
 
         // Act
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> loanService.create(inputLoan));
+                () -> loanService.create(inputLoan, null));
 
         // Assert
         assertEquals("Retourdatum heeft een ongeldig formaat.", exception.getMessage());
@@ -102,7 +102,7 @@ class LoanServiceTest {
 
         // Act
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> loanService.create(inputLoan));
+                () -> loanService.create(inputLoan, null));
 
         // Assert
         assertEquals("Retourdatum moet minimaal één dag in de toekomst liggen.", exception.getMessage());

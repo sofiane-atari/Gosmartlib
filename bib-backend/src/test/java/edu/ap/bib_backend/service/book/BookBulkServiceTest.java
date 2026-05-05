@@ -12,6 +12,7 @@ import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -54,7 +55,7 @@ class BookBulkServiceTest {
         br = mock(BookRepository.class);
         bcr = mock(BookCopyRepository.class);
         ur = mock(UserRepository.class);
-        service = new BookBulkService(br, bcr, gr, rlr, ur);
+        service = new BookBulkService(br, bcr, gr, rlr, (CurrentUserService) ur);
 
         authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("user-1");
@@ -127,7 +128,7 @@ class BookBulkServiceTest {
         verify(br, never()).save(any(Book.class));
         ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);
         verify(bcr, times(1)).save(captor.capture());
-        assertEquals(school, captor.getValue().getSchool());
+        assertEquals(school, captor.getValue().getCampus());
     }
 
     @Test
