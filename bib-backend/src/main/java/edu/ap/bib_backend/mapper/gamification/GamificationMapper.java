@@ -61,6 +61,7 @@ public class GamificationMapper {
                 badge.getLockedAssetKey(),
                 badge.getRarity().name(),
                 badge.getThemeColor(),
+                badge.getCategory().name(),
                 progress.getCurrentValue(),
                 badge.getTargetValue(),
                 calculateProgressPercentage(progress.getCurrentValue(), badge.getTargetValue()),

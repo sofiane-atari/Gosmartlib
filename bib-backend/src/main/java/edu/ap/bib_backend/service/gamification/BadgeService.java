@@ -8,6 +8,8 @@ import edu.ap.bib_backend.exception.gamification.BadgeNotFoundException;
 import edu.ap.bib_backend.jpa.entity.gamification.Badge;
 import edu.ap.bib_backend.jpa.entity.gamification.GamificationProfile;
 import edu.ap.bib_backend.jpa.entity.gamification.UserBadge;
+import edu.ap.bib_backend.jpa.enums.gamification.BadgeCategory;
+import edu.ap.bib_backend.jpa.enums.gamification.BadgeRarity;
 import edu.ap.bib_backend.jpa.enums.gamification.PointTransactionType;
 import edu.ap.bib_backend.jpa.repository.gamification.BadgeRepository;
 import edu.ap.bib_backend.jpa.repository.gamification.UserBadgeRepository;
@@ -47,6 +49,23 @@ public class BadgeService {
     @Transactional(readOnly = true)
     public List<Badge> findAllActiveBadges() {
         return badgeRepository.findByActiveTrueOrderByDisplayOrderAsc();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Badge> findActiveBadges(BadgeCategory category, BadgeRarity rarity) {
+        if (category != null && rarity != null) {
+            return badgeRepository.findByActiveTrueAndCategoryAndRarityOrderByDisplayOrderAsc(category, rarity);
+        }
+
+        if (category != null) {
+            return badgeRepository.findByActiveTrueAndCategoryOrderByDisplayOrderAsc(category);
+        }
+
+        if (rarity != null) {
+            return badgeRepository.findByActiveTrueAndRarityOrderByDisplayOrderAsc(rarity);
+        }
+
+        return findAllActiveBadges();
     }
 
     @Transactional(readOnly = true)

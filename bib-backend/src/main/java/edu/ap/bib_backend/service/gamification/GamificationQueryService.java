@@ -10,10 +10,13 @@ import edu.ap.bib_backend.dto.gamification.GamificationBadgeDTO;
 import edu.ap.bib_backend.dto.gamification.GamificationProfileDTO;
 import edu.ap.bib_backend.dto.gamification.GamificationProgressDTO;
 import edu.ap.bib_backend.dto.gamification.GamificationRecentEventDTO;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.entity.gamification.Badge;
 import edu.ap.bib_backend.jpa.entity.gamification.BadgeProgress;
 import edu.ap.bib_backend.jpa.entity.gamification.GamificationProfile;
+import edu.ap.bib_backend.jpa.enums.gamification.BadgeCategory;
+import edu.ap.bib_backend.jpa.enums.gamification.BadgeRarity;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.gamification.PointTransactionRepository;
 import edu.ap.bib_backend.jpa.repository.gamification.UserBadgeRepository;
@@ -80,6 +83,46 @@ public class GamificationQueryService {
                 badgeProgress,
                 recentEvents
         );
+    }
+
+    @Transactional
+    public List<GamificationProgressDTO> getCurrentUserBadges(
+            Authentication authentication,
+            BadgeCategory category,
+            BadgeRarity rarity,
+            Boolean completed
+    ) {
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
+
+        return getBadgesForUserId(currentUserId, category, rarity, completed);
+    }
+
+    @Transactional
+    public List<GamificationProgressDTO> getBadgesForUserId(
+            String userId,
+            BadgeCategory category,
+            BadgeRarity rarity,
+            Boolean completed
+    ) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "userId",
+                        "Gebruiker niet gevonden met id: " + userId
+                ));
+
+        GamificationProfile profile = gamificationProfileService.getOrCreateProfile(user);
+
+        return badgeService.findActiveBadges(category, rarity)
+                .stream()
+                .map(badge -> getProgressForBadge(profile, badge))
+                .filter(progress -> matchesCompletedFilter(progress, completed))
+                .map(gamificationMapper::toProgressDTO)
+                .toList();
+    }
+
+
+    private boolean matchesCompletedFilter(BadgeProgress progress, Boolean completed) {
+        return completed == null || progress.isCompleted() == completed;
     }
 
     private List<GamificationBadgeDTO> getLatestAchievements(GamificationProfile profile) {

@@ -8,6 +8,7 @@ public record GamificationProgressDTO(
         String lockedAssetKey,
         String rarity,
         String themeColor,
+        String category,
         int currentValue,
         int targetValue,
         int progressPercentage,
