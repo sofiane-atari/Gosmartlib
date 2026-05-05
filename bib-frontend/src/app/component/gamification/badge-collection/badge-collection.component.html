@@ -9,9 +9,82 @@
     </div>
   </div>
 
-  @if (badges().length === 0) {
+  <!-- Filters in een mooi afgekaderd paneel -->
+  <div class="badge-collection__filters-panel">
+    <div class="badge-collection__filter-row">
+      <span class="badge-collection__filter-label">Categorie</span>
+      <div class="badge-collection__filter-group">
+        @for (option of categoryOptions; track option.value) {
+          <button
+            type="button"
+            class="badge-collection__filter"
+            [class.badge-collection__filter--active]="
+              selectedCategory() === option.value
+            "
+            (click)="selectCategory(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="badge-collection__filter-row">
+      <span class="badge-collection__filter-label">Zeldzaamheid</span>
+      <div class="badge-collection__filter-group">
+        @for (option of rarityOptions; track option.value) {
+          <button
+            type="button"
+            class="badge-collection__filter"
+            [class.badge-collection__filter--active]="
+              selectedRarity() === option.value
+            "
+            (click)="selectRarity(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="badge-collection__filter-row">
+      <span class="badge-collection__filter-label">Status</span>
+      <div class="badge-collection__filter-group">
+        @for (option of statusOptions; track option.value) {
+          <button
+            type="button"
+            class="badge-collection__filter"
+            [class.badge-collection__filter--active]="
+              selectedStatus() === option.value
+            "
+            (click)="selectStatus(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="badge-collection__filter-actions">
+      <button
+        type="button"
+        class="badge-collection__filter-reset"
+        (click)="resetFilters()"
+      >
+        Filters wissen
+      </button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="badge-collection__empty">Badges worden geladen...</div>
+  } @else if (errorMessage()) {
+    <div class="badge-collection__empty badge-collection__empty--error">
+      {{ errorMessage() }}
+    </div>
+  } @else if (badges().length === 0) {
     <div class="badge-collection__empty">
-      Er zijn nog geen badges beschikbaar.
+      Er zijn geen badges gevonden voor deze filters.
     </div>
   } @else {
     <div class="badge-collection__grid">

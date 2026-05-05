@@ -30,6 +30,7 @@ export interface GamificationProgress {
   lockedAssetKey: string;
   rarity: GamificationBadgeRarity;
   themeColor: string;
+  category: GamificationBadgeCategory;
   currentValue: number;
   targetValue: number;
   progressPercentage: number;

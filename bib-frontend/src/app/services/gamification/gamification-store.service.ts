@@ -6,7 +6,10 @@ import {
   GamificationProgress,
   GamificationRecentEvent,
 } from '../../model/gamification/gamification.model';
-import { GamificationService } from './gamification.service';
+import {
+  GamificationBadgeFilters,
+  GamificationService,
+} from './gamification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +20,15 @@ export class GamificationStoreService {
   private readonly profileSignal = signal<GamificationProfile | null>(null);
   private readonly isLoadingSignal = signal<boolean>(false);
   private readonly errorMessageSignal = signal<string | null>(null);
+
+  private readonly badgesSignal = signal<GamificationProgress[]>([]);
+  private readonly badgesLoadingSignal = signal<boolean>(false);
+  private readonly badgesErrorMessageSignal = signal<string | null>(null);
+
+  public readonly badges = this.badgesSignal.asReadonly();
+  public readonly badgesLoading = this.badgesLoadingSignal.asReadonly();
+  public readonly badgesErrorMessage =
+    this.badgesErrorMessageSignal.asReadonly();
 
   public readonly profile = this.profileSignal.asReadonly();
   public readonly isLoading = this.isLoadingSignal.asReadonly();
@@ -69,6 +81,23 @@ export class GamificationStoreService {
     });
   }
 
+  public loadCurrentUserBadges(filters: GamificationBadgeFilters = {}): void {
+    this.badgesLoadingSignal.set(true);
+    this.badgesErrorMessageSignal.set(null);
+
+    this.gamificationService.getCurrentUserBadges(filters).subscribe({
+      next: (badges: GamificationProgress[]) => {
+        this.badgesSignal.set(badges);
+        this.badgesLoadingSignal.set(false);
+      },
+      error: () => {
+        this.badgesSignal.set([]);
+        this.badgesErrorMessageSignal.set('Badges konden niet worden geladen.');
+        this.badgesLoadingSignal.set(false);
+      },
+    });
+  }
+
   public refreshCurrentUserProfile(): void {
     this.loadCurrentUserProfile();
   }
@@ -77,5 +106,17 @@ export class GamificationStoreService {
     this.profileSignal.set(null);
     this.errorMessageSignal.set(null);
     this.isLoadingSignal.set(false);
+  }
+
+  public refreshCurrentUserBadges(
+    filters: GamificationBadgeFilters = {},
+  ): void {
+    this.loadCurrentUserBadges(filters);
+  }
+
+  public clearBadges(): void {
+    this.badgesSignal.set([]);
+    this.badgesErrorMessageSignal.set(null);
+    this.badgesLoadingSignal.set(false);
   }
 }

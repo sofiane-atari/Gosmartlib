@@ -1,7 +1,7 @@
 .badge-collection {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .badge-collection__header {
@@ -12,31 +12,137 @@
 
 .badge-collection__title {
   margin: 0;
-  color: var(--text-dark);
+  color: var(--text-dark, #1f2937);
   font-size: 1.25rem;
   font-weight: 700;
 }
 
 .badge-collection__description {
   margin: 4px 0 0;
-  color: var(--text-muted);
+  color: var(--text-muted, #6b7280);
   font-size: 0.9rem;
 }
 
+/* --- HET NIEUWE FILTER PANEEL --- */
+.badge-collection__filters-panel {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.badge-collection__filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Zorgt ervoor dat op grotere schermen de label en de knoppen naast elkaar staan */
+@media (min-width: 768px) {
+  .badge-collection__filter-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .badge-collection__filter-label {
+    width: 120px; /* Vaste breedte zodat alle rijen knoppen mooi uitlijnen */
+    flex-shrink: 0;
+  }
+}
+
+.badge-collection__filter-label {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-collection__filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* --- DE FILTER KNOPPEN --- */
+.badge-collection__filter {
+  padding: 8px 14px;
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 999px;
+  font-family: var(--main-font, inherit);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* HOVER FIX: De :not() zorgt dat de geselecteerde knop met rust wordt gelaten! */
+.badge-collection__filter:hover:not(.badge-collection__filter--active) {
+  color: var(--main-color, #8a1e41);
+  border-color: var(--main-color, #8a1e41);
+  background: var(
+    --main-light-color,
+    #fff5f8
+  ); /* Subtiele achtergrond op hover */
+  transform: translateY(-1px);
+}
+
+.badge-collection__filter--active {
+  color: #ffffff; /* Hardcoded wit, zodat het altijd leesbaar blijft op bordeaux */
+  background: var(--main-color, #8a1e41);
+  border-color: var(--main-color, #8a1e41);
+}
+
+/* --- FILTERS WISSEN --- */
+.badge-collection__filter-actions {
+  display: flex;
+  justify-content: flex-end; /* Zet de reset knop mooi rechts uitgelijnd */
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color, #e5e7eb);
+}
+
+.badge-collection__filter-reset {
+  color: var(--text-muted, #6b7280);
+  background: transparent;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.badge-collection__filter-reset:hover {
+  color: var(--main-color, #8a1e41);
+}
+
+/* --- GRID & EMPTY STATES --- */
 .badge-collection__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
 }
 
 .badge-collection__empty {
   padding: 32px 20px;
   text-align: center;
-  color: var(--text-muted);
-  background: var(--bg-surface);
-  border: 1px dashed var(--border-color);
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-surface, #ffffff);
+  border: 1px dashed var(--border-color, #e5e7eb);
   border-radius: 12px;
   font-size: 0.9rem;
+}
+
+.badge-collection__empty--error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fca5a5;
 }
 
 @media (max-width: 600px) {

@@ -74,7 +74,10 @@
 
     <!-- BADGE VOORTGANG -->
     <app-badge-collection
-      [badges]="gamificationStore.badgeProgress()"
+      [badges]="gamificationStore.badges()"
+      [isLoading]="gamificationStore.badgesLoading()"
+      [errorMessage]="gamificationStore.badgesErrorMessage()"
+      (filtersChanged)="onBadgeFiltersChanged($event)"
     ></app-badge-collection>
   }
 </section>
