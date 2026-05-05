@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service.loan;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -274,6 +274,7 @@ public class LoanService {
                             .returnDate(dto.returnDate())
                             .returnedDate(dto.returnedDate())
                             .status(dto.status())
+                            .extensionCount(dto.extensionCount())
                             .build();
                 })
                 .toList();

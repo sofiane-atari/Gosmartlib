@@ -82,9 +82,53 @@
     </div>
 
     @if (isLoading()) {
-      <div class="empty-state">
-        <p>Leningen laden...</p>
-      </div>
+      <table class="skeleton-table">
+        <thead>
+          <tr>
+            <th class="text-center">Gebruiker</th>
+            <th class="text-center">Boek</th>
+            <th class="text-center">Aantal boeken</th>
+            <th class="text-center">Retourdatum</th>
+            <th class="text-center">Tijd over</th>
+            <th class="text-center">Status</th>
+            <th class="text-center">Actie</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- We genereren 5 nep-rijen om de tabel te vullen -->
+          @for (dummy of [1, 2, 3, 4, 5]; track dummy) {
+            <tr class="loan-row loan-row--skeleton">
+              <td class="text-center">
+                <div class="skeleton-cell-content">
+                  <div class="skeleton skeleton--text-main"></div>
+                  <div class="skeleton skeleton--text-sub"></div>
+                </div>
+              </td>
+              <td class="text-center">
+                <div class="skeleton-cell-content">
+                  <div class="skeleton skeleton--text-main"></div>
+                  <div class="skeleton skeleton--text-sub"></div>
+                </div>
+              </td>
+              <td class="text-center">
+                <div class="skeleton skeleton--badge"></div>
+              </td>
+              <td class="text-center">
+                <div class="skeleton skeleton--date"></div>
+              </td>
+              <td class="text-center">
+                <div class="skeleton skeleton--badge-wide"></div>
+              </td>
+              <td class="text-center">
+                <div class="skeleton skeleton--badge-wide"></div>
+              </td>
+              <td class="text-center">
+                <div class="skeleton skeleton--button"></div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     } @else if (errorMessage()) {
       <div class="empty-state">
         <p>{{ errorMessage() }}</p>
@@ -107,6 +151,7 @@
             <th class="text-center">Retourdatum</th>
             <th class="text-center">Tijd over</th>
             <th class="text-center">Status</th>
+            <th class="text-center">Actie</th>
           </tr>
         </thead>
 
@@ -145,7 +190,7 @@
               </td>
 
               <td class="text-center">
-                {{ loan.returnDate | date: 'dd/MM/yyyy' }}
+                {{ loan.returnDate | date: "dd/MM/yyyy" }}
               </td>
 
               <td class="text-center">
@@ -159,11 +204,24 @@
                   {{ getLoanStatus(loan) }}
                 </span>
               </td>
+              <td class="text-center">
+                @if (canExtendLoan(loan)) {
+                  <button
+                    type="button"
+                    class="extend-loan-btn"
+                    (click)="openExtendLoanModal(loan, $event)"
+                  >
+                    Verlengen
+                  </button>
+                } @else {
+                  <span class="muted">Niet mogelijk</span>
+                }
+              </td>
             </tr>
 
             @if (isLoanExpanded(loan.id)) {
               <tr class="loan-details-row">
-                <td colspan="6">
+                <td colspan="7">
                   <div class="loan-details">
                     <div class="loan-details__header">
                       <strong>Alle boeken in deze lening</strong>
@@ -189,11 +247,15 @@
         </tbody>
       </table>
       @if (totalPages() > 1) {
-        <app-paging
-          [meta]="pagingMeta()"
-          (pageChange)="onPageChange($event)"
-        />
+        <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
       }
     }
   </section>
+  @if (selectedLoanToExtend(); as selectedLoan) {
+    <app-extend-loan
+      [loan]="selectedLoan"
+      (cancelled)="closeExtendLoanModal()"
+      (loanExtended)="handleLoanExtended($event)"
+    />
+  }
 </div>

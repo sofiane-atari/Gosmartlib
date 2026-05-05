@@ -7,6 +7,7 @@ import edu.ap.bib_backend.jpa.entity.loan.Loan;
 import edu.ap.bib_backend.jpa.repository.loan.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
+import edu.ap.bib_backend.service.loan.LoanService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -10,5 +10,4 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     List<Loan> findByUserIdOrderByLoanDateDesc(String userId);
 
-    int countByLoanId(Long loanId);
 }

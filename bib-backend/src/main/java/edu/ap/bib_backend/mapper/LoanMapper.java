@@ -28,6 +28,7 @@ public interface LoanMapper {
     @Mapping(target = "returnDate", expression = "java(loan.getReturnDate() != null ? loan.getReturnDate().toString() : null)")
     @Mapping(target = "returnedDate", expression = "java(loan.getReturnedDate() != null ? loan.getReturnedDate().toString() : null)")
     @Mapping(target = "status", expression = "java(loan.getStatus())")
+    @Mapping(target = "extensionCount", expression = "java(loan.getExtensions() != null ? loan.getExtensions().size() : 0)")
     LoanDTO toDto(Loan loan);
 
     default List<Long> mapBookIds(List<BookCopy> copies) {

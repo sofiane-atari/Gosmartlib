@@ -1,0 +1,106 @@
+<div class="modal-backdrop" (click)="close()">
+  <section class="extend-modal" (click)="$event.stopPropagation()">
+    <header class="extend-modal__header">
+      <div>
+        <h2>Lening verlengen</h2>
+        <p>Kies een nieuwe verlenging voor deze lening.</p>
+      </div>
+
+      <button type="button" class="icon-button" (click)="close()">
+        <lucide-icon [img]="X" [size]="20"></lucide-icon>
+      </button>
+    </header>
+
+    <div class="extend-modal__loan">
+      <div class="extend-modal__loan-icon">
+        <lucide-icon [img]="Clock" [size]="22"></lucide-icon>
+      </div>
+
+      <div>
+        <strong>Lening #{{ loan().id }}</strong>
+        <span
+          >Huidige retourdatum:
+          {{ loan().returnDate | date: "dd/MM/yyyy" }}</span
+        >
+        <span
+          >Al {{ loan().extensionCount ?? 0 }} van maximaal 2 keer
+          verlengd.</span
+        >
+      </div>
+    </div>
+
+    <div class="extend-options">
+      <button
+        type="button"
+        class="extend-option"
+        [class.extend-option--selected]="selectedExtensionType() === 'ONE_DAY'"
+        (click)="selectExtensionType('ONE_DAY')"
+      >
+        1 dag
+      </button>
+
+      <button
+        type="button"
+        class="extend-option"
+        [class.extend-option--selected]="selectedExtensionType() === 'ONE_WEEK'"
+        (click)="selectExtensionType('ONE_WEEK')"
+      >
+        1 week
+      </button>
+
+      <button
+        type="button"
+        class="extend-option"
+        [class.extend-option--selected]="
+          selectedExtensionType() === 'TWO_WEEKS'
+        "
+        (click)="selectExtensionType('TWO_WEEKS')"
+      >
+        2 weken
+      </button>
+
+      <button
+        type="button"
+        class="extend-option"
+        [class.extend-option--selected]="
+          selectedExtensionType() === 'THREE_WEEKS'
+        "
+        (click)="selectExtensionType('THREE_WEEKS')"
+      >
+        3 weken
+      </button>
+    </div>
+
+    <label class="custom-date">
+      <span>Aangepaste retourdatum</span>
+
+      <div class="custom-date__input">
+        <lucide-icon [img]="Calendar" [size]="18"></lucide-icon>
+        <input
+          type="date"
+          [ngModel]="customReturnDate()"
+          (ngModelChange)="updateCustomReturnDate($event)"
+        />
+      </div>
+    </label>
+
+    <footer class="extend-modal__actions">
+      <button type="button" class="button button--secondary" (click)="close()">
+        Annuleren
+      </button>
+
+      <button
+        type="button"
+        class="button button--primary"
+        [disabled]="!canSubmit() || isSubmitting()"
+        (click)="submit()"
+      >
+        @if (isSubmitting()) {
+          Verlengen...
+        } @else {
+          Verleng lening
+        }
+      </button>
+    </footer>
+  </section>
+</div>

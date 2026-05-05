@@ -11,22 +11,37 @@ import {
   AlertTriangle,
   ArrowRight,
 } from 'lucide-angular';
-import { LoansService} from "../../../services/loan/loans.service";
-import {Loan} from "../../../model/loan.model";
-import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
-import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
+import { LoansService } from '../../../services/loan/loans.service';
+import { Loan } from '../../../model/loan.model';
+import {
+  PagingMeta,
+  PagingComponent,
+} from '../../shared/paging/paging.component';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { ExtendLoanComponent } from './extend-loan/extend-loan.component';
+import { ToastService } from '../../../services/toast/toast.service';
 
 type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
 
 @Component({
   selector: 'app-book-management',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule, PagingComponent, ButtonHoverHelpComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    LucideAngularModule,
+    PagingComponent,
+    ButtonHoverHelpComponent,
+    ExtendLoanComponent,
+  ],
   templateUrl: './book-management.component.html',
   styleUrl: './book-management.component.css',
 })
 export class BookManagementComponent implements OnInit {
   private readonly loansService = inject(LoansService);
+  private readonly toastService = inject(ToastService);
+
+  protected readonly selectedLoanToExtend = signal<Loan | null>(null);
 
   protected readonly BookOpen = BookOpen;
   protected readonly RotateCcw = RotateCcw;
@@ -51,7 +66,7 @@ export class BookManagementComponent implements OnInit {
     currentPage: this.page(),
     pageSize: this.pageSize(),
     totalItems: this.totalItems(),
-    totalPages: this.totalPages()
+    totalPages: this.totalPages(),
   }));
 
   onPageChange(page: number): void {
@@ -60,16 +75,23 @@ export class BookManagementComponent implements OnInit {
     this.loadLoans();
   }
 
-  protected readonly activeLoans = computed(() =>
-    this.loans().filter((loan) => this.getLoanStatus(loan) === 'Uitgeleend').length,
+  protected readonly activeLoans = computed(
+    () =>
+      this.loans().filter((loan) => this.getLoanStatus(loan) === 'Uitgeleend')
+        .length,
   );
 
-  protected readonly overdueLoans = computed(() =>
-    this.loans().filter((loan) => this.getLoanStatus(loan) === 'Te laat').length,
+  protected readonly overdueLoans = computed(
+    () =>
+      this.loans().filter((loan) => this.getLoanStatus(loan) === 'Te laat')
+        .length,
   );
 
-  protected readonly returnedLoans = computed(() =>
-    this.loans().filter((loan) => this.getLoanStatus(loan) === 'Teruggebracht').length,
+  protected readonly returnedLoans = computed(
+    () =>
+      this.loans().filter(
+        (loan) => this.getLoanStatus(loan) === 'Teruggebracht',
+      ).length,
   );
 
   public ngOnInit(): void {
@@ -80,7 +102,6 @@ export class BookManagementComponent implements OnInit {
     if (loan.returnedDate) {
       return 'Teruggebracht';
     }
-
 
     const now = new Date();
     const returnDate = new Date(loan.returnDate);
@@ -106,22 +127,23 @@ export class BookManagementComponent implements OnInit {
 
     return 'status-badge status-badge--active';
   }
-  
+
   loadLoans(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
     this.loansService.getLoans(this.page(), this.pageSize()).subscribe({
       next: (response) => {
-      this.loans.set(response.data);
-      this.totalItems.set(response.meta.totalItems);
-      this.totalPages.set(response.meta.totalPages);
+        this.loans.set(response.data);
+        this.totalItems.set(response.meta.totalItems);
+        this.totalPages.set(response.meta.totalPages);
         this.isLoading.set(false);
       },
       error: () => {
         this.errorMessage.set('Leningen konden niet geladen worden.');
+        this.toastService.show('Leningen konden niet geladen worden.', 'error');
         this.isLoading.set(false);
-      }
+      },
     });
   }
 
@@ -210,7 +232,6 @@ export class BookManagementComponent implements OnInit {
     return 'time-left';
   }
 
-
   toggleLoan(loanId?: number): void {
     if (loanId == null) {
       return;
@@ -231,12 +252,52 @@ export class BookManagementComponent implements OnInit {
     return this.expandedLoanIds.has(loanId);
   }
 
-
   firstBook(loan: any) {
     return loan.books?.[0] ?? null;
   }
 
   bookCount(loan: any): number {
     return loan.books?.length ?? 0;
+  }
+
+  protected openExtendLoanModal(loan: Loan, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (loan.returnedDate) {
+      this.toastService.show(
+        'Een teruggebrachte lening kan niet verlengd worden.',
+        'error',
+      );
+      return;
+    }
+
+    if ((loan.extensionCount ?? 0) >= 2) {
+      this.toastService.show(
+        'Deze lening werd al maximaal twee keer verlengd.',
+        'error',
+      );
+      return;
+    }
+
+    this.selectedLoanToExtend.set(loan);
+  }
+
+  protected closeExtendLoanModal(): void {
+    this.selectedLoanToExtend.set(null);
+  }
+
+  protected handleLoanExtended(updatedLoan: Loan): void {
+    this.loans.update((loans) =>
+      loans.map((currentLoan) =>
+        currentLoan.id === updatedLoan.id ? updatedLoan : currentLoan,
+      ),
+    );
+
+    this.selectedLoanToExtend.set(null);
+    this.loadLoans();
+  }
+
+  protected canExtendLoan(loan: Loan): boolean {
+    return !loan.returnedDate && (loan.extensionCount ?? 0) < 2;
   }
 }
