@@ -1,0 +1,91 @@
+<section class="gamification-summary">
+  <header class="gamification-summary__header">
+    <div>
+      <p class="gamification-summary__eyebrow">Gamificatie</p>
+      <h2 class="gamification-summary__title">Jouw voortgang</h2>
+    </div>
+  </header>
+
+  @if (gamificationStore.isLoading()) {
+    <div class="empty-state">Gamificatiegegevens worden geladen...</div>
+  } @else if (gamificationStore.errorMessage()) {
+    <div class="empty-state empty-state--error">
+      {{ gamificationStore.errorMessage() }}
+    </div>
+  } @else {
+    <!-- STATISTIEKEN -->
+    <div class="gamification-summary__stats">
+      <article class="stat-card stat-card--purple">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="Award" [size]="24"></lucide-icon>
+        </div>
+        <div>
+          <span class="stat-card__label">Level</span>
+          <strong class="stat-card__value">{{
+            gamificationStore.currentLevel()
+          }}</strong>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--blue">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="Star" [size]="24"></lucide-icon>
+        </div>
+        <div>
+          <span class="stat-card__label">Punten</span>
+          <strong class="stat-card__value">{{
+            gamificationStore.totalPoints()
+          }}</strong>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card--green">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="Target" [size]="24"></lucide-icon>
+        </div>
+        <div>
+          <span class="stat-card__label">Tot volgend level</span>
+          <strong class="stat-card__value">{{
+            gamificationStore.pointsUntilNextLevel()
+          }}</strong>
+        </div>
+      </article>
+    </div>
+
+    <!-- LAATSTE PRESTATIES -->
+    <section class="gamification-summary__section">
+      <h3 class="gamification-summary__section-title">Laatste prestaties</h3>
+
+      @if (gamificationStore.latestAchievements().length === 0) {
+        <div class="empty-state">
+          Je hebt nog geen prestaties behaald. Ga snel aan de slag!
+        </div>
+      } @else {
+        <div class="gamification-summary__badge-grid">
+          @for (
+            badge of gamificationStore.latestAchievements();
+            track badge.code
+          ) {
+            <app-badge-card [badge]="badge"></app-badge-card>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- BADGE VOORTGANG -->
+    <section class="gamification-summary__section">
+      <h3 class="gamification-summary__section-title">Badgevoortgang</h3>
+
+      <div class="gamification-summary__progress-list">
+        @for (
+          progress of gamificationStore.badgeProgress();
+          track progress.badgeCode
+        ) {
+          <app-badge-progress-card
+            [progress]="progress"
+          ></app-badge-progress-card>
+        }
+      </div>
+    </section>
+  }
+</section>

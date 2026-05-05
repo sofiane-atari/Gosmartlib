@@ -24,6 +24,7 @@ import {
   Shield,
   FolderKanban,
   LibraryBig,
+  Trophy,
 } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
@@ -98,6 +99,7 @@ export class SidebarComponent {
     { icon: Heart, label: 'Favorietenlijst', route: '/reading-list' },
     { icon: History, label: 'Geschiedenis', route: '/history' },
     { icon: Star, label: 'Mijn reviews', route: '/reviews' },
+    { icon: Trophy, label: 'Prestaties', route: '/achievements' },
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/settings' },
     { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly: true },

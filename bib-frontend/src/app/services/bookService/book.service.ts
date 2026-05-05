@@ -20,6 +20,7 @@ import {
 })
 export class BookService {
   private apiUrl = `${environment.apiUrl}/books`;
+
   constructor(private http: HttpClient) {}
 
   getBooks(): Observable<Book[]> {

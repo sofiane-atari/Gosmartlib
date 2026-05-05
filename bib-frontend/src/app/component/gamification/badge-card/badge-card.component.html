@@ -1,0 +1,26 @@
+<article class="badge-card">
+  <div
+    class="badge-card__visual"
+    [style.border-color]="badge().themeColor"
+    [style.color]="badge().themeColor"
+  >
+    <img
+      class="badge-card__image"
+      [src]="badgeAssetPath"
+      [alt]="badge().name"
+    />
+
+    <span class="badge-card__fallback">
+      {{ badgeInitial }}
+    </span>
+  </div>
+
+  <div class="badge-card__content">
+    <h3 class="badge-card__title">{{ badge().name }}</h3>
+    <p class="badge-card__description">{{ badge().description }}</p>
+
+    <span class="badge-card__rarity">
+      {{ rarityLabel }}
+    </span>
+  </div>
+</article>

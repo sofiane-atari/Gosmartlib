@@ -1,0 +1,178 @@
+/* =========================================================
+   GAMIFICATION SUMMARY PAGE
+   ========================================================= */
+
+:host {
+  display: block;
+  font-family: var(--main-font, inherit);
+}
+
+.gamification-summary {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* --- Header --- */
+.gamification-summary__header {
+  margin-bottom: 8px;
+}
+
+.gamification-summary__eyebrow {
+  margin: 0 0 4px;
+  color: var(--main-color, #8a1e41);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gamification-summary__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* --- Stat Cards (Zelfde stijl als je eerdere dashboard) --- */
+.gamification-summary__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-surface, #ffffff);
+  border: 1.5px solid var(--border-color, #e5e7eb);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card div:last-child {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+
+.stat-card__value {
+  display: block;
+  font-size: 1.8rem;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--text-dark, #1f2937);
+}
+
+.stat-card__label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card__icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* Stat Card Kleuren */
+.stat-card--blue {
+  background: #fff5f8;
+  border-color: rgba(138, 30, 65, 0.3);
+}
+.stat-card--blue .stat-card__icon {
+  background: var(--main-color, #8a1e41);
+}
+
+.stat-card--purple {
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+}
+.stat-card--purple .stat-card__icon {
+  background: #4f46e5;
+}
+
+.stat-card--green {
+  background: #f1fff6;
+  border-color: #86efac;
+}
+.stat-card--green .stat-card__icon {
+  background: #16a34a;
+}
+
+/* --- Secties --- */
+.gamification-summary__section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gamification-summary__section-title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* --- Grids (Auto-fit zorgt voor perfecte responsiveness zonder media queries!) --- */
+.gamification-summary__badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.gamification-summary__progress-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 16px;
+}
+
+/* --- Empty / Loading / Error States --- */
+.empty-state {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-surface, #ffffff);
+  border: 1px dashed var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.empty-state--error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+/* --- Responsiveness Mobiel --- */
+@media (max-width: 600px) {
+  .gamification-summary__title {
+    font-size: 1.5rem;
+  }
+  .gamification-summary__progress-list {
+    grid-template-columns: 1fr;
+  }
+}
