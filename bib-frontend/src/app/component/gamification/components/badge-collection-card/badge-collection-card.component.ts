@@ -1,5 +1,5 @@
 import { Component, input, signal } from '@angular/core';
-import { GamificationProgress } from '../../../model/gamification/gamification.model';
+import { GamificationProgress } from '../../../../model/gamification/gamification.model';
 
 @Component({
   selector: 'app-badge-collection-card',

@@ -1,0 +1,54 @@
+:host {
+  display: block;
+  font-family: var(--main-font, inherit);
+}
+
+.badge-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 16px;
+}
+
+.badge-page__header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.badge-page__eyebrow {
+  margin: 0 0 6px;
+  color: var(--main-color, #8a1e41);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-page__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.badge-page__description {
+  margin: 4px 0 0;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .badge-page {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .badge-page__title {
+    font-size: 1.5rem;
+  }
+}

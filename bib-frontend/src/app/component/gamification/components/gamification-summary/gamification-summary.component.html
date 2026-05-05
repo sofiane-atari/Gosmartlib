@@ -51,6 +51,30 @@
         </div>
       </article>
     </div>
+    <section class="level-progress-card">
+      <div class="level-progress-card__header">
+        <div>
+          <h3 class="level-progress-card__title">
+            Op weg naar level {{ gamificationStore.currentLevel() + 1 }}
+          </h3>
+          <p class="level-progress-card__description">
+            Je bent al {{ gamificationStore.levelProgressPercentage() }}%
+            onderweg.
+          </p>
+        </div>
+
+        <strong class="level-progress-card__percentage">
+          {{ gamificationStore.levelProgressPercentage() }}%
+        </strong>
+      </div>
+
+      <div class="level-progress-card__track" aria-hidden="true">
+        <div
+          class="level-progress-card__fill"
+          [style.width.%]="gamificationStore.levelProgressPercentage()"
+        ></div>
+      </div>
+    </section>
 
     <!-- LAATSTE PRESTATIES -->
     <section class="gamification-summary__section">
@@ -77,13 +101,5 @@
       [isLoading]="gamificationStore.almostEarnedBadgesLoading()"
       [errorMessage]="gamificationStore.almostEarnedBadgesErrorMessage()"
     ></app-almost-earned-badges>
-
-    <!-- ALLE BADGES -->
-    <app-badge-collection
-      [badges]="gamificationStore.badges()"
-      [isLoading]="gamificationStore.badgesLoading()"
-      [errorMessage]="gamificationStore.badgesErrorMessage()"
-      (filtersChanged)="onBadgeFiltersChanged($event)"
-    ></app-badge-collection>
   }
 </section>

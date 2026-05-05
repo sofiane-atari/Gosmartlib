@@ -5,7 +5,8 @@ import { BookEditPageComponent } from './component/book/book-edit-page/book-edit
 import { BookManagementComponent } from './component/book/book-management/book-management.component';
 import { LessonTipRoutes } from './routes/lesson-tip.routes';
 import { LoanHistoryComponent } from './component/loan/loan-history/loan-history.component';
-import { AchievementsComponent } from './component/gamification/achievements/achievements.component';
+import { AchievementsComponent } from './component/gamification/pages/achievements/achievements.component';
+import { BadgePageComponent } from './component/gamification/pages/badge-page/badge-page.component';
 
 // Genre
 import { DashboardGenresComponent } from './component/genre/dashboard-genres/dashboard-genres.component';
@@ -107,6 +108,11 @@ export const routes: Routes = [
   {
     path: 'achievements',
     component: AchievementsComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'achievements/badges',
+    component: BadgePageComponent,
     canActivate: [authGuard],
   },
   { path: 'login', component: LoginComponent, canActivate: [publicOnlyGuard] },

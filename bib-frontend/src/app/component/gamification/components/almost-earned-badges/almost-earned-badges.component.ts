@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 
 import { BadgeProgressCardComponent } from '../badge-progress-card/badge-progress-card.component';
-import { GamificationProgress } from '../../../model/gamification/gamification.model';
+import { GamificationProgress } from '../../../../model/gamification/gamification.model';
 
 @Component({
   selector: 'app-almost-earned-badges',

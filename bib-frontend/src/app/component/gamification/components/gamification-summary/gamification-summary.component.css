@@ -167,6 +167,54 @@
   border-color: #fca5a5;
 }
 
+.level-progress-card {
+  padding: 20px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+}
+
+.level-progress-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.level-progress-card__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.level-progress-card__description {
+  margin: 4px 0 0;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.level-progress-card__percentage {
+  color: var(--main-color, #8a1e41);
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.level-progress-card__track {
+  height: 10px;
+  margin-top: 16px;
+  overflow: hidden;
+  background: var(--border-color, #e5e7eb);
+  border-radius: 999px;
+}
+
+.level-progress-card__fill {
+  height: 100%;
+  background: var(--main-color, #8a1e41);
+  border-radius: inherit;
+  transition: width 0.35s ease;
+}
+
 /* --- Responsiveness Mobiel --- */
 @media (max-width: 600px) {
   .gamification-summary__title {

@@ -1,0 +1,19 @@
+<main class="badge-page">
+  <header class="badge-page__header">
+    <p class="badge-page__eyebrow">Gamificatie</p>
+    <h1 class="badge-page__title">Badgecollectie</h1>
+    <p class="badge-page__description">
+      Ontdek welke badges je al hebt behaald en welke uitdagingen nog op je
+      wachten.
+    </p>
+  </header>
+
+  <app-gamification-tabs></app-gamification-tabs>
+
+  <app-badge-collection
+    [badges]="gamificationStore.badges()"
+    [isLoading]="gamificationStore.badgesLoading()"
+    [errorMessage]="gamificationStore.badgesErrorMessage()"
+    (filtersChanged)="onBadgeFiltersChanged($event)"
+  ></app-badge-collection>
+</main>

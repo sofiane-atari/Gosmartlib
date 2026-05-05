@@ -77,6 +77,19 @@ export class GamificationStoreService {
     return this.profileSignal()?.recentEvents ?? [];
   });
 
+  public readonly levelProgressPercentage = computed<number>(() => {
+    const totalPoints = this.totalPoints();
+    const pointsUntilNextLevel = this.pointsUntilNextLevel();
+    const pointsInCurrentLevel = totalPoints % 100;
+    const levelSize = pointsInCurrentLevel + pointsUntilNextLevel;
+
+    if (levelSize <= 0) {
+      return 100;
+    }
+
+    return Math.min(Math.round((pointsInCurrentLevel / levelSize) * 100), 100);
+  });
+
   public loadCurrentUserProfile(): void {
     this.isLoadingSignal.set(true);
     this.errorMessageSignal.set(null);

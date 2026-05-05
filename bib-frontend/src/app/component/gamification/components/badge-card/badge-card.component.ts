@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { GamificationBadge } from '../../../model/gamification/gamification.model';
+import { GamificationBadge } from '../../../../model/gamification/gamification.model';
 
 @Component({
   selector: 'app-badge-card',

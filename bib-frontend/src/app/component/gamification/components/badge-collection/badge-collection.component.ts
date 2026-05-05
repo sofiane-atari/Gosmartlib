@@ -5,8 +5,8 @@ import {
   GamificationBadgeCategory,
   GamificationBadgeRarity,
   GamificationProgress,
-} from '../../../model/gamification/gamification.model';
-import { GamificationBadgeFilters } from '../../../services/gamification/gamification.service';
+} from '../../../../model/gamification/gamification.model';
+import { GamificationBadgeFilters } from '../../../../services/gamification/gamification.service';
 import { BadgeCollectionCardComponent } from '../badge-collection-card/badge-collection-card.component';
 
 type BadgeStatusFilter = 'ALL' | 'COMPLETED' | 'LOCKED';
