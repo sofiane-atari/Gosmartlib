@@ -1,302 +1,180 @@
-// package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service;
 
-// import org.junit.jupiter.api.Test;
-// import org.junit.jupiter.api.extension.ExtendWith;
-// import org.mockito.Mock;
-// import org.mockito.junit.jupiter.MockitoExtension;
-// import org.springframework.data.redis.core.RedisTemplate;
-// import org.springframework.data.redis.core.ValueOperations;
+import edu.ap.bib_backend.jpa.entity.AuthSession;
+import edu.ap.bib_backend.jpa.repository.AuthSessionRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-// import java.util.concurrent.TimeUnit;
+import java.time.Instant;
+import java.util.Optional;
 
-// import static org.junit.jupiter.api.Assertions.assertEquals;
-// import static org.junit.jupiter.api.Assertions.assertFalse;
-// import static org.junit.jupiter.api.Assertions.assertNull;
-// import static org.junit.jupiter.api.Assertions.assertTrue;
-// import static org.mockito.Mockito.times;
-// import static org.mockito.Mockito.verify;
-// import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-// @ExtendWith(MockitoExtension.class)
-// class TokenStorageServiceTest {
+@ExtendWith(MockitoExtension.class)
+class TokenStorageServiceTest {
 
-// @Mock
-// private RedisTemplate<String, String> redisTemplate;
+    @Mock
+    private AuthSessionRepository authSessionRepository;
 
-// @Mock
-// private ValueOperations<String, String> valueOperations;
+    @InjectMocks
+    private TokenStorageService tokenStorageService;
 
-// @Test
-// void
-// givenUserIdAndJwtToken_WhenStoreToken_ThenStoreTokenWithExpectedKeyAndExpiry()
-// {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-1";
-// String token = "jwt-token-value";
-// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    private final String userId = "user123";
+    private final String jwtToken = "valid.jwt.token";
+    private final String role = "ROLE_STUDENT";
+    private final Instant expiry = Instant.now().plusSeconds(3600);
 
-// // Act
-// tokenStorageService.storeToken(userId, token);
+    @Test
+    void Given_NewUser_When_StoreToken_Then_SessionIsCreatedAndSaved() {
+        // Arrange
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.empty());
 
-// // Assert
-// verify(redisTemplate, times(1)).opsForValue();
-// verify(valueOperations, times(1)).set("auth:jwt:user:user-1", token, 24,
-// TimeUnit.HOURS);
-// }
+        // Act
+        tokenStorageService.storeToken(userId, jwtToken, role, expiry);
 
-// @Test
-// void givenExistingStoredToken_WhenGetToken_ThenReturnTokenValue() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-2";
-// String expectedToken = "stored-token";
-// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-// when(valueOperations.get("auth:jwt:user:user-2")).thenReturn(expectedToken);
+        // Assert
+        verify(authSessionRepository).save(any(AuthSession.class));
+    }
 
-// // Act
-// String result = tokenStorageService.getToken(userId);
+    @Test
+    void Given_ExistingUser_When_StoreToken_Then_SessionIsUpdatedAndSaved() {
+        // Arrange
+        AuthSession existingSession = new AuthSession(userId, "old.token", "OLD_ROLE", Instant.now());
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.of(existingSession));
 
-// // Assert
-// assertEquals(expectedToken, result);
-// verify(redisTemplate, times(1)).opsForValue();
-// verify(valueOperations, times(1)).get("auth:jwt:user:user-2");
-// }
+        // Act
+        tokenStorageService.storeToken(userId, jwtToken, role, expiry);
 
-// @Test
-// void givenExistingTokenKey_WhenHasActiveToken_ThenReturnTrue() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-3";
-// when(redisTemplate.hasKey("auth:jwt:user:user-3")).thenReturn(true);
+        // Assert
+        assertEquals(jwtToken, existingSession.getJwtToken());
+        assertEquals(role, existingSession.getRole());
+        assertEquals(expiry, existingSession.getJwtExpiresAt());
+        verify(authSessionRepository).save(existingSession);
+    }
 
-// // Act
-// boolean result = tokenStorageService.hasActiveToken(userId);
+    @Test
+    void Given_ValidActiveToken_When_GetToken_Then_TokenIsReturned() {
+        // Arrange
+        AuthSession session = new AuthSession(userId, jwtToken, role, expiry);
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.of(session));
 
-// // Assert
-// assertTrue(result);
-// verify(redisTemplate, times(1)).hasKey("auth:jwt:user:user-3");
-// }
+        // Act
+        String result = tokenStorageService.getToken(userId);
 
-// @Test
-// void givenMissingTokenKey_WhenHasActiveToken_ThenReturnFalse() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-4";
-// when(redisTemplate.hasKey("auth:jwt:user:user-4")).thenReturn(null);
+        // Assert
+        assertEquals(jwtToken, result);
+    }
 
-// // Act
-// boolean result = tokenStorageService.hasActiveToken(userId);
+    @Test
+    void Given_ExpiredToken_When_GetToken_Then_NullIsReturned() {
+        // Arrange
+        AuthSession session = new AuthSession(userId, jwtToken, role, Instant.now().minusSeconds(10));
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.of(session));
 
-// // Assert
-// assertFalse(result);
-// verify(redisTemplate, times(1)).hasKey("auth:jwt:user:user-4");
-// }
+        // Act
+        String result = tokenStorageService.getToken(userId);
 
-// @Test
-// void givenUserId_WhenRevokeToken_ThenDeleteTokenKey() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-5";
+        // Assert
+        assertNull(result);
+    }
 
-// // Act
-// tokenStorageService.revokeToken(userId);
+    @Test
+    void Given_ValidToken_When_HasActiveToken_Then_ReturnsTrue() {
+        // Arrange
+        AuthSession session = new AuthSession(userId, jwtToken, role, expiry);
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.of(session));
 
-// // Assert
-// verify(redisTemplate, times(1)).delete("auth:jwt:user:user-5");
-// verify(redisTemplate, times(1)).delete("smartschool:access:user:user-5");
-// verify(redisTemplate, times(1)).delete("auth:override:admin:user:user-5");
-// }
+        // Act
+        boolean result = tokenStorageService.hasActiveToken(userId);
 
-// @Test
-// void
-// givenUserIdAndRole_WhenStoreUserMetadata_ThenStoreRoleWithExpectedKeyAndExpiry()
-// {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-6";
-// String role = "ROLE_STUDENT";
-// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        // Assert
+        assertTrue(result);
+    }
 
-// // Act
-// tokenStorageService.storeUserMetadata(userId, role);
+    @Test
+    void Given_CorrectToken_When_IsCurrentToken_Then_ReturnsTrue() {
+        // Arrange
+        AuthSession session = new AuthSession(userId, jwtToken, role, expiry);
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.of(session));
 
-// // Assert
-// verify(redisTemplate, times(1)).opsForValue();
-// verify(valueOperations, times(1)).set("auth:role:user:user-6", role, 24,
-// TimeUnit.HOURS);
-// }
+        // Act
+        boolean result = tokenStorageService.isCurrentToken(userId, jwtToken);
 
-// @Test
-// void givenStoredUserMetadata_WhenGetUserRole_ThenReturnStoredRole() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-7";
-// String expectedRole = "ROLE_LIBRARIAN";
-// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        // Assert
+        assertTrue(result);
+    }
 
-// when(valueOperations.get("auth:role:user:user-7")).thenReturn(expectedRole);
+    @Test
+    void Given_UserId_When_RevokeToken_Then_RepositoryDeleteIsCalled() {
+        // Act
+        tokenStorageService.revokeToken(userId);
 
-// // Act
-// String result = tokenStorageService.getUserRole(userId);
+        // Assert
+        verify(authSessionRepository).deleteById(userId);
+    }
 
-// // Assert
-// assertEquals(expectedRole, result);
-// verify(redisTemplate, times(1)).opsForValue();
-// verify(valueOperations, times(1)).get("auth:role:user:user-7");
-// }
+    @Test
+    void Given_SmartschoolTokens_When_StoreSmartschoolTokens_Then_SessionIsUpdated() {
+        // Arrange
+        AuthSession session = new AuthSession(userId, jwtToken, role, expiry);
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.of(session));
+        String accessToken = "ss-access";
+        String refreshToken = "ss-refresh";
 
-// @Test
-// void givenUserId_WhenRemoveUserMetadata_ThenDeleteRoleKey() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-8";
+        // Act
+        tokenStorageService.storeSmartschoolTokens(userId, accessToken, refreshToken);
 
-// // Act
-// tokenStorageService.removeUserMetadata(userId);
+        // Assert
+        assertEquals(accessToken, session.getSmartschoolAccessToken());
+        assertEquals(refreshToken, session.getSmartschoolRefreshToken());
+        assertNotNull(session.getSmartschoolAccessTokenExpiresAt());
+        assertNotNull(session.getSmartschoolRefreshTokenExpiresAt());
+        verify(authSessionRepository).save(session);
+    }
 
-// // Assert
-// verify(redisTemplate, times(1)).delete("auth:role:user:user-8");
-// }
+    @Test
+    void Given_NoSession_When_StoreSmartschoolTokens_Then_ThrowsIllegalStateException() {
+        // Arrange
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.empty());
 
-// @Test
-// void
-// givenUserIdAndToken_WhenStoreSmartschoolAccessToken_ThenStoreWithExpectedKeyAndExpiry()
-// {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-9";
-// String token = "smartschool-token-abc";
-// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        // Act & Assert
+        assertThrows(IllegalStateException.class, () -> 
+            tokenStorageService.storeSmartschoolTokens(userId, "access", "refresh"));
+    }
 
-// // Act
-// tokenStorageService.storeSmartschoolAccessToken(userId, token);
+    @Test
+    void Given_AdminOverride_When_StoreAdminOverride_Then_SessionIsUpdated() {
+        // Arrange
+        AuthSession session = new AuthSession(userId, jwtToken, role, expiry);
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.of(session));
 
-// // Assert
-// verify(redisTemplate, times(1)).opsForValue();
-// verify(valueOperations, times(1)).set("smartschool:access:user:user-9",
-// token, 55, TimeUnit.MINUTES);
-// }
+        // Act
+        tokenStorageService.storeAdminOverride(userId, 30);
 
-// @Test
-// void
-// givenStoredSmartschoolToken_WhenGetSmartschoolAccessToken_ThenReturnTokenValue()
-// {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-10";
-// String expectedToken = "smartschool-token-xyz";
-// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-// when(valueOperations.get("smartschool:access:user:user-10")).thenReturn(expectedToken);
+        // Assert
+        assertTrue(session.isAdminOverride());
+        assertNotNull(session.getAdminOverrideExpiresAt());
+        verify(authSessionRepository).save(session);
+    }
 
-// // Act
-// String result = tokenStorageService.getSmartschoolAccessToken(userId);
+    @Test
+    void Given_ActiveAdminOverride_When_HasAdminOverride_Then_ReturnsTrue() {
+        // Arrange
+        AuthSession session = new AuthSession(userId, jwtToken, role, expiry);
+        session.setAdminOverride(true);
+        session.setAdminOverrideExpiresAt(Instant.now().plusSeconds(600));
+        when(authSessionRepository.findById(userId)).thenReturn(Optional.of(session));
 
-// // Assert
-// assertEquals(expectedToken, result);
-// verify(redisTemplate, times(1)).opsForValue();
-// verify(valueOperations, times(1)).get("smartschool:access:user:user-10");
-// }
+        // Act
+        boolean result = tokenStorageService.hasAdminOverride(userId);
 
-// @Test
-// void givenUserId_WhenRemoveSmartschoolAccessToken_ThenDeleteTokenKey() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// String userId = "user-11";
-
-// // Act
-// tokenStorageService.removeSmartschoolAccessToken(userId);
-
-// // Assert
-// verify(redisTemplate, times(1)).delete("smartschool:access:user:user-11");
-// }
-
-// @Test
-// void
-// givenUserIdAndTtl_WhenStoreAdminOverride_ThenStoreWithExpectedKeyAndExpiry()
-// {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-
-// // Act
-// tokenStorageService.storeAdminOverride("user-12", 30);
-
-// // Assert
-// verify(valueOperations, times(1))
-// .set("auth:override:admin:user:user-12", "true", 30, TimeUnit.MINUTES);
-// }
-
-// @Test
-// void givenExistingAdminOverride_WhenHasAdminOverride_ThenReturnTrue() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// when(redisTemplate.hasKey("auth:override:admin:user:user-13")).thenReturn(true);
-
-// // Act
-// boolean result = tokenStorageService.hasAdminOverride("user-13");
-
-// // Assert
-// assertTrue(result);
-// verify(redisTemplate, times(1)).hasKey("auth:override:admin:user:user-13");
-// }
-
-// @Test
-// void givenAdminOverrideKey_WhenRemoveAdminOverride_ThenDeleteKey() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-
-// // Act
-// tokenStorageService.removeAdminOverride("user-14");
-
-// // Assert
-// verify(redisTemplate, times(1)).delete("auth:override:admin:user:user-14");
-// }
-
-// @Test
-// void
-// givenAdminOverrideKey_WhenGetAdminOverrideTtlSeconds_ThenReturnRedisTtl() {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// when(redisTemplate.getExpire("auth:override:admin:user:user-15",
-// TimeUnit.SECONDS)).thenReturn(120L);
-
-// // Act
-// Long ttl = tokenStorageService.getAdminOverrideTtlSeconds("user-15");
-
-// // Assert
-// assertEquals(120L, ttl);
-// }
-
-// @Test
-// void
-// givenMissingAdminOverrideTtl_WhenGetAdminOverrideTtlSeconds_ThenReturnNull()
-// {
-// // Arrange
-// TokenStorageService tokenStorageService = new
-// TokenStorageService(redisTemplate);
-// when(redisTemplate.getExpire("auth:override:admin:user:user-16",
-// TimeUnit.SECONDS)).thenReturn(-2L);
-
-// // Act
-// Long ttl = tokenStorageService.getAdminOverrideTtlSeconds("user-16");
-
-// // Assert
-// assertNull(ttl);
-// }
-// }
+        // Assert
+        assertTrue(result);
+    }
+}
