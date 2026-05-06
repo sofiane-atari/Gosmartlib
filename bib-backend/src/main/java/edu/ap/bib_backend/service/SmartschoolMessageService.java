@@ -1,7 +1,5 @@
 package edu.ap.bib_backend.service;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -29,18 +27,15 @@ public class SmartschoolMessageService {
 
     public void sendMessage(String accessToken, String title, String body) {
         try {
-            String encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8);
-            String encodedBody = URLEncoder.encode(body, StandardCharsets.UTF_8);
-
-            String fullUrl = smartschoolBaseUrl + "/Api/V1/sendmsg"
-                    + "?access_token=" + accessToken
-                    + "&messageTitle=" + encodedTitle
-                    + "&messageBody=" + encodedBody;
+            org.springframework.web.util.UriComponentsBuilder builder = org.springframework.web.util.UriComponentsBuilder.fromHttpUrl(smartschoolBaseUrl + "/Api/V1/sendmsg")
+                    .queryParam("access_token", accessToken)
+                    .queryParam("messageTitle", title)
+                    .queryParam("messageBody", body);
 
             log.debug("Sending Smartschool message with title: {}", title);
 
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    fullUrl,
+                    builder.build().toUri(),
                     HttpMethod.GET,
                     null,
                     new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {});

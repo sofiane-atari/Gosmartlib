@@ -53,8 +53,7 @@ public interface LoanMapper {
                         entry.getKey().getTitle(),
                         entry.getKey().getAuthor(),
                         entry.getKey().getIsbn(),
-                        entry.getValue().size()
-                ))
+                        entry.getValue().size()))
                 .toList();
     }
 }

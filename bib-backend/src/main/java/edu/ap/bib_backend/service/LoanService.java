@@ -35,11 +35,13 @@ public class LoanService {
     private final UserRepository userRepository;
     private final SmartschoolMessageService smartschoolMessageService;
     private final SmartschoolTokenRefreshService smartschoolTokenRefreshService;
+    private final String frontendUrl;
 
     public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService,
             ExternalUserDisplayService externalUserDisplayService, BookCopyRepository bookCopyRepository,
             UserRepository userRepository, SmartschoolMessageService smartschoolMessageService,
-            SmartschoolTokenRefreshService smartschoolTokenRefreshService) {
+            SmartschoolTokenRefreshService smartschoolTokenRefreshService,
+            @org.springframework.beans.factory.annotation.Value("${FRONTEND_URL:http://localhost:4200}") String frontendUrl) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
@@ -48,6 +50,7 @@ public class LoanService {
         this.userRepository = userRepository;
         this.smartschoolMessageService = smartschoolMessageService;
         this.smartschoolTokenRefreshService = smartschoolTokenRefreshService;
+        this.frontendUrl = frontendUrl;
     }
 
     @Transactional
@@ -95,10 +98,77 @@ public class LoanService {
             log.info("Sending Smartschool message for new loan with ID: {}", token);
         }
 
-        smartschoolMessageService.sendMessage(token, "Nieuwe uitlening",
-                "Je hebt een nieuwe uitlening gemaakt met ID: " + loan.getId());
+        String htmlMessage = buildHtmlMessageBody(loan);
+        smartschoolMessageService.sendMessage(token, "Bevestiging Nieuwe Uitlening", htmlMessage);
 
         return loanMapper.toDto(loan);
+    }
+
+    private String buildHtmlMessageBody(Loan loan) {
+        StringBuilder sb = new StringBuilder();
+        // Base container
+        sb.append(
+                "<div style=\"font-family: Calibri, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a0a10; border: 1px solid #f0e4e8; border-radius: 8px; overflow: hidden;\">");
+
+        // Header
+        sb.append("<div style=\"background-color: #8a1e41; color: white; padding: 20px; text-align: center;\">");
+        sb.append("<h2 style=\"margin: 0;\">Bevestiging van je uitlening</h2>");
+        sb.append("</div>");
+
+        // Body container
+        sb.append("<div style=\"padding: 20px; background-color: #ffffff;\">");
+        sb.append("<p>Beste lener,</p>");
+        sb.append("<p>Je hebt met succes een nieuwe uitlening geregistreerd.</p>");
+
+        // Details box
+        sb.append(
+                "<div style=\"background-color: #fff5f8; padding: 15px; border-left: 4px solid #8a1e41; margin: 20px 0; border-radius: 0 4px 4px 0;\">");
+        sb.append("<p style=\"margin: 0 0 10px 0;\"><strong>Uitlening ID:</strong> ").append(loan.getId())
+                .append("</p>");
+
+        if (loan.getReturnDate() != null) {
+            sb.append("<p style=\"margin: 0 0 10px 0;\"><strong>Verwachte retourdatum:</strong> ")
+                    .append(loan.getReturnDate().toString()).append("</p>");
+        }
+
+        sb.append("<p style=\"margin: 0 0 5px 0;\"><strong>Geleende boeken:</strong></p>");
+        sb.append("<ul style=\"margin: 0; padding-left: 20px;\">");
+        if (loan.getCopies() != null && !loan.getCopies().isEmpty()) {
+            for (BookCopy copy : loan.getCopies()) {
+                if (copy != null && copy.getBook() != null) {
+                    Book book = copy.getBook();
+                    sb.append("<li style=\"margin-bottom: 5px;\">");
+                    sb.append("<a href=\"").append(frontendUrl).append("/book/").append(book.getId())
+                            .append("\" style=\"color: #8a1e41; text-decoration: none; font-weight: bold;\">");
+                    sb.append(book.getTitle());
+                    sb.append("</a>");
+                    if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
+                        sb.append(" <span style=\"color: #7a5560;\">(").append(book.getAuthor()).append(")</span>");
+                    }
+                    sb.append("</li>");
+                }
+            }
+        }
+        sb.append("</ul>");
+        sb.append("</div>");
+
+        sb.append("<p>Alvast veel leesplezier!</p>");
+
+        // Action button for History
+        sb.append("<div style=\"text-align: center; margin: 30px 0;\">");
+        sb.append("<a href=\"").append(frontendUrl).append(
+                "/history\" style=\"background-color: #8a1e41; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;\">Bekijk mijn uitleenhistoriek</a>");
+        sb.append("</div>");
+
+        // Footer
+        sb.append("<hr style=\"border: none; border-top: 1px solid #f0e4e8; margin: 30px 0 15px 0;\">");
+        sb.append(
+                "<p style=\"margin: 0; font-size: 12px; color: #7a5560; text-align: center;\">Dit is een automatisch gegenereerd bericht. Gelieve niet te reageren.</p>");
+
+        sb.append("</div>"); // End body container
+        sb.append("</div>"); // End base container
+
+        return sb.toString();
     }
 
     private int resolveCopiesCount(LoanDTO loanDTO, Long bookId) {
