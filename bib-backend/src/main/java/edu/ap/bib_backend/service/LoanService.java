@@ -21,9 +21,10 @@ import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.book.BookService;
 import jakarta.transaction.Transactional;
-
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class LoanService {
 
     private final LoanRepository loanRepository;
@@ -32,14 +33,21 @@ public class LoanService {
     private final ExternalUserDisplayService externalUserDisplayService;
     private final BookCopyRepository bookCopyRepository;
     private final UserRepository userRepository;
+    private final SmartschoolMessageService smartschoolMessageService;
+    private final SmartschoolTokenRefreshService smartschoolTokenRefreshService;
 
-    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService, ExternalUserDisplayService externalUserDisplayService, BookCopyRepository bookCopyRepository, UserRepository userRepository) {
+    public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService,
+            ExternalUserDisplayService externalUserDisplayService, BookCopyRepository bookCopyRepository,
+            UserRepository userRepository, SmartschoolMessageService smartschoolMessageService,
+            SmartschoolTokenRefreshService smartschoolTokenRefreshService) {
         this.loanRepository = loanRepository;
         this.loanMapper = loanMapper;
         this.bookService = bookService;
         this.externalUserDisplayService = externalUserDisplayService;
         this.bookCopyRepository = bookCopyRepository;
         this.userRepository = userRepository;
+        this.smartschoolMessageService = smartschoolMessageService;
+        this.smartschoolTokenRefreshService = smartschoolTokenRefreshService;
     }
 
     @Transactional
@@ -81,8 +89,15 @@ public class LoanService {
             }
         }
 
-        loan.setLoanDate(today);
-        loan = loanRepository.save(loan);
+        String token = smartschoolTokenRefreshService.getValidSmartschoolAccessToken(loanDTO.userId());
+
+        if (!token.isBlank() || !token.isEmpty()) {
+            log.info("Sending Smartschool message for new loan with ID: {}", token);
+        }
+
+        smartschoolMessageService.sendMessage(token, "Nieuwe uitlening",
+                "Je hebt een nieuwe uitlening gemaakt met ID: " + loan.getId());
+
         return loanMapper.toDto(loan);
     }
 
@@ -110,8 +125,6 @@ public class LoanService {
                 .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden."));
     }
 
-
-
     public List<LoanDTO> findAll() {
         List<Loan> loans = loanRepository.findAll();
 
@@ -124,9 +137,7 @@ public class LoanService {
                         loan -> loan.getUser().getSchool().getDomainName(),
                         Collectors.mapping(
                                 loan -> loan.getUser().getOneRosterSourcedId(),
-                                Collectors.toSet()
-                        )
-                ));
+                                Collectors.toSet())));
 
         System.out.println("UserIds per school: " + userIdsBySchoolCode);
 
@@ -136,8 +147,7 @@ public class LoanService {
             System.out.println("SchoolCode: " + schoolCode);
             System.out.println("UserIds naar OneRoster: " + userIds);
 
-            Map<String, String> names =
-                    externalUserDisplayService.getDisplayNames(schoolCode, userIds);
+            Map<String, String> names = externalUserDisplayService.getDisplayNames(schoolCode, userIds);
 
             System.out.println("Display names van OneRoster: " + names);
 
@@ -145,7 +155,6 @@ public class LoanService {
         });
 
         System.out.println("Alle display names: " + displayNamesByUserId);
-
 
         return loans.stream()
                 .map(loan -> {
@@ -157,8 +166,7 @@ public class LoanService {
                             .id(dto.id())
                             .userId(dto.userId())
                             .userDisplayName(
-                                    displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker")
-                            )
+                                    displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"))
                             .bookIds(dto.bookIds())
                             .books(dto.books())
                             .loanDate(dto.loanDate())
