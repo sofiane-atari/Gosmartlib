@@ -71,7 +71,7 @@ class AuthServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(userId, result.userId());
+        assertEquals(userId, result.id());
         assertEquals("Full", result.fullName());
         assertEquals(Role.STUDENT, result.role());
         assertEquals("Primary", result.primaryGroupName());
