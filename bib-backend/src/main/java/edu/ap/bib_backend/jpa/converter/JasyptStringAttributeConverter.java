@@ -24,7 +24,12 @@ public class JasyptStringAttributeConverter implements AttributeConverter<String
         if (dbData == null) {
             return null;
         }
-        return ENCRYPTOR.decrypt(dbData);
+        try {
+            return ENCRYPTOR.decrypt(dbData);
+        } catch (Exception e) {
+            // Fallback for existing unencrypted data to not break functionality
+            return dbData;
+        }
     }
 
     private static StringEncryptor buildEncryptor() {
@@ -36,7 +41,7 @@ public class JasyptStringAttributeConverter implements AttributeConverter<String
         SimpleStringPBEConfig config = new SimpleStringPBEConfig();
         config.setPassword(password);
         config.setAlgorithm("PBEWITHHMACSHA512ANDAES_256");
-        config.setKeyObtentionIterations("100000");
+        config.setKeyObtentionIterations("1000");
         config.setPoolSize("2");
         config.setProviderName("SunJCE");
         config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");

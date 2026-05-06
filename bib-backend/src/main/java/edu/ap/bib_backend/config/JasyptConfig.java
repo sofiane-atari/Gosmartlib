@@ -14,7 +14,7 @@ public class JasyptConfig {
         SimpleStringPBEConfig config = new SimpleStringPBEConfig();
         config.setPassword(System.getenv("JASYPT_ENCRYPTOR_PASSWORD"));
         config.setAlgorithm("PBEWITHHMACSHA512ANDAES_256");
-        config.setKeyObtentionIterations("100000");
+        config.setKeyObtentionIterations("1000");
         config.setPoolSize("2");
         config.setProviderName("SunJCE");
         config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
