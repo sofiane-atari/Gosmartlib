@@ -30,3 +30,29 @@ body {
   --border-color: #f0e4e8;
   --bg-surface: #ffffff;
 }
+
+/* =========================================================
+   GLOBAL SKELETON LOADER
+   ========================================================= */
+.skeleton {
+  background-color: var(--border-color, #e5e7eb);
+  border-radius: 8px; /* Standaard afronding */
+  animation: skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton--circle {
+  border-radius: 50%;
+}
+.skeleton--pill {
+  border-radius: 999px;
+}

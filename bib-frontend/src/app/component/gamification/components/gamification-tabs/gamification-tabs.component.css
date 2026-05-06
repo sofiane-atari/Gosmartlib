@@ -1,0 +1,32 @@
+.gamification-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px;
+  width: fit-content;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 999px;
+}
+
+.gamification-tabs__link {
+  padding: 9px 16px;
+  color: var(--text-muted, #6b7280);
+  border-radius: 999px;
+  font-family: var(--main-font, inherit);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.gamification-tabs__link:hover {
+  color: var(--main-color, #8a1e41);
+}
+
+.gamification-tabs__link--active {
+  color: #ffffff;
+  background: var(--main-color, #8a1e41);
+}

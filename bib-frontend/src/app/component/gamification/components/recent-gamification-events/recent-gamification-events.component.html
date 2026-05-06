@@ -1,0 +1,61 @@
+<section class="recent-events">
+  <div class="recent-events__header">
+    <div>
+      <app-button-hover-help
+        text="Hier zie je waarvoor je recent punten hebt verdiend, zoals recensies, teruggebrachte boeken en badgebeloningen."
+      >
+        <h3 class="recent-events__title">Recente activiteit</h3>
+      </app-button-hover-help>
+
+      <p class="recent-events__description">
+        Bekijk waarvoor je recent punten hebt verdiend.
+      </p>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="recent-events-list">
+      @for (dummy of [1, 2, 3, 4]; track dummy) {
+        <div class="skeleton-event-row">
+          <div class="skeleton skeleton--circle skeleton-event-icon"></div>
+          <div class="skeleton-event-content">
+            <div class="skeleton skeleton-event-title"></div>
+            <div class="skeleton skeleton-event-date"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (errorMessage()) {
+    <div class="recent-events__empty recent-events__empty--error">
+      {{ errorMessage() }}
+    </div>
+  } @else if (events().length === 0) {
+    <div class="recent-events__empty">Er is nog geen puntenactiviteit.</div>
+  } @else {
+    <div class="recent-events__list">
+      @for (event of events(); track event.createdAt + event.type) {
+        <article class="recent-events__item">
+          <div class="recent-events__points">
+            {{ getPointsLabel(event) }}
+          </div>
+
+          <div class="recent-events__content">
+            <h4 class="recent-events__reason">{{ event.reason }}</h4>
+            <p class="recent-events__type">
+              {{ getEventTypeLabel(event.type) }}
+            </p>
+          </div>
+        </article>
+      }
+    </div>
+
+    @if (meta(); as pagination) {
+      @if (pagination.totalPages > 1) {
+        <app-paging
+          [meta]="pagination"
+          (pageChange)="onPageChanged($event)"
+        ></app-paging>
+      }
+    }
+  }
+</section>

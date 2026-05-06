@@ -1,0 +1,60 @@
+/* =========================================================
+   ACHIEVEMENTS PAGE (Hoofdpagina)
+   ========================================================= */
+:host {
+  display: block;
+  font-family: var(--main-font, inherit);
+}
+
+.achievements-page {
+  max-width: 1080px; /* Zorgt dat de pagina niet te breed wordt op grote schermen */
+  margin: 0 auto; /* Centreert de pagina */
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 16px; /* Zelfde ademruimte als je andere pagina's */
+}
+
+/* --- Pagina Header --- */
+.achievements-page__header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+/* De 'Eyebrow' (het kleine labeltje boven de titel) in jouw huiskleur */
+.achievements-page__eyebrow {
+  margin: 0 0 6px;
+  color: var(--main-color, #8a1e41);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.achievements-page__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.8rem; /* Grote, duidelijke pagina titel */
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.achievements-page__description {
+  margin: 4px 0 0;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+/* --- Responsiveness Mobiel --- */
+@media (max-width: 600px) {
+  .achievements-page {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .achievements-page__title {
+    font-size: 1.5rem; /* Iets kleiner op telefoons */
+  }
+}

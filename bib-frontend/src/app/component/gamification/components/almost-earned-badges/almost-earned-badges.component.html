@@ -1,0 +1,33 @@
+<section class="almost-earned-badges">
+  <div class="almost-earned-badges__header">
+    <div>
+      <app-button-hover-help
+        text="Hier zie je badges waarvoor je al vooruitgang hebt geboekt en die je bijna kunt behalen."
+      >
+        <h3 class="almost-earned-badges__title">Bijna behaald</h3>
+      </app-button-hover-help>
+
+      <p class="almost-earned-badges__description">
+        Deze badges liggen binnen handbereik.
+      </p>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="almost-earned-badges__empty">Badges worden geladen...</div>
+  } @else if (errorMessage()) {
+    <div class="almost-earned-badges__empty almost-earned-badges__empty--error">
+      {{ errorMessage() }}
+    </div>
+  } @else if (badges().length === 0) {
+    <div class="almost-earned-badges__empty">
+      Er zijn momenteel geen badges die bijna behaald zijn.
+    </div>
+  } @else {
+    <div class="almost-earned-badges__grid">
+      @for (badge of badges(); track badge.badgeCode) {
+        <app-badge-progress-card [progress]="badge"></app-badge-progress-card>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,337 @@
+/* =========================================================
+   GAMIFICATION SUMMARY PAGE
+   ========================================================= */
+
+:host {
+  display: block;
+  font-family: var(--main-font, inherit);
+}
+
+.gamification-summary {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* --- Header --- */
+.gamification-summary__header {
+  margin-bottom: 8px;
+}
+
+.gamification-summary__eyebrow {
+  margin: 0 0 4px;
+  color: var(--main-color, #8a1e41);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gamification-summary__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* --- Stat Cards (Zelfde stijl als je eerdere dashboard) --- */
+/* --- Stat Cards Container --- */
+.gamification-summary__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: stretch; /* Zorgt dat ze allemaal even hoog worden */
+}
+
+/* 1. Zorg dat de Angular tag (buitenkant) de hele grid-cel vult */
+.gamification-summary__stats app-button-hover-help {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* 2. CRUCIAAL: ::ng-deep forceert de binnenkant van de hover-help component om op te rekken */
+.gamification-summary__stats
+  app-button-hover-help
+  ::ng-deep
+  .button-hover-help {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 3. Zorg dat de stat-card zelf meerekt met de wrapper */
+.gamification-summary__stats .stat-card {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.stat-card {
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-surface, #ffffff);
+  border: 1.5px solid var(--border-color, #e5e7eb);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card div:last-child {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+
+.stat-card__value {
+  display: block;
+  font-size: 1.8rem;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--text-dark, #1f2937);
+}
+
+.stat-card__label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card__icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* Stat Card Kleuren */
+.stat-card--blue {
+  background: #fff5f8;
+  border-color: rgba(138, 30, 65, 0.3);
+}
+.stat-card--blue .stat-card__icon {
+  background: var(--main-color, #8a1e41);
+}
+
+.stat-card--purple {
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+}
+.stat-card--purple .stat-card__icon {
+  background: #4f46e5;
+}
+
+.stat-card--green {
+  background: #f1fff6;
+  border-color: #86efac;
+}
+.stat-card--green .stat-card__icon {
+  background: #16a34a;
+}
+
+/* --- Secties --- */
+.gamification-summary__section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gamification-summary__section-title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* --- Grids (Auto-fit zorgt voor perfecte responsiveness zonder media queries!) --- */
+.gamification-summary__badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.gamification-summary__progress-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 16px;
+}
+
+/* --- Empty / Loading / Error States --- */
+.empty-state {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-surface, #ffffff);
+  border: 1px dashed var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.empty-state--error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.level-progress-card {
+  padding: 20px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+}
+
+.level-progress-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.level-progress-card__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.level-progress-card__description {
+  margin: 4px 0 0;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.level-progress-card__percentage {
+  color: var(--main-color, #8a1e41);
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.level-progress-card__track {
+  height: 10px;
+  margin-top: 16px;
+  overflow: hidden;
+  background: var(--border-color, #e5e7eb);
+  border-radius: 999px;
+}
+
+.level-progress-card__fill {
+  height: 100%;
+  background: var(--main-color, #8a1e41);
+  border-radius: inherit;
+  transition: width 0.35s ease;
+}
+
+.badge-collection-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+}
+
+.badge-collection-cta__title {
+  margin: 0;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.badge-collection-cta__description {
+  margin: 4px 0 0;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.badge-collection-cta__link {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  color: #ffffff;
+  background: var(--main-color, #8a1e41);
+  border: 1px solid var(--main-color, #8a1e41);
+  border-radius: 999px;
+  font-family: var(--main-font, inherit);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.badge-collection-cta__link:hover {
+  background: var(--main-color, #8a1e41);
+  border-color: var(--main-color, #8a1e41);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px -8px rgba(138, 30, 65, 0.45);
+}
+
+.badge-collection-cta__link:focus-visible {
+  outline: 3px solid var(--main-light-color, #fff5f8);
+  outline-offset: 2px;
+}
+
+/* Specifieke skeleton styling voor de summary kaarten */
+.stat-card__icon--skeleton {
+  background-color: var(--border-color, #e5e7eb) !important;
+}
+
+.skeleton-stat-label {
+  width: 60px;
+  height: 12px;
+  margin-bottom: 8px;
+}
+
+.skeleton-stat-value {
+  width: 40px;
+  height: 28px;
+}
+
+@media (max-width: 700px) {
+  .badge-collection-cta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .badge-collection-cta__link {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* --- Responsiveness Mobiel --- */
+@media (max-width: 600px) {
+  .gamification-summary__title {
+    font-size: 1.5rem;
+  }
+  .gamification-summary__progress-list {
+    grid-template-columns: 1fr;
+  }
+}

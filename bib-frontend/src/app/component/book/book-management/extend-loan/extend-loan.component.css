@@ -113,9 +113,10 @@
   cursor: pointer;
 }
 
-.extend-option:hover {
+.extend-option:hover:not(.extend-option--selected) {
   border-color: var(--main-color);
   background: var(--main-light-color);
+  color: var(--main-color);
 }
 
 .extend-option--selected {

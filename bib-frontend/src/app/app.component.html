@@ -1,13 +1,30 @@
 <div class="app-container" [class.sidebar-open]="isSidebarOpen()">
   @if (authService.isAuthenticated()) {
-    <app-sidebar [mobileOpen]="isSidebarOpen()" (sidebarClosed)="closeSidebar()"></app-sidebar>
+    <app-sidebar
+      [mobileOpen]="isSidebarOpen()"
+      (sidebarClosed)="closeSidebar()"
+    ></app-sidebar>
     <app-toast></app-toast>
     <app-session-expired-modal></app-session-expired-modal>
     <app-campus-selector-modal></app-campus-selector-modal>
 
     <!-- Mobile Menu Toggle Button -->
-    <button class="mobile-menu-toggle" (click)="toggleSidebar()" aria-label="Toggle menu">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button
+      class="mobile-menu-toggle"
+      (click)="toggleSidebar()"
+      aria-label="Toggle menu"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <line x1="3" y1="12" x2="21" y2="12"></line>
         <line x1="3" y1="6" x2="21" y2="6"></line>
         <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -15,10 +32,28 @@
     </button>
 
     <!-- Overlay for mobile -->
-    <div class="sidebar-overlay" [class.visible]="isSidebarOpen()" (click)="closeSidebar()"></div>
+    <div
+      class="sidebar-overlay"
+      [class.visible]="isSidebarOpen()"
+      (click)="closeSidebar()"
+    ></div>
   }
 
   <main class="main-content">
+    @if (authService.isAuthenticated()) {
+      @if (
+        gamificationNotificationStore.activeNotification();
+        as notification
+      ) {
+        <app-gamification-reward-notification
+          [notification]="notification"
+          (dismissed)="
+            gamificationNotificationStore.dismissActiveNotification()
+          "
+        ></app-gamification-reward-notification>
+      }
+    }
+
     <router-outlet></router-outlet>
   </main>
 </div>

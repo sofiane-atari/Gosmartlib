@@ -6,7 +6,9 @@ import { SidebarComponent } from './component/sidebar/sidebar.component';
 import { ToastComponent } from './component/shared/toast/toast.component';
 import { AuthService } from './services/authorization/auth.service';
 import { SessionExpiryModalComponent } from './component/shared/session-expired-modal/session-expired-modal.component';
-import { CampusSelectorModalComponent} from "./shared/campus-selector-modal/campus-selector-modal.component";
+import { GamificationRewardNotificationComponent } from './component/gamification/components/gamification-reward-notification/gamification-reward-notification.component';
+import { GamificationNotificationStoreService } from './services/gamification/store/gamification-notification-store.service';
+import { CampusSelectorModalComponent } from './shared/campus-selector-modal/campus-selector-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +20,7 @@ import { CampusSelectorModalComponent} from "./shared/campus-selector-modal/camp
     RouterOutlet,
     ToastComponent,
     SessionExpiryModalComponent,
+    GamificationRewardNotificationComponent,
     CampusSelectorModalComponent,
   ],
   templateUrl: './app.component.html',
@@ -25,6 +28,9 @@ import { CampusSelectorModalComponent} from "./shared/campus-selector-modal/camp
 })
 export class AppComponent {
   protected readonly authService = inject(AuthService);
+  protected readonly gamificationNotificationStore = inject(
+    GamificationNotificationStoreService,
+  );
 
   protected isSidebarOpen = signal(false);
 
@@ -40,6 +46,7 @@ export class AppComponent {
   public constructor() {
     if (this.authService.isAuthenticated()) {
       this.authService.fetchCurrentUser();
+      this.gamificationNotificationStore.loadUnreadNotifications();
     }
   }
 

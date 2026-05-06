@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#3c3c4c"/>
+      <stop offset="100%" stop-color="#18181f"/>
+    </radialGradient>
+    <filter id="ds"><feDropShadow dx="0" dy="6" stdDeviation="10"
+      flood-color="#000" flood-opacity=".55"/></filter>
+  </defs>
+  <circle cx="128" cy="128" r="124" fill="none"
+          stroke="#7C3AED" stroke-width="10" opacity=".28"/>
+  <circle cx="128" cy="128" r="112" fill="url(#bg)" filter="url(#ds)"/>
+  <circle cx="128" cy="128" r="112" fill="none"
+          stroke="#50505e" stroke-width="5"/>
+  <circle cx="128" cy="128" r="104" fill="none"
+          stroke="#ffffff" stroke-width="1" opacity=".07"/>
+
+  <circle cx="102" cy="106" r="46" fill="none" stroke="#606070" stroke-width="6.5"/>
+  <circle cx="102" cy="106" r="4" fill="#606070"/>
+  <line x1="102" y1="106" x2="86"  y2="86"  stroke="#606070" stroke-width="6" stroke-linecap="round"/>
+  <line x1="102" y1="106" x2="120" y2="92"  stroke="#606070" stroke-width="5" stroke-linecap="round"/>
+  <rect x="140" y="96" width="60" height="58" rx="7"
+        fill="none" stroke="#606070" stroke-width="6"/>
+  <line x1="140" y1="112" x2="200" y2="112" stroke="#606070" stroke-width="4.5" opacity=".7"/>
+  <line x1="156" y1="88"  x2="156" y2="100" stroke="#606070" stroke-width="5" stroke-linecap="round"/>
+  <line x1="184" y1="88"  x2="184" y2="100" stroke="#606070" stroke-width="5" stroke-linecap="round"/>
+  <polyline points="151,132 160,142 180,122"
+            fill="none" stroke="#606070" stroke-width="6"
+            stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g transform="translate(128,148)">
+    <rect x="-28" y="-2" width="56" height="44" rx="9"
+          fill="#2a2a35" stroke="#606070" stroke-width="3.5"/>
+    <path d="M-18,-2 v-16 a18,18 0 0,1 36,0 v16"
+          fill="none" stroke="#606070" stroke-width="6"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="0" cy="20" r="7" fill="#606070"/>
+    <line x1="0" y1="27" x2="0" y2="36"
+          stroke="#606070" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>

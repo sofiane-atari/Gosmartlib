@@ -1,0 +1,48 @@
+<article
+  class="badge-progress-card"
+  [class.badge-progress-card--completed]="progress().completed"
+  [class.badge-progress-card--locked]="!progress().completed"
+>
+  <div
+    class="badge-progress-card__visual"
+    [style.border-color]="progress().themeColor"
+    [style.color]="progress().themeColor"
+  >
+    <img
+      class="badge-progress-card__image"
+      [src]="badgeAssetPath"
+      [alt]="badgeAltText"
+    />
+
+    <span class="badge-progress-card__fallback">
+      {{ badgeInitial }}
+    </span>
+  </div>
+
+  <div class="badge-progress-card__content">
+    <div class="badge-progress-card__header">
+      <div class="badge-progress-card__text">
+        <h3 class="badge-progress-card__title">{{ progress().badgeName }}</h3>
+        <p class="badge-progress-card__description">
+          {{ progress().badgeDescription }}
+        </p>
+      </div>
+
+      <span class="badge-progress-card__count">{{ progressLabel }}</span>
+    </div>
+
+    <div class="badge-progress-card__track" aria-hidden="true">
+      <div
+        class="badge-progress-card__fill"
+        [style.width.%]="progress().progressPercentage"
+        [style.background-color]="progress().themeColor"
+      ></div>
+    </div>
+
+    @if (progress().completed) {
+      <span class="badge-progress-card__completed">✓ Behaald</span>
+    } @else {
+      <span class="badge-progress-card__locked">Nog niet behaald</span>
+    }
+  </div>
+</article>
