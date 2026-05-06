@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Book } from '../../../model/book/book.model';
@@ -55,23 +55,79 @@ export class CreateLoanComponent {
   public readonly isLoadingIsbnBooks = signal(false);
   public readonly isSubmitting = signal(false);
 
-  public readonly searchFirstname = signal('');
-  public readonly searchLastname = signal('');
-  public readonly bookSearchQuery = signal('');
-  public readonly bookSearchIsbn = signal('');
+  public readonly searchFirstname = signal(this.loadFromSession('searchFirstname', ''));
+  public readonly searchLastname = signal(this.loadFromSession('searchLastname', ''));
+  public readonly bookSearchQuery = signal(this.loadFromSession('bookSearchQuery', ''));
+  public readonly bookSearchIsbn = signal(this.loadFromSession('bookSearchIsbn', ''));
   public readonly users = signal<AuthUserDto[]>([]);
 
   public readonly catalogBooks = signal<Book[]>([]);
   public readonly isbnBooks = signal<Book[]>([]);
-  public readonly selectedUser = signal<AuthUserDto | null>(null);
-  public readonly selectedBooks = signal<Book[]>([]);
-  public readonly scannedBooks = signal<Book[]>([]);
-  public readonly schoolSummary = signal<SchoolSummaryDto | null>(null);
-  public readonly isCustomDate = signal(false);
+  public readonly selectedUser = signal<AuthUserDto | null>(this.loadFromSession('selectedUser', null));
+  public readonly selectedBooks = signal<Book[]>(this.loadFromSession('selectedBooks', []));
+  public readonly scannedBooks = signal<Book[]>(this.loadFromSession('scannedBooks', []));
+  public readonly schoolSummary = signal<SchoolSummaryDto | null>(this.loadFromSession('schoolSummary', null));
+  public readonly isCustomDate = signal(this.loadFromSession('isCustomDate', false));
   public readonly minReturnDate = signal(this.buildMinReturnDate());
+
+  private loadFromSession<T>(key: string, defaultValue: T): T {
+    if (typeof sessionStorage === 'undefined') return defaultValue;
+    try {
+      const stored = sessionStorage.getItem(`create_loan_${key}`);
+      return stored ? JSON.parse(stored) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
+  private saveToSession(key: string, value: any): void {
+    if (typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(`create_loan_${key}`, JSON.stringify(value));
+  }
+
+  private clearSession(): void {
+    if (typeof sessionStorage === 'undefined') return;
+    const keys = [
+      'selectedUser', 'selectedBooks', 'scannedBooks', 'searchFirstname', 
+      'searchLastname', 'bookSearchQuery', 'bookSearchIsbn', 'schoolSummary', 
+      'isCustomDate', 'returnDate'
+    ];
+    keys.forEach(k => sessionStorage.removeItem(`create_loan_${k}`));
+  }
+
+  public clearAllProgress(): void {
+    this.selectedUser.set(null);
+    this.selectedBooks.set([]);
+    this.scannedBooks.set([]);
+    this.users.set([]);
+    this.catalogBooks.set([]);
+    this.isbnBooks.set([]);
+    this.searchFirstname.set('');
+    this.searchLastname.set('');
+    this.bookSearchQuery.set('');
+    this.bookSearchIsbn.set('');
+    this.schoolSummary.set(null);
+    this.isCustomDate.set(false);
+    this.loanForm.reset({ returnDate: '' });
+    this.clearSession();
+  }
 
   public readonly hasValidRefreshToken = signal<boolean | null>(null);
   public readonly showNoTokenWarningModal = signal(false);
+  public readonly showClearProgressModal = signal(false);
+
+  public requestClearAllProgress(): void {
+    this.showClearProgressModal.set(true);
+  }
+
+  public confirmClearAllProgress(): void {
+    this.showClearProgressModal.set(false);
+    this.clearAllProgress();
+  }
+
+  public cancelClearProgress(): void {
+    this.showClearProgressModal.set(false);
+  }
 
   public readonly isLoadingBooks = computed(() => {
     return this.isLoadingCatalogBooks() || this.isLoadingIsbnBooks();
@@ -85,7 +141,7 @@ export class CreateLoanComponent {
   });
 
   protected loanForm = this.fb.group({
-    returnDate: ['', Validators.required],
+    returnDate: [this.loadFromSession<string>('returnDate', ''), Validators.required],
   });
 
   public constructor() {
@@ -132,6 +188,42 @@ export class CreateLoanComponent {
         this.fetchBookByIsbn(isbn, false);
       });
 
+    effect(() => {
+      this.saveToSession('selectedUser', this.selectedUser());
+      this.saveToSession('selectedBooks', this.selectedBooks());
+      this.saveToSession('scannedBooks', this.scannedBooks());
+      this.saveToSession('searchFirstname', this.searchFirstname());
+      this.saveToSession('searchLastname', this.searchLastname());
+      this.saveToSession('bookSearchQuery', this.bookSearchQuery());
+      this.saveToSession('bookSearchIsbn', this.bookSearchIsbn());
+      this.saveToSession('schoolSummary', this.schoolSummary());
+      this.saveToSession('isCustomDate', this.isCustomDate());
+    });
+
+    this.loanForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(val => {
+      this.saveToSession('returnDate', val.returnDate);
+    });
+
+    if (this.selectedUser()) {
+      const user = this.selectedUser()!;
+      this.userService.hasValidRefreshToken(user.id).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
+        next: (isValid) => this.hasValidRefreshToken.set(isValid),
+        error: () => this.hasValidRefreshToken.set(false)
+      });
+      
+      if (this.bookSearchQuery().trim()) {
+        this.triggerCatalogSearch();
+      }
+      if (this.bookSearchIsbn().trim()) {
+        this.triggerIsbnSearch();
+      }
+    }
+
+    if (this.searchFirstname().trim() || this.searchLastname().trim()) {
+      this.searchUsers();
+    }
 }
 
   public readonly filteredBooks = computed(() => {
@@ -188,8 +280,6 @@ export class CreateLoanComponent {
 
   public selectUser(user: AuthUserDto): void {
     this.selectedUser.set(user);
-    this.selectedBooks.set([]);
-    this.scannedBooks.set([]);
     this.schoolSummary.set(user.school ?? null);
     this.hasValidRefreshToken.set(null);
     this.updateDefaultReturnDate();
@@ -206,8 +296,6 @@ export class CreateLoanComponent {
 
   public clearSelectedUser(): void {
     this.selectedUser.set(null);
-    this.selectedBooks.set([]);
-    this.scannedBooks.set([]);
     this.catalogBooks.set([]);
     this.isbnBooks.set([]);
     this.bookSearchQuery.set('');
@@ -337,10 +425,7 @@ export class CreateLoanComponent {
         next: () => {
           this.isSubmitting.set(false);
           this.showSuccess('De lening is succesvol aangemaakt.');
-          this.selectedBooks.set([]);
-          this.loanForm.reset({ returnDate: '' });
-          this.triggerCatalogSearch();
-          this.triggerIsbnSearch();
+          this.clearAllProgress();
           void this.router.navigate(['/books-management']);
         },
         error: () => {
@@ -359,7 +444,7 @@ export class CreateLoanComponent {
         next: (users) => {
           this.users.set(users);
           this.isLoadingUsers.set(false);
-          if (users.length === 1 && !this.selectedUser()) {
+          if (users.length === 1) {
             this.selectUser(users[0]);
           }
         },

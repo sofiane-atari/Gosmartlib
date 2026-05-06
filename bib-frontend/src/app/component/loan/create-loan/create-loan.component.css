@@ -10,7 +10,7 @@
 
 .page-header {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   gap: 1rem;
   align-items: center;
   padding: 1.5rem 1.8rem;
@@ -18,6 +18,23 @@
   border-radius: 1.2rem;
   background: linear-gradient(135deg, #faf7f8, #f3f5f8);
   box-shadow: 0 8px 20px rgba(26, 10, 16, 0.06);
+}
+
+.clear-btn {
+  padding: 0.6rem 1.2rem;
+  border: 1px solid #dc2626;
+  background-color: transparent;
+  color: #dc2626;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.clear-btn:hover {
+  background-color: #fef2f2;
 }
 
 .header-icon {
@@ -109,11 +126,17 @@ h1 {
 
   .page-header {
     grid-template-columns: 1fr;
+    text-align: center;
   }
 
   .header-icon {
     width: 2.8rem;
     height: 2.8rem;
+    margin: 0 auto;
+  }
+
+  .header-actions {
+    margin-top: 0.5rem;
   }
 }
 

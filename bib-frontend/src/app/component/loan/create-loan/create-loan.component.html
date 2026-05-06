@@ -9,6 +9,9 @@
         leg een terugbrengdatum vast.
       </p>
     </div>
+    <div class="header-actions">
+      <button class="clear-btn" (click)="requestClearAllProgress()">Wis alle voortgang</button>
+    </div>
   </header>
 
   <section class="step-overview">
@@ -81,4 +84,15 @@
   [isConfirmLoading]="isSubmitting()"
   (confirmRequested)="confirmLoanWithWarning()"
   (cancelRequested)="cancelLoanWarning()"
+/>
+
+<app-confirmation-modal
+  [isVisible]="showClearProgressModal()"
+  title="Voortgang wissen?"
+  description="Weet je zeker dat je alle huidige voortgang (geselecteerde gebruiker en boeken) wilt wissen? Dit kan niet ongedaan worden gemaakt."
+  confirmLabel="Ja, wis voortgang"
+  cancelLabel="Annuleren"
+  [isConfirmLoading]="false"
+  (confirmRequested)="confirmClearAllProgress()"
+  (cancelRequested)="cancelClearProgress()"
 />
