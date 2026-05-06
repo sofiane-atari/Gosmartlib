@@ -80,6 +80,9 @@ class SmartschoolOAuth2UserServiceTest {
     @MockitoBean
     private SchoolRepository schoolRepository;
 
+    @MockitoBean
+    private OneRosterClient oneRosterClient;
+
     private MockRestServiceServer mockRestServiceServer;
 
     @BeforeEach
