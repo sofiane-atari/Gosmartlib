@@ -23,15 +23,18 @@ public class BadgeService {
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final PointService pointService;
+    private final GamificationNotificationService gamificationNotificationService;
 
     public BadgeService(
             BadgeRepository badgeRepository,
             UserBadgeRepository userBadgeRepository,
-            PointService pointService
+            PointService pointService,
+            GamificationNotificationService gamificationNotificationService
     ) {
         this.badgeRepository = badgeRepository;
         this.userBadgeRepository = userBadgeRepository;
         this.pointService = pointService;
+        this.gamificationNotificationService = gamificationNotificationService;
     }
 
     @Transactional(readOnly = true)
@@ -83,6 +86,7 @@ public class BadgeService {
         userBadgeRepository.save(userBadge);
 
         awardBadgeRewardPoints(profile, badge);
+        gamificationNotificationService.createBadgeUnlockedNotification(profile, badge);
 
         return true;
     }

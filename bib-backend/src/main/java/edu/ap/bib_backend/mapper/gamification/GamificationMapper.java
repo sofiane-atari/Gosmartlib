@@ -3,10 +3,12 @@ package edu.ap.bib_backend.mapper.gamification;
 import org.springframework.stereotype.Component;
 
 import edu.ap.bib_backend.dto.gamification.GamificationBadgeDTO;
+import edu.ap.bib_backend.dto.gamification.GamificationNotificationDTO;
 import edu.ap.bib_backend.dto.gamification.GamificationProgressDTO;
 import edu.ap.bib_backend.dto.gamification.GamificationRecentEventDTO;
 import edu.ap.bib_backend.jpa.entity.gamification.Badge;
 import edu.ap.bib_backend.jpa.entity.gamification.BadgeProgress;
+import edu.ap.bib_backend.jpa.entity.gamification.GamificationNotification;
 import edu.ap.bib_backend.jpa.entity.gamification.PointTransaction;
 import edu.ap.bib_backend.jpa.entity.gamification.UserBadge;
 
@@ -75,6 +77,22 @@ public class GamificationMapper {
                 transaction.getPoints(),
                 transaction.getReason(),
                 transaction.getCreatedAt()
+        );
+    }
+
+    public GamificationNotificationDTO toNotificationDTO(
+            GamificationNotification notification
+    ) {
+        return new GamificationNotificationDTO(
+                notification.getId(),
+                notification.getType().name(),
+                notification.getTitle(),
+                notification.getMessage(),
+                notification.getAssetKey(),
+                notification.getThemeColor(),
+                notification.getRarity().name(),
+                notification.getRewardPoints(),
+                notification.getCreatedAt()
         );
     }
 
