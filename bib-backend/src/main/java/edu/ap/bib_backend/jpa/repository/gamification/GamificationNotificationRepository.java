@@ -9,7 +9,7 @@ import edu.ap.bib_backend.jpa.entity.gamification.GamificationProfile;
 
 public interface GamificationNotificationRepository extends JpaRepository<GamificationNotification, Long> {
 
-    List<GamificationNotification> findTop5ByProfileAndReadFalseOrderByCreatedAtDesc(
-            GamificationProfile profile
-    );
+    List<GamificationNotification> findTop5ByProfileAndReadAtIsNullOrderByCreatedAtDesc(
+        GamificationProfile profile
+);
 }

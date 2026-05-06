@@ -1,12 +1,24 @@
 package edu.ap.bib_backend.jpa.entity.gamification;
 
-
 import java.time.LocalDateTime;
 
 import edu.ap.bib_backend.jpa.enums.gamification.BadgeRarity;
 import edu.ap.bib_backend.jpa.enums.gamification.GamificationNotificationType;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "gamification_notifications")
 public class GamificationNotification {
@@ -41,8 +53,8 @@ public class GamificationNotification {
     @Column(nullable = false)
     private int rewardPoints;
 
-    @Column(nullable = false)
-    private boolean read;
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -68,55 +80,15 @@ public class GamificationNotification {
         this.themeColor = themeColor;
         this.rarity = rarity;
         this.rewardPoints = rewardPoints;
-        this.read = false;
+        this.readAt = null;
         this.createdAt = LocalDateTime.now();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public GamificationProfile getProfile() {
-        return profile;
-    }
-
-    public GamificationNotificationType getType() {
-        return type;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public String getAssetKey() {
-        return assetKey;
-    }
-
-    public String getThemeColor() {
-        return themeColor;
-    }
-
-    public BadgeRarity getRarity() {
-        return rarity;
-    }
-
-    public int getRewardPoints() {
-        return rewardPoints;
-    }
-
     public boolean isRead() {
-        return read;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+        return readAt != null;
     }
 
     public void markAsRead() {
-        this.read = true;
+        this.readAt = LocalDateTime.now();
     }
 }

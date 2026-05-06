@@ -12,6 +12,7 @@ import {
 } from '../../model/gamification/gamification.model';
 import { PageingOpt } from '../../model/shared/paging/PageingOpt.model';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
+import { GamificationNotification } from '../../model/gamification/gamification-notification.model';
 
 export interface GamificationBadgeFilters {
   category?: GamificationBadgeCategory;
@@ -27,6 +28,7 @@ export class GamificationService {
   private readonly badgesApiUrl = `${environment.apiUrl}/gamification/me/badges`;
   private readonly almostEarnedBadgesApiUrl = `${environment.apiUrl}/gamification/me/badges/almost-earned`;
   private readonly recentEventsApiUrl = `${environment.apiUrl}/gamification/me/recent-events`;
+  private readonly unreadNotificationsApiUrl = `${environment.apiUrl}/gamification/me/notifications/unread`;
 
   private readonly httpClient = inject(HttpClient);
 
@@ -74,6 +76,19 @@ export class GamificationService {
     return this.httpClient.get<PaginatedResponse<GamificationRecentEvent>>(
       this.recentEventsApiUrl,
       { params },
+    );
+  }
+
+  public getUnreadNotifications(): Observable<GamificationNotification[]> {
+    return this.httpClient.get<GamificationNotification[]>(
+      this.unreadNotificationsApiUrl,
+    );
+  }
+
+  public markNotificationAsRead(notificationId: number): Observable<void> {
+    return this.httpClient.patch<void>(
+      `${environment.apiUrl}/gamification/me/notifications/${notificationId}/read`,
+      {},
     );
   }
 }

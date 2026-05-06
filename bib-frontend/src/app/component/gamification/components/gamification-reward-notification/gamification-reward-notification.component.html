@@ -1,0 +1,73 @@
+<div class="reward-notification-backdrop">
+  <article
+    class="reward-notification"
+    [style.border-color]="notification().themeColor"
+  >
+    <button
+      type="button"
+      class="reward-notification__close"
+      aria-label="Beloningsmelding sluiten"
+      (click)="closeNotification()"
+    >
+      ×
+    </button>
+
+    <div
+      class="reward-notification__glow"
+      [style.background]="notification().themeColor"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class="reward-notification__badge"
+      [style.border-color]="notification().themeColor"
+    >
+      @if (!hasImageError()) {
+        <img
+          class="reward-notification__badge-image"
+          [src]="badgeAssetPath"
+          [alt]="notification().title"
+          (error)="markImageAsFailed()"
+        />
+      } @else {
+        <span class="reward-notification__fallback">
+          {{ badgeInitial }}
+        </span>
+      }
+    </div>
+
+    <div class="reward-notification__content">
+      <p class="reward-notification__eyebrow">Nieuwe beloning</p>
+
+      <h2 class="reward-notification__title">
+        {{ notification().title }}
+      </h2>
+
+      <p class="reward-notification__message">
+        {{ notification().message }}
+      </p>
+
+      <div class="reward-notification__meta">
+        <span
+          class="reward-notification__rarity"
+          [style.color]="notification().themeColor"
+        >
+          {{ rarityLabel }}
+        </span>
+
+        <span class="reward-notification__points">
+          +{{ notification().rewardPoints }} punten
+        </span>
+      </div>
+
+      <button
+        type="button"
+        class="reward-notification__button"
+        [style.background]="notification().themeColor"
+        (click)="closeNotification()"
+      >
+        Geweldig!
+      </button>
+    </div>
+  </article>
+</div>

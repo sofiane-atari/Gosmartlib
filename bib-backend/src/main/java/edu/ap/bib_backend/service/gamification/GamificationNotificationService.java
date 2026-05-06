@@ -70,7 +70,7 @@ public class GamificationNotificationService {
         GamificationProfile profile = getProfileForUserId(currentUserId);
 
         return notificationRepository
-                .findTop5ByProfileAndReadFalseOrderByCreatedAtDesc(profile)
+                .findTop5ByProfileAndReadAtIsNullOrderByCreatedAtDesc(profile)
                 .stream()
                 .map(gamificationMapper::toNotificationDTO)
                 .toList();
