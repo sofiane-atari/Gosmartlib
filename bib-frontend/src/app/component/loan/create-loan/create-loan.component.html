@@ -37,6 +37,15 @@
     (userSelected)="selectUser($event)"
     (clearSelectedUserRequested)="clearSelectedUser()" />
 
+  @if (selectedUser() !== null && hasValidRefreshToken() === false) {
+    <div class="warning-banner">
+      <span class="warning-icon">⚠️</span>
+      <div>
+        <strong>Waarschuwing:</strong> Deze gebruiker heeft nog niet succesvol ingelogd of de sessie is verlopen. Er worden <strong>geen</strong> bevestigingsmails of herinneringen gestuurd totdat hij/zij minstens één keer inlogt.
+      </div>
+    </div>
+  }
+
   @if (selectedUser() !== null) {
     <app-scan-isbn
       [scannedBooks]="scannedBooks()"
@@ -62,3 +71,14 @@
       (useDefaultRequested)="onUseDefaultDate()" />
   }
 </section>
+
+<app-confirmation-modal
+  [isVisible]="showNoTokenWarningModal()"
+  title="Weet je het zeker?"
+  description="Deze gebruiker heeft nog niet succesvol ingelogd of de sessie is verlopen. Er worden geen bevestigingsmails of herinneringen gestuurd totdat hij/zij minstens één keer inlogt. Wil je deze lening toch aanmaken?"
+  confirmLabel="Ja, lening aanmaken"
+  cancelLabel="Annuleren"
+  [isConfirmLoading]="isSubmitting()"
+  (confirmRequested)="confirmLoanWithWarning()"
+  (cancelRequested)="cancelLoanWarning()"
+/>

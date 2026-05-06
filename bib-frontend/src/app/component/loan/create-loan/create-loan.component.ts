@@ -18,6 +18,7 @@ import { UserSelectionPanelComponent } from './user-selection-panel/user-selecti
 import { BookSelectionPanelComponent } from './book-selection-panel/book-selection-panel.component';
 import { LoanSummaryPanelComponent } from './loan-summary-panel/loan-summary-panel.component';
 import { ScanIsbnComponent } from './scan-isbn/scan-isbn.component';
+import { ConfirmationModalComponent } from '../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-create-loan',
@@ -29,6 +30,7 @@ import { ScanIsbnComponent } from './scan-isbn/scan-isbn.component';
     BookSelectionPanelComponent,
     LoanSummaryPanelComponent,
     ScanIsbnComponent,
+    ConfirmationModalComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrl: './create-loan.component.css',
@@ -67,6 +69,9 @@ export class CreateLoanComponent {
   public readonly schoolSummary = signal<SchoolSummaryDto | null>(null);
   public readonly isCustomDate = signal(false);
   public readonly minReturnDate = signal(this.buildMinReturnDate());
+
+  public readonly hasValidRefreshToken = signal<boolean | null>(null);
+  public readonly showNoTokenWarningModal = signal(false);
 
   public readonly isLoadingBooks = computed(() => {
     return this.isLoadingCatalogBooks() || this.isLoadingIsbnBooks();
@@ -186,9 +191,17 @@ export class CreateLoanComponent {
     this.selectedBooks.set([]);
     this.scannedBooks.set([]);
     this.schoolSummary.set(user.school ?? null);
+    this.hasValidRefreshToken.set(null);
     this.updateDefaultReturnDate();
     this.triggerCatalogSearch();
     this.triggerIsbnSearch();
+
+    this.userService.hasValidRefreshToken(user.id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (isValid) => this.hasValidRefreshToken.set(isValid),
+      error: () => this.hasValidRefreshToken.set(false)
+    });
   }
 
   public clearSelectedUser(): void {
@@ -199,6 +212,7 @@ export class CreateLoanComponent {
     this.isbnBooks.set([]);
     this.bookSearchQuery.set('');
     this.bookSearchIsbn.set('');
+    this.hasValidRefreshToken.set(null);
   }
 
   public onBookSearchQueryChange(event: Event): void {
@@ -268,8 +282,6 @@ export class CreateLoanComponent {
       return;
     }
 
-    this.isSubmitting.set(true);
-
     const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
       id: Number(id),
       copiesCount: count,
@@ -282,10 +294,41 @@ export class CreateLoanComponent {
 
     const bookIds = booksPayload.map((entry) => entry.id);
 
+    if (this.hasValidRefreshToken() === false) {
+      this.showNoTokenWarningModal.set(true);
+      return;
+    }
+
+    this.submitLoan(user.id, bookIds, booksPayload, returnDate);
+  }
+
+  public confirmLoanWithWarning(): void {
+    this.showNoTokenWarningModal.set(false);
+    
+    const user = this.selectedUser();
+    const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
+      id: Number(id),
+      copiesCount: count,
+    }));
+    const bookIds = booksPayload.map((entry) => entry.id);
+    const returnDate = this.loanForm.controls.returnDate.value;
+
+    if (user && returnDate) {
+      this.submitLoan(user.id, bookIds, booksPayload, returnDate);
+    }
+  }
+
+  public cancelLoanWarning(): void {
+    this.showNoTokenWarningModal.set(false);
+  }
+
+  private submitLoan(userId: string, bookIds: number[], booksPayload: any[], returnDate: string): void {
+    this.isSubmitting.set(true);
+    
     this.loansService
       .createLoan({
         id: 0,
-        userId: user.id,
+        userId: userId,
         bookIds: bookIds,
         books: booksPayload,
         returnDate: toLocalDate(new Date(returnDate)),

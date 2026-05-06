@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/users")
@@ -25,15 +26,22 @@ public class UserController {
 
     private final UserService userService;
     private final CurrentUserService currentUserService;
+    private final edu.ap.bib_backend.service.TokenStorageService tokenStorageService;
 
-    public UserController(UserService userService, CurrentUserService currentUserService) {
+    public UserController(UserService userService, CurrentUserService currentUserService, edu.ap.bib_backend.service.TokenStorageService tokenStorageService) {
         this.userService = userService;
         this.currentUserService = currentUserService;
+        this.tokenStorageService = tokenStorageService;
     }
 
     @GetMapping
     public ResponseEntity<List<AuthUserDto>> getUsers(@ModelAttribute UserGetOptions options) {
         return ResponseEntity.ok(userService.getUsers(options));
+    }
+
+    @GetMapping("/has-refresh-token")
+    public ResponseEntity<Boolean> hasRefreshToken(@RequestParam String userId) {
+        return ResponseEntity.ok(tokenStorageService.hasValidSmartschoolRefreshToken(userId));
     }
 
     @PatchMapping("/{userId}/review-access")

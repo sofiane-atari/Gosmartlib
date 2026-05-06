@@ -116,3 +116,19 @@ h1 {
     height: 2.8rem;
   }
 }
+
+.warning-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.warning-icon {
+  font-size: 24px;
+}

@@ -100,7 +100,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  width: 25%;
+  width: fit-content;
 }
 
 .custom-date-btn:hover {

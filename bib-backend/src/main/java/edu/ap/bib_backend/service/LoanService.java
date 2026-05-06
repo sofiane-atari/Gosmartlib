@@ -92,14 +92,17 @@ public class LoanService {
             }
         }
 
-        String token = smartschoolTokenRefreshService.getValidSmartschoolAccessToken(loanDTO.userId());
+        try {
+            String token = smartschoolTokenRefreshService.getValidSmartschoolAccessToken(loanDTO.userId());
 
-        if (!token.isBlank() || !token.isEmpty()) {
-            log.info("Sending Smartschool message for new loan with ID: {}", token);
+            if (token != null && !token.isBlank()) {
+                log.info("Sending Smartschool message for new loan with user ID: {}", loanDTO.userId());
+                String htmlMessage = buildHtmlMessageBody(loan);
+                smartschoolMessageService.sendMessage(token, "Bevestiging Nieuwe Uitlening", htmlMessage);
+            }
+        } catch (Exception e) {
+            log.warn("Could not send confirmation message for loan to user {}: {}", loanDTO.userId(), e.getMessage());
         }
-
-        String htmlMessage = buildHtmlMessageBody(loan);
-        smartschoolMessageService.sendMessage(token, "Bevestiging Nieuwe Uitlening", htmlMessage);
 
         return loanMapper.toDto(loan);
     }
