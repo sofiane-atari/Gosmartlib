@@ -20,6 +20,7 @@ import edu.ap.bib_backend.dto.JwtTokenDTO;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.SmartschoolRefreshResult;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
@@ -47,11 +48,13 @@ public class AuthService {
     @Value("${spring.security.oauth2.client.provider.smartschool.token-uri}")
     private String smartschoolTokenUri;
 
-    public AuthService(JwtService jwtService,
+    public AuthService(
+            JwtService jwtService,
             TokenStorageService tokenStorageService,
             OAuth2AuthorizedClientService authorizedClientService,
             SmartschoolProfileService smartschoolProfileService,
-            UserRepository userRepository) {
+            UserRepository userRepository
+    ) {
         this.jwtService = jwtService;
         this.tokenStorageService = tokenStorageService;
         this.authorizedClientService = authorizedClientService;
@@ -63,31 +66,93 @@ public class AuthService {
         String userId = authentication.getName();
         Role role = extractRole(authentication.getAuthorities());
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
-        boolean reviewBlocked = userRepository.findById(userId)
-                .map(user -> user.isReviewBlocked())
-                .orElse(false);
 
-        // 1. Probeer Smartschool API details op te halen
+        User dbUser = userRepository.findById(userId).orElse(null);
+
+        boolean reviewBlocked = dbUser != null && dbUser.isReviewBlocked();
+
+        Long schoolId = dbUser != null && dbUser.getSchool() != null
+                ? dbUser.getSchool().getId()
+                : null;
+
+        String schoolName = dbUser != null && dbUser.getSchool() != null
+                ? dbUser.getSchool().getName()
+                : null;
+
+        Long campusId = dbUser != null && dbUser.getCampus() != null
+                ? dbUser.getCampus().getId()
+                : null;
+
+        String campusName = dbUser != null && dbUser.getCampus() != null
+                ? dbUser.getCampus().getName()
+                : null;
+
         if (smartschoolToken != null && !smartschoolToken.isBlank()) {
             try {
                 SmartschoolProfileDto profile = smartschoolProfileService.fetchProfile(smartschoolToken);
                 SmartschoolGroupDto groups = smartschoolProfileService.fetchGroups(smartschoolToken);
 
                 return new AuthUserDto(
-                        userId, profile.firstName(), profile.lastName(), profile.fullName(),
-                        role, profile.email(), profile.userId(), profile.platform(),
-                        groups.primaryGroupName(), groups.parentGroupNames(), reviewBlocked);
+                        userId,
+                        profile.firstName(),
+                        profile.lastName(),
+                        profile.fullName(),
+                        role,
+                        profile.email(),
+                        profile.userId(),
+                        profile.platform(),
+                        groups.primaryGroupName(),
+                        groups.parentGroupNames(),
+                        reviewBlocked,
+                        schoolId,
+                        schoolName,
+                        campusId,
+                        campusName
+                );
             } catch (Exception ignored) {
-                /* Fallback */ }
+                // Fallback hieronder
+            }
         }
 
-        // 2. Fallback naar OAuth2 principal
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             String name = oauthToken.getPrincipal().getAttribute("name");
-            return new AuthUserDto(userId, name, null, name, role, null, null, null, null, List.of(), reviewBlocked);
+
+            return new AuthUserDto(
+                    userId,
+                    name,
+                    null,
+                    name,
+                    role,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(),
+                    reviewBlocked,
+                    schoolId,
+                    schoolName,
+                    campusId,
+                    campusName
+            );
         }
 
-        return null;
+        return new AuthUserDto(
+                userId,
+                null,
+                null,
+                null,
+                role,
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                reviewBlocked,
+                schoolId,
+                schoolName,
+                campusId,
+                campusName
+        );
     }
 
     public String processCallbackAndGenerateJwt(OAuth2AuthenticationToken oauthToken) {
@@ -103,7 +168,8 @@ public class AuthService {
                 SmartschoolOAuth2UserService.CLAIM_YEAR_CODE,
                 getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, "0"),
                 SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL"));
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL")
+        );
 
         String jwt = jwtService.generateToken(userId, roleStr, claims);
 
@@ -111,10 +177,13 @@ public class AuthService {
                 userId,
                 jwt,
                 roleStr,
-                jwtService.extractExpirationInstant(jwt));
+                jwtService.extractExpirationInstant(jwt)
+        );
 
         OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
-                oauthToken.getAuthorizedClientRegistrationId(), userId);
+                oauthToken.getAuthorizedClientRegistrationId(),
+                userId
+        );
 
         if (client != null && client.getAccessToken() != null) {
             String smartschoolAccessToken = client.getAccessToken().getTokenValue();
@@ -126,7 +195,8 @@ public class AuthService {
             tokenStorageService.storeSmartschoolTokens(
                     userId,
                     smartschoolAccessToken,
-                    smartschoolRefreshToken);
+                    smartschoolRefreshToken
+            );
         }
 
         return jwt;
@@ -177,18 +247,21 @@ public class AuthService {
                 userId,
                 newToken,
                 role,
-                jwtService.extractExpirationInstant(newToken));
+                jwtService.extractExpirationInstant(newToken)
+        );
 
         tokenStorageService.storeSmartschoolTokens(
                 userId,
                 refreshResult.accessToken(),
                 refreshResult.refreshToken() != null
                         ? refreshResult.refreshToken()
-                        : smartschoolRefreshToken);
+                        : smartschoolRefreshToken
+        );
 
         return new JwtTokenDTO(
                 newToken,
-                jwtService.extractExpirationInstant(newToken));
+                jwtService.extractExpirationInstant(newToken)
+        );
     }
 
     private SmartschoolRefreshResult refreshSmartschoolAccessToken(String refreshToken) {
@@ -212,12 +285,14 @@ public class AuthService {
                     smartschoolTokenUri,
                     HttpMethod.POST,
                     request,
-                    Map.class);
+                    Map.class
+            );
         } catch (HttpStatusCodeException ex) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "Smartschool refresh failed",
-                    ex);
+                    ex
+            );
         }
 
         Map<String, Object> responseBody = response.getBody();
@@ -225,7 +300,7 @@ public class AuthService {
         if (!response.getStatusCode().is2xxSuccessful() || responseBody == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Smartschool refresh failed");
         }
-        
+
         Object accessToken = responseBody.get("access_token");
         Object newRefreshToken = responseBody.get("refresh_token");
 
@@ -235,6 +310,7 @@ public class AuthService {
 
         return new SmartschoolRefreshResult(
                 accessTokenString,
-                newRefreshToken instanceof String refreshTokenString ? refreshTokenString : null);
+                newRefreshToken instanceof String refreshTokenString ? refreshTokenString : null
+        );
     }
 }

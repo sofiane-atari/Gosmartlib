@@ -1,6 +1,8 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.ReadingListDTO;
+import edu.ap.bib_backend.dto.ReadingListShareDTO;
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListBook;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
@@ -8,33 +10,39 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import edu.ap.bib_backend.dto.ReadingListShareDTO;
-import java.security.SecureRandom;
-import java.util.Base64;
-
 @Service
 public class ReadingListService {
+
     private final ReadingListRepository readingListRepository;
     private final ReadingListBookRepository readingListBookRepository;
     private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
+
     private static final String FAVORITES_NAME = "Favorieten";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    public ReadingListService(ReadingListRepository readingListRepository,
+    public ReadingListService(
+            ReadingListRepository readingListRepository,
             ReadingListBookRepository readingListBookRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            CurrentUserService currentUserService
+    ) {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
         this.userRepository = userRepository;
+        this.currentUserService = currentUserService;
     }
 
     public ReadingList createReadingList(String userId, ReadingListDTO dto) {
@@ -43,6 +51,7 @@ public class ReadingListService {
         }
 
         User user = getUserOrThrow(userId);
+        Campus campus = requireUserCampus(user);
         AudienceContext audience = getAudienceContext();
 
         ReadingListTargetType targetType = dto.targetType() == null ? ReadingListTargetType.PERSONAL : dto.targetType();
@@ -52,6 +61,7 @@ public class ReadingListService {
         ReadingList list = new ReadingList();
         list.setName(dto.name().trim());
         list.setUser(user);
+        list.setCampus(campus);
         list.setTargetType(targetType);
         list.setTargetValue(targetValue);
 
@@ -60,21 +70,29 @@ public class ReadingListService {
 
     public List<ReadingList> getAllLists(String userId) {
         User user = getUserOrThrow(userId);
+        Campus campus = requireUserCampus(user);
         AudienceContext audience = getAudienceContext();
-        ensureSharedListsExist(user, audience);
+        ensureSharedListsExist(user, campus, audience);
 
-        return readingListRepository.findVisibleForUser(userId,
+        return readingListRepository.findVisibleForUser(
+                userId,
+                campus.getId(),
                 audience.classCode(),
                 audience.yearCode(),
                 audience.schoolCode(),
-                shouldIncludeOwnSharedLists());
+                shouldIncludeOwnSharedLists()
+        );
     }
 
     public ReadingList getListById(String userId, Long id) {
-        getUserOrThrow(userId);
+        User user = getUserOrThrow(userId);
+        Campus campus = requireUserCampus(user);
         AudienceContext audience = getAudienceContext();
-        return readingListRepository.findVisibleById(id,
+
+        return readingListRepository.findVisibleById(
+                        id,
                         userId,
+                        campus.getId(),
                         audience.classCode(),
                         audience.yearCode(),
                         audience.schoolCode(),
@@ -118,12 +136,19 @@ public class ReadingListService {
 
     public ReadingListBook addBookToFavorites(String userId, Long bookId) {
         User user = getUserOrThrow(userId);
+        Campus campus = requireUserCampus(user);
+
         ReadingList favoritesList = readingListRepository
-                .findByNameIgnoreCaseAndUser_IdAndTargetType(FAVORITES_NAME, userId, ReadingListTargetType.PERSONAL)
+                .findByNameIgnoreCaseAndUser_IdAndTargetTypeAndCampusId(
+                        FAVORITES_NAME,
+                        userId,
+                        ReadingListTargetType.PERSONAL,
+                        campus.getId())
                 .orElseGet(() -> {
                     ReadingList newFavorites = new ReadingList();
                     newFavorites.setName(FAVORITES_NAME);
                     newFavorites.setUser(user);
+                    newFavorites.setCampus(campus);
                     newFavorites.setTargetType(ReadingListTargetType.PERSONAL);
                     newFavorites.setTargetValue(null);
                     return readingListRepository.save(newFavorites);
@@ -151,6 +176,14 @@ public class ReadingListService {
                 .orElseThrow(() -> new IllegalArgumentException("Gebruiker met id " + userId + " bestaat niet"));
     }
 
+    private Campus requireUserCampus(User user) {
+        if (user.getCampus() == null) {
+            throw new IllegalStateException("Gebruiker heeft geen campus gekoppeld.");
+        }
+
+        return user.getCampus();
+    }
+
     private boolean isFavoritesList(String name) {
         return name != null && FAVORITES_NAME.equalsIgnoreCase(name.trim());
     }
@@ -172,7 +205,6 @@ public class ReadingListService {
             return AudienceContext.defaults();
         }
 
-        // JWT filter-pad: audience zit in authentication details map.
         if (authentication.getDetails() instanceof Map<?, ?> detailsRaw) {
             Map<String, Object> details = (Map<String, Object>) detailsRaw;
             String classCode = readDetail(details, "classCode", AudienceContext.defaults().classCode());
@@ -181,7 +213,6 @@ public class ReadingListService {
             return new AudienceContext(classCode, yearCode, schoolCode);
         }
 
-        // OAuth2 sessie-pad: audience zit in principal attributes.
         Object principal = authentication.getPrincipal();
         if (principal instanceof OAuth2AuthenticatedPrincipal oauthPrincipal) {
             String classCode = readPrincipalAttribute(oauthPrincipal, "classCode", AudienceContext.defaults().classCode());
@@ -209,26 +240,28 @@ public class ReadingListService {
         return fallback;
     }
 
-    private void ensureSharedListsExist(User owner, AudienceContext audience) {
+    private void ensureSharedListsExist(User owner, Campus campus, AudienceContext audience) {
         ensureSharedList(owner,
+                campus,
                 ReadingListTargetType.CLASS,
                 audience.classCode(),
                 "Klas " + audience.classCode());
 
         ensureSharedList(owner,
+                campus,
                 ReadingListTargetType.YEAR,
                 audience.yearCode(),
                 "Jaar " + audience.yearCode());
 
-        // School-specific list with real school name.
         String schoolName = extractSchoolName(audience.schoolCode());
         ensureSharedList(owner,
+                campus,
                 ReadingListTargetType.SCHOOL,
                 audience.schoolCode(),
                 schoolName);
 
-        // System-wide list visible to everyone (no targetValue).
         ensureSharedList(owner,
+                campus,
                 ReadingListTargetType.SYSTEM,
                 null,
                 "Uitgelicht");
@@ -238,9 +271,9 @@ public class ReadingListService {
         if (schoolCode == null || schoolCode.isBlank()) {
             return "School";
         }
-        // Extract domain or name from URL-like schoolCode.
-        // Example: "https://aphogeschool.smartschool.be" -> "Aphogeschool"
+
         String normalized = schoolCode.trim();
+
         if (normalized.startsWith("https://") || normalized.startsWith("http://")) {
             int slashIndex = normalized.indexOf('/', 8);
             if (slashIndex > 0) {
@@ -249,28 +282,35 @@ public class ReadingListService {
                 normalized = normalized.substring(8);
             }
         }
+
         if (normalized.endsWith(".smartschool.be")) {
             normalized = normalized.substring(0, normalized.length() - ".smartschool.be".length());
         }
-        // Capitalize first letter.
+
         return normalized.substring(0, 1).toUpperCase() + normalized.substring(1);
     }
 
-    private void ensureSharedList(User owner,
+    private void ensureSharedList(
+            User owner,
+            Campus campus,
             ReadingListTargetType targetType,
             String targetValue,
-            String defaultName) {
+            String defaultName
+    ) {
         if (targetType == ReadingListTargetType.SYSTEM) {
-            if (readingListRepository.findFirstByTargetType(ReadingListTargetType.SYSTEM).isPresent()) {
+            if (readingListRepository.findFirstByTargetTypeAndCampusId(targetType, campus.getId()).isPresent()) {
                 return;
             }
-        } else if (targetValue != null && readingListRepository.findFirstByTargetTypeAndTargetValueIgnoreCase(targetType, targetValue).isPresent()) {
+        } else if (targetValue != null && readingListRepository
+                .findFirstByTargetTypeAndTargetValueIgnoreCaseAndCampusId(targetType, targetValue, campus.getId())
+                .isPresent()) {
             return;
         }
 
         ReadingList list = new ReadingList();
         list.setName(defaultName);
         list.setUser(owner);
+        list.setCampus(campus);
         list.setTargetType(targetType);
         list.setTargetValue(targetValue);
         readingListRepository.save(list);
@@ -367,5 +407,3 @@ public class ReadingListService {
                 .encodeToString(bytes);
     }
 }
-
-

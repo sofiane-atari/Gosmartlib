@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/loans")
 public class LoanController {
@@ -34,27 +32,37 @@ public class LoanController {
     }
 
     @PostMapping
-    public ResponseEntity<LoanDTO> createLoan(@Valid @RequestBody LoanDTO loanDTO) {
-        return ResponseEntity.ok(loanService.create(loanDTO));
+    public ResponseEntity<LoanDTO> createLoan(
+            @Valid @RequestBody LoanDTO loanDTO,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(loanService.create(loanDTO, authentication));
     }
 
     @GetMapping
     public ResponseEntity<PageDTO<LoanDTO>> getAllLoans(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
-        return ResponseEntity.ok(loanService.findAll(page, pageSize));
+            @RequestParam(defaultValue = "10") int pageSize,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(loanService.findAll(page, pageSize, authentication));
     }
 
     @PatchMapping("/{loanId}/return")
-    public ResponseEntity<LoanDTO> returnLoan(@PathVariable("loanId") Long loanId) {
-        return ResponseEntity.ok(loanService.returnLoan(loanId));
+    public ResponseEntity<LoanDTO> returnLoan(
+            @PathVariable("loanId") Long loanId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(loanService.returnLoan(loanId, authentication));
     }
 
     @GetMapping("/active")
     public ResponseEntity<PageDTO<LoanDTO>> getActiveLoans(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
-        return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize));
+            @RequestParam(defaultValue = "10") int pageSize,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize, authentication));
     }
 
     @GetMapping("/me/history")

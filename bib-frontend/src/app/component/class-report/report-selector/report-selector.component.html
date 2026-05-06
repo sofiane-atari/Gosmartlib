@@ -1,0 +1,63 @@
+<section class="report-selector-container">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Rapportage</h1>
+      <p>Kies het type rapportage dat je wilt bekijken.</p>
+    </div>
+  </div>
+
+  <div class="selector-grid">
+    <!-- Klasrapportage Card -->
+    <button
+      type="button"
+      class="report-option-card"
+      (click)="navigateToClassReport()"
+      title="Ga naar Klasrapportage">
+      <div class="card-header">
+        <div class="icon-wrapper">
+          <lucide-icon [name]="icons.users" width="32" height="32"></lucide-icon>
+        </div>
+      </div>
+
+      <div class="card-content">
+        <h2>Klasrapportage</h2>
+        <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
+      </div>
+
+      <div class="card-arrow">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </button>
+
+    <!-- Campusrapportage Card -->
+    <button
+      type="button"
+      class="report-option-card"
+      (click)="navigateToCampusReport()"
+      title="Ga naar Campusrapportage">
+      <div class="card-header">
+        <div class="icon-wrapper">
+          <lucide-icon [name]="icons.building" width="32" height="32"></lucide-icon>
+        </div>
+      </div>
+
+      <div class="card-content">
+        <h2>Campusrapportage</h2>
+        <p>Bekijk statistieken en inzichten over alle klassen en leerlingengedrag.</p>
+      </div>
+
+      <div class="card-arrow">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </button>
+  </div>
+</section>
+
+
+
+
+

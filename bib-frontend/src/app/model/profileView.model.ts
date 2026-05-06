@@ -8,4 +8,6 @@ export interface ProfileViewModel {
   platform: string;
   primaryGroupName: string;
   parentGroupNames: string[];
+  schoolName: string;
+  campusName: string;
 }

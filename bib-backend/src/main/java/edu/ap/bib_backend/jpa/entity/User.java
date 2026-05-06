@@ -3,6 +3,7 @@ package edu.ap.bib_backend.jpa.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import edu.ap.bib_backend.jpa.entity.loan.Loan;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -28,12 +29,16 @@ public class User {
     private RoleEntity role;
 
     @ManyToOne
-    @JoinColumn(name = "group_name", nullable = true) //een klas
+    @JoinColumn(name = "group_name")
     private Group group;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campus_id", nullable = false)
+    private Campus campus;
 
     @Column(name = "review_blocked", nullable = false)
     private boolean reviewBlocked = false;

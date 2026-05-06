@@ -2,7 +2,7 @@
   <div class="page-header">
     <div class="page-header__text">
       <h1>School Beheer</h1>
-      <p>Beheer scholen in het netwerk</p>
+      <p>Beheer scholen en campussen in het netwerk</p>
     </div>
 
     <button type="button" class="btn-new" (click)="openCreateModal()">
@@ -22,6 +22,20 @@
         <div>
           <p>Totaal Scholen</p>
           <strong>{{ totalSchools() }}</strong>
+        </div>
+      </article>
+    </app-button-hover-help>
+
+    <app-button-hover-help
+      class="stat-card-hover"
+      text="Dit is het totaal aantal campussen over alle scholen heen.">
+      <article class="stat-card stat-card--blue">
+        <div class="stat-card__icon">
+          <lucide-icon [name]="Landmark"></lucide-icon>
+        </div>
+        <div>
+          <p>Totaal Campussen</p>
+          <strong>{{ totalCampuses() }}</strong>
         </div>
       </article>
     </app-button-hover-help>
@@ -60,14 +74,15 @@
     <section class="table-card">
       <table>
         <thead>
-          <tr>
-            <th>School</th>
-            <th>Domein</th>
-            <th>Locatie</th>
-            <th>Contact</th>
-            <th>Boeken</th>
-            <th class="actions-heading">Acties</th>
-          </tr>
+        <tr>
+          <th>School</th>
+          <th>Domein</th>
+          <th>Locatie</th>
+          <th>Contact</th>
+          <th>Boeken</th>
+          <th>Campussen</th>
+          <th class="actions-heading">Acties</th>
+        </tr>
         </thead>
 
         <tbody>
@@ -127,6 +142,34 @@
               </td>
 
               <td>
+                <div class="campus-list">
+                  @for (campus of getCampusesForSchool(school.id); track campus.id) {
+                    <button
+                      type="button"
+                      class="campus-chip"
+                      [class.campus-chip--default]="campus.defaultCampus"
+                      (click)="openCampusEditModal(school, campus)"
+                    >
+                      {{ campus.name }}
+                      @if (campus.defaultCampus) {
+                        <span>default</span>
+                      }
+                    </button>
+                  } @empty {
+                    <span class="table-placeholder">Geen campussen</span>
+                  }
+
+                  <button
+                    type="button"
+                    class="campus-add-button"
+                    (click)="openCampusModal(school)"
+                  >
+                    + Campus
+                  </button>
+                </div>
+              </td>
+
+              <td>
                 <div class="table-actions">
                   <app-button-hover-help text="Wijzig de gegevens van deze school.">
                     <button
@@ -156,7 +199,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="6">
+              <td colspan="7">
                 <div class="empty-table-state">
                   Geen scholen gevonden voor deze zoekopdracht.
                 </div>
@@ -176,7 +219,7 @@
     >
       <div class="modal" (click)="$event.stopPropagation()">
         <h2>Nieuwe school toevoegen</h2>
-        <p>Vul de gegevens van de nieuwe school in.</p>
+        <p>Vul de gegevens van de nieuwe school en haar default-campus in.</p>
 
         <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
           <div class="modal-field">
@@ -199,7 +242,7 @@
               id="domainName"
               type="text"
               formControlName="domainName"
-              placeholder="bijv. school.be"
+              placeholder="bijv. aphogeschool.smartschool.be"
             />
 
             @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
@@ -241,7 +284,7 @@
               id="contactPhone"
               type="text"
               formControlName="contactPhone"
-              placeholder="bijv. 020-1234567"
+              placeholder="bijv. 03 123 45 67"
             />
           </div>
 
@@ -251,11 +294,43 @@
               id="contactEmail"
               type="email"
               formControlName="contactEmail"
-              placeholder="bijv. info@school.nl"
+              placeholder="bijv. info@school.be"
             />
 
             @if (schoolForm.controls.contactEmail.invalid && schoolForm.controls.contactEmail.touched) {
               <small class="field-inline-error">Vul een geldig e-mailadres in.</small>
+            }
+          </div>
+
+          <div class="modal-divider"></div>
+
+          <h3 class="modal-section-title">Default-campus</h3>
+
+          <div class="modal-field">
+            <label for="campusName">Campusnaam</label>
+            <input
+              id="campusName"
+              type="text"
+              formControlName="campusName"
+              placeholder="bijv. Hoofdcampus"
+            />
+
+            @if (schoolForm.controls.campusName.invalid && schoolForm.controls.campusName.touched) {
+              <small class="field-inline-error">Campusnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="campusCode">Campuscode</label>
+            <input
+              id="campusCode"
+              type="text"
+              formControlName="campusCode"
+              placeholder="bijv. hoofdcampus"
+            />
+
+            @if (schoolForm.controls.campusCode.invalid && schoolForm.controls.campusCode.touched) {
+              <small class="field-inline-error">Campuscode is verplicht.</small>
             }
           </div>
 
@@ -304,7 +379,7 @@
               id="editDomainName"
               type="text"
               formControlName="domainName"
-              placeholder="bijv. school.be"
+              placeholder="bijv. aphogeschool.smartschool.be"
             />
 
             @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
@@ -346,7 +421,7 @@
               id="editContactPhone"
               type="text"
               formControlName="contactPhone"
-              placeholder="bijv. 020-1234567"
+              placeholder="bijv. 03 123 45 67"
             />
           </div>
 
@@ -356,7 +431,7 @@
               id="editContactEmail"
               type="email"
               formControlName="contactEmail"
-              placeholder="bijv. info@school.nl"
+              placeholder="bijv. info@school.be"
             />
 
             @if (schoolForm.controls.contactEmail.invalid && schoolForm.controls.contactEmail.touched) {
@@ -376,6 +451,127 @@
 
             <button type="submit" class="btn-save" [disabled]="isUpdating()">
               {{ isUpdating() ? 'Wijzigen...' : 'Opslaan' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (isCampusModalOpen()) {
+    <div
+      class="modal-overlay open"
+      (pointerdown)="onOverlayPointerDown($event)"
+      (click)="onOverlayClick($event, 'campus')"
+    >
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Campus toevoegen</h2>
+        <p>Voeg een campus toe aan {{ selectedSchoolForCampus()?.name }}.</p>
+
+        <form [formGroup]="campusForm" (ngSubmit)="createCampus()">
+          <div class="modal-field">
+            <label for="campusCreateName">Campusnaam</label>
+            <input
+              id="campusCreateName"
+              type="text"
+              formControlName="name"
+              placeholder="bijv. Campus Zuid"
+            />
+
+            @if (campusForm.controls.name.invalid && campusForm.controls.name.touched) {
+              <small class="field-inline-error">Campusnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="campusCreateCode">Campuscode</label>
+            <input
+              id="campusCreateCode"
+              type="text"
+              formControlName="code"
+              placeholder="bijv. campus-zuid"
+            />
+
+            @if (campusForm.controls.code.invalid && campusForm.controls.code.touched) {
+              <small class="field-inline-error">Campuscode is verplicht.</small>
+            }
+          </div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" formControlName="defaultCampus" />
+            Maak dit de default-campus
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeCampusModal()">
+              Annuleren
+            </button>
+
+            <button type="submit" class="btn-save" [disabled]="isCampusSubmitting()">
+              {{ isCampusSubmitting() ? 'Toevoegen...' : 'Opslaan' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (isCampusEditModalOpen()) {
+    <div
+      class="modal-overlay open"
+      (pointerdown)="onOverlayPointerDown($event)"
+      (click)="onOverlayClick($event, 'campusEdit')"
+    >
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Campus wijzigen</h2>
+        <p>Pas de campus van {{ selectedSchoolForCampus()?.name }} aan.</p>
+
+        <form [formGroup]="campusForm" (ngSubmit)="updateCampus()">
+          <div class="modal-field">
+            <label for="campusEditName">Campusnaam</label>
+            <input
+              id="campusEditName"
+              type="text"
+              formControlName="name"
+              placeholder="bijv. Campus Zuid"
+            />
+
+            @if (campusForm.controls.name.invalid && campusForm.controls.name.touched) {
+              <small class="field-inline-error">Campusnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="campusEditCode">Campuscode</label>
+            <input
+              id="campusEditCode"
+              type="text"
+              formControlName="code"
+              placeholder="bijv. campus-zuid"
+            />
+
+            @if (campusForm.controls.code.invalid && campusForm.controls.code.touched) {
+              <small class="field-inline-error">Campuscode is verplicht.</small>
+            }
+          </div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" formControlName="defaultCampus" />
+            Maak dit de default-campus
+          </label>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="closeCampusEditModal()"
+              [disabled]="isCampusSubmitting()"
+            >
+              Annuleren
+            </button>
+
+            <button type="submit" class="btn-save" [disabled]="isCampusSubmitting()">
+              {{ isCampusSubmitting() ? 'Wijzigen...' : 'Opslaan' }}
             </button>
           </div>
         </form>

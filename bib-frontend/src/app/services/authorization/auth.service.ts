@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import {computed, effect, inject, Injectable, signal} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthUserDto } from '../../model/auth.model';
 import { environment } from '../../../environments/environment';
@@ -317,6 +317,14 @@ private scheduleTokenTimers(expiresAt: number): void {
 
   public dismissSessionWarningAndLogout(): void {
     this.logout();
+  }
+  public currentUserEffect(callback: (user: AuthUserDto | null) => void): void {
+    effect(
+      () => {
+        callback(this.currentUser());
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   public logout(): void {

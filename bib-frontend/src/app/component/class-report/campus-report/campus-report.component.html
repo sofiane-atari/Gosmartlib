@@ -1,0 +1,457 @@
+<section class="campus-report-dashboard">
+  <div class="page-header">
+    <button class="back-button" (click)="goBackToReports()" title="Terug naar rapportage menu">
+      <lucide-icon [name]="icons.arrowLeft" width="20" height="20"></lucide-icon>
+      <span>Terug</span>
+    </button>
+    <div class="page-header__text">
+      <h1>Campusrapportage</h1>
+      <p>Bekijk uitleengedrag, reviews, populaire genres en klassen activiteit per campus.</p>
+    </div>
+
+    <!-- Campus Selector -->
+    @if (allCampusReports.length > 0) {
+      <div class="campus-selector">
+        <button
+          class="campus-selector__button"
+          (click)="toggleCampusDropdown()"
+          [attr.aria-expanded]="campusDropdownOpen">
+          <span>{{ report?.campusName || 'Campus selecteren' }}</span>
+          <lucide-icon [name]="icons.chevronDown" width="18" height="18"></lucide-icon>
+        </button>
+
+        @if (campusDropdownOpen) {
+          <div class="campus-selector__dropdown">
+            @for (campus of allCampusReports; track campus.campusId) {
+              <button
+                class="campus-selector__item"
+                [class.active]="campus.campusId === report?.campusId"
+                (click)="switchCampus(campus)">
+                {{ campus.campusName }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+    @if (loading) {
+    <article class="report-card report-card--skeleton">
+        <div class="report-card__header">
+        <div>
+            <span class="skeleton-block skeleton-label"></span>
+            <span class="skeleton-block skeleton-title"></span>
+            <span class="skeleton-block skeleton-text skeleton-text--wide"></span>
+        </div>
+
+        <span class="skeleton-block skeleton-count-badge"></span>
+        </div>
+
+        <section class="stat-cards">
+        @for (item of [1, 2, 3, 4]; track item) {
+            <article class="stat-card skeleton-stat-card">
+            <div class="stat-card__icon skeleton-icon"></div>
+
+            <div>
+                <span class="skeleton-block skeleton-stat-label"></span>
+                <span class="skeleton-block skeleton-stat-number"></span>
+            </div>
+            </article>
+        }
+        </section>
+
+        <section class="insight-grid">
+        @for (panel of [1, 2]; track panel) {
+            <section class="insight-card skeleton-insight-card">
+            <div class="insight-card__header">
+                <div>
+                <span class="skeleton-block skeleton-panel-title"></span>
+                <span class="skeleton-block skeleton-panel-subtitle"></span>
+                </div>
+            </div>
+
+            <div class="ranking-list">
+                @for (row of [1, 2, 3, 4]; track row) {
+                <div class="ranking-row skeleton-ranking-row">
+                    <span class="skeleton-block skeleton-rank"></span>
+                    <span class="skeleton-block skeleton-dot"></span>
+
+                    <div class="ranking-main">
+                    <span class="skeleton-block skeleton-row-title"></span>
+                    <span class="skeleton-block skeleton-row-subtitle"></span>
+                    </div>
+
+                    <span class="skeleton-block skeleton-row-badge"></span>
+                </div>
+                }
+            </div>
+            </section>
+        }
+        </section>
+
+        <section class="search-panel">
+        <div class="skeleton-block skeleton-search"></div>
+        </section>
+
+        <section class="table-card">
+        <div class="table-card__header">
+            <div>
+            <span class="skeleton-block skeleton-panel-title"></span>
+            <span class="skeleton-block skeleton-panel-subtitle"></span>
+            </div>
+        </div>
+
+        <div class="table-scroll">
+            <table>
+            <thead>
+                <tr>
+                <th>Klas</th>
+                <th class="center-col">Leerlingen</th>
+                <th class="center-col">Gekoppeld</th>
+                <th class="center-col">Totaal</th>
+                <th class="center-col">Nog uit</th>
+                <th class="center-col">Gem. Score</th>
+                <th class="center-col">Gem. Progress</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (row of [1, 2, 3, 4, 5]; track row) {
+                <tr>
+                    <td>
+                    <div class="class-cell">
+                        <div class="class-cell__icon skeleton-avatar"></div>
+
+                        <div>
+                        <span class="skeleton-block skeleton-class-name"></span>
+                        <span class="skeleton-block skeleton-class-badge"></span>
+                        </div>
+                    </div>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-badge"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-value"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-wide-badge"></span>
+                    </td>
+
+                    <td class="center-col">
+                    <span class="skeleton-block skeleton-table-wide-badge"></span>
+                    </td>
+                </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <div class="table-paging skeleton-paging-wrapper">
+            <span class="skeleton-block skeleton-page-button"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-number"></span>
+            <span class="skeleton-block skeleton-page-button"></span>
+        </div>
+        </section>
+    </article>
+    }
+
+  @if (!loading && report) {
+    <article class="report-card">
+      <div class="report-card__header">
+        <div>
+          <span class="section-label">Campusrapport</span>
+          <h2>{{ report.campusName }}</h2>
+          <p>
+            {{ report.linkedStudentCount }} van {{ report.totalStudentCount }} leerlingen zijn gekoppeld
+            — {{ getLinkedPercentage() }}%
+          </p>
+        </div>
+
+        <span class="count-badge">
+          {{ report.classCount }} klassen
+        </span>
+      </div>
+
+      <section class="stat-cards">
+        <app-button-hover-help
+          class="stat-card-hover"
+          text="Het totaal aantal boekexemplaren dat door gekoppelde leerlingen van deze campus ooit werd uitgeleend.">
+          <article class="stat-card stat-card--purple">
+            <div class="stat-card__icon">
+              <lucide-icon [img]="icons.library"></lucide-icon>
+            </div>
+
+            <div>
+              <p>Totaal uitgeleend</p>
+              <strong>{{ report.totalLoans }}</strong>
+            </div>
+          </article>
+        </app-button-hover-help>
+
+        <app-button-hover-help
+          class="stat-card-hover"
+          text="Aantal leerlingen waarvan de Smartschool/OneRoster identiteit gekoppeld is aan een gebruiker in deze applicatie. Alleen gekoppelde leerlingen hebben uitleen- en reviewstatistieken.">
+          <article class="stat-card stat-card--blue">
+            <div class="stat-card__icon">
+              <lucide-icon [img]="icons.users"></lucide-icon>
+            </div>
+
+            <div>
+              <p>Gekoppelde leerlingen</p>
+              <strong>{{ report.linkedStudentCount }}/{{ report.totalStudentCount }}</strong>
+            </div>
+          </article>
+        </app-button-hover-help>
+
+        <app-button-hover-help
+          class="stat-card-hover"
+          text="Het gemiddeld aantal uitgeleende boeken per gekoppelde leerling. Niet-gekoppelde leerlingen tellen hier niet mee.">
+          <article class="stat-card stat-card--green">
+            <div class="stat-card__icon">
+              <lucide-icon [img]="icons.bookOpen"></lucide-icon>
+            </div>
+
+            <div>
+              <p>Gemiddeld gelezen</p>
+              <strong>{{ report.averageLoansPerLinkedStudent }}</strong>
+            </div>
+          </article>
+        </app-button-hover-help>
+
+        <app-button-hover-help
+          class="stat-card-hover"
+          text="Aantal boeken dat op dit moment nog niet werd teruggebracht door leerlingen uit deze campus.">
+          <article class="stat-card stat-card--orange">
+            <div class="stat-card__icon">
+              <lucide-icon [img]="icons.clock"></lucide-icon>
+            </div>
+
+            <div>
+              <p>Momenteel uitgeleend</p>
+              <strong>{{ report.activeLoans }}</strong>
+            </div>
+          </article>
+        </app-button-hover-help>
+      </section>
+
+      <section class="insight-grid">
+        <app-button-hover-help
+          class="insight-card-hover"
+          text="Deze lijst toont welke genres het vaakst voorkomen bij boeken die door deze campus werden uitgeleend.">
+          <section class="insight-card">
+            <div class="insight-card__header">
+              <div>
+                <h3>Populaire genres</h3>
+                <p>Meest uitgeleend door deze campus</p>
+              </div>
+            </div>
+
+            @if (report.popularGenres.length === 0) {
+              <div class="empty-table-state">
+                Geen genredata beschikbaar.
+              </div>
+            } @else {
+              <div class="ranking-list">
+                @for (genre of report.popularGenres; track genre.genreId; let index = $index) {
+                  <div class="ranking-row">
+                    <span class="rank-badge">#{{ index + 1 }}</span>
+
+                    <span
+                      class="genre-dot"
+                      [style.background]="genre.color || 'var(--main-color)'">
+                    </span>
+
+                    <div class="ranking-main">
+                      <strong>{{ genre.name }}</strong>
+                      <span>Genre</span>
+                    </div>
+
+                    <span class="count-badge">
+                      {{ genre.loanCount }} boeken
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </app-button-hover-help>
+
+        <app-button-hover-help
+          class="insight-card-hover"
+          text="Deze boeken kregen de hoogste gemiddelde rating van gekoppelde leerlingen uit deze campus.">
+          <section class="insight-card">
+            <div class="insight-card__header">
+              <div>
+                <h3>Hoogst beoordeelde boeken</h3>
+                <p>Ratings gegeven door deze campus</p>
+              </div>
+            </div>
+
+            @if (report.topRatedBooks.length === 0) {
+              <div class="empty-table-state">
+                Geen ratings beschikbaar.
+              </div>
+            } @else {
+              <div class="book-list">
+                @for (book of report.topRatedBooks; track book.bookId) {
+                  <div class="book-row">
+                    <div class="book-cover">
+                      @if (book.imageUrl) {
+                        <img [src]="book.imageUrl" [alt]="book.title">
+                      } @else {
+                        <lucide-icon [img]="icons.bookOpen"></lucide-icon>
+                      }
+                    </div>
+
+                    <div class="book-info">
+                      <strong>{{ book.title }}</strong>
+                      <span>{{ book.author || 'Onbekende auteur' }}</span>
+                      <small>{{ book.reviewCount }} reviews</small>
+                    </div>
+
+                    <span class="rating-badge">
+                      <lucide-icon [img]="icons.star"></lucide-icon>
+                      {{ book.averageRating }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </app-button-hover-help>
+      </section>
+
+      <section class="search-panel">
+        <app-search-bar
+          placeholder="Zoek klas..."
+          (searchChange)="onClassSearchChange($event)">
+        </app-search-bar>
+      </section>
+
+      <section class="table-card">
+        <div class="table-card__header">
+          <div>
+            <h3>Klassen</h3>
+            <p>Gesorteerd op totaal aantal uitleningen.</p>
+          </div>
+        </div>
+
+        @if (getFilteredClasses().length === 0) {
+          <div class="empty-table-state">
+            Geen klassen gevonden voor deze zoekopdracht.
+          </div>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Klas</th>
+                <th class="center-col">Leerlingen</th>
+                <th class="center-col">Gekoppeld</th>
+                <th class="center-col">Totaal</th>
+                <th class="center-col">Nog uit</th>
+                <th class="center-col">Gem. Score</th>
+                <th class="center-col">Gem. Progress</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (classItem of getPagedClasses(); track classItem.classSourcedId) {
+                <tr>
+                  <td>
+                    <app-button-hover-help
+                      text="Deze rij toont de statistics van deze klas.">
+                      <div class="class-cell">
+                        <div class="class-cell__icon">
+                          <lucide-icon [img]="icons.users"></lucide-icon>
+                        </div>
+
+                        <div>
+                          <strong>{{ classItem.classTitle }}</strong>
+                          <span class="class-badge">{{ classItem.classSourcedId }}</span>
+                        </div>
+                      </div>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Totaal aantal leerlingen in deze klas.">
+                      <span class="count-badge">{{ classItem.studentCount }}</span>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Aantal gekoppelde leerlingen in deze klas.">
+                      <span>{{ classItem.linkedStudentCount }}/{{ classItem.studentCount }}</span>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Totaal aantal boeken uitgeleend door deze klas.">
+                      <span class="count-badge">{{ classItem.totalLoans }}</span>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Aantal boeken dat deze klas momenteel nog moet terugbrengen.">
+                      @if (classItem.activeLoans > 0) {
+                        <span class="open-loans-badge">
+                          {{ classItem.activeLoans }}
+                        </span>
+                      } @else {
+                        <span class="muted-value">0</span>
+                      }
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Gemiddelde score van leerlingen in deze klas.">
+                      <span>{{ classItem.classAverageScore }}%</span>
+                    </app-button-hover-help>
+                  </td>
+
+                  <td class="center-col">
+                    <app-button-hover-help
+                      text="Gemiddelde voortgang van leerlingen in deze klas.">
+                      <span>{{ classItem.classAverageProgress }}%</span>
+                    </app-button-hover-help>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (shouldShowClassPaging()) {
+            <div class="table-paging">
+              <app-paging
+                [meta]="getClassPagingMeta()"
+                (pageChange)="onClassPageChange($event)">
+              </app-paging>
+            </div>
+          }
+        }
+      </section>
+    </article>
+  }
+</section>
+
+

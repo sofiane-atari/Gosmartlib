@@ -31,7 +31,7 @@ public class BookCopy {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id")
+    @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
     @Enumerated(EnumType.STRING)
@@ -41,7 +41,7 @@ public class BookCopy {
     @ManyToMany(mappedBy = "copies")
     private List<Loan> loans = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "school_id")
-    private School school;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campus_id", nullable = false)
+    private Campus campus;
 }

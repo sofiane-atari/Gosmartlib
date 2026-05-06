@@ -41,6 +41,8 @@ export class ProfileComponent {
       platform: profile.platform ?? 'Nog niet beschikbaar',
       primaryGroupName: profile.primaryGroupName ?? 'Nog niet beschikbaar',
       parentGroupNames: profile.parentGroupNames ?? [],
+      schoolName: profile.schoolName ?? 'Nog niet beschikbaar',
+      campusName: profile.campusName ?? 'Nog niet beschikbaar',
     };
   });
 

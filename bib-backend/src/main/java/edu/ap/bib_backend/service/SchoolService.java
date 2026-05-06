@@ -16,7 +16,8 @@ public class SchoolService {
 
     public SchoolService(
             SchoolRepository schoolRepository,
-            BookCopyRepository bookCopyRepository) {
+            BookCopyRepository bookCopyRepository
+    ) {
         this.schoolRepository = schoolRepository;
         this.bookCopyRepository = bookCopyRepository;
     }
@@ -45,12 +46,12 @@ public class SchoolService {
         School school = schoolRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
 
-        school.setDomainName(dto.domainName());
-        school.setName(dto.name());
-        school.setAddress(dto.address());
+        school.setDomainName(normalizeDomainName(dto.domainName()));
+        school.setName(trimOrNull(dto.name()));
+        school.setAddress(trimOrNull(dto.address()));
         school.setPostalCode(dto.postalCode());
-        school.setContactPhone(dto.contactPhone());
-        school.setContactEmail(dto.contactEmail());
+        school.setContactPhone(trimOrNull(dto.contactPhone()));
+        school.setContactEmail(trimOrNull(dto.contactEmail()));
 
         return toDto(schoolRepository.save(school));
     }
@@ -68,7 +69,7 @@ public class SchoolService {
             throw new IllegalArgumentException("School niet gevonden.");
         }
 
-        return bookCopyRepository.countBySchoolId(schoolId);
+        return bookCopyRepository.countByCampusSchoolId(schoolId);
     }
 
     public long getTotalBookCount() {
@@ -84,7 +85,8 @@ public class SchoolService {
                 school.getPostalCode(),
                 school.getContactPhone(),
                 school.getContactEmail(),
-                school.getCreatedAt());
+                school.getCreatedAt()
+        );
     }
 
     private String trimOrNull(String value) {

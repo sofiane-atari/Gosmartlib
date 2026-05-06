@@ -57,9 +57,41 @@ class UserControllerTest {
     @Test
     void GivenUsersExist_WhenGetUsers_ThenReturn200WithUsers() throws Exception {
         // Arrange
-        AuthUserDto firstUser = new AuthUserDto("s001", null, null, null, Role.STUDENT, null, null, null, null, null, false);
-        AuthUserDto secondUser = new AuthUserDto("t001", null, null, null, Role.TEACHER, null, null, null, null, null, true);
-        List<AuthUserDto> response = List.of(firstUser, secondUser);
+        AuthUserDto firstUser = new AuthUserDto(
+                "s001",
+                null,
+                null,
+                null,
+                Role.STUDENT,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false,
+                null,
+                null,
+                null,
+                null
+        );
+
+        AuthUserDto secondUser = new AuthUserDto(
+                "t001",
+                null,
+                null,
+                null,
+                Role.TEACHER,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                null,
+                null,
+                null,
+                null
+        );       List<AuthUserDto> response = List.of(firstUser, secondUser);
         given(userService.getUsers(any(UserGetOptions.class))).willReturn(response);
 
         // Act
@@ -104,8 +136,23 @@ class UserControllerTest {
     @Test
     void GivenModerator_WhenPatchReviewAccess_ThenReturnUpdatedUser() throws Exception {
         // Arrange
-        AuthUserDto updated = new AuthUserDto("s001", null, null, null, Role.STUDENT, null, null, null, null, null, true);
-
+        AuthUserDto updated = new AuthUserDto(
+                "s001",
+                null,
+                null,
+                null,
+                Role.STUDENT,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                null,
+                null,
+                null,
+                null
+        );
         given(currentUserService.isModerator(any())).willReturn(true);
         given(userService.setReviewBlocked("s001", true)).willReturn(updated);
 

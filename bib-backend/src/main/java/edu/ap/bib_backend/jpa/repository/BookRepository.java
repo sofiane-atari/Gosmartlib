@@ -13,67 +13,81 @@ import edu.ap.bib_backend.jpa.entity.Book;
 
 public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
 
-        Optional<Book> findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(
-                        String title,
-                        String author,
-                        Integer releaseYear);
+    Optional<Book> findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(
+            String title,
+            String author,
+            Integer releaseYear
+    );
 
-        boolean existsByIsbn(String isbn);
+    boolean existsByIsbn(String isbn);
 
-        Book findByIsbn(String isbn);
+    boolean existsByIsbnAndCampusId(String isbn, Long campusId);
 
-        @Query("SELECT b.isbn FROM Book b")
-        List<String> findAllIsbns();
+    Book findByIsbn(String isbn);
 
-        @Query("SELECT MAX(b.pages) FROM Book b")
-        Integer findMaxPages();
+    Optional<Book> findByIsbnAndCampusId(String isbn, Long campusId);
 
-        @Query("SELECT MIN(b.pages) FROM Book b")
-        Integer findMinPages();
+    Optional<Book> findByIdAndCampusId(Long id, Long campusId);
 
-        @Query("""
-                        SELECT b FROM Book b
-                        LEFT JOIN b.bookCopies bc
-                        LEFT JOIN bc.loans bl
-                        LEFT JOIN bl.user u
-                        GROUP BY b.id
-                        ORDER BY COUNT(DISTINCT u.id) DESC
-                        """)
-        List<Book> findMostReadBook(Pageable pageable);
+    List<Book> findByCampusId(Long campusId);
 
-        @Query("SELECT b FROM Book b ORDER BY b.addedDate DESC")
-        List<Book> findNewestBooks(Pageable pageable);
+    @Query("SELECT b.isbn FROM Book b")
+    List<String> findAllIsbns();
 
-        @Query("""
-                SELECT DISTINCT b 
-                FROM Book b
-                JOIN b.bookCopies bc
-                WHERE bc.school.domainName = :schoolCode
-                ORDER BY b.addedDate DESC
-                """)
-        List<Book> findNewestBooksBySchool(@Param("schoolCode") String schoolCode, Pageable pageable);
+    @Query("SELECT MAX(b.pages) FROM Book b")
+    Integer findMaxPages();
+
+    @Query("SELECT MIN(b.pages) FROM Book b")
+    Integer findMinPages();
 
     @Query("""
-        SELECT b
-        FROM Book b
-        JOIN b.bookCopies bc
-        LEFT JOIN bc.loans bl
-        LEFT JOIN bl.user u
-        WHERE bc.school.domainName = :schoolCode
-        GROUP BY b
-        ORDER BY COUNT(DISTINCT u.id) DESC
-        """)
-    List<Book> findMostReadBookBySchool(@Param("schoolCode") String schoolCode, Pageable pageable);
+            SELECT b
+            FROM Book b
+            LEFT JOIN b.bookCopies bc
+            LEFT JOIN bc.loans bl
+            LEFT JOIN bl.user u
+            GROUP BY b.id
+            ORDER BY COUNT(DISTINCT u.id) DESC
+            """)
+    List<Book> findMostReadBook(Pageable pageable);
 
-        @Query("""
-                        SELECT relatedBook, COUNT(sourceGenre) as sharedGenreCount
-                        FROM Book sourceBook
-                        JOIN sourceBook.genres sourceGenre
-                        JOIN sourceGenre.books relatedBook
-                        WHERE sourceBook.id = :bookId
-                          AND relatedBook.id <> :bookId
-                        GROUP BY relatedBook
-                        ORDER BY COUNT(sourceGenre) DESC, RAND()
-                        """)
-        List<Object[]> findRelatedBooksWithScore(@Param("bookId") Long bookId, Pageable pageable);
+    @Query("SELECT b FROM Book b ORDER BY b.addedDate DESC")
+    List<Book> findNewestBooks(Pageable pageable);
+
+    @Query("""
+            SELECT b
+            FROM Book b
+            WHERE b.campus.id = :campusId
+            ORDER BY b.addedDate DESC
+            """)
+    List<Book> findNewestBooksByCampus(@Param("campusId") Long campusId, Pageable pageable);
+
+    @Query("""
+            SELECT b
+            FROM Book b
+            LEFT JOIN b.bookCopies bc
+            LEFT JOIN bc.loans bl
+            LEFT JOIN bl.user u
+            WHERE b.campus.id = :campusId
+            GROUP BY b
+            ORDER BY COUNT(DISTINCT u.id) DESC
+            """)
+    List<Book> findMostReadBookByCampus(@Param("campusId") Long campusId, Pageable pageable);
+
+    @Query("""
+            SELECT relatedBook, COUNT(sourceGenre) AS sharedGenreCount
+            FROM Book sourceBook
+            JOIN sourceBook.genres sourceGenre
+            JOIN sourceGenre.books relatedBook
+            WHERE sourceBook.id = :bookId
+              AND relatedBook.id <> :bookId
+              AND relatedBook.campus.id = :campusId
+            GROUP BY relatedBook
+            ORDER BY COUNT(sourceGenre) DESC, RAND()
+            """)
+    List<Object[]> findRelatedBooksWithScore(
+            @Param("bookId") Long bookId,
+            @Param("campusId") Long campusId,
+            Pageable pageable
+    );
 }

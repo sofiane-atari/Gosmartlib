@@ -8,6 +8,7 @@ import { AuthService } from './services/authorization/auth.service';
 import { SessionExpiryModalComponent } from './component/shared/session-expired-modal/session-expired-modal.component';
 import { GamificationRewardNotificationComponent } from './component/gamification/components/gamification-reward-notification/gamification-reward-notification.component';
 import { GamificationNotificationStoreService } from './services/gamification/store/gamification-notification-store.service';
+import { CampusSelectorModalComponent } from './shared/campus-selector-modal/campus-selector-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,7 @@ import { GamificationNotificationStoreService } from './services/gamification/st
     ToastComponent,
     SessionExpiryModalComponent,
     GamificationRewardNotificationComponent,
+    CampusSelectorModalComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -30,7 +32,6 @@ export class AppComponent {
     GamificationNotificationStoreService,
   );
 
-  // Signal to track sidebar visibility on mobile
   protected isSidebarOpen = signal(false);
 
   cards = [
@@ -42,18 +43,18 @@ export class AppComponent {
     'Rapporteer',
   ];
 
-  toggleSidebar() {
-    this.isSidebarOpen.update((v) => !v);
-  }
-
-  closeSidebar() {
-    this.isSidebarOpen.set(false);
-  }
-
   public constructor() {
     if (this.authService.isAuthenticated()) {
       this.authService.fetchCurrentUser();
       this.gamificationNotificationStore.loadUnreadNotifications();
     }
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarOpen.update((v) => !v);
+  }
+
+  closeSidebar(): void {
+    this.isSidebarOpen.set(false);
   }
 }

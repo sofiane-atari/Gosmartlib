@@ -159,12 +159,12 @@ class SchoolServiceTest {
         Long schoolId = 1L;
 
         when(schoolRepository.existsById(schoolId)).thenReturn(true);
-        when(bookCopyRepository.countBySchoolId(schoolId)).thenReturn(12L);
+        when(bookCopyRepository.countByCampusSchoolId(schoolId)).thenReturn(12L);
 
         long result = schoolService.getBookCountBySchool(schoolId);
 
         assertEquals(12L, result);
-        verify(bookCopyRepository).countBySchoolId(schoolId);
+        verify(bookCopyRepository).countByCampusSchoolId(schoolId);
     }
 
     @Test
@@ -175,7 +175,7 @@ class SchoolServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> schoolService.getBookCountBySchool(schoolId));
 
-        verify(bookCopyRepository, never()).countBySchoolId(schoolId);
+        verify(bookCopyRepository, never()).countByCampusSchoolId(schoolId);
     }
 
     @Test

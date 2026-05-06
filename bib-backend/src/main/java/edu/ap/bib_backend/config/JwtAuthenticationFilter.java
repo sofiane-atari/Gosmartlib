@@ -29,16 +29,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public JwtAuthenticationFilter(
             JwtService jwtService,
             AdminOverrideService adminOverrideService,
-            TokenStorageService tokenStorageService) {
+            TokenStorageService tokenStorageService
+    ) {
         this.jwtService = jwtService;
         this.adminOverrideService = adminOverrideService;
         this.tokenStorageService = tokenStorageService;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
+    protected void doFilterInternal(
+            HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
@@ -70,16 +73,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 username,
                 null,
-                List.of(new SimpleGrantedAuthority(role)));
+                List.of(new SimpleGrantedAuthority(role))
+        );
 
-        Map<String, Object> audienceDetails = new HashMap<>();
-        audienceDetails.put("classCode", asStringOrDefault(
-                jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE), "GENERAL"));
-        audienceDetails.put("yearCode",
-                asStringOrDefault(jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE), "0"));
-        audienceDetails.put("schoolCode", asStringOrDefault(
-                jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE), "ALLEMAAL"));
-        authentication.setDetails(audienceDetails);
+        Map<String, Object> details = new HashMap<>();
+        details.put("classCode", asStringOrDefault(
+                jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE),
+                "GENERAL"
+        ));
+        details.put("yearCode", asStringOrDefault(
+                jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE),
+                "0"
+        ));
+        details.put("schoolCode", asStringOrDefault(
+                jwtService.extractClaim(token, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE),
+                "ALLEMAAL"
+        ));
+        details.put("schoolId", jwtService.extractClaim(token, "schoolId"));
+        details.put("campusId", jwtService.extractClaim(token, "campusId"));
+
+        authentication.setDetails(details);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);
