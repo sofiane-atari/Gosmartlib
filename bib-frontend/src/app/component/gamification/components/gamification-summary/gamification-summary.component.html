@@ -101,5 +101,13 @@
       [isLoading]="gamificationStore.almostEarnedBadgesLoading()"
       [errorMessage]="gamificationStore.almostEarnedBadgesErrorMessage()"
     ></app-almost-earned-badges>
+
+    <app-recent-gamification-events
+      [events]="gamificationStore.pagedRecentEvents()"
+      [meta]="gamificationStore.recentEventsMeta()"
+      [isLoading]="gamificationStore.recentEventsLoading()"
+      [errorMessage]="gamificationStore.recentEventsErrorMessage()"
+      (pageChanged)="onRecentEventsPageChanged($event)"
+    ></app-recent-gamification-events>
   }
 </section>

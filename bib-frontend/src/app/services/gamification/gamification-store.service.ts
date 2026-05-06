@@ -10,11 +10,17 @@ import {
   GamificationBadgeFilters,
   GamificationService,
 } from './gamification.service';
+import { PaginatedMeta } from '../../model/shared/paging/PaginatedMeta.model.ts';
+import { PageingOpt } from '../../model/shared/paging/PageingOpt.model';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GamificationStoreService {
+  private static readonly DEFAULT_RECENT_EVENTS_PAGE = 0;
+  private static readonly DEFAULT_RECENT_EVENTS_PAGE_SIZE = 5;
+
   private readonly gamificationService = inject(GamificationService);
 
   private readonly profileSignal = signal<GamificationProfile | null>(null);
@@ -33,6 +39,18 @@ export class GamificationStoreService {
   public readonly profile = this.profileSignal.asReadonly();
   public readonly isLoading = this.isLoadingSignal.asReadonly();
   public readonly errorMessage = this.errorMessageSignal.asReadonly();
+
+  private readonly recentEventsSignal = signal<GamificationRecentEvent[]>([]);
+  private readonly recentEventsMetaSignal = signal<PaginatedMeta | null>(null);
+  private readonly recentEventsLoadingSignal = signal<boolean>(false);
+  private readonly recentEventsErrorMessageSignal = signal<string | null>(null);
+
+  public readonly pagedRecentEvents = this.recentEventsSignal.asReadonly();
+  public readonly recentEventsMeta = this.recentEventsMetaSignal.asReadonly();
+  public readonly recentEventsLoading =
+    this.recentEventsLoadingSignal.asReadonly();
+  public readonly recentEventsErrorMessage =
+    this.recentEventsErrorMessageSignal.asReadonly();
 
   private readonly almostEarnedBadgesSignal = signal<GamificationProgress[]>(
     [],
@@ -89,6 +107,39 @@ export class GamificationStoreService {
 
     return Math.min(Math.round((pointsInCurrentLevel / levelSize) * 100), 100);
   });
+
+  public loadCurrentUserRecentEvents(
+    options: PageingOpt = {
+      page: GamificationStoreService.DEFAULT_RECENT_EVENTS_PAGE,
+      pageSize: GamificationStoreService.DEFAULT_RECENT_EVENTS_PAGE_SIZE,
+    },
+  ): void {
+    this.recentEventsLoadingSignal.set(true);
+    this.recentEventsErrorMessageSignal.set(null);
+
+    this.gamificationService.getCurrentUserRecentEvents(options).subscribe({
+      next: (response: PaginatedResponse<GamificationRecentEvent>) => {
+        this.recentEventsSignal.set(response.data);
+        this.recentEventsMetaSignal.set(response.meta);
+        this.recentEventsLoadingSignal.set(false);
+      },
+      error: () => {
+        this.recentEventsSignal.set([]);
+        this.recentEventsMetaSignal.set(null);
+        this.recentEventsErrorMessageSignal.set(
+          'Recente activiteit kon niet worden geladen.',
+        );
+        this.recentEventsLoadingSignal.set(false);
+      },
+    });
+  }
+
+  public clearRecentEvents(): void {
+    this.recentEventsSignal.set([]);
+    this.recentEventsMetaSignal.set(null);
+    this.recentEventsErrorMessageSignal.set(null);
+    this.recentEventsLoadingSignal.set(false);
+  }
 
   public loadCurrentUserProfile(): void {
     this.isLoadingSignal.set(true);

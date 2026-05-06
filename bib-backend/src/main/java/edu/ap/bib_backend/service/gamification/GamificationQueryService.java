@@ -24,11 +24,18 @@ import edu.ap.bib_backend.jpa.repository.gamification.PointTransactionRepository
 import edu.ap.bib_backend.jpa.repository.gamification.UserBadgeRepository;
 import edu.ap.bib_backend.mapper.gamification.GamificationMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.PaginatedMeta;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class GamificationQueryService {
 
     private static final int ALMOST_EARNED_BADGE_LIMIT = 3;
+    private static final int DEFAULT_RECENT_EVENTS_PAGE_SIZE = 5;
+    private static final int MAX_RECENT_EVENTS_PAGE_SIZE = 20;
 
     private final UserRepository userRepository;
     private final GamificationProfileService gamificationProfileService;
@@ -87,6 +94,47 @@ public class GamificationQueryService {
                 badgeProgress,
                 recentEvents
         );
+    }
+
+    @Transactional
+    public PageDTO<GamificationRecentEventDTO> getCurrentUserRecentEvents(
+            Authentication authentication,
+            int page,
+            int size
+    ) {
+        String currentUserId = currentUserService.extractCurrentUserId(authentication);
+
+        return getRecentEventsForUserId(currentUserId, page, size);
+    }
+
+    @Transactional
+    public PageDTO<GamificationRecentEventDTO> getRecentEventsForUserId(
+            String userId,
+            int page,
+            int size
+    ) {
+        GamificationProfile profile = getOrCreateProfileForUserId(userId);
+
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(
+                Math.max(size, 1),
+                MAX_RECENT_EVENTS_PAGE_SIZE
+        );
+
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+
+        Page<GamificationRecentEventDTO> recentEventsPage =
+                pointTransactionRepository.findByProfileOrderByCreatedAtDesc(profile, pageable)
+                        .map(gamificationMapper::toRecentEventDTO);
+
+        PaginatedMeta meta = new PaginatedMeta(
+                recentEventsPage.getNumber(),
+                recentEventsPage.getSize(),
+                (int) recentEventsPage.getTotalElements(),
+                recentEventsPage.getTotalPages()
+        );
+
+        return new PageDTO<>(recentEventsPage.getContent(), meta);
     }
 
     @Transactional

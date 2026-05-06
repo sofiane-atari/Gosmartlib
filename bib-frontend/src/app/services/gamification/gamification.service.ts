@@ -8,7 +8,10 @@ import {
   GamificationBadgeRarity,
   GamificationProfile,
   GamificationProgress,
+  GamificationRecentEvent,
 } from '../../model/gamification/gamification.model';
+import { PageingOpt } from '../../model/shared/paging/PageingOpt.model';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 
 export interface GamificationBadgeFilters {
   category?: GamificationBadgeCategory;
@@ -23,6 +26,7 @@ export class GamificationService {
   private readonly profileApiUrl = `${environment.apiUrl}/gamification/me`;
   private readonly badgesApiUrl = `${environment.apiUrl}/gamification/me/badges`;
   private readonly almostEarnedBadgesApiUrl = `${environment.apiUrl}/gamification/me/badges/almost-earned`;
+  private readonly recentEventsApiUrl = `${environment.apiUrl}/gamification/me/recent-events`;
 
   private readonly httpClient = inject(HttpClient);
 
@@ -57,6 +61,19 @@ export class GamificationService {
   > {
     return this.httpClient.get<GamificationProgress[]>(
       this.almostEarnedBadgesApiUrl,
+    );
+  }
+
+  public getCurrentUserRecentEvents(
+    options: PageingOpt,
+  ): Observable<PaginatedResponse<GamificationRecentEvent>> {
+    const params = new HttpParams()
+      .set('page', options.page)
+      .set('size', options.pageSize);
+
+    return this.httpClient.get<PaginatedResponse<GamificationRecentEvent>>(
+      this.recentEventsApiUrl,
+      { params },
     );
   }
 }
