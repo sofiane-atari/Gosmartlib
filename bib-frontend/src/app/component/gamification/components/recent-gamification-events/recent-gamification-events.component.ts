@@ -3,11 +3,12 @@ import { Component, input, output } from '@angular/core';
 import { PagingComponent } from '../../../shared/paging/paging.component';
 import { GamificationRecentEvent } from '../../../../model/gamification/gamification.model.js';
 import { PaginatedMeta } from '../../../../model/shared/paging/PaginatedMeta.model.ts';
+import { ButtonHoverHelpComponent } from '../../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-recent-gamification-events',
   standalone: true,
-  imports: [PagingComponent],
+  imports: [PagingComponent, ButtonHoverHelpComponent],
   templateUrl: './recent-gamification-events.component.html',
   styleUrl: './recent-gamification-events.component.css',
 })

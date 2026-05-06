@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+
+  <defs>
+    <!-- Deep gold radial -->
+    <radialGradient id="bg" cx="42%" cy="30%" r="75%">
+      <stop offset="0%"   stop-color="#ffe97a"/>
+      <stop offset="40%"  stop-color="#f5a800"/>
+      <stop offset="100%" stop-color="#7a3a00"/>
+    </radialGradient>
+    <!-- Outer glow: rich amber -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="50%"  stop-color="#D97706" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#ffbb00" stop-opacity=".6"/>
+    </radialGradient>
+    <!-- Shine: strong top-left highlight -->
+    <linearGradient id="shine" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%"  stop-color="#fff" stop-opacity=".38"/>
+      <stop offset="45%" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Double ring gradient -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#fff8b0"/>
+      <stop offset="35%"  stop-color="#f5c800"/>
+      <stop offset="65%"  stop-color="#d48000"/>
+      <stop offset="100%" stop-color="#fff0a0"/>
+    </linearGradient>
+    <!-- Sparkle glow filter -->
+    <filter id="ds">
+      <feDropShadow dx="0" dy="7" stdDeviation="14"
+        flood-color="#c06000" flood-opacity=".7"/>
+    </filter>
+    <filter id="sparkle">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Outer golden glow ring -->
+  <circle cx="128" cy="128" r="124" fill="url(#glow)"/>
+
+  <!-- Main disc -->
+  <circle cx="128" cy="128" r="112" fill="url(#bg)" filter="url(#ds)"/>
+
+  <!-- Thick outer border — gradient gold -->
+  <circle cx="128" cy="128" r="112" fill="none"
+          stroke="url(#ringGrad)" stroke-width="9"/>
+  <!-- Second inner ring for depth -->
+  <circle cx="128" cy="128" r="102" fill="none"
+          stroke="#ffe97a" stroke-width="2.5" opacity=".45"/>
+  <!-- Innermost subtle ring -->
+  <circle cx="128" cy="128" r="96" fill="none"
+          stroke="#fff" stroke-width="1" opacity=".12"/>
+
+  <!-- Shine overlay -->
+  <circle cx="128" cy="128" r="112" fill="url(#shine)"/>
+
+  <!-- Sparkle stars (4 around the badge) -->
+  <g fill="#fff8b0" filter="url(#sparkle)" opacity=".85">
+    <!-- Top -->
+    <polygon points="128,10 131,20 141,20 133,26 136,36 128,30 120,36 123,26 115,20 125,20"/>
+    <!-- Right -->
+    <polygon points="246,128 238,131 238,141 232,133 222,136 228,128 222,120 232,123 238,115 238,125"/>
+    <!-- Bottom -->
+    <polygon points="128,246 125,236 115,236 123,230 120,220 128,226 136,220 133,230 141,236 131,236"/>
+    <!-- Left -->
+    <polygon points="10,128 18,125 18,115 24,123 34,120 28,128 34,136 24,133 18,141 18,131"/>
+  </g>
+  <!-- Small diamond sparkles -->
+  <g fill="#fffacc" opacity=".7">
+    <polygon points="42,42  44,48  50,42  44,36"/>
+    <polygon points="214,42 216,48 222,42 216,36"/>
+    <polygon points="42,214 44,220 50,214 44,208"/>
+    <polygon points="214,214 216,220 222,214 216,208"/>
+  </g>
+
+  <!-- Crown with jewels -->
+  <path d="M70,114 L86,80 L108,102 L128,64 L148,102 L170,80 L186,114 Z"
+        fill="#4a2800" opacity=".92"
+        stroke="#4a2800" stroke-width="4" stroke-linejoin="round"/>
+  <!-- Crown base band -->
+  <rect x="70" y="114" width="116" height="18" rx="5" fill="#4a2800" opacity=".75"/>
+  <!-- Crown jewels -->
+  <circle cx="128" cy="92" r="9"  fill="rgba(74,40,0,0.5)" stroke="#4a2800" stroke-width="2.5" opacity=".9"/>
+  <circle cx="96"  cy="106" r="6" fill="rgba(74,40,0,0.5)" stroke="#4a2800" stroke-width="2" opacity=".8"/>
+  <circle cx="160" cy="106" r="6" fill="rgba(74,40,0,0.5)" stroke="#4a2800" stroke-width="2" opacity=".8"/>
+  <!-- Open book below -->
+  <path d="M76,146 Q76,140 82,140 L122,140 L128,136 L134,140 L174,140
+           Q180,140 180,146 L180,178 Q180,184 174,184 L134,184
+           L128,188 L122,184 L82,184 Q76,184 76,178 Z"
+        fill="none" stroke="#4a2800" stroke-width="6.5" stroke-linejoin="round"/>
+  <line x1="128" y1="136" x2="128" y2="188" stroke="#4a2800" stroke-width="4" opacity=".55"/>
+  <line x1="90"  y1="156" x2="118" y2="156" stroke="rgba(74,40,0,0.5)" stroke-width="4" stroke-linecap="round"/>
+  <line x1="90"  y1="168" x2="112" y2="168" stroke="rgba(74,40,0,0.5)" stroke-width="4" stroke-linecap="round"/>
+  <line x1="138" y1="156" x2="166" y2="156" stroke="rgba(74,40,0,0.5)" stroke-width="4" stroke-linecap="round"/>
+  <line x1="144" y1="168" x2="166" y2="168" stroke="rgba(74,40,0,0.5)" stroke-width="4" stroke-linecap="round"/>
+</svg>

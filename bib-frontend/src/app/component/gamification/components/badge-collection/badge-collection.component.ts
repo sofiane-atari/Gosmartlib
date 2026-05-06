@@ -8,6 +8,7 @@ import {
 } from '../../../../model/gamification/gamification.model';
 import { GamificationBadgeFilters } from '../../../../services/gamification/gamification.service';
 import { BadgeCollectionCardComponent } from '../badge-collection-card/badge-collection-card.component';
+import { ButtonHoverHelpComponent } from '../../../shared/button-hover-help/button-hover-help.component';
 
 type BadgeStatusFilter = 'ALL' | 'COMPLETED' | 'LOCKED';
 type BadgeCategoryFilter = 'ALL' | GamificationBadgeCategory;
@@ -21,7 +22,11 @@ interface BadgeFilterOption<TValue> {
 @Component({
   selector: 'app-badge-collection',
   standalone: true,
-  imports: [BadgeProgressCardComponent, BadgeCollectionCardComponent],
+  imports: [
+    BadgeProgressCardComponent,
+    BadgeCollectionCardComponent,
+    ButtonHoverHelpComponent,
+  ],
   templateUrl: './badge-collection.component.html',
   styleUrl: './badge-collection.component.css',
 })

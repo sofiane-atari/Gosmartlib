@@ -4,6 +4,8 @@ import { BadgeCardComponent } from '../badge-card/badge-card.component';
 import { Target, Award, Star, LucideAngularModule } from 'lucide-angular';
 import { AlmostEarnedBadgesComponent } from '../almost-earned-badges/almost-earned-badges.component';
 import { RecentGamificationEventsComponent } from '../recent-gamification-events/recent-gamification-events.component';
+import { RouterLink } from '@angular/router';
+import { ButtonHoverHelpComponent } from '../../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-gamification-summary',
@@ -13,6 +15,8 @@ import { RecentGamificationEventsComponent } from '../recent-gamification-events
     LucideAngularModule,
     AlmostEarnedBadgesComponent,
     RecentGamificationEventsComponent,
+    RouterLink,
+    ButtonHoverHelpComponent,
   ],
   templateUrl: './gamification-summary.component.html',
   styleUrl: './gamification-summary.component.css',

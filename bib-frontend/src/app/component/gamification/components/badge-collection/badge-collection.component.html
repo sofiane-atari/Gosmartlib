@@ -12,7 +12,11 @@
   <!-- Filters in een mooi afgekaderd paneel -->
   <div class="badge-collection__filters-panel">
     <div class="badge-collection__filter-row">
-      <span class="badge-collection__filter-label">Categorie</span>
+      <app-button-hover-help
+        text="Filter badges op het soort activiteit, zoals lezen, recensies of stiptheid."
+      >
+        <span class="badge-collection__filter-label">Categorie</span>
+      </app-button-hover-help>
       <div class="badge-collection__filter-group">
         @for (option of categoryOptions; track option.value) {
           <button
@@ -30,7 +34,11 @@
     </div>
 
     <div class="badge-collection__filter-row">
-      <span class="badge-collection__filter-label">Zeldzaamheid</span>
+      <app-button-hover-help
+        text="Zeldzaamheid toont hoe bijzonder een badge is. Epische en legendarische badges zijn moeilijker te behalen."
+      >
+        <span class="badge-collection__filter-label">Zeldzaamheid</span>
+      </app-button-hover-help>
       <div class="badge-collection__filter-group">
         @for (option of rarityOptions; track option.value) {
           <button
@@ -48,7 +56,11 @@
     </div>
 
     <div class="badge-collection__filter-row">
-      <span class="badge-collection__filter-label">Status</span>
+      <app-button-hover-help
+        text="Filter op badges die je al behaald hebt of badges die nog vergrendeld zijn."
+      >
+        <span class="badge-collection__filter-label">Status</span>
+      </app-button-hover-help>
       <div class="badge-collection__filter-group">
         @for (option of statusOptions; track option.value) {
           <button
@@ -66,13 +78,17 @@
     </div>
 
     <div class="badge-collection__filter-actions">
-      <button
-        type="button"
-        class="badge-collection__filter-reset"
-        (click)="resetFilters()"
+      <app-button-hover-help
+        text="Zet alle filters terug naar de standaardweergave."
       >
-        Filters wissen
-      </button>
+        <button
+          type="button"
+          class="badge-collection__filter-reset"
+          (click)="resetFilters()"
+        >
+          Filters wissen
+        </button>
+      </app-button-hover-help>
     </div>
   </div>
 

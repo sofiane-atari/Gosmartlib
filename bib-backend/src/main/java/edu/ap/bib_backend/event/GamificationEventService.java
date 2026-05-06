@@ -53,6 +53,8 @@ public class GamificationEventService {
 
         badgeProgressService.increaseProgress(profile, BadgeCode.FIRST_BOOK_RETURNED, 1);
         badgeProgressService.increaseProgress(profile, BadgeCode.BOOKWORM_5_BOOKS, 1);
+        badgeProgressService.increaseProgress(profile, BadgeCode.BOOK_RETURNER_10, 1);
+        badgeProgressService.increaseProgress(profile, BadgeCode.LEGENDARY_READER_25, 1);
 
         if (event.returnedOnTime()) {
             handleBookReturnedOnTime(profile, sourceId);
@@ -78,6 +80,7 @@ public class GamificationEventService {
         }
 
         badgeProgressService.increaseProgress(profile, BadgeCode.FIRST_REVIEW, 1);
+        badgeProgressService.increaseProgress(profile, BadgeCode.REVIEWER_5_REVIEWS, 1);
     }
 
     private void handleBookReturnedOnTime(GamificationProfile profile, String sourceId) {
@@ -91,5 +94,6 @@ public class GamificationEventService {
         );
 
         badgeProgressService.increaseProgress(profile, BadgeCode.ON_TIME_RETURNER_5, 1);
+        badgeProgressService.increaseProgress(profile, BadgeCode.ON_TIME_RETURNER_10, 1);
     }
 }

@@ -1,13 +1,12 @@
 <section class="gamification-summary">
   <header class="gamification-summary__header">
     <div>
-      <p class="gamification-summary__eyebrow">Gamificatie</p>
       <h2 class="gamification-summary__title">Jouw voortgang</h2>
     </div>
   </header>
 
   @if (gamificationStore.isLoading()) {
-    <div class="empty-state">Gamificatiegegevens worden geladen...</div>
+    <div class="empty-state">Prestatiegegevens worden geladen...</div>
   } @else if (gamificationStore.errorMessage()) {
     <div class="empty-state empty-state--error">
       {{ gamificationStore.errorMessage() }}
@@ -15,48 +14,64 @@
   } @else {
     <!-- STATISTIEKEN -->
     <div class="gamification-summary__stats">
-      <article class="stat-card stat-card--purple">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="Award" [size]="24"></lucide-icon>
-        </div>
-        <div>
-          <span class="stat-card__label">Level</span>
-          <strong class="stat-card__value">{{
-            gamificationStore.currentLevel()
-          }}</strong>
-        </div>
-      </article>
+      <app-button-hover-help
+        text="Je level stijgt wanneer je genoeg punten verdient met lezen, recensies en badges."
+      >
+        <article class="stat-card stat-card--purple">
+          <div class="stat-card__icon">
+            <lucide-icon [name]="Award" [size]="24"></lucide-icon>
+          </div>
+          <div>
+            <span class="stat-card__label">Level</span>
+            <strong class="stat-card__value">
+              {{ gamificationStore.currentLevel() }}
+            </strong>
+          </div>
+        </article>
+      </app-button-hover-help>
 
-      <article class="stat-card stat-card--blue">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="Star" [size]="24"></lucide-icon>
-        </div>
-        <div>
-          <span class="stat-card__label">Punten</span>
-          <strong class="stat-card__value">{{
-            gamificationStore.totalPoints()
-          }}</strong>
-        </div>
-      </article>
+      <app-button-hover-help
+        text="Je verdient punten door boeken terug te brengen, boeken op tijd terug te brengen en recensies te schrijven."
+      >
+        <article class="stat-card stat-card--blue">
+          <div class="stat-card__icon">
+            <lucide-icon [name]="Star" [size]="24"></lucide-icon>
+          </div>
+          <div>
+            <span class="stat-card__label">Punten</span>
+            <strong class="stat-card__value">
+              {{ gamificationStore.totalPoints() }}
+            </strong>
+          </div>
+        </article>
+      </app-button-hover-help>
 
-      <article class="stat-card stat-card--green">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="Target" [size]="24"></lucide-icon>
-        </div>
-        <div>
-          <span class="stat-card__label">Tot volgend level</span>
-          <strong class="stat-card__value">{{
-            gamificationStore.pointsUntilNextLevel()
-          }}</strong>
-        </div>
-      </article>
+      <app-button-hover-help
+        text="Dit toont hoeveel punten je nog nodig hebt om het volgende level te bereiken."
+      >
+        <article class="stat-card stat-card--green">
+          <div class="stat-card__icon">
+            <lucide-icon [name]="Target" [size]="24"></lucide-icon>
+          </div>
+          <div>
+            <span class="stat-card__label">Tot volgend level</span>
+            <strong class="stat-card__value">
+              {{ gamificationStore.pointsUntilNextLevel() }}
+            </strong>
+          </div>
+        </article>
+      </app-button-hover-help>
     </div>
     <section class="level-progress-card">
       <div class="level-progress-card__header">
         <div>
-          <h3 class="level-progress-card__title">
-            Op weg naar level {{ gamificationStore.currentLevel() + 1 }}
-          </h3>
+          <app-button-hover-help
+            text="Deze balk toont hoe ver je bent op weg naar je volgende level."
+          >
+            <h3 class="level-progress-card__title">
+              Op weg naar level {{ gamificationStore.currentLevel() + 1 }}
+            </h3>
+          </app-button-hover-help>
           <p class="level-progress-card__description">
             Je bent al {{ gamificationStore.levelProgressPercentage() }}%
             onderweg.
@@ -101,6 +116,24 @@
       [isLoading]="gamificationStore.almostEarnedBadgesLoading()"
       [errorMessage]="gamificationStore.almostEarnedBadgesErrorMessage()"
     ></app-almost-earned-badges>
+
+    <section class="badge-collection-cta">
+      <div>
+        <h3 class="badge-collection-cta__title">Ontdek alle badges</h3>
+        <p class="badge-collection-cta__description">
+          Bekijk welke badges je al hebt behaald en welke uitdagingen nog op je
+          wachten.
+        </p>
+      </div>
+
+      <app-button-hover-help
+        text="Open de volledige badgecollectie om alle behaalde en nog te behalen badges te bekijken."
+      >
+        <a class="badge-collection-cta__link" routerLink="/achievements/badges">
+          Naar badgecollectie
+        </a>
+      </app-button-hover-help>
+    </section>
 
     <app-recent-gamification-events
       [events]="gamificationStore.pagedRecentEvents()"

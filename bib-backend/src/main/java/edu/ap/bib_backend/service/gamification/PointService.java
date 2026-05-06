@@ -11,9 +11,9 @@ import edu.ap.bib_backend.jpa.repository.gamification.PointTransactionRepository
 @Service
 public class PointService {
 
-    public static final int BOOK_RETURNED_POINTS = 10;
-    public static final int BOOK_RETURNED_ON_TIME_BONUS_POINTS = 5;
-    public static final int REVIEW_CREATED_POINTS = 5;
+    public static final int BOOK_RETURNED_POINTS = 1;
+    public static final int BOOK_RETURNED_ON_TIME_BONUS_POINTS = 3;
+    public static final int REVIEW_CREATED_POINTS = 1;
 
     private final PointTransactionRepository pointTransactionRepository;
     private final GamificationProfileService gamificationProfileService;
