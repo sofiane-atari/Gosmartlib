@@ -118,7 +118,7 @@ export const routes: Routes = [
     canActivate: [authGuard, adminOnlyGuard],
   },
   {
-    path: 'instellingen',
+    path: 'settings',
     component: SettingsComponent,
     canActivate: [authGuard, adminOnlyGuard],
   },

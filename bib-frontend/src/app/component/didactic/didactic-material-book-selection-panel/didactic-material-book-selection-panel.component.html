@@ -38,8 +38,20 @@
       <p>Selecteer eerst een gebruiker om boeken te zoeken.</p>
     </div>
   } @else if (isLoadingBooks()) {
-    <div class="state-panel state-panel--compact">
-      <p>Boeken worden geladen...</p>
+    <div class="list">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="list-item book-item book-item--with-cover skeleton-item">
+          <div class="book-item__cover">
+            <div class="skeleton skeleton-book-cover"></div>
+          </div>
+          <div class="book-item-content">
+            <div class="skeleton skeleton-book-title"></div>
+            <div class="skeleton skeleton-book-subtitle"></div>
+            <div class="skeleton skeleton-book-meta"></div>
+          </div>
+          <div class="skeleton skeleton-book-button"></div>
+        </div>
+      }
     </div>
   } @else if (!hasBookSearchInput()) {
     <div class="state-panel state-panel--compact">
