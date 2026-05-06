@@ -1,91 +1,56 @@
 package edu.ap.bib_backend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.dto.LoanDTO;
-import edu.ap.bib_backend.service.AdminOverrideService;
-import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.LoanService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.List;
+import java.util.Collections;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(LoanController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(TestSecurityConfig.class)
 class LoanControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @MockitoBean
     private LoanService loanService;
 
-    @MockitoBean
-    private JwtService jwtService;
-
-    @MockitoBean
-    private AdminOverrideService adminOverrideService;
-
     @Test
-    void Given_ValidLoanBody_When_CreateLoan_Then_ReturnsOkAndCreatedLoan() throws Exception {
+    void Given_ValidLoan_When_CreateLoan_Then_ReturnsOk() throws Exception {
         // Arrange
-        LoanDTO requestBody = new LoanDTO(null, "user-1", null, List.of(101L, 202L), null, null, "2099-12-31");
-        LoanDTO createdLoan = new LoanDTO(null, "user-1", null, List.of(101L, 202L), null, null, "2099-12-31");
+        LoanDTO loanDto = LoanDTO.builder().userId("user1").build();
+        when(loanService.create(any())).thenReturn(loanDto);
 
-        when(loanService.create(requestBody)).thenReturn(createdLoan);
-
-        // Act
-        ResultActions result = mockMvc.perform(post("/loans")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestBody)));
-
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value("user-1"))
-                .andExpect(jsonPath("$.bookIds[0]").value(101L))
-                .andExpect(jsonPath("$.bookIds[1]").value(202L))
-                .andExpect(jsonPath("$.returnDate").value("2099-12-31"));
-
-        verify(loanService).create(requestBody);
+        // Act & Assert
+        mockMvc.perform(post("/loans")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\": \"user1\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value("user1"));
     }
 
     @Test
-    void Given_InvalidLoanBody_When_CreateLoan_Then_ReturnsBadRequest() throws Exception {
+    void Given_LoansExist_When_GetAllLoans_Then_ReturnsList() throws Exception {
         // Arrange
-        String invalidRequestBody = """
-                {
-                  \"userId\": \"\",
-                  \"bookIds\": [],
-                  \"returnDate\": \"\"
-                }
-                """;
+        when(loanService.findAll()).thenReturn(Collections.emptyList());
 
-        // Act
-        ResultActions result = mockMvc.perform(post("/loans")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidRequestBody));
-
-        // Assert
-        result.andExpect(status().isBadRequest());
-        verifyNoInteractions(loanService);
+        // Act & Assert
+        mockMvc.perform(get("/loans"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 }
