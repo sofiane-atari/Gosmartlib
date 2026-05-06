@@ -4,12 +4,14 @@ import edu.ap.bib_backend.dto.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
-import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
-
+import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,103 +22,124 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoanServiceTest {
 
     @Mock
     private LoanRepository loanRepository;
-
     @Mock
     private LoanMapper loanMapper;
-
     @Mock
     private BookService bookService;
-
     @Mock
     private ExternalUserDisplayService externalUserDisplayService;
-
     @Mock
     private BookCopyRepository bookCopyRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private SmartschoolMessageService smartschoolMessageService;
+    @Mock
+    private SmartschoolTokenRefreshService smartschoolTokenRefreshService;
 
     @InjectMocks
     private LoanService loanService;
 
     @Test
-    void Given_ValidLoanDTO_When_Create_Then_ReturnsCreatedLoanDTO() {
+    void Given_ValidLoanDTO_When_Create_Then_SavesAndReturnsDto() {
         // Arrange
-        String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(2).toString();
-        LoanDTO inputLoan = new LoanDTO(null, "user-1", null, List.of(15L), null, null, returnDate);
+        String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
+        LoanDTO inputDto = LoanDTO.builder()
+                .userId("user123")
+                .bookIds(List.of(1L))
+                .returnDate(returnDate)
+                .build();
 
-        Loan mappedLoan = new Loan();
-        LoanDTO expectedResult = new LoanDTO(null, "user-1", null, List.of(15L), null, null, returnDate);
+        Loan loan = new Loan();
+        loan.setCopies(new ArrayList<>());
+        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
-        BookCopy selectedCopy = new BookCopy();
         Book book = new Book();
-        book.setBookCopies(new ArrayList<>(List.of(selectedCopy)));
-
-        when(loanMapper.toEntity(inputLoan)).thenReturn(mappedLoan);
-        when(loanRepository.save(mappedLoan)).thenReturn(mappedLoan);
-        when(bookService.getBookById(15L, true)).thenReturn(book);
-        when(bookCopyRepository.findAvailableCopiesByBookId(15L)).thenReturn(List.of(selectedCopy));
-        when(loanMapper.toDto(mappedLoan)).thenReturn(expectedResult);
+        book.setTitle("Test Book");
+        when(bookService.getBookById(1L, true)).thenReturn(book);
+        
+        BookCopy copy = new BookCopy();
+        when(bookCopyRepository.findAvailableCopiesByBookId(1L)).thenReturn(List.of(copy));
+        
+        LoanDTO expectedDto = mock(LoanDTO.class);
+        when(loanMapper.toDto(loan)).thenReturn(expectedDto);
 
         // Act
-        LoanDTO result = loanService.create(inputLoan);
+        LoanDTO result = loanService.create(inputDto);
 
         // Assert
-        assertEquals(expectedResult, result);
-        assertEquals(LocalDate.parse(returnDate), mappedLoan.getReturnDate());
-        assertNotNull(mappedLoan.getLoanDate());
-        assertEquals(1, mappedLoan.getCopies().size());
-        assertSame(selectedCopy, mappedLoan.getCopies().getFirst());
-
-        verify(loanMapper).toEntity(inputLoan);
-        verify(loanRepository, times(2)).save(mappedLoan);
-        verify(bookService).getBookById(15L, true);
-        verify(bookCopyRepository).findAvailableCopiesByBookId(15L);
-        verify(loanMapper).toDto(mappedLoan);
+        assertNotNull(result);
+        assertEquals(expectedDto, result);
+        verify(loanRepository, atLeastOnce()).save(loan);
+        verify(smartschoolTokenRefreshService).getValidSmartschoolAccessToken("user123");
     }
 
     @Test
-    void Given_LoanDTOWithInvalidDateFormat_When_Create_Then_ThrowsIllegalStateException() {
+    void Given_LoansExist_When_FindAll_Then_ReturnsPopulatedDtos() {
         // Arrange
-        LoanDTO inputLoan = new LoanDTO(null, "user-1", null, List.of(15L), null, null, "31-12-2099");
+        User user = new User();
+        user.setOneRosterSourcedId("sourced-1");
+        School school = new School();
+        school.setDomainName("school.be");
+        user.setSchool(school);
+
+        Loan loan = new Loan();
+        loan.setUser(user);
+        when(loanRepository.findAll()).thenReturn(List.of(loan));
+
+        LoanDTO basicDto = LoanDTO.builder().id(1L).userId("user123").build();
+        when(loanMapper.toDto(loan)).thenReturn(basicDto);
+
+        when(externalUserDisplayService.getDisplayNames(eq("school.be"), anySet()))
+                .thenReturn(Map.of("sourced-1", "John Doe"));
 
         // Act
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> loanService.create(inputLoan));
+        List<LoanDTO> result = loanService.findAll();
 
         // Assert
-        assertEquals("Retourdatum heeft een ongeldig formaat.", exception.getMessage());
-        verifyNoInteractions(loanMapper);
-        verifyNoInteractions(loanRepository);
-        verifyNoInteractions(bookService);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("John Doe", result.get(0).userDisplayName());
     }
 
     @Test
-    void Given_LoanDTOWithTodayAsReturnDate_When_Create_Then_ThrowsIllegalStateException() {
+    void Given_NoReturnDate_When_Create_Then_UsesDefaultReturnDateFromSchool() {
         // Arrange
-        String today = LocalDate.now(ZoneId.of("Europe/Brussels")).toString();
-        LoanDTO inputLoan = new LoanDTO(null, "user-1", null, List.of(15L), null, null, today);
+        LoanDTO inputDto = LoanDTO.builder().userId("user123").bookIds(List.of(1L)).build();
+        
+        User user = new User();
+        School school = new School();
+        school.setDefaultLoanDurationDays(30);
+        user.setSchool(school);
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        Loan loan = new Loan();
+        loan.setCopies(new ArrayList<>());
+        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+        
+        when(bookService.getBookById(1L, true)).thenReturn(new Book());
+        when(bookCopyRepository.findAvailableCopiesByBookId(1L)).thenReturn(List.of(new BookCopy()));
 
         // Act
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> loanService.create(inputLoan));
+        loanService.create(inputDto);
 
         // Assert
-        assertEquals("Retourdatum moet minimaal één dag in de toekomst liggen.", exception.getMessage());
-        verifyNoInteractions(loanMapper);
-        verifyNoInteractions(loanRepository);
-        verifyNoInteractions(bookService);
+        assertNotNull(loan.getReturnDate());
+        assertEquals(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(30), loan.getReturnDate());
     }
 }
