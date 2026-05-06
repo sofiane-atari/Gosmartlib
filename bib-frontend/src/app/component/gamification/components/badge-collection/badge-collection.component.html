@@ -93,7 +93,27 @@
   </div>
 
   @if (isLoading()) {
-    <div class="badge-collection__empty">Badges worden geladen...</div>
+    <div class="badge-collection__grid">
+      <!-- Toon 6 dummy kaarten als skeleton -->
+      @for (dummy of [1, 2, 3, 4, 5, 6]; track dummy) {
+        <article class="skeleton-badge-card">
+          <!-- Nep labeltje rechtsboven -->
+          <div class="skeleton skeleton--pill skeleton-badge-card__label"></div>
+          <!-- Nep ronde badge -->
+          <div
+            class="skeleton skeleton--circle skeleton-badge-card__visual"
+          ></div>
+          <!-- Nep teksten -->
+          <div class="skeleton skeleton-badge-card__title"></div>
+          <div class="skeleton skeleton-badge-card__text"></div>
+          <div
+            class="skeleton skeleton-badge-card__text skeleton-badge-card__text--short"
+          ></div>
+          <!-- Nep balkje onderaan -->
+          <div class="skeleton skeleton--pill skeleton-badge-card__track"></div>
+        </article>
+      }
+    </div>
   } @else if (errorMessage()) {
     <div class="badge-collection__empty badge-collection__empty--error">
       {{ errorMessage() }}

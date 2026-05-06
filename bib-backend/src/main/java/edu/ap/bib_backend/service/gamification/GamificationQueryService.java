@@ -27,14 +27,12 @@ import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @Service
 public class GamificationQueryService {
 
     private static final int ALMOST_EARNED_BADGE_LIMIT = 3;
-    private static final int DEFAULT_RECENT_EVENTS_PAGE_SIZE = 5;
     private static final int MAX_RECENT_EVENTS_PAGE_SIZE = 20;
 
     private final UserRepository userRepository;

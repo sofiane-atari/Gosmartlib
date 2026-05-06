@@ -14,7 +14,17 @@
   </div>
 
   @if (isLoading()) {
-    <div class="recent-events__empty">Recente activiteit wordt geladen...</div>
+    <div class="recent-events-list">
+      @for (dummy of [1, 2, 3, 4]; track dummy) {
+        <div class="skeleton-event-row">
+          <div class="skeleton skeleton--circle skeleton-event-icon"></div>
+          <div class="skeleton-event-content">
+            <div class="skeleton skeleton-event-title"></div>
+            <div class="skeleton skeleton-event-date"></div>
+          </div>
+        </div>
+      }
+    </div>
   } @else if (errorMessage()) {
     <div class="recent-events__empty recent-events__empty--error">
       {{ errorMessage() }}

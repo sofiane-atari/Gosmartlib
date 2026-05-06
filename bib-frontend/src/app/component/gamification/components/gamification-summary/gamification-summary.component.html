@@ -6,7 +6,19 @@
   </header>
 
   @if (gamificationStore.isLoading()) {
-    <div class="empty-state">Prestatiegegevens worden geladen...</div>
+    <div class="gamification-summary__stats">
+      @for (dummy of [1, 2, 3]; track dummy) {
+        <article class="stat-card">
+          <!-- Nep Icoon -->
+          <div class="skeleton stat-card__icon stat-card__icon--skeleton"></div>
+          <div>
+            <!-- Nep label en waarde -->
+            <div class="skeleton skeleton-stat-label"></div>
+            <div class="skeleton skeleton-stat-value"></div>
+          </div>
+        </article>
+      }
+    </div>
   } @else if (gamificationStore.errorMessage()) {
     <div class="empty-state empty-state--error">
       {{ gamificationStore.errorMessage() }}

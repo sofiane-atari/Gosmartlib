@@ -1,16 +1,23 @@
 /* =========================================================
-   BADGE CARD (Gamification)
+   BADGE CARD (Voor de 'Laatste prestaties' rij)
    ========================================================= */
+
+:host {
+  display: block;
+  height: 100%;
+}
 
 .badge-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
+  text-align: center;
+  height: 100%;
+  padding: 32px 24px 24px; /* Iets meer ademruimte bovenaan */
   background: var(--bg-surface, #ffffff);
   border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 12px;
-  font-family: var(--main-font, inherit); /* Jouw font! */
+  border-radius: 16px;
+  font-family: var(--main-font, inherit);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -19,72 +26,75 @@
 
 .badge-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
   border-color: var(--sec-color, #d1d5db);
 }
 
+/* --- Visual (De Ronde Badge) --- */
 .badge-card__visual {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  flex: 0 0 auto;
-  border: 3px solid; /* Kleur komt dynamisch binnen via de HTML badge().themeColor */
+  width: 96px; /* Zelfde mooie grote formaat als je andere kaarten */
+  height: 96px;
+  margin: 0 auto 20px auto; /* Centreert de badge en geeft ruimte eronder */
+  border: 4px solid;
   border-radius: 50%;
   background: var(--bg-surface, #ffffff);
   font-size: 1.5rem;
   font-weight: 800;
   box-shadow:
     inset 0 2px 4px rgba(0, 0, 0, 0.04),
-    0 2px 8px rgba(0, 0, 0, 0.04);
+    0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
+.badge-card__image {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+/* --- Content Wrapper --- */
 .badge-card__content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  align-items: center; /* Centreert de tekst en labels horizontaal */
+  flex: 1; /* Neemt de overgebleven ruimte in beslag */
+  width: 100%;
 }
 
+/* --- Tekst --- */
 .badge-card__title {
-  margin: 0;
-  color: var(--text-dark, #1f2937); /* Jouw donkere tekstkleur */
-  font-size: 1rem;
+  margin: 0 0 8px;
+  color: var(--text-dark, #1f2937);
+  font-size: 1.1rem;
   font-weight: 700;
-  line-height: 1.2;
 }
 
 .badge-card__description {
   margin: 0;
-  color: var(--text-muted, #6b7280); /* Jouw grijze tekstkleur */
-  font-size: 0.85rem;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  /* DIT IS DE MAGIE: Duwt het label dat hierna komt strak naar de bodem! */
+  margin-bottom: auto;
 }
 
-/* Rarity label gekoppeld aan je huiskleuren */
+/* --- Het Rarity Label (bijv. EPISCH) --- */
 .badge-card__rarity {
-  width: fit-content;
-  margin-top: 4px;
-  padding: 4px 10px;
-  background: var(--main-light-color, #f3f4f6);
-  color: var(--main-color, #8a1e41); /* Gebruikt nu jouw hoofdkleur! */
-  font-size: 0.7rem;
-  font-weight: 700;
+  margin-top: 24px; /* Zorgt voor minimale afstand tot de tekst erbover */
+  padding: 6px 14px;
+  background: var(--main-light-color, #fff5f8);
+  color: var(--main-color, #8a1e41);
+  font-size: 0.75rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-radius: 999px;
   border: 1px solid var(--border-color, #e5e7eb);
-}
-.badge-card__image {
-  width: 72%;
-  height: 72%;
-  object-fit: contain;
+  white-space: nowrap;
 }
 
+/* Verbergt de fallback letter zodat alleen het icoon overblijft en perfect in het midden staat */
 .badge-card__fallback {
   display: none;
 }

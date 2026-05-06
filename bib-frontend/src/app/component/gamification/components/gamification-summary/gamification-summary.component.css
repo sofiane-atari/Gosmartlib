@@ -298,6 +298,22 @@
   outline-offset: 2px;
 }
 
+/* Specifieke skeleton styling voor de summary kaarten */
+.stat-card__icon--skeleton {
+  background-color: var(--border-color, #e5e7eb) !important;
+}
+
+.skeleton-stat-label {
+  width: 60px;
+  height: 12px;
+  margin-bottom: 8px;
+}
+
+.skeleton-stat-value {
+  width: 40px;
+  height: 28px;
+}
+
 @media (max-width: 700px) {
   .badge-collection-cta {
     align-items: flex-start;

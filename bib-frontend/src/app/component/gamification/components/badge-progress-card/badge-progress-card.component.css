@@ -2,9 +2,17 @@
    BADGE PROGRESS CARD (Gamification)
    ========================================================= */
 
+/* 1. Zorg dat het Angular-component zelf de hele hoogte van het grid pakt */
+:host {
+  display: block;
+  height: 100%;
+}
+
 .badge-progress-card {
   display: flex;
-  align-items: center; /* Zorgt dat het icoon links verticaal gecentreerd staat */
+  align-items: stretch; /* Zorgt dat de rechterkolom meerekt tot de bodem */
+  height: 100%; /* Zorgt dat de hele kaart de grid-cel vult */
+  box-sizing: border-box;
   gap: 16px;
   padding: 16px 20px;
   background: var(--bg-surface, #ffffff);
@@ -23,19 +31,30 @@
   border-color: var(--sec-color, #d1d5db);
 }
 
-/* Een subtiele achtergrondkleur als hij 100% behaald is */
+/* --- Statussen --- */
 .badge-progress-card--completed {
   background: var(--main-light-color, #fff5f8);
-  border-color: rgba(138, 30, 65, 0.15); /* Zachte bordeaux rand */
+  border-color: rgba(138, 30, 65, 0.15);
 }
 
-/* Identiek aan de gewone badge card visual */
+.badge-progress-card--locked {
+  opacity: 0.88;
+}
+/* De class van je 'Nog te behalen' en 'Behaald' labels bovenaan */
+.badge-card__locked-label,
+.badge-card__rarity-label {
+  white-space: nowrap; /* DIT IS DE FIX: Voorkomt het afbreken van de tekst */
+}
+
+/* --- Visual (Het Icoon / De Badge) --- */
 .badge-progress-card__visual {
   display: grid;
   place-items: center;
   width: 56px;
   height: 56px;
   flex: 0 0 auto;
+  align-self: flex-start; /* Voorkomt dat het ronde icoon uitrekt in de hoogte */
+  margin-top: 4px; /* Lijnt het icoon optisch perfect uit met de titel */
   border: 3px solid;
   border-radius: 50%;
   background: var(--bg-surface, #ffffff);
@@ -46,18 +65,34 @@
     0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
+.badge-progress-card__image {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+}
+
+.badge-progress-card--locked .badge-progress-card__image {
+  filter: grayscale(1);
+  opacity: 0.65;
+}
+
+.badge-progress-card__fallback {
+  display: none;
+}
+
+/* --- Content (Rechterkant met tekst en balk) --- */
 .badge-progress-card__content {
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 12px;
-  min-width: 0; /* Voorkomt dat tekst buiten de kaart breekt */
+  min-width: 0;
 }
 
 .badge-progress-card__header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; /* Zorgt dat de teller netjes bovenin blijft bij lange titels */
+  align-items: flex-start; /* Zorgt dat de teller netjes bovenin blijft */
   gap: 16px;
 }
 
@@ -86,6 +121,7 @@
   overflow: hidden;
 }
 
+/* De teller rechtsboven (bijv. 2 / 5) */
 .badge-progress-card__count {
   color: var(--text-dark, #1f2937);
   font-size: 0.85rem;
@@ -97,29 +133,29 @@
   border: 1px solid var(--border-color, #e5e7eb);
 }
 
-/* De balk waar de voortgang in laadt */
+/* --- De Voortgangsbalk --- */
 .badge-progress-card__track {
   width: 100%;
-  height: 8px; /* Duidelijkere balk */
+  height: 8px;
+  margin-top: auto; /* DE MAGIE: Duwt de voortgangsbalk altijd naar de bodem! */
   overflow: hidden;
   background: var(--border-color, #e5e7eb);
   border-radius: 999px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtiele diepte */
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Het gevulde gedeelte */
 .badge-progress-card__fill {
   height: 100%;
   border-radius: inherit;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Soepelere laad-animatie */
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Het 'Behaald' labeltje */
+/* --- Labels onderaan --- */
 .badge-progress-card__completed {
   width: fit-content;
   margin: 0;
   padding: 4px 10px;
-  background: #dcfce7; /* Altijd frisgroen voor succes */
+  background: #dcfce7;
   color: #15803d;
   font-size: 0.75rem;
   font-weight: 700;
@@ -129,35 +165,42 @@
   letter-spacing: 0.5px;
 }
 
-.badge-progress-card--locked {
-  opacity: 0.88;
-}
-
-.badge-progress-card__image {
-  width: 72%;
-  height: 72%;
-  object-fit: contain;
-}
-
-.badge-progress-card--locked .badge-progress-card__image {
-  filter: grayscale(1);
-  opacity: 0.65;
-}
-
-.badge-progress-card__fallback {
-  display: none;
-}
-
 .badge-progress-card__locked {
   width: fit-content;
   margin: 0;
   padding: 4px 10px;
-  background: var(--bg-surface);
-  color: var(--text-muted);
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-muted, #6b7280);
   font-size: 0.75rem;
   font-weight: 700;
   border-radius: 999px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color, #e5e7eb);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* =========================================================
+   MEDIA QUERIES (Voor telefoonschermen)
+   ========================================================= */
+@media (max-width: 480px) {
+  .badge-progress-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .badge-progress-card__visual {
+    width: 48px; /* Icoon ietsje kleiner op mobiel */
+    height: 48px;
+    margin-top: 0;
+  }
+
+  /* Zet de header op mobiel onder elkaar als de tekst te lang is */
+  .badge-progress-card__header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .badge-progress-card__count {
+    align-self: flex-start; /* Verplaatst de teller netjes naar links onder de titel */
+  }
 }
