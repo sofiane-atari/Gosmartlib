@@ -3,6 +3,7 @@ package edu.ap.bib_backend.service.book;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
@@ -58,8 +59,7 @@ public class BookSearchService {
         int validatedPage = Math.max(page, 0);
         int validatedSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
 
-        Availability availability = mapAvailabilityFilter(availabilityFilter);
-        Sort sort = mapSort(sortBy);
+Sort sort = mapSort(sortBy);
         Pageable pageable = PageRequest.of(validatedPage, validatedSize, sort);
 
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
@@ -68,13 +68,16 @@ public class BookSearchService {
                 .where(BookSpecification.belongsToCampus(campus.getId()))
                 .and(BookSpecification.withFilters(
                         normalizedSearchTerm,
-                        availability,
                         minPages,
                         maxPages,
                         readingLevelId,
                         genreName
                 ))
                 .and(BookSpecification.visibleForUser(canSeeDidacticBooks));
+
+        if (availabilityFilter == BookAvailabilityFilter.AVAILABLE) {
+            specification = specification.and(BookSpecification.hasAnyAvailableCopy());
+        }
 
         return bookRepository.findAll(specification, pageable)
                 .map(bookMapper::toDTO);
@@ -90,15 +93,7 @@ public class BookSearchService {
         }
     }
 
-    private Availability mapAvailabilityFilter(BookAvailabilityFilter filter) {
-        if (filter == BookAvailabilityFilter.AVAILABLE) {
-            return Availability.AVAILABLE;
-        }
-
-        return null;
-    }
-
-    private Sort mapSort(BookSortOption sortBy) {
+private Sort mapSort(BookSortOption sortBy) {
         if (sortBy == null) {
             return Sort.by("title").ascending();
         }

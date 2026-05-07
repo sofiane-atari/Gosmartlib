@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
@@ -34,25 +35,17 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
-    // ==================== getUser Tests ====================
-
     @Test
     void givenNonExistingUserId_WhenGetUser_ThenReturnEmptyOptional() {
-        // Arrange
         String nonExistingUserId = "nonexistent";
         when(userRepository.findById(nonExistingUserId)).thenReturn(Optional.empty());
-
-        // Act
         Optional<User> result = userService.getUser(nonExistingUserId);
-
-        // Assert
         assertTrue(result.isEmpty());
         verify(userRepository, times(1)).findById(nonExistingUserId);
     }
 
     @Test
     void givenExistingUserId_WhenGetUser_ThenReturnUserOptional() {
-        // Arrange
         String existingUserId = "user123";
         User mockUser = new User();
         mockUser.setId(existingUserId);
@@ -60,21 +53,14 @@ class UserServiceTest {
         mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
         mockUser.setRole(mockRole);
         when(userRepository.findById(existingUserId)).thenReturn(Optional.of(mockUser));
-
-        // Act
         Optional<User> result = userService.getUser(existingUserId);
-
-        // Assert
         assertTrue(result.isPresent());
         assertEquals(existingUserId, result.get().getId());
         verify(userRepository, times(1)).findById(existingUserId);
     }
 
-    // ==================== getUsers Tests ====================
-
     @Test
     void givenBlankIdFilter_WhenGetUsers_ThenUseFindAllAndMapToDtos() {
-        // Arrange
         UserGetOptions options = new UserGetOptions();
         options.setId("");
 
@@ -85,16 +71,12 @@ class UserServiceTest {
         List<User> users = List.of(firstUser, secondUser);
 
         List<AuthUserDto> expectedDtos = List.of(
-                new AuthUserDto("s001", null, null, null, null, null, null, null, null, null, false, null, null, null, null),
-                new AuthUserDto("t001", null, null, null, null, null, null, null, null, null, false, null, null, null, null));
+                AuthUserDto.builder().id("s001").reviewBlocked(false).build(),
+                AuthUserDto.builder().id("t001").reviewBlocked(false).build());
 
         when(userRepository.findAll()).thenReturn(users);
         when(userMapper.toDtoList(users)).thenReturn(expectedDtos);
-
-        // Act
         List<AuthUserDto> result = userService.getUsers(options);
-
-        // Assert
         assertEquals(expectedDtos, result);
         verify(userRepository, times(1)).findAll();
         verify(userRepository, never()).findByIdContaining(any());
@@ -103,35 +85,24 @@ class UserServiceTest {
 
     @Test
     void givenIdFilter_WhenGetUsers_ThenUseFindByIdContainingAndMapToDtos() {
-        // Arrange
         UserGetOptions options = new UserGetOptions();
         options.setId("ab");
-
         User user = new User();
         user.setId("abc123");
         List<User> users = List.of(user);
-
         List<AuthUserDto> expectedDtos = List
-                .of(new AuthUserDto("abc123", null, null, null, null, null, null, null, null, null, false, null, null, null, null));
-
+                .of(AuthUserDto.builder().id("abc123").reviewBlocked(false).build());
         when(userRepository.findByIdContaining("ab")).thenReturn(users);
         when(userMapper.toDtoList(users)).thenReturn(expectedDtos);
-
-        // Act
         List<AuthUserDto> result = userService.getUsers(options);
-
-        // Assert
         assertEquals(expectedDtos, result);
         verify(userRepository, times(1)).findByIdContaining("ab");
         verify(userRepository, never()).findAll();
         verify(userMapper, times(1)).toDtoList(users);
     }
 
-    // ==================== createUser Tests ====================
-
     @Test
     void givenNewUserIdAndValidRoleAndSchool_WhenCreateUser_ThenSaveAndReturnUser() {
-        // Arrange
         String newUserId = "newuser";
         RoleEntity mockRole = new RoleEntity();
         mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
@@ -144,11 +115,7 @@ class UserServiceTest {
             user.setSchool(mockSchool);
             return user;
         });
-
-        // Act
-        User result = userService.createUser(newUserId, mockRole, mockSchool);
-
-        // Assert
+        User result = userService.createUser(newUserId, mockRole, mockSchool, createCampus());
         assertNotNull(result);
         assertEquals(newUserId, result.getId());
         assertEquals(mockRole, result.getRole());
@@ -159,16 +126,13 @@ class UserServiceTest {
 
     @Test
     void givenExistingUserIdAndAnyRoleAndSchool_WhenCreateUser_ThenThrowRuntimeException() {
-        // Arrange
         String existingUserId = "existinguser";
         RoleEntity mockRole = new RoleEntity();
         mockRole.setRole(edu.ap.bib_backend.jpa.enums.Role.STUDENT);
         School mockSchool = createSchool();
         when(userRepository.existsById(existingUserId)).thenReturn(true);
-
-        // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> userService.createUser(existingUserId, mockRole, mockSchool));
+                () -> userService.createUser(existingUserId, mockRole, mockSchool, createCampus()));
         assertEquals("Gebruiker bestaat al", exception.getMessage());
         verify(userRepository, times(1)).existsById(existingUserId);
         verify(userRepository, never()).save(any(User.class));
@@ -176,7 +140,6 @@ class UserServiceTest {
 
     @Test
     void givenValidUserIdAndNullRoleAndSchool_WhenCreateUser_ThenSaveUserWithNullRole() {
-        // Arrange
         String validUserId = "validuser";
         RoleEntity nullRole = null;
         School mockSchool = createSchool();
@@ -188,11 +151,7 @@ class UserServiceTest {
             user.setSchool(mockSchool);
             return user;
         });
-
-        // Act
-        User result = userService.createUser(validUserId, nullRole, mockSchool);
-
-        // Assert
+        User result = userService.createUser(validUserId, nullRole, mockSchool, createCampus());
         assertNotNull(result);
         assertEquals(validUserId, result.getId());
         assertNull(result.getRole());
@@ -203,43 +162,30 @@ class UserServiceTest {
 
     @Test
     void givenNullSchool_WhenCreateUser_ThenThrowNullPointerException() {
-        // Arrange
         String validUserId = "validuser";
         RoleEntity role = new RoleEntity();
         when(userRepository.existsById(validUserId)).thenReturn(false);
-
-        // Act & Assert
         NullPointerException exception = assertThrows(NullPointerException.class,
-                () -> userService.createUser(validUserId, role, null));
+                () -> userService.createUser(validUserId, role, null, createCampus()));
         assertEquals("school mag niet null zijn", exception.getMessage());
         verify(userRepository, times(1)).existsById(validUserId);
         verify(userRepository, never()).save(any(User.class));
     }
 
-    // ==================== setReviewBlocked Tests ====================
-
     @Test
     void givenValidUserIdAndBlockedTrue_WhenSetReviewBlocked_ThenReturnUpdatedAuthUserDto() {
-        // Arrange
         String userId = "user123";
         User user = new User();
         user.setId(userId);
         user.setReviewBlocked(false);
-
         User updatedUser = new User();
         updatedUser.setId(userId);
         updatedUser.setReviewBlocked(true);
-
-        AuthUserDto expectedDto = new AuthUserDto(userId, null, null, null, null, null, null, null, null, null, true, null, null, null, null);
-
+        AuthUserDto expectedDto = AuthUserDto.builder().id(userId).reviewBlocked(true).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
         when(userMapper.toDto(updatedUser)).thenReturn(expectedDto);
-
-        // Act
         AuthUserDto result = userService.setReviewBlocked(userId, true);
-
-        // Assert
         assertNotNull(result);
         assertTrue(result.reviewBlocked());
         assertEquals(userId, result.id());
@@ -250,26 +196,18 @@ class UserServiceTest {
 
     @Test
     void givenValidUserIdAndBlockedFalse_WhenSetReviewBlocked_ThenReturnUpdatedAuthUserDto() {
-        // Arrange
         String userId = "user456";
         User user = new User();
         user.setId(userId);
         user.setReviewBlocked(true);
-
         User updatedUser = new User();
         updatedUser.setId(userId);
         updatedUser.setReviewBlocked(false);
-
-        AuthUserDto expectedDto = new AuthUserDto(userId, null, null, null, null, null, null, null, null, null, false, null, null, null, null);
-
+        AuthUserDto expectedDto = AuthUserDto.builder().id(userId).reviewBlocked(false).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
         when(userMapper.toDto(updatedUser)).thenReturn(expectedDto);
-
-        // Act
         AuthUserDto result = userService.setReviewBlocked(userId, false);
-
-        // Assert
         assertNotNull(result);
         assertFalse(result.reviewBlocked());
         verify(userRepository, times(1)).findById(userId);
@@ -285,5 +223,12 @@ class UserServiceTest {
         school.setAddress("Noorderplaats 2");
         school.setPostalCode(2000);
         return school;
+    }
+
+    private Campus createCampus() {
+        Campus campus = new Campus();
+        campus.setId(1L);
+        campus.setName("Test Campus");
+        return campus;
     }
 }

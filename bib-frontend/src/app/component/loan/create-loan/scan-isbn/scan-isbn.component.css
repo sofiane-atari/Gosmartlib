@@ -1,0 +1,267 @@
+.scan-shell {
+  position: relative;
+}
+
+.scan-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.75rem;
+  padding: 1.75rem 2rem;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, rgba(236, 243, 252, 0.95), rgba(248, 247, 242, 0.95));
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-card__badge {
+  position: absolute;
+  top: 0.9rem;
+  right: 1.25rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: rgba(15, 23, 42, 0.7);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.scan-card__content h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.scan-card__content {
+  margin-top: 0.35rem;
+}
+
+.scan-card__content p {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.72);
+  max-width: 40ch;
+}
+
+.scan-card__button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.8rem 1.75rem;
+  background: #1f2937;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.scan-card__button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
+}
+
+.scan-card__status {
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: #1f7a3f;
+  font-weight: 600;
+}
+
+.scan-card__link {
+  border: none;
+  background: none;
+  color: #1f2937;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scan-card__focus-trap {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  padding: 0;
+}
+
+.scan-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 50;
+  animation: scan-overlay-fade 0.25s ease;
+  gap: 1.5rem;
+}
+
+.scan-modal {
+  width: min(520px, 100%);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: scan-modal-rise 0.3s ease;
+}
+
+.scan-modal--list {
+  width: min(420px, 100%);
+}
+
+.scan-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.scan-modal__eyebrow {
+  margin: 0 0 0.25rem;
+  color: rgba(15, 23, 42, 0.6);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.scan-modal__header h4 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.scan-modal__close {
+  border: none;
+  background: rgba(15, 23, 42, 0.08);
+  color: #1f2937;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scan-modal__body {
+  display: grid;
+  gap: 1rem;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.scan-modal__pulse {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(31, 122, 63, 0.15);
+  position: relative;
+}
+
+.scan-modal__pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(31, 122, 63, 0.4);
+  animation: scan-pulse 1.5s ease infinite;
+}
+
+.scan-modal__last {
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.05);
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.scan-modal__last span {
+  display: inline-block;
+  margin-left: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.scan-modal__list {
+  display: grid;
+  gap: 0.75rem;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.04);
+  padding: 0.85rem 1rem;
+}
+
+.scan-modal__list-items {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.scan-modal__list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.scan-modal__link {
+  border: none;
+  background: none;
+  color: #1f2937;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scan-modal__footer {
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+@keyframes scan-overlay-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scan-modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scan-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .scan-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .scan-card__badge {
+    position: static;
+    align-self: flex-start;
+  }
+
+  .scan-overlay {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -1,0 +1,23 @@
+<div class="selected-book-item">
+  <div class="selected-book-item__content">
+    <span class="selected-book-item__title">{{ book().title }}</span>
+    <span class="selected-book-item__subtitle">{{ book().author }}</span>
+    @if (book().isbn) {
+      <span class="selected-book-item__meta">ISBN: {{ book().isbn }}</span>
+    }
+    @if (quantity() > 1) {
+      <span class="selected-book-item__meta">
+        Aantal geselecteerd: <strong>{{ quantity() }}</strong>
+      </span>
+    }
+  </div>
+  @if (showRemove()) {
+    <button
+      type="button"
+      class="action-button action-button--danger"
+      (click)="removeRequested.emit(book().id)"
+    >
+      Verwijderen
+    </button>
+  }
+</div>

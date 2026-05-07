@@ -5,4 +5,6 @@ export interface BookCandidate {
   isbn13: string;
   releaseYear: number | null;
   imageUrl?: string;
+  availableCopies?: number;
+  selectedCount?: number;
 }

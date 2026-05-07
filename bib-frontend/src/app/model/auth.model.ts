@@ -1,5 +1,11 @@
 export type Role = 'STUDENT' | 'TEACHER' | 'LIBRARIAN' | 'ADMIN';
 
+export interface SchoolSummaryDto {
+  id: number;
+  name: string;
+  defaultLoanDurationDays?: number;
+}
+
 export interface AuthUserDto {
   id: string;
   firstName?: string | null;
@@ -16,4 +22,5 @@ export interface AuthUserDto {
   schoolName?: string | null;
   campusId?: number | null;
   campusName?: string | null;
+  school?: SchoolSummaryDto;
 }

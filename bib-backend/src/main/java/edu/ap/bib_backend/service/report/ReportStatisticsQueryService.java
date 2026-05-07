@@ -2,7 +2,7 @@ package edu.ap.bib_backend.service.report;
 
 import edu.ap.bib_backend.dto.report.PopularGenreDTO;
 import edu.ap.bib_backend.dto.report.TopRatedBookReportDTO;
-import edu.ap.bib_backend.jpa.repository.loan.LoanRepository;
+import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import org.springframework.stereotype.Service;
 

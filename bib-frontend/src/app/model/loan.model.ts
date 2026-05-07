@@ -4,10 +4,11 @@ export type LoanStatus = 'ACTIVE' | 'OVERDUE' | 'RETURNED';
 
 export interface LoanBook {
   id: number;
-  title: string;
+  title?: string;
   author?: string;
   isbn?: string;
   imageUrl?: string;
+  copiesCount?: number;
 }
 
 export interface Loan {

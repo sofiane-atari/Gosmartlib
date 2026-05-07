@@ -65,7 +65,7 @@ export class ReturnLoanComponent implements OnInit {
     return this.activeLoans().filter(loan => {
       const userName = loan.userDisplayName?.toLowerCase() ?? '';
       const userId = loan.userId?.toLowerCase() ?? '';
-      const books = loan.books?.map(book => book.title.toLowerCase()).join(' ') ?? '';
+      const books = loan.books?.map(book => book.title?.toLowerCase() ?? '').join(' ') ?? '';
 
       return userName.includes(term) || userId.includes(term) || books.includes(term);
     });

@@ -3,6 +3,7 @@ package edu.ap.bib_backend.integration;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import edu.ap.bib_backend.dto.JwtTokenDTO;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.AuthService;
 import edu.ap.bib_backend.service.JwtService;
@@ -49,6 +50,9 @@ class AuthServiceIntegrationTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private SchoolRepository schoolRepository;
+
     private AuthService authService;
 
     private HttpServer fakeSmartschoolServer;
@@ -67,7 +71,8 @@ class AuthServiceIntegrationTest {
                 tokenStorageService,
                 authorizedClientService,
                 smartschoolProfileService,
-                userRepository);
+                userRepository,
+                schoolRepository);
 
         ReflectionTestUtils.setField(authService, "smartschoolClientId", "test-client-id");
         ReflectionTestUtils.setField(authService, "smartschoolClientSecret", "test-client-secret");

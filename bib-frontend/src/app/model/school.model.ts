@@ -6,6 +6,7 @@ export interface School {
   postalCode: number;
   contactPhone?: string;
   contactEmail?: string;
+  defaultLoanDurationDays?: number;
   createdAt?: string;
 }
 

@@ -3,7 +3,9 @@ package edu.ap.bib_backend.dto;
 import java.util.List;
 
 import edu.ap.bib_backend.jpa.enums.Role;
+import lombok.Builder;
 
+@Builder
 public record AuthUserDto(
         String id,
         String firstName,
@@ -20,5 +22,6 @@ public record AuthUserDto(
         Long schoolId,
         String schoolName,
         Long campusId,
-        String campusName
+        String campusName,
+        SchoolSummaryDto school
 ) {}

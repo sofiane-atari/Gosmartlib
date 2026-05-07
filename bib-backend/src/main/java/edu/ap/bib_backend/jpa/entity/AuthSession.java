@@ -15,6 +15,7 @@ public class AuthSession {
     @Column(nullable = false)
     private String userId;
 
+    @Convert(converter = edu.ap.bib_backend.jpa.converter.JasyptStringAttributeConverter.class)
     @Column(nullable = false, length = 2048)
     private String jwtToken;
 
@@ -28,9 +29,11 @@ public class AuthSession {
 
     private Instant adminOverrideExpiresAt;
 
+    @Convert(converter = edu.ap.bib_backend.jpa.converter.JasyptStringAttributeConverter.class)
     @Column(length = 4096)
     private String smartschoolAccessToken;
 
+    @Convert(converter = edu.ap.bib_backend.jpa.converter.JasyptStringAttributeConverter.class)
     @Column(length = 4096)
     private String smartschoolRefreshToken;
 

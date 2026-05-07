@@ -8,7 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
-import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.entity.Loan;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 
@@ -19,7 +19,6 @@ public final class BookSpecification {
 
     public static Specification<Book> withFilters(
             String searchTerm,
-            Availability availability,
             Integer minPages,
             Integer maxPages,
             Long readingLevelId,
@@ -42,12 +41,6 @@ public final class BookSpecification {
                 );
 
                 predicates.add(criteriaBuilder.or(titleMatch, authorMatch));
-            }
-
-            if (availability != null) {
-                Join<Book, BookCopy> bookCopyJoin = root.join("bookCopies");
-                predicates.add(criteriaBuilder.equal(bookCopyJoin.get("availability"), availability));
-                query.distinct(true);
             }
 
             if (minPages != null) {
@@ -75,7 +68,7 @@ public final class BookSpecification {
         };
     }
 
-    public static Specification<Book> belongsToCampus(Long campusId) {
+public static Specification<Book> belongsToCampus(Long campusId) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("campus").get("id"), campusId);
     }
@@ -119,6 +112,32 @@ public final class BookSpecification {
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+    public static Specification<Book> hasAnyAvailableCopy() {
+        return (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+
+            jakarta.persistence.criteria.Subquery<Long> availableCopySubquery = query.subquery(Long.class);
+            var copyRoot = availableCopySubquery.from(BookCopy.class);
+            jakarta.persistence.criteria.Join<BookCopy, Loan> loanJoin = copyRoot.join("loans", jakarta.persistence.criteria.JoinType.LEFT);
+
+            availableCopySubquery.select(copyRoot.get("id"))
+                    .where(criteriaBuilder.equal(copyRoot.get("book"), root))
+                    .groupBy(copyRoot.get("id"))
+                    .having(criteriaBuilder.equal(
+                            criteriaBuilder.sum(
+                                    criteriaBuilder.<Integer>selectCase()
+                                            .when(criteriaBuilder.and(
+                                                    criteriaBuilder.isNotNull(loanJoin.get("id")),
+                                                    criteriaBuilder.isNull(loanJoin.get("returnedDate"))
+                                            ), 1)
+                                            .otherwise(0)
+                            ),
+                            0
+                    ));
+
+            return criteriaBuilder.exists(availableCopySubquery);
         };
     }
 

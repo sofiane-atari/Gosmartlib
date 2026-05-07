@@ -1,8 +1,10 @@
 <div class="panel">
   <div class="panel-header">
     <div>
-      <p class="panel-eyebrow">Gekoppelde boeken</p>
-      <h2>Zoek en selecteer boeken</h2>
+      @if (panelEyebrow()) {
+        <p class="panel-eyebrow">{{ panelEyebrow() }}</p>
+      }
+      <h2>{{ panelTitle() }}</h2>
     </div>
 
     <span class="pill">{{ selectedBooksCount() }} gekozen</span>
@@ -31,9 +33,25 @@
     />
   </div>
 
-  @if (isLoadingBooks()) {
+  @if (!hasSelectedUser()) {
     <div class="state-panel state-panel--compact">
-      <p>Boeken worden geladen...</p>
+      <p>Selecteer eerst een gebruiker om boeken te zoeken.</p>
+    </div>
+  } @else if (isLoadingBooks()) {
+    <div class="list">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="list-item book-item book-item--with-cover skeleton-item">
+          <div class="book-item__cover">
+            <div class="skeleton skeleton-book-cover"></div>
+          </div>
+          <div class="book-item-content">
+            <div class="skeleton skeleton-book-title"></div>
+            <div class="skeleton skeleton-book-subtitle"></div>
+            <div class="skeleton skeleton-book-meta"></div>
+          </div>
+          <div class="skeleton skeleton-book-button"></div>
+        </div>
+      }
     </div>
   } @else if (!hasBookSearchInput()) {
     <div class="state-panel state-panel--compact">
@@ -68,18 +86,24 @@
                 · ISBN: {{ book.isbn13 }}
               }
             </span>
+            @if (getAvailableCopiesLabel(book) || getSelectedCopiesLabel(book)) {
+              <span class="list-item-meta">
+                {{ getAvailableCopiesLabel(book) }}
+                @if (getSelectedCopiesLabel(book)) {
+                  · {{ getSelectedCopiesLabel(book) }}
+                }
+              </span>
+            }
           </div>
 
           @if (book.id !== undefined) {
             <button
               type="button"
               class="action-button action-button--secondary"
-              [disabled]="isBookAlreadySelected(book.id)"
+              [disabled]="isSelectDisabled(book)"
               (click)="addBookRequested.emit(book)"
             >
-              {{
-                isBookAlreadySelected(book.id) ? "Geselecteerd" : "Selecteren"
-              }}
+              {{ getActionLabel(book) }}
             </button>
           } @else {
             <button

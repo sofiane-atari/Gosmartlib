@@ -21,7 +21,7 @@ import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
-import edu.ap.bib_backend.jpa.repository.loan.BookLoanRepository;
+import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
@@ -293,7 +293,6 @@ public class BookService {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
         copy.setCampus(campus);
-        copy.setAvailability(Availability.AVAILABLE);
         bookCopyRepository.save(copy);
     }
 

@@ -2,19 +2,35 @@ package edu.ap.bib_backend.service.report;
 
 import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterUserDTO;
+import edu.ap.bib_backend.mapper.OneRosterMapper;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class ReportStudentResolverServiceTest {
 
     private final OneRosterClient oneRosterClient = mock(OneRosterClient.class);
+    private final OneRosterMapper oneRosterMapper = mock(OneRosterMapper.class);
 
-    private final ReportStudentResolverService service = new ReportStudentResolverService(oneRosterClient);
+    private final ReportStudentResolverService service = new ReportStudentResolverService(oneRosterClient, oneRosterMapper);
+
+    private static Map<String, Object> userMap(String sourcedId, String fullName, String givenName, String familyName, String username, String role) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("sourcedId", sourcedId);
+        map.put("fullName", fullName);
+        map.put("givenName", givenName);
+        map.put("familyName", familyName);
+        map.put("username", username);
+        map.put("role", role);
+        return map;
+    }
 
     @Test
     void resolveStudentsForClass_returnsDirectStudents_whenStudentsEndpointReturnsStudents() {
@@ -132,13 +148,23 @@ class ReportStudentResolverServiceTest {
                 "clara.maes",
                 "student");
 
+        Map<String, Object> studentOneMap = userMap("student-1", "Jan Peeters", "Jan", "Peeters", "jan.peeters", "student");
+        Map<String, Object> studentTwoMap = userMap("student-2", "Anna Janssens", "Anna", "Janssens", "anna.janssens", "student");
+        Map<String, Object> studentFourMap = userMap("student-4", "Bram Willems", "Bram", "Willems", "bram.willems", "student");
+        Map<String, Object> unrelatedUserMap = userMap("student-3", "Clara Maes", "Clara", "Maes", "clara.maes", "student");
+
         when(oneRosterClient.fetchUsersWithBearer(
                 "aphogeschool.smartschool.be",
                 "smartschool-token")).thenReturn(List.of(
-                        unrelatedUser,
-                        studentTwo,
-                        studentOne,
-                        studentFour));
+                        unrelatedUserMap,
+                        studentTwoMap,
+                        studentOneMap,
+                        studentFourMap));
+
+        when(oneRosterMapper.toOneRosterUser(studentOneMap)).thenReturn(studentOne);
+        when(oneRosterMapper.toOneRosterUser(studentTwoMap)).thenReturn(studentTwo);
+        when(oneRosterMapper.toOneRosterUser(studentFourMap)).thenReturn(studentFour);
+        when(oneRosterMapper.toOneRosterUser(unrelatedUserMap)).thenReturn(unrelatedUser);
 
         List<OneRosterUserDTO> result = service.resolveStudentsForClass(
                 "aphogeschool.smartschool.be",
@@ -240,9 +266,13 @@ class ReportStudentResolverServiceTest {
                 "jan.peeters",
                 "student");
 
+        Map<String, Object> studentMap = userMap("student-1", "Jan Peeters", "Jan", "Peeters", "jan.peeters", "student");
+
         when(oneRosterClient.fetchUsersWithBearer(
                 "aphogeschool.smartschool.be",
-                "smartschool-token")).thenReturn(List.of(student));
+                "smartschool-token")).thenReturn(List.of(studentMap));
+
+        when(oneRosterMapper.toOneRosterUser(studentMap)).thenReturn(student);
 
         List<OneRosterUserDTO> result = service.resolveStudentsForClass(
                 "aphogeschool.smartschool.be",
@@ -285,9 +315,15 @@ class ReportStudentResolverServiceTest {
                 "jan.duplicate",
                 "student");
 
+        Map<String, Object> firstMap = userMap("student-1", "Jan Peeters", "Jan", "Peeters", "jan.peeters", "student");
+        Map<String, Object> secondMap = userMap("student-1", "Jan Duplicate", "Jan", "Duplicate", "jan.duplicate", "student");
+
         when(oneRosterClient.fetchUsersWithBearer(
                 "aphogeschool.smartschool.be",
-                "smartschool-token")).thenReturn(List.of(firstVersion, secondVersion));
+                "smartschool-token")).thenReturn(List.of(firstMap, secondMap));
+
+        when(oneRosterMapper.toOneRosterUser(firstMap)).thenReturn(firstVersion);
+        when(oneRosterMapper.toOneRosterUser(secondMap)).thenReturn(secondVersion);
 
         List<OneRosterUserDTO> result = service.resolveStudentsForClass(
                 "aphogeschool.smartschool.be",
