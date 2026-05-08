@@ -1,22 +1,21 @@
-<section class="settings">
-  <header class="settings__header">
-    <p class="settings__eyebrow">Beheer</p>
-    <h1 class="settings__title">Instellingen</h1>
-    <p class="settings__subtitle">
-      Beheer synchronisaties, campusvoorkeuren en systeemtaken voor de bibliotheek.
-    </p>
-  </header>
+<div class="settings-page">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Instellingen</h1>
+      <p>Beheer synchronisaties, campusvoorkeuren en systeemtaken</p>
+    </div>
+  </div>
 
-  <div class="settings__card">
-    <div class="settings__card-body">
+  @if (currentUser()?.role === 'ADMIN') {
+    <section class="settings-panel">
       <h2>OneRoster-synchronisatie</h2>
-      <p>
+      <p class="panel-description">
         Start handmatig een synchronisatie om gebruikers en klassen bij te werken.
       </p>
-      <div class="settings__actions">
+      <div class="panel-actions">
         <button
           type="button"
-          class="settings__button"
+          class="btn-primary"
           [disabled]="isSyncing()"
           (click)="syncNow()"
         >
@@ -29,54 +28,49 @@
       </div>
 
       @if (successMessage()) {
-        <div class="settings__alert settings__alert--success">
-          {{ successMessage() }}
-        </div>
+        <div class="alert alert--success">{{ successMessage() }}</div>
       }
-
       @if (errorMessage()) {
-        <div class="settings__alert settings__alert--error">
-          {{ errorMessage() }}
-        </div>
+        <div class="alert alert--error">{{ errorMessage() }}</div>
       }
-    </div>
-  </div>
+    </section>
+  }
 
-  <section class="setting-row">
-    <div>
-      <h3>Hover hulpinformatie</h3>
-      <p>Toon extra uitleg wanneer je met je muis over knoppen beweegt.</p>
+  <section class="settings-panel">
+    <h2>Weergave</h2>
+    <div class="profile-info-row">
+      <span class="profile-info-row__label">Hover hulpinformatie</span>
+      <span class="profile-info-row__value">
+        <label class="switch">
+          <input
+            type="checkbox"
+            [checked]="userSettingsService.hoverHelpEnabled$ | async"
+            (change)="toggleHoverHelp($event)"
+          />
+          <span class="slider"></span>
+        </label>
+      </span>
     </div>
-
-    <label class="switch">
-      <input
-        type="checkbox"
-        [checked]="userSettingsService.hoverHelpEnabled$ | async"
-        (change)="toggleHoverHelp($event)"
-      />
-      <span class="slider"></span>
-    </label>
   </section>
 
-  <section class="setting-row">
-    <div>
-      <h3>Campus</h3>
-      <p>Kies welke campus je actief gebruikt voor catalogus, uitleningen en administratie.</p>
+  <section class="settings-panel">
+    <h2>Campus</h2>
+    <p class="panel-description">
+      Kies welke campus je actief gebruikt voor catalogus, uitleningen en administratie.
+    </p>
 
-      @if (campusError()) {
-        <small class="setting-error">{{ campusError() }}</small>
-      }
-
-      @if (campusSuccess()) {
-        <small class="setting-success">{{ campusSuccess() }}</small>
-      }
-    </div>
+    @if (campusError()) {
+      <small class="setting-error">{{ campusError() }}</small>
+    }
+    @if (campusSuccess()) {
+      <small class="setting-success">{{ campusSuccess() }}</small>
+    }
 
     <div class="campus-select-wrap">
       @if (isLoadingCampuses()) {
         <span class="muted">Campussen laden...</span>
       } @else if (campuses().length <= 1) {
-        <span class="muted">Je school heeft maar één campus.</span>
+        <span class="muted">Je school heeft maar &eacute;&eacute;n campus.</span>
       } @else {
         <select
           [disabled]="isSavingCampus()"
@@ -95,4 +89,4 @@
       }
     </div>
   </section>
-</section>
+</div>

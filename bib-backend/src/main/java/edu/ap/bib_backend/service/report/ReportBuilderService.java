@@ -10,6 +10,7 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.entity.statistic.StudentClassStatistic;
 import edu.ap.bib_backend.jpa.repository.StudentClassStatisticRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.TokenStorageService;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -22,14 +23,17 @@ public class ReportBuilderService {
         private final StudentClassStatisticRepository statisticRepository;
         private final UserRepository userRepository;
         private final ReportStatisticsQueryService statisticsQueryService;
+        private final TokenStorageService tokenStorageService;
 
         public ReportBuilderService(
                         StudentClassStatisticRepository statisticRepository,
                         UserRepository userRepository,
-                        ReportStatisticsQueryService statisticsQueryService) {
+                        ReportStatisticsQueryService statisticsQueryService,
+                        TokenStorageService tokenStorageService) {
                 this.statisticRepository = statisticRepository;
                 this.userRepository = userRepository;
                 this.statisticsQueryService = statisticsQueryService;
+                this.tokenStorageService = tokenStorageService;
         }
 
         public ClassReportDTO buildReport(
@@ -108,6 +112,7 @@ public class ReportBuilderService {
 
                 String linkedUserId = linkedUser
                                 .map(User::getId)
+                                .filter(id -> tokenStorageService.hasValidSmartschoolRefreshToken(id))
                                 .orElse(null);
 
                 long totalLoans = linkedUserId == null

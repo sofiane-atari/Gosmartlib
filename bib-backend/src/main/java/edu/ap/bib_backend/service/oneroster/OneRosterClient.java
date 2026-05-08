@@ -72,6 +72,10 @@ public class OneRosterClient {
         this.schoolRepository = schoolRepository;
     }
 
+    /**
+     * @param schoolCode school domain name or URL
+     * @return aggregated class, year, and school labels for the audience filter UI
+     */
     public AudiencePayload fetchAudiencePayload(String schoolCode) {
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
         School school = resolveSchool(schoolCode);
@@ -88,6 +92,10 @@ public class OneRosterClient {
         }
     }
 
+    /**
+     * @param schoolCode school domain name or URL
+     * @return raw OneRoster user records (List of Map), with 401 retry
+     */
     public List<Map<String, Object>> fetchUsers(String schoolCode) {
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
         School school = resolveSchool(schoolCode);
@@ -172,6 +180,11 @@ public class OneRosterClient {
         }
     }
 
+    /**
+     * @param schoolCode  school domain name or URL
+     * @param bearerToken optional Smartschool delegated token
+     * @return raw OneRoster user records (falls back to client-credentials if needed)
+     */
     public List<Map<String, Object>> fetchUsersWithBearer(String schoolCode, String bearerToken) {
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
         if (!StringUtils.hasText(bearerToken)) {
@@ -262,12 +275,16 @@ public class OneRosterClient {
                     org.springframework.http.HttpStatus.BAD_REQUEST, "Geen geldige klas geselecteerd");
         }
 
-        List<Map<String, Object>> students = dataService.fetchStudentsForClassWithResolvedHost(host, accessToken, classSourcedId);
-        return students.stream()
-                .map(oneRosterMapper::toOneRosterUser)
-                .filter(user -> user.sourcedId() != null && !user.sourcedId().isBlank())
-                .sorted(java.util.Comparator.comparing(OneRosterUserDTO::displayName, String.CASE_INSENSITIVE_ORDER))
-                .toList();
+        try {
+            List<Map<String, Object>> students = dataService.fetchStudentsForClassWithResolvedHost(host, accessToken, classSourcedId);
+            return students.stream()
+                    .map(oneRosterMapper::toOneRosterUser)
+                    .filter(user -> user.sourcedId() != null && !user.sourcedId().isBlank())
+                    .sorted(java.util.Comparator.comparing(OneRosterUserDTO::displayName, String.CASE_INSENSITIVE_ORDER))
+                    .toList();
+        } catch (ResponseStatusException ex) {
+            return List.of();
+        }
     }
 
     private School resolveSchool(String schoolCode) {

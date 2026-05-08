@@ -56,9 +56,14 @@ public class UserService {
         return userRepository.findById(userId);
     }
 
+    /**
+     * @param options firstName, lastName, and id filters (case-insensitive substring match)
+     * @return matching users from the OneRoster API mapped to AuthUserDto
+     */
     public List<AuthUserDto> getUsers(UserGetOptions options) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = requireUserId(authentication);
+
         School school = getCurrentUserSchool(userId);
 
         String schoolCode = school.getDomainName();
@@ -66,7 +71,7 @@ public class UserService {
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
 
         return rosterUsers.stream()
-                .map(this::toAuthUserDto)
+                .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
@@ -97,6 +102,11 @@ public class UserService {
         return userMapper.toDto(updatedUser);
     }
 
+    /**
+     * @param authentication authenticated user's security context
+     * @param campusId       target campus id
+     * @return updated AuthUserDto with the new campus
+     */
     @Transactional
     public AuthUserDto switchCurrentUserCampus(Authentication authentication, Long campusId) {
         if (campusId == null) {
@@ -145,8 +155,7 @@ public class UserService {
     private School getCurrentUserSchool(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException(
-                        "Gebruiker niet gevonden: " + userId
-                ));
+                        "Gebruiker niet gevonden: " + userId));
 
         if (user.getSchool() == null) {
             throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
@@ -155,7 +164,12 @@ public class UserService {
         return user.getSchool();
     }
 
-    private AuthUserDto toAuthUserDto(Map<String, Object> rosterUser) {
+    /**
+     * @param rosterUser raw OneRoster user map
+     * @param ctxSchool  pre-resolved school context (avoids per-user DB lookup)
+     * @return mapped AuthUserDto, or null if no legacy identifier is found
+     */
+    private AuthUserDto toAuthUserDto(Map<String, Object> rosterUser, School ctxSchool) {
         String id = readMetadataString(rosterUser, "smsc.legacyIdentifier");
         if (!StringUtils.hasText(id)) {
             return null;
@@ -172,7 +186,7 @@ public class UserService {
 
         String email = firstNonBlank(rosterUser, "email", "emailAddress", "mail");
 
-        SchoolSummaryDto schoolSummary = getCurrentUserSchool(id).getSchoolSummaryDto();
+        SchoolSummaryDto schoolSummary = ctxSchool.getSchoolSummaryDto();
 
         return new AuthUserDto(
                 id,

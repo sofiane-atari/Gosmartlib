@@ -15,8 +15,7 @@ public class CampusSeeder implements CommandLineRunner {
 
     public CampusSeeder(
             SchoolRepository schoolRepository,
-            CampusRepository campusRepository
-    ) {
+            CampusRepository campusRepository) {
         this.schoolRepository = schoolRepository;
         this.campusRepository = campusRepository;
     }

@@ -31,6 +31,11 @@ class OneRosterDataService {
         this.labelFilter = labelFilter;
     }
 
+    /**
+     * @param host        validated school hostname
+     * @param accessToken OAuth2 access token
+     * @return aggregated class, year, and school labels
+     */
     OneRosterClient.AudiencePayload fetchAudiencePayloadWithResolvedHost(String host, String accessToken) {
         URI classUri = buildApiUri(host, "/classes");
         URI yearUri = buildApiUri(host, "/academicSessions");
@@ -136,6 +141,11 @@ class OneRosterDataService {
                 .orElse(null);
     }
 
+    /**
+     * @param uri         full OneRoster API endpoint URI
+     * @param accessToken OAuth2 bearer token
+     * @return parsed JSON response body (empty map on null body)
+     */
     private Map<String, Object> getJsonWithBearer(URI uri, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
@@ -178,6 +188,11 @@ class OneRosterDataService {
                 .toList();
     }
 
+    /**
+     * @param payload      parsed JSON response body
+     * @param collectionKey the key holding the record array (e.g. "users", "classes")
+     * @return list of String-keyed maps, or empty list if key is absent or not a list
+     */
     private List<Map<String, Object>> extractRecordCollection(Map<String, Object> payload, String collectionKey) {
         Object root = payload.get(collectionKey);
         if (!(root instanceof List<?> items)) {

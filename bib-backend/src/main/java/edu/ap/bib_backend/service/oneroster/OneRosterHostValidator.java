@@ -23,6 +23,10 @@ class OneRosterHostValidator {
         return candidate;
     }
 
+    /**
+     * @param schoolCode raw school identifier (URL or plain host)
+     * @return extracted lowercase hostname
+     */
     private String normalizeSchoolCodeToHost(String schoolCode) {
         if (schoolCode == null || schoolCode.isBlank()) {
             throw new ResponseStatusException(BAD_REQUEST, "Geen geldige schoolcontext gevonden");
@@ -45,6 +49,9 @@ class OneRosterHostValidator {
         return trimmed.toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * @param host the hostname to validate
+     */
     private void validateHost(String host) {
         if (!host.matches("^[a-z0-9.-]+$")) {
             throw new ResponseStatusException(BAD_REQUEST, "School host bevat ongeldige tekens");

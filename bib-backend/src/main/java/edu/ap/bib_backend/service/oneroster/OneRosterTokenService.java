@@ -54,6 +54,11 @@ class OneRosterTokenService {
         this.tokenRepository = tokenRepository;
     }
 
+    /**
+     * @param school     school entity (used for credential lookup and caching)
+     * @param schoolHost validated school hostname (used to resolve token endpoints)
+     * @return a valid OAuth2 access token
+     */
     String fetchAccessToken(School school, String schoolHost) {
         OneRosterToken cached = tokenRepository.findBySchoolId(school.getId())
                 .filter(this::isTokenValid)
@@ -77,8 +82,6 @@ class OneRosterTokenService {
 
             TokenAttemptResult postAttempt = TokenAttemptResult.notAttempted();
             if (tokenAuthMethod == TokenAuthMethod.POST || tokenAuthMethod == TokenAuthMethod.AUTO) {
-                // client_secret_post is optioneel en uitgeschakeld by default om secret-leaks
-                // in request-body logs te vermijden.
                 postAttempt = fetchAccessTokenWithClientSecretPost(endpoint, credentials);
                 if (postAttempt.token() != null) {
                     return storeToken(school, postAttempt);

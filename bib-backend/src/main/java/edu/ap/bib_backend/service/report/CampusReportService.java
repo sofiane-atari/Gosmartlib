@@ -132,38 +132,19 @@ public class CampusReportService {
         System.out.println("Total OneRoster classes available: " + oneRosterClasses.size());
         oneRosterClasses.forEach(c -> System.out.println("  - " + c.title()));
 
-        // Strategy: Get all Smartschool groups and match them to OneRoster classes
-        // Then filter to only those that have students in this campus
-        List<String> smartschoolGroupNames = reportContextService.getSmartschoolGroupNames(
-                context.accessToken(),
-                context.platform());
-
-        System.out.println("\nSmartschool groups found: " + smartschoolGroupNames.size());
-        smartschoolGroupNames.forEach(g -> System.out.println("  - " + g));
-
-        if (smartschoolGroupNames.isEmpty()) {
-            System.out.println("No smartschool groups found");
+        if (oneRosterClasses.isEmpty()) {
+            System.out.println("No OneRoster classes found");
             return buildEmptyCampusReport(campus.getId(), campus.getName());
         }
 
-        // Match all groups to OneRoster classes
-        List<OneRosterClassDTO> allMatchedClasses = classMatcherService.findMatches(
-                smartschoolGroupNames,
-                oneRosterClasses);
-
-        System.out.println("\nAll matched classes: " + allMatchedClasses.size());
-        allMatchedClasses.forEach(c -> System.out.println("  - " + c.title()));
-
         // Filter classes to only those where students belong to this campus
-        // by checking if they have students enrolled in this campus
-        List<OneRosterClassDTO> campusSpecificClasses = allMatchedClasses.stream()
+        List<OneRosterClassDTO> campusSpecificClasses = oneRosterClasses.stream()
                 .filter(oneRosterClass -> {
                     List<OneRosterUserDTO> students = studentResolverService.resolveStudentsForClass(
                             context.schoolCode(),
                             context.accessToken(),
                             oneRosterClass.sourcedId());
 
-                    // Check if any student in this class is linked to a user in this campus
                     boolean hasCampusStudents = students.stream()
                             .anyMatch(student -> {
                                 var userOpt = userRepository.findByOneRosterSourcedId(student.sourcedId());
@@ -186,8 +167,10 @@ public class CampusReportService {
         campusSpecificClasses.forEach(c -> System.out.println("  - " + c.title()));
         System.out.println("========================================\n");
 
+        // If no classes have students linked to this campus, fall back to showing all classes
         if (campusSpecificClasses.isEmpty()) {
-            return buildEmptyCampusReport(campus.getId(), campus.getName());
+            System.out.println("No campus-specific classes found, falling back to all classes");
+            return buildCampusReport(context, campus, oneRosterClasses);
         }
 
         return buildCampusReport(context, campus, campusSpecificClasses);
