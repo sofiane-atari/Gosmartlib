@@ -21,7 +21,7 @@ export class BadgeCardComponent {
   protected get rarityLabel(): string {
     switch (this.badge().rarity) {
       case 'COMMON':
-        return 'Gewoon';
+        return 'Basis';
       case 'RARE':
         return 'Zeldzaam';
       case 'EPIC':

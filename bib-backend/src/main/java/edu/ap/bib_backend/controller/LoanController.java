@@ -3,7 +3,7 @@ package edu.ap.bib_backend.controller;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
-import edu.ap.bib_backend.dto.loanextension.LoanExtensionDTO;
+import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.dto.loanextension.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.service.loan.LoanExtensionService;
 import edu.ap.bib_backend.service.loan.LoanService;
@@ -34,8 +34,7 @@ public class LoanController {
     @PostMapping
     public ResponseEntity<LoanDTO> createLoan(
             @Valid @RequestBody LoanDTO loanDTO,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(loanService.create(loanDTO, authentication));
     }
 
@@ -43,16 +42,14 @@ public class LoanController {
     public ResponseEntity<PageDTO<LoanDTO>> getAllLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(loanService.findAll(page, pageSize, authentication));
     }
 
     @PatchMapping("/{loanId}/return")
     public ResponseEntity<LoanDTO> returnLoan(
             @PathVariable("loanId") Long loanId,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(loanService.returnLoan(loanId, authentication));
     }
 
@@ -60,8 +57,7 @@ public class LoanController {
     public ResponseEntity<PageDTO<LoanDTO>> getActiveLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize, authentication));
     }
 
@@ -74,8 +70,12 @@ public class LoanController {
     public ResponseEntity<LoanDTO> extendLoan(
             @PathVariable("loanId") Long loanId,
             @Valid @RequestBody LoanExtensionRequestDTO request,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(loanExtensionService.extendLoan(loanId, request, authentication));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<LoanStatsDTO> getLoanStats() {
+        return ResponseEntity.ok(loanService.getLoanStats());
     }
 }

@@ -61,4 +61,12 @@ export class LoansService {
       request,
     );
   }
+
+  getLoanStats() {
+    return this.http.get<{
+      activeLoans: number;
+      overdueLoans: number;
+      returnedLoans: number;
+    }>(`${this.apiUrl}/loans/stats`);
+  }
 }

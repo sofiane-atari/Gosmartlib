@@ -16,7 +16,7 @@
         <lucide-icon [name]="BookOpen"></lucide-icon>
         <div>
           <strong>{{ history()?.totalLoanedBookCount ?? 0 }}</strong>
-          <span>Totaal Uitgeleend</span>
+          <span>Totaal uitgeleend</span>
         </div>
       </article>
     </app-button-hover-help>
@@ -106,7 +106,7 @@
     </div>
   } @else {
     <section class="loan-section">
-      <h2>Momenteel Uitgeleend</h2>
+      <h2>Momenteel uitgeleend</h2>
 
       @if ((history()?.activeLoanCount ?? 0) === 0) {
         <div class="empty-state empty-state--small">
@@ -191,7 +191,7 @@
     </section>
 
     <section class="loan-section">
-      <h2>Teruggebrachte Boeken</h2>
+      <h2>Teruggebrachte boeken</h2>
 
       @if ((history()?.returnedLoanCount ?? 0) === 0) {
         <div class="empty-state empty-state--small">

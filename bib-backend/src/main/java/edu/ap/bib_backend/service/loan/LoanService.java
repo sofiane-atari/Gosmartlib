@@ -26,27 +26,22 @@ import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
-import edu.ap.bib_backend.jpa.entity.AuthSession;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
-import edu.ap.bib_backend.jpa.repository.AuthSessionRepository;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.loan.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
-import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
-import edu.ap.bib_backend.service.smartschool.SmartschoolNotificationService;
-import edu.ap.bib_backend.service.user.CurrentUserService;
+
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
 
 @Service
 public class LoanService {
@@ -126,8 +121,7 @@ public class LoanService {
             BookCopy copy = bookCopyRepository
                     .findFirstByBookIdAndCampusIdAndAvailability(book.getId(), campus.getId(), Availability.AVAILABLE)
                     .orElseThrow(() -> new IllegalStateException(
-                            "Geen beschikbaar exemplaar gevonden voor boek: " + book.getTitle()
-                    ));
+                            "Geen beschikbaar exemplaar gevonden voor boek: " + book.getTitle()));
 
             copy.setAvailability(Availability.BORROWED);
             loan.getCopies().add(copy);
@@ -194,9 +188,7 @@ public class LoanService {
                         returnedOnTime,
                         loan.getReturnDate(),
                         returnedDate,
-                        LocalDateTime.now()
-                )
-        );
+                        LocalDateTime.now()));
     }
 
     private void sendSmartschoolLoanNotification(Loan loan) {
@@ -397,5 +389,20 @@ public class LoanService {
                 .activeLoans(activeLoans)
                 .returnedLoans(returnedLoans)
                 .build();
+    }
+
+    public LoanStatsDTO getLoanStats() {
+        LocalDate today = LocalDate.now();
+
+        long activeLoans = loanRepository
+                .countByReturnedDateIsNullAndReturnDateGreaterThanEqual(today);
+
+        long overdueLoans = loanRepository
+                .countByReturnedDateIsNullAndReturnDateBefore(today);
+
+        long returnedLoans = loanRepository
+                .countByReturnedDateIsNotNull();
+
+        return new LoanStatsDTO(activeLoans, overdueLoans, returnedLoans);
     }
 }

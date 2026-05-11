@@ -53,7 +53,14 @@ export class BookManagementComponent implements OnInit {
 
   protected readonly loans = signal<Loan[]>([]);
   protected readonly isLoading = signal(false);
-  protected readonly errorMessage = signal<string | null>(null);
+
+  protected readonly activeLoansCount = signal(0);
+  protected readonly overdueLoansCount = signal(0);
+  protected readonly returnedLoansCount = signal(0);
+
+  protected readonly activeLoans = computed(() => this.activeLoansCount());
+  protected readonly overdueLoans = computed(() => this.overdueLoansCount());
+  protected readonly returnedLoans = computed(() => this.returnedLoansCount());
 
   protected readonly page = signal(0);
   protected readonly pageSize = signal(10);
@@ -75,27 +82,9 @@ export class BookManagementComponent implements OnInit {
     this.loadLoans();
   }
 
-  protected readonly activeLoans = computed(
-    () =>
-      this.loans().filter((loan) => this.getLoanStatus(loan) === 'Uitgeleend')
-        .length,
-  );
-
-  protected readonly overdueLoans = computed(
-    () =>
-      this.loans().filter((loan) => this.getLoanStatus(loan) === 'Te laat')
-        .length,
-  );
-
-  protected readonly returnedLoans = computed(
-    () =>
-      this.loans().filter(
-        (loan) => this.getLoanStatus(loan) === 'Teruggebracht',
-      ).length,
-  );
-
   public ngOnInit(): void {
     this.loadLoans();
+    this.loadLoanStats();
   }
 
   protected getLoanStatus(loan: Loan): LoanStatus {
@@ -130,7 +119,6 @@ export class BookManagementComponent implements OnInit {
 
   loadLoans(): void {
     this.isLoading.set(true);
-    this.errorMessage.set(null);
 
     this.loansService.getLoans(this.page(), this.pageSize()).subscribe({
       next: (response) => {
@@ -140,7 +128,6 @@ export class BookManagementComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Leningen konden niet geladen worden.');
         this.toastService.show('Leningen konden niet geladen worden.', 'error');
         this.isLoading.set(false);
       },
@@ -260,6 +247,19 @@ export class BookManagementComponent implements OnInit {
     return loan.books?.length ?? 0;
   }
 
+  loadLoanStats(): void {
+    this.loansService.getLoanStats().subscribe({
+      next: (stats) => {
+        this.activeLoansCount.set(stats.activeLoans);
+        this.overdueLoansCount.set(stats.overdueLoans);
+        this.returnedLoansCount.set(stats.returnedLoans);
+      },
+      error: () => {
+        this.toastService.show('Statistieken konden niet geladen worden.', 'error');
+      },
+    });
+  }
+
   protected openExtendLoanModal(loan: Loan, event: MouseEvent): void {
     event.stopPropagation();
 
@@ -295,6 +295,7 @@ export class BookManagementComponent implements OnInit {
 
     this.selectedLoanToExtend.set(null);
     this.loadLoans();
+    this.loadLoanStats();
   }
 
   protected canExtendLoan(loan: Loan): boolean {
