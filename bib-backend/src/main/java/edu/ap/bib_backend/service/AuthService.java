@@ -17,11 +17,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.JwtTokenDTO;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.SmartschoolRefreshResult;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
@@ -38,6 +40,7 @@ public class AuthService {
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final SmartschoolProfileService smartschoolProfileService;
     private final UserRepository userRepository;
+    private final SchoolRepository schoolRepository;
 
     @Value("${spring.security.oauth2.client.registration.smartschool.client-id}")
     private String smartschoolClientId;
@@ -53,13 +56,14 @@ public class AuthService {
             TokenStorageService tokenStorageService,
             OAuth2AuthorizedClientService authorizedClientService,
             SmartschoolProfileService smartschoolProfileService,
-            UserRepository userRepository
-    ) {
+            UserRepository userRepository,
+            SchoolRepository schoolRepository) {
         this.jwtService = jwtService;
         this.tokenStorageService = tokenStorageService;
         this.authorizedClientService = authorizedClientService;
         this.smartschoolProfileService = smartschoolProfileService;
         this.userRepository = userRepository;
+        this.schoolRepository = schoolRepository;
     }
 
     public AuthUserDto getUserDetails(Authentication authentication) {
@@ -87,6 +91,9 @@ public class AuthService {
                 ? dbUser.getCampus().getName()
                 : null;
 
+        SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
+                ? dbUser.getSchool().getSchoolSummaryDto()
+                : null;
         if (smartschoolToken != null && !smartschoolToken.isBlank()) {
             try {
                 SmartschoolProfileDto profile = smartschoolProfileService.fetchProfile(smartschoolToken);
@@ -107,7 +114,8 @@ public class AuthService {
                         schoolId,
                         schoolName,
                         campusId,
-                        campusName
+                        campusName,
+                        schoolSummary
                 );
             } catch (Exception ignored) {
                 // Fallback hieronder
@@ -132,7 +140,8 @@ public class AuthService {
                     schoolId,
                     schoolName,
                     campusId,
-                    campusName
+                    campusName,
+                    schoolSummary
             );
         }
 
@@ -151,7 +160,8 @@ public class AuthService {
                 schoolId,
                 schoolName,
                 campusId,
-                campusName
+                campusName,
+                schoolSummary
         );
     }
 

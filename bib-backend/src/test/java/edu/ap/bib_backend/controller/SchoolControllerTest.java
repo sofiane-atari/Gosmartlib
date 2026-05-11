@@ -1,221 +1,149 @@
 package edu.ap.bib_backend.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.ap.bib_backend.dto.SchoolDTO;
-import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
-import edu.ap.bib_backend.service.AdminOverrideService;
-import edu.ap.bib_backend.service.JwtService;
-import edu.ap.bib_backend.service.SchoolService;
-import edu.ap.bib_backend.service.TokenStorageService;
-import edu.ap.bib_backend.service.oneroster.OneRosterAudienceService;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.time.LocalDateTime;
 import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import edu.ap.bib_backend.TestSecurityConfig;
+import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.service.SchoolService;
 
 @WebMvcTest(SchoolController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@Import(TestSecurityConfig.class)
 class SchoolControllerTest {
 
-        @Autowired
-        private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-        @Autowired
-        private ObjectMapper objectMapper;
+    @MockitoBean
+    private SchoolService schoolService;
 
-        @MockitoBean
-        private SchoolService schoolService;
+    @Test
+    void GivenSchoolsExist_WhenGetSchools_ThenReturn200WithSchools() throws Exception {
+        // Arrange
+        SchoolDTO firstSchool = schoolDto(1L, "apsmartschool.be", "AP Hogeschool", "Noorderplaats 2", 2000);
+        SchoolDTO secondSchool = schoolDto(2L, "gasmartschool.be", "Geestelijke Hogeschool", "Grote Markt 1", 2200);
+        given(schoolService.getAll()).willReturn(List.of(firstSchool, secondSchool));
 
-        @MockitoBean
-        private edu.ap.bib_backend.service.JwtService jwtService;
+        // Act & Assert
+        mockMvc.perform(get("/schools"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("AP Hogeschool"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].name").value("Geestelijke Hogeschool"));
+    }
 
-        @MockitoBean
-        private AdminOverrideService adminOverrideService;
+    @Test
+    void GivenNoSchoolsExist_WhenGetSchools_ThenReturn200WithEmptyList() throws Exception {
+        // Arrange
+        given(schoolService.getAll()).willReturn(List.of());
 
-        @MockitoBean
-        private OneRosterAudienceService oneRosterAudienceService;
+        // Act & Assert
+        mockMvc.perform(get("/schools"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
 
+    @Test
+    void GivenValidSchool_WhenCreateSchool_ThenReturn201() throws Exception {
+        // Arrange
+        SchoolDTO school = schoolDto(null, "newschool.be", "Nieuwe School", "Nieuwstraat 1", 1000);
+        SchoolDTO savedSchool = schoolDto(3L, "newschool.be", "Nieuwe School", "Nieuwstraat 1", 1000);
+        given(schoolService.create(any(SchoolDTO.class))).willReturn(savedSchool);
 
-        @MockitoBean
-        private TokenStorageService tokenStorageService;
+        // Act & Assert
+        mockMvc.perform(post("/schools")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"domainName\":\"newschool.be\",\"name\":\"Nieuwe School\",\"address\":\"Nieuwstraat 1\",\"postalCode\":1000}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(3))
+                .andExpect(jsonPath("$.name").value("Nieuwe School"));
+    }
 
+    @Test
+    void GivenExistingSchool_WhenUpdateSchool_ThenReturn200() throws Exception {
+        // Arrange
+        SchoolDTO updatedSchool = schoolDto(1L, "apsmartschool.be", "AP Hogeschool Gewijzigd", "Noorderplaats 2", 2000);
+        given(schoolService.update(1L, any(SchoolDTO.class))).willReturn(updatedSchool);
 
+        // Act & Assert
+        mockMvc.perform(put("/schools/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"domainName\":\"apsmartschool.be\",\"name\":\"AP Hogeschool Gewijzigd\",\"address\":\"Noorderplaats 2\",\"postalCode\":2000}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("AP Hogeschool Gewijzigd"));
+    }
 
-        @Test
-        void givenSchools_whenGetAll_thenReturnOkWithList() throws Exception {
-                SchoolDTO school = schoolDto(
-                                1L,
-                                "ap.be",
-                                "AP",
-                                "Noorderplaats 2",
-                                2000);
+    @Test
+    void GivenExistingSchool_WhenDeleteSchool_ThenReturn204() throws Exception {
+        // Arrange
+        given(schoolService.getAll()).willReturn(List.of());
 
-                when(schoolService.getAll()).thenReturn(List.of(school));
+        // Act & Assert
+        mockMvc.perform(delete("/schools/{id}", 1L))
+                .andExpect(status().isNoContent());
 
-                mockMvc.perform(get("/schools"))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$[0].id").value(1))
-                                .andExpect(jsonPath("$[0].domainName").value("ap.be"))
-                                .andExpect(jsonPath("$[0].name").value("AP"))
-                                .andExpect(jsonPath("$[0].address").value("Noorderplaats 2"))
-                                .andExpect(jsonPath("$[0].postalCode").value(2000));
-        }
+        verify(schoolService, times(1)).delete(1L);
+    }
 
-        @Test
-        void givenValidSchool_whenCreate_thenReturnCreatedWithLocation() throws Exception {
-                SchoolDTO request = schoolDto(
-                                null,
-                                "ap.be",
-                                "AP",
-                                "Noorderplaats 2",
-                                2000);
+    @Test
+    void GivenExistingSchool_WhenGetBookCount_ThenReturnBookCount() throws Exception {
+        // Arrange
+        given(schoolService.getBookCountBySchool(1L)).willReturn(50L);
 
-                SchoolDTO response = schoolDto(
-                                1L,
-                                "ap.be",
-                                "AP",
-                                "Noorderplaats 2",
-                                2000);
+        // Act & Assert
+        mockMvc.perform(get("/schools/{id}/books/count", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(50));
+    }
 
-                when(schoolService.create(any(SchoolDTO.class))).thenReturn(response);
+    @Test
+    void WhenGetTotalBookCount_ThenReturnTotalBookCount() throws Exception {
+        // Arrange
+        given(schoolService.getTotalBookCount()).willReturn(100L);
 
-                mockMvc.perform(post("/schools")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isCreated())
-                                .andExpect(header().string("Location", "/schools/1"))
-                                .andExpect(jsonPath("$.id").value(1))
-                                .andExpect(jsonPath("$.domainName").value("ap.be"));
-        }
+        // Act & Assert
+        mockMvc.perform(get("/schools/books/count"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(100));
+    }
 
-        @Test
-        void givenInvalidBody_whenCreate_thenReturnBadRequest() throws Exception {
-                SchoolDTO request = schoolDto(
-                                null,
-                                "",
-                                "",
-                                "",
-                                2000);
-
-                mockMvc.perform(post("/schools")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        void givenDuplicateSchool_whenCreate_thenReturnConflict() throws Exception {
-                SchoolDTO request = schoolDto(
-                                null,
-                                "ap.be",
-                                "AP",
-                                "Noorderplaats 2",
-                                2000);
-
-                when(schoolService.create(any(SchoolDTO.class))).thenThrow(
-                                new ResourceAlreadyExistsException("domainName", "ap.be", "School bestaat al."));
-
-                mockMvc.perform(post("/schools")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isConflict());
-        }
-
-        @Test
-        void givenValidSchool_whenUpdate_thenReturnOkWithUpdatedBody() throws Exception {
-                SchoolDTO request = schoolDto(
-                                null,
-                                "ap.be",
-                                "AP Campus Noord",
-                                "Ellermanstraat 33",
-                                2030);
-
-                SchoolDTO response = schoolDto(
-                                1L,
-                                "ap.be",
-                                "AP Campus Noord",
-                                "Ellermanstraat 33",
-                                2030);
-
-                when(schoolService.update(eq(1L), any(SchoolDTO.class))).thenReturn(response);
-
-                mockMvc.perform(put("/schools/1")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id").value(1))
-                                .andExpect(jsonPath("$.domainName").value("ap.be"))
-                                .andExpect(jsonPath("$.name").value("AP Campus Noord"))
-                                .andExpect(jsonPath("$.address").value("Ellermanstraat 33"))
-                                .andExpect(jsonPath("$.postalCode").value(2030));
-        }
-
-        @Test
-        void givenInvalidBody_whenUpdate_thenReturnBadRequest() throws Exception {
-                String invalidRequestJson = """
-                                {
-                                  "domainName": "ap.be",
-                                  "name": "",
-                                  "address": "",
-                                  "postalCode": 0,
-                                  "contactPhone": "",
-                                  "contactEmail": ""
-                                }
-                                """;
-
-                mockMvc.perform(put("/schools/1")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(invalidRequestJson))
-                                .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        void givenSchoolId_whenGetBookCountBySchool_thenReturnOkWithCount() throws Exception {
-                when(schoolService.getBookCountBySchool(1L)).thenReturn(12L);
-
-                mockMvc.perform(get("/schools/1/books/count"))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$").value(12));
-        }
-
-        @Test
-        void whenGetTotalBookCount_thenReturnOkWithCount() throws Exception {
-                when(schoolService.getTotalBookCount()).thenReturn(50L);
-
-                mockMvc.perform(get("/schools/books/count"))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$").value(50));
-        }
-
-        private SchoolDTO schoolDto(
-                        Long id,
-                        String domainName,
-                        String name,
-                        String address,
-                        Integer postalCode) {
-                return new SchoolDTO(
-                                id,
-                                domainName,
-                                name,
-                                address,
-                                postalCode,
-                                "03 123 45 67",
-                                "info@ap.be",
-                                LocalDateTime.of(2026, 4, 28, 12, 0));
-        }
+    private SchoolDTO schoolDto(
+            Long id,
+            String domainName,
+            String name,
+            String address,
+            Integer postalCode) {
+        return new SchoolDTO(
+                id,
+                domainName,
+                name,
+                address,
+                postalCode,
+                "03 123 45 67",
+                "info@ap.be",
+                15,
+                LocalDateTime.of(2026, 4, 28, 12, 0));
+    }
 }

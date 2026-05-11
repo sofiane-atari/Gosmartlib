@@ -1,21 +1,24 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal, effect } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { LoansService } from '../../../services/loan/loans.service';
 import { UserService } from '../../../services/user/user.service';
-import { AuthUserDto } from '../../../model/auth.model';
+import { AuthService } from '../../../services/authorization/auth.service';
+import { AuthUserDto, SchoolSummaryDto } from '../../../model/auth.model';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { toLocalDate } from '../../../shared/types/local-date.type';
 import { ToastService } from '../../../services/toast/toast.service';
-import { BarcodeScannerRecognizerService } from '../../../services/barcode/barcode-scanner-recognizer.service';
 import { UserSelectionPanelComponent } from './user-selection-panel/user-selection-panel.component';
 import { BookSelectionPanelComponent } from './book-selection-panel/book-selection-panel.component';
 import { LoanSummaryPanelComponent } from './loan-summary-panel/loan-summary-panel.component';
+import { ScanIsbnComponent } from './scan-isbn/scan-isbn.component';
+import { ConfirmationModalComponent } from '../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-create-loan',
@@ -26,6 +29,8 @@ import { LoanSummaryPanelComponent } from './loan-summary-panel/loan-summary-pan
     UserSelectionPanelComponent,
     BookSelectionPanelComponent,
     LoanSummaryPanelComponent,
+    ScanIsbnComponent,
+    ConfirmationModalComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrl: './create-loan.component.css',
@@ -37,29 +42,92 @@ export class CreateLoanComponent {
   private readonly bookService = inject(BookService);
   private readonly loansService = inject(LoansService);
   private readonly toastService = inject(ToastService);
-  private readonly barcodeScannerRecognizer = inject(BarcodeScannerRecognizerService);
+  private readonly router = inject(Router);
   private readonly catalogSearchSubject = new Subject<string>();
   private readonly isbnSearchSubject = new Subject<string>();
   private suppressNextDebouncedIsbnSearch = false;
   private latestIsbnRequestSequence = 0;
+
+  private readonly authService = inject(AuthService);
 
   public readonly isLoadingUsers = signal(false);
   public readonly isLoadingCatalogBooks = signal(false);
   public readonly isLoadingIsbnBooks = signal(false);
   public readonly isSubmitting = signal(false);
 
-  public readonly searchFirstname = signal('');
-  public readonly searchLastname = signal('');
-  // TODO: TEMPORARY - Remove this signal when searchId feature is no longer needed
-  public readonly searchId = signal('');
-  public readonly bookSearchQuery = signal('');
-  public readonly bookSearchIsbn = signal('');
+  public readonly searchFirstname = signal(this.loadFromSession('searchFirstname', ''));
+  public readonly searchLastname = signal(this.loadFromSession('searchLastname', ''));
+  public readonly bookSearchQuery = signal(this.loadFromSession('bookSearchQuery', ''));
+  public readonly bookSearchIsbn = signal(this.loadFromSession('bookSearchIsbn', ''));
   public readonly users = signal<AuthUserDto[]>([]);
+
   public readonly catalogBooks = signal<Book[]>([]);
   public readonly isbnBooks = signal<Book[]>([]);
-  public readonly selectedUser = signal<AuthUserDto | null>(null);
-  public readonly selectedBooks = signal<Book[]>([]);
+  public readonly selectedUser = signal<AuthUserDto | null>(this.loadFromSession('selectedUser', null));
+  public readonly selectedBooks = signal<Book[]>(this.loadFromSession('selectedBooks', []));
+  public readonly scannedBooks = signal<Book[]>(this.loadFromSession('scannedBooks', []));
+  public readonly schoolSummary = signal<SchoolSummaryDto | null>(this.loadFromSession('schoolSummary', null));
+  public readonly isCustomDate = signal(this.loadFromSession('isCustomDate', false));
   public readonly minReturnDate = signal(this.buildMinReturnDate());
+
+  private loadFromSession<T>(key: string, defaultValue: T): T {
+    if (typeof sessionStorage === 'undefined') return defaultValue;
+    try {
+      const stored = sessionStorage.getItem(`create_loan_${key}`);
+      return stored ? JSON.parse(stored) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
+  private saveToSession(key: string, value: any): void {
+    if (typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(`create_loan_${key}`, JSON.stringify(value));
+  }
+
+  private clearSession(): void {
+    if (typeof sessionStorage === 'undefined') return;
+    const keys = [
+      'selectedUser', 'selectedBooks', 'scannedBooks', 'searchFirstname', 
+      'searchLastname', 'bookSearchQuery', 'bookSearchIsbn', 'schoolSummary', 
+      'isCustomDate', 'returnDate'
+    ];
+    keys.forEach(k => sessionStorage.removeItem(`create_loan_${k}`));
+  }
+
+  public clearAllProgress(): void {
+    this.selectedUser.set(null);
+    this.selectedBooks.set([]);
+    this.scannedBooks.set([]);
+    this.users.set([]);
+    this.catalogBooks.set([]);
+    this.isbnBooks.set([]);
+    this.searchFirstname.set('');
+    this.searchLastname.set('');
+    this.bookSearchQuery.set('');
+    this.bookSearchIsbn.set('');
+    this.schoolSummary.set(null);
+    this.isCustomDate.set(false);
+    this.loanForm.reset({ returnDate: '' });
+    this.clearSession();
+  }
+
+  public readonly hasValidRefreshToken = signal<boolean | null>(null);
+  public readonly showNoTokenWarningModal = signal(false);
+  public readonly showClearProgressModal = signal(false);
+
+  public requestClearAllProgress(): void {
+    this.showClearProgressModal.set(true);
+  }
+
+  public confirmClearAllProgress(): void {
+    this.showClearProgressModal.set(false);
+    this.clearAllProgress();
+  }
+
+  public cancelClearProgress(): void {
+    this.showClearProgressModal.set(false);
+  }
 
   public readonly isLoadingBooks = computed(() => {
     return this.isLoadingCatalogBooks() || this.isLoadingIsbnBooks();
@@ -73,7 +141,7 @@ export class CreateLoanComponent {
   });
 
   protected loanForm = this.fb.group({
-    returnDate: ['', Validators.required],
+    returnDate: [this.loadFromSession<string>('returnDate', ''), Validators.required],
   });
 
   public constructor() {
@@ -119,7 +187,44 @@ export class CreateLoanComponent {
 
         this.fetchBookByIsbn(isbn, false);
       });
-  }
+
+    effect(() => {
+      this.saveToSession('selectedUser', this.selectedUser());
+      this.saveToSession('selectedBooks', this.selectedBooks());
+      this.saveToSession('scannedBooks', this.scannedBooks());
+      this.saveToSession('searchFirstname', this.searchFirstname());
+      this.saveToSession('searchLastname', this.searchLastname());
+      this.saveToSession('bookSearchQuery', this.bookSearchQuery());
+      this.saveToSession('bookSearchIsbn', this.bookSearchIsbn());
+      this.saveToSession('schoolSummary', this.schoolSummary());
+      this.saveToSession('isCustomDate', this.isCustomDate());
+    });
+
+    this.loanForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(val => {
+      this.saveToSession('returnDate', val.returnDate);
+    });
+
+    if (this.selectedUser()) {
+      const user = this.selectedUser()!;
+      this.userService.hasValidRefreshToken(user.id).pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe({
+        next: (isValid) => this.hasValidRefreshToken.set(isValid),
+        error: () => this.hasValidRefreshToken.set(false)
+      });
+      
+      if (this.bookSearchQuery().trim()) {
+        this.triggerCatalogSearch();
+      }
+      if (this.bookSearchIsbn().trim()) {
+        this.triggerIsbnSearch();
+      }
+    }
+
+    if (this.searchFirstname().trim() || this.searchLastname().trim()) {
+      this.searchUsers();
+    }
+}
 
   public readonly filteredBooks = computed(() => {
     const selectedBookIds = new Set(this.selectedBooks().map((book) => book.id));
@@ -134,52 +239,68 @@ export class CreateLoanComponent {
 
     return Array.from(mergedBooksByKey.values()).filter((book) => {
       const hasId = book.id !== undefined;
-      const notAlreadySelected = !selectedBookIds.has(book.id);
       const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
 
-      return hasId && notAlreadySelected && hasCopiesAvailable;
+      return hasId && hasCopiesAvailable;
     });
   });
 
-  public onFirstnameSearchChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchFirstname.set(target.value);
+  public readonly selectedBookIds = computed(() => {
+    const ids = this.selectedBooks()
+      .map((book) => book.id)
+      .filter((bookId): bookId is number => bookId !== undefined);
+
+    return Array.from(new Set(ids));
+  });
+
+  public readonly selectedBookCounts = computed(() => {
+    return this.selectedBooks().reduce<Record<number, number>>((counts, book) => {
+      if (book.id === undefined) {
+        return counts;
+      }
+
+      counts[book.id] = (counts[book.id] ?? 0) + 1;
+      return counts;
+    }, {});
+  });
+
+  public onFirstnameSearchChange(value: string): void {
+    this.searchFirstname.set(value);
   }
 
-  public onLastnameSearchChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchLastname.set(target.value);
-  }
-
-  // TODO: TEMPORARY - Remove this method when searchId feature is no longer needed
-  public onSearchIdChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchId.set(target.value);
+  public onLastnameSearchChange(value: string): void {
+    this.searchLastname.set(value);
   }
 
   public searchUsers(): void {
     const firstName = this.searchFirstname().trim();
     const lastName = this.searchLastname().trim();
-    // TODO: TEMPORARY - Remove searchId parameter when feature is no longer needed
-    const id = this.searchId().trim();
-    this.loadUsers(firstName, lastName, id);
+    this.loadUsers(firstName, lastName);
   }
 
   public selectUser(user: AuthUserDto): void {
     this.selectedUser.set(user);
-    this.selectedBooks.set([]);
+    this.schoolSummary.set(user.school ?? null);
+    this.hasValidRefreshToken.set(null);
+    this.updateDefaultReturnDate();
     this.triggerCatalogSearch();
     this.triggerIsbnSearch();
+
+    this.userService.hasValidRefreshToken(user.id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (isValid) => this.hasValidRefreshToken.set(isValid),
+      error: () => this.hasValidRefreshToken.set(false)
+    });
   }
 
   public clearSelectedUser(): void {
     this.selectedUser.set(null);
-    this.selectedBooks.set([]);
     this.catalogBooks.set([]);
     this.isbnBooks.set([]);
-    this.barcodeScannerRecognizer.resetTracking();
     this.bookSearchQuery.set('');
     this.bookSearchIsbn.set('');
+    this.hasValidRefreshToken.set(null);
   }
 
   public onBookSearchQueryChange(event: Event): void {
@@ -191,28 +312,7 @@ export class CreateLoanComponent {
   public onBookIsbnSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.bookSearchIsbn.set(target.value);
-    this.triggerIsbnSearch(this.barcodeScannerRecognizer.normalizeIsbnInput(target.value));
-  }
-
-  public onBookIsbnKeydown(event: KeyboardEvent): void {
-    const scanResult = this.barcodeScannerRecognizer.processKeydown(event, this.bookSearchIsbn());
-
-    if (scanResult.preventDefault) {
-      event.preventDefault();
-    }
-
-    if (!scanResult.normalizedIsbn) {
-      return;
-    }
-
-    if (!scanResult.isValidIsbn) {
-      this.showError('Het ingevoerde ISBN-formaat is ongeldig. Gebruik een geldig ISBN-10 of ISBN-13.');
-      return;
-    }
-
-    this.suppressNextDebouncedIsbnSearch = true;
-    this.bookSearchIsbn.set(scanResult.normalizedIsbn);
-    this.fetchBookByIsbn(scanResult.normalizedIsbn, scanResult.isLikelyScanner);
+    this.triggerIsbnSearch();
   }
 
   public addBook(book: Book): void {
@@ -220,8 +320,11 @@ export class CreateLoanComponent {
       return;
     }
 
-    const isAlreadySelected = this.selectedBooks().some((selectedBook) => selectedBook.id === book.id);
-    if (isAlreadySelected) {
+    const selectedCount = this.selectedBooks().filter((selectedBook) => selectedBook.id === book.id).length;
+    const availableCopies = book.availableCopies ?? 0;
+
+    if (selectedCount >= availableCopies) {
+      this.showError('Er zijn niet genoeg beschikbare exemplaren voor dit boek.');
       return;
     }
 
@@ -233,7 +336,17 @@ export class CreateLoanComponent {
       return;
     }
 
-    this.selectedBooks.update((books) => books.filter((book) => book.id !== bookId));
+    let removed = false;
+    this.selectedBooks.update((books) =>
+      books.filter((book) => {
+        if (removed || book.id !== bookId) {
+          return true;
+        }
+
+        removed = true;
+        return false;
+      }),
+    );
   }
 
   public createLoan(): void {
@@ -251,32 +364,69 @@ export class CreateLoanComponent {
       return;
     }
 
-    const bookIds = books
-      .map((book) => book.id)
-      .filter((bookId): bookId is number => bookId !== undefined);
-
-    if (bookIds.length !== books.length) {
+    const hasInvalidBook = books.some((book) => book.id === undefined);
+    if (hasInvalidBook) {
       this.showError('Eén of meerdere geselecteerde boeken zijn ongeldig.');
       return;
     }
 
-    this.isSubmitting.set(true);
+    const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
+      id: Number(id),
+      copiesCount: count,
+    }));
 
+    if (booksPayload.length === 0) {
+      this.showError('Er zijn geen geldige boeken geselecteerd.');
+      return;
+    }
+
+    const bookIds = booksPayload.map((entry) => entry.id);
+
+    if (this.hasValidRefreshToken() === false) {
+      this.showNoTokenWarningModal.set(true);
+      return;
+    }
+
+    this.submitLoan(user.id, bookIds, booksPayload, returnDate);
+  }
+
+  public confirmLoanWithWarning(): void {
+    this.showNoTokenWarningModal.set(false);
+    
+    const user = this.selectedUser();
+    const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
+      id: Number(id),
+      copiesCount: count,
+    }));
+    const bookIds = booksPayload.map((entry) => entry.id);
+    const returnDate = this.loanForm.controls.returnDate.value;
+
+    if (user && returnDate) {
+      this.submitLoan(user.id, bookIds, booksPayload, returnDate);
+    }
+  }
+
+  public cancelLoanWarning(): void {
+    this.showNoTokenWarningModal.set(false);
+  }
+
+  private submitLoan(userId: string, bookIds: number[], booksPayload: any[], returnDate: string): void {
+    this.isSubmitting.set(true);
+    
     this.loansService
       .createLoan({
         id: 0,
-        userId: user.id,
+        userId: userId,
         bookIds: bookIds,
+        books: booksPayload,
         returnDate: toLocalDate(new Date(returnDate)),
       })
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
           this.showSuccess('De lening is succesvol aangemaakt.');
-          this.selectedBooks.set([]);
-          this.loanForm.reset({ returnDate: '' });
-          this.triggerCatalogSearch();
-          this.triggerIsbnSearch();
+          this.clearAllProgress();
+          void this.router.navigate(['/books-management']);
         },
         error: () => {
           this.isSubmitting.set(false);
@@ -285,23 +435,25 @@ export class CreateLoanComponent {
       });
   }
 
-  // TODO: TEMPORARY - Remove 'id' parameter when searchId feature is no longer needed
-  private loadUsers(firstName: string = '', lastName: string = '', id: string = ''): void {
+  private loadUsers(firstName: string = '', lastName: string = ''): void {
     this.isLoadingUsers.set(true);
 
     this.userService
-      .getUsers({ WithfirstName: firstName, WithlastName: lastName , WithId: id})
+      .getUsers({ WithfirstName: firstName, WithlastName: lastName })
       .subscribe({
         next: (users) => {
           this.users.set(users);
           this.isLoadingUsers.set(false);
+          if (users.length === 1) {
+            this.selectUser(users[0]);
+          }
         },
         error: (err: any) => {
           this.users.set([]);
           this.isLoadingUsers.set(false);
           this.showError('Gebruikers konden niet worden geladen.');
           console.log('Error loading users:', err);
-          console.log('Error loading users with parameters:', { firstName, lastName, id });
+          console.log('Error loading users with parameters:', { firstName, lastName });
         },
       });
   }
@@ -356,7 +508,10 @@ export class CreateLoanComponent {
         this.isLoadingIsbnBooks.set(false);
 
         if (autoSelect) {
-          this.selectScannedBook(book);
+          const wasAdded = this.selectScannedBook(book);
+          if (wasAdded) {
+            this.scannedBooks.update((entries) => [...entries, book]);
+          }
         }
       },
       error: () => {
@@ -370,25 +525,43 @@ export class CreateLoanComponent {
     });
   }
 
-  private selectScannedBook(book: Book): void {
-    if (book.id === undefined) {
+  public handleScannedIsbn(isbn: string): void {
+    const cleanedIsbn = isbn.trim();
+    if (!cleanedIsbn) {
       return;
+    }
+
+    this.fetchBookByIsbn(cleanedIsbn, true);
+  }
+
+  private selectScannedBook(book: Book): boolean {
+    if (book.id === undefined) {
+      return false;
     }
 
     const hasCopiesAvailable = (book.availableCopies ?? 0) > 0;
     if (!hasCopiesAvailable) {
       this.showError('Het gescande boek is niet beschikbaar voor uitlening.');
-      return;
-    }
-
-    const isAlreadySelected = this.selectedBooks().some((selectedBook) => selectedBook.id === book.id);
-    if (isAlreadySelected) {
-      this.showSuccess('Het gescande boek was al geselecteerd.');
-      return;
+      return false;
     }
 
     this.addBook(book);
     this.showSuccess('Boek succesvol gescand en toegevoegd.');
+    return true;
+  }
+
+  public removeLastScannedBook(): void {
+    const scanned = this.scannedBooks();
+    if (scanned.length === 0) {
+      return;
+    }
+
+    const last = scanned[scanned.length - 1];
+    this.scannedBooks.set(scanned.slice(0, -1));
+
+    if (last.id !== undefined) {
+      this.removeBook(last.id);
+    }
   }
 
   private triggerCatalogSearch(): void {
@@ -411,5 +584,67 @@ export class CreateLoanComponent {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return toLocalDate(tomorrow);
+  }
+
+  private updateDefaultReturnDate(): void {
+    if (this.isCustomDate()) {
+      return;
+    }
+    const school = this.schoolSummary();
+    const defaultDays = school?.defaultLoanDurationDays ?? 15;
+    const today = new Date();
+    today.setDate(today.getDate() + defaultDays);
+    this.loanForm.controls.returnDate.setValue(toLocalDate(today));
+  }
+
+  public onCustomDate(): void {
+    this.isCustomDate.set(true);
+    setTimeout(() => {
+      const input = document.getElementById('returnDate') as HTMLInputElement | null;
+      input?.focus();
+      input?.showPicker?.();
+    });
+  }
+
+  public onUseDefaultDate(): void {
+    this.isCustomDate.set(false);
+    this.updateDefaultReturnDate();
+  }
+
+  public onChangeDefaultDays(): void {
+    const currentDays = this.schoolSummary()?.defaultLoanDurationDays ?? 15;
+    const input = window.prompt('Wijzig de standaard uitleentermijn (in dagen):', currentDays.toString());
+
+    if (input === null) {
+      return;
+    }
+
+    const newDays = parseInt(input, 10);
+    if (isNaN(newDays) || newDays < 1 || newDays > 365) {
+      this.showError('Voer een geldig aantal dagen in (1-365).');
+      return;
+    }
+
+    const school = this.schoolSummary();
+    if (!school?.id) {
+      this.showError('Geen school gevonden om bij te werken.');
+      return;
+    }
+
+    this.updateSchoolDefaultDays(school.id, newDays);
+  }
+
+  private updateSchoolDefaultDays(schoolId: number, newDays: number): void {
+    // TODO: Replace with actual API call to update school settings
+    // For now, update the local signal
+    const currentSummary = this.schoolSummary();
+    if (currentSummary) {
+      this.schoolSummary.set({
+        ...currentSummary,
+        defaultLoanDurationDays: newDays,
+      });
+      this.updateDefaultReturnDate();
+      this.showSuccess(`Standaard uitleentermijn gewijzigd naar ${newDays} dagen.`);
+    }
   }
 }

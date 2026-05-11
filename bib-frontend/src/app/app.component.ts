@@ -39,7 +39,6 @@ export class AppComponent {
     'Favorietenlijst',
     'Mijn Account',
     'Instellingen',
-    'BookBox',
     'Rapporteer',
   ];
 

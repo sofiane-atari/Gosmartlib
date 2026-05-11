@@ -18,10 +18,13 @@ public class UserController {
 
     private final UserService userService;
     private final CurrentUserService currentUserService;
+    private final edu.ap.bib_backend.service.TokenStorageService tokenStorageService;
 
-    public UserController(UserService userService, CurrentUserService currentUserService) {
+    public UserController(UserService userService, CurrentUserService currentUserService,
+            edu.ap.bib_backend.service.TokenStorageService tokenStorageService) {
         this.userService = userService;
         this.currentUserService = currentUserService;
+        this.tokenStorageService = tokenStorageService;
     }
 
     @GetMapping
@@ -32,17 +35,20 @@ public class UserController {
     @PatchMapping("/me/campus")
     public ResponseEntity<AuthUserDto> switchCurrentUserCampus(
             @RequestBody SwitchCampusRequestDto payload,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(userService.switchCurrentUserCampus(authentication, payload.campusId()));
+    }
+
+    @GetMapping("/has-refresh-token")
+    public ResponseEntity<Boolean> hasRefreshToken(@RequestParam String userId) {
+        return ResponseEntity.ok(tokenStorageService.hasValidSmartschoolRefreshToken(userId));
     }
 
     @PatchMapping("/{userId}/review-access")
     public ResponseEntity<AuthUserDto> updateReviewAccess(
             @PathVariable String userId,
             @RequestBody UserReviewAccessUpdateDto payload,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         if (!currentUserService.isModerator(authentication)) {
             throw new IllegalStateException("Alleen moderators kunnen reviewtoegang aanpassen.");
         }

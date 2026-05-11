@@ -19,6 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -49,10 +51,17 @@ public class School {
     @Column(name = "contact_email", length = 255)
     private String contactEmail;
 
+    @Column(name = "default_loan_duration_days", nullable = false)
+    private Integer defaultLoanDurationDays = 15;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
+
+    public SchoolSummaryDto getSchoolSummaryDto() {
+        return new SchoolSummaryDto(id, name, defaultLoanDurationDays);
+    }
 }

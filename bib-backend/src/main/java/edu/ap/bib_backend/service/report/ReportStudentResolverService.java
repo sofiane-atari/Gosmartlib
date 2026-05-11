@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.report;
 
 import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterUserDTO;
+import edu.ap.bib_backend.mapper.OneRosterMapper;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 public class ReportStudentResolverService {
 
     private final OneRosterClient oneRosterClient;
+    private final OneRosterMapper oneRosterMapper;
 
-    public ReportStudentResolverService(OneRosterClient oneRosterClient) {
+    public ReportStudentResolverService(OneRosterClient oneRosterClient, OneRosterMapper oneRosterMapper) {
         this.oneRosterClient = oneRosterClient;
+        this.oneRosterMapper = oneRosterMapper;
     }
 
     public List<OneRosterUserDTO> resolveStudentsForClass(
@@ -68,9 +71,17 @@ public class ReportStudentResolverService {
             return List.of();
         }
 
-        List<OneRosterUserDTO> allUsers = oneRosterClient.fetchUsersWithBearer(
+        List<Map<String, Object>> rawUsers = oneRosterClient.fetchUsersWithBearer(
                 schoolCode,
                 smartschoolAccessToken);
+
+        List<OneRosterUserDTO> allUsers = rawUsers.stream()
+                .map(oneRosterMapper::toOneRosterUser)
+                .filter(user -> user.sourcedId() != null && !user.sourcedId().isBlank())
+                .sorted(Comparator.comparing(
+                        OneRosterUserDTO::displayName,
+                        String.CASE_INSENSITIVE_ORDER))
+                .toList();
 
         Map<String, OneRosterUserDTO> usersById = allUsers.stream()
                 .collect(Collectors.toMap(

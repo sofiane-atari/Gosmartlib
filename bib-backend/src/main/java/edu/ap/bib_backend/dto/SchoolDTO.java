@@ -23,5 +23,7 @@ public record SchoolDTO(
 
                 @JsonProperty("contactEmail") @Email(message = "Vul een geldig e-mailadres in.") String contactEmail,
 
+                @JsonProperty("defaultLoanDurationDays") Integer defaultLoanDurationDays,
+
                 @JsonProperty("createdAt") LocalDateTime createdAt) {
 }

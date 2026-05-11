@@ -2,11 +2,12 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanExtensionDTO;
+import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
-import edu.ap.bib_backend.dto.loanextension.LoanExtensionRequestDTO;
-import edu.ap.bib_backend.service.loan.LoanExtensionService;
-import edu.ap.bib_backend.service.loan.LoanService;
+import edu.ap.bib_backend.service.LoanExtensionService;
+import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

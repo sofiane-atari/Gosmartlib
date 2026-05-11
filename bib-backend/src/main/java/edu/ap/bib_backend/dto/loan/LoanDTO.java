@@ -1,4 +1,3 @@
-
 package edu.ap.bib_backend.dto.loan;
 
 import java.util.List;
@@ -45,6 +44,6 @@ public record LoanDTO(
         int extensionCount
 ) {
     public LoanDTO(String userId, List<Long> bookIds, String returnDate) {
-        this(null, userId, null, bookIds, null, null, returnDate, null, null,0);
+        this(null, userId, null, bookIds, null, null, returnDate, null, null, 0);
     }
 }

@@ -116,6 +116,10 @@ public class TokenStorageService {
                 .orElse(null);
     }
 
+    public boolean hasValidSmartschoolRefreshToken(String userId) {
+        return getSmartschoolRefreshToken(userId) != null;
+    }
+
     public String getSmartschoolAccessToken(String userId) {
         return authSessionRepository.findById(userId)
                 .filter(session -> session.getSmartschoolAccessToken() != null)

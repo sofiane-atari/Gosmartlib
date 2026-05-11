@@ -122,7 +122,6 @@ export class SidebarComponent {
     { icon: Trophy, label: 'Prestaties', route: '/achievements' },
     { icon: UserCircle, label: 'Mijn account', route: '/profile' },
     { icon: Settings, label: 'Instellingen', route: '/settings' },
-    { icon: Package, label: 'BookBox', route: '/bookbox', staffOnly: true },
     {
       icon: FileText,
       label: 'Rapportages',

@@ -2,14 +2,13 @@ package edu.ap.bib_backend.mapper;
 
 import java.util.List;
 
-import edu.ap.bib_backend.jpa.entity.loan.Loan;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import edu.ap.bib_backend.dto.loan.LoanBookDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-
+import edu.ap.bib_backend.jpa.entity.Loan;
 
 @Mapper(componentModel = "spring")
 public interface LoanMapper {
@@ -21,6 +20,7 @@ public interface LoanMapper {
     @Mapping(target = "user.id", source = "userId")
     @Mapping(target = "returnedDate", ignore = true)
     @Mapping(target = "campus", ignore = true)
+    @Mapping(target = "extensions", ignore = true)
     Loan toEntity(LoanDTO dto);
 
     @Mapping(target = "userId", source = "user.id")
@@ -51,13 +51,16 @@ public interface LoanMapper {
 
         return copies.stream()
                 .filter(copy -> copy.getBook() != null)
-                .map(copy -> new LoanBookDTO(
-                        copy.getBook().getId(),
-                        copy.getBook().getTitle(),
-                        copy.getBook().getAuthor(),
-                        copy.getBook().getIsbn(),
-                        copy.getBook().getImageUrl()
-                ))
+                .collect(java.util.stream.Collectors.groupingBy(BookCopy::getBook))
+                .entrySet()
+                .stream()
+                .map(entry -> new LoanBookDTO(
+                        entry.getKey().getId(),
+                        entry.getKey().getTitle(),
+                        entry.getKey().getAuthor(),
+                        entry.getKey().getIsbn(),
+                        entry.getKey().getImageUrl(),
+                        entry.getValue().size()))
                 .toList();
     }
 }

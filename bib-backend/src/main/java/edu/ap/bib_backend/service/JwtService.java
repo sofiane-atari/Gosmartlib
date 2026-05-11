@@ -52,10 +52,13 @@ public class JwtService {
     }
 
     public boolean isValid(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
         try {
-            parseClaims(token); // throws if expired or tampered
+            parseClaims(token);
             return true;
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }

@@ -36,7 +36,7 @@ body {
    ========================================================= */
 .skeleton {
   background-color: var(--border-color, #e5e7eb);
-  border-radius: 8px; /* Standaard afronding */
+  border-radius: 8px;
   animation: skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 

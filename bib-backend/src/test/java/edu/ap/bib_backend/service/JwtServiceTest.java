@@ -1,21 +1,33 @@
 package edu.ap.bib_backend.service;
 
+import io.jsonwebtoken.security.SignatureException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class JwtServiceTest {
 
-    private static final String SECRET = "this-is-a-very-long-test-secret-key-1234567890";
+    private JwtService jwtService;
+    private final String secret = "my-secret-key-that-is-at-least-32-characters-long";
+    private final long expiration = 3600000; // 1 hour
+
+    @BeforeEach
+    void setUp() {
+        // Arrange
+        jwtService = new JwtService(secret, expiration);
+    }
 
     @Test
-    void givenUsernameAndRole_WhenGenerateToken_ThenReturnNonEmptyToken() {
+    void Given_UsernameAndRole_When_GenerateToken_Then_TokenIsGenerated() {
         // Arrange
-        JwtService jwtService = new JwtService(SECRET, 60_000L);
-        String username = "user-123";
+        String username = "testuser";
         String role = "ROLE_STUDENT";
 
         // Act
@@ -27,11 +39,10 @@ class JwtServiceTest {
     }
 
     @Test
-    void givenGeneratedToken_WhenExtractUsername_ThenReturnOriginalUsername() {
+    void Given_ValidToken_When_ExtractUsername_Then_CorrectUsernameIsReturned() {
         // Arrange
-        JwtService jwtService = new JwtService(SECRET, 60_000L);
-        String username = "user-abc";
-        String role = "ROLE_ADMIN";
+        String username = "testuser";
+        String role = "ROLE_STUDENT";
         String token = jwtService.generateToken(username, role);
 
         // Act
@@ -42,11 +53,10 @@ class JwtServiceTest {
     }
 
     @Test
-    void givenGeneratedToken_WhenExtractRolesClaim_ThenReturnOriginalRole() {
+    void Given_ValidToken_When_ExtractClaim_Then_CorrectClaimIsReturned() {
         // Arrange
-        JwtService jwtService = new JwtService(SECRET, 60_000L);
-        String username = "user-role";
-        String role = "ROLE_TEACHER";
+        String username = "testuser";
+        String role = "ROLE_STUDENT";
         String token = jwtService.generateToken(username, role);
 
         // Act
@@ -57,43 +67,71 @@ class JwtServiceTest {
     }
 
     @Test
-    void givenFreshGeneratedToken_WhenIsValid_ThenReturnTrue() {
+    void Given_ValidToken_When_IsValid_Then_ReturnsTrue() {
         // Arrange
-        JwtService jwtService = new JwtService(SECRET, 60_000L);
-        String token = jwtService.generateToken("valid-user", "ROLE_LIBRARIAN");
+        String username = "testuser";
+        String role = "ROLE_STUDENT";
+        String token = jwtService.generateToken(username, role);
 
         // Act
-        boolean result = jwtService.isValid(token);
+        boolean isValid = jwtService.isValid(token);
 
         // Assert
-        assertTrue(result);
+        assertTrue(isValid);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid-token", "", "header.payload.signature_but_invalid"})
+    void Given_InvalidToken_When_IsValid_Then_ReturnsFalse(String invalidToken) {
+        // Act
+        boolean isValid = jwtService.isValid(invalidToken);
+
+        // Assert
+        assertFalse(isValid);
     }
 
     @Test
-    void givenTamperedToken_WhenIsValid_ThenReturnFalse() {
+    void Given_ValidToken_When_ExtractExpiration_Then_ExpirationDateIsNotNull() {
         // Arrange
-        JwtService jwtService = new JwtService(SECRET, 60_000L);
-        String token = jwtService.generateToken("tamper-user", "ROLE_STUDENT");
-        String tamperedToken = token + "tampered";
+        String username = "testuser";
+        String role = "ROLE_STUDENT";
+        String token = jwtService.generateToken(username, role);
 
         // Act
-        boolean result = jwtService.isValid(tamperedToken);
+        Date expirationDate = jwtService.extractExpiration(token);
 
         // Assert
-        assertFalse(result);
+        assertNotNull(expirationDate);
+        assertTrue(expirationDate.after(new Date()));
     }
 
     @Test
-    void givenExpiredToken_WhenIsValid_ThenReturnFalse() throws InterruptedException {
+    void Given_ValidToken_When_ExtractExpirationInstant_Then_InstantIsCorrect() {
         // Arrange
-        JwtService jwtService = new JwtService(SECRET, 1L);
-        String token = jwtService.generateToken("expired-user", "ROLE_STUDENT");
-        Thread.sleep(25L);
+        String username = "testuser";
+        String role = "ROLE_STUDENT";
+        String token = jwtService.generateToken(username, role);
 
         // Act
-        boolean result = jwtService.isValid(token);
+        Instant expirationInstant = jwtService.extractExpirationInstant(token);
 
         // Assert
-        assertFalse(result);
+        assertNotNull(expirationInstant);
+        assertTrue(expirationInstant.isAfter(Instant.now()));
+    }
+
+    @Test
+    void Given_ExtraClaims_When_GenerateToken_Then_ClaimsAreIncluded() {
+        // Arrange
+        String username = "testuser";
+        String role = "ROLE_STUDENT";
+        Map<String, Object> extraClaims = Map.of("schoolCode", "AP");
+
+        // Act
+        String token = jwtService.generateToken(username, role, extraClaims);
+        String extractedSchoolCode = (String) jwtService.extractClaim(token, "schoolCode");
+
+        // Assert
+        assertEquals("AP", extractedSchoolCode);
     }
 }

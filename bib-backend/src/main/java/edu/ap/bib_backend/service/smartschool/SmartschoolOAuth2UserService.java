@@ -121,7 +121,8 @@ public class SmartschoolOAuth2UserService
                 .orElseGet(() -> userService.createUser(
                         userId,
                         roleService.getRoleEntity(basisrol),
-                        school
+                        school,
+                        defaultCampus
                 ));
 
         String oneRosterSourcedId =

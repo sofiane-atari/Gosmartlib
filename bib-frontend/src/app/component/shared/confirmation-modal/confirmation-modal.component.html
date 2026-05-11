@@ -1,0 +1,40 @@
+@if (isVisible()) {
+  <div class="confirmation-modal-backdrop" (click)="cancelRequested.emit()">
+    <section
+      class="confirmation-modal-card"
+      role="dialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <h2>{{ title() }}</h2>
+
+      @if (description()) {
+        <p>{{ description() }}</p>
+      }
+
+      <div class="confirmation-actions">
+        <button
+          class="secondary-button"
+          type="button"
+          [disabled]="isConfirmLoading() || cancelDisabled()"
+          (click)="cancelRequested.emit()"
+        >
+          {{ cancelLabel() }}
+        </button>
+
+        <button
+          class="primary-button"
+          type="button"
+          [disabled]="confirmDisabled() || isConfirmLoading()"
+          (click)="confirmRequested.emit()"
+        >
+          @if (isConfirmLoading() && confirmLoadingLabel()) {
+            {{ confirmLoadingLabel() }}
+          } @else {
+            {{ confirmLabel() }}
+          }
+        </button>
+      </div>
+    </section>
+  </div>
+}

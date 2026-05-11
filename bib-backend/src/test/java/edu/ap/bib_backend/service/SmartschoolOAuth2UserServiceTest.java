@@ -11,6 +11,7 @@ import edu.ap.bib_backend.service.smartschool.SmartschoolAudienceResolverService
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
 import edu.ap.bib_backend.service.user.UserService;
+import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -83,6 +84,9 @@ class SmartschoolOAuth2UserServiceTest {
     @MockitoBean
     private SchoolRepository schoolRepository;
 
+    @MockitoBean
+    private OneRosterClient oneRosterClient;
+
     private MockRestServiceServer mockRestServiceServer;
 
     @BeforeEach
@@ -148,7 +152,7 @@ class SmartschoolOAuth2UserServiceTest {
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")));
 
         verify(userService, times(1)).getUser("existing-user");
-        verify(userService, never()).createUser(anyString(), any(), any());
+        verify(userService, never()).createUser(anyString(), any(), any(), any());
         verify(roleService, never()).getRoleEntity(anyString());
         verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
         verify(groupService, times(1)).getGroup("2ITSOF1");
@@ -170,7 +174,7 @@ class SmartschoolOAuth2UserServiceTest {
 
         when(userService.getUser("new-user")).thenReturn(Optional.empty());
         when(roleService.getRoleEntity("leerling")).thenReturn(studentRole);
-        when(userService.createUser(eq("new-user"), eq(studentRole), any(School.class))).thenReturn(createdUser);
+        when(userService.createUser(eq("new-user"), eq(studentRole), any(School.class), any())).thenReturn(createdUser);
         when(smartschoolProfileService.fetchGroups(accessTokenValue))
                 .thenReturn(new SmartschoolGroupDto("2ITSOF1", List.of("Leerlingen")));
         when(groupService.getGroup("2ITSOF1")).thenReturn(existingGroup);
@@ -216,7 +220,7 @@ class SmartschoolOAuth2UserServiceTest {
 
         verify(userService, times(1)).getUser("new-user");
         verify(roleService, times(1)).getRoleEntity("leerling");
-        verify(userService, times(1)).createUser(eq("new-user"), eq(studentRole), any(School.class));
+        verify(userService, times(1)).createUser(eq("new-user"), eq(studentRole), any(School.class), any());
         verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
         verify(groupService, times(1)).getGroup("2ITSOF1");
         verify(groupService, never()).createGroup(anyString());

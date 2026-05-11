@@ -78,22 +78,19 @@ class AuthControllerTest {
 
         Authentication authentication = new UsernamePasswordAuthenticationToken("1", null, authorities);
 
-        AuthUserDto userDto = new AuthUserDto(
-                "1",
-                "Enes",
-                "Taşci",
-                "Taşci Enes",
-                Role.STUDENT,
-                "enes.tasci@student.ap.be",
-                "1",
-                "https://aphogeschool.smartschool.be",
-                "2ITSOF1",
-                List.of("Leerlingen"),
-                false,
-                1L,
-                "Test School",
-                100L,
-                "Test Campus");
+        AuthUserDto userDto = AuthUserDto.builder()
+                .id("1")
+                .firstName("Enes")
+                .lastName("Taşci")
+                .fullName("Taşci Enes")
+                .role(Role.STUDENT)
+                .email("enes.tasci@student.ap.be")
+                .smartschoolId("1")
+                .platform("https://aphogeschool.smartschool.be")
+                .primaryGroupName("2ITSOF1")
+                .parentGroupNames(List.of("Leerlingen"))
+                .reviewBlocked(false)
+                .build();
 
         when(authService.getUserDetails(any(Authentication.class))).thenReturn(userDto);
 
