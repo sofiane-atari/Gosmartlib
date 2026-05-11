@@ -1,6 +1,9 @@
 package edu.ap.bib_backend.dto;
 
 import org.junit.jupiter.api.Test;
+
+import edu.ap.bib_backend.dto.loan.LoanBookDTO;
+
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 

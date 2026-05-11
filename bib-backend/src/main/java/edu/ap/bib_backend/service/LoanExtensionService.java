@@ -7,9 +7,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import edu.ap.bib_backend.dto.LoanDTO;
-import edu.ap.bib_backend.dto.LoanExtensionDTO;
-import edu.ap.bib_backend.dto.LoanExtensionRequestDTO;
+import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanExtensionDTO;
+import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.LoanExtension;

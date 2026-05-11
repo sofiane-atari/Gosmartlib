@@ -14,10 +14,11 @@ import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
-import edu.ap.bib_backend.dto.LoanDTO;
-import edu.ap.bib_backend.dto.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
+import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -30,6 +31,7 @@ import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.book.BookService;
+
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -213,9 +215,7 @@ public class LoanService {
                         returnedOnTime,
                         loan.getReturnDate(),
                         returnedDate,
-                        LocalDateTime.now()
-                )
-        );
+                        LocalDateTime.now()));
     }
 
     private String buildHtmlMessageBody(Loan loan) {
@@ -373,5 +373,19 @@ public class LoanService {
         }
 
         return 3;
+    }
+    public LoanStatsDTO getLoanStats() {
+        LocalDate today = LocalDate.now();
+
+        long activeLoans = loanRepository
+                .countByReturnedDateIsNullAndReturnDateGreaterThanEqual(today);
+
+        long overdueLoans = loanRepository
+                .countByReturnedDateIsNullAndReturnDateBefore(today);
+
+        long returnedLoans = loanRepository
+                .countByReturnedDateIsNotNull();
+
+        return new LoanStatsDTO(activeLoans, overdueLoans, returnedLoans);
     }
 }

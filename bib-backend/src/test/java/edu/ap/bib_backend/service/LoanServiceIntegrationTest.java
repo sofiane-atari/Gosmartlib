@@ -1,6 +1,6 @@
 package edu.ap.bib_backend.service;
 
-import edu.ap.bib_backend.dto.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;

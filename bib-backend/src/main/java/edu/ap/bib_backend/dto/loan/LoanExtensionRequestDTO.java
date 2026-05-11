@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.dto;
+package edu.ap.bib_backend.dto.loan;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

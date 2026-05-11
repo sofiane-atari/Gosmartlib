@@ -129,10 +129,6 @@
           }
         </tbody>
       </table>
-    } @else if (errorMessage()) {
-      <div class="empty-state">
-        <p>{{ errorMessage() }}</p>
-      </div>
     } @else if (loans().length === 0) {
       <div class="empty-state">
         <div class="empty-state__icon">

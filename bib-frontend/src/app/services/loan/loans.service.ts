@@ -11,17 +11,17 @@ import { LoanExtensionRequest } from '../../model/loan/loanExtension.model';
 })
 export class LoansService {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl;
+  private apiUrl = environment.apiUrl + '/loans';
 
   public createLoan(loan: Loan): Observable<Loan> {
-    return this.http.post<Loan>(`${this.apiUrl}/loans`, loan);
+    return this.http.post<Loan>(`${this.apiUrl}`, loan);
   }
 
   public getLoans(
     page: number,
     pageSize: number,
   ): Observable<PaginatedResponse<Loan>> {
-    return this.http.get<PaginatedResponse<Loan>>(`${this.apiUrl}/loans`, {
+    return this.http.get<PaginatedResponse<Loan>>(`${this.apiUrl}`, {
       params: {
         page,
         pageSize,
@@ -34,7 +34,7 @@ export class LoansService {
     pageSize: number,
   ): Observable<PaginatedResponse<Loan>> {
     return this.http.get<PaginatedResponse<Loan>>(
-      `${this.apiUrl}/loans/active`,
+      `${this.apiUrl}/active`,
       {
         params: {
           page: page.toString(),
@@ -45,11 +45,11 @@ export class LoansService {
   }
 
   public returnLoan(loanId: number): Observable<Loan> {
-    return this.http.patch<Loan>(`${this.apiUrl}/loans/${loanId}/return`, {});
+    return this.http.patch<Loan>(`${this.apiUrl}/${loanId}/return`, {});
   }
 
   public getMyLoanHistory(): Observable<LoanHistory> {
-    return this.http.get<LoanHistory>(`${this.apiUrl}/loans/me/history`);
+    return this.http.get<LoanHistory>(`${this.apiUrl}/me/history`);
   }
 
   public extendLoan(
@@ -57,8 +57,16 @@ export class LoansService {
     request: LoanExtensionRequest,
   ): Observable<Loan> {
     return this.http.patch<Loan>(
-      `${this.apiUrl}/loans/${loanId}/extend`,
+      `${this.apiUrl}/${loanId}/extend`,
       request,
     );
+  }
+
+  getLoanStats() {
+    return this.http.get<{
+      activeLoans: number;
+      overdueLoans: number;
+      returnedLoans: number;
+    }>(`${this.apiUrl}/stats`);
   }
 }
