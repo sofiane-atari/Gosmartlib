@@ -84,15 +84,20 @@ lucide-icon {
 .avatar {
   width: 48px;
   height: 48px;
-  background-color: #b8295a;
-  border-radius: 50%;
+  border-radius: 12px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-left: 0;
-  box-sizing: border-box;
-  position: relative;
-  flex: 0 0 48px;
+  background: white;
+  flex-shrink: 0;
+}
+
+.avatar-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
 }
 
 .profile-info {
