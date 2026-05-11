@@ -17,10 +17,13 @@ import { Campus } from '../../model/campus.model';
 })
 export class SettingsComponent {
   private readonly syncService = inject(OneRosterSyncService);
-  private readonly destroyRef = inject(DestroyRef);
-  public readonly userSettingsService = inject(UserSettingsService);
   private readonly campusService = inject(CampusService);
   private readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  public readonly userSettingsService = inject(UserSettingsService);
+
+  protected readonly currentUser = this.authService.currentUser;
 
   protected readonly isSyncing = signal(false);
   protected readonly successMessage = signal<string | null>(null);
@@ -31,8 +34,6 @@ export class SettingsComponent {
   protected readonly isSavingCampus = signal(false);
   protected readonly campusError = signal<string | null>(null);
   protected readonly campusSuccess = signal<string | null>(null);
-
-  protected readonly currentUser = this.authService.currentUser;
 
   public constructor() {
     this.loadCampuses();
@@ -88,7 +89,9 @@ export class SettingsComponent {
         next: (updatedUser) => {
           this.authService.currentUser.set(updatedUser);
           this.isSavingCampus.set(false);
-          this.campusSuccess.set('Campus succesvol gewijzigd. De catalogus wordt opnieuw geladen.');
+          this.campusSuccess.set(
+            'Campus succesvol gewijzigd. De catalogus wordt opnieuw geladen.',
+          );
 
           setTimeout(() => {
             window.location.reload();
@@ -121,6 +124,7 @@ export class SettingsComponent {
                 a.name.localeCompare(b.name),
             ),
           );
+
           this.isLoadingCampuses.set(false);
         },
         error: () => {

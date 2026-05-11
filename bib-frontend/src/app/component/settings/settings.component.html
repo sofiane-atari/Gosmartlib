@@ -9,9 +9,11 @@
   @if (currentUser()?.role === 'ADMIN') {
     <section class="settings-panel">
       <h2>OneRoster-synchronisatie</h2>
+
       <p class="panel-description">
         Start handmatig een synchronisatie om gebruikers en klassen bij te werken.
       </p>
+
       <div class="panel-actions">
         <button
           type="button"
@@ -30,6 +32,7 @@
       @if (successMessage()) {
         <div class="alert alert--success">{{ successMessage() }}</div>
       }
+
       @if (errorMessage()) {
         <div class="alert alert--error">{{ errorMessage() }}</div>
       }
@@ -38,55 +41,67 @@
 
   <section class="settings-panel">
     <h2>Weergave</h2>
-    <div class="profile-info-row">
-      <span class="profile-info-row__label">Hover hulpinformatie</span>
-      <span class="profile-info-row__value">
-        <label class="switch">
-          <input
-            type="checkbox"
-            [checked]="userSettingsService.hoverHelpEnabled$ | async"
-            (change)="toggleHoverHelp($event)"
-          />
-          <span class="slider"></span>
-        </label>
-      </span>
+
+    <div class="setting-row">
+      <div>
+        <h3>Toegankelijkheid</h3>
+        <p>Toon extra uitleg wanneer je met je muis over knoppen beweegt.</p>
+      </div>
+
+      <label class="switch">
+        <input
+          type="checkbox"
+          [checked]="userSettingsService.hoverHelpEnabled$ | async"
+          (change)="toggleHoverHelp($event)"
+        />
+        <span class="slider"></span>
+      </label>
     </div>
   </section>
 
   <section class="settings-panel">
     <h2>Campus</h2>
-    <p class="panel-description">
-      Kies welke campus je actief gebruikt voor catalogus, uitleningen en administratie.
-    </p>
 
-    @if (campusError()) {
-      <small class="setting-error">{{ campusError() }}</small>
-    }
-    @if (campusSuccess()) {
-      <small class="setting-success">{{ campusSuccess() }}</small>
-    }
+    <div class="setting-row">
+      <div>
+        <p>
+          Kies welke campus je actief gebruikt voor catalogus, uitleningen en administratie.
+        </p>
 
-    <div class="campus-select-wrap">
-      @if (isLoadingCampuses()) {
-        <span class="muted">Campussen laden...</span>
-      } @else if (campuses().length <= 1) {
-        <span class="muted">Je school heeft maar &eacute;&eacute;n campus.</span>
-      } @else {
-        <select
-          [disabled]="isSavingCampus()"
-          (change)="changeCampus($event)"
-        >
-          @for (campus of campuses(); track campus.id) {
-            <option [value]="campus.id" [selected]="currentUser()?.campusId === campus.id">
-              {{ campus.name }}{{ campus.defaultCampus ? ' (default)' : '' }}
-            </option>
-          }
-        </select>
-
-        @if (isSavingCampus()) {
-          <span class="muted">Opslaan...</span>
+        @if (campusError()) {
+          <small class="setting-error">{{ campusError() }}</small>
         }
-      }
+
+        @if (campusSuccess()) {
+          <small class="setting-success">{{ campusSuccess() }}</small>
+        }
+      </div>
+
+      <div class="campus-select-wrap">
+        @if (isLoadingCampuses()) {
+          <span class="muted">Campussen laden...</span>
+        } @else if (campuses().length <= 1) {
+          <span class="muted">Je school heeft maar één campus.</span>
+        } @else {
+          <select
+            [disabled]="isSavingCampus()"
+            (change)="changeCampus($event)"
+          >
+            @for (campus of campuses(); track campus.id) {
+              <option
+                [value]="campus.id"
+                [selected]="currentUser()?.campusId === campus.id"
+              >
+                {{ campus.name }}{{ campus.defaultCampus ? ' (default)' : '' }}
+              </option>
+            }
+          </select>
+
+          @if (isSavingCampus()) {
+            <span class="muted">Opslaan...</span>
+          }
+        }
+      </div>
     </div>
   </section>
 </div>
