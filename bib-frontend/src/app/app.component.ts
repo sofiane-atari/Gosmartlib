@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { SessionExpiryModalComponent } from './component/shared/session-expired-
 import { GamificationRewardNotificationComponent } from './component/gamification/components/gamification-reward-notification/gamification-reward-notification.component';
 import { GamificationNotificationStoreService } from './services/gamification/store/gamification-notification-store.service';
 import { CampusSelectorModalComponent } from './shared/campus-selector-modal/campus-selector-modal.component';
+import { GamificationNotificationStreamService } from './services/gamification/store/gamification-notification-stream.service';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +33,10 @@ export class AppComponent {
     GamificationNotificationStoreService,
   );
 
+  private readonly gamificationNotificationStream = inject(
+    GamificationNotificationStreamService,
+  );
+
   protected isSidebarOpen = signal(false);
 
   cards = [
@@ -42,11 +47,35 @@ export class AppComponent {
     'Rapporteer',
   ];
 
+  private notificationStreamStarted = false;
+
   public constructor() {
-    if (this.authService.isAuthenticated()) {
-      this.authService.fetchCurrentUser();
-      this.gamificationNotificationStore.loadUnreadNotifications();
-    }
+    effect(
+      () => {
+        if (this.authService.isAuthenticated()) {
+          if (this.notificationStreamStarted) {
+            return;
+          }
+
+          this.notificationStreamStarted = true;
+
+          this.authService.fetchCurrentUser();
+          this.gamificationNotificationStore.loadUnreadNotifications();
+          this.gamificationNotificationStream.connect();
+
+          return;
+        }
+
+        this.notificationStreamStarted = false;
+        this.gamificationNotificationStream.disconnect();
+        this.gamificationNotificationStore.clearNotifications();
+      },
+      { allowSignalWrites: true },
+    );
+  }
+
+  public ngOnDestroy(): void {
+    this.gamificationNotificationStream.disconnect();
   }
 
   toggleSidebar(): void {
