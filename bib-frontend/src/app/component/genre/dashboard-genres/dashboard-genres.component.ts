@@ -4,7 +4,6 @@ import {
   inject,
   signal,
   DestroyRef,
-  ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -12,10 +11,7 @@ import { GenreService } from '../../../services/genre/genre.service';
 import { StatCardComponent } from '../stat-card/stat-card.component';
 import { GenresListComponent } from '../genres-list/genres-list.component';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { CreateGenreComponent } from '../create-genre/create-genre.component';
-import { UpdateGenreComponent } from '../update-genre/update-genre.component';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
-import { PageingOpt } from '../../../model/shared/paging/PageingOpt.model';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagingComponent } from '../../shared/paging/paging.component';
@@ -24,6 +20,8 @@ import { Subject } from 'rxjs';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { Genre } from '../../../model/genre/genre.model';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { AddSubmitEvent, AddComponent } from '../../shared/add/add.component';
+import { Plus, LucideAngularModule } from "lucide-angular";
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -38,13 +36,13 @@ interface ErrorItem {
   imports: [
     FormsModule,
     StatCardComponent,
-    CreateGenreComponent,
     SearchBarComponent,
     PagingComponent,
-    UpdateGenreComponent,
     GenresListComponent,
     ButtonHoverHelpComponent,
-  ],
+    AddComponent,
+    LucideAngularModule
+],
   templateUrl: './dashboard-genres.component.html',
   styleUrls: ['./dashboard-genres.component.css'],
 })
@@ -53,10 +51,7 @@ export class DashboardGenresComponent {
   private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private refreshTrigger = signal(false);
-
-  @ViewChild(UpdateGenreComponent)
-  private updateGenreComponent!: UpdateGenreComponent;
+  private refreshTrigger = signal(0);
 
   // Track genre being edited
   protected editingGenre = signal<Genre | null>(null);
@@ -70,6 +65,9 @@ export class DashboardGenresComponent {
 
   // BookCount filter (0 = any, 1+ = has books, -1 = no books)
   protected bookCountFilter = signal<string>('');
+  private readonly defaultGenreColor = '#3b82f6';
+
+  protected readonly Plus = Plus;
 
   constructor() {
     // Set up debounced search - waits 300ms after user stops typing
@@ -153,8 +151,9 @@ export class DashboardGenresComponent {
     this.popUp.set(popup);
   }
 
-  protected closePopup() {
+  protected closePopup(): void {
     this.setPopup(null);
+    this.editingGenre.set(null);
   }
 
   protected onEditGenre(genre: Genre): void {
@@ -166,8 +165,7 @@ export class DashboardGenresComponent {
   protected onSuccess(message: string) {
     this.success.set(message);
 
-    this.refreshTrigger.set(true);
-    this.refreshTrigger.set(false);
+    this.refresh();
 
     this.closePopup();
 
@@ -179,8 +177,7 @@ export class DashboardGenresComponent {
   }
 
   protected onError(error: string | HttpErrorResponseError) {
-    this.refreshTrigger.set(true);
-    this.refreshTrigger.set(false);
+    this.refresh();
 
     // Handle string errors from CreateLabelComponent
     if (typeof error === 'string') {
@@ -228,5 +225,66 @@ export class DashboardGenresComponent {
       }, 5000);
       this.destroyRef.onDestroy(() => clearTimeout(timeoutId));
     }
+  }
+
+  protected openCreatePopup(): void {
+    this.editingGenre.set(null);
+    this.setPopup('create');
+  }
+
+  protected onSubmitCreateGenre(event: AddSubmitEvent): void {
+    if (!event.name) {
+      this.onError('Naam is verplicht.');
+      return;
+    }
+
+    this.genreService
+      .createGenre({
+        name: event.name,
+        description: event.description,
+        color: event.color ?? this.defaultGenreColor,
+      })
+      .subscribe({
+        next: () => {
+          this.onSuccess('Genre succesvol aangemaakt.');
+        },
+        error: (error: HttpErrorResponseError) => {
+          this.onError(error);
+        },
+      });
+  }
+
+protected onSubmitUpdateGenre(event: AddSubmitEvent): void {
+  const genre = this.editingGenre();
+
+  if (!genre) {
+    this.onError('Geen genre geselecteerd om te bewerken.');
+    return;
+  }
+
+  if (!event.name) {
+    this.onError('Naam is verplicht.');
+    return;
+  }
+
+  this.genreService
+    .updateGenre({
+      id: genre.id!,
+      name: event.name,
+      description: event.description,
+      color: event.color ?? genre.color,
+    })
+    .subscribe({
+      next: () => {
+        this.onSuccess('Genre succesvol bijgewerkt.');
+      },
+      error: (error: HttpErrorResponseError) => {
+        this.onError(error);
+      },
+    });
+}
+
+  private refresh(): void {
+    this.refreshTrigger.update((value) => value + 1);
   }
 }

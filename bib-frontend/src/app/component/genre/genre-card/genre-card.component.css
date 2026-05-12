@@ -127,6 +127,88 @@
   height: 32px;
   flex: 0 0 auto;
 }
+
+.label-card,
+.label-card__actions,
+.label-card__actions app-button-hover-help {
+  overflow: visible;
+}
+
+.label-card {
+  position: relative;
+}
+
+.label-card:hover {
+  z-index: 20;
+}
+
+.label-card__actions {
+  position: relative;
+  z-index: 30;
+}
+
+.label-card__actions app-button-hover-help {
+  position: relative;
+  z-index: 999;
+}
+
+.label-card__actions app-button-hover-help:hover {
+  z-index: 9999;
+}
+.label-card,
+.label-card__actions,
+.label-card__actions app-button-hover-help {
+  overflow: visible;
+}
+
+.label-card {
+  position: relative;
+  z-index: 1;
+}
+
+.label-card:hover {
+  z-index: 100;
+}
+
+.label-card__actions {
+  position: relative;
+  z-index: 200;
+}
+
+.label-card__actions app-button-hover-help {
+  position: relative;
+  z-index: 300;
+}
+
+.label-card__actions app-button-hover-help:hover {
+  z-index: 9999;
+}
+
+/* Alleen de tooltips van edit/delete naar beneden zetten */
+.label-card__actions
+  app-button-hover-help.action-hover-help
+  ::ng-deep
+  .button-hover-help__text {
+  top: calc(100% + 10px);
+  bottom: auto;
+  z-index: 99999;
+}
+
+/* Pijltje omdraaien, want tooltip staat nu onder de knop */
+.label-card__actions
+  app-button-hover-help.action-hover-help
+  ::ng-deep
+  .button-hover-help__text::after {
+  top: auto;
+  bottom: 100%;
+
+  border-right: none;
+  border-bottom: none;
+  border-left: 1px solid var(--border-color, #e5e7eb);
+  border-top: 1px solid var(--border-color, #e5e7eb);
+
+  transform: translateX(-50%) translateY(5px) rotate(45deg);
+}
 /* =========================================================
    RESPONSIVE STYLES
    ========================================================= */

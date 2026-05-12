@@ -2,7 +2,7 @@ import { PageingOpt } from '../../model/shared/paging/PageingOpt.model';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Genre } from '../../model/genre/genre.model';
+import { CreateGenreRequest, Genre, UpdateGenreRequest } from '../../model/genre/genre.model';
 import { Observable } from 'rxjs';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 import { GenreStats } from '../../model/genre/genreStats.model';
@@ -24,10 +24,6 @@ export interface genreGetOptWithPaging {
 export class GenreService {
   private http = inject(HttpClient);
   private url = `${environment.apiUrl}/genres`;
-
-  public createGenre(genre: Genre): Observable<Genre> {
-    return this.http.post<Genre>(this.url, genre);
-  }
 
   public getGenres(): Observable<Genre[]> {
     return this.http.get<Genre[]>(`${this.url}/all`);
@@ -69,7 +65,11 @@ export class GenreService {
     return this.http.get<Genre[]>(`${this.url}/tree`);
   }
 
-  public updateGenre(genre: Genre): Observable<Genre> {
+  public createGenre(genre: CreateGenreRequest): Observable<Genre> {
+    return this.http.post<Genre>(this.url, genre);
+  }
+
+  public updateGenre(genre: UpdateGenreRequest): Observable<Genre> {
     return this.http.put<Genre>(`${this.url}/${genre.id}`, genre);
   }
 }
