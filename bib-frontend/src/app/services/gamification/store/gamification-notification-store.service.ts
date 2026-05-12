@@ -41,6 +41,26 @@ export class GamificationNotificationStoreService {
     });
   }
 
+  public addNotification(notification: GamificationNotification): void {
+    const currentNotifications = this.notificationsSignal();
+
+    const alreadyExists = currentNotifications.some(
+      (currentNotification) => currentNotification.id === notification.id,
+    );
+
+    if (alreadyExists) {
+      return;
+    }
+
+    const updatedNotifications = [notification, ...currentNotifications];
+
+    this.notificationsSignal.set(updatedNotifications);
+
+    if (this.activeNotificationSignal() === null) {
+      this.activeNotificationSignal.set(notification);
+    }
+  }
+
   public dismissActiveNotification(): void {
     const activeNotification = this.activeNotificationSignal();
 
