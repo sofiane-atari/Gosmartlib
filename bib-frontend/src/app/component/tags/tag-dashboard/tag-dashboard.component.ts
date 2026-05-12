@@ -33,6 +33,7 @@ import { SearchBarComponent } from '../../shared/search-bar/search-bar.component
 import { ToastComponent } from '../../shared/toast/toast.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
+import { AddSubmitEvent, AddComponent } from '../../shared/add/add.component';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -45,7 +46,8 @@ type PopupState = 'create' | 'edit' | null;
     LucideAngularModule,
     PagingComponent,
     SearchBarComponent,
-    ButtonHoverHelpComponent
+    ButtonHoverHelpComponent,
+    AddComponent
 ],
   templateUrl: './tag-dashboard.component.html',
   styleUrls: ['./tag-dashboard.component.css'],
@@ -65,12 +67,6 @@ export class TagDashboardComponent {
   protected editingTag = signal<TagModel | null>(null);
 
   protected bookCountFilter = signal<string>('');
-
-  protected createName = signal<string>('');
-  protected createDescription = signal<string>('');
-
-  protected editName = signal<string>('');
-  protected editDescription = signal<string>('');
 
   private backdropPointerStartedOnOverlay = false;
 
@@ -174,15 +170,11 @@ export class TagDashboardComponent {
   }
 
   protected openCreatePopup(): void {
-    this.createName.set('');
-    this.createDescription.set('');
     this.popUp.set('create');
   }
 
   protected openEditPopup(tag: TagModel): void {
     this.editingTag.set(tag);
-    this.editName.set(tag.name ?? '');
-    this.editDescription.set(tag.description ?? '');
     this.popUp.set('edit');
   }
 
@@ -191,19 +183,16 @@ export class TagDashboardComponent {
     this.editingTag.set(null);
   }
 
-  protected createTag(): void {
-    const name = this.createName().trim();
-    const description = this.createDescription().trim();
-
-    if (!name) {
+  protected onSubmitCreateTag(event: AddSubmitEvent): void {
+    if (!event.name) {
       this.toastService.show('Naam is verplicht.', 'error');
       return;
     }
 
     this.tagService
       .createTag({
-        name,
-        description: description || undefined,
+        name: event.name,
+        description: event.description,
       })
       .subscribe({
         next: () => {
@@ -217,7 +206,7 @@ export class TagDashboardComponent {
       });
   }
 
-  protected updateTag(): void {
+  protected onSubmitUpdateTag(event: AddSubmitEvent): void {
     const tag = this.editingTag();
 
     if (!tag) {
@@ -225,18 +214,15 @@ export class TagDashboardComponent {
       return;
     }
 
-    const name = this.editName().trim();
-    const description = this.editDescription().trim();
-
-    if (!name) {
+    if (!event.name) {
       this.toastService.show('Naam is verplicht.', 'error');
       return;
     }
 
     this.tagService
       .updateTag(tag.id, {
-        name,
-        description: description || undefined,
+        name: event.name,
+        description: event.description,
       })
       .subscribe({
         next: () => {

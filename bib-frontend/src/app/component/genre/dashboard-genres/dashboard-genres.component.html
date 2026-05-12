@@ -1,104 +1,132 @@
-<div class="dashboard-labels">
-  <!-- Header -->
-  <div class="page-header">
+<div class="genre-dashboard">
+  <header class="page-header">
     <div class="page-header__text">
       <h1>Genrebeheer</h1>
-      <p>Beheer genres voor de boekencatalogus</p>
+      <p>Beheer alle genres die gebruikt worden om boeken te categoriseren.</p>
     </div>
 
-    <button class="btn-new" (click)="setPopup('create')">
-      + Nieuw genre
-    </button>
-  </div>
+      <button type="button" class="btn-new" (click)="openCreatePopup()">
+        <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
+        Nieuwe Genre <label for=""></label>
+      </button>
+  </header>
 
-  <div [class.blur-background]="popUp() !== null">
-    @if (success()) {
-      <div class="success-message">
-        {{ success() }}
-      </div>
-    }
+  @if (success()) {
+    <div class="success-message">
+      {{ success() }}
+    </div>
+  }
 
-    @if (errors().length > 0) {
-      <div class="error-message">
-        @for (err of errors(); track err.field) {
-          <p>{{ err.message }}</p>
-        }
-      </div>
-    }
+  @if (errors().length > 0) {
+    <div class="error-message">
+      @for (error of errors(); track error.field) {
+        <p>{{ error.message }}</p>
+      }
+    </div>
+  }
 
-    @if (popUp() === "create") {
-      <app-create-genre
-        (closeEvent)="closePopup()"
-        (successEvent)="onSuccess($event)"
-        (errorEvent)="onError($event)"
-      />
-    } @else if (popUp() === "edit") {
-      <app-update-genre
-        [genre]="editingGenre()"
-        (closeEvent)="closePopup()"
-        (successEvent)="onSuccess($event)"
-        (errorEvent)="onError($event)"
-      />
-    }
-  </div>
-
-  <!-- StatCards -->
-  <div class="stat-cards">
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal genres in de boekencatalogus.">
+  <section class="stat-cards">
+    <app-button-hover-help text="Het totaal aantal genres dat in het systeem bestaat.">
       <app-stat-card
-        label="Totaal genres"
+        genre="Totaal genres"
         [value]="stats()?.totalItems ?? 0"
         variant="total"
-      />
+      ></app-stat-card>
     </app-button-hover-help>
 
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het aantal genres dat gebruikt wordt bij één of meerdere boeken.">
+    <app-button-hover-help text="Het aantal genres dat momenteel aan minstens één boek gekoppeld is.">
       <app-stat-card
-        label="Gebruikte genres"
+        genre="Actieve genres"
         [value]="totalActive()"
         variant="active"
-      />
+      ></app-stat-card>
     </app-button-hover-help>
 
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het aantal genres dat nog niet gekoppeld is aan boeken.">
+    <app-button-hover-help text="Het aantal genres dat nog niet aan boeken gekoppeld is.">
       <app-stat-card
-        label="Ongebruikte genres"
+        genre="Ongebruikte genres"
         [value]="stats()?.unActiveGenres ?? 0"
         variant="unused"
-      />
+      ></app-stat-card>
     </app-button-hover-help>
-  </div>
+  </section>
 
-  <!-- SearchBar -->
-  <app-search-bar (searchChange)="onSearch($event)" />
+  <section class="controls-row">
+    <div class="search-panel">
+      <app-search-bar
+        placeholder="Zoek op genre..."
+        (searchChange)="onSearch($event)"
+      ></app-search-bar>
+    </div>
 
-  <!-- BookCount Filter -->
-  <div class="filter-row">
-    <label class="filter-label">Filter op aantal boeken:</label>
-    <input
-      class="filter-select"
-      [value]="bookCountFilter()"
-      placeholder="bijv. 1"
-      (change)="onBookCountFilterChange($any($event.target).value)"
-    />
-  </div>
+    <div class="filter-panel">
+      <label class="filter-label" for="bookCountFilter">Aantal boeken</label>
 
-  <!-- LabelsList -->
-  <app-genres-list
-    [genres]="genres()"
-    (deletedSuccess)="onSuccess($event)"
-    (deletionError)="onError($event)"
-    (editGenre)="onEditGenre($event)"
-  />
+        <input
+          id="bookCountFilter"
+          class="filter-input"
+          type="number"
+          min="0"
+          [ngModel]="bookCountFilter()"
+          (ngModelChange)="onBookCountFilterChange($event)"
+          placeholder="Aantal boeken"
+        />
+    </div>
+  </section>
 
-  <!-- Paging -->
+  <section class="genres-section">
+    <div class="genres-list-wrapper">
+      <app-genres-list
+        [genres]="genres()"
+        (deletedSuccess)="onSuccess($event)"
+        (deletionError)="onError($event)"
+        (editGenre)="onEditGenre($event)"
+      ></app-genres-list>
+    </div>
+  </section>
+
   @if (pagingMeta()) {
-    <app-paging [meta]="pagingMeta()!" (pageChange)="onPageChange($event)" />
+    <div class="paging-wrapper">
+      <app-paging
+        [meta]="pagingMeta()"
+        (pageChange)="onPageChange($event)"
+      ></app-paging>
+    </div>
   }
+
+  <app-name-description-modal
+    [isOpen]="popUp() === 'create'"
+    mode="create"
+    title="Genre toevoegen"
+    subtitle="Maak een nieuw genre aan om boeken beter te categoriseren."
+    nameLabel="Naam"
+    descriptionLabel="Beschrijving"
+    colorLabel="Kleur"
+    namePlaceholder="Bijvoorbeeld: Avontuur"
+    descriptionPlaceholder="Korte beschrijving van het genre"
+    [showColor]="true"
+    initialColor="#3b82f6"
+    submitLabel="Genre toevoegen"
+    (closed)="closePopup()"
+    (submitted)="onSubmitCreateGenre($event)"
+  ></app-name-description-modal>
+
+  <app-name-description-modal
+    [isOpen]="popUp() === 'edit'"
+    mode="edit"
+    title="Genre bewerken"
+    subtitle="Pas de naam, beschrijving of kleur van dit genre aan."
+    nameLabel="Naam"
+    descriptionLabel="Beschrijving"
+    colorLabel="Kleur"
+    namePlaceholder="Bijvoorbeeld: Avontuur"
+    descriptionPlaceholder="Korte beschrijving van het genre"
+    [showColor]="true"
+    [initialName]="editingGenre()?.name ?? ''"
+    [initialDescription]="editingGenre()?.description ?? ''"
+    [initialColor]="editingGenre()?.color ?? '#3b82f6'"
+    submitLabel="Genre opslaan"
+    (closed)="closePopup()"
+    (submitted)="onSubmitUpdateGenre($event)"
+  ></app-name-description-modal>
 </div>

@@ -171,84 +171,33 @@
       (pageChange)="onPageChange($event)"
     />
   }
+<app-name-description-modal
+  [isOpen]="popUp() === 'create'"
+  mode="create"
+  title="Tag toevoegen"
+  subtitle="Maak een nieuwe tag aan om boeken beter te organiseren."
+  nameLabel="Naam"
+  descriptionLabel="Beschrijving"
+  namePlaceholder="Bijvoorbeeld: Fantasy"
+  descriptionPlaceholder="Korte beschrijving van de tag"
+  submitLabel="Tag toevoegen"
+  (closed)="closePopup()"
+  (submitted)="onSubmitCreateTag($event)"
+></app-name-description-modal>
 
-  @if (popUp() === 'create') {
-    <div class="modal-overlay open">
-      <div class="modal">
-        <h2>Nieuwe label toevoegen</h2>
-        <p>Maak een nieuwe label aan voor de boekencatalogus.</p>
-
-        <div class="modal-field">
-          <label for="create-name">Labelnaam</label>
-          <input
-            id="create-name"
-            type="text"
-            [ngModel]="createName()"
-            (ngModelChange)="createName.set($event)"
-            placeholder="bijv. Populair"
-          />
-        </div>
-
-        <div class="modal-field">
-          <label for="create-description">Beschrijving</label>
-          <input
-            id="create-description"
-            type="text"
-            [ngModel]="createDescription()"
-            (ngModelChange)="createDescription.set($event)"
-            placeholder="Optionele beschrijving"
-          />
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="closePopup()">
-            Annuleren
-          </button>
-
-          <button type="button" class="btn-save" (click)="createTag()">
-            Opslaan
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
-  @if (popUp() === 'edit') {
-    <div class="modal-overlay open">
-      <div class="modal">
-        <h2>Label wijzigen</h2>
-        <p>Pas de gegevens van dit label aan.</p>
-
-        <div class="modal-field">
-          <label for="edit-name">Labelnaam</label>
-          <input
-            id="edit-name"
-            type="text"
-            [ngModel]="editName()"
-            (ngModelChange)="editName.set($event)"
-          />
-        </div>
-
-        <div class="modal-field">
-          <label for="edit-description">Beschrijving</label>
-          <input
-            id="edit-description"
-            type="text"
-            [ngModel]="editDescription()"
-            (ngModelChange)="editDescription.set($event)"
-          />
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="closePopup()">
-            Annuleren
-          </button>
-
-          <button type="button" class="btn-save" (click)="updateTag()">
-            Opslaan
-          </button>
-        </div>
-      </div>
-    </div>
-  }
+<app-name-description-modal
+  [isOpen]="popUp() === 'edit'"
+  mode="edit"
+  title="Tag bewerken"
+  subtitle="Pas de naam of beschrijving van deze tag aan."
+  nameLabel="Naam"
+  descriptionLabel="Beschrijving"
+  namePlaceholder="Bijvoorbeeld: Fantasy"
+  descriptionPlaceholder="Korte beschrijving van de tag"
+  [initialName]="editingTag()?.name ?? ''"
+  [initialDescription]="editingTag()?.description ?? ''"
+  submitLabel="Tag opslaan"
+  (closed)="closePopup()"
+  (submitted)="onSubmitUpdateTag($event)"
+></app-name-description-modal>
 </div>
