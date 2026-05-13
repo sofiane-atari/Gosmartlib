@@ -90,4 +90,25 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
             @Param("campusId") Long campusId,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT relatedBook, COUNT(sourceGenre) AS sharedGenreCount
+            FROM Book sourceBook
+            JOIN sourceBook.genres sourceGenre
+            JOIN sourceGenre.books relatedBook
+            WHERE sourceBook.id = :bookId
+              AND relatedBook.id <> :bookId
+              AND (:schoolDomain IS NULL OR EXISTS (
+                  SELECT 1 FROM BookCopy bc
+                  WHERE bc MEMBER OF relatedBook.bookCopies
+                    AND bc.school.domainName = :schoolDomain
+              ))
+            GROUP BY relatedBook
+            ORDER BY COUNT(sourceGenre) DESC, RAND()
+            """)
+    List<Object[]> findRelatedBooksWithScoreBySchoolDomain(
+            @Param("bookId") Long bookId,
+            @Param("schoolDomain") String schoolDomain,
+            Pageable pageable
+    );
 }

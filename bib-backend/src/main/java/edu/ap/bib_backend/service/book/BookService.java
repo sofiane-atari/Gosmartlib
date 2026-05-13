@@ -1,7 +1,10 @@
 package edu.ap.bib_backend.service.book;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -226,6 +229,44 @@ public class BookService {
         return results.stream()
                 .map(row -> (Book) row[0])
                 .filter(book -> canSeeDidacticBooks || !book.isDidactic())
+                .map(bookMapper::toDTO)
+                .toList();
+    }
+
+    public List<BookDTO> getRelatedBooksForLoan(List<Long> bookIds, int limit, String schoolDomain) {
+        if (bookIds == null || bookIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Integer> bookScores = new HashMap<>();
+
+        for (Long bookId : bookIds) {
+            List<Object[]> related = bookRepository.findRelatedBooksWithScoreBySchoolDomain(
+                    bookId, schoolDomain, PageRequest.of(0, 5));
+
+            for (Object[] row : related) {
+                Book relatedBook = (Book) row[0];
+                int score = ((Number) row[1]).intValue();
+                bookScores.merge(relatedBook.getId(), score, Integer::sum);
+            }
+        }
+
+        if (bookScores.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> sortedIds = bookScores.entrySet().stream()
+                .sorted(Map.Entry.<Long, Integer>comparingByValue().reversed())
+                .limit(limit)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        Map<Long, Book> bookMap = bookRepository.findAllById(sortedIds).stream()
+                .collect(Collectors.toMap(Book::getId, b -> b));
+
+        return sortedIds.stream()
+                .map(bookMap::get)
+                .filter(Objects::nonNull)
                 .map(bookMapper::toDTO)
                 .toList();
     }
