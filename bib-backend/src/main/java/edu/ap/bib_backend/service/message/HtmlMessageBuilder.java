@@ -3,7 +3,12 @@ package edu.ap.bib_backend.service.message;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class HtmlMessageBuilder implements MessageBuilder {
+
+    private static final Logger log = LoggerFactory.getLogger(HtmlMessageBuilder.class);
 
     private static final String STYLE_CONTAINER =
             "font-family: 'Segoe UI', Calibri, Arial, sans-serif; " +
@@ -72,7 +77,10 @@ public class HtmlMessageBuilder implements MessageBuilder {
 
         sb.append("</div>");
 
-        return sb.toString();
+        String html = sb.toString();
+        log.debug("HtmlMessageBuilder built message: title='{}', length={} chars, components={}",
+                title, html.length(), components.size());
+        return html;
     }
 
     public String getFrontendUrl() {

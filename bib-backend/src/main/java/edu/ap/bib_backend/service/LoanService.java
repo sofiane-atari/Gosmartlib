@@ -108,6 +108,8 @@ public class LoanService {
 
         for (var bookId : loanDTO.bookIds()) {
             Book book = bookService.getBookById(bookId, true);
+            log.debug("Reserving copies for book '{}' (id={}, isbn={}, author={})",
+                    book.getTitle(), bookId, book.getIsbn(), book.getAuthor());
             int copiesNeeded = resolveCopiesCount(loanDTO, bookId);
 
             List<BookCopy> availableCopies = bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(bookId,
@@ -131,8 +133,11 @@ public class LoanService {
                         .map(u -> u.getSchool().getDomainName())
                         .orElse(null);
 
+                log.debug("Fetching recommendations for bookIds={}, schoolDomain={}",
+                        loanDTO.bookIds(), schoolDomain);
                 List<BookDTO> recommendations = bookService.getRelatedBooksForLoan(
                         loanDTO.bookIds(), 4, schoolDomain);
+                log.debug("Recommendations fetched: {} books", recommendations.size());
 
                 String htmlMessage = new HtmlMessageBuilder(
                         "Bevestiging nieuwe uitlening", frontendUrl)

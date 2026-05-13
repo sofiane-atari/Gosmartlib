@@ -32,6 +32,7 @@ import edu.ap.bib_backend.mapper.BookMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.util.IsbnUtils;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @Service
 @Transactional
 public class BookService {
@@ -159,8 +161,13 @@ public class BookService {
     }
 
     public Book getBookById(Long id, boolean returnEntity) {
-        return bookRepository.findById(id)
+        Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Boek niet gevonden met id: " + id));
+        log.debug("getBookById({}): found '{}' | ISBN: {} | author: {} | genres: {} | tags: {}",
+                id, book.getTitle(), book.getIsbn(), book.getAuthor(),
+                book.getGenres() != null ? book.getGenres().stream().map(g -> g.getName()).toList() : "[]",
+                book.getTags() != null ? book.getTags().stream().map(t -> t.getName()).toList() : "[]");
+        return book;
     }
 
     public Book getBookByIdForCurrentCampus(Long id, Authentication authentication) {
@@ -235,8 +242,12 @@ public class BookService {
 
     public List<BookDTO> getRelatedBooksForLoan(List<Long> bookIds, int limit, String schoolDomain) {
         if (bookIds == null || bookIds.isEmpty()) {
+            log.debug("getRelatedBooksForLoan: no bookIds provided, skip");
             return List.of();
         }
+
+        log.debug("getRelatedBooksForLoan: source bookIds={}, limit={}, schoolDomain={}",
+                bookIds, limit, schoolDomain);
 
         Map<Long, Integer> bookScores = new HashMap<>();
 
@@ -244,14 +255,18 @@ public class BookService {
             List<Object[]> related = bookRepository.findRelatedBooksWithScoreBySchoolDomain(
                     bookId, schoolDomain, PageRequest.of(0, 5));
 
+            log.debug("-> getRelatedBooksForLoan: bookId={} found {} related candidates", bookId, related.size());
+
             for (Object[] row : related) {
                 Book relatedBook = (Book) row[0];
                 int score = ((Number) row[1]).intValue();
                 bookScores.merge(relatedBook.getId(), score, Integer::sum);
+                log.trace("   candidate bookId={} (title='{}') score={}", relatedBook.getId(), relatedBook.getTitle(), score);
             }
         }
 
         if (bookScores.isEmpty()) {
+            log.debug("getRelatedBooksForLoan: no candidates found across any source book");
             return List.of();
         }
 
@@ -261,14 +276,24 @@ public class BookService {
                 .map(Map.Entry::getKey)
                 .toList();
 
+        log.debug("getRelatedBooksForLoan: top {} candidate IDs: {} (scores: {})",
+                limit, sortedIds,
+                sortedIds.stream().map(bookScores::get).toList());
+
         Map<Long, Book> bookMap = bookRepository.findAllById(sortedIds).stream()
                 .collect(Collectors.toMap(Book::getId, b -> b));
 
-        return sortedIds.stream()
+        List<BookDTO> result = sortedIds.stream()
                 .map(bookMap::get)
                 .filter(Objects::nonNull)
                 .map(bookMapper::toDTO)
                 .toList();
+
+        log.debug("getRelatedBooksForLoan: returning {} recommendations: [{}]",
+                result.size(),
+                result.stream().map(b -> b.getId() + ":" + b.getTitle()).toList());
+
+        return result;
     }
 
     public Optional<Book> findExistingByIsbn(String isbn) {
