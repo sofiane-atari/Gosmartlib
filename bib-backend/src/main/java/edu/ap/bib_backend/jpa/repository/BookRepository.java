@@ -101,7 +101,7 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
               AND (:schoolDomain IS NULL OR EXISTS (
                   SELECT 1 FROM BookCopy bc
                   WHERE bc MEMBER OF relatedBook.bookCopies
-                    AND bc.school.domainName = :schoolDomain
+                    AND bc.campus.school.domainName = :schoolDomain
               ))
             GROUP BY relatedBook
             ORDER BY COUNT(sourceGenre) DESC, RAND()
