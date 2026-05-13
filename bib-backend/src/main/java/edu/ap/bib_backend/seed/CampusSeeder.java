@@ -40,7 +40,7 @@ public class CampusSeeder implements CommandLineRunner {
             if (campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId()).isEmpty()) {
                 Campus campus = new Campus();
                 campus.setSchool(school);
-                campus.setName("Default campus");
+                campus.setName(school.getName());
                 campus.setAddress(StringUtils.hasText(defaultAddress) ? defaultAddress.trim() : "");
                 campus.setPostalCode(defaultPostalCode);
                 campus.setContactPhone(StringUtils.hasText(defaultContactPhone) ? defaultContactPhone.trim() : null);

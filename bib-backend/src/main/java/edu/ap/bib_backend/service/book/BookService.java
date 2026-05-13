@@ -20,6 +20,7 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
@@ -47,6 +48,7 @@ public class BookService {
     private final ReviewRepository reviewRepository;
     private final BookLoanRepository bookLoanRepository;
     private final ReadingLevelRepository readingLevelRepository;
+    private final CampusRepository campusRepository;
     private final BookMapper bookMapper;
     private final BookCandidateMapper bookCandidateMapper;
     private final OpenLibraryClient openLibraryClient;
@@ -59,6 +61,7 @@ public class BookService {
             ReviewRepository reviewRepository,
             BookLoanRepository bookLoanRepository,
             ReadingLevelRepository readingLevelRepository,
+            CampusRepository campusRepository,
             BookMapper bookMapper,
             BookCandidateMapper bookCandidateMapper,
             OpenLibraryClient openLibraryClient,
@@ -70,6 +73,7 @@ public class BookService {
         this.reviewRepository = reviewRepository;
         this.bookLoanRepository = bookLoanRepository;
         this.readingLevelRepository = readingLevelRepository;
+        this.campusRepository = campusRepository;
         this.bookMapper = bookMapper;
         this.bookCandidateMapper = bookCandidateMapper;
         this.openLibraryClient = openLibraryClient;
@@ -94,7 +98,7 @@ public class BookService {
 
     @Transactional
     public BookDTO addBook(BookDTO dto, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        Campus campus = resolveCampusForCurrentUserSchool(dto.getCampusId(), authentication);
 
         String isbn = IsbnUtils.normalizeIsbn(dto.getIsbn());
         dto.setIsbn(isbn);
@@ -276,8 +280,8 @@ public class BookService {
     }
 
     @Transactional
-    public BookDTO getBookByISBN(String rawIsbn, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+    public BookDTO getBookByISBN(String rawIsbn, Long campusId, Authentication authentication) {
+        Campus campus = resolveCampusForCurrentUserSchool(campusId, authentication);
         String normalizedIsbn = IsbnUtils.normalizeIsbn(rawIsbn);
 
         if (normalizedIsbn == null || normalizedIsbn.isBlank()) {
@@ -287,6 +291,16 @@ public class BookService {
         return findExistingByIsbnAndCampus(normalizedIsbn, campus.getId())
                 .map(bookMapper::toDTO)
                 .orElseGet(() -> openLibraryClient.fetchBookByISBN(normalizedIsbn));
+    }
+
+    private Campus resolveCampusForCurrentUserSchool(Long campusId, Authentication authentication) {
+        if (campusId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "campusId is verplicht.");
+        }
+
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        return campusRepository.findByIdAndSchoolId(campusId, school.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("campusId", "Campus niet gevonden."));
     }
 
     private Book findBookInCampusOrThrow(Long id, Long campusId) {

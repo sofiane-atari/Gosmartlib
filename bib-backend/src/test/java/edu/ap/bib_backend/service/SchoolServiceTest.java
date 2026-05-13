@@ -178,7 +178,21 @@ class SchoolServiceTest {
                 domainName,
                 name,
                 15,
+                List.of(campusDto()),
                 LocalDateTime.of(2026, 4, 28, 12, 0));
+    }
+
+    private edu.ap.bib_backend.dto.CampusDTO campusDto() {
+        return new edu.ap.bib_backend.dto.CampusDTO(
+                null,
+                null,
+                null,
+                null,
+                "Noorderplaats 2",
+                2000,
+                "03 123 45 67",
+                "info@ap.be"
+        );
     }
 
     private School schoolEntity(

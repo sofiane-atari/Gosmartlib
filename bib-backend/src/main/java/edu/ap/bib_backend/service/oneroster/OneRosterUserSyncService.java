@@ -82,10 +82,10 @@ public class OneRosterUserSyncService {
         }
 
         if (user.getCampus() == null) {
-            Campus defaultCampus = campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId())
+            Campus firstCampus = campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId())
                     .orElse(null);
-            if (defaultCampus != null) {
-                user.setCampus(defaultCampus);
+            if (firstCampus != null) {
+                user.setCampus(firstCampus);
             }
         }
 

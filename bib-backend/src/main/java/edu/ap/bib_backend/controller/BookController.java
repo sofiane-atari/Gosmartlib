@@ -122,9 +122,10 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDTO> getBookByISBN(
             @PathVariable String isbn,
+            @RequestParam Long campusId,
             Authentication authentication
     ) {
-        return ResponseEntity.ok(bookService.getBookByISBN(isbn, authentication));
+        return ResponseEntity.ok(bookService.getBookByISBN(isbn, campusId, authentication));
     }
 
     @GetMapping("/isbn/{isbn}/preview")
@@ -181,9 +182,10 @@ public class BookController {
     @PostMapping("/select")
     public ResponseEntity<BookDTO> selectBook(
             @RequestParam String isbn13,
+            @RequestParam Long campusId,
             Authentication authentication
     ) {
-        BookDTO book = bookService.getBookByISBN(isbn13, authentication);
+        BookDTO book = bookService.getBookByISBN(isbn13, campusId, authentication);
         return ResponseEntity.ok(book);
     }
 

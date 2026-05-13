@@ -323,17 +323,18 @@ public class BookControllerTest {
                 book.setAuthor("Selected Author");
                 book.setIsbn("9789999999999");
 
-                Mockito.when(bs.getBookByISBN(Mockito.eq("9789999999999"), Mockito.nullable(Authentication.class))).thenReturn(book);
+                Mockito.when(bs.getBookByISBN(Mockito.eq("9789999999999"), Mockito.eq(1L), Mockito.nullable(Authentication.class))).thenReturn(book);
 
                 mockMvc.perform(post("/books/select")
-                                .param("isbn13", "9789999999999"))
+                                .param("isbn13", "9789999999999")
+                                .param("campusId", "1"))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").value(9))
                                 .andExpect(jsonPath("$.title").value("Selected Book"))
                                 .andExpect(jsonPath("$.author").value("Selected Author"))
                                 .andExpect(jsonPath("$.isbn").value("9789999999999"));
 
-                Mockito.verify(bs).getBookByISBN(Mockito.eq("9789999999999"), Mockito.nullable(Authentication.class));
+                Mockito.verify(bs).getBookByISBN(Mockito.eq("9789999999999"), Mockito.eq(1L), Mockito.nullable(Authentication.class));
         }
 
         @Test
@@ -599,9 +600,9 @@ public class BookControllerTest {
                 book.setDescription("Beschrijving van het boek");
                 book.setReleaseYear(2022);
 
-                Mockito.when(bs.getBookByISBN(Mockito.eq("9781234567890"), Mockito.nullable(Authentication.class))).thenReturn(book);
+                Mockito.when(bs.getBookByISBN(Mockito.eq("9781234567890"), Mockito.eq(1L), Mockito.nullable(Authentication.class))).thenReturn(book);
 
-                mockMvc.perform(get("/books/isbn/9781234567890"))
+                mockMvc.perform(get("/books/isbn/9781234567890").param("campusId", "1"))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").value(1))
                                 .andExpect(jsonPath("$.title").value("ISBN Boek"))
@@ -612,7 +613,7 @@ public class BookControllerTest {
                                 .andExpect(jsonPath("$.description").value("Beschrijving van het boek"))
                                 .andExpect(jsonPath("$.releaseYear").value(2022));
 
-                Mockito.verify(bs).getBookByISBN(Mockito.eq("9781234567890"), Mockito.nullable(Authentication.class));
+                Mockito.verify(bs).getBookByISBN(Mockito.eq("9781234567890"), Mockito.eq(1L), Mockito.nullable(Authentication.class));
         }
 
         @Test

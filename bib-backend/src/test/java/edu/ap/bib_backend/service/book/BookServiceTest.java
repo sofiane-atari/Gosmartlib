@@ -28,6 +28,7 @@ import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
@@ -72,6 +73,9 @@ class BookServiceTest {
     private BookLoanRepository bookLoanRepository;
 
     @Mock
+    private CampusRepository campusRepository;
+
+    @Mock
     private BookMapper bookMapper1;
 
     @Mock
@@ -101,6 +105,7 @@ class BookServiceTest {
                 reviewRepository,
                 bookLoanRepository,
                 rlr,
+                campusRepository,
                 bookMapper1,
                 bookCandidateMapper,
                 openLibraryClient,
@@ -117,6 +122,7 @@ class BookServiceTest {
         given(currentUserService.getCurrentUserCampus(authentication)).willReturn(campus);
         given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(true);
+        given(campusRepository.findByIdAndSchoolId(1L, 1L)).willReturn(Optional.of(campus));
     }
 
     @Test
@@ -157,6 +163,7 @@ class BookServiceTest {
     @DisplayName("Given valid book without ISBN, When addBook is called, Then save Book and BookCopy")
     void givenValidBookWithoutISBN_whenAddBook_thenSaveBookAndBookCopy() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Nieuwe Boek");
         dto.setAuthor("Auteur Test");
         dto.setPages(300);
@@ -207,6 +214,7 @@ class BookServiceTest {
     @DisplayName("Given existing ISBN, When addBook is called, Then normalize ISBN and reuse Book")
     void givenExistingISBN_whenAddBook_thenNormalizeAndReuseExistingBook() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setIsbn("978-1 234567890");
         dto.setTitle("Bestaand Boek");
         dto.setAuthor("Auteur");
@@ -251,6 +259,7 @@ class BookServiceTest {
         Genre genre = createGenre("Roman", "#8B5CF6", "Literaire fictie");
 
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setPages(123);
@@ -302,6 +311,7 @@ class BookServiceTest {
     @DisplayName("Given unknown genre, When addBook is called, Then throw Exception")
     void givenUnknownGenre_whenAddBook_thenThrowException() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of(
@@ -325,6 +335,7 @@ class BookServiceTest {
     @DisplayName("Given unknown reading level id, when addBook is called, then throw exception")
     void givenUnknownReadingLevelId_whenAddBook_thenThrowException() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -347,6 +358,7 @@ class BookServiceTest {
     @DisplayName("Given valid reading level id, when addBook is called, then set reading level")
     void givenValidReadingLevelId_whenAddBook_thenSetReadingLevel() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -770,7 +782,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given missing ISBN, When getBookByISBN is called, Then throw bad request")
     void givenMissingIsbn_whenGetBookByISBN_thenThrowBadRequest() {
-        assertThatThrownBy(() -> bs.getBookByISBN("   ", authentication))
+        assertThatThrownBy(() -> bs.getBookByISBN("   ", 1L, authentication))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(ex -> {
                     ResponseStatusException rse = (ResponseStatusException) ex;
@@ -803,7 +815,7 @@ class BookServiceTest {
         given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
-        BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
+        BookDTO result = bs.getBookByISBN("978-1234567890", 1L, authentication);
 
         assertThat(result.getId()).isEqualTo(15L);
         assertThat(result.getTitle()).isEqualTo("DB Boek");
@@ -821,7 +833,7 @@ class BookServiceTest {
         given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.empty());
         given(openLibraryClient.fetchBookByISBN("9781234567890")).willReturn(dto);
 
-        BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
+        BookDTO result = bs.getBookByISBN("978-1234567890", 1L, authentication);
 
         assertThat(result.getTitle()).isEqualTo("OpenLibrary Boek");
 

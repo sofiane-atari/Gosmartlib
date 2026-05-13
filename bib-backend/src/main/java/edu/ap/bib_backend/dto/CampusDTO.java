@@ -2,17 +2,14 @@ package edu.ap.bib_backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class CampusDTO {
 
     private Long id;
-    @NotBlank(message = "Campusnaam is verplicht.")
     private String name;
     private Long schoolId;
     private String schoolName;
-    @NotBlank(message = "Adres is verplicht.")
     private String address;
     @NotNull(message = "Postcode is verplicht.")
     @Min(value = 1, message = "Postcode moet groter zijn dan 0.")

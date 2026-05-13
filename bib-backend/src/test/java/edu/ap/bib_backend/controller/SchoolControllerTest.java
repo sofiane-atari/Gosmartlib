@@ -140,6 +140,7 @@ class SchoolControllerTest {
                 domainName,
                 name,
                 15,
+                java.util.List.of(),
                 LocalDateTime.of(2026, 4, 28, 12, 0));
     }
 }
