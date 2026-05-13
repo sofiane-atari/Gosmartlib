@@ -59,7 +59,7 @@ public class LoanGeneralInfoComponent implements MessageComponent {
         sb.append("</tr>");
 
         sb.append("<tr>");
-        sb.append("<td style=\"padding: 6px 12px 6px 0; color: #8a7580;\">Aantal geleende boeken:</td>");
+        sb.append("<td style=\"padding: 6px 12px 6px 0; color: #8a7580;\">Aantal uitgeleende boeken:</td>");
         sb.append("<td style=\"padding: 6px 0; font-weight: 600;\">");
         sb.append(bookCount);
         sb.append("</td>");
