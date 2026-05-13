@@ -23,10 +23,15 @@ public class BookRecommendationComponent implements MessageComponent {
             "width: 100%; height: 100%; display: flex; align-items: center; " +
             "justify-content: center; color: #8a7580; font-size: 16px;";
 
-    private final List<BookDTO> recommendedBooks;
+    private static final String LINK_STYLE =
+            "color: #1a0a10; text-decoration: none; font-weight: 600;";
 
-    public BookRecommendationComponent(List<BookDTO> recommendedBooks) {
+    private final List<BookDTO> recommendedBooks;
+    private final String frontendUrl;
+
+    public BookRecommendationComponent(List<BookDTO> recommendedBooks, String frontendUrl) {
         this.recommendedBooks = recommendedBooks != null ? recommendedBooks : List.of();
+        this.frontendUrl = frontendUrl;
     }
 
     @Override
@@ -66,18 +71,26 @@ public class BookRecommendationComponent implements MessageComponent {
     }
 
     private void appendBookCard(StringBuilder sb, BookDTO book) {
+        String bookUrl = frontendUrl + "/book/" + book.getId();
+
         sb.append("<div style=\"").append(CARD_STYLE).append("\">");
         sb.append("<div style=\"display: flex; align-items: flex-start;\">");
 
+        sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
+          .append("\" style=\"text-decoration: none; display: block;\">");
         sb.append("<div style=\"").append(COVER_STYLE).append("\">");
         appendCoverImage(sb, book);
         sb.append("</div>");
+        sb.append("</a>");
 
         sb.append("<div style=\"flex: 1; min-width: 0;\">");
-        sb.append("<p style=\"margin: 0 0 2px 0; font-weight: 600; font-size: 13px; color: #1a0a10; ")
+        sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
+          .append("\" style=\"").append(LINK_STYLE).append("\">");
+        sb.append("<p style=\"margin: 0 0 2px 0; font-size: 13px; ")
           .append("overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">");
         sb.append(HtmlMessageBuilder.escapeHtml(book.getTitle()));
         sb.append("</p>");
+        sb.append("</a>");
 
         if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
             sb.append("<p style=\"margin: 0 0 2px 0; font-size: 12px; color: #8a7580;\">");

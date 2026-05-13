@@ -136,8 +136,8 @@ public class LoanService {
                 String htmlMessage = new HtmlMessageBuilder(
                         "Bevestiging nieuwe uitlening", frontendUrl)
                         .addComponent(new LoanGeneralInfoComponent(loan, frontendUrl))
-                        .addComponent(new LoanBookListComponent(loan))
-                        .addComponent(new BookRecommendationComponent(recommendations))
+                        .addComponent(new LoanBookListComponent(loan, frontendUrl))
+                        .addComponent(new BookRecommendationComponent(recommendations, frontendUrl))
                         .build();
 
                 smartschoolMessageService.sendMessage(token, "Bevestiging Nieuwe Uitlening", htmlMessage);

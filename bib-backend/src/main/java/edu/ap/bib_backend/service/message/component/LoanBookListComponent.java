@@ -30,10 +30,15 @@ public class LoanBookListComponent implements MessageComponent {
             "font-size: 11px; color: #8a1e41; background-color: #fdf0f5; " +
             "border-radius: 10px;";
 
-    private final Loan loan;
+    private static final String LINK_STYLE =
+            "color: #1a0a10; text-decoration: none; font-weight: 600;";
 
-    public LoanBookListComponent(Loan loan) {
+    private final Loan loan;
+    private final String frontendUrl;
+
+    public LoanBookListComponent(Loan loan, String frontendUrl) {
         this.loan = loan;
+        this.frontendUrl = frontendUrl;
     }
 
     @Override
@@ -68,15 +73,23 @@ public class LoanBookListComponent implements MessageComponent {
 
             sb.append("<div style=\"").append(BOOK_CARD_STYLE).append("\">");
 
+            String bookUrl = frontendUrl + "/book/" + book.getId();
+
+            sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
+              .append("\" style=\"text-decoration: none; display: block;\">");
             sb.append("<div style=\"").append(COVER_WRAPPER_STYLE).append("\">");
             appendCoverImage(sb, book);
             sb.append("</div>");
+            sb.append("</a>");
 
             sb.append("<div style=\"flex: 1; min-width: 0;\">");
-            sb.append("<p style=\"margin: 0 0 3px 0; font-weight: 600; font-size: 14px; color: #1a0a10; ")
+            sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
+              .append("\" style=\"").append(LINK_STYLE).append("\">");
+            sb.append("<p style=\"margin: 0 0 3px 0; font-size: 14px; ")
               .append("overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">");
             sb.append(HtmlMessageBuilder.escapeHtml(book.getTitle()));
             sb.append("</p>");
+            sb.append("</a>");
 
             if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
                 sb.append("<p style=\"margin: 0 0 2px 0; font-size: 13px; color: #8a7580;\">");
