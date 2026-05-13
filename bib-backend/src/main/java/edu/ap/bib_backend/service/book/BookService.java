@@ -16,6 +16,7 @@ import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
@@ -151,8 +152,10 @@ public class BookService {
 
     @Transactional
     public BookDTO getBookById(Long id, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        return bookMapper.toDTO(findBookInCampusOrThrow(id, campus.getId()));
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Book book = findBookInSchoolOrThrow(id, school.getId());
+        validateBookVisibility(book, authentication);
+        return bookMapper.toDTO(book);
     }
 
     public Book getBookById(Long id, boolean returnEntity) {
@@ -178,11 +181,12 @@ public class BookService {
     @Transactional
     public List<BookDTO> getMostReadBooks(int limit, Authentication authentication) {
         Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        Long schoolId = campus.getSchool().getId();
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
-        List<Book> books = bookRepository.findMostReadBookByCampus(
-                campus.getId(),
+        List<Book> books = bookRepository.findMostReadBookBySchool(
+                schoolId,
                 PageRequest.of(0, safeLimit)
         );
 
@@ -195,11 +199,12 @@ public class BookService {
     @Transactional
     public List<BookDTO> getNewestBooks(int limit, Authentication authentication) {
         Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        Long schoolId = campus.getSchool().getId();
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
-        List<Book> books = bookRepository.findNewestBooksByCampus(
-                campus.getId(),
+        List<Book> books = bookRepository.findNewestBooksBySchool(
+                schoolId,
                 PageRequest.of(0, safeLimit)
         );
 
@@ -210,16 +215,16 @@ public class BookService {
     }
 
     public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Book sourceBook = findBookInCampusOrThrow(bookId, campus.getId());
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Book sourceBook = findBookInSchoolOrThrow(bookId, school.getId());
         validateBookVisibility(sourceBook, authentication);
 
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
 
         int safeLimit = Math.max(1, Math.min(limit, 50));
-        List<Object[]> results = bookRepository.findRelatedBooksWithScore(
+        List<Object[]> results = bookRepository.findRelatedBooksWithScoreBySchool(
                 bookId,
-                campus.getId(),
+                school.getId(),
                 PageRequest.of(0, safeLimit)
         );
 
@@ -286,6 +291,11 @@ public class BookService {
 
     private Book findBookInCampusOrThrow(Long id, Long campusId) {
         return bookRepository.findByIdAndCampusId(id, campusId)
+                .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
+    }
+
+    private Book findBookInSchoolOrThrow(Long id, Long schoolId) {
+        return bookRepository.findByIdAndCampusSchoolId(id, schoolId)
                 .orElseThrow(() -> new ResourceNotFoundException("id", "Boek niet gevonden met id: " + id));
     }
 

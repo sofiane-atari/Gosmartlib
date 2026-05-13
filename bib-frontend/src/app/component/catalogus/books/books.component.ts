@@ -3,7 +3,6 @@ import {
   OnInit,
   signal,
   inject,
-  computed,
   effect,
   DestroyRef,
 } from '@angular/core';
@@ -11,7 +10,6 @@ import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
 import { ToastService } from '../../../services/toast/toast.service';
-import { AuthService } from '../../../services/authorization/auth.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -25,7 +23,7 @@ import {
   Star,
   BookPlus,
   Search,
-  SlidersHorizontal,
+  Locate,
 } from 'lucide-angular';
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
 import { PagingComponent } from '../../shared/paging/paging.component';
@@ -54,12 +52,11 @@ export class BooksComponent implements OnInit {
   readonly Book = BookPlus;
   readonly Heart = Heart;
   readonly Search = Search;
-  readonly SlidersHorizontal = SlidersHorizontal;
   readonly Star = Star;
+  readonly Locate = Locate;
 
   private readonly bookService = inject(BookService);
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
   private readonly readingListService = inject(ReadingListService);
   private readonly readingLevelsService = inject(ReadingLevelsService);
   private readonly genreService = inject(GenreService);

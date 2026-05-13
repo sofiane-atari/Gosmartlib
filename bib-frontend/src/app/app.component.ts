@@ -8,7 +8,6 @@ import { AuthService } from './services/authorization/auth.service';
 import { SessionExpiryModalComponent } from './component/shared/session-expired-modal/session-expired-modal.component';
 import { GamificationRewardNotificationComponent } from './component/gamification/components/gamification-reward-notification/gamification-reward-notification.component';
 import { GamificationNotificationStoreService } from './services/gamification/store/gamification-notification-store.service';
-import { CampusSelectorModalComponent } from './shared/campus-selector-modal/campus-selector-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -21,7 +20,6 @@ import { CampusSelectorModalComponent } from './shared/campus-selector-modal/cam
     ToastComponent,
     SessionExpiryModalComponent,
     GamificationRewardNotificationComponent,
-    CampusSelectorModalComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

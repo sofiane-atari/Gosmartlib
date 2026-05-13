@@ -25,6 +25,7 @@ import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
@@ -89,6 +90,8 @@ class BookServiceTest {
 
     private Campus campus;
 
+    private School school;
+
     @BeforeEach
     void setUp() {
         bs = new BookService(
@@ -107,7 +110,12 @@ class BookServiceTest {
         campus = new Campus();
         campus.setId(1L);
 
+        school = new School();
+        school.setId(1L);
+        campus.setSchool(school);
+
         given(currentUserService.getCurrentUserCampus(authentication)).willReturn(campus);
+        given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(true);
     }
 
@@ -402,7 +410,7 @@ class BookServiceTest {
         dto.setTitle("Boek 3");
         dto.setAuthor("Auteur 3");
 
-        given(br.findByIdAndCampusId(3L, 1L)).willReturn(Optional.of(book));
+        given(br.findByIdAndCampusSchoolId(3L, 1L)).willReturn(Optional.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         BookDTO result = bs.getBookById(3L, authentication);
@@ -415,7 +423,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given non-existing book ID, When getBookById is called, Then throw Exception")
     void givenNonExistingBookId_whenGetBookById_thenThrowException() {
-        given(br.findByIdAndCampusId(99L, 1L)).willReturn(Optional.empty());
+        given(br.findByIdAndCampusSchoolId(99L, 1L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> bs.getBookById(99L, authentication))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -481,7 +489,7 @@ class BookServiceTest {
         BookDTO dto = new BookDTO();
         dto.setTitle("Populair Boek");
 
-        given(br.findMostReadBookByCampus(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of(book));
+        given(br.findMostReadBookBySchool(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         List<BookDTO> result = bs.getMostReadBooks(5, authentication);
@@ -493,7 +501,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given no most read books, When getMostReadBooks is called, Then return empty list")
     void givenNoMostReadBooks_whenGetMostReadBooks_thenReturnEmptyList() {
-        given(br.findMostReadBookByCampus(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of());
+        given(br.findMostReadBookBySchool(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of());
 
         List<BookDTO> result = bs.getMostReadBooks(5, authentication);
 
@@ -519,7 +527,7 @@ class BookServiceTest {
         BookDTO dto = new BookDTO();
         dto.setTitle("Nieuw Boek");
 
-        given(br.findNewestBooksByCampus(eq(1L), eq(PageRequest.of(0, 3)))).willReturn(List.of(book));
+        given(br.findNewestBooksBySchool(eq(1L), eq(PageRequest.of(0, 3)))).willReturn(List.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         List<BookDTO> result = bs.getNewestBooks(3, authentication);
@@ -527,7 +535,7 @@ class BookServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("Nieuw Boek");
 
-        then(br).should().findNewestBooksByCampus(eq(1L), eq(PageRequest.of(0, 3)));
+        then(br).should().findNewestBooksBySchool(eq(1L), eq(PageRequest.of(0, 3)));
     }
 
     @Test
@@ -551,8 +559,8 @@ class BookServiceTest {
         List<Object[]> relatedBooks = new ArrayList<>();
         relatedBooks.add(new Object[]{related, 2L});
 
-        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(source));
-        given(br.findRelatedBooksWithScore(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
+        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(source));
+        given(br.findRelatedBooksWithScoreBySchool(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
         given(bookMapper1.toDTO(related)).willReturn(relatedDto);
 
         List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10, authentication);

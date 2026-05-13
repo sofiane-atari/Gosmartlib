@@ -399,6 +399,37 @@
   overflow: hidden;
 }
 
+.book-campus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  max-width: 100%;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff7fb 0%, #fff1f5 100%);
+  border: 1px solid #f3d7df;
+  color: var(--main-color, #8a1e41);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.book-campus__icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+.book-campus__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .book-description {
   min-height: 3.9em;
   font-size: 0.8rem;

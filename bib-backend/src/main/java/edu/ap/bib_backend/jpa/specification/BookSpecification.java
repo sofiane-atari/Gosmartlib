@@ -73,6 +73,11 @@ public static Specification<Book> belongsToCampus(Long campusId) {
                 criteriaBuilder.equal(root.get("campus").get("id"), campusId);
     }
 
+    public static Specification<Book> belongsToSchool(Long schoolId) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("campus").get("school").get("id"), schoolId);
+    }
+
     public static Specification<Book> hasCopyInCampus(Long campusId) {
         return (root, query, criteriaBuilder) -> {
             Join<Book, BookCopy> bookCopyJoin = root.join("bookCopies");
