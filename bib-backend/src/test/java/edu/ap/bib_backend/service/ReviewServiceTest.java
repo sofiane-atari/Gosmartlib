@@ -611,8 +611,6 @@ class ReviewServiceTest {
         school.setId(1L);
         school.setDomainName("test.smartschool.be");
         school.setName("Test School");
-        school.setAddress("Test Address");
-        school.setPostalCode(1000);
         return school;
     }
 

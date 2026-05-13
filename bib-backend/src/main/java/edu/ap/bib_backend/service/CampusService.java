@@ -15,7 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.Normalizer;
 import java.util.List;
 
 @Service
@@ -77,30 +76,15 @@ public class CampusService {
                 .orElseThrow(() -> new ResourceNotFoundException("id", "School niet gevonden."));
 
         String name = normalizeName(dto.getName());
-        String code = dto.getCode() == null || dto.getCode().isBlank()
-                ? slugify(name)
-                : slugify(dto.getCode());
 
         if (campusRepository.existsBySchoolIdAndNameIgnoreCase(schoolId, name)) {
             throw new ResourceAlreadyExistsException("name", name);
         }
 
-        if (campusRepository.existsBySchoolIdAndCodeIgnoreCase(schoolId, code)) {
-            throw new ResourceAlreadyExistsException("code", code);
-        }
-
-        boolean firstCampus = campusRepository.countBySchool(school) == 0;
-        boolean shouldBeDefault = firstCampus || dto.isDefaultCampus();
-
-        if (shouldBeDefault) {
-            unsetDefaultCampusForSchool(schoolId);
-        }
-
         Campus campus = new Campus();
         campus.setSchool(school);
         campus.setName(name);
-        campus.setCode(code);
-        campus.setDefaultCampus(shouldBeDefault);
+        updateCampusDetails(campus, dto);
 
         Campus saved = campusRepository.save(campus);
         return campusMapper.toDto(saved);
@@ -114,9 +98,6 @@ public class CampusService {
         Long schoolId = campus.getSchool().getId();
 
         String name = normalizeName(dto.getName());
-        String code = dto.getCode() == null || dto.getCode().isBlank()
-                ? slugify(name)
-                : slugify(dto.getCode());
 
         campusRepository.findBySchoolId(schoolId).stream()
                 .filter(existing -> !existing.getId().equals(id))
@@ -126,41 +107,10 @@ public class CampusService {
                     throw new ResourceAlreadyExistsException("name", name);
                 });
 
-        campusRepository.findBySchoolId(schoolId).stream()
-                .filter(existing -> !existing.getId().equals(id))
-                .filter(existing -> existing.getCode().equalsIgnoreCase(code))
-                .findFirst()
-                .ifPresent(existing -> {
-                    throw new ResourceAlreadyExistsException("code", code);
-                });
-
-        if (dto.isDefaultCampus()) {
-            unsetDefaultCampusForSchool(schoolId);
-            campus.setDefaultCampus(true);
-        } else {
-            boolean isOnlyDefaultCampus = campus.isDefaultCampus()
-                    && campusRepository.findBySchoolId(schoolId).stream()
-                    .filter(Campus::isDefaultCampus)
-                    .count() == 1;
-
-            if (isOnlyDefaultCampus) {
-                throw new IllegalArgumentException("Elke school moet minstens één default-campus hebben.");
-            }
-
-            campus.setDefaultCampus(false);
-        }
-
         campus.setName(name);
-        campus.setCode(code);
+        updateCampusDetails(campus, dto);
 
         return campusMapper.toDto(campusRepository.save(campus));
-    }
-
-    private void unsetDefaultCampusForSchool(Long schoolId) {
-        campusRepository.findBySchoolId(schoolId).forEach(campus -> {
-            campus.setDefaultCampus(false);
-            campusRepository.save(campus);
-        });
     }
 
     private String normalizeName(String value) {
@@ -171,24 +121,22 @@ public class CampusService {
         return value.trim();
     }
 
-    private String slugify(String value) {
+    private void updateCampusDetails(Campus campus, CampusDTO dto) {
+        campus.setAddress(normalizeAddress(dto.getAddress()));
+        campus.setPostalCode(dto.getPostalCode());
+        campus.setContactPhone(trimOrNull(dto.getContactPhone()));
+        campus.setContactEmail(trimOrNull(dto.getContactEmail()));
+    }
+
+    private String normalizeAddress(String value) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("Campuscode is verplicht.");
+            throw new IllegalArgumentException("Adres is verplicht.");
         }
 
-        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
+        return value.trim();
+    }
 
-        String slug = normalized
-                .toLowerCase()
-                .trim()
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("^-|-$", "");
-
-        if (slug.isBlank()) {
-            throw new IllegalArgumentException("Campuscode is ongeldig.");
-        }
-
-        return slug;
+    private String trimOrNull(String value) {
+        return value == null ? null : value.trim();
     }
 }

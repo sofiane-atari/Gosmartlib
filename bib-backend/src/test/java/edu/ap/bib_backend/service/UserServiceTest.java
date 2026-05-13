@@ -220,8 +220,6 @@ class UserServiceTest {
         school.setId(1L);
         school.setDomainName("aphogeschool.smartschool.be");
         school.setName("AP Hogeschool");
-        school.setAddress("Noorderplaats 2");
-        school.setPostalCode(2000);
         return school;
     }
 

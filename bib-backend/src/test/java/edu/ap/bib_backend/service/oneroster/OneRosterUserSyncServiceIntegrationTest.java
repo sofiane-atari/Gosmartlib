@@ -44,8 +44,6 @@ class OneRosterUserSyncServiceIntegrationTest {
         School school = new School();
         school.setDomainName("int-sync.smartschool.be");
         school.setName("Sync School");
-        school.setAddress("Addr");
-        school.setPostalCode(1000);
         school = schoolRepository.save(school);
 
         OneRosterCredential cred = new OneRosterCredential();

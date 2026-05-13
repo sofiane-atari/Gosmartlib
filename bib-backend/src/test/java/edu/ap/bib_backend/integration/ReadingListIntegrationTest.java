@@ -82,8 +82,6 @@ class ReadingListIntegrationTest {
         School school = new School();
         school.setDomainName("test.smartschool.be");
         school.setName("Test School");
-        school.setAddress("Test Address");
-        school.setPostalCode(1000);
         schoolRepository.save(school);
 
         RoleEntity studentRole = new RoleEntity();

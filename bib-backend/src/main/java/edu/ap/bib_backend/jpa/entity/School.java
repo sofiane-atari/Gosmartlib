@@ -39,18 +39,6 @@ public class School {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String address;
-
-    @Column(nullable = false)
-    private Integer postalCode;
-
-    @Column(name = "contact_phone", length = 50)
-    private String contactPhone;
-
-    @Column(name = "contact_email", length = 255)
-    private String contactEmail;
-
     @Column(name = "default_loan_duration_days", nullable = false)
     private Integer defaultLoanDurationDays = 15;
 

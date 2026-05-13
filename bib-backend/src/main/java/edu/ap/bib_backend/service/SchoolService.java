@@ -34,10 +34,6 @@ public class SchoolService {
 
         school.setDomainName(normalizeDomainName(dto.domainName()));
         school.setName(trimOrNull(dto.name()));
-        school.setAddress(trimOrNull(dto.address()));
-        school.setPostalCode(dto.postalCode());
-        school.setContactPhone(trimOrNull(dto.contactPhone()));
-        school.setContactEmail(trimOrNull(dto.contactEmail()));
         school.setDefaultLoanDurationDays(dto.defaultLoanDurationDays() != null ? dto.defaultLoanDurationDays() : 15);
 
         return toDto(schoolRepository.save(school));
@@ -49,10 +45,6 @@ public class SchoolService {
 
         school.setDomainName(normalizeDomainName(dto.domainName()));
         school.setName(trimOrNull(dto.name()));
-        school.setAddress(trimOrNull(dto.address()));
-        school.setPostalCode(dto.postalCode());
-        school.setContactPhone(trimOrNull(dto.contactPhone()));
-        school.setContactEmail(trimOrNull(dto.contactEmail()));
         if (dto.defaultLoanDurationDays() != null) {
             school.setDefaultLoanDurationDays(dto.defaultLoanDurationDays());
         }
@@ -85,10 +77,6 @@ public class SchoolService {
                 school.getId(),
                 school.getDomainName(),
                 school.getName(),
-                school.getAddress(),
-                school.getPostalCode(),
-                school.getContactPhone(),
-                school.getContactEmail(),
                 school.getDefaultLoanDurationDays(),
                 school.getCreatedAt());
     }

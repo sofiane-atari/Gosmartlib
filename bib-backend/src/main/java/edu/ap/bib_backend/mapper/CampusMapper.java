@@ -18,10 +18,12 @@ public class CampusMapper {
         return new CampusDTO(
                 campus.getId(),
                 campus.getName(),
-                campus.getCode(),
                 schoolId,
                 schoolName,
-                campus.isDefaultCampus()
+                campus.getAddress(),
+                campus.getPostalCode(),
+                campus.getContactPhone(),
+                campus.getContactEmail()
         );
     }
 }

@@ -43,13 +43,13 @@ class UserServiceIntegrationTest {
         School school = new School();
         school.setDomainName("int-school.be");
         school.setName("Int School");
-        school.setAddress("Street 1");
-        school.setPostalCode(1000);
         school = schoolRepository.save(school);
 
         Campus campus = new Campus();
         campus.setSchool(school);
         campus.setName("Integration Test Campus");
+        campus.setAddress("Test Address");
+        campus.setPostalCode(1000);
         campus = campusRepository.save(campus);
 
         // Act

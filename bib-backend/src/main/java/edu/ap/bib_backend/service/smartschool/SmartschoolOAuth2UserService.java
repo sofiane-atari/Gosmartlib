@@ -190,20 +190,18 @@ public class SmartschoolOAuth2UserService
         School school = new School();
         school.setDomainName(domainName);
         school.setName(extractSchoolNameFromDomain(domainName));
-        school.setAddress("");
-        school.setPostalCode(0);
 
         return schoolRepository.save(school);
     }
 
     private Campus ensureDefaultCampus(School school) {
-        return campusRepository.findBySchoolIdAndDefaultCampusTrue(school.getId())
+        return campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId())
                 .orElseGet(() -> {
                     Campus campus = new Campus();
                     campus.setSchool(school);
                     campus.setName("Default campus");
-                    campus.setCode("default-campus");
-                    campus.setDefaultCampus(true);
+                    campus.setAddress("");
+                    campus.setPostalCode(0);
                     return campusRepository.save(campus);
                 });
     }

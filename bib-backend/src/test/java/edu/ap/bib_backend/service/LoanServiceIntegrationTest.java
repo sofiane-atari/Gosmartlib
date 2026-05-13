@@ -59,13 +59,13 @@ class LoanServiceIntegrationTest {
         School school = new School();
         school.setDomainName("loan-school.be");
         school.setName("Loan School");
-        school.setAddress("Addr");
-        school.setPostalCode(2000);
         school = schoolRepository.save(school);
 
         Campus campus = new Campus();
         campus.setName("Test Campus");
         campus.setSchool(school);
+        campus.setAddress("Test Address");
+        campus.setPostalCode(2000);
         campus = campusRepository.save(campus);
 
         User user = new User();

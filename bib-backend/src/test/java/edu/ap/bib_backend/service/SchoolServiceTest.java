@@ -37,9 +37,7 @@ class SchoolServiceTest {
         SchoolDTO input = schoolDto(
                 null,
                 "  MySchool.be  ",
-                "  AP Hogeschool  ",
-                "  Noorderplaats 2  ",
-                2000);
+                "  AP Hogeschool  ");
 
         when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> {
             School school = invocation.getArgument(0);
@@ -52,10 +50,6 @@ class SchoolServiceTest {
         assertEquals(1L, output.id());
         assertEquals("myschool.be", output.domainName());
         assertEquals("AP Hogeschool", output.name());
-        assertEquals("Noorderplaats 2", output.address());
-        assertEquals(2000, output.postalCode());
-        assertEquals("03 123 45 67", output.contactPhone());
-        assertEquals("info@ap.be", output.contactEmail());
 
         verify(schoolRepository).save(any(School.class));
     }
@@ -65,9 +59,7 @@ class SchoolServiceTest {
         School school = schoolEntity(
                 1L,
                 "ap.be",
-                "AP",
-                "Noorderplaats 2",
-                2000);
+                "AP");
 
         when(schoolRepository.findAll()).thenReturn(List.of(school));
 
@@ -86,16 +78,12 @@ class SchoolServiceTest {
         School existingSchool = schoolEntity(
                 schoolId,
                 "ap.be",
-                "AP",
-                "Noorderplaats 2",
-                2000);
+                "AP");
 
         SchoolDTO update = schoolDto(
                 null,
                 "nieuw.be",
-                "AP Campus Noord",
-                "Ellermanstraat 33",
-                2030);
+                "AP Campus Noord");
 
         when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(existingSchool));
         when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -105,10 +93,6 @@ class SchoolServiceTest {
         assertEquals(1L, result.id());
         assertEquals("nieuw.be", result.domainName());
         assertEquals("AP Campus Noord", result.name());
-        assertEquals("Ellermanstraat 33", result.address());
-        assertEquals(2030, result.postalCode());
-        assertEquals("03 123 45 67", result.contactPhone());
-        assertEquals("info@ap.be", result.contactEmail());
 
         verify(schoolRepository).findById(schoolId);
         verify(schoolRepository).save(existingSchool);
@@ -121,9 +105,7 @@ class SchoolServiceTest {
         SchoolDTO update = schoolDto(
                 null,
                 "ap.be",
-                "AP Campus Noord",
-                "Ellermanstraat 33",
-                2030);
+                "AP Campus Noord");
 
         when(schoolRepository.findById(schoolId)).thenReturn(Optional.empty());
 
@@ -190,17 +172,11 @@ class SchoolServiceTest {
     private SchoolDTO schoolDto(
             Long id,
             String domainName,
-            String name,
-            String address,
-            Integer postalCode) {
+            String name) {
         return new SchoolDTO(
                 id,
                 domainName,
                 name,
-                address,
-                postalCode,
-                "03 123 45 67",
-                "info@ap.be",
                 15,
                 LocalDateTime.of(2026, 4, 28, 12, 0));
     }
@@ -208,17 +184,11 @@ class SchoolServiceTest {
     private School schoolEntity(
             Long id,
             String domainName,
-            String name,
-            String address,
-            Integer postalCode) {
+            String name) {
         School school = new School();
         school.setId(id);
         school.setDomainName(domainName);
         school.setName(name);
-        school.setAddress(address);
-        school.setPostalCode(postalCode);
-        school.setContactPhone("03 123 45 67");
-        school.setContactEmail("info@ap.be");
         school.setCreatedAt(LocalDateTime.of(2026, 4, 28, 12, 0));
         return school;
     }

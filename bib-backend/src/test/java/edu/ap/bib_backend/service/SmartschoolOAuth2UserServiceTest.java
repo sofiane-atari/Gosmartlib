@@ -366,8 +366,6 @@ class SmartschoolOAuth2UserServiceTest {
         school.setId(1L);
         school.setDomainName(SCHOOL_DOMAIN_NAME);
         school.setName("AP Hogeschool");
-        school.setAddress("Noorderplaats 2");
-        school.setPostalCode(2000);
         return school;
     }
 
