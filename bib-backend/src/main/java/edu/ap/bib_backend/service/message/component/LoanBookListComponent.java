@@ -71,12 +71,13 @@ public class LoanBookListComponent implements MessageComponent {
             Book book = entry.getKey();
             long count = entry.getValue();
 
-            sb.append("<div style=\"").append(BOOK_CARD_STYLE).append("\">");
-
             String bookUrl = frontendUrl + "/book/" + book.getId();
 
+            sb.append("<div style=\"").append(BOOK_CARD_STYLE)
+              .append("\" class=\"msg-book-card\">");
+
             sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
-              .append("\" style=\"text-decoration: none; display: block;\">");
+              .append("\" class=\"msg-cover-link\" style=\"text-decoration: none; display: block;\">");
             sb.append("<div style=\"").append(COVER_WRAPPER_STYLE).append("\">");
             appendCoverImage(sb, book);
             sb.append("</div>");
@@ -84,7 +85,7 @@ public class LoanBookListComponent implements MessageComponent {
 
             sb.append("<div style=\"flex: 1; min-width: 0;\">");
             sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
-              .append("\" style=\"").append(LINK_STYLE).append("\">");
+              .append("\" class=\"msg-book-link\" style=\"").append(LINK_STYLE).append("\">");
             sb.append("<p style=\"margin: 0 0 3px 0; font-size: 14px; ")
               .append("overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">");
             sb.append(HtmlMessageBuilder.escapeHtml(book.getTitle()));

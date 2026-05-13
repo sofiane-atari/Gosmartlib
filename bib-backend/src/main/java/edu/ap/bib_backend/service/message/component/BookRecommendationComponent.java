@@ -73,11 +73,12 @@ public class BookRecommendationComponent implements MessageComponent {
     private void appendBookCard(StringBuilder sb, BookDTO book) {
         String bookUrl = frontendUrl + "/book/" + book.getId();
 
-        sb.append("<div style=\"").append(CARD_STYLE).append("\">");
+        sb.append("<div style=\"").append(CARD_STYLE)
+          .append("\" class=\"msg-book-card\">");
         sb.append("<div style=\"display: flex; align-items: flex-start;\">");
 
         sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
-          .append("\" style=\"text-decoration: none; display: block;\">");
+          .append("\" class=\"msg-cover-link\" style=\"text-decoration: none; display: block;\">");
         sb.append("<div style=\"").append(COVER_STYLE).append("\">");
         appendCoverImage(sb, book);
         sb.append("</div>");
@@ -85,7 +86,7 @@ public class BookRecommendationComponent implements MessageComponent {
 
         sb.append("<div style=\"flex: 1; min-width: 0;\">");
         sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
-          .append("\" style=\"").append(LINK_STYLE).append("\">");
+          .append("\" class=\"msg-book-link\" style=\"").append(LINK_STYLE).append("\">");
         sb.append("<p style=\"margin: 0 0 2px 0; font-size: 13px; ")
           .append("overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">");
         sb.append(HtmlMessageBuilder.escapeHtml(book.getTitle()));

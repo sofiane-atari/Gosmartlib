@@ -25,11 +25,17 @@ public class HtmlMessageBuilder implements MessageBuilder {
 
     private final String title;
     private final String frontendUrl;
+    private final MessageStyles messageStyles;
     private final List<MessageComponent> components = new ArrayList<>();
 
-    public HtmlMessageBuilder(String title, String frontendUrl) {
+    public HtmlMessageBuilder(String title, String frontendUrl, MessageStyles messageStyles) {
         this.title = title;
         this.frontendUrl = frontendUrl;
+        this.messageStyles = messageStyles;
+    }
+
+    public HtmlMessageBuilder(String title, String frontendUrl) {
+        this(title, frontendUrl, new DefaultMessageStyles());
     }
 
     @Override
@@ -45,6 +51,8 @@ public class HtmlMessageBuilder implements MessageBuilder {
         StringBuilder sb = new StringBuilder();
 
         sb.append("<div style=\"").append(STYLE_CONTAINER).append("\">");
+
+        sb.append(messageStyles.getStyleBlock());
 
         sb.append("<div style=\"").append(STYLE_HEADER).append("\">");
         sb.append("<h2 style=\"margin: 0; font-size: 22px; font-weight: 600;\">")
@@ -69,6 +77,10 @@ public class HtmlMessageBuilder implements MessageBuilder {
 
     public String getFrontendUrl() {
         return frontendUrl;
+    }
+
+    public MessageStyles getMessageStyles() {
+        return messageStyles;
     }
 
     public static String escapeHtml(String text) {

@@ -70,7 +70,7 @@ public class LoanGeneralInfoComponent implements MessageComponent {
 
         sb.append("<div style=\"text-align: center; margin: 0 0 24px 0;\">");
         sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(frontendUrl))
-                .append("/history\" style=\"background-color: #8a1e41; color: white; ")
+                .append("/history\" class=\"msg-btn-primary\" style=\"background-color: #8a1e41; color: white; ")
                 .append("padding: 13px 28px; text-decoration: none; border-radius: 6px; ")
                 .append("font-weight: 600; font-size: 14px; display: inline-block; ")
                 .append("border: none; cursor: pointer;\">");
