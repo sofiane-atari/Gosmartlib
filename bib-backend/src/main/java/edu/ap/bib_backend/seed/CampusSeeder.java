@@ -5,33 +5,41 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(1)
 public class CampusSeeder implements CommandLineRunner {
 
     private final SchoolRepository schoolRepository;
     private final CampusRepository campusRepository;
+    private final BookSeeder bookSeeder;
 
     public CampusSeeder(
             SchoolRepository schoolRepository,
-            CampusRepository campusRepository) {
+            CampusRepository campusRepository,
+            BookSeeder bookSeeder) {
         this.schoolRepository = schoolRepository;
         this.campusRepository = campusRepository;
+        this.bookSeeder = bookSeeder;
     }
 
     @Override
     public void run(String... args) {
         for (School school : schoolRepository.findAll()) {
-            if (campusRepository.findBySchoolIdAndDefaultCampusTrue(school.getId()).isEmpty()) {
-                Campus campus = new Campus();
-                campus.setSchool(school);
-                campus.setName("Default campus");
-                campus.setCode("default-campus");
-                campus.setDefaultCampus(true);
+            Campus campus = campusRepository.findBySchoolIdAndDefaultCampusTrue(school.getId())
+                    .orElseGet(() -> {
+                        Campus newCampus = new Campus();
+                        newCampus.setSchool(school);
+                        newCampus.setName("Default campus");
+                        newCampus.setCode("default-campus");
+                        newCampus.setDefaultCampus(true);
 
-                campusRepository.save(campus);
-            }
+                        return campusRepository.save(newCampus);
+                    });
+
+            bookSeeder.seedBooksForCampusIfEmpty(campus);
         }
     }
 }
