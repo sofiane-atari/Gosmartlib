@@ -101,6 +101,7 @@ public class LoanService {
 
         Loan loan = loanMapper.toEntity(loanDTO);
         loan.setCampus(campus);
+        loan.setLoanDate(today);
         loan.setReturnDate(parsedReturnDate);
 
         loan = loanRepository.save(loan);
