@@ -3,6 +3,8 @@ package edu.ap.bib_backend.dto.loan;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import edu.ap.bib_backend.dto.PageDTO;
 import lombok.Builder;
 
 @Builder
@@ -20,5 +22,5 @@ public record LoanHistoryDTO(
         List<LoanDTO> activeLoans,
 
         @JsonProperty("returnedLoans")
-        List<LoanDTO> returnedLoans
+        PageDTO<LoanDTO> returnedLoans
 ) {}
