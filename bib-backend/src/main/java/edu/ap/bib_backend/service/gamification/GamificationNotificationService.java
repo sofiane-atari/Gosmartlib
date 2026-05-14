@@ -15,8 +15,10 @@ import edu.ap.bib_backend.jpa.enums.gamification.GamificationNotificationType;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.gamification.GamificationNotificationRepository;
 import edu.ap.bib_backend.mapper.gamification.GamificationMapper;
+import edu.ap.bib_backend.service.gamification.sse.GamificationNotificationSseService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
+
 
 @Service
 public class GamificationNotificationService {
@@ -28,39 +30,51 @@ public class GamificationNotificationService {
     private final UserRepository userRepository;
     private final CurrentUserService currentUserService;
     private final GamificationMapper gamificationMapper;
+    private final GamificationNotificationSseService gamificationNotificationSseService;
 
     public GamificationNotificationService(
-            GamificationNotificationRepository notificationRepository,
-            GamificationProfileService gamificationProfileService,
-            UserRepository userRepository,
-            CurrentUserService currentUserService,
-            GamificationMapper gamificationMapper
-    ) {
+        GamificationNotificationRepository notificationRepository,
+        GamificationProfileService gamificationProfileService,
+        UserRepository userRepository,
+        CurrentUserService currentUserService,
+        GamificationMapper gamificationMapper,
+        GamificationNotificationSseService gamificationNotificationSseService
+        ) {
         this.notificationRepository = notificationRepository;
         this.gamificationProfileService = gamificationProfileService;
         this.userRepository = userRepository;
         this.currentUserService = currentUserService;
         this.gamificationMapper = gamificationMapper;
-    }
+        this.gamificationNotificationSseService = gamificationNotificationSseService;
+        }
 
     @Transactional
     public void createBadgeUnlockedNotification(
-            GamificationProfile profile,
-            Badge badge
+        GamificationProfile profile,
+        Badge badge
     ) {
-        GamificationNotification notification = new GamificationNotification(
-                profile,
-                GamificationNotificationType.BADGE_UNLOCKED,
-                BADGE_UNLOCKED_TITLE,
-                "Je hebt de badge '" + badge.getName() + "' ontgrendeld.",
-                badge.getAssetKey(),
-                badge.getThemeColor(),
-                badge.getRarity(),
-                badge.getRewardPoints()
-        );
+    GamificationNotification notification = new GamificationNotification(
+            profile,
+            GamificationNotificationType.BADGE_UNLOCKED,
+            BADGE_UNLOCKED_TITLE,
+            "Je hebt de badge '" + badge.getName() + "' ontgrendeld.",
+            badge.getAssetKey(),
+            badge.getThemeColor(),
+            badge.getRarity(),
+            badge.getRewardPoints()
+    );
 
-        notificationRepository.save(notification);
-    }
+    GamificationNotification savedNotification =
+            notificationRepository.save(notification);
+
+    GamificationNotificationDTO notificationDTO =
+            gamificationMapper.toNotificationDTO(savedNotification);
+
+    gamificationNotificationSseService.sendNotificationToUser(
+            profile.getUser().getId(),
+            notificationDTO
+    );
+}
 
     @Transactional(readOnly = true)
     public List<GamificationNotificationDTO> getUnreadNotifications(
@@ -106,5 +120,10 @@ public class GamificationNotificationService {
                 ));
 
         return gamificationProfileService.getOrCreateProfile(user);
+    }
+
+    @Transactional(readOnly = true)
+    public String getCurrentUserId(Authentication authentication) {
+        return currentUserService.extractCurrentUserId(authentication);
     }
 }

@@ -50,6 +50,7 @@ import { ReviewDraft } from '../../../model/review/review-draft.model';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
+import { GamificationNotificationStoreService } from '../../../services/gamification/store/gamification-notification-store.service';
 
 @Component({
   selector: 'app-book-detail',
@@ -118,6 +119,11 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   protected readonly lessonTipPreview = signal<BookLessonTipPreview | null>(
     null,
   );
+
+  private readonly gamificationNotificationStore = inject(
+    GamificationNotificationStoreService,
+  );
+
   protected readonly isLoadingLessonTips = signal(false);
 
   Availability = Availability;
@@ -379,6 +385,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
         this.updateAverage(bookId);
         this.toastService.show('Review succesvol geplaatst!', 'success');
+        this.gamificationNotificationStore.loadUnreadNotifications();
       },
       error: (err) => {
         console.error('Problem with storing review', err);
