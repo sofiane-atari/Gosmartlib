@@ -24,6 +24,7 @@ import {
   Flag,
   Pencil,
   ChevronDown,
+  MapPin,
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -47,6 +48,8 @@ import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 import { DraftStorageService } from '../../../services/storage/draft-storage.service';
 import { ReviewDraft } from '../../../model/review/review-draft.model';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { Campus } from '../../../model/campus.model';
+import { CampusService } from '../../../services/campus/campus.service';
 
 @Component({
   selector: 'app-book-detail',
@@ -76,6 +79,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   readonly Bookmark = Bookmark;
   readonly Flag = Flag;
   readonly ChevronDown = ChevronDown;
+  readonly MapPin = MapPin;
   icons = [
     { icon: Library, label: 'Bibliotheek' },
     { icon: Star, label: 'Reviews' },
@@ -136,6 +140,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     private sanitizer: DomSanitizer,
     protected authService: AuthService,
     private draftStorage: DraftStorageService,
+    private campusService: CampusService,
   ) {}
 
   public ngOnInit(): void {
@@ -150,6 +155,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
         this.bookService.getBookById(numericBookId).subscribe((book) => {
           this.selectedBook = book;
+          this.loadCampusForBook(book);
 
           if (book.id) {
             this.loadLessonTips(book.id);
@@ -159,10 +165,6 @@ export class BookDetailComponent implements OnDestroy, OnInit {
         this.currentBookId = numericBookId;
         this.restoreReviewDraft(numericBookId);
         this.startReviewDraftAutosave();
-
-        this.bookService.getBookById(numericBookId).subscribe((book) => {
-          this.selectedBook = book;
-        });
 
         this.loadRelatedBooksCarousel(numericBookId);
         this.loadReviews(numericBookId);
@@ -235,6 +237,36 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
   public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
   selectedBook?: Book;
+  selectedCampus?: Campus;
+
+  get campusName(): string {
+    return this.selectedCampus?.name ?? this.selectedBook?.campusName ?? 'Onbekende campus';
+  }
+
+  get campusAddress(): string | null {
+    if (!this.selectedCampus) {
+      return null;
+    }
+
+    return `${this.selectedCampus.address}, ${this.selectedCampus.postalCode}`;
+  }
+
+  private loadCampusForBook(book: Book): void {
+    this.selectedCampus = undefined;
+
+    if (!book.campusId) {
+      return;
+    }
+
+    this.campusService.getById(book.campusId).subscribe({
+      next: (campus) => {
+        this.selectedCampus = campus;
+      },
+      error: (error) => {
+        console.error('Problem with loading campus details', error);
+      },
+    });
+  }
 
   loadReviews(bookId: number) {
     this.reviewService.getReviewsForBook(bookId).subscribe({

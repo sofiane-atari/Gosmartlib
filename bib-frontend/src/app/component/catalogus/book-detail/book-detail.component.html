@@ -205,6 +205,28 @@
           </div>
         </section>
 
+        @if (selectedBook.campusId || selectedBook.campusName) {
+          <section class="summary-section campus-section">
+            <h2 class="section-title">
+              <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
+              Campus
+            </h2>
+
+            <div class="campus-info-card">
+              <div class="campus-info-icon">
+                <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
+              </div>
+
+              <div class="campus-info-content">
+                <p class="campus-info-name">{{ campusName }}</p>
+                @if (campusAddress) {
+                  <p class="campus-info-address">{{ campusAddress }}</p>
+                }
+              </div>
+            </div>
+          </section>
+        }
+
         <section class="summary-section">
           <h2 class="section-title">Samenvatting</h2>
           <p class="summary-text">{{ selectedBook.description }}</p>

@@ -102,6 +102,7 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly schoolForm = this.formBuilder.group({
     domainName: ['', [Validators.required]],
     name: ['', [Validators.required]],
+    hasMultipleCampuses: [false],
     campuses: this.formBuilder.array([this.createCampusFormGroup()]),
   });
 
@@ -115,6 +116,21 @@ export class SchoolDashboardComponent implements OnInit {
 
   public ngOnInit(): void {
     this.loadSchools();
+    this.schoolForm.controls.name.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.isCreateModalOpen() && !this.schoolForm.controls.hasMultipleCampuses.value) {
+          this.syncSingleCampusName();
+        }
+      });
+
+    this.schoolForm.controls.hasMultipleCampuses.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((hasMultipleCampuses) => {
+        if (this.isCreateModalOpen()) {
+          this.applyCampusMode(!!hasMultipleCampuses);
+        }
+      });
   }
 
   protected getBookCount(id: number): number {
@@ -129,11 +145,22 @@ export class SchoolDashboardComponent implements OnInit {
     return this.schoolForm.controls.campuses.controls;
   }
 
+  protected get hasMultipleCampuses(): boolean {
+    return !!this.schoolForm.controls.hasMultipleCampuses.value;
+  }
+
+  protected get isSingleCampusNameMissing(): boolean {
+    return !this.hasMultipleCampuses
+      && this.schoolForm.controls.name.touched
+      && !this.schoolForm.controls.name.value?.trim();
+  }
+
   protected openCreateModal(): void {
     this.isCreateModalOpen.set(true);
     this.schoolForm.reset({
       domainName: '',
       name: '',
+      hasMultipleCampuses: false,
     });
     this.resetCreateCampuses();
   }
@@ -151,10 +178,15 @@ export class SchoolDashboardComponent implements OnInit {
     this.schoolForm.reset({
       domainName: school.domainName,
       name: school.name,
+      hasMultipleCampuses: false,
     });
   }
 
   protected addCampusToCreateForm(): void {
+    if (!this.hasMultipleCampuses) {
+      return;
+    }
+
     this.schoolForm.controls.campuses.push(this.createCampusFormGroup());
   }
 
@@ -173,6 +205,14 @@ export class SchoolDashboardComponent implements OnInit {
     const control = this.schoolForm.controls.campuses.at(index).controls[controlName];
 
     return control.invalid && control.touched;
+  }
+
+  protected getCreateCampusNameError(index: number): string {
+    if (index === 0 && this.isSingleCampusNameMissing) {
+      return 'Vul eerst de schoolnaam in.';
+    }
+
+    return 'Campusnaam is verplicht.';
   }
 
   protected closeEditModal(): void {
@@ -483,9 +523,9 @@ export class SchoolDashboardComponent implements OnInit {
       });
   }
 
-  private createCampusFormGroup() {
+  private createCampusFormGroup(name = '', disableName = false) {
     return this.formBuilder.group({
-      name: ['', [Validators.required]],
+      name: [{ value: name, disabled: disableName }, [Validators.required]],
       address: ['', [Validators.required]],
       postalCode: [null as number | null, [Validators.required, Validators.min(1)]],
       contactPhone: [''],
@@ -495,7 +535,33 @@ export class SchoolDashboardComponent implements OnInit {
 
   private resetCreateCampuses(): void {
     this.schoolForm.controls.campuses.clear();
-    this.schoolForm.controls.campuses.push(this.createCampusFormGroup());
+    this.schoolForm.controls.campuses.push(
+      this.createCampusFormGroup(this.schoolForm.controls.name.value?.trim() ?? '', true),
+    );
+  }
+
+  private applyCampusMode(hasMultipleCampuses: boolean): void {
+    const campuses = this.schoolForm.controls.campuses;
+
+    if (hasMultipleCampuses) {
+      const firstCampus = campuses.at(0);
+      firstCampus.controls.name.enable();
+      firstCampus.controls.name.setValue('');
+      firstCampus.controls.name.markAsUntouched();
+      return;
+    }
+
+    while (campuses.length > 1) {
+      campuses.removeAt(campuses.length - 1);
+    }
+
+    this.syncSingleCampusName();
+    campuses.at(0).controls.name.disable();
+  }
+
+  private syncSingleCampusName(): void {
+    const firstCampus = this.schoolForm.controls.campuses.at(0);
+    firstCampus.controls.name.setValue(this.schoolForm.controls.name.value?.trim() ?? '');
   }
 
   private loadSchoolCounts(schools: School[]): void {

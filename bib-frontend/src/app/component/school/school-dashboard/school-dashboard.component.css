@@ -494,9 +494,14 @@
   border-color: var(--main-color);
 }
 
-.modal-field input[readonly] {
+.modal-field input[readonly],
+.modal-field input:disabled {
   background: #f9f4f6;
   color: #7a5560;
+}
+
+.modal-field input:disabled {
+  cursor: not-allowed;
 }
 
 .field-inline-error {

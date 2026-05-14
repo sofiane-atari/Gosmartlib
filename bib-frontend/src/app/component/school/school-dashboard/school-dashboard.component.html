@@ -221,12 +221,19 @@
 
           <div class="modal-divider"></div>
 
+          <label class="checkbox-row">
+            <input type="checkbox" formControlName="hasMultipleCampuses" />
+            Deze school heeft meerdere campussen
+          </label>
+
           <div class="campus-form-header">
             <h3 class="modal-section-title">Campussen</h3>
 
-            <button type="button" class="campus-add-button" (click)="addCampusToCreateForm()">
-              + Campus
-            </button>
+            @if (hasMultipleCampuses) {
+              <button type="button" class="campus-add-button" (click)="addCampusToCreateForm()">
+                + Campus
+              </button>
+            }
           </div>
 
           <div formArrayName="campuses" class="create-campus-list">
@@ -235,14 +242,16 @@
                 <div class="create-campus-card__header">
                   <strong>Campus {{ campusIndex + 1 }}</strong>
 
-                  <button
-                    type="button"
-                    class="campus-remove-button"
-                    (click)="removeCampusFromCreateForm(campusIndex)"
-                    [disabled]="campusControls.length === 1"
-                  >
-                    Verwijderen
-                  </button>
+                  @if (hasMultipleCampuses) {
+                    <button
+                      type="button"
+                      class="campus-remove-button"
+                      (click)="removeCampusFromCreateForm(campusIndex)"
+                      [disabled]="campusControls.length === 1"
+                    >
+                      Verwijderen
+                    </button>
+                  }
                 </div>
 
                 <div class="modal-field">
@@ -254,8 +263,8 @@
                     placeholder="bijv. Campus Zuid"
                   />
 
-                  @if (isCreateCampusControlInvalid(campusIndex, 'name')) {
-                    <small class="field-inline-error">Campusnaam is verplicht.</small>
+                  @if (isCreateCampusControlInvalid(campusIndex, 'name') || (campusIndex === 0 && isSingleCampusNameMissing)) {
+                    <small class="field-inline-error">{{ getCreateCampusNameError(campusIndex) }}</small>
                   }
                 </div>
 
