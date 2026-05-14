@@ -91,7 +91,7 @@ public class BookControllerTest {
                 Page<BookDTO> page = new PageImpl<>(List.of(book));
 
                 when(bookSearchService.getFilteredBooks(
-                                null,
+                                "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
                                 500,

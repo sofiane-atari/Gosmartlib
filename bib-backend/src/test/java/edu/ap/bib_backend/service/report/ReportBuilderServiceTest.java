@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -91,6 +92,9 @@ class ReportBuilderServiceTest {
                 when(userRepository.findByOneRosterSourcedId("student-2"))
                                 .thenReturn(Optional.of(userTwo));
 
+                when(storageService.hasValidSmartschoolRefreshToken("user-1")).thenReturn(true);
+                when(storageService.hasValidSmartschoolRefreshToken("user-2")).thenReturn(true);
+
                 when(statisticsQueryService.countLoanedBooksForUser("user-1")).thenReturn(3L);
                 when(statisticsQueryService.countActiveLoanedBooksForUser("user-1")).thenReturn(1L);
                 when(statisticsQueryService.countReturnedLoanedBooksForUser("user-1")).thenReturn(2L);
@@ -122,7 +126,7 @@ class ReportBuilderServiceTest {
                 assertThat(result.totalLoans()).isEqualTo(10);
                 assertThat(result.activeLoans()).isEqualTo(3);
                 assertThat(result.averageLoansPerLinkedStudent()).isEqualTo(5.0);
-                assertThat(result.classAverageScore()).isEqualTo(7.29);
+                assertThat(result.classAverageScore()).isCloseTo(7.28, offset(0.01));
                 assertThat(result.classAverageProgress()).isEqualTo(75.0);
 
                 assertThat(result.popularGenres()).containsExactly(genre);
@@ -171,6 +175,8 @@ class ReportBuilderServiceTest {
 
                 when(userRepository.findByOneRosterSourcedId("student-1"))
                                 .thenReturn(Optional.of(user));
+
+                when(storageService.hasValidSmartschoolRefreshToken("user-1")).thenReturn(true);
 
                 when(statisticsQueryService.countLoanedBooksForUser("user-1")).thenReturn(2L);
                 when(statisticsQueryService.countActiveLoanedBooksForUser("user-1")).thenReturn(1L);

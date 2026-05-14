@@ -38,13 +38,14 @@ class BookServiceGoogleBooksTest {
 
         @Test
         void searchBookCandidates_whenMatchingBookExists_returnsCandidate() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Harry Potter and the Philosopher's Stone",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1997-06-26",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")),
-                                "imageLinks", Map.of("thumbnail", "https://example.com/hp.jpg"));
+        Map<String, Object> volumeInfo = Map.of(
+                        "title", "Harry Potter and the Philosopher's Stone",
+                        "authors", List.of("J.K. Rowling"),
+                        "publishedDate", "1997-06-26",
+                        "language", "nl",
+                        "industryIdentifiers", List.of(
+                                        Map.of("type", "ISBN_13", "identifier", "9780747532699")),
+                        "imageLinks", Map.of("thumbnail", "https://example.com/hp.jpg"));
 
                 Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
                 Map<String, Object> response = Map.of("items", List.of(item));
@@ -85,12 +86,13 @@ class BookServiceGoogleBooksTest {
 
         @Test
         void searchBookCandidates_whenTitleDoesNotMatch_thenThrowsNotFound() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Completely Different Title",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1997",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+        Map<String, Object> volumeInfo = Map.of(
+                        "title", "Completely Different Title",
+                        "authors", List.of("J.K. Rowling"),
+                        "publishedDate", "1997",
+                        "language", "nl",
+                        "industryIdentifiers", List.of(
+                                        Map.of("type", "ISBN_13", "identifier", "9780747532699")));
 
                 Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
                 Map<String, Object> response = Map.of("items", List.of(item));
@@ -108,12 +110,13 @@ class BookServiceGoogleBooksTest {
 
         @Test
         void searchBookCandidates_whenAuthorDoesNotMatch_thenThrowsNotFound() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("Andere Auteur"),
-                                "publishedDate", "1997",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+        Map<String, Object> volumeInfo = Map.of(
+                        "title", "Harry Potter",
+                        "authors", List.of("Andere Auteur"),
+                        "publishedDate", "1997",
+                        "language", "nl",
+                        "industryIdentifiers", List.of(
+                                        Map.of("type", "ISBN_13", "identifier", "9780747532699")));
 
                 Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
                 Map<String, Object> response = Map.of("items", List.of(item));
@@ -131,6 +134,7 @@ class BookServiceGoogleBooksTest {
                                 "title", "Harry Potter",
                                 "authors", List.of("J.K. Rowling"),
                                 "publishedDate", "2001",
+                                "language", "nl",
                                 "industryIdentifiers", List.of(
                                                 Map.of("type", "ISBN_13", "identifier", "9780747532699")));
 
@@ -148,26 +152,29 @@ class BookServiceGoogleBooksTest {
 
         @Test
         void searchBookCandidates_whenReleaseYearIsProvided_thenSortsByClosestYear() {
-                Map<String, Object> volumeInfo1 = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "2001",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+        Map<String, Object> volumeInfo1 = Map.of(
+                        "title", "Harry Potter",
+                        "authors", List.of("J.K. Rowling"),
+                        "publishedDate", "2001",
+                        "language", "nl",
+                        "industryIdentifiers", List.of(
+                                        Map.of("type", "ISBN_13", "identifier", "9780747532699")));
 
-                Map<String, Object> volumeInfo2 = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1998",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747538493")));
+        Map<String, Object> volumeInfo2 = Map.of(
+                        "title", "Harry Potter",
+                        "authors", List.of("J.K. Rowling"),
+                        "publishedDate", "1998",
+                        "language", "nl",
+                        "industryIdentifiers", List.of(
+                                        Map.of("type", "ISBN_13", "identifier", "9780747538493")));
 
-                Map<String, Object> volumeInfo3 = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1997",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532743")));
+        Map<String, Object> volumeInfo3 = Map.of(
+                        "title", "Harry Potter",
+                        "authors", List.of("J.K. Rowling"),
+                        "publishedDate", "1997",
+                        "language", "nl",
+                        "industryIdentifiers", List.of(
+                                        Map.of("type", "ISBN_13", "identifier", "9780747532743")));
 
                 Map<String, Object> item1 = Map.of("volumeInfo", volumeInfo1);
                 Map<String, Object> item2 = Map.of("volumeInfo", volumeInfo2);
@@ -191,6 +198,7 @@ class BookServiceGoogleBooksTest {
                                 "title", "Harry Potter",
                                 "authors", List.of("J.K. Rowling"),
                                 "publishedDate", "2001",
+                                "language", "nl",
                                 "industryIdentifiers", List.of(
                                                 Map.of("type", "ISBN_13", "identifier", "9780747532699")));
 
@@ -208,12 +216,13 @@ class BookServiceGoogleBooksTest {
 
         @Test
         void searchBookCandidates_whenNoIsbn13_thenThrowsNotFound() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Harry Potter",
-                                "authors", List.of("J.K. Rowling"),
-                                "publishedDate", "1997",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_10", "identifier", "0747532699")));
+        Map<String, Object> volumeInfo = Map.of(
+                        "title", "Harry Potter",
+                        "authors", List.of("J.K. Rowling"),
+                        "publishedDate", "1997",
+                        "language", "nl",
+                        "industryIdentifiers", List.of(
+                                        Map.of("type", "ISBN_10", "identifier", "0747532699")));
 
                 Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
                 Map<String, Object> response = Map.of("items", List.of(item));
@@ -232,11 +241,12 @@ class BookServiceGoogleBooksTest {
 
         @Test
         void searchBookCandidates_whenAuthorsMissing_thenThrowsNotFound() {
-                Map<String, Object> volumeInfo = Map.of(
-                                "title", "Harry Potter",
-                                "publishedDate", "1997",
-                                "industryIdentifiers", List.of(
-                                                Map.of("type", "ISBN_13", "identifier", "9780747532699")));
+        Map<String, Object> volumeInfo = Map.of(
+                        "title", "Harry Potter",
+                        "publishedDate", "1997",
+                        "language", "nl",
+                        "industryIdentifiers", List.of(
+                                        Map.of("type", "ISBN_13", "identifier", "9780747532699")));
 
                 Map<String, Object> item = Map.of("volumeInfo", volumeInfo);
                 Map<String, Object> response = Map.of("items", List.of(item));
