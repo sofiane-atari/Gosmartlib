@@ -27,6 +27,8 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 
     Optional<Book> findByIsbnAndCampusId(String isbn, Long campusId);
 
+    Optional<Book> findByIsbnAndCampusSchoolId(String isbn, Long schoolId);
+
     Optional<Book> findByIdAndCampusId(Long id, Long campusId);
 
     Optional<Book> findByIdAndCampusSchoolId(Long id, Long schoolId);

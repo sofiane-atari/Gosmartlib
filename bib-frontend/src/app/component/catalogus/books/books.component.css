@@ -408,7 +408,7 @@
   margin-bottom: 10px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #fff7fb 0%, #fff1f5 100%);
+
   border: 1px solid #f3d7df;
   color: var(--main-color, #8a1e41);
   font-size: 0.75rem;

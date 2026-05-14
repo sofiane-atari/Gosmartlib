@@ -280,15 +280,15 @@ public class BookService {
     }
 
     @Transactional
-    public BookDTO getBookByISBN(String rawIsbn, Long campusId, Authentication authentication) {
-        Campus campus = resolveCampusForCurrentUserSchool(campusId, authentication);
+    public BookDTO getBookByISBN(String rawIsbn, Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
         String normalizedIsbn = IsbnUtils.normalizeIsbn(rawIsbn);
 
         if (normalizedIsbn == null || normalizedIsbn.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ongeldig ISBN");
         }
 
-        return findExistingByIsbnAndCampus(normalizedIsbn, campus.getId())
+        return bookRepository.findByIsbnAndCampusSchoolId(normalizedIsbn, school.getId())
                 .map(bookMapper::toDTO)
                 .orElseGet(() -> openLibraryClient.fetchBookByISBN(normalizedIsbn));
     }

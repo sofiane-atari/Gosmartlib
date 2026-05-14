@@ -35,6 +35,27 @@
 
       <hr class="divider">
 
+      <div class="form-group campus-field">
+        <label for="bulkCampus">Campus *</label>
+        <p class="form-hint">Selecteer de campus waar dit boek wordt toegevoegd.</p>
+        <select
+          id="bulkCampus"
+          [ngModel]="campusId"
+          (ngModelChange)="selectCampus($event)"
+          [disabled]="campuses.length <= 1"
+          required
+        >
+          <option [ngValue]="null" disabled>Kies een campus</option>
+          @for (campus of campuses; track campus.id) {
+            <option [ngValue]="campus.id">{{ campus.name }}</option>
+          }
+        </select>
+
+        @if (campuses.length === 0) {
+          <p class="error-message">Geen campussen gevonden voor je school.</p>
+        }
+      </div>
+
       @if (userSettingsService.hoverHelpEnabled$ | async) {
         <div class="upload-help-row">
           <span class="upload-help-label">Bestand uploaden</span>
@@ -77,7 +98,7 @@
           type="button"
           class="btn-submit"
           (click)="uploadBooks()"
-          [disabled]="!selectedFile || validating || !validationCompleted || !validationSucceeded"
+          [disabled]="!selectedFile || validating || !validationCompleted || !validationSucceeded || !campusId"
         >
           <lucide-icon [img]="PlusIcon" class="btn-icon"></lucide-icon>
           Boeken toevoegen

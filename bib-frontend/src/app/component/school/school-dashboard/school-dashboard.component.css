@@ -753,6 +753,59 @@ lucide-icon svg {
   margin: 0 0 14px;
 }
 
+.campus-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.campus-form-header .modal-section-title {
+  margin: 0;
+}
+
+.create-campus-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.create-campus-card {
+  border: 1px solid #f0e4e8;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fffafc;
+}
+
+.create-campus-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.create-campus-card__header strong {
+  color: #1a0a10;
+  font-size: 14px;
+}
+
+.campus-remove-button {
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.campus-remove-button:disabled {
+  color: #c9a8b2;
+  cursor: not-allowed;
+}
+
 .checkbox-row {
   display: flex;
   align-items: center;

@@ -122,10 +122,9 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDTO> getBookByISBN(
             @PathVariable String isbn,
-            @RequestParam Long campusId,
             Authentication authentication
     ) {
-        return ResponseEntity.ok(bookService.getBookByISBN(isbn, campusId, authentication));
+        return ResponseEntity.ok(bookService.getBookByISBN(isbn, authentication));
     }
 
     @GetMapping("/isbn/{isbn}/preview")
@@ -185,7 +184,7 @@ public class BookController {
             @RequestParam Long campusId,
             Authentication authentication
     ) {
-        BookDTO book = bookService.getBookByISBN(isbn13, campusId, authentication);
+        BookDTO book = bookService.getBookByISBN(isbn13, authentication);
         return ResponseEntity.ok(book);
     }
 

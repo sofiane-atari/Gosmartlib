@@ -33,6 +33,7 @@ import { ReadingLevelsService } from '../../../services/readingLevels/reading-le
 import { Genre } from '../../../model/genre/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/genre-picker.component';
+import { CampusService } from '../../../services/campus/campus.service';
 
 @Component({
   selector: 'app-books',
@@ -60,6 +61,7 @@ export class BooksComponent implements OnInit {
   private readonly readingListService = inject(ReadingListService);
   private readonly readingLevelsService = inject(ReadingLevelsService);
   private readonly genreService = inject(GenreService);
+  private readonly campusService = inject(CampusService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -85,6 +87,7 @@ export class BooksComponent implements OnInit {
   protected readonly absoluteMinPages = signal(0);
   protected readonly readingLevels = signal<ReadingLevel[]>([]);
   protected readonly genres = signal<Genre[]>([]);
+  protected readonly hasMultipleCampuses = signal(false);
 
   protected readonly currentPage = signal(0);
   private readonly pageSize = signal(10);
@@ -140,7 +143,19 @@ export class BooksComponent implements OnInit {
     this.loadCatalogBooks();
     this.loadReadingLevels();
     this.loadGenres();
+    this.loadCampuses();
     this.loadSidebarBooks();
+  }
+
+  private loadCampuses(): void {
+    this.campusService.getForCurrentUserSchool().subscribe({
+      next: (campuses) => {
+        this.hasMultipleCampuses.set(campuses.length > 1);
+      },
+      error: () => {
+        this.hasMultipleCampuses.set(false);
+      },
+    });
   }
 
   private loadCatalogBooks(): void {

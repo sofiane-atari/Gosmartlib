@@ -25,24 +25,34 @@
       </button>
     </div>
 
-    @if (!isLoadingGenres && !isLoadingReadingLevels && mode === 'isbn') {
+    @if (!isLoadingGenres && !isLoadingReadingLevels && !isLoadingCampuses && mode === 'isbn') {
       <app-add-book-isbn
         [genres]="genres"
         [readingLevels]="readingLevels"
+        [campuses]="campuses"
+        [campusId]="selectedCampusId"
+        (campusIdChange)="onCampusSelected($event)"
         (bookAdded)="addBook($event)">
       </app-add-book-isbn>
     }
 
-    @if (!isLoadingGenres && !isLoadingReadingLevels && mode === 'manual') {
+    @if (!isLoadingGenres && !isLoadingReadingLevels && !isLoadingCampuses && mode === 'manual') {
       <app-add-book-manual
         [genres]="genres"
         [readingLevels]="readingLevels"
+        [campuses]="campuses"
+        [campusId]="selectedCampusId"
+        (campusIdChange)="onCampusSelected($event)"
         (bookAdded)="addBook($event)">
       </app-add-book-manual>
     }
 
-    @if (mode === 'bulk') {
-      <app-add-book-bulk></app-add-book-bulk>
+    @if (!isLoadingCampuses && mode === 'bulk') {
+      <app-add-book-bulk
+        [campuses]="campuses"
+        [campusId]="selectedCampusId"
+        (campusIdChange)="onCampusSelected($event)">
+      </app-add-book-bulk>
     }
   </main>
 </div>

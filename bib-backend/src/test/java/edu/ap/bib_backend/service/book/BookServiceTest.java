@@ -782,7 +782,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given missing ISBN, When getBookByISBN is called, Then throw bad request")
     void givenMissingIsbn_whenGetBookByISBN_thenThrowBadRequest() {
-        assertThatThrownBy(() -> bs.getBookByISBN("   ", 1L, authentication))
+        assertThatThrownBy(() -> bs.getBookByISBN("   ", authentication))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(ex -> {
                     ResponseStatusException rse = (ResponseStatusException) ex;
@@ -812,10 +812,10 @@ class BookServiceTest {
         dto.setIsbn("9781234567890");
         dto.setTitle("DB Boek");
 
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.of(book));
+        given(br.findByIsbnAndCampusSchoolId("9781234567890", 1L)).willReturn(Optional.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
-        BookDTO result = bs.getBookByISBN("978-1234567890", 1L, authentication);
+        BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
 
         assertThat(result.getId()).isEqualTo(15L);
         assertThat(result.getTitle()).isEqualTo("DB Boek");
@@ -830,10 +830,10 @@ class BookServiceTest {
         dto.setIsbn("9781234567890");
         dto.setTitle("OpenLibrary Boek");
 
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.empty());
+        given(br.findByIsbnAndCampusSchoolId("9781234567890", 1L)).willReturn(Optional.empty());
         given(openLibraryClient.fetchBookByISBN("9781234567890")).willReturn(dto);
 
-        BookDTO result = bs.getBookByISBN("978-1234567890", 1L, authentication);
+        BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
 
         assertThat(result.getTitle()).isEqualTo("OpenLibrary Boek");
 
