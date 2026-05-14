@@ -9,6 +9,9 @@ import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.service.LoanExtensionService;
 import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +36,7 @@ public class LoanController {
     }
 
     @PostMapping
-    public ResponseEntity<LoanDTO> createLoan(
+    public ResponseEntity<List<LoanDTO>> createLoan(
             @Valid @RequestBody LoanDTO loanDTO,
             Authentication authentication) {
         return ResponseEntity.ok(loanService.create(loanDTO, authentication));

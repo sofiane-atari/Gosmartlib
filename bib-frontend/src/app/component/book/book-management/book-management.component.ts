@@ -156,11 +156,6 @@ export class BookManagementComponent implements OnInit {
     return parts.slice(1).join(' ');
   }
 
-  hiddenBookCount(loan: any): number {
-    const count = loan.books?.length ?? 0;
-    return count > 2 ? count - 2 : 0;
-  }
-
   getTimeLeftText(loan: any): string {
     if (loan.returnedDate) {
       return 'Afgesloten';

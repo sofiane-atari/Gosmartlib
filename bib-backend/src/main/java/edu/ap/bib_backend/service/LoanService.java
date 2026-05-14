@@ -79,88 +79,58 @@ public class LoanService {
     }
 
     @Transactional
-    public LoanDTO create(LoanDTO loanDTO, Authentication authentication) {
+    public List<LoanDTO> create(LoanDTO loanDTO, Authentication authentication) {
         Campus campus = currentUserService.getCurrentUserCampus(authentication);
 
-        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
-        LocalDate parsedReturnDate;
-
-        if (loanDTO.returnDate() != null && !loanDTO.returnDate().isBlank()) {
-            try {
-                parsedReturnDate = LocalDate.parse(loanDTO.returnDate());
-            } catch (DateTimeParseException e) {
-                throw new IllegalStateException("Retourdatum heeft een ongeldig formaat.");
-            }
-
-            if (!parsedReturnDate.isAfter(today)) {
-                throw new IllegalStateException("Retourdatum moet minimaal één dag in de toekomst liggen.");
-            }
-        } else {
-            parsedReturnDate = calculateDefaultReturnDate(loanDTO.userId());
+        if (loanDTO.bookIds() == null || loanDTO.bookIds().isEmpty()) {
+            throw new IllegalStateException("Een uitlening moet minstens één boek bevatten.");
         }
 
-        Loan loan = loanMapper.toEntity(loanDTO);
-        loan.setCampus(campus);
-        loan.setLoanDate(today);
-        loan.setReturnDate(parsedReturnDate);
+        User user = userRepository.findById(loanDTO.userId())
+                .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden."));
 
-        loan = loanRepository.save(loan);
+        LocalDate parsedReturnDate = resolveReturnDate(loanDTO);
+        List<Long> requestedBookIds = expandRequestedBookIds(loanDTO);
 
-        for (var bookId : loanDTO.bookIds()) {
+        List<Loan> createdLoanEntities = new java.util.ArrayList<>();
+        List<LoanDTO> createdLoans = new java.util.ArrayList<>();
+
+        for (Long bookId : requestedBookIds) {
             Book book = bookService.getBookById(bookId, true);
-            log.debug("Reserving copies for book '{}' (id={}, isbn={}, author={})",
-                    book.getTitle(), bookId, book.getIsbn(), book.getAuthor());
-            int copiesNeeded = resolveCopiesCount(loanDTO, bookId);
 
-            List<BookCopy> availableCopies = bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(bookId,
-                    campus.getId());
-            if (availableCopies.size() < copiesNeeded) {
-                throw new IllegalStateException("Niet genoeg beschikbare exemplaren voor boek: " + book.getTitle());
-            }
+            log.debug(
+                    "Reserving one copy for book '{}' (id={}, isbn={}, author={})",
+                    book.getTitle(),
+                    bookId,
+                    book.getIsbn(),
+                    book.getAuthor());
 
-            for (int i = 0; i < copiesNeeded; i++) {
-                loan.getCopies().add(availableCopies.get(i));
-            }
+            BookCopy availableCopy = bookCopyRepository
+                    .findAvailableCopiesByBookIdAndCampusId(bookId, campus.getId())
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Geen beschikbaar exemplaar voor boek: " + book.getTitle()));
+
+            Loan singleBookLoan = new Loan();
+            singleBookLoan.setUser(user);
+            singleBookLoan.setCampus(campus);
+            singleBookLoan.setLoanDate(LocalDate.now(ZoneId.of("Europe/Brussels")));
+            singleBookLoan.setReturnDate(parsedReturnDate);
+            singleBookLoan.getCopies().add(availableCopy);
+
+            Loan savedLoan = loanRepository.save(singleBookLoan);
+
+            createdLoanEntities.add(savedLoan);
+            createdLoans.add(loanMapper.toDto(savedLoan));
         }
 
-        try {
-            String token = smartschoolTokenRefreshService.getValidSmartschoolAccessToken(loanDTO.userId());
+        sendLoanConfirmationMessage(
+                loanDTO.userId(),
+                loanDTO.bookIds(),
+                createdLoanEntities);
 
-            if (token != null && !token.isBlank()) {
-                log.info("Sending Smartschool message for new loan with user ID: {}", loanDTO.userId());
-
-                String schoolDomain = userRepository.findById(loanDTO.userId())
-                        .map(u -> u.getSchool().getDomainName())
-                        .orElse(null);
-
-                log.debug("Fetching recommendations for bookIds={}, schoolDomain={}",
-                        loanDTO.bookIds(), schoolDomain);
-                List<BookDTO> recommendations = bookService.getRelatedBooksForLoan(
-                        loanDTO.bookIds(), 4, schoolDomain);
-
-                // Remove recommendations that are already in the loan
-
-                recommendations = recommendations.stream()
-                        .filter(rec -> loanDTO.bookIds().stream()
-                                .noneMatch(loanBookId -> loanBookId.equals(rec.getId())))
-                        .toList();
-
-                log.debug("Recommendations fetched: {} books", recommendations.size());
-
-                String htmlMessage = new HtmlMessageBuilder(
-                        "Bevestiging nieuwe uitlening", frontendUrl)
-                        .addComponent(new LoanGeneralInfoComponent(loan, frontendUrl))
-                        .addComponent(new LoanBookListComponent(loan, frontendUrl))
-                        .addComponent(new BookRecommendationComponent(recommendations, frontendUrl))
-                        .build();
-
-                smartschoolMessageService.sendMessage(token, "Bevestiging Nieuwe Uitlening", htmlMessage);
-            }
-        } catch (Exception e) {
-            log.warn("Could not send confirmation message for loan to user {}: {}", loanDTO.userId(), e.getMessage());
-        }
-
-        return loanMapper.toDto(loan);
+        return createdLoans;
     }
 
     public PageDTO<LoanDTO> findAll(int page, int pageSize, Authentication authentication) {
@@ -368,5 +338,112 @@ public class LoanService {
                 .countByReturnedDateIsNotNull();
 
         return new LoanStatsDTO(activeLoans, overdueLoans, returnedLoans);
+    }
+
+    private LocalDate resolveReturnDate(LoanDTO loanDTO) {
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
+
+        if (loanDTO.returnDate() != null && !loanDTO.returnDate().isBlank()) {
+            try {
+                LocalDate parsedReturnDate = LocalDate.parse(loanDTO.returnDate());
+
+                if (!parsedReturnDate.isAfter(today)) {
+                    throw new IllegalStateException("Retourdatum moet minimaal één dag in de toekomst liggen.");
+                }
+
+                return parsedReturnDate;
+            } catch (DateTimeParseException e) {
+                throw new IllegalStateException("Retourdatum heeft een ongeldig formaat.");
+            }
+        }
+
+        return calculateDefaultReturnDate(loanDTO.userId());
+    }
+
+    private List<Long> expandRequestedBookIds(LoanDTO loanDTO) {
+        List<Long> expandedBookIds = new java.util.ArrayList<>();
+
+        for (Long bookId : loanDTO.bookIds()) {
+            int copiesCount = resolveCopiesCount(loanDTO, bookId);
+
+            for (int i = 0; i < copiesCount; i++) {
+                expandedBookIds.add(bookId);
+            }
+        }
+
+        return expandedBookIds;
+    }
+
+    private void sendLoanConfirmationMessage(
+            String userId,
+            List<Long> requestedBookIds,
+            List<Loan> createdLoans) {
+        if (createdLoans == null || createdLoans.isEmpty()) {
+            return;
+        }
+
+        try {
+            String token = smartschoolTokenRefreshService.getValidSmartschoolAccessToken(userId);
+
+            if (token == null || token.isBlank()) {
+                return;
+            }
+
+            log.info(
+                    "Sending Smartschool message for {} new loans with user ID: {}",
+                    createdLoans.size(),
+                    userId);
+
+            String schoolDomain = userRepository.findById(userId)
+                    .map(user -> user.getSchool().getDomainName())
+                    .orElse(null);
+
+            log.debug(
+                    "Fetching recommendations for bookIds={}, schoolDomain={}",
+                    requestedBookIds,
+                    schoolDomain);
+
+            List<BookDTO> recommendations = bookService.getRelatedBooksForLoan(
+                    requestedBookIds,
+                    4,
+                    schoolDomain);
+
+            recommendations = recommendations.stream()
+                    .filter(recommendation -> requestedBookIds.stream()
+                            .noneMatch(loanBookId -> loanBookId.equals(recommendation.getId())))
+                    .toList();
+
+            log.debug("Recommendations fetched: {} books", recommendations.size());
+
+            String htmlMessage = buildCombinedLoanMessage(createdLoans, recommendations);
+
+            smartschoolMessageService.sendMessage(
+                    token,
+                    "Bevestiging Nieuwe Uitlening",
+                    htmlMessage);
+        } catch (Exception e) {
+            log.warn(
+                    "Could not send confirmation message for loans to user {}: {}",
+                    userId,
+                    e.getMessage());
+        }
+    }
+
+    private String buildCombinedLoanMessage(List<Loan> loans, List<BookDTO> recommendations) {
+        HtmlMessageBuilder builder = new HtmlMessageBuilder(
+                loans.size() == 1
+                        ? "Bevestiging nieuwe uitlening"
+                        : "Bevestiging nieuwe uitleningen",
+                frontendUrl);
+
+        for (Loan loan : loans) {
+            builder
+                    .addComponent(new LoanGeneralInfoComponent(loan, frontendUrl))
+                    .addComponent(new LoanBookListComponent(loan, frontendUrl));
+        }
+
+        builder.addComponent(new BookRecommendationComponent(recommendations, frontendUrl));
+
+        return builder.build();
     }
 }

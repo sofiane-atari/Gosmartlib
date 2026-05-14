@@ -13,8 +13,8 @@ export class LoansService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl + '/loans';
 
-  public createLoan(loan: Loan): Observable<Loan> {
-    return this.http.post<Loan>(`${this.apiUrl}`, loan);
+  public createLoans(loan: Loan): Observable<Loan[]> {
+    return this.http.post<Loan[]>(`${this.apiUrl}`, loan);
   }
 
   public getLoans(
