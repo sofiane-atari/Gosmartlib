@@ -430,20 +430,31 @@ public class LoanService {
     }
 
     private String buildCombinedLoanMessage(List<Loan> loans, List<BookDTO> recommendations) {
-        HtmlMessageBuilder builder = new HtmlMessageBuilder(
-                loans.size() == 1
-                        ? "Bevestiging nieuwe uitlening"
-                        : "Bevestiging nieuwe uitleningen",
-                frontendUrl);
+        Loan combinedLoan = createCombinedMessageLoan(loans);
+
+        return new HtmlMessageBuilder(
+                loans.size() == 1 ? "Bevestiging nieuwe uitlening" : "Bevestiging nieuwe uitleningen",
+                frontendUrl)
+                .addComponent(new LoanGeneralInfoComponent(combinedLoan, frontendUrl))
+                .addComponent(new LoanBookListComponent(combinedLoan, frontendUrl))
+                .addComponent(new BookRecommendationComponent(recommendations, frontendUrl))
+                .build();
+    }
+
+    private Loan createCombinedMessageLoan(List<Loan> loans) {
+        Loan firstLoan = loans.get(0);
+
+        Loan combinedLoan = new Loan();
+        combinedLoan.setUser(firstLoan.getUser());
+        combinedLoan.setCampus(firstLoan.getCampus());
+        combinedLoan.setLoanDate(firstLoan.getLoanDate());
+        combinedLoan.setReturnDate(firstLoan.getReturnDate());
+        combinedLoan.setReturnedDate(firstLoan.getReturnedDate());
 
         for (Loan loan : loans) {
-            builder
-                    .addComponent(new LoanGeneralInfoComponent(loan, frontendUrl))
-                    .addComponent(new LoanBookListComponent(loan, frontendUrl));
+            combinedLoan.getCopies().addAll(loan.getCopies());
         }
 
-        builder.addComponent(new BookRecommendationComponent(recommendations, frontendUrl));
-
-        return builder.build();
+        return combinedLoan;
     }
 }
