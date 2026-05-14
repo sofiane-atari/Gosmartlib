@@ -289,12 +289,13 @@ class GoogleBooksClientTest {
                         String isbn13,
                         String imageUrl) {
 
-                Map<String, Object> volumeInfo = new HashMap<>();
-                volumeInfo.put("title", title);
-                volumeInfo.put("authors", authors);
-                volumeInfo.put("publishedDate", publishedDate);
-                volumeInfo.put("industryIdentifiers", List.of(
-                                Map.of("type", "ISBN_13", "identifier", isbn13)));
+        Map<String, Object> volumeInfo = new HashMap<>();
+        volumeInfo.put("title", title);
+        volumeInfo.put("authors", authors);
+        volumeInfo.put("publishedDate", publishedDate);
+        volumeInfo.put("language", "nl");
+        volumeInfo.put("industryIdentifiers", List.of(
+                        Map.of("type", "ISBN_13", "identifier", isbn13)));
 
                 if (imageUrl != null) {
                         volumeInfo.put("imageLinks", Map.of("thumbnail", imageUrl));

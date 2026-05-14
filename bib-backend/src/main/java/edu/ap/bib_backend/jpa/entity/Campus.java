@@ -6,8 +6,7 @@ import jakarta.persistence.*;
 @Table(
         name = "campuses",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_campus_school_name", columnNames = {"school_id", "name"}),
-                @UniqueConstraint(name = "uk_campus_school_code", columnNames = {"school_id", "code"})
+                @UniqueConstraint(name = "uk_campus_school_name", columnNames = {"school_id", "name"})
         }
 )
 public class Campus {
@@ -19,11 +18,17 @@ public class Campus {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String code;
+    @Column
+    private String address;
 
-    @Column(nullable = false)
-    private boolean defaultCampus = false;
+    @Column
+    private Integer postalCode;
+
+    @Column(name = "contact_phone", length = 50)
+    private String contactPhone;
+
+    @Column(name = "contact_email", length = 255)
+    private String contactEmail;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "school_id", nullable = false)
@@ -37,15 +42,21 @@ public class Campus {
 
     public void setName(String name) { this.name = name; }
 
-    public String getCode() { return code; }
+    public String getAddress() { return address; }
 
-    public void setCode(String code) { this.code = code; }
+    public void setAddress(String address) { this.address = address; }
 
-    public boolean isDefaultCampus() { return defaultCampus; }
+    public Integer getPostalCode() { return postalCode; }
 
-    public void setDefaultCampus(boolean defaultCampus) {
-        this.defaultCampus = defaultCampus;
-    }
+    public void setPostalCode(Integer postalCode) { this.postalCode = postalCode; }
+
+    public String getContactPhone() { return contactPhone; }
+
+    public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+
+    public String getContactEmail() { return contactEmail; }
+
+    public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
 
     public School getSchool() { return school; }
 

@@ -30,6 +30,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 
 import java.time.LocalDateTime;
@@ -67,6 +68,9 @@ class ReviewServiceTest {
 
     @Mock
     private Authentication authentication;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @InjectMocks
     private ReviewService reviewService;
@@ -611,8 +615,6 @@ class ReviewServiceTest {
         school.setId(1L);
         school.setDomainName("test.smartschool.be");
         school.setName("Test School");
-        school.setAddress("Test Address");
-        school.setPostalCode(1000);
         return school;
     }
 

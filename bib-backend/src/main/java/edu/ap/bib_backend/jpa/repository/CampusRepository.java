@@ -13,9 +13,7 @@ public interface CampusRepository extends JpaRepository<Campus, Long> {
 
     Optional<Campus> findByIdAndSchoolId(Long id, Long schoolId);
 
-    Optional<Campus> findBySchoolIdAndDefaultCampusTrue(Long schoolId);
-
-    boolean existsBySchoolIdAndCodeIgnoreCase(Long schoolId, String code);
+    Optional<Campus> findFirstBySchoolIdOrderByIdAsc(Long schoolId);
 
     boolean existsBySchoolIdAndNameIgnoreCase(Long schoolId, String name);
 

@@ -23,10 +23,12 @@ import { ToastService } from '../toast/toast.service';
 import { BookCandidate } from '../../model/book/book-candidate.model';
 import { LessonTipBookSummary } from '../../model/lesson-tip/lesson-tip.model';
 import { Book } from '../../model/book/book.model';
+import { AuthService } from '../authorization/auth.service';
 
 @Injectable()
 export class LessonTipBookSelectionService {
   private readonly bookService = inject(BookService);
+  private readonly authService = inject(AuthService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 

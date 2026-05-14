@@ -7,7 +7,6 @@ import {
   Plus,
   Trash2,
   Pencil,
-  MapPin,
   Users,
   BookOpen,
   Landmark,
@@ -15,7 +14,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, of, switchMap } from 'rxjs';
+import { forkJoin } from 'rxjs';
 
 import { CreateSchoolRequest, School } from '../../../model/school.model';
 import { Campus, CreateCampusRequest } from '../../../model/campus.model';
@@ -51,7 +50,6 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly Plus = Plus;
   protected readonly Trash2 = Trash2;
   protected readonly Pencil = Pencil;
-  protected readonly MapPin = MapPin;
   protected readonly Users = Users;
   protected readonly BookOpen = BookOpen;
   protected readonly Landmark = Landmark;
@@ -104,22 +102,35 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly schoolForm = this.formBuilder.group({
     domainName: ['', [Validators.required]],
     name: ['', [Validators.required]],
-    address: ['', [Validators.required]],
-    postalCode: [null as number | null, [Validators.required, Validators.min(1)]],
-    contactPhone: [''],
-    contactEmail: ['', [Validators.email]],
-    campusName: ['Default campus', [Validators.required]],
-    campusCode: ['default-campus', [Validators.required]],
+    hasMultipleCampuses: [false],
+    campuses: this.formBuilder.array([this.createCampusFormGroup()]),
   });
 
   protected readonly campusForm = this.formBuilder.group({
     name: ['', [Validators.required]],
-    code: ['', [Validators.required]],
-    defaultCampus: [false],
+    address: ['', [Validators.required]],
+    postalCode: [null as number | null, [Validators.required, Validators.min(1)]],
+    contactPhone: [''],
+    contactEmail: ['', [Validators.email]],
   });
 
   public ngOnInit(): void {
     this.loadSchools();
+    this.schoolForm.controls.name.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.isCreateModalOpen() && !this.schoolForm.controls.hasMultipleCampuses.value) {
+          this.syncSingleCampusName();
+        }
+      });
+
+    this.schoolForm.controls.hasMultipleCampuses.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((hasMultipleCampuses) => {
+        if (this.isCreateModalOpen()) {
+          this.applyCampusMode(!!hasMultipleCampuses);
+        }
+      });
   }
 
   protected getBookCount(id: number): number {
@@ -130,18 +141,28 @@ export class SchoolDashboardComponent implements OnInit {
     return this.campusesBySchoolId()[schoolId] ?? [];
   }
 
+  protected get campusControls() {
+    return this.schoolForm.controls.campuses.controls;
+  }
+
+  protected get hasMultipleCampuses(): boolean {
+    return !!this.schoolForm.controls.hasMultipleCampuses.value;
+  }
+
+  protected get isSingleCampusNameMissing(): boolean {
+    return !this.hasMultipleCampuses
+      && this.schoolForm.controls.name.touched
+      && !this.schoolForm.controls.name.value?.trim();
+  }
+
   protected openCreateModal(): void {
     this.isCreateModalOpen.set(true);
     this.schoolForm.reset({
       domainName: '',
       name: '',
-      address: '',
-      postalCode: null,
-      contactPhone: '',
-      contactEmail: '',
-      campusName: 'Default campus',
-      campusCode: 'default-campus',
+      hasMultipleCampuses: false,
     });
+    this.resetCreateCampuses();
   }
 
   protected closeCreateModal(): void {
@@ -157,13 +178,41 @@ export class SchoolDashboardComponent implements OnInit {
     this.schoolForm.reset({
       domainName: school.domainName,
       name: school.name,
-      address: school.address,
-      postalCode: school.postalCode,
-      contactPhone: school.contactPhone ?? '',
-      contactEmail: school.contactEmail ?? '',
-      campusName: 'Default campus',
-      campusCode: 'default-campus',
+      hasMultipleCampuses: false,
     });
+  }
+
+  protected addCampusToCreateForm(): void {
+    if (!this.hasMultipleCampuses) {
+      return;
+    }
+
+    this.schoolForm.controls.campuses.push(this.createCampusFormGroup());
+  }
+
+  protected removeCampusFromCreateForm(index: number): void {
+    if (this.schoolForm.controls.campuses.length <= 1) {
+      return;
+    }
+
+    this.schoolForm.controls.campuses.removeAt(index);
+  }
+
+  protected isCreateCampusControlInvalid(
+    index: number,
+    controlName: 'name' | 'address' | 'postalCode' | 'contactEmail',
+  ): boolean {
+    const control = this.schoolForm.controls.campuses.at(index).controls[controlName];
+
+    return control.invalid && control.touched;
+  }
+
+  protected getCreateCampusNameError(index: number): string {
+    if (index === 0 && this.isSingleCampusNameMissing) {
+      return 'Vul eerst de schoolnaam in.';
+    }
+
+    return 'Campusnaam is verplicht.';
   }
 
   protected closeEditModal(): void {
@@ -179,8 +228,10 @@ export class SchoolDashboardComponent implements OnInit {
 
     this.campusForm.reset({
       name: '',
-      code: '',
-      defaultCampus: false,
+      address: '',
+      postalCode: null,
+      contactPhone: '',
+      contactEmail: '',
     });
   }
 
@@ -198,8 +249,10 @@ export class SchoolDashboardComponent implements OnInit {
 
     this.campusForm.reset({
       name: campus.name,
-      code: campus.code,
-      defaultCampus: campus.defaultCampus,
+      address: campus.address,
+      postalCode: campus.postalCode,
+      contactPhone: campus.contactPhone ?? '',
+      contactEmail: campus.contactEmail ?? '',
     });
   }
 
@@ -224,29 +277,19 @@ export class SchoolDashboardComponent implements OnInit {
     const school: CreateSchoolRequest = {
       domainName: formValue.domainName?.trim() ?? '',
       name: formValue.name?.trim() ?? '',
-      address: formValue.address?.trim() ?? '',
-      postalCode: Number(formValue.postalCode),
-      contactPhone: formValue.contactPhone?.trim() ?? '',
-      contactEmail: formValue.contactEmail?.trim() ?? '',
+      campuses: (formValue.campuses ?? []).map((campus) => ({
+        name: campus.name?.trim() ?? '',
+        address: campus.address?.trim() ?? '',
+        postalCode: Number(campus.postalCode),
+        contactPhone: campus.contactPhone?.trim() ?? '',
+        contactEmail: campus.contactEmail?.trim() ?? '',
+      })),
       createdAt: undefined,
-    };
-
-    const campus: CreateCampusRequest = {
-      name: formValue.campusName?.trim() ?? 'Default campus',
-      code: formValue.campusCode?.trim() ?? 'default-campus',
-      defaultCampus: true,
     };
 
     this.schoolService
       .create(school)
-      .pipe(
-        switchMap((createdSchool) =>
-          this.campusService.create(createdSchool.id, campus).pipe(
-            switchMap(() => of(createdSchool)),
-          ),
-        ),
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (createdSchool) => {
           this.schools.set(
@@ -258,7 +301,7 @@ export class SchoolDashboardComponent implements OnInit {
           this.isSubmitting.set(false);
           this.closeCreateModal();
           this.loadSchools();
-          this.showSuccess('School en default-campus succesvol toegevoegd.');
+          this.showSuccess('School en campus succesvol toegevoegd.');
         },
         error: (error: HttpErrorResponse) => {
           this.isSubmitting.set(false);
@@ -275,10 +318,7 @@ export class SchoolDashboardComponent implements OnInit {
     }
 
     if (this.schoolForm.controls.domainName.invalid
-      || this.schoolForm.controls.name.invalid
-      || this.schoolForm.controls.address.invalid
-      || this.schoolForm.controls.postalCode.invalid
-      || this.schoolForm.controls.contactEmail.invalid) {
+      || this.schoolForm.controls.name.invalid) {
       this.schoolForm.markAllAsTouched();
       return;
     }
@@ -288,10 +328,7 @@ export class SchoolDashboardComponent implements OnInit {
     const updatedSchool: CreateSchoolRequest = {
       domainName: formValue.domainName?.trim() ?? '',
       name: formValue.name?.trim() ?? '',
-      address: formValue.address?.trim() ?? '',
-      postalCode: Number(formValue.postalCode),
-      contactPhone: formValue.contactPhone?.trim() ?? '',
-      contactEmail: formValue.contactEmail?.trim() ?? '',
+      campuses: schoolToUpdate.campuses ?? [],
       createdAt: schoolToUpdate.createdAt,
     };
 
@@ -338,8 +375,10 @@ export class SchoolDashboardComponent implements OnInit {
 
     const campus: CreateCampusRequest = {
       name: formValue.name?.trim() ?? '',
-      code: formValue.code?.trim() ?? '',
-      defaultCampus: !!formValue.defaultCampus,
+      address: formValue.address?.trim() ?? '',
+      postalCode: Number(formValue.postalCode),
+      contactPhone: formValue.contactPhone?.trim() ?? '',
+      contactEmail: formValue.contactEmail?.trim() ?? '',
     };
 
     this.isCampusSubmitting.set(true);
@@ -378,8 +417,10 @@ export class SchoolDashboardComponent implements OnInit {
 
     const campus: CreateCampusRequest = {
       name: formValue.name?.trim() ?? '',
-      code: formValue.code?.trim() ?? '',
-      defaultCampus: !!formValue.defaultCampus,
+      address: formValue.address?.trim() ?? '',
+      postalCode: Number(formValue.postalCode),
+      contactPhone: formValue.contactPhone?.trim() ?? '',
+      contactEmail: formValue.contactEmail?.trim() ?? '',
     };
 
     this.isCampusSubmitting.set(true);
@@ -482,6 +523,47 @@ export class SchoolDashboardComponent implements OnInit {
       });
   }
 
+  private createCampusFormGroup(name = '', disableName = false) {
+    return this.formBuilder.group({
+      name: [{ value: name, disabled: disableName }, [Validators.required]],
+      address: ['', [Validators.required]],
+      postalCode: [null as number | null, [Validators.required, Validators.min(1)]],
+      contactPhone: [''],
+      contactEmail: ['', [Validators.email]],
+    });
+  }
+
+  private resetCreateCampuses(): void {
+    this.schoolForm.controls.campuses.clear();
+    this.schoolForm.controls.campuses.push(
+      this.createCampusFormGroup(this.schoolForm.controls.name.value?.trim() ?? '', true),
+    );
+  }
+
+  private applyCampusMode(hasMultipleCampuses: boolean): void {
+    const campuses = this.schoolForm.controls.campuses;
+
+    if (hasMultipleCampuses) {
+      const firstCampus = campuses.at(0);
+      firstCampus.controls.name.enable();
+      firstCampus.controls.name.setValue('');
+      firstCampus.controls.name.markAsUntouched();
+      return;
+    }
+
+    while (campuses.length > 1) {
+      campuses.removeAt(campuses.length - 1);
+    }
+
+    this.syncSingleCampusName();
+    campuses.at(0).controls.name.disable();
+  }
+
+  private syncSingleCampusName(): void {
+    const firstCampus = this.schoolForm.controls.campuses.at(0);
+    firstCampus.controls.name.setValue(this.schoolForm.controls.name.value?.trim() ?? '');
+  }
+
   private loadSchoolCounts(schools: School[]): void {
     schools.forEach((school) => {
       this.schoolService
@@ -516,8 +598,7 @@ export class SchoolDashboardComponent implements OnInit {
 
           schools.forEach((school, index) => {
             nextValue[school.id] = campusLists[index].sort((a, b) =>
-              Number(b.defaultCampus) - Number(a.defaultCampus)
-              || a.name.localeCompare(b.name),
+              a.name.localeCompare(b.name),
             );
           });
 
@@ -535,8 +616,7 @@ export class SchoolDashboardComponent implements OnInit {
           this.campusesBySchoolId.update((current) => ({
             ...current,
             [schoolId]: campuses.sort((a, b) =>
-              Number(b.defaultCampus) - Number(a.defaultCampus)
-              || a.name.localeCompare(b.name),
+              a.name.localeCompare(b.name),
             ),
           }));
         },

@@ -3,6 +3,7 @@ package edu.ap.bib_backend.service.oneroster;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -36,6 +37,9 @@ class OneRosterUserSyncServiceTest {
     private RoleService roleService;
     @Mock
     private GroupService groupService;
+
+    @Mock
+    private CampusRepository campusRepository;
 
     @InjectMocks
     private OneRosterUserSyncService syncService;

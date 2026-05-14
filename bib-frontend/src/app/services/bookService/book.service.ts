@@ -113,11 +113,13 @@ export class BookService {
     return this.http.get<Book[]>(`${this.apiUrl}/newest`, { params });
   }
 
-  uploadBooks(file: File): Observable<any> {
+  uploadBooks(file: File, campusId: number): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post(`${this.apiUrl}/upload`, formData);
+    return this.http.post(`${this.apiUrl}/upload`, formData, {
+      params: { campusId },
+    });
   }
 
   validateBooksStream(tempFileId: string): EventSource {
@@ -158,10 +160,11 @@ export class BookService {
     });
   }
 
-  selectBook(isbn13: string): Observable<Book> {
+  selectBook(isbn13: string, campusId: number): Observable<Book> {
     return this.http.post<Book>(`${this.apiUrl}/select`, null, {
       params: {
         isbn13,
+        campusId,
       },
     });
   }

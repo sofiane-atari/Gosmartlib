@@ -2,15 +2,16 @@ package edu.ap.bib_backend.service.book;
 
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
 
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.apache.poi.ss.usermodel.Row;
@@ -35,8 +36,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class BookBulkServiceTest {
@@ -46,16 +46,21 @@ class BookBulkServiceTest {
     private BookBulkService service;
     private GenreRepository gr;
     private ReadingLevelRepository rlr;
-    private UserRepository ur;
+    private CampusRepository campusRepository;
+    private CurrentUserService currentUserService;
     private Authentication authentication;
     private School school;
+    private Campus campus;
 
     @BeforeEach
     void setUp() throws IOException {
         br = mock(BookRepository.class);
         bcr = mock(BookCopyRepository.class);
-        ur = mock(UserRepository.class);
-        service = new BookBulkService(br, bcr, gr, rlr, (CurrentUserService) ur);
+        gr = mock(GenreRepository.class);
+        rlr = mock(ReadingLevelRepository.class);
+        campusRepository = mock(CampusRepository.class);
+        currentUserService = mock(CurrentUserService.class);
+        service = new BookBulkService(br, bcr, gr, rlr, campusRepository, currentUserService);
 
         authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("user-1");
@@ -64,10 +69,12 @@ class BookBulkServiceTest {
         school.setId(1L);
         school.setDomainName("testschool.be");
 
-        User user = new User();
-        user.setId("user-1");
-        user.setSchool(school);
-        when(ur.findById("user-1")).thenReturn(Optional.of(user));
+        campus = new Campus();
+        campus.setId(1L);
+        campus.setSchool(school);
+
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
+        when(campusRepository.findByIdAndSchoolId(1L, 1L)).thenReturn(Optional.of(campus));
 
         Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
         if (!Files.exists(tempDir)) {
@@ -87,7 +94,7 @@ class BookBulkServiceTest {
         String tempFileId = service.storeTempFile(file);
 
         assertNotNull(tempFileId);
-        assertTrue(tempFileId.endsWith(".xlsm"));
+        assertTrue(tempFileId.endsWith(".xlsx"));
 
         File storedFile = service.getTempFile(tempFileId);
         assertTrue(storedFile.exists());
@@ -121,14 +128,14 @@ class BookBulkServiceTest {
         Book existingBook = new Book();
         existingBook.setIsbn("9781234567890");
 
-        when(br.findByIsbn("9781234567890")).thenReturn(existingBook);
+        when(br.findByIsbnAndCampusId("9781234567890", 1L)).thenReturn(Optional.of(existingBook));
 
-        service.importBooks(authentication, file);
+        service.importBooks(authentication, file, 1L);
 
         verify(br, never()).save(any(Book.class));
         ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);
         verify(bcr, times(1)).save(captor.capture());
-        assertEquals(school, captor.getValue().getCampus());
+        assertEquals(campus, captor.getValue().getCampus());
     }
 
     @Test
@@ -173,7 +180,7 @@ class BookBulkServiceTest {
                     out.toByteArray());
 
             // Act
-            service.importBooks(authentication, file);
+            service.importBooks(authentication, file, 1L);
 
             // Assert: Er mag helemaal niks worden opgeslagen
             verify(br, never()).save(any(Book.class));
@@ -190,11 +197,11 @@ class BookBulkServiceTest {
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 createValidWorkbookBytes());
 
-        when(br.findByIsbn(anyString())).thenThrow(new IllegalArgumentException("Database disconnect"));
+        when(br.findByIsbnAndCampusId(anyString(), any())).thenThrow(new IllegalArgumentException("Database disconnect"));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> service.importBooks(authentication, file));
-        assertTrue(exception.getMessage().contains("gefailed om boeken te importeren"));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> service.importBooks(authentication, file, 1L));
+        assertTrue(exception.getMessage().contains("Gefailed om boeken te importeren"));
     }
 
     @Test
@@ -208,8 +215,8 @@ class BookBulkServiceTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> service.importBooks(authentication, corruptFile));
-        assertTrue(exception.getMessage().contains("gefailed om boeken te importeren"));
+                () -> service.importBooks(authentication, corruptFile, 1L));
+        assertTrue(exception.getMessage().contains("Gefailed om boeken te importeren"));
     }
 
     private byte[] createValidWorkbookBytes() throws IOException {

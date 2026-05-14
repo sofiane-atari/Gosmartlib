@@ -31,6 +31,9 @@ public class BookDTO {
 
     private ReadingLevelDTO readingLevel;
 
+    private Long campusId;
+    private String campusName;
+
     public BookDTO() {
     }
 

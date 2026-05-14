@@ -5,9 +5,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,18 +31,26 @@ public class SmartschoolMessageService {
     }
 
     public void sendMessage(String accessToken, String title, String body) {
-        try {
-            org.springframework.web.util.UriComponentsBuilder builder = org.springframework.web.util.UriComponentsBuilder.fromHttpUrl(smartschoolBaseUrl + "/Api/V1/sendmsg")
-                    .queryParam("access_token", accessToken)
-                    .queryParam("messageTitle", title)
-                    .queryParam("messageBody", body);
+        log.debug("sendMessage: title='{}', body length={} chars, body preview (first 200)='{}'",
+                title, body != null ? body.length() : 0, body != null ? body.substring(0, Math.min(200, body.length())) : "null");
 
-            log.debug("Sending Smartschool message with title: {}", title);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            MultiValueMap<String, String> formParams = new LinkedMultiValueMap<>();
+            formParams.add("access_token", accessToken);
+            formParams.add("messageTitle", title);
+            formParams.add("messageBody", body);
+
+            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formParams, headers);
+
+            log.debug("Sending POST to Smartschool API, body size={} chars", body != null ? body.length() : 0);
 
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    builder.build().toUri(),
-                    HttpMethod.GET,
-                    null,
+                    smartschoolBaseUrl + "/Api/V1/sendmsg",
+                    HttpMethod.POST,
+                    requestEntity,
                     new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {});
 
             log.info("Smartschool API raw response: {}", response.getBody());

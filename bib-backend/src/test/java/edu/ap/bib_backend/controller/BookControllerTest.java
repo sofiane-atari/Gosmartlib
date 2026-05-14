@@ -91,7 +91,7 @@ public class BookControllerTest {
                 Page<BookDTO> page = new PageImpl<>(List.of(book));
 
                 when(bookSearchService.getFilteredBooks(
-                                null,
+                                "Harry",
                                 BookAvailabilityFilter.ALL,
                                 100,
                                 500,
@@ -326,7 +326,8 @@ public class BookControllerTest {
                 Mockito.when(bs.getBookByISBN(Mockito.eq("9789999999999"), Mockito.nullable(Authentication.class))).thenReturn(book);
 
                 mockMvc.perform(post("/books/select")
-                                .param("isbn13", "9789999999999"))
+                                .param("isbn13", "9789999999999")
+                                .param("campusId", "1"))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").value(9))
                                 .andExpect(jsonPath("$.title").value("Selected Book"))

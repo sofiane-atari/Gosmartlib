@@ -4,11 +4,14 @@ import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
@@ -50,6 +53,9 @@ class LoanServiceIntegrationTest {
     @Autowired
     private CampusRepository campusRepository;
 
+    @Autowired
+    private RoleEntityRepository roleEntityRepository;
+
     @MockitoBean
     private CurrentUserService currentUserService;
 
@@ -59,17 +65,22 @@ class LoanServiceIntegrationTest {
         School school = new School();
         school.setDomainName("loan-school.be");
         school.setName("Loan School");
-        school.setAddress("Addr");
-        school.setPostalCode(2000);
         school = schoolRepository.save(school);
 
         Campus campus = new Campus();
         campus.setName("Test Campus");
         campus.setSchool(school);
+        campus.setAddress("Test Address");
+        campus.setPostalCode(2000);
         campus = campusRepository.save(campus);
+
+        RoleEntity role = new RoleEntity();
+        role.setRole(Role.STUDENT);
+        roleEntityRepository.save(role);
 
         User user = new User();
         user.setId("loan-user-1");
+        user.setRole(role);
         user.setSchool(school);
         user.setCampus(campus);
         userRepository.save(user);
@@ -77,6 +88,7 @@ class LoanServiceIntegrationTest {
         Book book = new Book();
         book.setTitle("Loanable Book");
         book.setIsbn("1234567890");
+        book.setCampus(campus);
         book = bookRepository.save(book);
 
         BookCopy copy = new BookCopy();

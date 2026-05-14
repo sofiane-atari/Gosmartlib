@@ -11,6 +11,7 @@ import {
   FormBuilder,
   FormControl,
   FormGroup,
+  FormsModule,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
@@ -30,6 +31,7 @@ import { Book } from '../../../../model/book/book.model';
 import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
+import { Campus } from '../../../../model/campus.model';
 import {
   Info,
   LucideAngularModule,
@@ -58,7 +60,7 @@ type BookFormGroup = FormGroup<{
 @Component({
   selector: 'app-add-book-manual',
   standalone: true,
-  imports: [ReactiveFormsModule, LucideAngularModule, ButtonHoverHelpComponent],
+  imports: [ReactiveFormsModule, FormsModule, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './add-book-manual.component.html',
   styleUrl: './add-book-manual.component.css',
 })
@@ -72,6 +74,9 @@ export class AddBookManualComponent
   readonly PencilIcon = Pencil;
   private readonly draftKey = 'add-book-manual';
   @Input() readingLevels: ReadingLevel[] = [];
+  @Input() campuses: Campus[] = [];
+  @Input() campusId: number | null = null;
+  @Output() campusIdChange = new EventEmitter<number | null>();
   @Output() bookAdded = new EventEmitter<Book>();
 
   selectedBookId: number | null = null;
@@ -264,8 +269,19 @@ export class AddBookManualComponent
     this.form.markAsPristine();
     this.form.markAsUntouched();
   }
+
+  selectCampus(campusId: number | null): void {
+    this.campusId = campusId;
+    this.campusIdChange.emit(campusId);
+  }
+
   save(): void {
     this.form.markAllAsTouched();
+
+    if (!this.campusId) {
+      this.ts.show('Selecteer eerst een campus.', 'error');
+      return;
+    }
 
     if (this.form.invalid) {
       this.ts.show('Vul alle verplichte velden correct in.', 'error');
@@ -296,6 +312,7 @@ export class AddBookManualComponent
       genres: this.selectedGenres,
       readingLevel: formValue.readingLevel ?? undefined,
       didactic: formValue.didactic,
+      campusId: this.campusId,
     };
     this.saveDraft();
     this.bookAdded.emit(book);

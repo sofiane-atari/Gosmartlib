@@ -68,7 +68,6 @@ public class BookCopySeeder implements CommandLineRunner {
 
         bookCopy.setBook(book);
         bookCopy.setCampus(book.getCampus());
-        bookCopy.setSchool(book.getCampus().getSchool());
 
         return bookCopy;
     }

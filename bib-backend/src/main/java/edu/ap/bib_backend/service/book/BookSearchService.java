@@ -52,6 +52,7 @@ public class BookSearchService {
             Authentication authentication
     ) {
         Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        Long schoolId = campus.getSchool().getId();
 
         String normalizedSearchTerm = normalizeSearchTerm(searchTerm);
         validatePageRange(minPages, maxPages);
@@ -59,13 +60,14 @@ public class BookSearchService {
         int validatedPage = Math.max(page, 0);
         int validatedSize = Math.min(Math.max(size, MIN_PAGE_SIZE), MAX_PAGE_SIZE);
 
-Sort sort = mapSort(sortBy);
+        Sort sort = mapSort(sortBy);
         Pageable pageable = PageRequest.of(validatedPage, validatedSize, sort);
 
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
 
+        // School-brede boeken in plaats van campus-specifieke
         Specification<Book> specification = Specification
-                .where(BookSpecification.belongsToCampus(campus.getId()))
+                .where(BookSpecification.belongsToSchool(schoolId))
                 .and(BookSpecification.withFilters(
                         normalizedSearchTerm,
                         minPages,

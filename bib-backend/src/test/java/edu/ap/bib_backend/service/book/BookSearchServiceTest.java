@@ -25,6 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
@@ -74,6 +75,12 @@ class BookSearchServiceTest {
 
         lenient().when(currentUserService.canSeeDidacticBooks(authentication))
                 .thenReturn(true);
+
+        Campus campus = new Campus();
+        campus.setId(1L);
+        campus.setSchool(school);
+        lenient().when(currentUserService.getCurrentUserCampus(authentication))
+                .thenReturn(campus);
 
         lenient().when(bookMapper.toDTO(any(Book.class)))
                 .thenAnswer(invocation -> {

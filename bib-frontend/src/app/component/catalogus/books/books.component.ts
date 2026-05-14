@@ -3,7 +3,6 @@ import {
   OnInit,
   signal,
   inject,
-  computed,
   effect,
   DestroyRef,
 } from '@angular/core';
@@ -11,7 +10,6 @@ import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
 import { ToastService } from '../../../services/toast/toast.service';
-import { AuthService } from '../../../services/authorization/auth.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -25,7 +23,7 @@ import {
   Star,
   BookPlus,
   Search,
-  SlidersHorizontal,
+  Locate,
 } from 'lucide-angular';
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
 import { PagingComponent } from '../../shared/paging/paging.component';
@@ -35,6 +33,7 @@ import { ReadingLevelsService } from '../../../services/readingLevels/reading-le
 import { Genre } from '../../../model/genre/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/genre-picker.component';
+import { CampusService } from '../../../services/campus/campus.service';
 
 @Component({
   selector: 'app-books',
@@ -54,15 +53,15 @@ export class BooksComponent implements OnInit {
   readonly Book = BookPlus;
   readonly Heart = Heart;
   readonly Search = Search;
-  readonly SlidersHorizontal = SlidersHorizontal;
   readonly Star = Star;
+  readonly Locate = Locate;
 
   private readonly bookService = inject(BookService);
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
   private readonly readingListService = inject(ReadingListService);
   private readonly readingLevelsService = inject(ReadingLevelsService);
   private readonly genreService = inject(GenreService);
+  private readonly campusService = inject(CampusService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -88,6 +87,7 @@ export class BooksComponent implements OnInit {
   protected readonly absoluteMinPages = signal(0);
   protected readonly readingLevels = signal<ReadingLevel[]>([]);
   protected readonly genres = signal<Genre[]>([]);
+  protected readonly hasMultipleCampuses = signal(false);
 
   protected readonly currentPage = signal(0);
   private readonly pageSize = signal(10);
@@ -143,7 +143,19 @@ export class BooksComponent implements OnInit {
     this.loadCatalogBooks();
     this.loadReadingLevels();
     this.loadGenres();
+    this.loadCampuses();
     this.loadSidebarBooks();
+  }
+
+  private loadCampuses(): void {
+    this.campusService.getForCurrentUserSchool().subscribe({
+      next: (campuses) => {
+        this.hasMultipleCampuses.set(campuses.length > 1);
+      },
+      error: () => {
+        this.hasMultipleCampuses.set(false);
+      },
+    });
   }
 
   private loadCatalogBooks(): void {

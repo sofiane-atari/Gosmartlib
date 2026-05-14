@@ -1,7 +1,9 @@
 package edu.ap.bib_backend.service.oneroster;
 
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -35,6 +37,9 @@ class OneRosterUserSyncServiceIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CampusRepository campusRepository;
+
     @MockitoBean
     private OneRosterClient oneRosterClient;
 
@@ -44,9 +49,12 @@ class OneRosterUserSyncServiceIntegrationTest {
         School school = new School();
         school.setDomainName("int-sync.smartschool.be");
         school.setName("Sync School");
-        school.setAddress("Addr");
-        school.setPostalCode(1000);
         school = schoolRepository.save(school);
+
+        Campus campus = new Campus();
+        campus.setName("Default Campus");
+        campus.setSchool(school);
+        campusRepository.save(campus);
 
         OneRosterCredential cred = new OneRosterCredential();
         cred.setSchool(school);

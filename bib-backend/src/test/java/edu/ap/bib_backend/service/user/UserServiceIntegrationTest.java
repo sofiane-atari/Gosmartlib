@@ -5,6 +5,7 @@ import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.enums.Role;
@@ -33,23 +34,27 @@ class UserServiceIntegrationTest {
     @Autowired
     private CampusRepository campusRepository;
 
+    @Autowired
+    private RoleEntityRepository roleEntityRepository;
+
     @Test
     void Given_UserData_When_CreateUser_Then_UserIsPersisted() {
         // Arrange
         String userId = "int-user-1";
         RoleEntity role = new RoleEntity();
         role.setRole(Role.STUDENT);
-        
+        roleEntityRepository.save(role);
+
         School school = new School();
         school.setDomainName("int-school.be");
         school.setName("Int School");
-        school.setAddress("Street 1");
-        school.setPostalCode(1000);
         school = schoolRepository.save(school);
 
         Campus campus = new Campus();
         campus.setSchool(school);
         campus.setName("Integration Test Campus");
+        campus.setAddress("Test Address");
+        campus.setPostalCode(1000);
         campus = campusRepository.save(campus);
 
         // Act

@@ -59,7 +59,7 @@ class SecurityConfigTest {
 
     @Test
     void givenNoAuthentication_whenGetAuthMeEndpoint_thenReturnRedirectToOAuthLogin() throws Exception {
-        mockMvc.perform(get("/auth/me"))
+        mockMvc.perform(get("/test/probe"))
                 .andExpect(status().is3xxRedirection());
     }
 

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 class SecurityConfigTestController {
 
-    @GetMapping("/auth/me")
+    @GetMapping("/test/probe")
     public String authMe() {
         return "ok";
     }

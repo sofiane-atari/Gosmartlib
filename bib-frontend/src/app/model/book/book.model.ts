@@ -16,4 +16,6 @@ export interface Book {
   didactic: boolean;
   genres?: Genre[];
   readingLevel?: ReadingLevel;
+  campusId?: number;
+  campusName?: string;
 }

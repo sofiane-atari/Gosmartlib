@@ -2,6 +2,8 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.UserReviewAccessUpdateDto;
+import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.user.UserService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.service.TokenStorageService;
@@ -39,6 +41,12 @@ class UserControllerTest {
 
     @MockitoBean
     private TokenStorageService tokenStorageService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
 
     @Test
     void Given_NoOptions_When_GetUsers_Then_ReturnsOk() throws Exception {

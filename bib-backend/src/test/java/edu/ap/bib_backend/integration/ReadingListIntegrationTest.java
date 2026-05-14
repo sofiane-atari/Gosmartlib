@@ -1,11 +1,16 @@
 package edu.ap.bib_backend.integration;
 
+import edu.ap.bib_backend.BibBackendApplication;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
+import edu.ap.bib_backend.jpa.repository.OneRosterTokenRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
@@ -15,14 +20,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
@@ -40,10 +39,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = BibBackendApplication.class)
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
-@Import(ReadingListIntegrationTest.DisableSecurityConfigTestController.class)
 class ReadingListIntegrationTest {
 
     private static final String USER_ID = "user-int-1";
@@ -51,6 +49,8 @@ class ReadingListIntegrationTest {
     private static final String CLASS_CODE = "2ITSOF1";
     private static final String YEAR_CODE = "2";
     private static final String SCHOOL_CODE = "https://aphogeschool.smartschool.be";
+
+    private Campus campus;
 
     @Autowired
     private MockMvc mockMvc;
@@ -68,7 +68,16 @@ class ReadingListIntegrationTest {
     private RoleEntityRepository roleEntityRepository;
 
     @Autowired
+    private CampusRepository campusRepository;
+
+    @Autowired
     private SchoolRepository schoolRepository;
+
+    @Autowired
+    private OneRosterCredentialRepository oneRosterCredentialRepository;
+
+    @Autowired
+    private OneRosterTokenRepository oneRosterTokenRepository;
 
     @BeforeEach
     void setUp() {
@@ -76,30 +85,37 @@ class ReadingListIntegrationTest {
         readingListRepository.deleteAll();
         userRepository.deleteAll();
         roleEntityRepository.deleteAll();
+        oneRosterTokenRepository.deleteAll();
+        oneRosterCredentialRepository.deleteAll();
         schoolRepository.deleteAll();
 
         // Create test school
         School school = new School();
         school.setDomainName("test.smartschool.be");
         school.setName("Test School");
-        school.setAddress("Test Address");
-        school.setPostalCode(1000);
         schoolRepository.save(school);
 
         RoleEntity studentRole = new RoleEntity();
         studentRole.setRole(Role.STUDENT);
         roleEntityRepository.save(studentRole);
 
+        campus = new Campus();
+        campus.setName("Test Campus");
+        campus.setSchool(school);
+        campus = campusRepository.save(campus);
+
         User user = new User();
         user.setId(USER_ID);
         user.setRole(studentRole);
         user.setSchool(school);
+        user.setCampus(campus);
         userRepository.save(user);
 
         User otherUser = new User();
         otherUser.setId(OTHER_USER_ID);
         otherUser.setRole(studentRole);
         otherUser.setSchool(school);
+        otherUser.setCampus(campus);
         userRepository.save(otherUser);
 
         setSecurityContext();
@@ -173,6 +189,7 @@ class ReadingListIntegrationTest {
         list.setUser(userRepository.findById(ownerId).orElseThrow());
         list.setTargetType(targetType);
         list.setTargetValue(targetValue);
+        list.setCampus(campus);
         readingListRepository.save(list);
     }
 
@@ -185,25 +202,5 @@ class ReadingListIntegrationTest {
         details.put("schoolCode", SCHOOL_CODE);
         authentication.setDetails(details);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
-    @TestConfiguration
-    static class DisableSecurityConfigTestController {
-        @Bean
-        static BeanDefinitionRegistryPostProcessor removeSecurityConfigTestController() {
-            return new BeanDefinitionRegistryPostProcessor() {
-                @Override
-                public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
-                    if (registry.containsBeanDefinition("securityConfigTestController")) {
-                        registry.removeBeanDefinition("securityConfigTestController");
-                    }
-                }
-
-                @Override
-                public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-                    // No-op.
-                }
-            };
-        }
     }
 }

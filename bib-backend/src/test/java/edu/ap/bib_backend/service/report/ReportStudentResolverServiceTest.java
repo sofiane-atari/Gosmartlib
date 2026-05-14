@@ -330,6 +330,6 @@ class ReportStudentResolverServiceTest {
                 "smartschool-token",
                 "class-1");
 
-        assertThat(result).containsExactly(firstVersion);
+        assertThat(result).containsExactly(secondVersion);
     }
 }

@@ -217,6 +217,8 @@
 
       </div>
 
+
+
         <div class="form-group full-width genre-section">
           <label>Genres (optioneel)</label>
 
@@ -279,6 +281,27 @@
           </div>
         }
       </div>
+      <div class="form-group campus-field">
+        <label for="manualCampus">Campus *</label>
+        <p class="form-hint">Selecteer de campus waar dit boek wordt toegevoegd.</p>
+        <select
+          id="manualCampus"
+          [ngModel]="campusId"
+          (ngModelChange)="selectCampus($event)"
+          [ngModelOptions]="{ standalone: true }"
+          [disabled]="campuses.length <= 1"
+          required
+        >
+          <option [ngValue]="null" disabled>Kies een campus</option>
+          @for (campus of campuses; track campus.id) {
+            <option [ngValue]="campus.id">{{ campus.name }}</option>
+          }
+        </select>
+
+        @if (campuses.length === 0) {
+          <p class="error-message">Geen campussen gevonden voor je school.</p>
+        }
+      </div>
     </div>
 
     <div class="form-actions">
@@ -304,7 +327,7 @@
         <button
           type="submit"
           class="btn-submit"
-          [disabled]="form.invalid"
+          [disabled]="form.invalid || !campusId"
         >
           <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>
           {{ isCandidateLoaded ? "Exemplaar toevoegen" : "Boek toevoegen" }}
