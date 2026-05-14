@@ -40,10 +40,10 @@ public class School {
     private String name;
 
     @Column(nullable = false)
-    private String address;
+    private String address = "";
 
     @Column(nullable = false)
-    private Integer postalCode;
+    private Integer postalCode = 0;
 
     @Column(name = "contact_phone", length = 50)
     private String contactPhone;

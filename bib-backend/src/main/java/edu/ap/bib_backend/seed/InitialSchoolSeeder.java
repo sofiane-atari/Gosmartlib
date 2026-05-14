@@ -24,10 +24,6 @@ public class InitialSchoolSeeder {
             SchoolRepository schoolRepository,
             @Value("${school.seed.domain:}") String schoolDomain,
             @Value("${school.seed.name:}") String schoolName,
-            @Value("${school.seed.address:}") String schoolAddress,
-            @Value("${school.seed.postal-code:}") Integer schoolPostalCode,
-            @Value("${school.seed.contact-phone:}") String schoolContactPhone,
-            @Value("${school.seed.contact-email:}") String schoolContactEmail,
             @Value("${school.seed.oneroster-client-id:}") String clientId,
             @Value("${school.seed.oneroster-client-secret:}") String clientSecret) {
         return args -> {
@@ -41,11 +37,7 @@ public class InitialSchoolSeeder {
                     .orElseGet(() -> createSchool(
                             schoolRepository,
                             normalizedDomain,
-                            schoolName,
-                            schoolAddress,
-                            schoolPostalCode,
-                            schoolContactPhone,
-                            schoolContactEmail
+                            schoolName
                     ));
 
             if (!StringUtils.hasText(clientId) || !StringUtils.hasText(clientSecret)) {
@@ -67,30 +59,17 @@ public class InitialSchoolSeeder {
     private School createSchool(
             SchoolRepository schoolRepository,
             String domain,
-            String name,
-            String address,
-            Integer postalCode,
-            String contactPhone,
-            String contactEmail
+            String name
     ) {
-        if (!StringUtils.hasText(name) || !StringUtils.hasText(address) || postalCode == null) {
+        if (!StringUtils.hasText(name)) {
             throw new IllegalStateException(
                     "School niet gevonden voor domain: " + domain +
-                            ". Voor automatisch aanmaken zijn school.seed.name, " +
-                            "school.seed.address en school.seed.postal-code verplicht.");
+                            ". Voor automatisch aanmaken is school.seed.name verplicht.");
         }
 
         School school = new School();
         school.setDomainName(domain);
         school.setName(name.trim());
-        school.setAddress(address.trim());
-        school.setPostalCode(postalCode);
-        if (StringUtils.hasText(contactPhone)) {
-            school.setContactPhone(contactPhone.trim());
-        }
-        if (StringUtils.hasText(contactEmail)) {
-            school.setContactEmail(contactEmail.trim());
-        }
 
         School savedSchool = schoolRepository.save(school);
         logger.info("School aangemaakt voor domain: {}", domain);

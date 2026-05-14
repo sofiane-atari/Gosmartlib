@@ -78,6 +78,7 @@ class BookSearchServiceTest {
 
         Campus campus = new Campus();
         campus.setId(1L);
+        campus.setSchool(school);
         lenient().when(currentUserService.getCurrentUserCampus(authentication))
                 .thenReturn(campus);
 

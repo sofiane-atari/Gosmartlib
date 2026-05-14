@@ -8,17 +8,23 @@ import org.springframework.web.bind.annotation.*;
 
 import edu.ap.bib_backend.dto.gamification.GamificationNotificationDTO;
 import edu.ap.bib_backend.service.gamification.GamificationNotificationService;
+import edu.ap.bib_backend.service.gamification.sse.GamificationNotificationSseService;
+
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/gamification/me/notifications")
 public class GamificationNotificationController {
 
     private final GamificationNotificationService gamificationNotificationService;
+    private final GamificationNotificationSseService gamificationNotificationSseService;
 
     public GamificationNotificationController(
-            GamificationNotificationService gamificationNotificationService
+            GamificationNotificationService gamificationNotificationService,
+            GamificationNotificationSseService gamificationNotificationSseService
     ) {
         this.gamificationNotificationService = gamificationNotificationService;
+        this.gamificationNotificationSseService = gamificationNotificationSseService;
     }
 
     @GetMapping("/unread")
@@ -38,5 +44,12 @@ public class GamificationNotificationController {
         gamificationNotificationService.markAsRead(authentication, notificationId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/stream")
+    public SseEmitter streamNotifications(Authentication authentication) {
+        String currentUserId = gamificationNotificationService.getCurrentUserId(authentication);
+
+        return gamificationNotificationSseService.subscribe(currentUserId);
     }
 }

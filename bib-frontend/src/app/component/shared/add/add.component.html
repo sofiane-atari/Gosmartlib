@@ -1,0 +1,74 @@
+@if (isOpen) {
+  <div
+    class="modal-overlay open"
+    (pointerdown)="onOverlayPointerDown($event)"
+    (click)="onOverlayClick($event)"
+  >
+    <section class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ title }}</h2>
+
+        @if (subtitle) {
+          <p>{{ subtitle }}</p>
+        }
+      </div>
+
+      <form (ngSubmit)="submit()">
+        <div class="modal-field">
+          <label for="name">{{ nameLabel }}</label>
+
+          <input
+            id="name"
+            name="name"
+            type="text"
+            [ngModel]="name()"
+            (ngModelChange)="name.set($event)"
+            [placeholder]="namePlaceholder"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="modal-field">
+          <label for="description">{{ descriptionLabel }}</label>
+
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            [ngModel]="description()"
+            (ngModelChange)="description.set($event)"
+            [placeholder]="descriptionPlaceholder"
+          ></textarea>
+        </div>
+
+        @if (showColor) {
+        <div class="modal-field">
+            <label for="color">{{ colorLabel }}</label>
+
+            <div class="color-picker-native">
+            <input
+                id="color"
+                name="color"
+                class="color-square-input"
+                type="color"
+                [ngModel]="color()"
+                (ngModelChange)="color.set($event)"
+                aria-label="Kleur kiezen"
+            />
+            </div>
+        </div>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="close()">
+            Annuleren
+          </button>
+
+          <button type="submit" class="btn-save">
+            {{ submitLabel }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

@@ -49,14 +49,10 @@ class OneRosterUserSyncServiceIntegrationTest {
         School school = new School();
         school.setDomainName("int-sync.smartschool.be");
         school.setName("Sync School");
-        school.setAddress("Addr");
-        school.setPostalCode(1000);
         school = schoolRepository.save(school);
 
         Campus campus = new Campus();
         campus.setName("Default Campus");
-        campus.setCode("DEF");
-        campus.setDefaultCampus(true);
         campus.setSchool(school);
         campusRepository.save(campus);
 

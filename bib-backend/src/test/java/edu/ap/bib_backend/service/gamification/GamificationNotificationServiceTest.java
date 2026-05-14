@@ -28,6 +28,7 @@ import edu.ap.bib_backend.jpa.enums.gamification.BadgeType;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.repository.gamification.GamificationNotificationRepository;
 import edu.ap.bib_backend.mapper.gamification.GamificationMapper;
+import edu.ap.bib_backend.service.gamification.sse.GamificationNotificationSseService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +66,9 @@ class GamificationNotificationServiceTest {
 
     @Mock
     private Authentication authentication;
+
+    @Mock
+    private GamificationNotificationSseService gamificationNotificationSseService;
 
     @InjectMocks
     private GamificationNotificationService notificationService;
@@ -163,6 +167,9 @@ class GamificationNotificationServiceTest {
     private GamificationProfile createProfile(Long id) {
         GamificationProfile profile = new GamificationProfile();
         profile.setId(id);
+        User user = new User();
+        user.setId(USER_ID);
+        profile.setUser(user);
         return profile;
     }
 

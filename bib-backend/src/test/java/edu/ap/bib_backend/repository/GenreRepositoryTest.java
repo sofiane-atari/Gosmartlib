@@ -53,7 +53,6 @@ class GenreRepositoryTest {
 
         Campus campus = new Campus();
         campus.setName("Test Campus");
-        campus.setCode("TEST-CAMPUS");
         campus.setSchool(school);
         entityManager.persistAndFlush(campus);
 

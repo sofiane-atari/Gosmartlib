@@ -36,7 +36,9 @@ class BookBulkControllerTest {
                                 "fake content".getBytes());
 
                 mockMvc.perform(
-                                multipart("/books/upload").file(file))
+                                multipart("/books/upload")
+                                        .file(file)
+                                        .param("campusId", "1"))
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.message").value("Only excel files are supported"));
         }

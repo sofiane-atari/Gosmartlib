@@ -105,7 +105,7 @@ class SmartschoolOAuth2UserServiceTest {
         Campus defaultCampus = new Campus();
         defaultCampus.setId(1L);
         defaultCampus.setName("Default Campus");
-        lenient().when(campusRepository.findBySchoolIdAndDefaultCampusTrue(any()))
+        lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(any()))
                 .thenReturn(Optional.of(defaultCampus));
     }
 
@@ -378,8 +378,6 @@ class SmartschoolOAuth2UserServiceTest {
         school.setId(1L);
         school.setDomainName(SCHOOL_DOMAIN_NAME);
         school.setName("AP Hogeschool");
-        school.setAddress("Noorderplaats 2");
-        school.setPostalCode(2000);
         return school;
     }
 

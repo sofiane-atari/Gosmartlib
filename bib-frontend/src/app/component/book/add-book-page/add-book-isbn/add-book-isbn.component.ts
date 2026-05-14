@@ -15,6 +15,7 @@ import { ToastService } from '../../../../services/toast/toast.service';
 import { LoadingOverlayComponent } from '../../../shared/loading-overlay/loading-overlay.component';
 import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
+import { Campus } from '../../../../model/campus.model';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
 import { addBookIsbnDraft } from '../../../../model/book/add-book-isbn-draft.model';
@@ -33,6 +34,9 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
   @ViewChild('bookForm') bookForm?: NgForm;
   @Output() bookAdded = new EventEmitter<Book>();
   @Input() readingLevels: ReadingLevel[] = [];
+  @Input() campuses: Campus[] = [];
+  @Input() campusId: number | null = null;
+  @Output() campusIdChange = new EventEmitter<number | null>();
   readonly InfoIcon = Info;
   readonly PlusIcon = Plus;
   readonly Trash2Icon = Trash2;
@@ -85,6 +89,11 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
   }
 
   save() {
+    if (!this.campusId) {
+      this.ts.show('Selecteer eerst een campus.', 'error');
+      return;
+    }
+
     if (this.isExistingBookLoaded && this.selectedBookId) {
       this.bs.addCopy(this.selectedBookId).subscribe({
         next: () => {
@@ -106,8 +115,13 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
       return;
     }
 
-    this.bookAdded.emit(this.book);
+    this.bookAdded.emit({ ...this.book, campusId: this.campusId });
     this.clearForm();
+  }
+
+  selectCampus(campusId: number | null): void {
+    this.campusId = campusId;
+    this.campusIdChange.emit(campusId);
   }
 
   editBook() {
@@ -157,6 +171,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     }
 
     this.isLoading = true;
+
     this.bs.getBookByISBN(this.isbn).subscribe({
       next: (data) => {
         this.book = data;
@@ -272,7 +287,13 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
   selectCandidate(candidate: BookCandidate) {
     this.isLoading = true;
 
-    this.bs.selectBook(candidate.isbn13).subscribe({
+    if (!this.campusId) {
+      this.isLoading = false;
+      this.ts.show('Selecteer eerst een campus.', 'error');
+      return;
+    }
+
+    this.bs.selectBook(candidate.isbn13, this.campusId).subscribe({
       next: (selectedBook: Book) => {
         this.book = selectedBook;
         this.openedMainGenre = this.findMainGenreForSelectedGenres();

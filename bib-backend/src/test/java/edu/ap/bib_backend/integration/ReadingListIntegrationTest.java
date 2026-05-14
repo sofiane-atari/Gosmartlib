@@ -93,8 +93,6 @@ class ReadingListIntegrationTest {
         School school = new School();
         school.setDomainName("test.smartschool.be");
         school.setName("Test School");
-        school.setAddress("Test Address");
-        school.setPostalCode(1000);
         schoolRepository.save(school);
 
         RoleEntity studentRole = new RoleEntity();
@@ -103,7 +101,6 @@ class ReadingListIntegrationTest {
 
         campus = new Campus();
         campus.setName("Test Campus");
-        campus.setCode("TEST-CAMPUS");
         campus.setSchool(school);
         campus = campusRepository.save(campus);
 

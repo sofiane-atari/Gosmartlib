@@ -115,14 +115,14 @@ public class SmartschoolOAuth2UserService
         attributes.put(CLAIM_SCHOOL_CODE, schoolCode);
 
         School school = resolveSchool(schoolCode);
-        Campus defaultCampus = ensureDefaultCampus(school);
+        Campus firstCampus = ensureCampus(school);
 
         User user = userService.getUser(userId)
                 .orElseGet(() -> userService.createUser(
                         userId,
                         roleService.getRoleEntity(basisrol),
                         school,
-                        defaultCampus
+                        firstCampus
                 ));
 
         String oneRosterSourcedId =
@@ -137,7 +137,7 @@ public class SmartschoolOAuth2UserService
         }
 
         if (user.getCampus() == null) {
-            user.setCampus(defaultCampus);
+            user.setCampus(firstCampus);
         }
 
         userService.save(user);
@@ -168,7 +168,7 @@ public class SmartschoolOAuth2UserService
         }
 
         attributes.put("schoolId", school.getId());
-        attributes.put("campusId", user.getCampus() != null ? user.getCampus().getId() : defaultCampus.getId());
+        attributes.put("campusId", user.getCampus() != null ? user.getCampus().getId() : firstCampus.getId());
 
         String roleString = getOAuthUserRole(user.getRole().getRole());
 
@@ -190,20 +190,18 @@ public class SmartschoolOAuth2UserService
         School school = new School();
         school.setDomainName(domainName);
         school.setName(extractSchoolNameFromDomain(domainName));
-        school.setAddress("");
-        school.setPostalCode(0);
 
         return schoolRepository.save(school);
     }
 
-    private Campus ensureDefaultCampus(School school) {
-        return campusRepository.findBySchoolIdAndDefaultCampusTrue(school.getId())
+    private Campus ensureCampus(School school) {
+        return campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId())
                 .orElseGet(() -> {
                     Campus campus = new Campus();
                     campus.setSchool(school);
-                    campus.setName("Default campus");
-                    campus.setCode("default-campus");
-                    campus.setDefaultCampus(true);
+                    campus.setName(school.getName());
+                    campus.setAddress("");
+                    campus.setPostalCode(0);
                     return campusRepository.save(campus);
                 });
     }

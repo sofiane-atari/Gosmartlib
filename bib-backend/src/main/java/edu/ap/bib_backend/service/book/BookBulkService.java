@@ -10,6 +10,7 @@ import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
@@ -17,7 +18,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -39,6 +42,7 @@ public class BookBulkService {
     private final BookCopyRepository bcr;
     private final GenreRepository genreRepository;
     private final ReadingLevelRepository readingLevelRepository;
+    private final CampusRepository campusRepository;
     private final CurrentUserService currentUserService;
 
     private final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
@@ -77,8 +81,8 @@ public class BookBulkService {
     }
 
     @Transactional
-    public void importBooks(Authentication authentication, MultipartFile file) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+    public void importBooks(Authentication authentication, MultipartFile file, Long campusId) {
+        Campus campus = resolveCampusForCurrentUserSchool(authentication, campusId);
 
         try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
@@ -148,6 +152,16 @@ public class BookBulkService {
         } catch (Exception e) {
             throw new RuntimeException("Gefailed om boeken te importeren: " + e.getMessage(), e);
         }
+    }
+
+    private Campus resolveCampusForCurrentUserSchool(Authentication authentication, Long campusId) {
+        if (campusId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "campusId is verplicht.");
+        }
+
+        Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
+        return campusRepository.findByIdAndSchoolId(campusId, schoolId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campus niet gevonden."));
     }
 
     public SseEmitter validateBooksStream(File file) {

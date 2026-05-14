@@ -137,6 +137,14 @@ public class LoanService {
                         loanDTO.bookIds(), schoolDomain);
                 List<BookDTO> recommendations = bookService.getRelatedBooksForLoan(
                         loanDTO.bookIds(), 4, schoolDomain);
+
+                // Remove recommendations that are already in the loan
+
+                recommendations = recommendations.stream()
+                        .filter(rec -> loanDTO.bookIds().stream()
+                                .noneMatch(loanBookId -> loanBookId.equals(rec.getId())))
+                        .toList();
+
                 log.debug("Recommendations fetched: {} books", recommendations.size());
 
                 String htmlMessage = new HtmlMessageBuilder(

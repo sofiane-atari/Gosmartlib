@@ -9,9 +9,9 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
 
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.apache.poi.ss.usermodel.Row;
@@ -46,6 +46,7 @@ class BookBulkServiceTest {
     private BookBulkService service;
     private GenreRepository gr;
     private ReadingLevelRepository rlr;
+    private CampusRepository campusRepository;
     private CurrentUserService currentUserService;
     private Authentication authentication;
     private School school;
@@ -57,8 +58,9 @@ class BookBulkServiceTest {
         bcr = mock(BookCopyRepository.class);
         gr = mock(GenreRepository.class);
         rlr = mock(ReadingLevelRepository.class);
+        campusRepository = mock(CampusRepository.class);
         currentUserService = mock(CurrentUserService.class);
-        service = new BookBulkService(br, bcr, gr, rlr, currentUserService);
+        service = new BookBulkService(br, bcr, gr, rlr, campusRepository, currentUserService);
 
         authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("user-1");
@@ -67,14 +69,12 @@ class BookBulkServiceTest {
         school.setId(1L);
         school.setDomainName("testschool.be");
 
-        User user = new User();
-        user.setId("user-1");
-        user.setSchool(school);
-        when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user-1");
-
         campus = new Campus();
         campus.setId(1L);
-        when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
+        campus.setSchool(school);
+
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
+        when(campusRepository.findByIdAndSchoolId(1L, 1L)).thenReturn(Optional.of(campus));
 
         Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
         if (!Files.exists(tempDir)) {
@@ -130,7 +130,7 @@ class BookBulkServiceTest {
 
         when(br.findByIsbnAndCampusId("9781234567890", 1L)).thenReturn(Optional.of(existingBook));
 
-        service.importBooks(authentication, file);
+        service.importBooks(authentication, file, 1L);
 
         verify(br, never()).save(any(Book.class));
         ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);
@@ -180,7 +180,7 @@ class BookBulkServiceTest {
                     out.toByteArray());
 
             // Act
-            service.importBooks(authentication, file);
+            service.importBooks(authentication, file, 1L);
 
             // Assert: Er mag helemaal niks worden opgeslagen
             verify(br, never()).save(any(Book.class));
@@ -197,10 +197,10 @@ class BookBulkServiceTest {
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 createValidWorkbookBytes());
 
-        when(br.findByIsbnAndCampusId(anyString(), anyLong())).thenThrow(new IllegalArgumentException("Database disconnect"));
+        when(br.findByIsbnAndCampusId(anyString(), any())).thenThrow(new IllegalArgumentException("Database disconnect"));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> service.importBooks(authentication, file));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> service.importBooks(authentication, file, 1L));
         assertTrue(exception.getMessage().contains("Gefailed om boeken te importeren"));
     }
 
@@ -215,7 +215,7 @@ class BookBulkServiceTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> service.importBooks(authentication, corruptFile));
+                () -> service.importBooks(authentication, corruptFile, 1L));
         assertTrue(exception.getMessage().contains("Gefailed om boeken te importeren"));
     }
 

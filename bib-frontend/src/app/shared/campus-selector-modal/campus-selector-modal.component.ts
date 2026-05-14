@@ -120,9 +120,7 @@ export class CampusSelectorModalComponent {
       .subscribe({
         next: (campuses) => {
           const sortedCampuses = [...campuses].sort(
-            (a, b) =>
-              Number(b.defaultCampus) - Number(a.defaultCampus) ||
-              a.name.localeCompare(b.name),
+            (a, b) => a.name.localeCompare(b.name),
           );
 
           this.campuses.set(sortedCampuses);

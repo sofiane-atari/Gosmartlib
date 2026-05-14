@@ -30,10 +30,12 @@ import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.Tag;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
@@ -80,6 +82,9 @@ class BookServiceTest {
     private BookLoanRepository bookLoanRepository;
 
     @Mock
+    private CampusRepository campusRepository;
+
+    @Mock
     private BookMapper bookMapper1;
 
     @Mock
@@ -98,6 +103,8 @@ class BookServiceTest {
 
     private Campus campus;
 
+    private School school;
+
     @BeforeEach
     void setUp() {
         bs = new BookService(
@@ -107,6 +114,7 @@ class BookServiceTest {
                 reviewRepository,
                 bookLoanRepository,
                 rlr,
+                campusRepository,
                 bookMapper1,
                 bookCandidateMapper,
                 openLibraryClient,
@@ -116,8 +124,14 @@ class BookServiceTest {
         campus = new Campus();
         campus.setId(1L);
 
+        school = new School();
+        school.setId(1L);
+        campus.setSchool(school);
+
         given(currentUserService.getCurrentUserCampus(authentication)).willReturn(campus);
+        given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(true);
+        given(campusRepository.findByIdAndSchoolId(1L, 1L)).willReturn(Optional.of(campus));
     }
 
     @Test
@@ -158,6 +172,7 @@ class BookServiceTest {
     @DisplayName("Given valid book without ISBN, When addBook is called, Then save Book and BookCopy")
     void givenValidBookWithoutISBN_whenAddBook_thenSaveBookAndBookCopy() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Nieuwe Boek");
         dto.setAuthor("Auteur Test");
         dto.setPages(300);
@@ -208,6 +223,7 @@ class BookServiceTest {
     @DisplayName("Given existing ISBN, When addBook is called, Then normalize ISBN and reuse Book")
     void givenExistingISBN_whenAddBook_thenNormalizeAndReuseExistingBook() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setIsbn("978-1 234567890");
         dto.setTitle("Bestaand Boek");
         dto.setAuthor("Auteur");
@@ -252,6 +268,7 @@ class BookServiceTest {
         Genre genre = createGenre("Roman", "#8B5CF6", "Literaire fictie");
 
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setPages(123);
@@ -303,6 +320,7 @@ class BookServiceTest {
     @DisplayName("Given unknown genre, When addBook is called, Then throw Exception")
     void givenUnknownGenre_whenAddBook_thenThrowException() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of(
@@ -326,6 +344,7 @@ class BookServiceTest {
     @DisplayName("Given unknown reading level id, when addBook is called, then throw exception")
     void givenUnknownReadingLevelId_whenAddBook_thenThrowException() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -348,6 +367,7 @@ class BookServiceTest {
     @DisplayName("Given valid reading level id, when addBook is called, then set reading level")
     void givenValidReadingLevelId_whenAddBook_thenSetReadingLevel() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -411,7 +431,7 @@ class BookServiceTest {
         dto.setTitle("Boek 3");
         dto.setAuthor("Auteur 3");
 
-        given(br.findByIdAndCampusId(3L, 1L)).willReturn(Optional.of(book));
+        given(br.findByIdAndCampusSchoolId(3L, 1L)).willReturn(Optional.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         BookDTO result = bs.getBookById(3L, authentication);
@@ -424,7 +444,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given non-existing book ID, When getBookById is called, Then throw Exception")
     void givenNonExistingBookId_whenGetBookById_thenThrowException() {
-        given(br.findByIdAndCampusId(99L, 1L)).willReturn(Optional.empty());
+        given(br.findByIdAndCampusSchoolId(99L, 1L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> bs.getBookById(99L, authentication))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -490,7 +510,7 @@ class BookServiceTest {
         BookDTO dto = new BookDTO();
         dto.setTitle("Populair Boek");
 
-        given(br.findMostReadBookByCampus(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of(book));
+        given(br.findMostReadBookBySchool(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         List<BookDTO> result = bs.getMostReadBooks(5, authentication);
@@ -502,7 +522,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given no most read books, When getMostReadBooks is called, Then return empty list")
     void givenNoMostReadBooks_whenGetMostReadBooks_thenReturnEmptyList() {
-        given(br.findMostReadBookByCampus(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of());
+        given(br.findMostReadBookBySchool(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of());
 
         List<BookDTO> result = bs.getMostReadBooks(5, authentication);
 
@@ -528,7 +548,7 @@ class BookServiceTest {
         BookDTO dto = new BookDTO();
         dto.setTitle("Nieuw Boek");
 
-        given(br.findNewestBooksByCampus(eq(1L), eq(PageRequest.of(0, 3)))).willReturn(List.of(book));
+        given(br.findNewestBooksBySchool(eq(1L), eq(PageRequest.of(0, 3)))).willReturn(List.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         List<BookDTO> result = bs.getNewestBooks(3, authentication);
@@ -536,7 +556,7 @@ class BookServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("Nieuw Boek");
 
-        then(br).should().findNewestBooksByCampus(eq(1L), eq(PageRequest.of(0, 3)));
+        then(br).should().findNewestBooksBySchool(eq(1L), eq(PageRequest.of(0, 3)));
     }
 
     @Test
@@ -560,8 +580,8 @@ class BookServiceTest {
         List<Object[]> relatedBooks = new ArrayList<>();
         relatedBooks.add(new Object[]{related, 2L});
 
-        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(source));
-        given(br.findRelatedBooksWithScore(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
+        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(source));
+        given(br.findRelatedBooksWithScoreBySchool(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
         given(bookMapper1.toDTO(related)).willReturn(relatedDto);
 
         List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10, authentication);
@@ -801,7 +821,7 @@ class BookServiceTest {
         dto.setIsbn("9781234567890");
         dto.setTitle("DB Boek");
 
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.of(book));
+        given(br.findByIsbnAndCampusSchoolId("9781234567890", 1L)).willReturn(Optional.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
@@ -819,7 +839,7 @@ class BookServiceTest {
         dto.setIsbn("9781234567890");
         dto.setTitle("OpenLibrary Boek");
 
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.empty());
+        given(br.findByIsbnAndCampusSchoolId("9781234567890", 1L)).willReturn(Optional.empty());
         given(openLibraryClient.fetchBookByISBN("9781234567890")).willReturn(dto);
 
         BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
@@ -1039,8 +1059,9 @@ class BookServiceTest {
         List<Object[]> relatedBooks = new ArrayList<>();
         relatedBooks.add(new Object[]{didacticRelated, 2L});
 
-        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(source));
-        given(br.findRelatedBooksWithScore(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
+        given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
+        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(source));
+        given(br.findRelatedBooksWithScoreBySchool(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(false);
 
         List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10, authentication);
