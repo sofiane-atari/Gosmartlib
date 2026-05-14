@@ -297,7 +297,7 @@ public class LoanService {
                 .map(loan -> {
                     LoanDTO dto = loanMapper.toDto(loan);
 
-                    String lookupId = loan.getUser().getOneRosterSourcedId();
+                    String lookupId = loan.getUser() != null ? loan.getUser().getOneRosterSourcedId() : null;
 
                     return LoanDTO.builder()
                             .id(dto.id())
