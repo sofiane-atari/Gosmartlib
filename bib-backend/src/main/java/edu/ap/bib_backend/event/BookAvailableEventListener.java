@@ -10,14 +10,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.MailSubscription;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.service.MailSubscriptionService;
 import edu.ap.bib_backend.service.SmartschoolMessageService;
 import edu.ap.bib_backend.service.SmartschoolTokenRefreshService;
+import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
-import edu.ap.bib_backend.service.message.MessageComponent;
+import edu.ap.bib_backend.service.message.component.BookAvailableMessageComponent;
+import edu.ap.bib_backend.service.message.component.BookRecommendationComponent;
 
 @Component
 public class BookAvailableEventListener {
@@ -26,6 +29,7 @@ public class BookAvailableEventListener {
 
     private final MailSubscriptionService mailSubscriptionService;
     private final BookRepository bookRepository;
+    private final BookService bookService;
     private final SmartschoolMessageService smartschoolMessageService;
     private final SmartschoolTokenRefreshService smartschoolTokenRefreshService;
     private final String frontendUrl;
@@ -33,11 +37,13 @@ public class BookAvailableEventListener {
     public BookAvailableEventListener(
             MailSubscriptionService mailSubscriptionService,
             BookRepository bookRepository,
+            BookService bookService,
             SmartschoolMessageService smartschoolMessageService,
             SmartschoolTokenRefreshService smartschoolTokenRefreshService,
             @org.springframework.beans.factory.annotation.Value("${FRONTEND_URL:http://localhost:4200}") String frontendUrl) {
         this.mailSubscriptionService = mailSubscriptionService;
         this.bookRepository = bookRepository;
+        this.bookService = bookService;
         this.smartschoolMessageService = smartschoolMessageService;
         this.smartschoolTokenRefreshService = smartschoolTokenRefreshService;
         this.frontendUrl = frontendUrl;
@@ -83,9 +89,14 @@ public class BookAvailableEventListener {
                     continue;
                 }
 
+                String schoolDomain = book.getCampus().getSchool().getDomainName();
+                List<BookDTO> recommendations = bookService.getRelatedBooksForLoan(
+                        List.of(book.getId()), 4, schoolDomain);
+
                 String htmlMessage = new HtmlMessageBuilder(
                         "Boek beschikbaar", frontendUrl)
                         .addComponent(new BookAvailableMessageComponent(book, frontendUrl))
+                        .addComponent(new BookRecommendationComponent(recommendations, frontendUrl))
                         .build();
 
                 smartschoolMessageService.sendMessage(token, book.getTitle() + " is beschikbaar!", htmlMessage);
@@ -93,45 +104,6 @@ public class BookAvailableEventListener {
             } catch (Exception e) {
                 log.warn("Failed to notify user {} about book '{}': {}", userId, book.getTitle(), e.getMessage());
             }
-        }
-    }
-
-    private static class BookAvailableMessageComponent implements MessageComponent {
-
-        private final Book book;
-        private final String frontendUrl;
-
-        BookAvailableMessageComponent(Book book, String frontendUrl) {
-            this.book = book;
-            this.frontendUrl = frontendUrl;
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-
-        @Override
-        public String build() {
-            String safeTitle = HtmlMessageBuilder.escapeHtml(book.getTitle());
-            String safeAuthor = HtmlMessageBuilder.escapeHtml(book.getAuthor());
-
-            return """
-                    <div style="padding: 16px 0;">
-                        <p style="margin: 0 0 12px 0; font-size: 16px; line-height: 1.5;">
-                            Het boek <strong>%s</strong> van <strong>%s</strong> is opnieuw beschikbaar in de bibliotheek.
-                        </p>
-                        <p style="margin: 0 0 12px 0; font-size: 16px; line-height: 1.5;">
-                            Je kan het boek komen lenen via de balie of online reserveren.
-                        </p>
-                        <p style="margin: 0; font-size: 16px; line-height: 1.5;">
-                            <a href="%s/books/%d" style="color: #8a1e41; text-decoration: underline; font-weight: 600;">
-                                Bekijk boek in catalogus
-                            </a>
-                        </p>
-                    </div>
-                    """
-                    .formatted(safeTitle, safeAuthor, frontendUrl, book.getId());
         }
     }
 }
