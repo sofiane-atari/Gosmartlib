@@ -5,6 +5,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -41,6 +43,7 @@ public class BookAvailableEventListener {
         this.frontendUrl = frontendUrl;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onBookAvailable(BookAvailableEvent event) {
         Book book = bookRepository.findById(event.bookId()).orElse(null);
@@ -50,7 +53,8 @@ public class BookAvailableEventListener {
         }
 
         if (book.getAvailableCopies() == null || book.getAvailableCopies() <= 0) {
-            log.debug("Book '{}' (id={}) has no available copies, skipping notification", book.getTitle(), book.getId());
+            log.debug("Book '{}' (id={}) has no available copies, skipping notification", book.getTitle(),
+                    book.getId());
             return;
         }
 
@@ -60,10 +64,18 @@ public class BookAvailableEventListener {
             return;
         }
 
-        log.info("Notifying {} subscribers that book '{}' is available", subscribers.size(), book.getTitle());
+        Long bookCampusId = book.getCampus().getId();
+
+        log.info("Notifying subscribers that book '{}' is available (campus id={})", book.getTitle(), bookCampusId);
 
         for (MailSubscription subscription : subscribers) {
             String userId = subscription.getUser().getId();
+
+            if (!subscription.getUser().getCampus().getId().equals(bookCampusId)) {
+                log.debug("Skipping user {} from different campus", userId);
+                continue;
+            }
+
             try {
                 String token = smartschoolTokenRefreshService.getValidSmartschoolAccessToken(userId);
                 if (token == null || token.isBlank()) {
@@ -118,7 +130,8 @@ public class BookAvailableEventListener {
                             </a>
                         </p>
                     </div>
-                    """.formatted(safeTitle, safeAuthor, frontendUrl, book.getId());
+                    """
+                    .formatted(safeTitle, safeAuthor, frontendUrl, book.getId());
         }
     }
 }
