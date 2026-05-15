@@ -15,6 +15,7 @@ import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
@@ -75,6 +76,24 @@ public class UserService {
                 .filter(Objects::nonNull)
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
+    }
+
+    public List<AuthUserDto> getTeachers(Authentication authentication) {
+        User currentUser = currentUserService.getCurrentUser(authentication);
+
+        boolean isLibrarian = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isLibrarian && !isAdmin) {
+            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
+        }
+
+        List<User> teachers = userRepository.findBySchoolIdAndRoleRole(
+                currentUser.getSchool().getId(), Role.TEACHER);
+
+        return userMapper.toDtoList(teachers);
     }
 
     public User createUser(String userId, RoleEntity role, School school, Campus campus) {

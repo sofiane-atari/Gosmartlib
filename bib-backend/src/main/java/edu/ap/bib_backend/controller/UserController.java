@@ -32,6 +32,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers(options));
     }
 
+    @GetMapping("/teachers")
+    public ResponseEntity<List<AuthUserDto>> getTeachers(Authentication authentication) {
+        return ResponseEntity.ok(userService.getTeachers(authentication));
+    }
+
     @PatchMapping("/me/campus")
     public ResponseEntity<AuthUserDto> switchCurrentUserCampus(
             @RequestBody SwitchCampusRequestDto payload,

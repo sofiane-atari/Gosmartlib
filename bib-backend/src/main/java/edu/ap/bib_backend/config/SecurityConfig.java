@@ -112,6 +112,9 @@ public class SecurityConfig {
                                                 .requestMatchers("/roles/**")
                                                 .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name())
 
+                                                .requestMatchers("/users/teachers")
+                                                .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name())
+
                                                 .anyRequest().authenticated())
 
                                 // OAuth2 login (Smartschool)
