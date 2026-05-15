@@ -223,6 +223,55 @@
   transform: translateY(-1px);
 }
 
+/* Subscribe-knop */
+.subscribe-btn {
+  background-color: var(--bg-surface, #ffffff);
+  border: 1.5px solid var(--sec-color, #c4a3a8);
+  color: var(--main-color, #8a1e41);
+  box-shadow: none;
+  transition: all 0.25s ease;
+}
+.subscribe-btn:hover:not(:disabled) {
+  background-color: var(--main-light-color, #fff5f8);
+  border-color: var(--main-color, #8a1e41);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(138, 30, 65, 0.12);
+}
+.subscribe-btn.subscribed {
+  background-color: #f0fdf4;
+  border-color: #4c9a4c;
+  color: #2d6a2d;
+}
+.subscribe-btn.subscribed:hover:not(:disabled) {
+  background-color: #dcfce7;
+  border-color: #4c9a4c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(76, 154, 76, 0.15);
+}
+.subscribe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.subscribe-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--sec-color, #c4a3a8);
+  border-top-color: var(--main-color, #8a1e41);
+  border-radius: 50%;
+  animation: subscribeSpin 0.6s linear infinite;
+  margin-right: 6px;
+}
+.subscribed .subscribe-spinner {
+  border-color: #a3d8a3;
+  border-top-color: #2d6a2d;
+}
+@keyframes subscribeSpin {
+  to { transform: rotate(360deg); }
+}
+
 /* Dropdown Leeslijst */
 .list-picker-dropdown {
   position: absolute;

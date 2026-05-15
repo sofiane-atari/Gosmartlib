@@ -76,6 +76,29 @@
                 }
               </button>
             </app-button-hover-help>
+
+            <app-button-hover-help
+              class="full-button-help"
+              [text]="isSubscribed()
+                ? 'Je ontvangt een melding wanneer dit boek beschikbaar is. Klik om uit te schrijven.'
+                : 'Ontvang een melding zodra dit boek beschikbaar is.'"
+            >
+              <button
+                class="action-btn subscribe-btn"
+                [class.subscribed]="isSubscribed()"
+                [disabled]="subscriptionLoading()"
+                (click)="toggleSubscription()"
+              >
+                @if (subscriptionLoading()) {
+                  <span class="subscribe-spinner"></span>
+                } @else if (isSubscribed()) {
+                  <lucide-icon [img]="BellOff" [size]="18"></lucide-icon>
+                } @else {
+                  <lucide-icon [img]="Bell" [size]="18"></lucide-icon>
+                }
+                <span>{{ isSubscribed() ? 'Melding aan' : 'Melding bij beschikbaarheid' }}</span>
+              </button>
+            </app-button-hover-help>
           </div>
         </section>
 
