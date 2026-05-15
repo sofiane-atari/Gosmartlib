@@ -673,6 +673,10 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     }, 1000);
   }
 
+  public goBack(): void {
+    void this.router.navigate(['/books']);
+  }
+
   ngOnDestroy(): void {
     this.saveReviewDraft();
 

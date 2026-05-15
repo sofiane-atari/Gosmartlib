@@ -3,7 +3,7 @@
    ========================================================= */
 :host {
   display: block;
-  font-family: var(--main-font);
+  font-family: var(--main-font), sans-serif;
 }
 
 * {
@@ -33,6 +33,19 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.cover-with-back-button {
+  position: relative;
+  display: block;
+}
+
+.back-button-help {
+  position: absolute;
+  left: -108px;
+  top: 0;
+  display: block;
+  z-index: 2;
 }
 
 .cover-container {
@@ -105,6 +118,46 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.back-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  width: 70px;
+  min-width: 50px;
+  background-color: white;
+  color: var(--main-color, #8a1e41);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  padding: 8px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-align: center;
+  z-index: 1;
+  margin-left: 22px;
+}
+
+.back-button:hover:not(:disabled) {
+  background-color: var(--main-light-color, #fff5f8);
+  border-color: var(--main-color, #8a1e41);
+  transform: translateY(-1px);
+}
+
+.back-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .book-title {
@@ -831,6 +884,23 @@
     grid-template-columns: 140px 1fr;
     display: grid;
     gap: 12px;
+  }
+  .cover-with-back-button {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .back-button-help {
+    position: static;
+  }
+  .back-button {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    padding: 10px 12px;
+    font-size: 12px;
   }
   .quick-stats {
     grid-template-columns: repeat(3, 1fr);

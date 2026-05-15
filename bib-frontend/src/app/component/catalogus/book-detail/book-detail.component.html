@@ -2,12 +2,21 @@
   <div class="page-container">
     <div class="detail-wrapper">
       <aside class="sidebar">
-        <div class="cover-container">
-          <img
-            [src]="selectedBook.imageUrl"
-            [alt]="selectedBook.title"
-            class="book-cover"
-          />
+        <div class="cover-with-back-button">
+          <app-button-hover-help class="back-button-help" text="Terug naar de boekencatalogus">
+            <button type="button" class="back-button" (click)="goBack()">
+              <lucide-icon [img]="ChevronDown" [size]="20" style="transform: rotate(90deg)"></lucide-icon>
+              <span>Ga terug</span>
+            </button>
+          </app-button-hover-help>
+
+          <div class="cover-container">
+            <img
+              [src]="selectedBook.imageUrl"
+              [alt]="selectedBook.title"
+              class="book-cover"
+            />
+          </div>
         </div>
 
         <div class="quick-stats">
