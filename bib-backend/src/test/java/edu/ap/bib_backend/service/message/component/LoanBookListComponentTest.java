@@ -160,12 +160,12 @@ class LoanBookListComponentTest {
     }
 
     @Test
-    void build_containsGeleendeBoekenHeading() {
+    void build_containsUitgeleendeBoekenHeading() {
         Book book = createBook(1L, "Any", "Author", null, null);
         Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
         LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
         String html = component.build();
-        assertTrue(html.contains("Geleende boeken"));
+        assertTrue(html.contains("Uitgeleende boeken"));
     }
 
     @Test

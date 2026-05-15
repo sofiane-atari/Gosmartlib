@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.service;
 
+import edu.ap.bib_backend.event.BookAvailableEvent;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -417,6 +418,7 @@ class LoanServiceTest {
         User user = new User();
         user.setId("user123");
         loan.setUser(user);
+        loan.setCopies(new ArrayList<>());
         when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
         LoanDTO expectedDto = LoanDTO.builder().id(1L).build();
@@ -451,6 +453,72 @@ class LoanServiceTest {
                 () -> loanService.returnLoan(1L, authentication));
 
         assertEquals("Lening niet gevonden in deze campus.", exception.getMessage());
+    }
+
+    @Test
+    void Given_LoanWithBookCopies_When_ReturnLoan_Then_PublishesBookAvailableEventForEachDistinctBook() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setCampus(campus);
+        loan.setReturnedDate(null);
+        loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+        User user = new User();
+        user.setId("user123");
+        loan.setUser(user);
+
+        Book book1 = new Book();
+        book1.setId(100L);
+        BookCopy copy1 = new BookCopy();
+        copy1.setBook(book1);
+        BookCopy copy2 = new BookCopy();
+        copy2.setBook(book1);
+        Book book2 = new Book();
+        book2.setId(200L);
+        BookCopy copy3 = new BookCopy();
+        copy3.setBook(book2);
+
+        loan.setCopies(List.of(copy1, copy2, copy3));
+
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+        LoanDTO expectedDto = LoanDTO.builder().id(1L).build();
+        when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+
+        LoanDTO result = loanService.returnLoan(1L, authentication);
+
+        assertNotNull(result);
+        verify(applicationEventPublisher).publishEvent(any(BookReturnedGamificationEvent.class));
+        verify(applicationEventPublisher, times(2)).publishEvent(any(BookAvailableEvent.class));
+    }
+
+    @Test
+    void Given_LoanWithCopyHavingNullBook_When_ReturnLoan_Then_SkipsNullBookInAvailableEvent() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setCampus(campus);
+        loan.setReturnedDate(null);
+        loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+        User user = new User();
+        user.setId("user123");
+        loan.setUser(user);
+
+        BookCopy copyWithBook = new BookCopy();
+        Book book = new Book();
+        book.setId(100L);
+        copyWithBook.setBook(book);
+        BookCopy copyWithNullBook = new BookCopy();
+
+        loan.setCopies(List.of(copyWithBook, copyWithNullBook));
+
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+        LoanDTO expectedDto = LoanDTO.builder().id(1L).build();
+        when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+
+        LoanDTO result = loanService.returnLoan(1L, authentication);
+
+        assertNotNull(result);
+        verify(applicationEventPublisher).publishEvent(any(BookAvailableEvent.class));
     }
 
     @Test
