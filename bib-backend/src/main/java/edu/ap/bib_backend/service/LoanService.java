@@ -20,6 +20,7 @@ import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
+import edu.ap.bib_backend.event.BookAvailableEvent;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -200,6 +201,7 @@ public class LoanService {
         Loan savedLoan = loanRepository.save(loan);
 
         publishBookReturnedEvent(savedLoan, today);
+        publishBookAvailableEvents(savedLoan);
 
         return loanMapper.toDto(savedLoan);
     }
@@ -250,6 +252,18 @@ public class LoanService {
                         loan.getReturnDate(),
                         returnedDate,
                         LocalDateTime.now()));
+    }
+
+    private void publishBookAvailableEvents(Loan loan) {
+        loan.getCopies().stream()
+                .map(copy -> copy.getBook())
+                .filter(book -> book != null && book.getId() != null)
+                .collect(Collectors.toSet())
+                .forEach(book -> {
+                    log.debug("Publishing BookAvailableEvent for book id={}", book.getId());
+                    applicationEventPublisher.publishEvent(
+                            new BookAvailableEvent(book.getId(), LocalDateTime.now()));
+                });
     }
 
     private int resolveCopiesCount(LoanDTO loanDTO, Long bookId) {
