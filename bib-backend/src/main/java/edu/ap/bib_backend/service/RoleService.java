@@ -103,8 +103,7 @@ public class RoleService {
     private RoleEntity createRoleEntity(Role role) {
         RoleEntity newRole = new RoleEntity();
         newRole.setRole(role);
-        roleEntityRepository.save(newRole);
-        return newRole;
+        return roleEntityRepository.save(newRole);
     }
 
     private Optional<Role> mapDutchRole(String basisrol) {

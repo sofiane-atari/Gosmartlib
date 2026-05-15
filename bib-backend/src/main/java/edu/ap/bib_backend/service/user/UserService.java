@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
@@ -79,7 +81,7 @@ public class UserService {
     }
 
     public List<AuthUserDto> getTeachers(Authentication authentication) {
-        User currentUser = currentUserService.getCurrentUser(authentication);
+        String userId = currentUserService.extractCurrentUserId(authentication);
 
         boolean isLibrarian = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
@@ -90,10 +92,22 @@ public class UserService {
             throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
-        List<User> teachers = userRepository.findBySchoolIdAndRoleRole(
-                currentUser.getSchool().getId(), Role.TEACHER);
+        School school = getCurrentUserSchool(userId);
+        String schoolCode = school.getDomainName();
+        String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
+        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
 
-        return userMapper.toDtoList(teachers);
+        Set<String> promotedUserIds = userRepository.findBySchoolId(school.getId()).stream()
+                .filter(u -> u.getRole().getRole() == Role.LIBRARIAN || u.getRole().getRole() == Role.ADMIN)
+                .map(User::getId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        return rosterUsers.stream()
+                .map(user -> toAuthUserDto(user, school))
+                .filter(Objects::nonNull)
+                .filter(dto -> dto.role() == Role.TEACHER)
+                .filter(dto -> !promotedUserIds.contains(dto.id()))
+                .toList();
     }
 
     public User createUser(String userId, RoleEntity role, School school, Campus campus) {
@@ -204,6 +218,7 @@ public class UserService {
         }
 
         String email = firstNonBlank(rosterUser, "email", "emailAddress", "mail");
+        Role role = mapOneRosterRole(firstNonBlank(rosterUser, "role"));
 
         SchoolSummaryDto schoolSummary = ctxSchool.getSchoolSummaryDto();
 
@@ -212,7 +227,7 @@ public class UserService {
                 firstName,
                 lastName,
                 fullName,
-                null,
+                role,
                 email,
                 null,
                 null,
@@ -224,6 +239,20 @@ public class UserService {
                 null,
                 null,
                 schoolSummary);
+    }
+
+    private Role mapOneRosterRole(String roleStr) {
+        if (roleStr == null) {
+            return null;
+        }
+
+        return switch (roleStr.toLowerCase()) {
+            case "teacher", "leerkracht" -> Role.TEACHER;
+            case "student", "leerling" -> Role.STUDENT;
+            case "administrator", "admin", "directie" -> Role.ADMIN;
+            case "librarian", "bibliothecaris" -> Role.LIBRARIAN;
+            default -> null;
+        };
     }
 
     private boolean matchesOptions(AuthUserDto dto, UserGetOptions options) {
