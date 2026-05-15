@@ -3,19 +3,68 @@ package edu.ap.bib_backend.service;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.mapper.UserMapper;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 
 @Service
 public class RoleService {
 
     private final RoleEntityRepository roleEntityRepository;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final CurrentUserService currentUserService;
 
-    public RoleService(RoleEntityRepository roleEntityRepository) {
+    public RoleService(
+            RoleEntityRepository roleEntityRepository,
+            UserRepository userRepository,
+            UserMapper userMapper,
+            CurrentUserService currentUserService) {
         this.roleEntityRepository = roleEntityRepository;
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.currentUserService = currentUserService;
+    }
+
+    @Transactional
+    public AuthUserDto assignLibrarian(Authentication authentication, String targetUserId) {
+        User currentUser = currentUserService.getCurrentUser(authentication);
+
+        boolean isLibrarian = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isLibrarian && !isAdmin) {
+            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen deze actie uitvoeren.");
+        }
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden met id: " + targetUserId));
+
+        if (targetUser.getRole().getRole() != Role.TEACHER) {
+            throw new IllegalArgumentException("Alleen leerkrachten kunnen gepromoveerd worden tot bibliothecaris.");
+        }
+
+        if (!currentUser.getSchool().getId().equals(targetUser.getSchool().getId())) {
+            throw new IllegalStateException("Je kunt alleen leerkrachten van je eigen school promoten tot bibliothecaris.");
+        }
+
+        RoleEntity librarianRole = getRoleEntity(Role.LIBRARIAN.name());
+        targetUser.setRole(librarianRole);
+        userRepository.save(targetUser);
+
+        return userMapper.toDto(targetUser);
     }
 
     /**
