@@ -1,0 +1,109 @@
+<div class="user-management">
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Gebruikers beheren</h1>
+      <p>Beheer de rollen van gebruikers binnen jouw school</p>
+    </div>
+  </div>
+
+  <section class="search-panel">
+    <app-search-bar
+      placeholder="Zoek leerkrachten op naam of e-mail..."
+      (searchChange)="onSearch($event)"
+    ></app-search-bar>
+  </section>
+
+  @if (teachers().length === 0 && searchQuery()) {
+    <section class="state-panel state-panel--empty">
+      <p>Geen leerkrachten gevonden voor deze zoekopdracht.</p>
+    </section>
+  } @else {
+    <section class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Naam</th>
+            <th>E-mail</th>
+            <th>Huidige rol</th>
+            <th class="actions-heading">Acties</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (teacher of teachers(); track teacher.id) {
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-cell__icon">
+                    <lucide-icon [name]="GraduationCap"></lucide-icon>
+                  </div>
+
+                  <div>
+                    <strong>{{ userService.getDisplayName(teacher) }}</strong>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                @if (teacher.email) {
+                  <span>{{ teacher.email }}</span>
+                } @else {
+                  <span class="table-placeholder">Geen e-mail</span>
+                }
+              </td>
+
+              <td>
+                <span class="role-badge role-badge--teacher">
+                  {{ userService.getRoleLabel(teacher.role) }}
+                </span>
+              </td>
+
+              <td>
+                <div class="table-actions">
+                  <button
+                    type="button"
+                    class="btn-promote"
+                    [disabled]="isPromoting()"
+                    (click)="openConfirmPromote(teacher)"
+                  >
+                    <lucide-icon [name]="ShieldCheck" class="icon-sm"></lucide-icon>
+                    Promoveren tot bibliothecaris
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">
+                <div class="empty-table-state">
+                  @if (teachers().length === 0 && !searchQuery()) {
+                    <p>Er zijn nog geen leerkrachten gevonden in jouw school.</p>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  @if (isPromoting() && selectedUser()) {
+    <div class="promoting-overlay">
+      <lucide-icon [name]="Loader" class="spin"></lucide-icon>
+      <span>{{ userService.getDisplayName(selectedUser()) }} wordt gepromoveerd...</span>
+    </div>
+  }
+</div>
+
+<app-confirmation-modal
+  [isVisible]="isConfirmModalOpen()"
+  [title]="'Leerkracht promoveren'"
+  [description]="confirmDescription()"
+  [confirmLabel]="'Promoveren'"
+  [confirmLoadingLabel]="'Bezig met promoveren...'"
+  [cancelLabel]="'Annuleren'"
+  [isConfirmLoading]="isPromoting()"
+  (confirmRequested)="onConfirmPromote()"
+  (cancelRequested)="closeConfirmPromote()"
+></app-confirmation-modal>

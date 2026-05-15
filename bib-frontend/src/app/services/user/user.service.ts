@@ -17,6 +17,10 @@ export class UserService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
+  public getTeachers(): Observable<AuthUserDto[]> {
+    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/teachers`);
+  }
+
   public getUsers(opt?: GetUsersOpt): Observable<AuthUserDto[]> {
     let params = new HttpParams({
       fromObject: {
