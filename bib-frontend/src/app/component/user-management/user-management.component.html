@@ -13,9 +13,13 @@
     ></app-search-bar>
   </section>
 
-  @if (teachers().length === 0 && searchQuery()) {
+  @if (teachers().length === 0) {
     <section class="state-panel state-panel--empty">
-      <p>Geen leerkrachten gevonden voor deze zoekopdracht.</p>
+      @if (searchQuery()) {
+        <p>Geen leerkrachten gevonden voor deze zoekopdracht.</p>
+      } @else {
+        <p>Er zijn nog geen leerkrachten gevonden in jouw school.</p>
+      }
     </section>
   } @else {
     <section class="table-card">
@@ -66,19 +70,9 @@
                     [disabled]="isPromoting()"
                     (click)="openConfirmPromote(teacher)"
                   >
-                    <lucide-icon [name]="ShieldCheck" class="icon-sm"></lucide-icon>
+                    <lucide-icon [name]="ShieldCheck"></lucide-icon>
                     Promoveren tot bibliothecaris
                   </button>
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="4">
-                <div class="empty-table-state">
-                  @if (teachers().length === 0 && !searchQuery()) {
-                    <p>Er zijn nog geen leerkrachten gevonden in jouw school.</p>
-                  }
                 </div>
               </td>
             </tr>
@@ -90,7 +84,7 @@
 
   @if (isPromoting() && selectedUser()) {
     <div class="promoting-overlay">
-      <lucide-icon [name]="Loader" class="spin"></lucide-icon>
+      <lucide-icon [name]="Loader"></lucide-icon>
       <span>{{ userService.getDisplayName(selectedUser()) }} wordt gepromoveerd...</span>
     </div>
   }
