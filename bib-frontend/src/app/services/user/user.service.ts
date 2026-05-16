@@ -17,8 +17,9 @@ export class UserService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  public getTeachers(): Observable<AuthUserDto[]> {
-    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/teachers`);
+  public getTeachers(excludeAdmins: boolean = true): Observable<AuthUserDto[]> {
+    const params = new HttpParams().set('excludeAdmins', excludeAdmins);
+    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/teachers`, { params });
   }
 
   public getUsers(opt?: GetUsersOpt): Observable<AuthUserDto[]> {

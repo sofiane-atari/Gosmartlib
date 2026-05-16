@@ -57,22 +57,34 @@
               </td>
 
               <td>
-                <span class="role-badge role-badge--teacher">
+                <span [class]="roleBadgeClass(teacher.role)">
                   {{ userService.getRoleLabel(teacher.role) }}
                 </span>
               </td>
 
               <td>
                 <div class="table-actions">
-                  <button
-                    type="button"
-                    class="btn-promote"
-                    [disabled]="isPromoting()"
-                    (click)="openConfirmPromote(teacher)"
-                  >
-                    <lucide-icon [name]="ShieldCheck"></lucide-icon>
-                    Promoveren tot bibliothecaris
-                  </button>
+                  @if (teacher.role === 'LIBRARIAN') {
+                    <button
+                      type="button"
+                      class="btn-revoke"
+                      [disabled]="isPromoting()"
+                      (click)="openConfirmRevoke(teacher)"
+                    >
+                      <lucide-icon [name]="ShieldOff"></lucide-icon>
+                      Intrekken bibliothecarisrol
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn-promote"
+                      [disabled]="isPromoting()"
+                      (click)="openConfirmPromote(teacher)"
+                    >
+                      <lucide-icon [name]="ShieldCheck"></lucide-icon>
+                      Promoveren tot bibliothecaris
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -85,19 +97,19 @@
   @if (isPromoting() && selectedUser()) {
     <div class="promoting-overlay">
       <lucide-icon [name]="Loader"></lucide-icon>
-      <span>{{ userService.getDisplayName(selectedUser()) }} wordt gepromoveerd...</span>
+      <span>{{ actionLabel() }}...</span>
     </div>
   }
 </div>
 
 <app-confirmation-modal
   [isVisible]="isConfirmModalOpen()"
-  [title]="'Leerkracht promoveren'"
+  [title]="confirmTitle()"
   [description]="confirmDescription()"
-  [confirmLabel]="'Promoveren'"
-  [confirmLoadingLabel]="'Bezig met promoveren...'"
+  [confirmLabel]="confirmButtonLabel()"
+  [confirmLoadingLabel]="confirmLoadingLabel()"
   [cancelLabel]="'Annuleren'"
   [isConfirmLoading]="isPromoting()"
-  (confirmRequested)="onConfirmPromote()"
-  (cancelRequested)="closeConfirmPromote()"
+  (confirmRequested)="onConfirmAction()"
+  (cancelRequested)="closeConfirmModal()"
 ></app-confirmation-modal>

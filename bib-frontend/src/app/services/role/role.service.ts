@@ -18,4 +18,8 @@ export class RoleService {
   public assignLibrarian(userId: string): Observable<AuthUserDto> {
     return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/assign-librarian`, { userId });
   }
+
+  public revokeLibrarian(userId: string): Observable<AuthUserDto> {
+    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/revoke-librarian`, { userId });
+  }
 }

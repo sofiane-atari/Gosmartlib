@@ -156,6 +156,17 @@ lucide-icon svg {
   color: #16a34a;
 }
 
+.role-badge--librarian {
+  background: #fff7fb;
+  color: var(--main-color);
+  border: 1px solid #f0cfe0;
+}
+
+.role-badge--admin {
+  background: #f9f4f6;
+  color: #7a5560;
+}
+
 /* Promote button */
 .btn-promote {
   display: inline-flex;
@@ -193,6 +204,48 @@ lucide-icon svg {
 }
 
 .btn-promote lucide-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Revoke button */
+.btn-revoke {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.btn-revoke:hover {
+  background: #fef2f2;
+  transform: translateY(-1px);
+}
+
+.btn-revoke:active {
+  transform: translateY(0);
+}
+
+.btn-revoke:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-revoke lucide-icon {
   width: 16px;
   height: 16px;
   display: flex;
@@ -284,7 +337,8 @@ lucide-icon svg {
     font-size: 24px;
   }
 
-  .btn-promote {
+  .btn-promote,
+  .btn-revoke {
     width: 100%;
     justify-content: center;
   }

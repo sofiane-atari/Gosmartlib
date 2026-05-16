@@ -10,13 +10,14 @@ import {
   UserCog,
   GraduationCap,
   ShieldCheck,
+  ShieldOff,
   Loader,
 } from 'lucide-angular';
 
 import { UserService } from '../../services/user/user.service';
 import { RoleService } from '../../services/role/role.service';
 import { ToastService } from '../../services/toast/toast.service';
-import { AuthUserDto } from '../../model/auth.model';
+import { AuthUserDto, Role } from '../../model/auth.model';
 import { HttpErrorResponseError } from '../../error-reponse.model';
 
 import { SearchBarComponent } from '../shared/search-bar/search-bar.component';
@@ -41,6 +42,7 @@ export class UserManagementComponent {
   protected readonly UserCog = UserCog;
   protected readonly GraduationCap = GraduationCap;
   protected readonly ShieldCheck = ShieldCheck;
+  protected readonly ShieldOff = ShieldOff;
   protected readonly Loader = Loader;
 
   protected readonly userService = inject(UserService);
@@ -54,6 +56,7 @@ export class UserManagementComponent {
   protected readonly selectedUser = signal<AuthUserDto | null>(null);
   protected readonly isConfirmModalOpen = signal(false);
   protected readonly isPromoting = signal(false);
+  protected readonly isRevokeAction = signal(false);
 
   constructor() {
     this.searchSubject
@@ -88,6 +91,14 @@ export class UserManagementComponent {
 
   protected readonly isLoading = computed(() => this.teachersResponse() === null);
 
+  protected readonly actionLabel = computed(() =>
+    this.isRevokeAction() ? 'wordt teruggezet' : 'wordt gepromoveerd',
+  );
+
+  protected readonly confirmTitle = computed(() =>
+    this.isRevokeAction() ? 'Bibliothecarisrol intrekken' : 'Leerkracht promoveren',
+  );
+
   protected readonly confirmDescription = computed(() => {
     const user = this.selectedUser();
 
@@ -97,24 +108,56 @@ export class UserManagementComponent {
 
     const name = this.userService.getDisplayName(user);
 
+    if (this.isRevokeAction()) {
+      return `Weet je zeker dat je de bibliothecarisrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
+    }
+
     return `Weet je zeker dat je "${name}" wilt promoveren tot bibliothecaris? Deze gebruiker krijgt dan beheerdersrechten binnen de bibliotheekmodule.`;
   });
+
+  protected readonly confirmButtonLabel = computed(() =>
+    this.isRevokeAction() ? 'Intrekken' : 'Promoveren',
+  );
+
+  protected readonly confirmLoadingLabel = computed(() =>
+    this.isRevokeAction() ? 'Bezig met intrekken...' : 'Bezig met promoveren...',
+  );
+
+  protected roleBadgeClass(role: Role): string {
+    switch (role) {
+      case 'TEACHER':
+        return 'role-badge role-badge--teacher';
+      case 'LIBRARIAN':
+        return 'role-badge role-badge--librarian';
+      case 'ADMIN':
+        return 'role-badge role-badge--admin';
+      default:
+        return 'role-badge';
+    }
+  }
 
   protected onSearch(query: string): void {
     this.searchSubject.next(query);
   }
 
   protected openConfirmPromote(user: AuthUserDto): void {
+    this.isRevokeAction.set(false);
     this.selectedUser.set(user);
     this.isConfirmModalOpen.set(true);
   }
 
-  protected closeConfirmPromote(): void {
+  protected openConfirmRevoke(user: AuthUserDto): void {
+    this.isRevokeAction.set(true);
+    this.selectedUser.set(user);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  protected closeConfirmModal(): void {
     this.isConfirmModalOpen.set(false);
     this.selectedUser.set(null);
   }
 
-  protected onConfirmPromote(): void {
+  protected onConfirmAction(): void {
     const user = this.selectedUser();
 
     if (!user) {
@@ -123,13 +166,18 @@ export class UserManagementComponent {
 
     this.isPromoting.set(true);
 
-    this.roleService.assignLibrarian(user.id).subscribe({
+    const action$ = this.isRevokeAction()
+      ? this.roleService.revokeLibrarian(user.id)
+      : this.roleService.assignLibrarian(user.id);
+
+    action$.subscribe({
       next: () => {
-        this.toastService.show(
-          `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot bibliothecaris.`,
-          'success',
-        );
-        this.closeConfirmPromote();
+        const message = this.isRevokeAction()
+          ? `De bibliothecarisrol van ${this.userService.getDisplayName(user)} is succesvol ingetrokken.`
+          : `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot bibliothecaris.`;
+
+        this.toastService.show(message, 'success');
+        this.closeConfirmModal();
         this.refreshTrigger.update((v) => v + 1);
       },
       error: (error: HttpErrorResponseError) => {
