@@ -67,6 +67,37 @@ public class RoleService {
         return userMapper.toDto(targetUser);
     }
 
+    @Transactional
+    public AuthUserDto revokeLibrarian(Authentication authentication, String targetUserId) {
+        User currentUser = currentUserService.getCurrentUser(authentication);
+
+        boolean isLibrarian = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isLibrarian && !isAdmin) {
+            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen deze actie uitvoeren.");
+        }
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden met id: " + targetUserId));
+
+        if (targetUser.getRole().getRole() != Role.LIBRARIAN) {
+            throw new IllegalArgumentException("Alleen bibliothecarissen kunnen teruggezet worden naar leerkracht.");
+        }
+
+        if (!currentUser.getSchool().getId().equals(targetUser.getSchool().getId())) {
+            throw new IllegalStateException("Je kunt alleen bibliothecarissen van je eigen school beheren.");
+        }
+
+        RoleEntity teacherRole = getRoleEntity(Role.TEACHER.name());
+        targetUser.setRole(teacherRole);
+        userRepository.save(targetUser);
+
+        return userMapper.toDto(targetUser);
+    }
+
     /**
      * Resolves a role name string to a {@link Role} enum value and ensures the
      * corresponding

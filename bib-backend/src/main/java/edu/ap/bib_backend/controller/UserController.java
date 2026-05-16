@@ -33,8 +33,11 @@ public class UserController {
     }
 
     @GetMapping("/teachers")
-    public ResponseEntity<List<AuthUserDto>> getTeachers(Authentication authentication) {
-        return ResponseEntity.ok(userService.getTeachers(authentication));
+    public ResponseEntity<List<AuthUserDto>> getTeachers(
+            Authentication authentication,
+            @RequestParam(defaultValue = "false") boolean excludeLibrarians,
+            @RequestParam(defaultValue = "true") boolean excludeAdmins) {
+        return ResponseEntity.ok(userService.getTeachers(authentication, excludeLibrarians, excludeAdmins));
     }
 
     @PatchMapping("/me/campus")

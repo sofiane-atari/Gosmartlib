@@ -29,4 +29,12 @@ public class RoleController {
         AuthUserDto result = roleService.assignLibrarian(authentication, request.userId());
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/revoke-librarian")
+    public ResponseEntity<AuthUserDto> revokeLibrarian(
+            @Valid @RequestBody AssignLibrarianRequestDto request,
+            Authentication authentication) {
+        AuthUserDto result = roleService.revokeLibrarian(authentication, request.userId());
+        return ResponseEntity.ok(result);
+    }
 }

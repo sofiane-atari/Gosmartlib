@@ -80,7 +80,8 @@ public class UserService {
                 .toList();
     }
 
-    public List<AuthUserDto> getTeachers(Authentication authentication) {
+    public List<AuthUserDto> getTeachers(Authentication authentication,
+            boolean excludeLibrarians, boolean excludeAdmins) {
         String userId = currentUserService.extractCurrentUserId(authentication);
 
         boolean isLibrarian = authentication.getAuthorities().stream()
@@ -97,16 +98,28 @@ public class UserService {
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
 
-        Set<String> promotedUserIds = userRepository.findBySchoolId(school.getId()).stream()
-                .filter(u -> u.getRole().getRole() == Role.LIBRARIAN || u.getRole().getRole() == Role.ADMIN)
-                .map(User::getId)
-                .collect(java.util.stream.Collectors.toSet());
+        Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(school.getId()).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
 
         return rosterUsers.stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
                 .filter(dto -> dto.role() == Role.TEACHER)
-                .filter(dto -> !promotedUserIds.contains(dto.id()))
+                .map(dto -> {
+                    Role actualRole = localRolesByUserId.get(dto.id());
+                    if (actualRole != null) {
+                        return new AuthUserDto(
+                                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                                actualRole, dto.email(),
+                                dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
+                                dto.parentGroupNames(), dto.reviewBlocked(),
+                                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                                dto.school());
+                    }
+                    return dto;
+                })
+                .filter(dto -> !excludeLibrarians || dto.role() != Role.LIBRARIAN)
+                .filter(dto -> !excludeAdmins || dto.role() != Role.ADMIN)
                 .toList();
     }
 
