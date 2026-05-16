@@ -24,16 +24,19 @@ public class RoleService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final CurrentUserService currentUserService;
+    private final TokenStorageService tokenStorageService;
 
     public RoleService(
             RoleEntityRepository roleEntityRepository,
             UserRepository userRepository,
             UserMapper userMapper,
-            CurrentUserService currentUserService) {
+            CurrentUserService currentUserService,
+            TokenStorageService tokenStorageService) {
         this.roleEntityRepository = roleEntityRepository;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.currentUserService = currentUserService;
+        this.tokenStorageService = tokenStorageService;
     }
 
     @Transactional
@@ -63,6 +66,8 @@ public class RoleService {
         RoleEntity librarianRole = getRoleEntity(Role.LIBRARIAN.name());
         targetUser.setRole(librarianRole);
         userRepository.save(targetUser);
+
+        tokenStorageService.storeUserMetadata(targetUserId, "ROLE_LIBRARIAN");
 
         return userMapper.toDto(targetUser);
     }
@@ -94,6 +99,8 @@ public class RoleService {
         RoleEntity teacherRole = getRoleEntity(Role.TEACHER.name());
         targetUser.setRole(teacherRole);
         userRepository.save(targetUser);
+
+        tokenStorageService.storeUserMetadata(targetUserId, "ROLE_TEACHER");
 
         return userMapper.toDto(targetUser);
     }

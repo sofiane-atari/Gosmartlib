@@ -6,6 +6,36 @@
     </div>
   </div>
 
+  @if (canSelfRevoke()) {
+    <section class="self-profile-card">
+      <div class="self-profile-card__body">
+        <div class="self-profile-card__icon">
+          <lucide-icon [name]="UserRound"></lucide-icon>
+        </div>
+
+        <div class="self-profile-card__info">
+          <strong>{{ userService.getDisplayName(currentUser()) }}</strong>
+          <span [class]="roleBadgeClass(currentUser()!.role)">
+            {{ userService.getRoleLabel(currentUser()!.role) }}
+          </span>
+          <small>Dit is jouw account. Je kan je eigen bibliothecarisrol intrekken.</small>
+        </div>
+
+        <div class="self-profile-card__action">
+          <button
+            type="button"
+            class="btn-revoke"
+            [disabled]="isPromoting()"
+            (click)="openSelfRevoke()"
+          >
+            <lucide-icon [name]="ShieldOff"></lucide-icon>
+            Intrekken bibliothecarisrol
+          </button>
+        </div>
+      </div>
+    </section>
+  }
+
   <section class="search-panel">
     <app-search-bar
       placeholder="Zoek leerkrachten op naam of e-mail..."

@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
@@ -12,10 +13,12 @@ import {
   ShieldCheck,
   ShieldOff,
   Loader,
+  UserRound,
 } from 'lucide-angular';
 
 import { UserService } from '../../services/user/user.service';
 import { RoleService } from '../../services/role/role.service';
+import { AuthService } from '../../services/authorization/auth.service';
 import { ToastService } from '../../services/toast/toast.service';
 import { AuthUserDto, Role } from '../../model/auth.model';
 import { HttpErrorResponseError } from '../../error-reponse.model';
@@ -44,9 +47,12 @@ export class UserManagementComponent {
   protected readonly ShieldCheck = ShieldCheck;
   protected readonly ShieldOff = ShieldOff;
   protected readonly Loader = Loader;
+  protected readonly UserRound = UserRound;
 
   protected readonly userService = inject(UserService);
   private readonly roleService = inject(RoleService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
   private readonly refreshTrigger = signal(0);
@@ -57,6 +63,12 @@ export class UserManagementComponent {
   protected readonly isConfirmModalOpen = signal(false);
   protected readonly isPromoting = signal(false);
   protected readonly isRevokeAction = signal(false);
+
+  protected readonly currentUser = this.authService.currentUser;
+
+  protected readonly canSelfRevoke = computed(() =>
+    this.currentUser()?.role === 'LIBRARIAN',
+  );
 
   constructor() {
     this.searchSubject
@@ -75,12 +87,15 @@ export class UserManagementComponent {
   protected readonly teachers = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const all = this.teachersResponse();
+    const currentId = this.currentUser()?.id;
+
+    const filtered = all.filter((u) => u.id !== currentId);
 
     if (!query) {
-      return all;
+      return filtered;
     }
 
-    return all.filter(
+    return filtered.filter(
       (u) =>
         u.fullName?.toLowerCase().includes(query) ||
         u.firstName?.toLowerCase().includes(query) ||
@@ -140,6 +155,16 @@ export class UserManagementComponent {
     this.searchSubject.next(query);
   }
 
+  protected openSelfRevoke(): void {
+    const user = this.currentUser();
+    if (!user) {
+      return;
+    }
+    this.isRevokeAction.set(true);
+    this.selectedUser.set(user);
+    this.isConfirmModalOpen.set(true);
+  }
+
   protected openConfirmPromote(user: AuthUserDto): void {
     this.isRevokeAction.set(false);
     this.selectedUser.set(user);
@@ -178,7 +203,12 @@ export class UserManagementComponent {
 
         this.toastService.show(message, 'success');
         this.closeConfirmModal();
+        this.authService.fetchCurrentUser();
         this.refreshTrigger.update((v) => v + 1);
+
+        if (this.isRevokeAction() && user.id === this.currentUser()?.id) {
+          this.router.navigate(['/catalog']);
+        }
       },
       error: (error: HttpErrorResponseError) => {
         this.handleError(error);
