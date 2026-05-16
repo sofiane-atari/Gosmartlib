@@ -22,6 +22,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.PageDTO;
@@ -536,52 +540,99 @@ class LoanServiceTest {
     }
 
     @Test
-    void Given_LoansExistForCurrentUser_When_FindHistoryForCurrentUser_Then_ReturnsHistoryWithActiveAndReturned() {
+    void givenLoansExistForCurrentUser_whenFindHistoryForCurrentUser_thenReturnsHistoryWithActiveAndReturned() {
+        // Arrange
         Campus campus = new Campus();
         campus.setId(1L);
-        lenient().when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
-        when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
 
         Loan activeLoan = new Loan();
         activeLoan.setReturnedDate(null);
         activeLoan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+
         Loan returnedLoan = new Loan();
         returnedLoan.setReturnedDate(LocalDate.now());
 
-        when(loanRepository.findByUserIdAndCampusIdOrderByLoanDateDesc("user123", 1L))
-                .thenReturn(List.of(activeLoan, returnedLoan));
-
-        when(loanMapper.toDto(activeLoan)).thenReturn(LoanDTO.builder()
+        LoanDTO activeLoanDto = LoanDTO.builder()
                 .status(edu.ap.bib_backend.jpa.enums.LoanStatus.ACTIVE)
                 .books(List.of(LoanBookDTO.builder().id(1L).build()))
-                .build());
-        when(loanMapper.toDto(returnedLoan)).thenReturn(LoanDTO.builder()
+                .build();
+
+        LoanDTO returnedLoanDto = LoanDTO.builder()
                 .status(edu.ap.bib_backend.jpa.enums.LoanStatus.RETURNED)
                 .books(List.of(LoanBookDTO.builder().id(2L).build()))
-                .build());
+                .build();
 
-        LoanHistoryDTO result = loanService.findHistoryForCurrentUser(authentication);
+        when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
 
+        when(loanRepository.findActiveHistoryLoans("user123", 1L))
+                .thenReturn(List.of(activeLoan));
+
+        when(loanRepository.findReturnedHistoryLoans(
+                eq("user123"),
+                eq(1L),
+                any(Pageable.class)
+        )).thenReturn(new PageImpl<>(List.of(returnedLoan), PageRequest.of(0, 1), 1));
+
+        when(loanRepository.countActiveHistoryLoans("user123", 1L)).thenReturn(1L);
+        when(loanRepository.countReturnedHistoryLoans("user123", 1L)).thenReturn(1L);
+        when(loanRepository.countLoanedBookCopiesForUserHistory("user123", 1L)).thenReturn(2L);
+
+        when(loanMapper.toDtoList(List.of(activeLoan))).thenReturn(List.of(activeLoanDto));
+        when(loanMapper.toDto(returnedLoan)).thenReturn(returnedLoanDto);
+
+        // Act
+        LoanHistoryDTO result = loanService.findHistoryForCurrentUser(0, 0, authentication);
+
+        // Assert
         assertNotNull(result);
         assertEquals(1, result.activeLoanCount());
         assertEquals(1, result.returnedLoanCount());
         assertEquals(2, result.totalLoanedBookCount());
-    }
+        assertEquals(1, result.activeLoans().size());
+        assertEquals(1, result.returnedLoans().data().size());
+        assertEquals(0, result.returnedLoans().meta().currentPage());
+        assertEquals(1, result.returnedLoans().meta().pageSize());
+        assertEquals(1, result.returnedLoans().meta().totalItems());
+        assertEquals(1, result.returnedLoans().meta().totalPages());
+        }
 
     @Test
-    void Given_NoLoansForCurrentUser_When_FindHistoryForCurrentUser_Then_ReturnsEmptyHistory() {
+void givenNoLoansForCurrentUser_whenFindHistoryForCurrentUser_thenReturnsEmptyHistory() {
+        // Arrange
+        Campus campus = new Campus();
+        campus.setId(1L);
+
         when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
-        when(loanRepository.findByUserIdAndCampusIdOrderByLoanDateDesc("user123", 1L))
+
+        when(loanRepository.findActiveHistoryLoans("user123", 1L))
                 .thenReturn(List.of());
 
-        LoanHistoryDTO result = loanService.findHistoryForCurrentUser(authentication);
+        when(loanRepository.findReturnedHistoryLoans(
+                eq("user123"),
+                eq(1L),
+                any(Pageable.class)
+        )).thenReturn(Page.empty(PageRequest.of(0, 1)));
 
+        when(loanRepository.countActiveHistoryLoans("user123", 1L)).thenReturn(0L);
+        when(loanRepository.countReturnedHistoryLoans("user123", 1L)).thenReturn(0L);
+        when(loanRepository.countLoanedBookCopiesForUserHistory("user123", 1L)).thenReturn(0L);
+
+        when(loanMapper.toDtoList(List.of())).thenReturn(List.of());
+
+        // Act
+        LoanHistoryDTO result = loanService.findHistoryForCurrentUser(0, 0, authentication);
+
+        // Assert
         assertNotNull(result);
         assertEquals(0, result.activeLoanCount());
         assertEquals(0, result.returnedLoanCount());
         assertEquals(0, result.totalLoanedBookCount());
-    }
+        assertTrue(result.activeLoans().isEmpty());
+        assertTrue(result.returnedLoans().data().isEmpty());
+        assertEquals(0, result.returnedLoans().meta().totalItems());
+        }
 
     @Test
     void Given_EmptyLoanList_When_FindAll_Then_ReturnsEmptyPage() {

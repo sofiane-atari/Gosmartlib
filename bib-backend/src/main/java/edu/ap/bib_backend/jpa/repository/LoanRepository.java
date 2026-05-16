@@ -78,23 +78,10 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                 @Param("campusId") Long campusId
         );
 
-        List<Loan> findByUserIdOrderByLoanDateDesc(String userId);
 
         List<Loan> findByCampusId(Long campusId);
 
-        List<Loan> findByCampusIdAndReturnedDateIsNull(Long campusId);
-
-        long countByUserId(String userId);
-
-        long countByUserIdAndReturnedDateIsNull(String userId);
-
-        @Query("""
-                        select count(l)
-                        from Loan l
-                        where l.user.id = :userId
-                        and l.returnedDate is not null
-                        """)
-        long countReturnedLoansByUserId(String userId);
+        List<Loan> findByCampusIdAndReturnedDateIsNull(Long id);
 
         @Query(value = """
                         select count(*)
@@ -144,4 +131,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
         long countByReturnedDateIsNullAndReturnDateBefore(LocalDate today);
 
         long countByReturnedDateIsNotNull();
+
+        
 }
