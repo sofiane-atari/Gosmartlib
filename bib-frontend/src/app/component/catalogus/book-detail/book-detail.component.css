@@ -4,6 +4,8 @@
 :host {
   display: block;
   font-family: var(--main-font), sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 * {
@@ -16,6 +18,8 @@
   min-height: 100vh;
   background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%);
   padding: 16px 8px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .detail-wrapper {
@@ -100,6 +104,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 .content-header,
@@ -657,6 +662,8 @@
   position: relative;
   overflow: hidden;
   border-radius: 8px;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
 }
 .related-books-carousel-container {
@@ -665,6 +672,9 @@
   overflow-x: auto;
   scroll-behavior: smooth;
   padding: 4px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   scrollbar-width: none;
 }
 .related-books-carousel-container::-webkit-scrollbar {
