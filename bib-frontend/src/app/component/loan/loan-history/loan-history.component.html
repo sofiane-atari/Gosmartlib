@@ -97,7 +97,7 @@
   } @else if (
     !history() ||
     ((history()?.activeLoans?.length ?? 0) === 0 &&
-      (history()?.returnedLoans?.length ?? 0) === 0)
+      returnedLoans().length === 0)
   ) {
     <div class="empty-state">
       <lucide-icon [name]="LibraryBig"></lucide-icon>
@@ -199,7 +199,7 @@
         </div>
       } @else {
         <div class="loan-list">
-          @for (loan of history()?.returnedLoans ?? []; track loan.id) {
+          @for (loan of returnedLoans(); track loan.id) {
             @for (book of loan.books; track book.id) {
               <article class="loan-card loan-card--returned">
                 <app-button-hover-help
@@ -262,6 +262,14 @@
             }
           }
         </div>
+        @if (returnedLoansMeta(); as meta) {
+          @if (meta.totalPages > 1) {
+            <app-paging
+              [meta]="meta"
+              (pageChange)="handleReturnedLoansPageChange($event)"
+            />
+          }
+        }
       }
     </section>
   }

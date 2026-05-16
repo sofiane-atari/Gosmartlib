@@ -1,26 +1,27 @@
 <div class="school-dashboard">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>School Beheer</h1>
+      <h1>School beheer</h1>
       <p>Beheer scholen en campussen in het netwerk</p>
     </div>
 
     <button type="button" class="btn-new" (click)="openCreateModal()">
       <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
-      Nieuwe School
+      Nieuwe school
     </button>
   </div>
 
   <section class="stat-cards">
     <app-button-hover-help
       class="stat-card-hover"
-      text="Dit is het totaal aantal scholen dat momenteel in het netwerk staat.">
+      text="Dit is het totaal aantal scholen dat momenteel in het netwerk staat."
+    >
       <article class="stat-card stat-card--purple">
         <div class="stat-card__icon">
           <lucide-icon [name]="SchoolIcon"></lucide-icon>
         </div>
         <div>
-          <p>Totaal Scholen</p>
+          <p>Totaal scholen</p>
           <strong>{{ totalSchools() }}</strong>
         </div>
       </article>
@@ -28,13 +29,14 @@
 
     <app-button-hover-help
       class="stat-card-hover"
-      text="Dit is het totaal aantal campussen over alle scholen heen.">
+      text="Dit is het totaal aantal campussen over alle scholen heen."
+    >
       <article class="stat-card stat-card--blue">
         <div class="stat-card__icon">
           <lucide-icon [name]="Landmark"></lucide-icon>
         </div>
         <div>
-          <p>Totaal Campussen</p>
+          <p>Totaal campussen</p>
           <strong>{{ totalCampuses() }}</strong>
         </div>
       </article>
@@ -42,13 +44,14 @@
 
     <app-button-hover-help
       class="stat-card-hover"
-      text="Dit is het totaal aantal boeken dat gekoppeld is aan alle scholen samen.">
+      text="Dit is het totaal aantal boeken dat gekoppeld is aan alle scholen samen."
+    >
       <article class="stat-card stat-card--green">
         <div class="stat-card__icon">
           <lucide-icon [name]="BookOpen"></lucide-icon>
         </div>
         <div>
-          <p>Totaal Boeken</p>
+          <p>Totaal boeken</p>
           <strong>{{ totalBooks() }}</strong>
         </div>
       </article>
@@ -74,13 +77,13 @@
     <section class="table-card">
       <table>
         <thead>
-        <tr>
-          <th>School</th>
-          <th>Domein</th>
-          <th>Boeken</th>
-          <th>Campussen</th>
-          <th class="actions-heading">Acties</th>
-        </tr>
+          <tr>
+            <th>School</th>
+            <th>Domein</th>
+            <th>Boeken</th>
+            <th>Campussen</th>
+            <th class="actions-heading">Acties</th>
+          </tr>
         </thead>
 
         <tbody>
@@ -95,7 +98,12 @@
                   <div>
                     <strong>{{ school.name }}</strong>
                     <span>
-                      Toegevoegd op {{ school.createdAt ? (school.createdAt | date: 'dd/MM/yyyy') : 'onbekend' }}
+                      Toegevoegd op
+                      {{
+                        school.createdAt
+                          ? (school.createdAt | date: "dd/MM/yyyy")
+                          : "onbekend"
+                      }}
                     </span>
                   </div>
                 </div>
@@ -115,7 +123,10 @@
 
               <td>
                 <div class="campus-list">
-                  @for (campus of getCampusesForSchool(school.id); track campus.id) {
+                  @for (
+                    campus of getCampusesForSchool(school.id);
+                    track campus.id
+                  ) {
                     <button
                       type="button"
                       class="campus-chip"
@@ -140,7 +151,9 @@
 
               <td>
                 <div class="table-actions">
-                  <app-button-hover-help text="Wijzig de gegevens van deze school.">
+                  <app-button-hover-help
+                    text="Wijzig de gegevens van deze school."
+                  >
                     <button
                       type="button"
                       class="icon-button icon-button--edit"
@@ -152,7 +165,9 @@
                     </button>
                   </app-button-hover-help>
 
-                  <app-button-hover-help text="Verwijder deze school uit het netwerk.">
+                  <app-button-hover-help
+                    text="Verwijder deze school uit het netwerk."
+                  >
                     <button
                       type="button"
                       class="icon-button icon-button--delete"
@@ -200,7 +215,10 @@
               placeholder="bijv. AP Hogeschool"
             />
 
-            @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
+            @if (
+              schoolForm.controls.name.invalid &&
+              schoolForm.controls.name.touched
+            ) {
               <small class="field-inline-error">Schoolnaam is verplicht.</small>
             }
           </div>
@@ -214,7 +232,10 @@
               placeholder="bijv. aphogeschool.smartschool.be"
             />
 
-            @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
+            @if (
+              schoolForm.controls.domainName.invalid &&
+              schoolForm.controls.domainName.touched
+            ) {
               <small class="field-inline-error">Domeinnaam is verplicht.</small>
             }
           </div>
@@ -230,14 +251,22 @@
             <h3 class="modal-section-title">Campussen</h3>
 
             @if (hasMultipleCampuses) {
-              <button type="button" class="campus-add-button" (click)="addCampusToCreateForm()">
+              <button
+                type="button"
+                class="campus-add-button"
+                (click)="addCampusToCreateForm()"
+              >
                 + Campus
               </button>
             }
           </div>
 
           <div formArrayName="campuses" class="create-campus-list">
-            @for (campusGroup of campusControls; track $index; let campusIndex = $index) {
+            @for (
+              campusGroup of campusControls;
+              track $index;
+              let campusIndex = $index
+            ) {
               <section class="create-campus-card" [formGroupName]="campusIndex">
                 <div class="create-campus-card__header">
                   <strong>Campus {{ campusIndex + 1 }}</strong>
@@ -263,8 +292,13 @@
                     placeholder="bijv. Campus Zuid"
                   />
 
-                  @if (isCreateCampusControlInvalid(campusIndex, 'name') || (campusIndex === 0 && isSingleCampusNameMissing)) {
-                    <small class="field-inline-error">{{ getCreateCampusNameError(campusIndex) }}</small>
+                  @if (
+                    isCreateCampusControlInvalid(campusIndex, "name") ||
+                    (campusIndex === 0 && isSingleCampusNameMissing)
+                  ) {
+                    <small class="field-inline-error">{{
+                      getCreateCampusNameError(campusIndex)
+                    }}</small>
                   }
                 </div>
 
@@ -277,13 +311,17 @@
                     placeholder="Straat en nummer"
                   />
 
-                  @if (isCreateCampusControlInvalid(campusIndex, 'address')) {
-                    <small class="field-inline-error">Adres is verplicht.</small>
+                  @if (isCreateCampusControlInvalid(campusIndex, "address")) {
+                    <small class="field-inline-error"
+                      >Adres is verplicht.</small
+                    >
                   }
                 </div>
 
                 <div class="modal-field">
-                  <label [for]="'campusPostalCode' + campusIndex">Postcode</label>
+                  <label [for]="'campusPostalCode' + campusIndex"
+                    >Postcode</label
+                  >
                   <input
                     [id]="'campusPostalCode' + campusIndex"
                     type="number"
@@ -291,13 +329,19 @@
                     placeholder="bijv. 2000"
                   />
 
-                  @if (isCreateCampusControlInvalid(campusIndex, 'postalCode')) {
-                    <small class="field-inline-error">Postcode moet groter zijn dan 0.</small>
+                  @if (
+                    isCreateCampusControlInvalid(campusIndex, "postalCode")
+                  ) {
+                    <small class="field-inline-error"
+                      >Postcode moet groter zijn dan 0.</small
+                    >
                   }
                 </div>
 
                 <div class="modal-field">
-                  <label [for]="'campusContactPhone' + campusIndex">Telefoonnummer</label>
+                  <label [for]="'campusContactPhone' + campusIndex"
+                    >Telefoonnummer</label
+                  >
                   <input
                     [id]="'campusContactPhone' + campusIndex"
                     type="text"
@@ -307,7 +351,9 @@
                 </div>
 
                 <div class="modal-field">
-                  <label [for]="'campusContactEmail' + campusIndex">E-mailadres</label>
+                  <label [for]="'campusContactEmail' + campusIndex"
+                    >E-mailadres</label
+                  >
                   <input
                     [id]="'campusContactEmail' + campusIndex"
                     type="email"
@@ -315,8 +361,12 @@
                     placeholder="bijv. info@school.be"
                   />
 
-                  @if (isCreateCampusControlInvalid(campusIndex, 'contactEmail')) {
-                    <small class="field-inline-error">Vul een geldig e-mailadres in.</small>
+                  @if (
+                    isCreateCampusControlInvalid(campusIndex, "contactEmail")
+                  ) {
+                    <small class="field-inline-error"
+                      >Vul een geldig e-mailadres in.</small
+                    >
                   }
                 </div>
               </section>
@@ -324,12 +374,16 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="btn-cancel" (click)="closeCreateModal()">
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="closeCreateModal()"
+            >
               Annuleren
             </button>
 
             <button type="submit" class="btn-save" [disabled]="isSubmitting()">
-              {{ isSubmitting() ? 'Toevoegen...' : 'Opslaan' }}
+              {{ isSubmitting() ? "Toevoegen..." : "Opslaan" }}
             </button>
           </div>
         </form>
@@ -357,7 +411,10 @@
               placeholder="bijv. AP Hogeschool"
             />
 
-            @if (schoolForm.controls.name.invalid && schoolForm.controls.name.touched) {
+            @if (
+              schoolForm.controls.name.invalid &&
+              schoolForm.controls.name.touched
+            ) {
               <small class="field-inline-error">Schoolnaam is verplicht.</small>
             }
           </div>
@@ -371,7 +428,10 @@
               placeholder="bijv. aphogeschool.smartschool.be"
             />
 
-            @if (schoolForm.controls.domainName.invalid && schoolForm.controls.domainName.touched) {
+            @if (
+              schoolForm.controls.domainName.invalid &&
+              schoolForm.controls.domainName.touched
+            ) {
               <small class="field-inline-error">Domeinnaam is verplicht.</small>
             }
           </div>
@@ -387,7 +447,7 @@
             </button>
 
             <button type="submit" class="btn-save" [disabled]="isUpdating()">
-              {{ isUpdating() ? 'Wijzigen...' : 'Opslaan' }}
+              {{ isUpdating() ? "Wijzigen..." : "Opslaan" }}
             </button>
           </div>
         </form>
@@ -415,50 +475,94 @@
               placeholder="bijv. Campus Zuid"
             />
 
-            @if (campusForm.controls.name.invalid && campusForm.controls.name.touched) {
+            @if (
+              campusForm.controls.name.invalid &&
+              campusForm.controls.name.touched
+            ) {
               <small class="field-inline-error">Campusnaam is verplicht.</small>
             }
           </div>
 
           <div class="modal-field">
             <label for="campusCreateAddress">Adres</label>
-            <input id="campusCreateAddress" type="text" formControlName="address" placeholder="Straat en nummer" />
+            <input
+              id="campusCreateAddress"
+              type="text"
+              formControlName="address"
+              placeholder="Straat en nummer"
+            />
 
-            @if (campusForm.controls.address.invalid && campusForm.controls.address.touched) {
+            @if (
+              campusForm.controls.address.invalid &&
+              campusForm.controls.address.touched
+            ) {
               <small class="field-inline-error">Adres is verplicht.</small>
             }
           </div>
 
           <div class="modal-field">
             <label for="campusCreatePostalCode">Postcode</label>
-            <input id="campusCreatePostalCode" type="number" formControlName="postalCode" placeholder="bijv. 2000" />
+            <input
+              id="campusCreatePostalCode"
+              type="number"
+              formControlName="postalCode"
+              placeholder="bijv. 2000"
+            />
 
-            @if (campusForm.controls.postalCode.invalid && campusForm.controls.postalCode.touched) {
-              <small class="field-inline-error">Postcode moet groter zijn dan 0.</small>
+            @if (
+              campusForm.controls.postalCode.invalid &&
+              campusForm.controls.postalCode.touched
+            ) {
+              <small class="field-inline-error"
+                >Postcode moet groter zijn dan 0.</small
+              >
             }
           </div>
 
           <div class="modal-field">
             <label for="campusCreateContactPhone">Telefoonnummer</label>
-            <input id="campusCreateContactPhone" type="text" formControlName="contactPhone" placeholder="bijv. 03 123 45 67" />
+            <input
+              id="campusCreateContactPhone"
+              type="text"
+              formControlName="contactPhone"
+              placeholder="bijv. 03 123 45 67"
+            />
           </div>
 
           <div class="modal-field">
             <label for="campusCreateContactEmail">E-mailadres</label>
-            <input id="campusCreateContactEmail" type="email" formControlName="contactEmail" placeholder="bijv. info@school.be" />
+            <input
+              id="campusCreateContactEmail"
+              type="email"
+              formControlName="contactEmail"
+              placeholder="bijv. info@school.be"
+            />
 
-            @if (campusForm.controls.contactEmail.invalid && campusForm.controls.contactEmail.touched) {
-              <small class="field-inline-error">Vul een geldig e-mailadres in.</small>
+            @if (
+              campusForm.controls.contactEmail.invalid &&
+              campusForm.controls.contactEmail.touched
+            ) {
+              <small class="field-inline-error"
+                >Vul een geldig e-mailadres in.</small
+              >
             }
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="btn-cancel" (click)="closeCampusModal()">
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="closeCampusModal()"
+            >
               Annuleren
             </button>
 
-            <button type="submit" class="btn-save" [disabled]="isCampusSubmitting()">
-              {{ isCampusSubmitting() ? 'Toevoegen...' : 'Opslaan' }}
+            <button
+              type="submit"
+              class="btn-save"
+              [disabled]="isCampusSubmitting()"
+            >
+              {{ isCampusSubmitting() ? "Toevoegen..." : "Opslaan" }}
             </button>
           </div>
         </form>
@@ -486,40 +590,76 @@
               placeholder="bijv. Campus Zuid"
             />
 
-            @if (campusForm.controls.name.invalid && campusForm.controls.name.touched) {
+            @if (
+              campusForm.controls.name.invalid &&
+              campusForm.controls.name.touched
+            ) {
               <small class="field-inline-error">Campusnaam is verplicht.</small>
             }
           </div>
 
           <div class="modal-field">
             <label for="campusEditAddress">Adres</label>
-            <input id="campusEditAddress" type="text" formControlName="address" placeholder="Straat en nummer" />
+            <input
+              id="campusEditAddress"
+              type="text"
+              formControlName="address"
+              placeholder="Straat en nummer"
+            />
 
-            @if (campusForm.controls.address.invalid && campusForm.controls.address.touched) {
+            @if (
+              campusForm.controls.address.invalid &&
+              campusForm.controls.address.touched
+            ) {
               <small class="field-inline-error">Adres is verplicht.</small>
             }
           </div>
 
           <div class="modal-field">
             <label for="campusEditPostalCode">Postcode</label>
-            <input id="campusEditPostalCode" type="number" formControlName="postalCode" placeholder="bijv. 2000" />
+            <input
+              id="campusEditPostalCode"
+              type="number"
+              formControlName="postalCode"
+              placeholder="bijv. 2000"
+            />
 
-            @if (campusForm.controls.postalCode.invalid && campusForm.controls.postalCode.touched) {
-              <small class="field-inline-error">Postcode moet groter zijn dan 0.</small>
+            @if (
+              campusForm.controls.postalCode.invalid &&
+              campusForm.controls.postalCode.touched
+            ) {
+              <small class="field-inline-error"
+                >Postcode moet groter zijn dan 0.</small
+              >
             }
           </div>
 
           <div class="modal-field">
             <label for="campusEditContactPhone">Telefoonnummer</label>
-            <input id="campusEditContactPhone" type="text" formControlName="contactPhone" placeholder="bijv. 03 123 45 67" />
+            <input
+              id="campusEditContactPhone"
+              type="text"
+              formControlName="contactPhone"
+              placeholder="bijv. 03 123 45 67"
+            />
           </div>
 
           <div class="modal-field">
             <label for="campusEditContactEmail">E-mailadres</label>
-            <input id="campusEditContactEmail" type="email" formControlName="contactEmail" placeholder="bijv. info@school.be" />
+            <input
+              id="campusEditContactEmail"
+              type="email"
+              formControlName="contactEmail"
+              placeholder="bijv. info@school.be"
+            />
 
-            @if (campusForm.controls.contactEmail.invalid && campusForm.controls.contactEmail.touched) {
-              <small class="field-inline-error">Vul een geldig e-mailadres in.</small>
+            @if (
+              campusForm.controls.contactEmail.invalid &&
+              campusForm.controls.contactEmail.touched
+            ) {
+              <small class="field-inline-error"
+                >Vul een geldig e-mailadres in.</small
+              >
             }
           </div>
 
@@ -533,8 +673,12 @@
               Annuleren
             </button>
 
-            <button type="submit" class="btn-save" [disabled]="isCampusSubmitting()">
-              {{ isCampusSubmitting() ? 'Wijzigen...' : 'Opslaan' }}
+            <button
+              type="submit"
+              class="btn-save"
+              [disabled]="isCampusSubmitting()"
+            >
+              {{ isCampusSubmitting() ? "Wijzigen..." : "Opslaan" }}
             </button>
           </div>
         </form>

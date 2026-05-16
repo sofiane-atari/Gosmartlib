@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 import edu.ap.bib_backend.jpa.entity.Loan;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,23 +15,73 @@ import edu.ap.bib_backend.projection.report.PopularGenreProjection;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
 
-        List<Loan> findByUserIdOrderByLoanDateDesc(String userId);
+        @Query("""
+                select l
+                from Loan l
+                where l.user.id = :userId
+                and l.campus.id = :campusId
+                and l.returnedDate is null
+                order by l.loanDate desc
+                """)
+        List<Loan> findActiveHistoryLoans(
+                @Param("userId") String userId,
+                @Param("campusId") Long campusId
+        );
+
+        @Query("""
+                select l
+                from Loan l
+                where l.user.id = :userId
+                and l.campus.id = :campusId
+                and l.returnedDate is not null
+                order by l.returnedDate desc, l.loanDate desc
+                """)
+        Page<Loan> findReturnedHistoryLoans(
+                @Param("userId") String userId,
+                @Param("campusId") Long campusId,
+                Pageable pageable
+        );
+
+        @Query("""
+                select count(l)
+                from Loan l
+                where l.user.id = :userId
+                and l.campus.id = :campusId
+                and l.returnedDate is null
+                """)
+        long countActiveHistoryLoans(
+                @Param("userId") String userId,
+                @Param("campusId") Long campusId
+        );
+
+        @Query("""
+                select count(l)
+                from Loan l
+                where l.user.id = :userId
+                and l.campus.id = :campusId
+                and l.returnedDate is not null
+                """)
+        long countReturnedHistoryLoans(
+                @Param("userId") String userId,
+                @Param("campusId") Long campusId
+        );
+
+        @Query(value = """
+                select count(*)
+                from loans l
+                join loan_copies lc on lc.loan_id = l.id
+                where l.user_id = :userId
+                and l.campus_id = :campusId
+                """, nativeQuery = true)
+        long countLoanedBookCopiesForUserHistory(
+                @Param("userId") String userId,
+                @Param("campusId") Long campusId
+        );
+
 
         List<Loan> findByCampusId(Long campusId);
 
-        List<Loan> findByCampusIdAndReturnedDateIsNull(Long campusId);
-
-        long countByUserId(String userId);
-
-        long countByUserIdAndReturnedDateIsNull(String userId);
-
-        @Query("""
-                        select count(l)
-                        from Loan l
-                        where l.user.id = :userId
-                        and l.returnedDate is not null
-                        """)
-        long countReturnedLoansByUserId(String userId);
+        List<Loan> findByCampusIdAndReturnedDateIsNull(Long id);
 
         @Query(value = """
                         select count(*)
@@ -73,11 +126,11 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         """, nativeQuery = true)
         List<PopularGenreProjection> findPopularGenresForUsers(@Param("userIds") List<String> userIds);
 
-        List<Loan> findByUserIdAndCampusIdOrderByLoanDateDesc(String userId, Long campusId);
-
         long countByReturnedDateIsNullAndReturnDateGreaterThanEqual(LocalDate today);
 
         long countByReturnedDateIsNullAndReturnDateBefore(LocalDate today);
 
         long countByReturnedDateIsNotNull();
+
+        
 }

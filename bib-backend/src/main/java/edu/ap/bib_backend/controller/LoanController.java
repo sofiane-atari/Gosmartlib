@@ -2,7 +2,6 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
-import edu.ap.bib_backend.dto.loan.LoanExtensionDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
@@ -63,8 +62,12 @@ public class LoanController {
     }
 
     @GetMapping("/me/history")
-    public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(Authentication authentication) {
-        return ResponseEntity.ok(loanService.findHistoryForCurrentUser(authentication));
+    public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(loanService.findHistoryForCurrentUser(page, pageSize, authentication));
     }
 
     @PatchMapping("/{loanId}/extend")
