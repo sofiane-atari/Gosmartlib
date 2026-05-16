@@ -169,8 +169,9 @@ export class BookService {
     });
   }
 
-  public addCopy(bookId: number): Observable<Book> {
-    return this.http.post<Book>(`${this.apiUrl}/${bookId}/copies`, {});
+  public addCopy(bookId: number, campusId?: number | null): Observable<Book> {
+    const options = campusId ? { params: { campusId } } : {};
+    return this.http.post<Book>(`${this.apiUrl}/${bookId}/copies`, {}, options);
   }
 
   getRelatedBooksCarousel(

@@ -781,10 +781,58 @@ class BookServiceTest {
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
-        BookDTO result = bs.addCopyToBook(11L, authentication);
+        BookDTO result = bs.addCopyToBook(11L, null, authentication);
 
         assertThat(result.getId()).isEqualTo(11L);
 
+        then(bcr).should().save(any(BookCopy.class));
+    }
+
+    @Test
+    @DisplayName("Given book exists in another campus, When addCopyToBook is called for target campus, Then create campus book and copy")
+    void givenBookExistsInAnotherCampus_whenAddCopyToBook_thenCreateCampusBookAndCopy() {
+        Campus targetCampus = new Campus();
+        targetCampus.setId(2L);
+        targetCampus.setSchool(school);
+
+        Book sourceBook = createBook(
+                92L,
+                "9781234567890",
+                "Titel",
+                "Auteur",
+                123,
+                null,
+                "Beschrijving",
+                2020,
+                0.0,
+                Set.of()
+        );
+        sourceBook.setCampus(campus);
+
+        Book targetBook = new Book();
+        targetBook.setId(93L);
+        targetBook.setIsbn(sourceBook.getIsbn());
+        targetBook.setTitle(sourceBook.getTitle());
+        targetBook.setGenres(new HashSet<>());
+        targetBook.setCampus(targetCampus);
+
+        BookDTO dto = new BookDTO();
+        dto.setId(93L);
+
+        given(campusRepository.findByIdAndSchoolId(2L, 1L)).willReturn(Optional.of(targetCampus));
+        given(br.findByIdAndCampusId(92L, 2L)).willReturn(Optional.empty());
+        given(br.findByIdAndCampusSchoolId(92L, 1L)).willReturn(Optional.of(sourceBook));
+        given(br.findByIsbnAndCampusId("9781234567890", 2L)).willReturn(Optional.empty());
+        given(br.save(any(Book.class))).willReturn(targetBook);
+        given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(bookMapper1.toDTO(targetBook)).willReturn(dto);
+
+        BookDTO result = bs.addCopyToBook(92L, 2L, authentication);
+
+        assertThat(result.getId()).isEqualTo(93L);
+
+        then(br).should().findByIdAndCampusSchoolId(92L, 1L);
+        then(br).should().save(any(Book.class));
         then(bcr).should().save(any(BookCopy.class));
     }
 

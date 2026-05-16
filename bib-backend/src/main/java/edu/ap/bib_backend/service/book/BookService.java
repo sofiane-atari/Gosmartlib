@@ -95,9 +95,11 @@ public class BookService {
     }
 
     @Transactional
-    public BookDTO addCopyToBook(Long bookId, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Book book = findBookInCampusOrThrow(bookId, campus.getId());
+    public BookDTO addCopyToBook(Long bookId, Long campusId, Authentication authentication) {
+        Campus campus = campusId == null
+                ? currentUserService.getCurrentUserCampus(authentication)
+                : resolveCampusForCurrentUserSchool(campusId, authentication);
+        Book book = findBookForCopyTarget(bookId, campus, authentication);
 
         createAvailableCopy(book, campus);
 
@@ -124,6 +126,48 @@ public class BookService {
         book.setCampus(campus);
         book.setGenres(genresFromDTO(dto.getGenres()));
         book.setReadingLevel(resolveReadingLevel(dto.getReadingLevel()));
+        return bookRepository.save(book);
+    }
+
+    private Book findBookForCopyTarget(Long bookId, Campus targetCampus, Authentication authentication) {
+        Optional<Book> targetCampusBook = bookRepository.findByIdAndCampusId(bookId, targetCampus.getId());
+
+        if (targetCampusBook.isPresent()) {
+            return targetCampusBook.get();
+        }
+
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Book sourceBook = findBookInSchoolOrThrow(bookId, school.getId());
+        validateBookVisibility(sourceBook, authentication);
+
+        return findExistingTargetBook(sourceBook, targetCampus)
+                .orElseGet(() -> createBookForCampus(sourceBook, targetCampus));
+    }
+
+    private Optional<Book> findExistingTargetBook(Book sourceBook, Campus targetCampus) {
+        String isbn = sourceBook.getIsbn();
+
+        if (isbn == null || isbn.isBlank()) {
+            return Optional.empty();
+        }
+
+        return bookRepository.findByIsbnAndCampusId(isbn, targetCampus.getId());
+    }
+
+    private Book createBookForCampus(Book sourceBook, Campus targetCampus) {
+        Book book = new Book();
+        book.setIsbn(sourceBook.getIsbn());
+        book.setTitle(sourceBook.getTitle());
+        book.setAuthor(sourceBook.getAuthor());
+        book.setPages(sourceBook.getPages());
+        book.setImageUrl(sourceBook.getImageUrl());
+        book.setDescription(sourceBook.getDescription());
+        book.setReleaseYear(sourceBook.getReleaseYear());
+        book.setDidactic(sourceBook.isDidactic());
+        book.setGenres(new HashSet<>(sourceBook.getGenres()));
+        book.setReadingLevel(sourceBook.getReadingLevel());
+        book.setCampus(targetCampus);
+
         return bookRepository.save(book);
     }
 
