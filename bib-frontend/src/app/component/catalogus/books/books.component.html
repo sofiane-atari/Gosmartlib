@@ -159,7 +159,16 @@
             <div class="book-info">
               <h3 class="book-title">{{ book.title }}</h3>
               <p class="book-author">{{ book.author }}</p>
+
+              @if (hasMultipleCampuses() && book.campusName?.trim()) {
+                <div class="book-campus" title="Campus waar het boek beschikbaar is">
+                  <lucide-icon [img]="Locate" [size]="14" class="book-campus__icon"></lucide-icon>
+                  <span class="book-campus__label">{{ book.campusName }}</span>
+                </div>
+              }
+
               <p class="book-description">{{ book.description }}</p>
+
 
               <div class="card-footer">
                 <div class="pages">

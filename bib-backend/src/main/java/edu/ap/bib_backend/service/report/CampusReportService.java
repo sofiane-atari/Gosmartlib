@@ -120,7 +120,6 @@ public class CampusReportService {
         System.out.println("GENERATING REPORT FOR CAMPUS");
         System.out.println("Campus ID: " + campus.getId());
         System.out.println("Campus Name: " + campus.getName());
-        System.out.println("Campus Code: " + campus.getCode());
         System.out.println("========================================\n");
 
         ReportContext context = reportContextService.getContext(authentication);

@@ -27,7 +27,11 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 
     Optional<Book> findByIsbnAndCampusId(String isbn, Long campusId);
 
+    Optional<Book> findByIsbnAndCampusSchoolId(String isbn, Long schoolId);
+
     Optional<Book> findByIdAndCampusId(Long id, Long campusId);
+
+    Optional<Book> findByIdAndCampusSchoolId(Long id, Long schoolId);
 
     List<Book> findByCampusId(Long campusId);
 
@@ -75,6 +79,26 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
     List<Book> findMostReadBookByCampus(@Param("campusId") Long campusId, Pageable pageable);
 
     @Query("""
+            SELECT b
+            FROM Book b
+            LEFT JOIN b.bookCopies bc
+            LEFT JOIN bc.loans bl
+            LEFT JOIN bl.user u
+            WHERE b.campus.school.id = :schoolId
+            GROUP BY b
+            ORDER BY COUNT(DISTINCT u.id) DESC
+            """)
+    List<Book> findMostReadBookBySchool(@Param("schoolId") Long schoolId, Pageable pageable);
+
+    @Query("""
+            SELECT b
+            FROM Book b
+            WHERE b.campus.school.id = :schoolId
+            ORDER BY b.addedDate DESC
+            """)
+    List<Book> findNewestBooksBySchool(@Param("schoolId") Long schoolId, Pageable pageable);
+
+    @Query("""
             SELECT relatedBook, COUNT(sourceGenre) AS sharedGenreCount
             FROM Book sourceBook
             JOIN sourceBook.genres sourceGenre
@@ -88,6 +112,44 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
     List<Object[]> findRelatedBooksWithScore(
             @Param("bookId") Long bookId,
             @Param("campusId") Long campusId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT relatedBook, COUNT(sourceGenre) AS sharedGenreCount
+            FROM Book sourceBook
+            JOIN sourceBook.genres sourceGenre
+            JOIN sourceGenre.books relatedBook
+            WHERE sourceBook.id = :bookId
+              AND relatedBook.id <> :bookId
+              AND (:schoolDomain IS NULL OR EXISTS (
+                  SELECT 1 FROM BookCopy bc
+                  WHERE bc MEMBER OF relatedBook.bookCopies
+                    AND bc.campus.school.domainName = :schoolDomain
+              ))
+            GROUP BY relatedBook
+            ORDER BY COUNT(sourceGenre) DESC, RAND()
+            """)
+    List<Object[]> findRelatedBooksWithScoreBySchoolDomain(
+            @Param("bookId") Long bookId,
+            @Param("schoolDomain") String schoolDomain,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT relatedBook, COUNT(sourceGenre) AS sharedGenreCount
+            FROM Book sourceBook
+            JOIN sourceBook.genres sourceGenre
+            JOIN sourceGenre.books relatedBook
+            WHERE sourceBook.id = :bookId
+              AND relatedBook.id <> :bookId
+              AND relatedBook.campus.school.id = :schoolId
+            GROUP BY relatedBook
+            ORDER BY COUNT(sourceGenre) DESC, RAND()
+            """)
+    List<Object[]> findRelatedBooksWithScoreBySchool(
+            @Param("bookId") Long bookId,
+            @Param("schoolId") Long schoolId,
             Pageable pageable
     );
 }

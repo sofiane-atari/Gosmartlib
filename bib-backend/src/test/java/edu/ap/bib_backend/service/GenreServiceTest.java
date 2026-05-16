@@ -167,7 +167,7 @@ class GenreServiceTest {
                 .build();
 
         when(genreRepository.findAll(any(Pageable.class))).thenReturn(genrePage);
-        when(genreMapper.toDto(genre)).thenReturn(dto);
+        when(genreMapper.toDto((GenreProjection) genre)).thenReturn(dto);
 
         PageDTO<GenreDTO> result = genreService.getPage(page, pageSize, options);
 
@@ -188,7 +188,7 @@ class GenreServiceTest {
         assertEquals(1, result.meta().totalPages());
 
         verify(genreRepository, times(1)).findAll(any(Pageable.class));
-        verify(genreMapper, times(1)).toDto(genre);
+        verify(genreMapper, times(1)).toDto((GenreProjection) genre);
         verifyNoMoreInteractions(genreRepository, genreMapper);
     }
 

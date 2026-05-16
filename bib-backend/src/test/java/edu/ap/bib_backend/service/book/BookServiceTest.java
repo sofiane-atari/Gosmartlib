@@ -2,20 +2,25 @@ package edu.ap.bib_backend.service.book;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.ReadingLevelDTO;
@@ -25,12 +30,17 @@ import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.entity.Tag;
+import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
 import edu.ap.bib_backend.mapper.BookMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
@@ -45,6 +55,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -71,6 +82,9 @@ class BookServiceTest {
     private BookLoanRepository bookLoanRepository;
 
     @Mock
+    private CampusRepository campusRepository;
+
+    @Mock
     private BookMapper bookMapper1;
 
     @Mock
@@ -89,6 +103,8 @@ class BookServiceTest {
 
     private Campus campus;
 
+    private School school;
+
     @BeforeEach
     void setUp() {
         bs = new BookService(
@@ -98,6 +114,7 @@ class BookServiceTest {
                 reviewRepository,
                 bookLoanRepository,
                 rlr,
+                campusRepository,
                 bookMapper1,
                 bookCandidateMapper,
                 openLibraryClient,
@@ -107,8 +124,14 @@ class BookServiceTest {
         campus = new Campus();
         campus.setId(1L);
 
+        school = new School();
+        school.setId(1L);
+        campus.setSchool(school);
+
         given(currentUserService.getCurrentUserCampus(authentication)).willReturn(campus);
+        given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(true);
+        given(campusRepository.findByIdAndSchoolId(1L, 1L)).willReturn(Optional.of(campus));
     }
 
     @Test
@@ -149,6 +172,7 @@ class BookServiceTest {
     @DisplayName("Given valid book without ISBN, When addBook is called, Then save Book and BookCopy")
     void givenValidBookWithoutISBN_whenAddBook_thenSaveBookAndBookCopy() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Nieuwe Boek");
         dto.setAuthor("Auteur Test");
         dto.setPages(300);
@@ -199,6 +223,7 @@ class BookServiceTest {
     @DisplayName("Given existing ISBN, When addBook is called, Then normalize ISBN and reuse Book")
     void givenExistingISBN_whenAddBook_thenNormalizeAndReuseExistingBook() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setIsbn("978-1 234567890");
         dto.setTitle("Bestaand Boek");
         dto.setAuthor("Auteur");
@@ -243,6 +268,7 @@ class BookServiceTest {
         Genre genre = createGenre("Roman", "#8B5CF6", "Literaire fictie");
 
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setPages(123);
@@ -294,6 +320,7 @@ class BookServiceTest {
     @DisplayName("Given unknown genre, When addBook is called, Then throw Exception")
     void givenUnknownGenre_whenAddBook_thenThrowException() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of(
@@ -317,6 +344,7 @@ class BookServiceTest {
     @DisplayName("Given unknown reading level id, when addBook is called, then throw exception")
     void givenUnknownReadingLevelId_whenAddBook_thenThrowException() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -339,6 +367,7 @@ class BookServiceTest {
     @DisplayName("Given valid reading level id, when addBook is called, then set reading level")
     void givenValidReadingLevelId_whenAddBook_thenSetReadingLevel() {
         BookDTO dto = new BookDTO();
+        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -402,7 +431,7 @@ class BookServiceTest {
         dto.setTitle("Boek 3");
         dto.setAuthor("Auteur 3");
 
-        given(br.findByIdAndCampusId(3L, 1L)).willReturn(Optional.of(book));
+        given(br.findByIdAndCampusSchoolId(3L, 1L)).willReturn(Optional.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         BookDTO result = bs.getBookById(3L, authentication);
@@ -415,7 +444,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given non-existing book ID, When getBookById is called, Then throw Exception")
     void givenNonExistingBookId_whenGetBookById_thenThrowException() {
-        given(br.findByIdAndCampusId(99L, 1L)).willReturn(Optional.empty());
+        given(br.findByIdAndCampusSchoolId(99L, 1L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> bs.getBookById(99L, authentication))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -481,7 +510,7 @@ class BookServiceTest {
         BookDTO dto = new BookDTO();
         dto.setTitle("Populair Boek");
 
-        given(br.findMostReadBookByCampus(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of(book));
+        given(br.findMostReadBookBySchool(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         List<BookDTO> result = bs.getMostReadBooks(5, authentication);
@@ -493,7 +522,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given no most read books, When getMostReadBooks is called, Then return empty list")
     void givenNoMostReadBooks_whenGetMostReadBooks_thenReturnEmptyList() {
-        given(br.findMostReadBookByCampus(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of());
+        given(br.findMostReadBookBySchool(eq(1L), eq(PageRequest.of(0, 5)))).willReturn(List.of());
 
         List<BookDTO> result = bs.getMostReadBooks(5, authentication);
 
@@ -519,7 +548,7 @@ class BookServiceTest {
         BookDTO dto = new BookDTO();
         dto.setTitle("Nieuw Boek");
 
-        given(br.findNewestBooksByCampus(eq(1L), eq(PageRequest.of(0, 3)))).willReturn(List.of(book));
+        given(br.findNewestBooksBySchool(eq(1L), eq(PageRequest.of(0, 3)))).willReturn(List.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         List<BookDTO> result = bs.getNewestBooks(3, authentication);
@@ -527,7 +556,7 @@ class BookServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("Nieuw Boek");
 
-        then(br).should().findNewestBooksByCampus(eq(1L), eq(PageRequest.of(0, 3)));
+        then(br).should().findNewestBooksBySchool(eq(1L), eq(PageRequest.of(0, 3)));
     }
 
     @Test
@@ -551,8 +580,8 @@ class BookServiceTest {
         List<Object[]> relatedBooks = new ArrayList<>();
         relatedBooks.add(new Object[]{related, 2L});
 
-        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(source));
-        given(br.findRelatedBooksWithScore(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
+        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(source));
+        given(br.findRelatedBooksWithScoreBySchool(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
         given(bookMapper1.toDTO(related)).willReturn(relatedDto);
 
         List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10, authentication);
@@ -792,7 +821,7 @@ class BookServiceTest {
         dto.setIsbn("9781234567890");
         dto.setTitle("DB Boek");
 
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.of(book));
+        given(br.findByIsbnAndCampusSchoolId("9781234567890", 1L)).willReturn(Optional.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
@@ -810,7 +839,7 @@ class BookServiceTest {
         dto.setIsbn("9781234567890");
         dto.setTitle("OpenLibrary Boek");
 
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.empty());
+        given(br.findByIsbnAndCampusSchoolId("9781234567890", 1L)).willReturn(Optional.empty());
         given(openLibraryClient.fetchBookByISBN("9781234567890")).willReturn(dto);
 
         BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
@@ -818,6 +847,226 @@ class BookServiceTest {
         assertThat(result.getTitle()).isEqualTo("OpenLibrary Boek");
 
         then(openLibraryClient).should().fetchBookByISBN("9781234567890");
+    }
+
+    @Test
+    @DisplayName("Given related books exist for loan, When getRelatedBooksForLoan is called, Then return scored DTOs")
+    void givenRelatedBooksExistForLoan_whenGetRelatedBooksForLoan_thenReturnScoredDTOs() {
+        Book related = new Book();
+        related.setId(2L);
+        related.setTitle("Related");
+        related.setAuthor("Author");
+        related.setGenres(Set.of());
+        related.setCampus(campus);
+
+        BookDTO dto = new BookDTO();
+        dto.setId(2L);
+        dto.setTitle("Related");
+
+        List<Object[]> relatedResults = new ArrayList<>();
+        relatedResults.add(new Object[]{related, 5L});
+
+        given(br.findRelatedBooksWithScoreBySchoolDomain(eq(1L), anyString(), any(PageRequest.class)))
+                .willReturn(relatedResults);
+        given(br.findAllById(List.of(2L))).willReturn(List.of(related));
+        given(bookMapper1.toDTO(related)).willReturn(dto);
+
+        List<BookDTO> result = bs.getRelatedBooksForLoan(List.of(1L), 5, "school.be");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(2L);
+        assertThat(result.get(0).getTitle()).isEqualTo("Related");
+    }
+
+    @Test
+    @DisplayName("Given null bookIds, When getRelatedBooksForLoan is called, Then return empty list")
+    void givenNullBookIds_whenGetRelatedBooksForLoan_thenReturnEmptyList() {
+        List<BookDTO> result = bs.getRelatedBooksForLoan(null, 5, "school.be");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Given empty bookIds, When getRelatedBooksForLoan is called, Then return empty list")
+    void givenEmptyBookIds_whenGetRelatedBooksForLoan_thenReturnEmptyList() {
+        List<BookDTO> result = bs.getRelatedBooksForLoan(List.of(), 5, "school.be");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Given no candidates found, When getRelatedBooksForLoan is called, Then return empty list")
+    void givenNoCandidates_whenGetRelatedBooksForLoan_thenReturnEmptyList() {
+        given(br.findRelatedBooksWithScoreBySchoolDomain(eq(1L), anyString(), any(PageRequest.class)))
+                .willReturn(List.of());
+
+        List<BookDTO> result = bs.getRelatedBooksForLoan(List.of(1L), 5, "school.be");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Given existing book with no borrowed copies, When deleteBook is called, Then delete successfully")
+    void givenExistingBookWithNoBorrowedCopies_whenDeleteBook_thenDeleteSuccessfully() {
+        Book book = new Book();
+        book.setId(1L);
+        book.setGenres(new HashSet<>());
+
+        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(book));
+        given(bcr.existsByBookIdAndCampusIdAndAvailability(1L, 1L, Availability.BORROWED)).willReturn(false);
+
+        bs.deleteBook(1L, authentication);
+
+        then(reviewRepository).should().deleteByBookId(1L);
+        then(bookLoanRepository).should().deleteByCopiesBookId(1L);
+        then(bcr).should().deleteByBookId(1L);
+        then(br).should().delete(book);
+    }
+
+    @Test
+    @DisplayName("Given book with borrowed copies, When deleteBook is called, Then throw exception")
+    void givenBookWithBorrowedCopies_whenDeleteBook_thenThrowException() {
+        Book book = new Book();
+        book.setId(1L);
+
+        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(book));
+        given(bcr.existsByBookIdAndCampusIdAndAvailability(1L, 1L, Availability.BORROWED)).willReturn(true);
+
+        assertThatThrownBy(() -> bs.deleteBook(1L, authentication))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("kan niet verwijderd worden");
+    }
+
+    @Test
+    @DisplayName("Given title and author filters, When searchBooksInDb is called, Then return matching candidates")
+    void givenTitleAndAuthorFilters_whenSearchBooksInDb_thenReturnMatchingCandidates() {
+        Book book = new Book();
+        book.setId(1L);
+        book.setTitle("Test Book");
+        book.setAuthor("Test Author");
+        book.setCampus(campus);
+
+        BookCandidateDTO candidateDto = new BookCandidateDTO();
+        candidateDto.setId(1L);
+        candidateDto.setTitle("Test Book");
+
+        given(br.findAll(any(Specification.class))).willReturn(List.of(book));
+        given(bookCandidateMapper.toDBCandidateDTO(book)).willReturn(candidateDto);
+
+        List<BookCandidateDTO> result = bs.searchBooksInDb("Test Book", "Test Author", null, authentication);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTitle()).isEqualTo("Test Book");
+    }
+
+    @Test
+    @DisplayName("Given no search filters, When searchBooksInDb is called, Then return empty list")
+    void givenNoSearchFilters_whenSearchBooksInDb_thenReturnEmptyList() {
+        List<BookCandidateDTO> result = bs.searchBooksInDb(null, null, null, authentication);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Given blank title, When searchBooksInDb is called, Then normalize to null filter")
+    void givenBlankTitle_whenSearchBooksInDb_thenNormalizeToNullFilter() {
+        Book book = new Book();
+        book.setId(1L);
+        book.setAuthor("Test Author");
+        book.setCampus(campus);
+
+        BookCandidateDTO candidateDto = new BookCandidateDTO();
+        candidateDto.setId(1L);
+        candidateDto.setAuthor("Test Author");
+
+        given(br.findAll(any(Specification.class))).willReturn(List.of(book));
+        given(bookCandidateMapper.toDBCandidateDTO(book)).willReturn(candidateDto);
+
+        List<BookCandidateDTO> result = bs.searchBooksInDb("   ", "Test Author", null, authentication);
+
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Given existing isbn, When findExistingByIsbn is called, Then return book")
+    void givenExistingIsbn_whenFindExistingByIsbn_thenReturnBook() {
+        Book book = new Book();
+        book.setId(1L);
+        given(br.findByIsbn("9781234567890")).willReturn(book);
+
+        Optional<Book> result = bs.findExistingByIsbn("9781234567890");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("Given null isbn, When findExistingByIsbn is called, Then return empty")
+    void givenNullIsbn_whenFindExistingByIsbn_thenReturnEmpty() {
+        Optional<Book> result = bs.findExistingByIsbn(null);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Given blank isbn, When findExistingByIsbn is called, Then return empty")
+    void givenBlankIsbn_whenFindExistingByIsbn_thenReturnEmpty() {
+        Optional<Book> result = bs.findExistingByIsbn("   ");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Given existing isbn and campus, When findExistingByIsbnAndCampus is called, Then return book")
+    void givenExistingIsbnAndCampus_whenFindExistingByIsbnAndCampus_thenReturnBook() {
+        Book book = new Book();
+        book.setId(1L);
+        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.of(book));
+
+        Optional<Book> result = bs.findExistingByIsbnAndCampus("9781234567890", 1L);
+
+        assertThat(result).isPresent();
+    }
+
+    @Test
+    @DisplayName("Given non-didactic book, When getBookByIdForCurrentCampus is called, Then return book")
+    void givenNonDidacticBook_whenGetBookByIdForCurrentCampus_thenReturnBook() {
+        Book book = new Book();
+        book.setId(1L);
+        book.setDidactic(false);
+        book.setCampus(campus);
+
+        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(book));
+
+        Book result = bs.getBookByIdForCurrentCampus(1L, authentication);
+
+        assertThat(result.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("Given didactic book without permission, When getRelatedBooksCarousel is called, Then hide it")
+    void givenDidacticBookWithoutPermission_whenGetRelatedBooksCarousel_thenHideIt() {
+        Book source = new Book();
+        source.setId(1L);
+        source.setCampus(campus);
+
+        Book didacticRelated = new Book();
+        didacticRelated.setId(2L);
+        didacticRelated.setTitle("Didactic Book");
+        didacticRelated.setDidactic(true);
+        didacticRelated.setCampus(campus);
+
+        List<Object[]> relatedBooks = new ArrayList<>();
+        relatedBooks.add(new Object[]{didacticRelated, 2L});
+
+        given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
+        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(source));
+        given(br.findRelatedBooksWithScoreBySchool(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
+        given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(false);
+
+        List<BookDTO> result = bs.getRelatedBooksCarousel(1L, 10, authentication);
+
+        assertThat(result).isEmpty();
     }
 
     private Book createBook(

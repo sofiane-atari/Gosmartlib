@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Download, CheckSquare, Plus, Info, LucideAngularModule } from 'lucide-angular';
 import { BookService } from '../../../../services/bookService/book.service';
 import { ToastService } from '../../../../services/toast/toast.service';
@@ -9,11 +9,13 @@ import { FileUploadComponent } from '../../../shared/file-upload/file-upload.com
 import { CommonModule } from '@angular/common';
 import { ButtonHoverHelpComponent } from "../../../shared/button-hover-help/button-hover-help.component";
 import { UserSettingsService } from '../../../../services/user-settings/user-settings.service';
+import { FormsModule } from '@angular/forms';
+import { Campus } from '../../../../model/campus.model';
 
 @Component({
   selector: 'app-add-book-bulk',
   standalone: true,
-  imports: [LucideAngularModule, FileUploadComponent, CommonModule, ButtonHoverHelpComponent],
+  imports: [LucideAngularModule, FileUploadComponent, CommonModule, FormsModule, ButtonHoverHelpComponent],
   templateUrl: './add-book-bulk.component.html',
   styleUrl: './add-book-bulk.component.css'
 })
@@ -24,6 +26,9 @@ export class AddBookBulkComponent {
   readonly PlusIcon = Plus;
   validationCompleted = false;
   validationSucceeded = false;
+  @Input() campuses: Campus[] = [];
+  @Input() campusId: number | null = null;
+  @Output() campusIdChange = new EventEmitter<number | null>();
 
   selectedFile: File | null = null;
   progress = 0;
@@ -51,6 +56,11 @@ export class AddBookBulkComponent {
     this.validationCompleted = false;
     this.validationSucceeded = false;
     this.progress = 0;
+  }
+
+  selectCampus(campusId: number | null): void {
+    this.campusId = campusId;
+    this.campusIdChange.emit(campusId);
   }
 
   onFileSelected(event: Event) {
@@ -126,7 +136,12 @@ export class AddBookBulkComponent {
       return;
     }
 
-    this.bs.uploadBooks(this.selectedFile).subscribe({
+    if (!this.campusId) {
+      this.ts.show('Selecteer eerst een campus.', 'error');
+      return;
+    }
+
+    this.bs.uploadBooks(this.selectedFile, this.campusId).subscribe({
       next: () => {
         this.ts.show('Boeken succesvol geüpload', 'success');
         this.selectedFile = null;

@@ -11,7 +11,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.projection.GenreWithCount;
 
@@ -42,8 +44,21 @@ class GenreRepositoryTest {
         // Arrange
         Genre genre = createGenre("Fiction", "#FF0000", "Fiction books");
 
+        School school = new School();
+        school.setDomainName("test.school.be");
+        school.setName("Test School");
+        school.setAddress("Addr");
+        school.setPostalCode(1000);
+        entityManager.persistAndFlush(school);
+
+        Campus campus = new Campus();
+        campus.setName("Test Campus");
+        campus.setSchool(school);
+        entityManager.persistAndFlush(campus);
+
         Book book = new Book();
         book.setTitle("Test Book");
+        book.setCampus(campus);
 
         // Add to both sides of the relationship (owning side is Book.genres)
         book.getGenres().add(genre);

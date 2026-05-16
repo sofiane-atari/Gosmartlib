@@ -31,12 +31,8 @@
             >
               <div>
                 <strong>{{ campus.name }}</strong>
-                <span>{{ campus.code }}</span>
+                <span>{{ campus.address }}, {{ campus.postalCode }}</span>
               </div>
-
-              @if (campus.defaultCampus) {
-                <small>Default</small>
-              }
 
               @if (campus.id === currentCampusId()) {
                 <lucide-icon [name]="Check" class="campus-option__check"></lucide-icon>

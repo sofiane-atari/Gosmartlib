@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.config;
 
 import edu.ap.bib_backend.TestSecurityConfig;
+import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
 
@@ -33,6 +34,9 @@ class CorsConfigTest {
 
     @MockitoBean
     private TokenStorageService tokenStorageService;
+
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
 
     @Test
     void givenAllowedOrigin_WhenPreflightRequest_ThenReturnCorsHeaders() throws Exception {

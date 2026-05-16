@@ -1,5 +1,7 @@
 package edu.ap.bib_backend.service;
 
+import edu.ap.bib_backend.event.BookAvailableEvent;
+import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
@@ -25,6 +27,7 @@ import org.springframework.security.core.Authentication;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanBookDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 
 import java.time.LocalDate;
@@ -37,6 +40,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -180,11 +184,6 @@ class LoanServiceTest {
                 .returnDate("invalid-date-format")
                 .build();
 
-        Loan loan = new Loan();
-        loan.setCopies(new ArrayList<>());
-        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
-        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
-
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> loanService.create(inputDto, authentication));
@@ -200,11 +199,6 @@ class LoanServiceTest {
                 .bookIds(List.of(1L))
                 .returnDate(pastDate)
                 .build();
-
-        Loan loan = new Loan();
-        loan.setCopies(new ArrayList<>());
-        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
-        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class,
@@ -222,11 +216,6 @@ class LoanServiceTest {
                 .returnDate(today)
                 .build();
 
-        Loan loan = new Loan();
-        loan.setCopies(new ArrayList<>());
-        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
-        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
-
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> loanService.create(inputDto, authentication));
@@ -237,9 +226,11 @@ class LoanServiceTest {
     void Given_NotEnoughCopiesAvailable_When_Create_Then_ThrowsIllegalStateException() {
         // Arrange
         String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
+        LoanBookDTO bookDto = LoanBookDTO.builder().id(1L).copiesCount(2).build();
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
                 .bookIds(List.of(1L))
+                .books(List.of(bookDto))
                 .returnDate(returnDate)
                 .build();
 
@@ -252,7 +243,7 @@ class LoanServiceTest {
         book.setTitle("Test Book");
         when(bookService.getBookById(1L, true)).thenReturn(book);
 
-        // Only 1 copy available, but need 2
+        // Only 1 copy available, but need 2 (via copiesCount)
         when(bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(1L, 1L)).thenReturn(List.of(new BookCopy()));
 
         // Act & Assert
@@ -307,11 +298,6 @@ class LoanServiceTest {
                 .userId("nonexistent")
                 .bookIds(List.of(1L))
                 .build();
-
-        Loan loan = new Loan();
-        loan.setCopies(new ArrayList<>());
-        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
-        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
         when(userRepository.findById("nonexistent")).thenReturn(Optional.empty());
 
@@ -420,6 +406,192 @@ class LoanServiceTest {
         // Assert
         assertNotNull(result);
         // Should not throw even when token is null
+    }
+
+    @Test
+    void Given_ExistingLoanNotYetReturned_When_ReturnLoan_Then_SetsReturnedDateAndReturnsDto() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setCampus(campus);
+        loan.setReturnedDate(null);
+        loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+        User user = new User();
+        user.setId("user123");
+        loan.setUser(user);
+        loan.setCopies(new ArrayList<>());
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+        LoanDTO expectedDto = LoanDTO.builder().id(1L).build();
+        when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+
+        LoanDTO result = loanService.returnLoan(1L, authentication);
+
+        assertNotNull(result);
+        assertNotNull(loan.getReturnedDate());
+        verify(applicationEventPublisher).publishEvent(any(BookReturnedGamificationEvent.class));
+    }
+
+    @Test
+    void Given_NonExistentLoan_When_ReturnLoan_Then_ThrowsIllegalStateException() {
+        when(loanRepository.findById(99L)).thenReturn(Optional.empty());
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> loanService.returnLoan(99L, authentication));
+
+        assertEquals("Lening niet gevonden.", exception.getMessage());
+    }
+
+    @Test
+    void Given_LoanFromDifferentCampus_When_ReturnLoan_Then_ThrowsIllegalStateException() {
+        Campus otherCampus = new Campus();
+        otherCampus.setId(999L);
+        Loan loan = new Loan();
+        loan.setCampus(otherCampus);
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> loanService.returnLoan(1L, authentication));
+
+        assertEquals("Lening niet gevonden in deze campus.", exception.getMessage());
+    }
+
+    @Test
+    void Given_LoanWithBookCopies_When_ReturnLoan_Then_PublishesBookAvailableEventForEachDistinctBook() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setCampus(campus);
+        loan.setReturnedDate(null);
+        loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+        User user = new User();
+        user.setId("user123");
+        loan.setUser(user);
+
+        Book book1 = new Book();
+        book1.setId(100L);
+        BookCopy copy1 = new BookCopy();
+        copy1.setBook(book1);
+        BookCopy copy2 = new BookCopy();
+        copy2.setBook(book1);
+        Book book2 = new Book();
+        book2.setId(200L);
+        BookCopy copy3 = new BookCopy();
+        copy3.setBook(book2);
+
+        loan.setCopies(List.of(copy1, copy2, copy3));
+
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+        LoanDTO expectedDto = LoanDTO.builder().id(1L).build();
+        when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+
+        LoanDTO result = loanService.returnLoan(1L, authentication);
+
+        assertNotNull(result);
+        verify(applicationEventPublisher).publishEvent(any(BookReturnedGamificationEvent.class));
+        verify(applicationEventPublisher, times(2)).publishEvent(any(BookAvailableEvent.class));
+    }
+
+    @Test
+    void Given_LoanWithCopyHavingNullBook_When_ReturnLoan_Then_SkipsNullBookInAvailableEvent() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setCampus(campus);
+        loan.setReturnedDate(null);
+        loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+        User user = new User();
+        user.setId("user123");
+        loan.setUser(user);
+
+        BookCopy copyWithBook = new BookCopy();
+        Book book = new Book();
+        book.setId(100L);
+        copyWithBook.setBook(book);
+        BookCopy copyWithNullBook = new BookCopy();
+
+        loan.setCopies(List.of(copyWithBook, copyWithNullBook));
+
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+        LoanDTO expectedDto = LoanDTO.builder().id(1L).build();
+        when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+
+        LoanDTO result = loanService.returnLoan(1L, authentication);
+
+        assertNotNull(result);
+        verify(applicationEventPublisher).publishEvent(any(BookAvailableEvent.class));
+    }
+
+    @Test
+    void Given_AlreadyReturnedLoan_When_ReturnLoan_Then_ThrowsIllegalStateException() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setCampus(campus);
+        loan.setReturnedDate(LocalDate.now());
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> loanService.returnLoan(1L, authentication));
+
+        assertEquals("Deze lening is al teruggebracht.", exception.getMessage());
+    }
+
+    @Test
+    void Given_LoansExistForCurrentUser_When_FindHistoryForCurrentUser_Then_ReturnsHistoryWithActiveAndReturned() {
+        Campus campus = new Campus();
+        campus.setId(1L);
+        lenient().when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
+
+        Loan activeLoan = new Loan();
+        activeLoan.setReturnedDate(null);
+        activeLoan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+        Loan returnedLoan = new Loan();
+        returnedLoan.setReturnedDate(LocalDate.now());
+
+        when(loanRepository.findByUserIdAndCampusIdOrderByLoanDateDesc("user123", 1L))
+                .thenReturn(List.of(activeLoan, returnedLoan));
+
+        when(loanMapper.toDto(activeLoan)).thenReturn(LoanDTO.builder()
+                .status(edu.ap.bib_backend.jpa.enums.LoanStatus.ACTIVE)
+                .books(List.of(LoanBookDTO.builder().id(1L).build()))
+                .build());
+        when(loanMapper.toDto(returnedLoan)).thenReturn(LoanDTO.builder()
+                .status(edu.ap.bib_backend.jpa.enums.LoanStatus.RETURNED)
+                .books(List.of(LoanBookDTO.builder().id(2L).build()))
+                .build());
+
+        LoanHistoryDTO result = loanService.findHistoryForCurrentUser(authentication);
+
+        assertNotNull(result);
+        assertEquals(1, result.activeLoanCount());
+        assertEquals(1, result.returnedLoanCount());
+        assertEquals(2, result.totalLoanedBookCount());
+    }
+
+    @Test
+    void Given_NoLoansForCurrentUser_When_FindHistoryForCurrentUser_Then_ReturnsEmptyHistory() {
+        when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
+        when(loanRepository.findByUserIdAndCampusIdOrderByLoanDateDesc("user123", 1L))
+                .thenReturn(List.of());
+
+        LoanHistoryDTO result = loanService.findHistoryForCurrentUser(authentication);
+
+        assertNotNull(result);
+        assertEquals(0, result.activeLoanCount());
+        assertEquals(0, result.returnedLoanCount());
+        assertEquals(0, result.totalLoanedBookCount());
+    }
+
+    @Test
+    void Given_EmptyLoanList_When_FindAll_Then_ReturnsEmptyPage() {
+        when(loanRepository.findByCampusId(1L)).thenReturn(List.of());
+
+        PageDTO<LoanDTO> result = loanService.findAll(0, 10, authentication);
+
+        assertNotNull(result);
+        assertTrue(result.data().isEmpty());
+        assertEquals(0, result.meta().totalItems());
     }
 
     @Test

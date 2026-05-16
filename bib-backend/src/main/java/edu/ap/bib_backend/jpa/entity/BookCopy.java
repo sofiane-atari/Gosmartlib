@@ -59,8 +59,4 @@ public class BookCopy {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "campus_id", nullable = false)
     private Campus campus;
-
-    @ManyToOne
-    @JoinColumn(name = "school_id")
-    private School school;
 }

@@ -136,11 +136,6 @@ class UserServiceTest {
         when(oneRosterClient.fetchUsersWithBearer("test.smartschool.be", "token"))
             .thenReturn(List.of(rosterUser));
 
-        // Mock nested call to getCurrentUserSchool for the mapped user
-        User otherUser = new User();
-        otherUser.setSchool(school);
-        when(userRepository.findById("other-user")).thenReturn(Optional.of(otherUser));
-
         UserGetOptions options = new UserGetOptions();
         options.setId("other");
 

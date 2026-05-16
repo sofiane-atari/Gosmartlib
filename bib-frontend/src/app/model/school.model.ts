@@ -1,24 +1,24 @@
+import { Campus, CreateCampusRequest } from './campus.model';
+
 export interface School {
   id: number;
   domainName: string;
   name: string;
-  address: string;
-  postalCode: number;
-  contactPhone?: string;
-  contactEmail?: string;
   defaultLoanDurationDays?: number;
+  campuses?: Campus[];
   createdAt?: string;
 }
 
-export type CreateSchoolRequest = Omit<School, 'id'>;
+export interface CreateSchoolRequest {
+  domainName: string;
+  name: string;
+  defaultLoanDurationDays?: number;
+  campuses?: CreateCampusRequest[];
+  createdAt?: string;
+}
 
 export interface CreateSchoolWithCampusFormValue {
   domainName: string;
   name: string;
-  address: string;
-  postalCode: number;
-  contactPhone?: string;
-  contactEmail?: string;
-  campusName: string;
-  campusCode: string;
+  campuses: CreateCampusRequest[];
 }

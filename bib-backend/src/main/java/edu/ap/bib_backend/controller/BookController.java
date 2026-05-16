@@ -181,6 +181,7 @@ public class BookController {
     @PostMapping("/select")
     public ResponseEntity<BookDTO> selectBook(
             @RequestParam String isbn13,
+            @RequestParam Long campusId,
             Authentication authentication
     ) {
         BookDTO book = bookService.getBookByISBN(isbn13, authentication);

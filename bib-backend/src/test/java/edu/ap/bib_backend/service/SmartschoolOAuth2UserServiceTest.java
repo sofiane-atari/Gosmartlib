@@ -6,6 +6,8 @@ import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolAudienceResolverService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
@@ -45,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -87,6 +90,9 @@ class SmartschoolOAuth2UserServiceTest {
     @MockitoBean
     private OneRosterClient oneRosterClient;
 
+    @MockitoBean
+    private CampusRepository campusRepository;
+
     private MockRestServiceServer mockRestServiceServer;
 
     @BeforeEach
@@ -95,6 +101,12 @@ class SmartschoolOAuth2UserServiceTest {
         ReflectionTestUtils.setField(smartschoolOAuth2UserService, "restTemplate", restTemplate);
         mockRestServiceServer = MockRestServiceServer.bindTo(restTemplate).build();
         when(schoolRepository.findByDomainName(SCHOOL_DOMAIN_NAME)).thenReturn(Optional.of(createSchool()));
+
+        Campus defaultCampus = new Campus();
+        defaultCampus.setId(1L);
+        defaultCampus.setName("Default Campus");
+        lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(any()))
+                .thenReturn(Optional.of(defaultCampus));
     }
 
     @Test
@@ -366,8 +378,6 @@ class SmartschoolOAuth2UserServiceTest {
         school.setId(1L);
         school.setDomainName(SCHOOL_DOMAIN_NAME);
         school.setName("AP Hogeschool");
-        school.setAddress("Noorderplaats 2");
-        school.setPostalCode(2000);
         return school;
     }
 

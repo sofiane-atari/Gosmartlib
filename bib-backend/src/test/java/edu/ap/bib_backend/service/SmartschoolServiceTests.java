@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -36,14 +37,14 @@ class SmartschoolServiceTests {
         ReflectionTestUtils.setField(service, "restTemplate", restTemplate);
         
         ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(Map.of("success", true));
-        when(restTemplate.exchange(any(URI.class), eq(HttpMethod.GET), any(), any(org.springframework.core.ParameterizedTypeReference.class)))
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST), any(HttpEntity.class), any(org.springframework.core.ParameterizedTypeReference.class)))
                 .thenReturn(response);
 
         // Act
         service.sendMessage("token", "Title", "Body");
 
         // Assert
-        verify(restTemplate).exchange(any(URI.class), eq(HttpMethod.GET), any(), any(org.springframework.core.ParameterizedTypeReference.class));
+        verify(restTemplate).exchange(any(String.class), eq(HttpMethod.POST), any(HttpEntity.class), any(org.springframework.core.ParameterizedTypeReference.class));
     }
 
     @Test

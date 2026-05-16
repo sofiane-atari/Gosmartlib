@@ -240,6 +240,15 @@
   margin-bottom: 0; /* Geen margin hier, dat doet de container al */
 }
 
+.campus-field {
+  max-width: 420px;
+  margin-top: 1.2rem;
+}
+
+.campus-field .form-hint {
+  margin: 0 0 0.45rem;
+}
+
 .reading-level-description {
   /* Positionering: haalt het uit de layout-stroom (voorkomt verschuiven) */
   position: absolute;

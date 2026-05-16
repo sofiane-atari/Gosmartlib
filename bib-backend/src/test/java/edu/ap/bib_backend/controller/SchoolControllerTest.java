@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,7 +25,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SchoolService;
+import edu.ap.bib_backend.service.TokenStorageService;
 
 @WebMvcTest(SchoolController.class)
 @Import(TestSecurityConfig.class)
@@ -35,6 +39,15 @@ class SchoolControllerTest {
 
     @MockitoBean
     private SchoolService schoolService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private AdminOverrideService adminOverrideService;
+
+    @MockitoBean
+    private TokenStorageService tokenStorageService;
 
     @Test
     void GivenSchoolsExist_WhenGetSchools_ThenReturn200WithSchools() throws Exception {
@@ -84,7 +97,7 @@ class SchoolControllerTest {
     void GivenExistingSchool_WhenUpdateSchool_ThenReturn200() throws Exception {
         // Arrange
         SchoolDTO updatedSchool = schoolDto(1L, "apsmartschool.be", "AP Hogeschool Gewijzigd", "Noorderplaats 2", 2000);
-        given(schoolService.update(1L, any(SchoolDTO.class))).willReturn(updatedSchool);
+        given(schoolService.update(eq(1L), any(SchoolDTO.class))).willReturn(updatedSchool);
 
         // Act & Assert
         mockMvc.perform(put("/schools/{id}", 1L)
@@ -139,11 +152,8 @@ class SchoolControllerTest {
                 id,
                 domainName,
                 name,
-                address,
-                postalCode,
-                "03 123 45 67",
-                "info@ap.be",
                 15,
+                java.util.List.of(),
                 LocalDateTime.of(2026, 4, 28, 12, 0));
     }
 }

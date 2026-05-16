@@ -237,7 +237,7 @@
       }
 
       <div class="form-group full-width genre-section">
-        <label>Genres (Optioneel: kies 1 hoofdgenre en 1 tot 3 subgenres)</label>
+        <label>Genres: kies 1 hoofdgenre en 1 tot 3 subgenres)</label>
 
         <div class="genre-grid main-genre-grid">
           @for (mainGenre of genres; track mainGenre.name) {
@@ -303,6 +303,28 @@
         }
       </div>
 
+      <div class="form-group campus-field">
+        <label for="isbnCampus">Campus *</label>
+        <p class="form-hint">Selecteer de campus waar dit boek wordt toegevoegd.</p>
+        <select
+          id="isbnCampus"
+          name="campusId"
+          [ngModel]="campusId"
+          (ngModelChange)="selectCampus($event)"
+          [disabled]="campuses.length <= 1"
+          required
+        >
+          <option [ngValue]="null" disabled>Kies een campus</option>
+          @for (campus of campuses; track campus.id) {
+            <option [ngValue]="campus.id">{{ campus.name }}</option>
+          }
+        </select>
+
+        @if (campuses.length === 0) {
+          <p class="error-message">Geen campussen gevonden voor je school.</p>
+        }
+      </div>
+
 <div class="form-actions">
   <app-button-hover-help text="Maak alle ingevulde velden leeg en start opnieuw met een leeg formulier.">
     <button
@@ -329,8 +351,8 @@
             class="btn-submit"
             [disabled]="
               isExistingBookLoaded
-                ? false
-                : bookForm.invalid || !book.genres?.length
+                ? !campusId
+                : bookForm.invalid || !book.genres?.length || !campusId
             "
           >
             <lucide-icon [name]="PlusIcon" class="btn-icon"></lucide-icon>

@@ -14,22 +14,33 @@ import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
+import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
+import edu.ap.bib_backend.event.BookAvailableEvent;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Loan;
+<<<<<<< HEAD
+=======
+import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.LoanStatus;
+>>>>>>> origin/main
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.book.BookService;
+import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
+import edu.ap.bib_backend.service.message.component.BookRecommendationComponent;
+import edu.ap.bib_backend.service.message.component.LoanBookListComponent;
+import edu.ap.bib_backend.service.message.component.LoanGeneralInfoComponent;
 
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.transaction.Transactional;
@@ -98,15 +109,19 @@ public class LoanService {
 
         Loan loan = loanMapper.toEntity(loanDTO);
         loan.setCampus(campus);
+        loan.setLoanDate(today);
         loan.setReturnDate(parsedReturnDate);
 
         loan = loanRepository.save(loan);
 
         for (var bookId : loanDTO.bookIds()) {
             Book book = bookService.getBookById(bookId, true);
+            log.debug("Reserving copies for book '{}' (id={}, isbn={}, author={})",
+                    book.getTitle(), bookId, book.getIsbn(), book.getAuthor());
             int copiesNeeded = resolveCopiesCount(loanDTO, bookId);
 
-            List<BookCopy> availableCopies = bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(bookId, campus.getId());
+            List<BookCopy> availableCopies = bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(bookId,
+                    campus.getId());
             if (availableCopies.size() < copiesNeeded) {
                 throw new IllegalStateException("Niet genoeg beschikbare exemplaren voor boek: " + book.getTitle());
             }
@@ -121,7 +136,32 @@ public class LoanService {
 
             if (token != null && !token.isBlank()) {
                 log.info("Sending Smartschool message for new loan with user ID: {}", loanDTO.userId());
-                String htmlMessage = buildHtmlMessageBody(loan);
+
+                String schoolDomain = userRepository.findById(loanDTO.userId())
+                        .map(u -> u.getSchool().getDomainName())
+                        .orElse(null);
+
+                log.debug("Fetching recommendations for bookIds={}, schoolDomain={}",
+                        loanDTO.bookIds(), schoolDomain);
+                List<BookDTO> recommendations = bookService.getRelatedBooksForLoan(
+                        loanDTO.bookIds(), 4, schoolDomain);
+
+                // Remove recommendations that are already in the loan
+
+                recommendations = recommendations.stream()
+                        .filter(rec -> loanDTO.bookIds().stream()
+                                .noneMatch(loanBookId -> loanBookId.equals(rec.getId())))
+                        .toList();
+
+                log.debug("Recommendations fetched: {} books", recommendations.size());
+
+                String htmlMessage = new HtmlMessageBuilder(
+                        "Bevestiging nieuwe uitlening", frontendUrl)
+                        .addComponent(new LoanGeneralInfoComponent(loan, frontendUrl))
+                        .addComponent(new LoanBookListComponent(loan, frontendUrl))
+                        .addComponent(new BookRecommendationComponent(recommendations, frontendUrl))
+                        .build();
+
                 smartschoolMessageService.sendMessage(token, "Bevestiging Nieuwe Uitlening", htmlMessage);
             }
         } catch (Exception e) {
@@ -168,6 +208,7 @@ public class LoanService {
         Loan savedLoan = loanRepository.save(loan);
 
         publishBookReturnedEvent(savedLoan, today);
+        publishBookAvailableEvents(savedLoan);
 
         return loanMapper.toDto(savedLoan);
     }
@@ -242,58 +283,16 @@ public class LoanService {
                         LocalDateTime.now()));
     }
 
-    private String buildHtmlMessageBody(Loan loan) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(
-                "<div style=\"font-family: Calibri, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a0a10; border: 1px solid #f0e4e8; border-radius: 8px; overflow: hidden;\">");
-        sb.append("<div style=\"background-color: #8a1e41; color: white; padding: 20px; text-align: center;\">");
-        sb.append("<h2 style=\"margin: 0;\">Bevestiging van je uitlening</h2>");
-        sb.append("</div>");
-        sb.append("<div style=\"padding: 20px; background-color: #ffffff;\">");
-        sb.append("<p>Beste lener,</p>");
-        sb.append("<p>Je hebt met succes een nieuwe uitlening geregistreerd.</p>");
-        sb.append(
-                "<div style=\"background-color: #fff5f8; padding: 15px; border-left: 4px solid #8a1e41; margin: 20px 0; border-radius: 0 4px 4px 0;\">");
-        sb.append("<p style=\"margin: 0 0 10px 0;\"><strong>Uitlening ID:</strong> ").append(loan.getId())
-                .append("</p>");
-
-        if (loan.getReturnDate() != null) {
-            sb.append("<p style=\"margin: 0 0 10px 0;\"><strong>Verwachte retourdatum:</strong> ")
-                    .append(loan.getReturnDate().toString()).append("</p>");
-        }
-
-        sb.append("<p style=\"margin: 0 0 5px 0;\"><strong>Geleende boeken:</strong></p>");
-        sb.append("<ul style=\"margin: 0; padding-left: 20px;\">");
-        if (loan.getCopies() != null && !loan.getCopies().isEmpty()) {
-            for (BookCopy copy : loan.getCopies()) {
-                if (copy != null && copy.getBook() != null) {
-                    Book book = copy.getBook();
-                    sb.append("<li style=\"margin-bottom: 5px;\">");
-                    sb.append("<a href=\"").append(frontendUrl).append("/book/").append(book.getId())
-                            .append("\" style=\"color: #8a1e41; text-decoration: none; font-weight: bold;\">");
-                    sb.append(book.getTitle());
-                    sb.append("</a>");
-                    if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
-                        sb.append(" <span style=\"color: #7a5560;\">(").append(book.getAuthor()).append(")</span>");
-                    }
-                    sb.append("</li>");
-                }
-            }
-        }
-        sb.append("</ul>");
-        sb.append("</div>");
-        sb.append("<p>Alvast veel leesplezier!</p>");
-        sb.append("<div style=\"text-align: center; margin: 30px 0;\">");
-        sb.append("<a href=\"").append(frontendUrl).append(
-                "/history\" style=\"background-color: #8a1e41; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;\">Bekijk mijn uitleenhistoriek</a>");
-        sb.append("</div>");
-        sb.append("<hr style=\"border: none; border-top: 1px solid #f0e4e8; margin: 30px 0 15px 0;\">");
-        sb.append(
-                "<p style=\"margin: 0; font-size: 12px; color: #7a5560; text-align: center;\">Dit is een automatisch gegenereerd bericht. Gelieve niet te reageren.</p>");
-        sb.append("</div>");
-        sb.append("</div>");
-
-        return sb.toString();
+    private void publishBookAvailableEvents(Loan loan) {
+        loan.getCopies().stream()
+                .map(copy -> copy.getBook())
+                .filter(book -> book != null && book.getId() != null)
+                .collect(Collectors.toSet())
+                .forEach(book -> {
+                    log.debug("Publishing BookAvailableEvent for book id={}", book.getId());
+                    applicationEventPublisher.publishEvent(
+                            new BookAvailableEvent(book.getId(), LocalDateTime.now()));
+                });
     }
 
     private int resolveCopiesCount(LoanDTO loanDTO, Long bookId) {
@@ -349,7 +348,7 @@ public class LoanService {
                 .map(loan -> {
                     LoanDTO dto = loanMapper.toDto(loan);
 
-                    String lookupId = loan.getUser().getOneRosterSourcedId();
+                    String lookupId = loan.getUser() != null ? loan.getUser().getOneRosterSourcedId() : null;
 
                     return LoanDTO.builder()
                             .id(dto.id())
@@ -398,6 +397,7 @@ public class LoanService {
 
         return 3;
     }
+
     public LoanStatsDTO getLoanStats() {
         LocalDate today = LocalDate.now();
 
