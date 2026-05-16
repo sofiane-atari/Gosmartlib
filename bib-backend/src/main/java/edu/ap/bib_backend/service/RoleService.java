@@ -1,6 +1,8 @@
 package edu.ap.bib_backend.service;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
@@ -9,12 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
+import edu.ap.bib_backend.jpa.entity.AuthSession;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
+import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
 @Service
@@ -25,18 +29,21 @@ public class RoleService {
     private final UserMapper userMapper;
     private final CurrentUserService currentUserService;
     private final TokenStorageService tokenStorageService;
+    private final JwtService jwtService;
 
     public RoleService(
             RoleEntityRepository roleEntityRepository,
             UserRepository userRepository,
             UserMapper userMapper,
             CurrentUserService currentUserService,
-            TokenStorageService tokenStorageService) {
+            TokenStorageService tokenStorageService,
+            JwtService jwtService) {
         this.roleEntityRepository = roleEntityRepository;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.currentUserService = currentUserService;
         this.tokenStorageService = tokenStorageService;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -67,7 +74,7 @@ public class RoleService {
         targetUser.setRole(librarianRole);
         userRepository.save(targetUser);
 
-        tokenStorageService.storeUserMetadata(targetUserId, "ROLE_LIBRARIAN");
+        replaceTargetToken(targetUserId, "ROLE_LIBRARIAN");
 
         return userMapper.toDto(targetUser);
     }
@@ -100,33 +107,33 @@ public class RoleService {
         targetUser.setRole(teacherRole);
         userRepository.save(targetUser);
 
-        tokenStorageService.storeUserMetadata(targetUserId, "ROLE_TEACHER");
+        replaceTargetToken(targetUserId, "ROLE_TEACHER");
 
         return userMapper.toDto(targetUser);
     }
 
-    /**
-     * Resolves a role name string to a {@link Role} enum value and ensures the
-     * corresponding
-     * {@link RoleEntity} exists in the database, creating it if it does not.
-     *
-     * <p>
-     * Resolution order:
-     * <ol>
-     * <li>Case-insensitive match against {@link Role} enum values (e.g.
-     * {@code "admin"} → {@link Role#ADMIN})</li>
-     * <li>Dutch role name mapping (e.g. {@code "leerling"} →
-     * {@link Role#STUDENT})</li>
-     * </ol>
-     *
-     * @param roleName the role name to resolve, may be an English enum name or a
-     *                 Dutch role name
-     * @return the resolved {@link Role} enum value, guaranteed to exist in the
-     *         database
-     * @throws IllegalArgumentException if {@code roleName} does not match any known
-     *                                  role
-     * @see #mapDutchRole(String)
-     */
+    private void replaceTargetToken(String targetUserId, String newRole) {
+        Map<String, Object> extraClaims = new HashMap<>();
+
+        tokenStorageService.getSession(targetUserId)
+                .map(AuthSession::getJwtToken)
+                .ifPresent(oldToken -> {
+                    extraClaims.put(SmartschoolOAuth2UserService.CLAIM_CLASS_CODE,
+                            jwtService.extractClaim(oldToken, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE));
+                    extraClaims.put(SmartschoolOAuth2UserService.CLAIM_YEAR_CODE,
+                            jwtService.extractClaim(oldToken, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE));
+                    extraClaims.put(SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
+                            jwtService.extractClaim(oldToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE));
+                });
+
+        String newToken = jwtService.generateToken(targetUserId, newRole, extraClaims);
+        tokenStorageService.replaceToken(
+                targetUserId,
+                newToken,
+                newRole,
+                jwtService.extractExpirationInstant(newToken));
+    }
+
     public RoleEntity getRoleEntity(String roleName) {
         Role role = Arrays.stream(Role.values())
                 .filter(r -> r.name().equalsIgnoreCase(roleName))
