@@ -214,24 +214,59 @@
           </div>
         </section>
 
-        @if (selectedBook.campusId || selectedBook.campusName) {
+        @if (hasLocationInfo) {
           <section class="summary-section campus-section">
             <h2 class="section-title">
               Locatie
             </h2>
 
-            <div class="campus-info-card">
-              <div class="campus-info-icon">
-                <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
-              </div>
+            @if (copyLocationGroups.length > 0) {
+              <div class="campus-location-list">
+                @for (group of copyLocationGroups; track group.campusId) {
+                  <div class="campus-info-card campus-info-card--with-status">
+                    <div class="campus-info-icon">
+                      <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
+                    </div>
 
-              <div class="campus-info-content">
-                <p class="campus-info-name">{{ campusName }}</p>
-                @if (campusAddress) {
-                  <p class="campus-info-address">{{ campusAddress }}</p>
+                    <div class="campus-info-content campus-info-content--wide">
+                      <div class="campus-info-heading">
+                        <p class="campus-info-name">{{ group.campusName }}</p>
+                        @if (getCampusAddress(group)) {
+                          <p class="campus-info-address">{{ getCampusAddress(group) }}</p>
+                        }
+                      </div>
+
+                      <div class="copy-status-list">
+                        @for (summary of getCampusStatusSummaries(group); track summary.trackKey) {
+                          <div class="copy-status-pill" [ngClass]="getStatusClass(summary.status)">
+                            <span class="copy-status-dot"></span>
+                            <span>{{ getCopyStatusText(summary) }}</span>
+                            @if (summary.status === "borrowed" && summary.expectedReturnDate) {
+                              <span class="copy-return-date">
+                                Verwacht terug {{ summary.expectedReturnDate | date: "dd/MM/yyyy" }}
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
                 }
               </div>
-            </div>
+            } @else {
+              <div class="campus-info-card">
+                <div class="campus-info-icon">
+                  <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
+                </div>
+
+                <div class="campus-info-content">
+                  <p class="campus-info-name">{{ campusName }}</p>
+                  @if (campusAddress) {
+                    <p class="campus-info-address">{{ campusAddress }}</p>
+                  }
+                </div>
+              </div>
+            }
           </section>
         }
 

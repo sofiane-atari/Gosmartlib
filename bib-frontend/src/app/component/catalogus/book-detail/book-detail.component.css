@@ -491,6 +491,18 @@
   border-radius: 6px;
 }
 
+.campus-location-list {
+  display: grid;
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.campus-info-card--with-status {
+  align-items: stretch;
+}
+
 .campus-info-icon {
   width: 34px;
   height: 34px;
@@ -510,6 +522,16 @@
   gap: 3px;
 }
 
+.campus-info-content--wide {
+  flex: 1;
+  gap: 10px;
+}
+
+.campus-info-heading {
+  display: grid;
+  gap: 3px;
+}
+
 .campus-info-name {
   color: #1f2937;
   font-size: 0.9rem;
@@ -523,6 +545,58 @@
   font-weight: 500;
   line-height: 1.4;
   overflow-wrap: anywhere;
+}
+
+.copy-status-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.copy-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  border: 1px solid transparent;
+}
+
+.copy-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.copy-status--available {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.copy-status--available .copy-status-dot {
+  background: #22c55e;
+}
+
+.copy-status--borrowed {
+  color: #9a1212;
+  background: #ffefed;
+  border-color: #ffd3d3;
+}
+
+.copy-status--borrowed .copy-status-dot {
+  background: #f91640;
+}
+
+.copy-return-date {
+  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding-left: 4px;
 }
 
 .genres-tags {

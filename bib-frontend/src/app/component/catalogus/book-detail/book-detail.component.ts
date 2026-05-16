@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 
-import { Book } from '../../../model/book/book.model';
+import { Book, BookCopyCampusLocation } from '../../../model/book/book.model';
 import {
   LucideAngularModule,
   BookOpen,
@@ -51,6 +51,13 @@ import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-
 import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
 import { GamificationNotificationStoreService } from '../../../services/gamification/store/gamification-notification-store.service';
+
+interface CopyStatusSummary {
+  status: 'available' | 'borrowed';
+  count: number;
+  trackKey: string;
+  expectedReturnDate?: string | null;
+}
 
 @Component({
   selector: 'app-book-detail',
@@ -245,6 +252,14 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   selectedBook?: Book;
   selectedCampus?: Campus;
 
+  protected get copyLocationGroups(): BookCopyCampusLocation[] {
+    return this.selectedBook?.copyLocations?.filter((group) => group.copies.length > 0) ?? [];
+  }
+
+  protected get hasLocationInfo(): boolean {
+    return this.copyLocationGroups.length > 0 || !!this.selectedBook?.campusId || !!this.selectedBook?.campusName;
+  }
+
   get campusName(): string {
     return this.selectedCampus?.name ?? this.selectedBook?.campusName ?? 'Onbekende campus';
   }
@@ -255,6 +270,61 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     }
 
     return `${this.selectedCampus.address}, ${this.selectedCampus.postalCode}`;
+  }
+
+  protected getCampusAddress(group: BookCopyCampusLocation): string | null {
+    if (!group.address) {
+      return null;
+    }
+
+    return group.postalCode ? `${group.address}, ${group.postalCode}` : group.address;
+  }
+
+  protected getCampusStatusSummaries(group: BookCopyCampusLocation): CopyStatusSummary[] {
+    const summaries = new Map<string, CopyStatusSummary>();
+
+    for (const copy of group.copies) {
+      const status = this.isBorrowed(copy.availability) ? 'borrowed' : 'available';
+      const key = status === 'borrowed'
+        ? `${status}:${copy.expectedReturnDate ?? ''}`
+        : status;
+      const existing = summaries.get(key);
+
+      if (existing) {
+        existing.count += 1;
+        continue;
+      }
+
+      summaries.set(key, {
+        status,
+        count: 1,
+        trackKey: key,
+        expectedReturnDate: status === 'borrowed' ? copy.expectedReturnDate ?? null : null,
+      });
+    }
+
+    return Array.from(summaries.values()).sort((a, b) => {
+      if (a.status !== b.status) {
+        return a.status === 'available' ? -1 : 1;
+      }
+
+      return (a.expectedReturnDate ?? '').localeCompare(b.expectedReturnDate ?? '');
+    });
+  }
+
+  protected getCopyStatusText(summary: CopyStatusSummary): string {
+    const noun = summary.count === 1 ? 'exemplaar' : 'exemplaren';
+    const status = summary.status === 'available' ? 'beschikbaar' : 'uitgeleend';
+
+    return `${summary.count} ${noun} ${status}`;
+  }
+
+  protected getStatusClass(status: CopyStatusSummary['status']): string {
+    return status === 'available' ? 'copy-status--available' : 'copy-status--borrowed';
+  }
+
+  private isBorrowed(availability: string | null | undefined): boolean {
+    return availability === 'BORROWED' || availability === 'UITGELEEND';
   }
 
   private loadCampusForBook(book: Book): void {

@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
+import edu.ap.bib_backend.dto.BookCopyCampusLocationDTO;
+import edu.ap.bib_backend.dto.BookCopyLocationDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.ReadingLevelDTO;
@@ -18,6 +20,7 @@ import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.Availability;
@@ -164,7 +167,10 @@ public class BookService {
         School school = currentUserService.getCurrentUserSchool(authentication);
         Book book = findBookInSchoolOrThrow(id, school.getId());
         validateBookVisibility(book, authentication);
-        return bookMapper.toDTO(book);
+
+        BookDTO dto = bookMapper.toDTO(book);
+        dto.setCopyLocations(buildCopyLocations(book, school.getId(), authentication));
+        return dto;
     }
 
     public Book getBookById(Long id, boolean returnEntity) {
@@ -384,6 +390,55 @@ public class BookService {
         copy.setBook(book);
         copy.setCampus(campus);
         bookCopyRepository.save(copy);
+    }
+
+    private List<BookCopyCampusLocationDTO> buildCopyLocations(Book book, Long schoolId, Authentication authentication) {
+        List<Book> booksToShow = getSameBookAcrossSchoolCampuses(book, schoolId);
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+
+        return booksToShow.stream()
+                .filter(locationBook -> canSeeDidacticBooks || !locationBook.isDidactic())
+                .map(locationBook -> {
+                    Campus campus = locationBook.getCampus();
+                    return BookCopyCampusLocationDTO.builder()
+                            .campusId(campus.getId())
+                            .campusName(campus.getName())
+                            .address(campus.getAddress())
+                            .postalCode(campus.getPostalCode())
+                            .copies(locationBook.getBookCopies().stream()
+                                    .map(this::toCopyLocationDTO)
+                                    .toList())
+                            .build();
+                })
+                .filter(location -> !location.copies().isEmpty())
+                .toList();
+    }
+
+    private List<Book> getSameBookAcrossSchoolCampuses(Book book, Long schoolId) {
+        String isbn = book.getIsbn();
+
+        if (isbn == null || isbn.isBlank()) {
+            return List.of(book);
+        }
+
+        return bookRepository.findAllByIsbnAndCampusSchoolId(isbn, schoolId);
+    }
+
+    private BookCopyLocationDTO toCopyLocationDTO(BookCopy copy) {
+        return BookCopyLocationDTO.builder()
+                .id(copy.getId())
+                .availability(copy.getAvailability())
+                .expectedReturnDate(getExpectedReturnDate(copy))
+                .build();
+    }
+
+    private java.time.LocalDate getExpectedReturnDate(BookCopy copy) {
+        return copy.getLoans().stream()
+                .filter(loan -> loan.getReturnedDate() == null)
+                .map(Loan::getReturnDate)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     private void validateUniqueIsbnInCampus(String isbn, Long currentBookId, Long campusId) {
