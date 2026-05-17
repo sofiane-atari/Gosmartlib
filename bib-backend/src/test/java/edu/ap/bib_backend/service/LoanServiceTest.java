@@ -84,13 +84,21 @@ class LoanServiceTest {
         lenient().when(currentUserService.getCurrentUserCampus(any())).thenReturn(campus);
     }
 
+    private BookCopy availableCopy(Long id, Book book) {
+        BookCopy copy = new BookCopy();
+        copy.setId(id);
+        copy.setBook(book);
+        copy.setCampus(campus);
+        return copy;
+    }
+
     @Test
     void Given_ValidLoanDTO_When_Create_Then_SavesAndReturnsDto() {
         // Arrange
         String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
-                .bookIds(List.of(1L))
+                .bookCopyIds(List.of(1L))
                 .returnDate(returnDate)
                 .build();
 
@@ -100,11 +108,10 @@ class LoanServiceTest {
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
         Book book = new Book();
+        book.setId(1L);
         book.setTitle("Test Book");
-        when(bookService.getBookById(1L, true)).thenReturn(book);
-
-        BookCopy copy = new BookCopy();
-        when(bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(1L, 1L)).thenReturn(List.of(copy));
+        BookCopy copy = availableCopy(1L, book);
+        when(bookCopyRepository.findAllById(List.of(1L))).thenReturn(List.of(copy));
 
         LoanDTO expectedDto = mock(LoanDTO.class);
         when(loanMapper.toDto(loan)).thenReturn(expectedDto);
@@ -150,7 +157,7 @@ class LoanServiceTest {
     @Test
     void Given_NoReturnDate_When_Create_Then_UsesDefaultReturnDateFromSchool() {
         // Arrange
-        LoanDTO inputDto = LoanDTO.builder().userId("user123").bookIds(List.of(1L)).build();
+        LoanDTO inputDto = LoanDTO.builder().userId("user123").bookCopyIds(List.of(1L)).build();
 
         User user = new User();
         School school = new School();
@@ -163,8 +170,9 @@ class LoanServiceTest {
         when(loanMapper.toEntity(inputDto)).thenReturn(loan);
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
-        when(bookService.getBookById(1L, true)).thenReturn(new Book());
-        when(bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(1L, 1L)).thenReturn(List.of(new BookCopy()));
+        Book book = new Book();
+        book.setId(1L);
+        when(bookCopyRepository.findAllById(List.of(1L))).thenReturn(List.of(availableCopy(1L, book)));
 
         // Act
         loanService.create(inputDto, authentication);
@@ -179,7 +187,7 @@ class LoanServiceTest {
         // Arrange
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
-                .bookIds(List.of(1L))
+                .bookCopyIds(List.of(1L))
                 .returnDate("invalid-date-format")
                 .build();
 
@@ -195,7 +203,7 @@ class LoanServiceTest {
         String pastDate = LocalDate.now(ZoneId.of("Europe/Brussels")).minusDays(1).toString();
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
-                .bookIds(List.of(1L))
+                .bookCopyIds(List.of(1L))
                 .returnDate(pastDate)
                 .build();
 
@@ -211,7 +219,7 @@ class LoanServiceTest {
         String today = LocalDate.now(ZoneId.of("Europe/Brussels")).toString();
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
-                .bookIds(List.of(1L))
+                .bookCopyIds(List.of(1L))
                 .returnDate(today)
                 .build();
 
@@ -225,11 +233,9 @@ class LoanServiceTest {
     void Given_NotEnoughCopiesAvailable_When_Create_Then_ThrowsIllegalStateException() {
         // Arrange
         String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
-        LoanBookDTO bookDto = LoanBookDTO.builder().id(1L).copiesCount(2).build();
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
-                .bookIds(List.of(1L))
-                .books(List.of(bookDto))
+                .bookCopyIds(List.of(1L, 2L))
                 .returnDate(returnDate)
                 .build();
 
@@ -239,31 +245,24 @@ class LoanServiceTest {
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
         Book book = new Book();
+        book.setId(1L);
         book.setTitle("Test Book");
-        when(bookService.getBookById(1L, true)).thenReturn(book);
-
-        // Only 1 copy available, but need 2 (via copiesCount)
-        when(bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(1L, 1L)).thenReturn(List.of(new BookCopy()));
+        when(bookCopyRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(availableCopy(1L, book)));
 
         // Act & Assert
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> loanService.create(inputDto, authentication));
-        assertTrue(exception.getMessage().contains("Niet genoeg beschikbare exemplaren"));
+        assertEquals("Eén of meer boekexemplaren werden niet gevonden.", exception.getMessage());
     }
 
     @Test
     void Given_MultipleBooksWithCopiesCount_When_Create_Then_ReservesCorrectNumberOfCopies() {
         // Arrange
         String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
-        LoanBookDTO book1 = LoanBookDTO.builder().id(1L).title("Book 1").author("Author 1").isbn("isbn1").imageUrl(null)
-                .copiesCount(2).build();
-        LoanBookDTO book2 = LoanBookDTO.builder().id(2L).title("Book 2").author("Author 2").isbn("isbn2").imageUrl(null)
-                .copiesCount(3).build();
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
-                .bookIds(List.of(1L, 2L))
+                .bookCopyIds(List.of(1L, 2L, 3L, 4L, 5L))
                 .returnDate(returnDate)
-                .books(List.of(book1, book2))
                 .build();
 
         Loan loan = new Loan();
@@ -272,16 +271,18 @@ class LoanServiceTest {
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
         Book b1 = new Book();
+        b1.setId(1L);
         b1.setTitle("Book 1");
         Book b2 = new Book();
+        b2.setId(2L);
         b2.setTitle("Book 2");
-        when(bookService.getBookById(1L, true)).thenReturn(b1);
-        when(bookService.getBookById(2L, true)).thenReturn(b2);
-
-        when(bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(1L, 1L))
-                .thenReturn(List.of(new BookCopy(), new BookCopy()));
-        when(bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(2L, 1L))
-                .thenReturn(List.of(new BookCopy(), new BookCopy(), new BookCopy()));
+        when(bookCopyRepository.findAllById(List.of(1L, 2L, 3L, 4L, 5L)))
+                .thenReturn(List.of(
+                        availableCopy(1L, b1),
+                        availableCopy(2L, b1),
+                        availableCopy(3L, b2),
+                        availableCopy(4L, b2),
+                        availableCopy(5L, b2)));
 
         // Act
         loanService.create(inputDto, authentication);
@@ -295,7 +296,7 @@ class LoanServiceTest {
         // Arrange
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("nonexistent")
-                .bookIds(List.of(1L))
+                .bookCopyIds(List.of(1L))
                 .build();
 
         when(userRepository.findById("nonexistent")).thenReturn(Optional.empty());
@@ -309,7 +310,7 @@ class LoanServiceTest {
     @Test
     void Given_NullDefaultLoanDuration_When_Create_Then_UsesDefault15Days() {
         // Arrange
-        LoanDTO inputDto = LoanDTO.builder().userId("user123").bookIds(List.of(1L)).build();
+        LoanDTO inputDto = LoanDTO.builder().userId("user123").bookCopyIds(List.of(1L)).build();
 
         User user = new User();
         School school = new School();
@@ -322,8 +323,9 @@ class LoanServiceTest {
         when(loanMapper.toEntity(inputDto)).thenReturn(loan);
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
-        when(bookService.getBookById(1L, true)).thenReturn(new Book());
-        when(bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(1L, 1L)).thenReturn(List.of(new BookCopy()));
+        Book book = new Book();
+        book.setId(1L);
+        when(bookCopyRepository.findAllById(List.of(1L))).thenReturn(List.of(availableCopy(1L, book)));
 
         // Act
         loanService.create(inputDto, authentication);
@@ -379,7 +381,7 @@ class LoanServiceTest {
         String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
-                .bookIds(List.of(1L))
+                .bookCopyIds(List.of(1L))
                 .returnDate(returnDate)
                 .build();
 
@@ -389,10 +391,9 @@ class LoanServiceTest {
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
         Book book = new Book();
+        book.setId(1L);
         book.setTitle("Test Book");
-        when(bookService.getBookById(1L, true)).thenReturn(book);
-
-        when(bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(1L, 1L)).thenReturn(List.of(new BookCopy()));
+        when(bookCopyRepository.findAllById(List.of(1L))).thenReturn(List.of(availableCopy(1L, book)));
 
         when(smartschoolTokenRefreshService.getValidSmartschoolAccessToken("user123")).thenReturn(null);
 

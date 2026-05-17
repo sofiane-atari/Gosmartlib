@@ -101,7 +101,7 @@ class LoanServiceIntegrationTest {
 
         LoanDTO loanDto = LoanDTO.builder()
                 .userId("loan-user-1")
-                .bookIds(List.of(book.getId()))
+                .bookCopyIds(List.of(copy.getId()))
                 .build();
 
         // Act

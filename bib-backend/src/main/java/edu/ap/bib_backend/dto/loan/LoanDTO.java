@@ -20,9 +20,9 @@ public record LoanDTO(
         @JsonProperty("userDisplayName")
         String userDisplayName,
 
-        @JsonProperty("bookIds")
-        @NotEmpty(message = "Minstens één boek is verplicht")
-        List<Long> bookIds,
+        @JsonProperty("bookCopyIds")
+        @NotEmpty(message = "Minstens één boekexemplaar is verplicht")
+        List<Long> bookCopyIds,
 
         @JsonProperty("books")
         List<LoanBookDTO> books,
@@ -43,7 +43,7 @@ public record LoanDTO(
         @JsonProperty("extensionCount")
         int extensionCount
 ) {
-    public LoanDTO(String userId, List<Long> bookIds, String returnDate) {
-        this(null, userId, null, bookIds, null, null, returnDate, null, null, 0);
+    public LoanDTO(String userId, List<Long> bookCopyIds, String returnDate) {
+        this(null, userId, null, bookCopyIds, null, null, returnDate, null, null, 0);
     }
 }

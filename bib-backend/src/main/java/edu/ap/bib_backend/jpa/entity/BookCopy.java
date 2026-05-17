@@ -5,7 +5,9 @@ import java.util.List;
 
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.enums.BookCondition;
 import org.hibernate.annotations.Formula;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -35,14 +37,19 @@ public class BookCopy {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(255) default 'GOOD_CONDITION'")
+    private BookCondition condition = BookCondition.GOOD_CONDITION;
+
     @Setter(AccessLevel.NONE)
     @Enumerated(EnumType.STRING)
     @Formula("""
-            (
-                CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM loan_copies lc
+             (
+                 CASE
+                    WHEN condition = 'LOST' THEN 'UNAVAILABLE'
+                     WHEN EXISTS (
+                         SELECT 1
+                         FROM loan_copies lc
                         JOIN loans l ON l.id = lc.loan_id
                         WHERE lc.book_copy_id = id
                           AND l.returned_date IS NULL

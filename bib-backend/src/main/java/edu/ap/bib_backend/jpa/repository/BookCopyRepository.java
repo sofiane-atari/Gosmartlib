@@ -37,6 +37,7 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
             FROM BookCopy bc
             LEFT JOIN bc.loans bl
             WHERE bc.book.id = :bookId
+              AND bc.condition <> edu.ap.bib_backend.jpa.enums.BookCondition.LOST
             GROUP BY bc
             HAVING SUM(CASE WHEN bl.id IS NOT NULL AND bl.returnedDate IS NULL THEN 1 ELSE 0 END) = 0
             """)
@@ -48,6 +49,7 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
             LEFT JOIN bc.loans bl
             WHERE bc.book.id = :bookId
               AND bc.campus.id = :campusId
+              AND bc.condition <> edu.ap.bib_backend.jpa.enums.BookCondition.LOST
             GROUP BY bc
             HAVING SUM(CASE WHEN bl.id IS NOT NULL AND bl.returnedDate IS NULL THEN 1 ELSE 0 END) = 0
             """)

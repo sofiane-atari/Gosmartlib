@@ -26,6 +26,7 @@ import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
@@ -106,22 +107,15 @@ public class LoanService {
 
         loan = loanRepository.save(loan);
 
-        for (var bookId : loanDTO.bookIds()) {
-            Book book = bookService.getBookById(bookId, true);
-            log.debug("Reserving copies for book '{}' (id={}, isbn={}, author={})",
-                    book.getTitle(), bookId, book.getIsbn(), book.getAuthor());
-            int copiesNeeded = resolveCopiesCount(loanDTO, bookId);
+        List<BookCopy> selectedCopies = resolveSelectedCopies(loanDTO.bookCopyIds(), campus);
+        loan.getCopies().addAll(selectedCopies);
 
-            List<BookCopy> availableCopies = bookCopyRepository.findAvailableCopiesByBookIdAndCampusId(bookId,
-                    campus.getId());
-            if (availableCopies.size() < copiesNeeded) {
-                throw new IllegalStateException("Niet genoeg beschikbare exemplaren voor boek: " + book.getTitle());
-            }
-
-            for (int i = 0; i < copiesNeeded; i++) {
-                loan.getCopies().add(availableCopies.get(i));
-            }
-        }
+        List<Long> selectedBookIds = selectedCopies.stream()
+                .map(BookCopy::getBook)
+                .filter(java.util.Objects::nonNull)
+                .map(Book::getId)
+                .distinct()
+                .toList();
 
         try {
             String token = smartschoolTokenRefreshService.getValidSmartschoolAccessToken(loanDTO.userId());
@@ -134,14 +128,14 @@ public class LoanService {
                         .orElse(null);
 
                 log.debug("Fetching recommendations for bookIds={}, schoolDomain={}",
-                        loanDTO.bookIds(), schoolDomain);
+                        selectedBookIds, schoolDomain);
                 List<BookDTO> recommendations = bookService.getRelatedBooksForLoan(
-                        loanDTO.bookIds(), 4, schoolDomain);
+                        selectedBookIds, 4, schoolDomain);
 
                 // Remove recommendations that are already in the loan
 
                 recommendations = recommendations.stream()
-                        .filter(rec -> loanDTO.bookIds().stream()
+                        .filter(rec -> selectedBookIds.stream()
                                 .noneMatch(loanBookId -> loanBookId.equals(rec.getId())))
                         .toList();
 
@@ -223,7 +217,7 @@ public class LoanService {
                 .toList();
 
         int totalLoanedBookCount = loans.stream()
-                .mapToInt(loan -> loan.books() != null ? loan.books().size() : loan.bookIds().size())
+                .mapToInt(loan -> loan.books() != null ? loan.books().size() : loan.bookCopyIds().size())
                 .sum();
 
         return LoanHistoryDTO.builder()
@@ -252,16 +246,25 @@ public class LoanService {
                         LocalDateTime.now()));
     }
 
-    private int resolveCopiesCount(LoanDTO loanDTO, Long bookId) {
-        if (loanDTO.books() == null) {
-            return 1;
+    private List<BookCopy> resolveSelectedCopies(List<Long> bookCopyIds, Campus campus) {
+        List<BookCopy> selectedCopies = bookCopyRepository.findAllById(bookCopyIds);
+
+        if (selectedCopies.size() != bookCopyIds.size()) {
+            throw new IllegalStateException("Eén of meer boekexemplaren werden niet gevonden.");
         }
 
-        return loanDTO.books().stream()
-                .filter(book -> bookId.equals(book.id()))
-                .findFirst()
-                .map(book -> book.copiesCount() != null ? book.copiesCount() : 1)
-                .orElse(1);
+        for (BookCopy copy : selectedCopies) {
+            if (copy.getCampus() == null || !copy.getCampus().getId().equals(campus.getId())) {
+                throw new IllegalStateException("Boekexemplaar niet gevonden in deze campus.");
+            }
+
+            if (copy.getAvailability() != null && copy.getAvailability() != Availability.AVAILABLE) {
+                String title = copy.getBook() != null ? copy.getBook().getTitle() : "onbekend boek";
+                throw new IllegalStateException("Boekexemplaar is niet beschikbaar voor boek: " + title);
+            }
+        }
+
+        return selectedCopies;
     }
 
     private LocalDate calculateDefaultReturnDate(String userId) {
@@ -311,7 +314,7 @@ public class LoanService {
                             .id(dto.id())
                             .userId(dto.userId())
                             .userDisplayName(displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"))
-                            .bookIds(dto.bookIds())
+                            .bookCopyIds(dto.bookCopyIds())
                             .books(dto.books())
                             .loanDate(dto.loanDate())
                             .returnDate(dto.returnDate())

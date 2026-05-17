@@ -24,7 +24,7 @@ public interface LoanMapper {
     Loan toEntity(LoanDTO dto);
 
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "bookIds", expression = "java(mapBookIds(loan.getCopies()))")
+    @Mapping(target = "bookCopyIds", expression = "java(mapBookCopyIds(loan.getCopies()))")
     @Mapping(target = "books", expression = "java(mapBooks(loan.getCopies()))")
     @Mapping(target = "loanDate", expression = "java(loan.getLoanDate() != null ? loan.getLoanDate().toString() : null)")
     @Mapping(target = "returnDate", expression = "java(loan.getReturnDate() != null ? loan.getReturnDate().toString() : null)")
@@ -33,14 +33,13 @@ public interface LoanMapper {
     @Mapping(target = "extensionCount", expression = "java(loan.getExtensions() != null ? loan.getExtensions().size() : 0)")
     LoanDTO toDto(Loan loan);
 
-    default List<Long> mapBookIds(List<BookCopy> copies) {
+    default List<Long> mapBookCopyIds(List<BookCopy> copies) {
         if (copies == null) {
             return List.of();
         }
 
         return copies.stream()
-                .filter(copy -> copy.getBook() != null)
-                .map(copy -> copy.getBook().getId())
+                .map(BookCopy::getId)
                 .toList();
     }
 
@@ -60,6 +59,7 @@ public interface LoanMapper {
                         entry.getKey().getAuthor(),
                         entry.getKey().getIsbn(),
                         entry.getKey().getImageUrl(),
+                        entry.getValue().stream().map(BookCopy::getId).toList(),
                         entry.getValue().size()))
                 .toList();
     }

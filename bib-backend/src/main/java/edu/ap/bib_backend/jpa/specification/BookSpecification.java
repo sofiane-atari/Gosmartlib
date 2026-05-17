@@ -9,6 +9,7 @@ import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.enums.BookCondition;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 
@@ -128,7 +129,10 @@ public static Specification<Book> belongsToCampus(Long campusId) {
             jakarta.persistence.criteria.Join<BookCopy, Loan> loanJoin = copyRoot.join("loans", jakarta.persistence.criteria.JoinType.LEFT);
 
             availableCopySubquery.select(copyRoot.get("id"))
-                    .where(criteriaBuilder.equal(copyRoot.get("book"), root))
+                    .where(
+                            criteriaBuilder.equal(copyRoot.get("book"), root),
+                            criteriaBuilder.notEqual(copyRoot.get("condition"), BookCondition.LOST)
+                    )
                     .groupBy(copyRoot.get("id"))
                     .having(criteriaBuilder.equal(
                             criteriaBuilder.sum(

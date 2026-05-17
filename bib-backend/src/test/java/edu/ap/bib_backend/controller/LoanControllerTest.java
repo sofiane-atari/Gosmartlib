@@ -58,7 +58,7 @@ class LoanControllerTest {
         // Arrange
         LoanDTO loanDto = LoanDTO.builder()
                 .userId("user1")
-                .bookIds(List.of(1L))
+                .bookCopyIds(List.of(1L))
                 .returnDate("2099-12-31")
                 .build();
 
@@ -71,13 +71,13 @@ class LoanControllerTest {
                 .content("""
                         {
                           "userId": "user1",
-                          "bookIds": [1],
+                          "bookCopyIds": [1],
                           "returnDate": "2099-12-31"
                         }
                         """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value("user1"))
-                .andExpect(jsonPath("$.bookIds[0]").value(1))
+                .andExpect(jsonPath("$.bookCopyIds[0]").value(1))
                 .andExpect(jsonPath("$.returnDate").value("2099-12-31"));
     }
 
