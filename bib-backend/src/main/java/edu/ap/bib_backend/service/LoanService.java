@@ -346,10 +346,6 @@ public class LoanService {
 
         List<Loan> loans = loanRepository.findByCampusId(campus.getId());
 
-        List<LoanDTO> loanDtos = loans.stream()
-                .map(loanMapper::toDto)
-                .toList();
-
         Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
                 .filter(loan -> loan.getUser() != null)
                 .filter(loan -> loan.getUser().getSchool() != null)

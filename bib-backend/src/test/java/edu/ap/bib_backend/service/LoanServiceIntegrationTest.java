@@ -1,115 +1,114 @@
-// package edu.ap.bib_backend.service;
+package edu.ap.bib_backend.service;
 
-// import edu.ap.bib_backend.dto.loan.LoanDTO;
-// import edu.ap.bib_backend.jpa.entity.Book;
-// import edu.ap.bib_backend.jpa.entity.BookCopy;
-// import edu.ap.bib_backend.jpa.entity.Campus;
-// import edu.ap.bib_backend.jpa.entity.RoleEntity;
-// import edu.ap.bib_backend.jpa.entity.School;
-// import edu.ap.bib_backend.jpa.entity.User;
-// import edu.ap.bib_backend.jpa.enums.Role;
-// import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
-// import edu.ap.bib_backend.jpa.repository.BookRepository;
-// import edu.ap.bib_backend.jpa.repository.CampusRepository;
-// import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
-// import edu.ap.bib_backend.jpa.repository.SchoolRepository;
-// import edu.ap.bib_backend.jpa.repository.UserRepository;
-// import edu.ap.bib_backend.service.user.CurrentUserService;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.context.SpringBootTest;
-// import org.springframework.security.core.Authentication;
-// import org.springframework.test.context.ActiveProfiles;
-// import org.springframework.test.context.bean.override.mockito.MockitoBean;
-// import org.springframework.transaction.annotation.Transactional;
+import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
+import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.user.CurrentUserService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.Authentication;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 
-// import java.util.List;
+import java.util.List;
 
-// import static org.junit.jupiter.api.Assertions.*;
-// import static org.mockito.ArgumentMatchers.any;
-// import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
-// @SpringBootTest
-// @ActiveProfiles("test")
-// @Transactional
-// class LoanServiceIntegrationTest {
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class LoanServiceIntegrationTest {
 
-//     @Autowired
-//     private LoanService loanService;
+    @Autowired
+    private LoanService loanService;
 
-//     @Autowired
-//     private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-//     @Autowired
-//     private BookRepository bookRepository;
+    @Autowired
+    private BookRepository bookRepository;
 
-//     @Autowired
-//     private BookCopyRepository bookCopyRepository;
+    @Autowired
+    private BookCopyRepository bookCopyRepository;
 
-//     @Autowired
-//     private SchoolRepository schoolRepository;
+    @Autowired
+    private SchoolRepository schoolRepository;
 
-//     @Autowired
-//     private CampusRepository campusRepository;
+    @Autowired
+    private CampusRepository campusRepository;
 
-//     @Autowired
-//     private RoleEntityRepository roleEntityRepository;
+    @Autowired
+    private RoleEntityRepository roleEntityRepository;
 
-//     @MockitoBean
-//     private CurrentUserService currentUserService;
+    @MockitoBean
+    private CurrentUserService currentUserService;
 
-//     @Test
-//     void Given_AvailableBookAndUser_When_CreateLoan_Then_LoanIsPersisted() {
-//         // Arrange
-//         School school = new School();
-//         school.setDomainName("loan-school.be");
-//         school.setName("Loan School");
-//         school = schoolRepository.save(school);
+    @Test
+    void Given_AvailableBookAndUser_When_CreateLoan_Then_LoanIsPersisted() {
+        // Arrange
+        School school = new School();
+        school.setDomainName("loan-school.be");
+        school.setName("Loan School");
+        school = schoolRepository.save(school);
 
-//         Campus campus = new Campus();
-//         campus.setName("Test Campus");
-//         campus.setSchool(school);
-//         campus.setAddress("Test Address");
-//         campus.setPostalCode(2000);
-//         campus = campusRepository.save(campus);
+        Campus campus = new Campus();
+        campus.setName("Test Campus");
+        campus.setSchool(school);
+        campus.setAddress("Test Address");
+        campus.setPostalCode(2000);
+        campus = campusRepository.save(campus);
 
-//         RoleEntity role = new RoleEntity();
-//         role.setRole(Role.STUDENT);
-//         roleEntityRepository.save(role);
+        RoleEntity role = new RoleEntity();
+        role.setRole(Role.STUDENT);
+        roleEntityRepository.save(role);
 
-//         User user = new User();
-//         user.setId("loan-user-1");
-//         user.setRole(role);
-//         user.setSchool(school);
-//         user.setCampus(campus);
-//         userRepository.save(user);
+        User user = new User();
+        user.setId("loan-user-1");
+        user.setRole(role);
+        user.setSchool(school);
+        user.setCampus(campus);
+        userRepository.save(user);
 
-//         Book book = new Book();
-//         book.setTitle("Loanable Book");
-//         book.setIsbn("1234567890");
-//         book.setCampus(campus);
-//         book = bookRepository.save(book);
+        Book book = new Book();
+        book.setTitle("Loanable Book");
+        book.setIsbn("1234567890");
+        book.setCampus(campus);
+        book = bookRepository.save(book);
 
-//         BookCopy copy = new BookCopy();
-//         copy.setBook(book);
-//         copy.setCampus(campus);
-//         bookCopyRepository.save(copy);
+        BookCopy copy = new BookCopy();
+        copy.setBook(book);
+        copy.setCampus(campus);
+        bookCopyRepository.save(copy);
 
-//         Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
-//         when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
+        Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+        when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
 
-//         LoanDTO loanDto = LoanDTO.builder()
-//                 .userId("loan-user-1")
-//                 .bookIds(List.of(book.getId()))
-//                 .build();
+        LoanDTO loanDto = LoanDTO.builder()
+                .userId("loan-user-1")
+                .bookIds(List.of(book.getId()))
+                .build();
 
-//         // Act
-//         LoanDTO result = loanService.create(loanDto, authentication);
-
-//         // Assert
-//         assertNotNull(result);
-//         assertNotNull(result.id());
-//         assertEquals("loan-user-1", result.userId());
-//     }
-// }
+        // Act
+        List<LoanDTO> result = loanService.create(loanDto, authentication);
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertNotNull(result.get(0).id());
+        assertEquals("loan-user-1", result.get(0).userId());
+        assertEquals(List.of(book.getId()), result.get(0).bookIds());
+    }
+}
