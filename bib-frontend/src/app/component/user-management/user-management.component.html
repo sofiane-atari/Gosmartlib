@@ -9,28 +9,41 @@
   @if (canSelfRevoke()) {
     <section class="self-profile-card custom-scrollbar">
       <div class="self-profile-card__body">
-        <div class="self-profile-card__icon">
-          <lucide-icon [name]="UserRound"></lucide-icon>
-        </div>
+        <app-button-hover-help text="Jouw accounticoon.">
+          <div class="self-profile-card__icon">
+            <lucide-icon [name]="UserRound"></lucide-icon>
+          </div>
+        </app-button-hover-help>
 
         <div class="self-profile-card__info">
-          <strong>{{ userService.getDisplayName(currentUser()) }}</strong>
-          <span [class]="roleBadgeClass(currentUser()!.role)">
-            {{ userService.getRoleLabel(currentUser()!.role) }}
-          </span>
-          <small>Dit is jouw account. Je kan je eigen bibliothecarisrol intrekken.</small>
+          <app-button-hover-help text="Jouw volledige naam zoals geregistreerd in Smartschool.">
+            <strong>{{ userService.getDisplayName(currentUser()) }}</strong>
+          </app-button-hover-help>
+          <app-button-hover-help text="Jouw huidige rol binnen de bibliotheekmodule.">
+            <span [class]="roleBadgeClass(currentUser()!.role)">
+              {{ userService.getRoleLabel(currentUser()!.role) }}
+            </span>
+          </app-button-hover-help>
+          <app-button-hover-help text="Dit account is gekoppeld aan Smartschool. Je kan hier je eigen bibliothecarisrol intrekken.">
+            <small>Dit is jouw account. Je kan je eigen bibliothecarisrol intrekken.</small>
+          </app-button-hover-help>
         </div>
 
         <div class="self-profile-card__action">
-          <button
-            type="button"
-            class="btn-revoke"
-            [disabled]="isPromoting()"
-            (click)="openSelfRevoke()"
+          <app-button-hover-help
+            class="full-button-help"
+            text="Trek je eigen bibliothecarisrol in. Je verliest hierna beheerdersrechten."
           >
-            <lucide-icon [name]="ShieldOff"></lucide-icon>
-            Intrekken bibliothecarisrol
-          </button>
+            <button
+              type="button"
+              class="btn-revoke"
+              [disabled]="isPromoting()"
+              (click)="openSelfRevoke()"
+            >
+              <lucide-icon [name]="ShieldOff"></lucide-icon>
+              Intrekken bibliothecarisrol
+            </button>
+          </app-button-hover-help>
         </div>
       </div>
     </section>
@@ -99,12 +112,14 @@
       />
     </section>
 
-    <section class="search-panel">
-      <app-search-bar
-        placeholder="Zoek leerkrachten op naam of e-mail..."
-        (searchChange)="onSearch($event)"
-      ></app-search-bar>
-    </section>
+    <app-button-hover-help class="stat-card-hover" text="Zoek leerkrachten op naam of e-mailadres om hun gegevens te vinden.">
+      <section class="search-panel">
+        <app-search-bar
+          placeholder="Zoek leerkrachten op naam of e-mail..."
+          (searchChange)="onSearch($event)"
+        ></app-search-bar>
+      </section>
+    </app-button-hover-help>
 
     @if (teachers().length === 0) {
       <section class="state-panel state-panel--empty">
@@ -131,33 +146,45 @@
               <tr class="custom-scrollbar">
                 <td data-label="Naam">
                   <div class="user-cell">
-                    <div class="user-cell__icon">
-                      <lucide-icon [name]="GraduationCap"></lucide-icon>
-                    </div>
+                    <app-button-hover-help text="Accounticoon van deze leerkracht.">
+                      <div class="user-cell__icon">
+                        <lucide-icon [name]="GraduationCap"></lucide-icon>
+                      </div>
+                    </app-button-hover-help>
 
                     <div>
-                      <strong>{{ userService.getDisplayName(teacher) }}</strong>
+                      <app-button-hover-help text="Naam van de leerkracht.">
+                        <strong>{{ userService.getDisplayName(teacher) }}</strong>
+                      </app-button-hover-help>
                     </div>
                   </div>
                 </td>
 
                 <td data-label="E-mail">
                   @if (teacher.email) {
-                    <span>{{ teacher.email }}</span>
+                    <app-button-hover-help text="E-mailadres van de leerkracht.">
+                      <span>{{ teacher.email }}</span>
+                    </app-button-hover-help>
                   } @else {
                     <span class="table-placeholder">Geen e-mail</span>
                   }
                 </td>
 
                 <td data-label="Huidige rol">
-                  <span [class]="roleBadgeClass(teacher.role)">
-                    {{ userService.getRoleLabel(teacher.role) }}
-                  </span>
+                  <app-button-hover-help text="De huidige rol van deze gebruiker.">
+                    <span [class]="roleBadgeClass(teacher.role)">
+                      {{ userService.getRoleLabel(teacher.role) }}
+                    </span>
+                  </app-button-hover-help>
                 </td>
 
                 <td data-label="Acties">
                   <div class="table-actions">
-                    @if (teacher.role === 'LIBRARIAN') {
+                  @if (teacher.role === 'LIBRARIAN') {
+                    <app-button-hover-help
+                      class="full-button-help"
+                      text="Haal de beheerdersrechten van deze bibliothecaris terug."
+                    >
                       <button
                         type="button"
                         class="btn-revoke"
@@ -167,7 +194,12 @@
                         <lucide-icon [name]="ShieldOff"></lucide-icon>
                         <span class="btn-label">Intrekken bibliothecarisrol</span>
                       </button>
-                    } @else {
+                    </app-button-hover-help>
+                  } @else {
+                    <app-button-hover-help
+                      class="full-button-help"
+                      text="Geef deze leerkracht beheerdersrechten binnen de bibliotheekmodule."
+                    >
                       <button
                         type="button"
                         class="btn-promote"
@@ -177,7 +209,8 @@
                         <lucide-icon [name]="ShieldCheck"></lucide-icon>
                         <span class="btn-label">Promoveren tot bibliothecaris</span>
                       </button>
-                    }
+                    </app-button-hover-help>
+                  }
                   </div>
                 </td>
               </tr>

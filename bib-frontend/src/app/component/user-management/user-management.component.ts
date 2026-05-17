@@ -30,6 +30,7 @@ import { StatCardComponent } from '../shared/stat-card/stat-card.component';
 import { SearchBarComponent } from '../shared/search-bar/search-bar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
 import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overlay.component';
+import { ButtonHoverHelpComponent } from '../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-user-management',
@@ -42,6 +43,7 @@ import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overl
     SearchBarComponent,
     ConfirmationModalComponent,
     LoadingOverlayComponent,
+    ButtonHoverHelpComponent,
   ],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css'],
