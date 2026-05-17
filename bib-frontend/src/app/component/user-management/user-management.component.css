@@ -395,6 +395,154 @@ lucide-icon svg {
   animation: spin 1s linear infinite;
 }
 
+/* Skeleton loading */
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1e8eb 20%, #e6d6dc 50%, #f1e8eb 80%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.skeleton-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 102px;
+  border-radius: 14px;
+  padding: 26px 24px;
+  border: 1px solid #f0e4e8;
+  background: #fff;
+}
+
+.skeleton--icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.skeleton--icon-purple { background-color: #8a1e41; }
+.skeleton--icon-blue { background-color: #2563eb; }
+.skeleton--icon-green { background-color: #16a34a; }
+
+.skeleton-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.skeleton--label {
+  height: 14px;
+  width: 55%;
+}
+
+.skeleton--value {
+  height: 28px;
+  width: 35%;
+}
+
+.skeleton--search {
+  height: 50px;
+  border-radius: 14px;
+  border: 1px solid #f0e4e8;
+}
+
+.skeleton-table {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 14px;
+  padding: 8px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-table__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0e4e8;
+}
+
+.skeleton-table__row:last-child {
+  border-bottom: none;
+}
+
+.skeleton--user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.skeleton--user-name {
+  height: 16px;
+  width: 20%;
+  flex-shrink: 0;
+}
+
+.skeleton--user-email {
+  height: 14px;
+  width: 25%;
+  flex-shrink: 0;
+}
+
+.skeleton--badge {
+  height: 28px;
+  width: 12%;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.skeleton--action-btn {
+  height: 36px;
+  width: 18%;
+  border-radius: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1240px) {
+  .skeleton-table {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  .skeleton-table__row {
+    background: #fff;
+    border: 1px solid #f0e4e8;
+    border-radius: 14px;
+    padding: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .skeleton--user-name {
+    width: 40%;
+  }
+
+  .skeleton--user-email {
+    width: 100%;
+  }
+
+  .skeleton--badge {
+    width: 30%;
+  }
+
+  .skeleton--action-btn {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
 /* Responsive */
 @media (max-width: 1240px) {
   .table-card {

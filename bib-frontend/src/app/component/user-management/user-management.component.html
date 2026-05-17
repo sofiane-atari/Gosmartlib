@@ -36,119 +36,159 @@
     </section>
   }
 
-  <section class="stat-cards">
-    <app-stat-card
-      label="Totaal leerkrachten"
-      [value]="stats().totalTeachers"
-      [icon]="Users"
-      variant="purple"
-      helpText="Het totaal aantal leerkrachten uit Smartschool, inclusief gebruikers die tot bibliothecaris zijn gepromoveerd."
-    />
-    <app-stat-card
-      label="Leerkrachten"
-      [value]="stats().activeTeachers"
-      [icon]="GraduationCap"
-      variant="blue"
-      helpText="Aantal gebruikers die nog steeds de rol leerkracht hebben."
-    />
-    <app-stat-card
-      label="Bibliothecarissen"
-      [value]="stats().librarians"
-      [icon]="ShieldCheck"
-      variant="green"
-      helpText="Aantal leerkrachten die zijn gepromoveerd tot bibliothecaris."
-    />
-  </section>
+  @if (loading()) {
+    <section class="stat-cards">
+      <div class="skeleton-card">
+        <div class="skeleton skeleton--icon skeleton--icon-purple"></div>
+        <div class="skeleton-card__text">
+          <div class="skeleton skeleton--label"></div>
+          <div class="skeleton skeleton--value"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton skeleton--icon skeleton--icon-blue"></div>
+        <div class="skeleton-card__text">
+          <div class="skeleton skeleton--label"></div>
+          <div class="skeleton skeleton--value"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton skeleton--icon skeleton--icon-green"></div>
+        <div class="skeleton-card__text">
+          <div class="skeleton skeleton--label"></div>
+          <div class="skeleton skeleton--value"></div>
+        </div>
+      </div>
+    </section>
 
-  <section class="search-panel">
-    <app-search-bar
-      placeholder="Zoek leerkrachten op naam of e-mail..."
-      (searchChange)="onSearch($event)"
-    ></app-search-bar>
-  </section>
+    <div class="skeleton skeleton--search"></div>
 
-  @if (teachers().length === 0) {
-    <section class="state-panel state-panel--empty">
-      @if (searchQuery()) {
-        <p>Geen leerkrachten gevonden voor deze zoekopdracht.</p>
-      } @else {
-        <p>Er zijn nog geen leerkrachten gevonden in jouw school.</p>
+    <div class="skeleton-table">
+      @for (_ of [1,2,3,4,5]; track $index) {
+        <div class="skeleton-table__row">
+          <div class="skeleton skeleton--user-avatar"></div>
+          <div class="skeleton skeleton--user-name"></div>
+          <div class="skeleton skeleton--user-email"></div>
+          <div class="skeleton skeleton--badge"></div>
+          <div class="skeleton skeleton--action-btn"></div>
+        </div>
       }
-    </section>
+    </div>
   } @else {
-    <section class="table-card custom-scrollbar">
-      <table>
-        <thead>
-          <tr>
-            <th>Naam</th>
-            <th>E-mail</th>
-            <th>Huidige rol</th>
-            <th class="actions-heading">Acties</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          @for (teacher of teachers(); track teacher.id) {
-            <tr class="custom-scrollbar">
-              <td data-label="Naam">
-                <div class="user-cell">
-                  <div class="user-cell__icon">
-                    <lucide-icon [name]="GraduationCap"></lucide-icon>
-                  </div>
-
-                  <div>
-                    <strong>{{ userService.getDisplayName(teacher) }}</strong>
-                  </div>
-                </div>
-              </td>
-
-              <td data-label="E-mail">
-                @if (teacher.email) {
-                  <span>{{ teacher.email }}</span>
-                } @else {
-                  <span class="table-placeholder">Geen e-mail</span>
-                }
-              </td>
-
-              <td data-label="Huidige rol">
-                <span [class]="roleBadgeClass(teacher.role)">
-                  {{ userService.getRoleLabel(teacher.role) }}
-                </span>
-              </td>
-
-              <td data-label="Acties">
-                <div class="table-actions">
-                  @if (teacher.role === 'LIBRARIAN') {
-                    <button
-                      type="button"
-                      class="btn-revoke"
-                      [disabled]="isPromoting()"
-                      (click)="openConfirmRevoke(teacher)"
-                    >
-                      <lucide-icon [name]="ShieldOff"></lucide-icon>
-                      <span class="btn-label">Intrekken bibliothecarisrol</span>
-                    </button>
-                  } @else {
-                    <button
-                      type="button"
-                      class="btn-promote"
-                      [disabled]="isPromoting()"
-                      (click)="openConfirmPromote(teacher)"
-                    >
-                      <lucide-icon [name]="ShieldCheck"></lucide-icon>
-                      <span class="btn-label">Promoveren tot bibliothecaris</span>
-                    </button>
-                  }
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    <section class="stat-cards">
+      <app-stat-card
+        label="Totaal leerkrachten"
+        [value]="stats().totalTeachers"
+        [icon]="Users"
+        variant="purple"
+        helpText="Het totaal aantal leerkrachten uit Smartschool, inclusief gebruikers die tot bibliothecaris zijn gepromoveerd."
+      />
+      <app-stat-card
+        label="Leerkrachten"
+        [value]="stats().activeTeachers"
+        [icon]="GraduationCap"
+        variant="blue"
+        helpText="Aantal gebruikers die nog steeds de rol leerkracht hebben."
+      />
+      <app-stat-card
+        label="Bibliothecarissen"
+        [value]="stats().librarians"
+        [icon]="ShieldCheck"
+        variant="green"
+        helpText="Aantal leerkrachten die zijn gepromoveerd tot bibliothecaris."
+      />
     </section>
 
-    @if (totalPages() > 1) {
-      <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
+    <section class="search-panel">
+      <app-search-bar
+        placeholder="Zoek leerkrachten op naam of e-mail..."
+        (searchChange)="onSearch($event)"
+      ></app-search-bar>
+    </section>
+
+    @if (teachers().length === 0) {
+      <section class="state-panel state-panel--empty">
+        @if (searchQuery()) {
+          <p>Geen leerkrachten gevonden voor deze zoekopdracht.</p>
+        } @else {
+          <p>Er zijn nog geen leerkrachten gevonden in jouw school.</p>
+        }
+      </section>
+    } @else {
+      <section class="table-card custom-scrollbar">
+        <table>
+          <thead>
+            <tr>
+              <th>Naam</th>
+              <th>E-mail</th>
+              <th>Huidige rol</th>
+              <th class="actions-heading">Acties</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (teacher of teachers(); track teacher.id) {
+              <tr class="custom-scrollbar">
+                <td data-label="Naam">
+                  <div class="user-cell">
+                    <div class="user-cell__icon">
+                      <lucide-icon [name]="GraduationCap"></lucide-icon>
+                    </div>
+
+                    <div>
+                      <strong>{{ userService.getDisplayName(teacher) }}</strong>
+                    </div>
+                  </div>
+                </td>
+
+                <td data-label="E-mail">
+                  @if (teacher.email) {
+                    <span>{{ teacher.email }}</span>
+                  } @else {
+                    <span class="table-placeholder">Geen e-mail</span>
+                  }
+                </td>
+
+                <td data-label="Huidige rol">
+                  <span [class]="roleBadgeClass(teacher.role)">
+                    {{ userService.getRoleLabel(teacher.role) }}
+                  </span>
+                </td>
+
+                <td data-label="Acties">
+                  <div class="table-actions">
+                    @if (teacher.role === 'LIBRARIAN') {
+                      <button
+                        type="button"
+                        class="btn-revoke"
+                        [disabled]="isPromoting()"
+                        (click)="openConfirmRevoke(teacher)"
+                      >
+                        <lucide-icon [name]="ShieldOff"></lucide-icon>
+                        <span class="btn-label">Intrekken bibliothecarisrol</span>
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn-promote"
+                        [disabled]="isPromoting()"
+                        (click)="openConfirmPromote(teacher)"
+                      >
+                        <lucide-icon [name]="ShieldCheck"></lucide-icon>
+                        <span class="btn-label">Promoveren tot bibliothecaris</span>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      @if (totalPages() > 1) {
+        <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
+      }
     }
   }
 

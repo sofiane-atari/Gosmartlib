@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 
 import {
   LucideAngularModule,
@@ -68,6 +68,7 @@ export class UserManagementComponent {
   private readonly searchSubject = new Subject<string>();
   protected readonly searchQuery = signal('');
 
+  protected readonly loading = signal(true);
   protected readonly selectedUser = signal<AuthUserDto | null>(null);
   protected readonly isConfirmModalOpen = signal(false);
   protected readonly isPromoting = signal(false);
@@ -99,6 +100,7 @@ export class UserManagementComponent {
     switchMap(({ page, pageSize, search }) =>
       this.userService.getTeachers(true, page, pageSize, search || undefined),
     ),
+    tap({ next: () => this.loading.set(false) }),
   );
 
   private readonly teachersResponse = toSignal(this.teachers$, {
@@ -119,6 +121,7 @@ export class UserManagementComponent {
 
   private readonly stats$ = toObservable(this.refreshTrigger).pipe(
     switchMap(() => this.userService.getTeacherStats()),
+    tap({ next: () => this.loading.set(false) }),
   );
 
   protected readonly stats = toSignal(this.stats$, {
