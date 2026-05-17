@@ -1,18 +1,19 @@
 <section class="class-report-dashboard">
-  <div class="page-header">
+<div class="page-header page-header--centered">
+  <div class="page-header__left">
     <button class="back-button" (click)="goBackToReports()" title="Terug naar rapportage menu">
       <lucide-icon [name]="icons.arrowLeft" width="20" height="20"></lucide-icon>
       <span>Terug</span>
     </button>
-    <div class="page-header__text">
-      <h1>Klasrapportage</h1>
-      <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
-    </div>
   </div>
+
+  <div class="page-header__text">
+    <h1>Klasrapportage</h1>
+    <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
+  </div>
+
   <section class="class-picker">
     <label>
-      <span>Klas</span>
-
       <select
         [value]="selectedClassSourcedId"
         [disabled]="loadingClasses || classOptions.length === 0"
@@ -26,6 +27,7 @@
       </select>
     </label>
   </section>
+</div>
     @if (loading) {
     <article class="report-card report-card--skeleton">
         <div class="report-card__header">
@@ -160,7 +162,7 @@
     </article>
     }
 
-  @if (!loading && selectedReport; as report) {
+@if (!loading && selectedReport; as report) {
     <article class="report-card">
       <div class="report-card__header">
         <div>
