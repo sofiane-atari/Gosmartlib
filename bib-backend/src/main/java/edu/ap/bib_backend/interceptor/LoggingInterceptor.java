@@ -5,11 +5,8 @@ import org.springframework.http.client.*;
 import org.springframework.util.StreamUtils;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 
 public class LoggingInterceptor implements ClientHttpRequestInterceptor {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoggingInterceptor.class);
-
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body,
             ClientHttpRequestExecution execution) throws IOException {

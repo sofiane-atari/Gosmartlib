@@ -152,7 +152,7 @@
         </thead>
 
         <tbody>
-          @for (group of loanGroups(); track group.userId) {
+          @for (group of loanGroups(); track group.groupId) {
             <tr
               class="loan-row"
               [class.loan-row--expanded]="isUserGroupExpanded(group.groupId)"

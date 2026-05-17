@@ -2,7 +2,6 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.jpa.entity.AuthSession;
 import edu.ap.bib_backend.jpa.repository.AuthSessionRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

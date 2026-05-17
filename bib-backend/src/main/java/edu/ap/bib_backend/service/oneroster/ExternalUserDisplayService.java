@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
-import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 
 @Service
 public class ExternalUserDisplayService {

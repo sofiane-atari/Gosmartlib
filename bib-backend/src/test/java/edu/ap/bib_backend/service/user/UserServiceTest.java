@@ -10,8 +10,6 @@ import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
-import edu.ap.bib_backend.exception.ResourceNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

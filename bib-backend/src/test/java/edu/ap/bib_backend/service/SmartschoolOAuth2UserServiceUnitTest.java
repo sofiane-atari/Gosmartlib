@@ -1,13 +1,11 @@
 package edu.ap.bib_backend.service;
 
-import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.smartschool.SmartschoolAudienceResolverService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
 import edu.ap.bib_backend.service.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,8 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SmartschoolOAuth2UserServiceUnitTest {

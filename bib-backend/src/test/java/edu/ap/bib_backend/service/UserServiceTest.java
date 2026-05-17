@@ -7,7 +7,6 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
-import edu.ap.bib_backend.options.UserGetOptions;
 import edu.ap.bib_backend.service.user.UserService;
 
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
