@@ -38,12 +38,18 @@ public class SecurityConfig {
 
         private final SmartschoolOAuth2UserService smartschoolOAuth2UserService;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+        private final RestAccessDeniedHandler restAccessDeniedHandler;
 
         public SecurityConfig(
                         JwtAuthenticationFilter jwtAuthenticationFilter,
-                        SmartschoolOAuth2UserService smartschoolOAuth2UserService) {
+                        SmartschoolOAuth2UserService smartschoolOAuth2UserService,
+                        RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+                        RestAccessDeniedHandler restAccessDeniedHandler) {
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
+                this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+                this.restAccessDeniedHandler = restAccessDeniedHandler;
         }
 
         @Bean
@@ -116,6 +122,11 @@ public class SecurityConfig {
                                                 .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name())
 
                                                 .anyRequest().authenticated())
+
+                                // Zend 401/403 JSON voor API-aanvragen (geen redirect naar OAuth2)
+                                .exceptionHandling(exceptions -> exceptions
+                                                .authenticationEntryPoint(restAuthenticationEntryPoint)
+                                                .accessDeniedHandler(restAccessDeniedHandler))
 
                                 // OAuth2 login (Smartschool)
                                 .oauth2Login(oauth2 -> oauth2
