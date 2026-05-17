@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+﻿import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -14,6 +14,7 @@ import {
   ShieldOff,
   Loader,
   UserRound,
+  Users,
 } from 'lucide-angular';
 
 import { UserService } from '../../services/user/user.service';
@@ -25,6 +26,7 @@ import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.m
 import { HttpErrorResponseError } from '../../error-reponse.model';
 
 import { PagingComponent, PagingMeta } from '../shared/paging/paging.component';
+import { StatCardComponent } from '../shared/stat-card/stat-card.component';
 import { SearchBarComponent } from '../shared/search-bar/search-bar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
 import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overlay.component';
@@ -36,6 +38,7 @@ import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overl
     CommonModule,
     LucideAngularModule,
     PagingComponent,
+    StatCardComponent,
     SearchBarComponent,
     ConfirmationModalComponent,
     LoadingOverlayComponent,
@@ -51,6 +54,7 @@ export class UserManagementComponent {
   protected readonly ShieldOff = ShieldOff;
   protected readonly Loader = Loader;
   protected readonly UserRound = UserRound;
+  protected readonly Users = Users;
 
   protected readonly userService = inject(UserService);
   private readonly roleService = inject(RoleService);
@@ -59,7 +63,7 @@ export class UserManagementComponent {
   private readonly toastService = inject(ToastService);
 
   protected readonly page = signal(0);
-  protected readonly pageSize = signal(2);
+  protected readonly pageSize = signal(20);
   private readonly refreshTrigger = signal(0);
   private readonly searchSubject = new Subject<string>();
   protected readonly searchQuery = signal('');
@@ -112,6 +116,14 @@ export class UserManagementComponent {
     totalItems: this.totalItems(),
     totalPages: this.totalPages(),
   }));
+
+  private readonly stats$ = toObservable(this.refreshTrigger).pipe(
+    switchMap(() => this.userService.getTeacherStats()),
+  );
+
+  protected readonly stats = toSignal(this.stats$, {
+    initialValue: { totalTeachers: 0, activeTeachers: 0, librarians: 0 },
+  });
 
   protected readonly actionLabel = computed(() =>
     this.isRevokeAction() ? 'wordt teruggezet' : 'wordt gepromoveerd',

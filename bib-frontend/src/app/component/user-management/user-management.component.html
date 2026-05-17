@@ -36,6 +36,30 @@
     </section>
   }
 
+  <section class="stat-cards">
+    <app-stat-card
+      label="Totaal leerkrachten"
+      [value]="stats().totalTeachers"
+      [icon]="Users"
+      variant="purple"
+      helpText="Het totaal aantal leerkrachten uit Smartschool, inclusief gebruikers die tot bibliothecaris zijn gepromoveerd."
+    />
+    <app-stat-card
+      label="Leerkrachten"
+      [value]="stats().activeTeachers"
+      [icon]="GraduationCap"
+      variant="blue"
+      helpText="Aantal gebruikers die nog steeds de rol leerkracht hebben."
+    />
+    <app-stat-card
+      label="Bibliothecarissen"
+      [value]="stats().librarians"
+      [icon]="ShieldCheck"
+      variant="green"
+      helpText="Aantal leerkrachten die zijn gepromoveerd tot bibliothecaris."
+    />
+  </section>
+
   <section class="search-panel">
     <app-search-bar
       placeholder="Zoek leerkrachten op naam of e-mail..."

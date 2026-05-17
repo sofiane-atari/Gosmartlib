@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 import jakarta.transaction.Transactional;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.TeacherStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.SchoolSummaryDto;
@@ -80,6 +81,46 @@ public class UserService {
                 .filter(Objects::nonNull)
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
+    }
+
+    public TeacherStatsDTO getTeacherStats(Authentication authentication) {
+        String userId = currentUserService.extractCurrentUserId(authentication);
+
+        boolean isLibrarian = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isLibrarian && !isAdmin) {
+            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
+        }
+
+        School school = getCurrentUserSchool(userId);
+        String schoolCode = school.getDomainName();
+        String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
+        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
+
+        Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(school.getId()).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
+
+        List<AuthUserDto> allUsers = rosterUsers.stream()
+                .map(user -> toAuthUserDto(user, school))
+                .filter(Objects::nonNull)
+                .filter(dto -> dto.role() == Role.TEACHER)
+                .toList();
+
+        int totalTeachers = allUsers.size();
+
+        int librarians = (int) allUsers.stream()
+                .filter(dto -> {
+                    Role localRole = localRolesByUserId.get(dto.id());
+                    return localRole == Role.LIBRARIAN;
+                })
+                .count();
+
+        int activeTeachers = totalTeachers - librarians;
+
+        return new TeacherStatsDTO(totalTeachers, activeTeachers, librarians);
     }
 
     public PageDTO<AuthUserDto> getTeachers(Authentication authentication,
@@ -352,3 +393,5 @@ public class UserService {
         return null;
     }
 }
+
+

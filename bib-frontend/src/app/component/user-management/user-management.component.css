@@ -27,6 +27,16 @@
   color: #7a5560;
   margin: 4px 0 0;
 }
+/* Stat cards */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.stat-card-hover {
+  display: block;
+}
 
 /* Lucide alignment fix */
 lucide-icon {
@@ -405,6 +415,10 @@ lucide-icon svg {
     flex-direction: column;
   }
 
+  .stat-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .page-header__text h1 {
     font-size: 24px;
   }
@@ -519,3 +533,6 @@ lucide-icon svg {
     overflow-x: auto;
   }
 }
+
+
+
