@@ -258,25 +258,17 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
             return;
           }
 
-          if (results.length === 1) {
-            this.candidates = results;
-            this.showCandidates = true;
-            this.isLoading = false;
-            this.ts.show('1 boek gevonden.');
-            return;
-          }
-
           this.candidates = results;
           this.showCandidates = true;
           this.isLoading = false;
+          this.saveDraft();
 
-        this.candidates = results;
-        this.showCandidates = true;
-        this.isLoading = false;
-        this.saveDraft();
-
-        this.ts.show(`${results.length} boek(en) gevonden.`);
-      },
+          this.ts.show(
+            results.length === 1
+              ? '1 boek gevonden.'
+              : `${results.length} boek(en) gevonden.`,
+          );
+        },
       error: () => {
         this.isLoading = false;
         this.ts.show('Geen boek gevonden', 'error');
@@ -284,40 +276,28 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     });
   }
 
-  selectCandidate(candidate: BookCandidate) {
-    this.isLoading = true;
+  selectCandidate(candidate: BookCandidate): void {
+    this.book = {
+      ...this.book,
+      isbn: candidate.isbn13,
+      title: candidate.title ?? '',
+      author: candidate.author ?? '',
+      imageUrl: candidate.imageUrl ?? '',
+      releaseYear: candidate.releaseYear ?? ('' as any),
+    };
 
-    if (!this.campusId) {
-      this.isLoading = false;
-      this.ts.show('Selecteer eerst een campus.', 'error');
-      return;
-    }
+    this.isbn = candidate.isbn13 ?? '';
+    this.selectedBookId = null;
+    this.isExistingBookLoaded = false;
 
-    this.bs.selectBook(candidate.isbn13, this.campusId).subscribe({
-      next: (selectedBook: Book) => {
-        this.book = selectedBook;
-        this.openedMainGenre = this.findMainGenreForSelectedGenres();
-        this.isbn = selectedBook.isbn ?? candidate.isbn13;
+    this.showCandidates = false;
+    this.candidates = [];
+    this.isLoading = false;
 
-        this.selectedBookId = selectedBook.id ?? null;
-        this.isExistingBookLoaded = !!selectedBook.id;
-
-        this.showCandidates = false;
-        this.candidates = [];
-        this.isLoading = false;
-        this.saveDraft();
-        this.ts.show(
-          this.isExistingBookLoaded
-            ? 'Boekgegevens uit de database ingevuld.'
-            : 'Boekgegevens ingevuld.',
-        );
-      },
-      error: () => {
-        this.isLoading = false;
-        this.ts.show('Kon het gekozen boek niet ophalen.', 'error');
-      },
-    });
+    this.saveDraft();
+    this.ts.show('Boekgegevens ingevuld.');
   }
+
   protected getSelectedGenres(): Genre[] {
     return this.book.genres ?? [];
   }
