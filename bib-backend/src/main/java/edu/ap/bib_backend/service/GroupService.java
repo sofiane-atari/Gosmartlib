@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.service;
 
-import org.apache.xmlbeans.impl.xb.xsdschema.GroupRef;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.jpa.entity.Group;

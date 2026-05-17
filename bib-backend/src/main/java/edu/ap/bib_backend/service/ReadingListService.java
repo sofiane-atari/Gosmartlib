@@ -10,7 +10,6 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
-import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,7 +27,6 @@ public class ReadingListService {
     private final ReadingListRepository readingListRepository;
     private final ReadingListBookRepository readingListBookRepository;
     private final UserRepository userRepository;
-    private final CurrentUserService currentUserService;
 
     private static final String FAVORITES_NAME = "Favorieten";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -36,13 +34,11 @@ public class ReadingListService {
     public ReadingListService(
             ReadingListRepository readingListRepository,
             ReadingListBookRepository readingListBookRepository,
-            UserRepository userRepository,
-            CurrentUserService currentUserService
+            UserRepository userRepository
     ) {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
         this.userRepository = userRepository;
-        this.currentUserService = currentUserService;
     }
 
     public ReadingList createReadingList(String userId, ReadingListDTO dto) {

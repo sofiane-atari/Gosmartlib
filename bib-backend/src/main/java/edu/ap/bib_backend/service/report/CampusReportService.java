@@ -26,7 +26,6 @@ public class CampusReportService {
     private final OneRosterClient oneRosterClient;
     private final ReportAccessService reportAccessService;
     private final ReportContextService reportContextService;
-    private final ReportClassMatcherService classMatcherService;
     private final ReportStudentResolverService studentResolverService;
     private final ReportBuilderService reportBuilderService;
     private final ReportStatisticsQueryService statisticsQueryService;
@@ -37,7 +36,6 @@ public class CampusReportService {
             OneRosterClient oneRosterClient,
             ReportAccessService reportAccessService,
             ReportContextService reportContextService,
-            ReportClassMatcherService classMatcherService,
             ReportStudentResolverService studentResolverService,
             ReportBuilderService reportBuilderService,
             ReportStatisticsQueryService statisticsQueryService,
@@ -46,7 +44,6 @@ public class CampusReportService {
         this.oneRosterClient = oneRosterClient;
         this.reportAccessService = reportAccessService;
         this.reportContextService = reportContextService;
-        this.classMatcherService = classMatcherService;
         this.studentResolverService = studentResolverService;
         this.reportBuilderService = reportBuilderService;
         this.statisticsQueryService = statisticsQueryService;
@@ -313,19 +310,6 @@ public class CampusReportService {
 
     private double round(double value) {
         return Math.round(value * 100.0) / 100.0;
-    }
-
-    private void logSmartschoolGroupNames(List<String> smartschoolGroupNames) {
-        System.out.println("=== SMARTSCHOOL GROUP NAMES ===");
-        smartschoolGroupNames.forEach(System.out::println);
-    }
-
-    private void logOneRosterClasses(List<OneRosterClassDTO> oneRosterClasses) {
-        System.out.println("=== ONEROSTER CLASSES ===");
-        oneRosterClasses.forEach(c -> System.out.println(
-                "sourcedId=" + c.sourcedId()
-                        + " | title=" + c.title()
-                        + " | classCode=" + c.classCode()));
     }
 }
 

@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
-import edu.ap.bib_backend.dto.UserReviewAccessUpdateDto;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.user.UserService;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -74,7 +72,6 @@ class UserControllerTest {
     @WithMockUser(roles = "LIBRARIAN")
     void Given_Moderator_When_UpdateReviewAccess_Then_ReturnsUpdatedUser() throws Exception {
         // Arrange
-        UserReviewAccessUpdateDto payload = new UserReviewAccessUpdateDto(true);
         AuthUserDto updatedUser = AuthUserDto.builder().id("user123").reviewBlocked(true).build();
         
         when(currentUserService.isModerator(any())).thenReturn(true);

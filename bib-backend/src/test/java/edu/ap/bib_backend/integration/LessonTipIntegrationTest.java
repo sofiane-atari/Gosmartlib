@@ -8,7 +8,6 @@ import edu.ap.bib_backend.exception.GlobalExceptionHandler;
 import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.jpa.enums.LessonTipType;
 import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
-import edu.ap.bib_backend.mapper.lessontips.LessonTipMapper;
 import edu.ap.bib_backend.mapper.lessontips.LessonTipMapperImpl;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;

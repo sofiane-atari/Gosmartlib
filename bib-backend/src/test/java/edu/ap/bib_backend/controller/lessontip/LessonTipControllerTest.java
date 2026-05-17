@@ -45,7 +45,6 @@ class LessonTipControllerTest {
 
     private static final String BASE_URL = "/lesson-tips";
     private static final Long MATERIAL_ID = 7L;
-    private static final String CURRENT_USER_ID = "teacher-123";
 
     @Autowired
     private MockMvc mockMvc;

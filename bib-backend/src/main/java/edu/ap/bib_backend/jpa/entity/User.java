@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import edu.ap.bib_backend.jpa.entity.Loan;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

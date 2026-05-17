@@ -3,8 +3,6 @@ package edu.ap.bib_backend.service.book;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.Campus;
-import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookRepository;

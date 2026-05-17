@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.event;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -10,7 +9,6 @@ import static org.mockito.Mockito.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +31,6 @@ import edu.ap.bib_backend.service.book.BookService;
 @ExtendWith(MockitoExtension.class)
 class BookAvailableEventListenerTest {
 
-    private static final String FRONTEND_URL = "https://bib.example.com";
     private static final Long BOOK_ID = 1L;
     private static final Long CAMPUS_ID = 10L;
     private static final String USER_ID = "user1";

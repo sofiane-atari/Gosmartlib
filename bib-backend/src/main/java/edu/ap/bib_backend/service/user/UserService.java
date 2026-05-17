@@ -27,7 +27,6 @@ import edu.ap.bib_backend.service.review.ProfanityFilterService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
-import edu.ap.bib_backend.service.user.CurrentUserService;
 
 @Service
 public class UserService {

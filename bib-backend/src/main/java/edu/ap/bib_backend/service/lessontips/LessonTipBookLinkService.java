@@ -3,7 +3,6 @@ package edu.ap.bib_backend.service.lessontips;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
-import edu.ap.bib_backend.jpa.entity.lessontips.LessonTipBookLink;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import org.springframework.stereotype.Service;
 
