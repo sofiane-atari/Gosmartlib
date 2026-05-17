@@ -1,4 +1,4 @@
-import { LocalDate } from '../shared/types/local-date.type';
+import { LocalDate } from '../../shared/types/local-date.type';
 
 export type LoanStatus = 'ACTIVE' | 'OVERDUE' | 'RETURNED';
 

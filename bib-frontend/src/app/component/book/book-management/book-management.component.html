@@ -129,7 +129,7 @@
           }
         </tbody>
       </table>
-    } @else if (loans().length === 0) {
+    } @else if (loanGroups().length === 0) {
       <div class="empty-state">
         <div class="empty-state__icon">
           <lucide-icon [name]="LibraryBig"></lucide-icon>
@@ -152,11 +152,11 @@
         </thead>
 
         <tbody>
-          @for (group of groupedLoans(); track group.userId) {
+          @for (group of loanGroups(); track group.userId) {
             <tr
               class="loan-row"
-              [class.loan-row--expanded]="isUserGroupExpanded(group.userId)"
-              (click)="toggleUserGroup(group.userId)"
+              [class.loan-row--expanded]="isUserGroupExpanded(group.groupId)"
+              (click)="toggleUserGroup(group.groupId)"
             >
               <td class="text-center">
                 <div class="user-cell user-cell--center">
@@ -201,7 +201,7 @@
               </td>
             </tr>
 
-            @if (isUserGroupExpanded(group.userId)) {
+            @if (isUserGroupExpanded(group.groupId)) {
               <tr class="loan-details-row">
                 <td colspan="7">
                   <div class="loan-details">
@@ -214,7 +214,9 @@
                       @for (loan of group.loans; track loan.id) {
                         <div class="loan-details__book">
                           @if (firstBook(loan)) {
-                            <strong>{{ firstBook(loan).title }}</strong>
+                            <strong class="loan-details__book-title">
+                              {{ firstBook(loan).title }}
+                            </strong>
 
                             @if (firstBook(loan).author) {
                               <small>{{ firstBook(loan).author }}</small>
@@ -225,6 +227,13 @@
 
                           <small>
                             Retourdatum: {{ loan.returnDate | date: "dd/MM/yyyy" }}
+                          </small>
+
+                          <small>
+                            Tijd over:
+                            <span [class]="getTimeLeftClass(loan)">
+                              {{ getTimeLeftText(loan) }}
+                            </span>
                           </small>
 
                           <small>

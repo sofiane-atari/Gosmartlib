@@ -4,6 +4,7 @@ import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
+import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.service.LoanExtensionService;
@@ -81,5 +82,13 @@ public class LoanController {
     @GetMapping("/stats")
     public ResponseEntity<LoanStatsDTO> getLoanStats() {
         return ResponseEntity.ok(loanService.getLoanStats());
+    }
+
+    @GetMapping("/grouped")
+    public ResponseEntity<PageDTO<LoanGroupDTO>> findAllGrouped(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            Authentication authentication) {
+        return ResponseEntity.ok(loanService.findAllGrouped(page, pageSize, authentication));
     }
 }

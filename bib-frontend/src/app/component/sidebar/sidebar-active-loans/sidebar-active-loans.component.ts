@@ -8,7 +8,7 @@ import {
   ChevronRight,
 } from 'lucide-angular';
 
-import { Loan } from '../../../model/loan.model';
+import { Loan } from '../../../model/loan/loan.model';
 import { LoansService } from '../../../services/loan/loans.service';
 import { RoleService } from '../../../services/role-service/role.service';
 

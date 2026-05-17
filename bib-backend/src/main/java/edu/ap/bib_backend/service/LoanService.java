@@ -18,6 +18,7 @@ import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
@@ -87,35 +88,35 @@ public class LoanService {
         }
 
         User user = userRepository.findById(loanDTO.userId())
-                .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden."));
+                .orElseThrow(() -> new IllegalStateException(
+                        "Deze gebruiker bestaat nog niet in het systeem. Laat de gebruiker eerst inloggen."));
 
         LocalDate parsedReturnDate = resolveReturnDate(loanDTO);
         List<Long> requestedBookIds = expandRequestedBookIds(loanDTO);
 
         List<Loan> createdLoanEntities = new java.util.ArrayList<>();
         List<LoanDTO> createdLoans = new java.util.ArrayList<>();
+        Set<Long> reservedCopyIds = new java.util.HashSet<>();
+
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
 
         for (Long bookId : requestedBookIds) {
             Book book = bookService.getBookById(bookId, true);
 
-            log.debug(
-                    "Reserving one copy for book '{}' (id={}, isbn={}, author={})",
-                    book.getTitle(),
-                    bookId,
-                    book.getIsbn(),
-                    book.getAuthor());
-
             BookCopy availableCopy = bookCopyRepository
                     .findAvailableCopiesByBookIdAndCampusId(bookId, campus.getId())
                     .stream()
+                    .filter(copy -> !reservedCopyIds.contains(copy.getId()))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException(
                             "Geen beschikbaar exemplaar voor boek: " + book.getTitle()));
 
+            reservedCopyIds.add(availableCopy.getId());
+
             Loan singleBookLoan = new Loan();
             singleBookLoan.setUser(user);
             singleBookLoan.setCampus(campus);
-            singleBookLoan.setLoanDate(LocalDate.now(ZoneId.of("Europe/Brussels")));
+            singleBookLoan.setLoanDate(today);
             singleBookLoan.setReturnDate(parsedReturnDate);
             singleBookLoan.getCopies().add(availableCopy);
 
@@ -340,6 +341,74 @@ public class LoanService {
         return new LoanStatsDTO(activeLoans, overdueLoans, returnedLoans);
     }
 
+    public PageDTO<LoanGroupDTO> findAllGrouped(int page, int pageSize, Authentication authentication) {
+        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+
+        List<Loan> loans = loanRepository.findByCampusId(campus.getId());
+
+        List<LoanDTO> loanDtos = loans.stream()
+                .map(loanMapper::toDto)
+                .toList();
+
+        Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
+                .filter(loan -> loan.getUser() != null)
+                .filter(loan -> loan.getUser().getSchool() != null)
+                .filter(loan -> loan.getUser().getSchool().getDomainName() != null)
+                .filter(loan -> loan.getUser().getOneRosterSourcedId() != null)
+                .collect(Collectors.groupingBy(
+                        loan -> loan.getUser().getSchool().getDomainName(),
+                        Collectors.mapping(
+                                loan -> loan.getUser().getOneRosterSourcedId(),
+                                Collectors.toSet())));
+
+        Map<String, String> displayNamesByUserId = new java.util.HashMap<>();
+
+        userIdsBySchoolCode.forEach((schoolCode, userIds) -> {
+            Map<String, String> names = externalUserDisplayService.getDisplayNames(schoolCode, userIds);
+            displayNamesByUserId.putAll(names);
+        });
+
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
+
+        Map<String, List<Loan>> loansByUserAndGroup = loans.stream()
+                .collect(Collectors.groupingBy(loan -> buildLoanGroupKey(loan, today)));
+
+        List<LoanGroupDTO> groups = loansByUserAndGroup.entrySet()
+                .stream()
+                .map(entry -> toLoanGroupDto(entry.getKey(), entry.getValue(), displayNamesByUserId, today))
+                .sorted(
+                        Comparator
+                                .comparingInt((LoanGroupDTO group) -> getLoanGroupSortPriority(group.groupStatus()))
+                                .thenComparing(
+                                        LoanGroupDTO::earliestReturnDate,
+                                        Comparator.nullsLast(String::compareTo))
+                                .thenComparing(
+                                        group -> normalizeDisplayName(group.userDisplayName()),
+                                        String.CASE_INSENSITIVE_ORDER))
+                .toList();
+
+        int safePage = Math.max(page, 0);
+        int safePageSize = Math.max(pageSize, 1);
+
+        int totalItems = groups.size();
+        int totalPages = (int) Math.ceil((double) totalItems / safePageSize);
+
+        int fromIndex = safePage * safePageSize;
+        int toIndex = Math.min(fromIndex + safePageSize, totalItems);
+
+        List<LoanGroupDTO> pageData = fromIndex >= totalItems
+                ? List.of()
+                : groups.subList(fromIndex, toIndex);
+
+        PaginatedMeta meta = new PaginatedMeta(
+                safePage,
+                safePageSize,
+                totalItems,
+                totalPages);
+
+        return new PageDTO<>(pageData, meta);
+    }
+
     private LocalDate resolveReturnDate(LoanDTO loanDTO) {
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
 
@@ -456,5 +525,103 @@ public class LoanService {
         }
 
         return combinedLoan;
+    }
+
+    private String buildLoanGroupKey(Loan loan, LocalDate today) {
+        String userId = loan.getUser() != null ? loan.getUser().getId() : "unknown-user";
+        LoanStatus groupStatus = resolveLoanGroupStatus(loan, today);
+
+        return userId + "-" + groupStatus.name();
+    }
+
+    private LoanStatus resolveLoanGroupStatus(Loan loan, LocalDate today) {
+        if (loan.getReturnedDate() != null) {
+            return LoanStatus.RETURNED;
+        }
+
+        if (loan.getReturnDate() != null && loan.getReturnDate().isBefore(today)) {
+            return LoanStatus.OVERDUE;
+        }
+
+        return LoanStatus.ACTIVE;
+    }
+
+    private LoanGroupDTO toLoanGroupDto(
+            String groupKey,
+            List<Loan> loans,
+            Map<String, String> displayNamesByUserId,
+            LocalDate today) {
+        Loan firstLoan = loans.get(0);
+
+        String userId = firstLoan.getUser() != null ? firstLoan.getUser().getId() : "unknown-user";
+        String lookupId = firstLoan.getUser() != null ? firstLoan.getUser().getOneRosterSourcedId() : null;
+
+        LoanStatus groupStatus = resolveGroupStatus(loans, today);
+
+        List<LoanDTO> loanDtos = loans.stream()
+                .sorted(
+                        Comparator
+                                .comparing(Loan::getReturnDate, Comparator.nullsLast(LocalDate::compareTo))
+                                .thenComparing(Loan::getId))
+                .map(loanMapper::toDto)
+                .toList();
+
+        int bookCount = loanDtos.stream()
+                .mapToInt(loan -> loan.books() != null ? loan.books().size() : loan.bookIds().size())
+                .sum();
+
+        String earliestReturnDate = loans.stream()
+                .filter(loan -> loan.getReturnedDate() == null)
+                .map(Loan::getReturnDate)
+                .filter(java.util.Objects::nonNull)
+                .min(LocalDate::compareTo)
+                .map(LocalDate::toString)
+                .orElse(null);
+
+        return new LoanGroupDTO(
+                groupKey,
+                userId,
+                displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"),
+                groupStatus,
+                loans.size(),
+                bookCount,
+                earliestReturnDate,
+                loanDtos);
+    }
+
+    private LoanStatus resolveGroupStatus(List<Loan> loans, LocalDate today) {
+        boolean hasOverdueLoan = loans.stream()
+                .anyMatch(loan -> loan.getReturnedDate() == null
+                        && loan.getReturnDate() != null
+                        && loan.getReturnDate().isBefore(today));
+
+        if (hasOverdueLoan) {
+            return LoanStatus.OVERDUE;
+        }
+
+        boolean hasActiveLoan = loans.stream()
+                .anyMatch(loan -> loan.getReturnedDate() == null);
+
+        if (hasActiveLoan) {
+            return LoanStatus.ACTIVE;
+        }
+
+        return LoanStatus.RETURNED;
+    }
+
+    private int getLoanGroupSortPriority(LoanStatus status) {
+        return switch (status) {
+            case OVERDUE -> 1;
+            case ACTIVE -> 2;
+            case RETURNED -> 3;
+        };
+    }
+
+    private String normalizeDisplayName(String displayName) {
+        if (displayName == null || displayName.isBlank()) {
+            return "zzzzzz";
+        }
+
+        return displayName.trim();
     }
 }

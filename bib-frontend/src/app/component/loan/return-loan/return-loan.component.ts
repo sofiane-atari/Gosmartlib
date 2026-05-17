@@ -9,7 +9,7 @@ import {
 } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import { LoansService } from '../../../services/loan/loans.service';
-import { Loan } from '../../../model/loan.model';
+import { Loan } from '../../../model/loan/loan.model';
 import { Router } from '@angular/router';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";

@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Loan, LoanHistory } from '../../model/loan.model';
+import { Loan, LoanHistory } from '../../model/loan/loan.model';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 import { LoanExtensionRequest } from '../../model/loan/loanExtension.model';
+import { LoanGroup } from '../../model/loan/loanGroup.model';
 
 @Injectable({
   providedIn: 'root',
@@ -68,5 +69,20 @@ export class LoansService {
       overdueLoans: number;
       returnedLoans: number;
     }>(`${this.apiUrl}/stats`);
+  }
+  
+  public getGroupedLoans(
+    page: number,
+    pageSize: number,
+  ): Observable<PaginatedResponse<LoanGroup>> {
+    return this.http.get<PaginatedResponse<LoanGroup>>(
+      `${this.apiUrl}/grouped`,
+      {
+        params: {
+          page,
+          pageSize,
+        },
+      },
+    );
   }
 }

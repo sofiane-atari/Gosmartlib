@@ -536,6 +536,13 @@ lucide-icon {
   border-radius: 8px;
   margin: 0 auto;
 }
+.loan-details__book-title {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* =========================================================
    MEDIA QUERIES
