@@ -32,5 +32,8 @@ export interface BookCopyCampusLocation {
 export interface BookCopyLocation {
   id: number;
   availability: 'AVAILABLE' | 'BORROWED' | string;
+  condition?: BookCondition;
   expectedReturnDate?: string | null;
 }
+
+export type BookCondition = 'GOOD_CONDITION' | 'DAMAGED' | 'LOST';

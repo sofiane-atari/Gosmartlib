@@ -133,6 +133,20 @@
                           @if (book.author) {
                             <small>{{ book.author }}</small>
                           }
+
+                          @for (copyId of book.bookCopyIds ?? []; track copyId) {
+                            <label class="return-condition-field" (click)="$event.stopPropagation()">
+                              <span>Exemplaar #{{ copyId }} terug als</span>
+                              <select
+                                [value]="getCopyCondition(copyId)"
+                                (change)="onReturnConditionChange(copyId, $event)"
+                              >
+                                @for (option of conditionOptions; track option.value) {
+                                  <option [value]="option.value">{{ option.label }}</option>
+                                }
+                              </select>
+                            </label>
+                          }
                         </div>
                       }
                     </div>

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/book-copies")
+@RequestMapping("/book-copies")
 public class BookCopyController {
 
     private final BookCopyRepository bookCopyRepository;

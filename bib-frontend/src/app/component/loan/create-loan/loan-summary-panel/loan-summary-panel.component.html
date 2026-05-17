@@ -45,6 +45,23 @@
           [showRemove]="true"
           (removeRequested)="removeBookRequested.emit($event)"
         />
+        <div class="copy-selection-list">
+            @for (slot of getCopySlots(item.count); track slot) {
+                <label class="copy-selection-field">
+                    <span>Te lenen exemplaar {{ slot + 1 }}</span>
+                    <select
+                        [value]="getSelectedCopyId(item.book, slot) ?? ''"
+                        (change)="onCopySelectionChange(item.book, slot, $event)"
+                    >
+                        @for (copy of getAvailableCopies(item.book); track copy.id) {
+                            <option [value]="copy.id" [disabled]="isCopySelectedInOtherSlot(item.book, copy.id, slot)">
+                                {{ getCopyLabel(copy, $index) }}
+                            </option>
+                        }
+                    </select>
+                </label>
+            }
+        </div>
         } @empty {
         <div class="state-panel state-panel--compact">
             <p>Nog geen boeken geselecteerd.</p>

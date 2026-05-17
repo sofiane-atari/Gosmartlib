@@ -244,6 +244,35 @@
                           </div>
                         }
                       </div>
+
+                      <div class="copy-condition-list">
+                        @for (copy of group.copies; track copy.id) {
+                          <div class="copy-condition-row" [class.copy-condition-row--lost]="isLostCopy(copy)">
+                            <div>
+                              <strong>Exemplaar #{{ copy.id }}</strong>
+                              @if (isLostCopy(copy)) {
+                                <span class="copy-lost-badge">Verloren</span>
+                              } @else {
+                                <span>{{ getCopyAvailabilityLabel(copy) }} · {{ getConditionLabel(copy.condition) }}</span>
+                              }
+                            </div>
+
+                            @if (roleService.canAccessAdminOnlyFeatures()) {
+                              <label>
+                                <span>Wijzig staat</span>
+                                <select
+                                  [value]="copy.condition ?? 'GOOD_CONDITION'"
+                                  (change)="updateCopyCondition(copy, $event)"
+                                >
+                                  @for (option of conditionOptions; track option.value) {
+                                    <option [value]="option.value">{{ option.label }}</option>
+                                  }
+                                </select>
+                              </label>
+                            }
+                          </div>
+                        }
+                      </div>
                     </div>
                   </div>
                 }

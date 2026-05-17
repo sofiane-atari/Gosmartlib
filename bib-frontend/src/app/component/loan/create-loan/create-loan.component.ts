@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, signal, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Book } from '../../../model/book/book.model';
+import { Book, BookCopyLocation } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { LoansService } from '../../../services/loan/loans.service';
 import { UserService } from '../../../services/user/user.service';
@@ -65,6 +65,7 @@ export class CreateLoanComponent {
   public readonly isbnBooks = signal<Book[]>([]);
   public readonly selectedUser = signal<AuthUserDto | null>(this.loadFromSession('selectedUser', null));
   public readonly selectedBooks = signal<Book[]>(this.loadFromSession('selectedBooks', []));
+  public readonly selectedCopyIdsByBook = signal<Record<number, number[]>>(this.loadFromSession('selectedCopyIdsByBook', {}));
   public readonly scannedBooks = signal<Book[]>(this.loadFromSession('scannedBooks', []));
   public readonly schoolSummary = signal<SchoolSummaryDto | null>(this.loadFromSession('schoolSummary', null));
   public readonly isCustomDate = signal(this.loadFromSession('isCustomDate', false));
@@ -88,7 +89,7 @@ export class CreateLoanComponent {
   private clearSession(): void {
     if (typeof sessionStorage === 'undefined') return;
     const keys = [
-      'selectedUser', 'selectedBooks', 'scannedBooks', 'searchFirstname', 
+      'selectedUser', 'selectedBooks', 'selectedCopyIdsByBook', 'scannedBooks', 'searchFirstname', 
       'searchLastname', 'bookSearchQuery', 'bookSearchIsbn', 'schoolSummary', 
       'isCustomDate', 'returnDate'
     ];
@@ -98,6 +99,7 @@ export class CreateLoanComponent {
   public clearAllProgress(): void {
     this.selectedUser.set(null);
     this.selectedBooks.set([]);
+    this.selectedCopyIdsByBook.set({});
     this.scannedBooks.set([]);
     this.users.set([]);
     this.catalogBooks.set([]);
@@ -191,6 +193,7 @@ export class CreateLoanComponent {
     effect(() => {
       this.saveToSession('selectedUser', this.selectedUser());
       this.saveToSession('selectedBooks', this.selectedBooks());
+      this.saveToSession('selectedCopyIdsByBook', this.selectedCopyIdsByBook());
       this.saveToSession('scannedBooks', this.scannedBooks());
       this.saveToSession('searchFirstname', this.searchFirstname());
       this.saveToSession('searchLastname', this.searchLastname());
@@ -320,14 +323,37 @@ export class CreateLoanComponent {
       return;
     }
 
-    const selectedCount = this.selectedBooks().filter((selectedBook) => selectedBook.id === book.id).length;
-    const availableCopies = book.availableCopies ?? 0;
+    this.bookService.getBookById(book.id).subscribe({
+      next: (detailedBook) => this.addBookCopySelection(detailedBook),
+      error: () => this.showError('Exemplaren konden niet geladen worden voor dit boek.'),
+    });
+  }
 
-    if (selectedCount >= availableCopies) {
+  private addBookCopySelection(book: Book): void {
+    if (book.id === undefined) {
+      return;
+    }
+
+    const selectedCount = this.selectedBooks().filter((selectedBook) => selectedBook.id === book.id).length;
+    const availableCopies = this.getAvailableCopies(book);
+
+    if (selectedCount >= availableCopies.length) {
       this.showError('Er zijn niet genoeg beschikbare exemplaren voor dit boek.');
       return;
     }
 
+    const selectedCopyIds = this.selectedCopyIdsByBook()[book.id] ?? [];
+    const nextCopy = availableCopies.find((copy) => !selectedCopyIds.includes(copy.id));
+
+    if (!nextCopy) {
+      this.showError('Er is geen beschikbaar exemplaar om te selecteren.');
+      return;
+    }
+
+    this.selectedCopyIdsByBook.update((current) => ({
+      ...current,
+      [book.id!]: [...selectedCopyIds, nextCopy.id],
+    }));
     this.selectedBooks.update((books) => [...books, book]);
   }
 
@@ -347,6 +373,32 @@ export class CreateLoanComponent {
         return false;
       }),
     );
+
+    this.selectedCopyIdsByBook.update((current) => {
+      const next = { ...current };
+      const copyIds = [...(next[bookId] ?? [])];
+      copyIds.pop();
+
+      if (copyIds.length === 0) {
+        delete next[bookId];
+      } else {
+        next[bookId] = copyIds;
+      }
+
+      return next;
+    });
+  }
+
+  public updateSelectedCopy(bookId: number, index: number, copyId: number): void {
+    this.selectedCopyIdsByBook.update((current) => {
+      const copyIds = [...(current[bookId] ?? [])];
+      copyIds[index] = copyId;
+
+      return {
+        ...current,
+        [bookId]: copyIds,
+      };
+    });
   }
 
   public createLoan(): void {
@@ -372,6 +424,7 @@ export class CreateLoanComponent {
 
     const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
       id: Number(id),
+      bookCopyIds: this.selectedCopyIdsByBook()[Number(id)] ?? [],
       copiesCount: count,
     }));
 
@@ -380,14 +433,19 @@ export class CreateLoanComponent {
       return;
     }
 
-    const bookIds = booksPayload.map((entry) => entry.id);
+    const bookCopyIds = Object.values(this.selectedCopyIdsByBook()).flat();
+
+    if (bookCopyIds.length !== books.length) {
+      this.showError('Kies voor elk boek een specifiek exemplaar.');
+      return;
+    }
 
     if (this.hasValidRefreshToken() === false) {
       this.showNoTokenWarningModal.set(true);
       return;
     }
 
-    this.submitLoan(user.id, bookIds, booksPayload, returnDate);
+    this.submitLoan(user.id, bookCopyIds, booksPayload, returnDate);
   }
 
   public confirmLoanWithWarning(): void {
@@ -396,13 +454,14 @@ export class CreateLoanComponent {
     const user = this.selectedUser();
     const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
       id: Number(id),
+      bookCopyIds: this.selectedCopyIdsByBook()[Number(id)] ?? [],
       copiesCount: count,
     }));
-    const bookIds = booksPayload.map((entry) => entry.id);
+    const bookCopyIds = Object.values(this.selectedCopyIdsByBook()).flat();
     const returnDate = this.loanForm.controls.returnDate.value;
 
     if (user && returnDate) {
-      this.submitLoan(user.id, bookIds, booksPayload, returnDate);
+      this.submitLoan(user.id, bookCopyIds, booksPayload, returnDate);
     }
   }
 
@@ -410,14 +469,14 @@ export class CreateLoanComponent {
     this.showNoTokenWarningModal.set(false);
   }
 
-  private submitLoan(userId: string, bookIds: number[], booksPayload: any[], returnDate: string): void {
+  private submitLoan(userId: string, bookCopyIds: number[], booksPayload: any[], returnDate: string): void {
     this.isSubmitting.set(true);
     
     this.loansService
       .createLoan({
         id: 0,
         userId: userId,
-        bookIds: bookIds,
+        bookCopyIds: bookCopyIds,
         books: booksPayload,
         returnDate: toLocalDate(new Date(returnDate)),
       })
@@ -433,6 +492,12 @@ export class CreateLoanComponent {
           this.showError('De lening kon niet worden aangemaakt. Probeer opnieuw.');
         },
       });
+  }
+
+  private getAvailableCopies(book: Book): BookCopyLocation[] {
+    return (book.copyLocations ?? [])
+      .flatMap((location) => location.copies)
+      .filter((copy) => copy.availability === 'AVAILABLE' && copy.condition !== 'LOST');
   }
 
   private loadUsers(firstName: string = '', lastName: string = ''): void {

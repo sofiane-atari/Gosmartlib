@@ -66,10 +66,12 @@
   @if (selectedUser() !== null && selectedBooks().length > 0) {
     <app-loan-summary-panel [loanForm]="loanForm" [minReturnDate]="minReturnDate()"
       [selectedBooks]="selectedBooks()" [selectedBookCounts]="selectedBookCounts()"
+      [selectedCopyIdsByBook]="selectedCopyIdsByBook()"
       [hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()"
       [isCustomDate]="isCustomDate()"
       (createLoanRequested)="createLoan()"
       (removeBookRequested)="removeBook($event)"
+      (copySelectionChanged)="updateSelectedCopy($event.bookId, $event.index, $event.copyId)"
       (customDateRequested)="onCustomDate()"
       (useDefaultRequested)="onUseDefaultDate()" />
   }

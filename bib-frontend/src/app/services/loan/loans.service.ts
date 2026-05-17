@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Loan, LoanHistory } from '../../model/loan.model';
+import { Loan, LoanHistory, LoanReturnRequest } from '../../model/loan.model';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
@@ -44,8 +44,11 @@ export class LoansService {
     );
   }
 
-  public returnLoan(loanId: number): Observable<Loan> {
-    return this.http.patch<Loan>(`${this.apiUrl}/${loanId}/return`, {});
+  public returnLoan(
+    loanId: number,
+    request: LoanReturnRequest = { copyConditions: [] },
+  ): Observable<Loan> {
+    return this.http.patch<Loan>(`${this.apiUrl}/${loanId}/return`, request);
   }
 
   public getMyLoanHistory(): Observable<LoanHistory> {

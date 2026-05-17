@@ -38,7 +38,7 @@ public class BookCopy {
     private Book book;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "varchar(255) default 'GOOD_CONDITION'")
+    @Column(name = "physical_condition", nullable = false, columnDefinition = "varchar(255) default 'GOOD_CONDITION'")
     private BookCondition condition = BookCondition.GOOD_CONDITION;
 
     @Setter(AccessLevel.NONE)
@@ -46,16 +46,16 @@ public class BookCopy {
     @Formula("""
              (
                  CASE
-                    WHEN condition = 'LOST' THEN 'UNAVAILABLE'
-                     WHEN EXISTS (
-                         SELECT 1
-                         FROM loan_copies lc
-                        JOIN loans l ON l.id = lc.loan_id
-                        WHERE lc.book_copy_id = id
-                          AND l.returned_date IS NULL
-                    ) THEN 'BORROWED'
-                    ELSE 'AVAILABLE'
-                END
+                   WHEN physical_condition = 'LOST' THEN 'UNAVAILABLE'
+                   WHEN EXISTS (
+                     SELECT 1
+                     FROM loan_copies lc
+                     JOIN loans l ON l.id = lc.loan_id
+                     WHERE lc.book_copy_id = id
+                       AND l.returned_date IS NULL
+                   ) THEN 'BORROWED'
+                   ELSE 'AVAILABLE'
+                 END
             )
             """)
     private Availability availability;

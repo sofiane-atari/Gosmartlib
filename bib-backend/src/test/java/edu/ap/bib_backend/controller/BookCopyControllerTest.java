@@ -60,7 +60,7 @@ class BookCopyControllerTest {
         when(bookCopyRepository.findById(10L)).thenReturn(Optional.of(copy));
         when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        mockMvc.perform(patch("/api/book-copies/10/condition")
+        mockMvc.perform(patch("/book-copies/10/condition")
                         .with(csrf())
                         .with(user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Book } from '../../../../model/book/book.model';
+import { Book, BookCopyLocation, BookCondition } from '../../../../model/book/book.model';
 import { SelectedBookItemComponent } from '../selected-book-item/selected-book-item.component';
 
 @Component({
@@ -16,6 +16,7 @@ export class LoanSummaryPanelComponent {
   public readonly minReturnDate = input.required<string>();
   public readonly selectedBooks = input.required<Book[]>();
   public readonly selectedBookCounts = input.required<Record<number, number>>();
+  public readonly selectedCopyIdsByBook = input.required<Record<number, number[]>>();
   public readonly hasSelectedUser = input.required<boolean>();
   public readonly isSubmitting = input.required<boolean>();
   public readonly defaultLoanDays = input<number>();
@@ -24,6 +25,7 @@ export class LoanSummaryPanelComponent {
 
   public readonly createLoanRequested = output<void>();
   public readonly removeBookRequested = output<number | undefined>();
+  public readonly copySelectionChanged = output<{ bookId: number; index: number; copyId: number }>();
   public readonly customDateRequested = output<void>();
   public readonly useDefaultRequested = output<void>();
 
@@ -68,6 +70,63 @@ export class LoanSummaryPanelComponent {
     }
 
     return this.selectedBookCounts()[book.id] ?? 1;
+  }
+
+  public getCopySlots(count: number): number[] {
+    return Array.from({ length: count }, (_, index) => index);
+  }
+
+  public getAvailableCopies(book: Book): BookCopyLocation[] {
+    return (book.copyLocations ?? [])
+      .flatMap((location) => location.copies)
+      .filter((copy) => copy.availability === 'AVAILABLE' && copy.condition !== 'LOST');
+  }
+
+  public getSelectedCopyId(book: Book, index: number): number | null {
+    if (book.id === undefined) {
+      return null;
+    }
+
+    return this.selectedCopyIdsByBook()[book.id]?.[index] ?? null;
+  }
+
+  public isCopySelectedInOtherSlot(book: Book, copyId: number, index: number): boolean {
+    if (book.id === undefined) {
+      return false;
+    }
+
+    return (this.selectedCopyIdsByBook()[book.id] ?? []).some(
+      (selectedCopyId, selectedIndex) => selectedCopyId === copyId && selectedIndex !== index,
+    );
+  }
+
+  public onCopySelectionChange(book: Book, index: number, event: Event): void {
+    if (book.id === undefined) {
+      return;
+    }
+
+    const copyId = Number((event.target as HTMLSelectElement).value);
+    if (!Number.isFinite(copyId)) {
+      return;
+    }
+
+    this.copySelectionChanged.emit({ bookId: book.id, index, copyId });
+  }
+
+  public getCopyLabel(copy: BookCopyLocation, index: number): string {
+    return `Exemplaar ${index + 1} - ${this.getConditionLabel(copy.condition)}`;
+  }
+
+  public getConditionLabel(condition?: BookCondition): string {
+    switch (condition) {
+      case 'DAMAGED':
+        return 'Beschadigd';
+      case 'LOST':
+        return 'Verloren';
+      case 'GOOD_CONDITION':
+      default:
+        return 'Goede staat';
+    }
   }
 
 }

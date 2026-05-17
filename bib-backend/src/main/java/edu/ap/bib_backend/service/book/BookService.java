@@ -472,6 +472,7 @@ public class BookService {
         return BookCopyLocationDTO.builder()
                 .id(copy.getId())
                 .availability(copy.getAvailability())
+                .condition(copy.getCondition())
                 .expectedReturnDate(getExpectedReturnDate(copy))
                 .build();
     }

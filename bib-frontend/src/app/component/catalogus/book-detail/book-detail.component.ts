@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 
-import { Book, BookCopyCampusLocation } from '../../../model/book/book.model';
+import { Book, BookCondition, BookCopyCampusLocation, BookCopyLocation } from '../../../model/book/book.model';
 import {
   LucideAngularModule,
   BookOpen,
@@ -53,7 +53,7 @@ import { CampusService } from '../../../services/campus/campus.service';
 import { GamificationNotificationStoreService } from '../../../services/gamification/store/gamification-notification-store.service';
 
 interface CopyStatusSummary {
-  status: 'available' | 'borrowed';
+  status: 'available' | 'borrowed' | 'lost';
   count: number;
   trackKey: string;
   expectedReturnDate?: string | null;
@@ -249,6 +249,11 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   }
 
   public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
+  public conditionOptions: { value: BookCondition; label: string }[] = [
+    { value: 'GOOD_CONDITION', label: 'Goede staat' },
+    { value: 'DAMAGED', label: 'Beschadigd' },
+    { value: 'LOST', label: 'Verloren' },
+  ];
   selectedBook?: Book;
   selectedCampus?: Campus;
 
@@ -284,7 +289,9 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     const summaries = new Map<string, CopyStatusSummary>();
 
     for (const copy of group.copies) {
-      const status = this.isBorrowed(copy.availability) ? 'borrowed' : 'available';
+      const status: CopyStatusSummary['status'] = this.isLostCopy(copy)
+        ? 'lost'
+        : this.isBorrowed(copy.availability) ? 'borrowed' : 'available';
       const key = status === 'borrowed'
         ? `${status}:${copy.expectedReturnDate ?? ''}`
         : status;
@@ -305,7 +312,13 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
     return Array.from(summaries.values()).sort((a, b) => {
       if (a.status !== b.status) {
-        return a.status === 'available' ? -1 : 1;
+        const order: Record<CopyStatusSummary['status'], number> = {
+          available: 0,
+          borrowed: 1,
+          lost: 2,
+        };
+
+        return order[a.status] - order[b.status];
       }
 
       return (a.expectedReturnDate ?? '').localeCompare(b.expectedReturnDate ?? '');
@@ -314,13 +327,57 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
   protected getCopyStatusText(summary: CopyStatusSummary): string {
     const noun = summary.count === 1 ? 'exemplaar' : 'exemplaren';
-    const status = summary.status === 'available' ? 'beschikbaar' : 'uitgeleend';
+    const status = summary.status === 'available'
+      ? 'beschikbaar'
+      : summary.status === 'lost' ? 'verloren' : 'uitgeleend';
 
     return `${summary.count} ${noun} ${status}`;
   }
 
   protected getStatusClass(status: CopyStatusSummary['status']): string {
+    if (status === 'lost') {
+      return 'copy-status--lost';
+    }
+
     return status === 'available' ? 'copy-status--available' : 'copy-status--borrowed';
+  }
+
+  protected getCopyAvailabilityLabel(copy: BookCopyLocation): string {
+    if (this.isLostCopy(copy)) {
+      return 'Verloren';
+    }
+
+    return this.isBorrowed(copy.availability) ? 'Uitgeleend' : 'Beschikbaar';
+  }
+
+  protected isLostCopy(copy: BookCopyLocation): boolean {
+    return copy.condition === 'LOST';
+  }
+
+  protected getConditionLabel(condition?: BookCondition): string {
+    switch (condition) {
+      case 'DAMAGED':
+        return 'Beschadigd';
+      case 'LOST':
+        return 'Verloren';
+      case 'GOOD_CONDITION':
+      default:
+        return 'Goede staat';
+    }
+  }
+
+  protected updateCopyCondition(copy: BookCopyLocation, event: Event): void {
+    const condition = (event.target as HTMLSelectElement).value as BookCondition;
+
+    this.bookService.updateBookCopyCondition(copy.id, condition).subscribe({
+      next: () => {
+        copy.condition = condition;
+        this.toastService.show('Staat van het exemplaar is bijgewerkt.', 'success');
+      },
+      error: () => {
+        this.toastService.show('Staat van het exemplaar kon niet worden bijgewerkt.', 'error');
+      },
+    });
   }
 
   private isBorrowed(availability: string | null | undefined): boolean {
