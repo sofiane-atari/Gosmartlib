@@ -87,15 +87,12 @@ export class UserManagementComponent {
   protected readonly teachers = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const all = this.teachersResponse();
-    const currentId = this.currentUser()?.id;
-
-    const filtered = all.filter((u) => u.id !== currentId);
 
     if (!query) {
-      return filtered;
+      return all;
     }
 
-    return filtered.filter(
+    return all.filter(
       (u) =>
         u.fullName?.toLowerCase().includes(query) ||
         u.firstName?.toLowerCase().includes(query) ||
