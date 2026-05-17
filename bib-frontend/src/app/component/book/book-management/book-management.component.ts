@@ -23,6 +23,13 @@ import { ToastService } from '../../../services/toast/toast.service';
 
 type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
 
+type UserLoanGroup = {
+  userId: string;
+  userDisplayName: string;
+  loans: Loan[];
+};
+
+
 @Component({
   selector: 'app-book-management',
   standalone: true,
@@ -67,7 +74,7 @@ export class BookManagementComponent implements OnInit {
   protected readonly totalItems = signal(0);
   protected readonly totalPages = signal(0);
 
-  expandedLoanIds = new Set<number>();
+  expandedUserIds = new Set<string>();
 
   pagingMeta = computed<PagingMeta>(() => ({
     currentPage: this.page(),
@@ -76,9 +83,32 @@ export class BookManagementComponent implements OnInit {
     totalPages: this.totalPages(),
   }));
 
+  protected readonly groupedLoans = computed<UserLoanGroup[]>(() => {
+    const groups = new Map<string, UserLoanGroup>();
+
+    for (const loan of this.loans()) {
+      const userKey = loan.userId ?? loan.userDisplayName ?? 'unknown-user';
+
+      const existingGroup = groups.get(userKey);
+
+      if (existingGroup) {
+        existingGroup.loans.push(loan);
+        continue;
+      }
+
+      groups.set(userKey, {
+        userId: userKey,
+        userDisplayName: loan.userDisplayName ?? 'Onbekende gebruiker',
+        loans: [loan],
+      });
+    }
+
+    return Array.from(groups.values());
+  });
+
   onPageChange(page: number): void {
     this.page.set(page);
-    this.expandedLoanIds.clear();
+    this.expandedUserIds.clear();
     this.loadLoans();
   }
 
@@ -214,24 +244,16 @@ export class BookManagementComponent implements OnInit {
     return 'time-left';
   }
 
-  toggleLoan(loanId?: number): void {
-    if (loanId == null) {
-      return;
-    }
-
-    if (this.expandedLoanIds.has(loanId)) {
-      this.expandedLoanIds.delete(loanId);
+  toggleUserGroup(userId: string): void {
+    if (this.expandedUserIds.has(userId)) {
+      this.expandedUserIds.delete(userId);
     } else {
-      this.expandedLoanIds.add(loanId);
+      this.expandedUserIds.add(userId);
     }
   }
 
-  isLoanExpanded(loanId?: number): boolean {
-    if (loanId == null) {
-      return false;
-    }
-
-    return this.expandedLoanIds.has(loanId);
+  isUserGroupExpanded(userId: string): boolean {
+    return this.expandedUserIds.has(userId);
   }
 
   firstBook(loan: any) {
@@ -294,6 +316,90 @@ export class BookManagementComponent implements OnInit {
   }
 
   protected canExtendLoan(loan: Loan): boolean {
-    return !loan.returnedDate && (loan.extensionCount ?? 0) < 2;
+      return !loan.returnedDate && (loan.extensionCount ?? 0) < 2;
+    }
+    getGroupLoanCount(group: UserLoanGroup): number {
+    return group.loans.length;
+  }
+
+  getGroupBookCount(group: UserLoanGroup): number {
+    return group.loans.reduce(
+      (total, loan) => total + this.bookCount(loan),
+      0,
+    );
+  }
+
+  getGroupFirstLoan(group: UserLoanGroup): Loan | null {
+    return group.loans[0] ?? null;
+  }
+
+  getGroupStatus(group: UserLoanGroup): LoanStatus {
+    if (group.loans.some((loan) => this.getLoanStatus(loan) === 'Te laat')) {
+      return 'Te laat';
+    }
+
+    if (group.loans.every((loan) => this.getLoanStatus(loan) === 'Teruggebracht')) {
+      return 'Teruggebracht';
+    }
+
+    return 'Uitgeleend';
+  }
+
+  getGroupStatusClass(group: UserLoanGroup): string {
+    const status = this.getGroupStatus(group);
+
+    if (status === 'Te laat') {
+      return 'status-badge status-badge--overdue';
+    }
+
+    if (status === 'Teruggebracht') {
+      return 'status-badge status-badge--returned';
+    }
+
+    return 'status-badge status-badge--active';
+  }
+
+  getGroupReturnDate(group: UserLoanGroup): string | null {
+    const activeLoans = group.loans.filter((loan) => !loan.returnedDate);
+
+    if (activeLoans.length === 0) {
+      return group.loans[0]?.returnDate ?? null;
+    }
+
+    return activeLoans
+      .map((loan) => loan.returnDate)
+      .sort()[0] ?? null;
+  }
+
+  getGroupTimeLeftText(group: UserLoanGroup): string {
+    const loan = this.getMostUrgentLoan(group);
+
+    if (!loan) {
+      return 'Geen leningen';
+    }
+
+    return this.getTimeLeftText(loan);
+  }
+
+  getGroupTimeLeftClass(group: UserLoanGroup): string {
+    const loan = this.getMostUrgentLoan(group);
+
+    if (!loan) {
+      return 'time-left';
+    }
+
+    return this.getTimeLeftClass(loan);
+  }
+
+  private getMostUrgentLoan(group: UserLoanGroup): Loan | null {
+    const activeLoans = group.loans.filter((loan) => !loan.returnedDate);
+
+    if (activeLoans.length === 0) {
+      return group.loans[0] ?? null;
+    }
+
+    return [...activeLoans].sort((a, b) =>
+      new Date(a.returnDate).getTime() - new Date(b.returnDate).getTime(),
+    )[0];
   }
 }
