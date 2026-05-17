@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Calendar, Clock, LucideAngularModule, X } from 'lucide-angular';
-import { Loan } from '../../../../model/loan.model';
+import { Loan } from '../../../../model/loan/loan.model';
 import {
   LoanExtensionRequest,
   LoanExtensionType,

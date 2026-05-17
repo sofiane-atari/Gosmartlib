@@ -3,7 +3,6 @@ package edu.ap.bib_backend.jpa.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import org.hibernate.annotations.Formula;
 import jakarta.persistence.Entity;

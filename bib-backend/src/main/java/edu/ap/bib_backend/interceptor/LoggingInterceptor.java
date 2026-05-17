@@ -14,18 +14,8 @@ public class LoggingInterceptor implements ClientHttpRequestInterceptor {
     public ClientHttpResponse intercept(HttpRequest request, byte[] body,
             ClientHttpRequestExecution execution) throws IOException {
 
-        log.debug("=== TOKEN REQUEST ===");
-        log.debug("URI: {}", request.getURI());
-        log.debug("Headers: {}", request.getHeaders());
-        log.debug("Body: {}", new String(body, StandardCharsets.UTF_8));
-
         ClientHttpResponse response = execution.execute(request, body);
         byte[] responseBody = StreamUtils.copyToByteArray(response.getBody());
-
-        log.debug("=== TOKEN RESPONSE ===");
-        log.debug("Status: {}", response.getStatusCode());
-        log.debug("Content-Type: {}", response.getHeaders().getContentType());
-        log.debug("Body: {}", new String(responseBody, StandardCharsets.UTF_8));
 
         // Return a re-readable response without spring-test
         return new ClientHttpResponse() {

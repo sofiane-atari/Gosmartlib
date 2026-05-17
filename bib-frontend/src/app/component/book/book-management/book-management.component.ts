@@ -12,7 +12,7 @@ import {
   ArrowRight,
 } from 'lucide-angular';
 import { LoansService } from '../../../services/loan/loans.service';
-import { Loan } from '../../../model/loan.model';
+import { Loan } from '../../../model/loan/loan.model';
 import {
   PagingMeta,
   PagingComponent,
@@ -20,8 +20,10 @@ import {
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { ExtendLoanComponent } from './extend-loan/extend-loan.component';
 import { ToastService } from '../../../services/toast/toast.service';
+import { LoanGroup } from '../../../model/loan/loanGroup.model';
 
 type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
+
 
 @Component({
   selector: 'app-book-management',
@@ -67,7 +69,8 @@ export class BookManagementComponent implements OnInit {
   protected readonly totalItems = signal(0);
   protected readonly totalPages = signal(0);
 
-  expandedLoanIds = new Set<number>();
+  protected readonly loanGroups = signal<LoanGroup[]>([]);
+  expandedUserIds = new Set<string>();
 
   pagingMeta = computed<PagingMeta>(() => ({
     currentPage: this.page(),
@@ -78,7 +81,7 @@ export class BookManagementComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.page.set(page);
-    this.expandedLoanIds.clear();
+    this.expandedUserIds.clear();
     this.loadLoans();
   }
 
@@ -120,9 +123,9 @@ export class BookManagementComponent implements OnInit {
   loadLoans(): void {
     this.isLoading.set(true);
 
-    this.loansService.getLoans(this.page(), this.pageSize()).subscribe({
+    this.loansService.getGroupedLoans(this.page(), this.pageSize()).subscribe({
       next: (response) => {
-        this.loans.set(response.data);
+        this.loanGroups.set(response.data);
         this.totalItems.set(response.meta.totalItems);
         this.totalPages.set(response.meta.totalPages);
         this.isLoading.set(false);
@@ -154,11 +157,6 @@ export class BookManagementComponent implements OnInit {
     }
 
     return parts.slice(1).join(' ');
-  }
-
-  hiddenBookCount(loan: any): number {
-    const count = loan.books?.length ?? 0;
-    return count > 2 ? count - 2 : 0;
   }
 
   getTimeLeftText(loan: any): string {
@@ -219,24 +217,16 @@ export class BookManagementComponent implements OnInit {
     return 'time-left';
   }
 
-  toggleLoan(loanId?: number): void {
-    if (loanId == null) {
-      return;
-    }
-
-    if (this.expandedLoanIds.has(loanId)) {
-      this.expandedLoanIds.delete(loanId);
+  toggleUserGroup(userId: string): void {
+    if (this.expandedUserIds.has(userId)) {
+      this.expandedUserIds.delete(userId);
     } else {
-      this.expandedLoanIds.add(loanId);
+      this.expandedUserIds.add(userId);
     }
   }
 
-  isLoanExpanded(loanId?: number): boolean {
-    if (loanId == null) {
-      return false;
-    }
-
-    return this.expandedLoanIds.has(loanId);
+  isUserGroupExpanded(userId: string): boolean {
+    return this.expandedUserIds.has(userId);
   }
 
   firstBook(loan: any) {
@@ -297,8 +287,78 @@ export class BookManagementComponent implements OnInit {
     this.loadLoans();
     this.loadLoanStats();
   }
-
+  
   protected canExtendLoan(loan: Loan): boolean {
     return !loan.returnedDate && (loan.extensionCount ?? 0) < 2;
+  }
+
+  getGroupLoanCount(group: LoanGroup): number {
+    return group.loanCount;
+  }
+
+  getGroupBookCount(group: LoanGroup): number {
+    return group.bookCount;
+  }
+
+  getGroupStatus(group: LoanGroup): LoanStatus {
+    if (group.groupStatus === 'OVERDUE') {
+      return 'Te laat';
+    }
+
+    if (group.groupStatus === 'RETURNED') {
+      return 'Teruggebracht';
+    }
+
+    return 'Uitgeleend';
+  }
+
+  getGroupStatusClass(group: LoanGroup): string {
+    const status = this.getGroupStatus(group);
+
+    if (status === 'Te laat') {
+      return 'status-badge status-badge--overdue';
+    }
+
+    if (status === 'Teruggebracht') {
+      return 'status-badge status-badge--returned';
+    }
+
+    return 'status-badge status-badge--active';
+  }
+
+  getGroupReturnDate(group: LoanGroup): string | null {
+    return group.earliestReturnDate;
+  }
+
+  getGroupTimeLeftText(group: LoanGroup): string {
+    const loan = this.getMostUrgentLoan(group);
+
+    if (!loan) {
+      return 'Geen leningen';
+    }
+
+    return this.getTimeLeftText(loan);
+  }
+
+  getGroupTimeLeftClass(group: LoanGroup): string {
+    const loan = this.getMostUrgentLoan(group);
+
+    if (!loan) {
+      return 'time-left';
+    }
+
+    return this.getTimeLeftClass(loan);
+  }
+
+  private getMostUrgentLoan(group: LoanGroup): Loan | null {
+    const activeLoans = group.loans.filter((loan) => !loan.returnedDate);
+
+    if (activeLoans.length === 0) {
+      return group.loans[0] ?? null;
+    }
+
+    return [...activeLoans].sort((a, b) =>
+      new Date(a.returnDate).getTime() - new Date(b.returnDate).getTime(),
+    )[0];
   }
 }

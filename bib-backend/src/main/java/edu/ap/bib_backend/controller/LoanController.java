@@ -3,11 +3,15 @@ package edu.ap.bib_backend.controller;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
+import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.service.LoanExtensionService;
 import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +36,7 @@ public class LoanController {
     }
 
     @PostMapping
-    public ResponseEntity<LoanDTO> createLoan(
+    public ResponseEntity<List<LoanDTO>> createLoan(
             @Valid @RequestBody LoanDTO loanDTO,
             Authentication authentication) {
         return ResponseEntity.ok(loanService.create(loanDTO, authentication));
@@ -81,5 +85,13 @@ public class LoanController {
     @GetMapping("/stats")
     public ResponseEntity<LoanStatsDTO> getLoanStats() {
         return ResponseEntity.ok(loanService.getLoanStats());
+    }
+
+    @GetMapping("/grouped")
+    public ResponseEntity<PageDTO<LoanGroupDTO>> findAllGrouped(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            Authentication authentication) {
+        return ResponseEntity.ok(loanService.findAllGrouped(page, pageSize, authentication));
     }
 }

@@ -414,7 +414,7 @@ export class CreateLoanComponent {
     this.isSubmitting.set(true);
     
     this.loansService
-      .createLoan({
+      .createLoans({
         id: 0,
         userId: userId,
         bookIds: bookIds,

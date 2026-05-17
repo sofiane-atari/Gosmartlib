@@ -2,10 +2,8 @@ package edu.ap.bib_backend.service.message.component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import edu.ap.bib_backend.jpa.entity.Book;
-import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
 import edu.ap.bib_backend.service.message.MessageComponent;
@@ -45,14 +43,9 @@ public class LoanBookListComponent implements MessageComponent {
 
     @Override
     public String build() {
-        Map<Book, Long> bookCounts = loan.getCopies().stream()
-                .filter(copy -> copy != null && copy.getBook() != null)
-                .collect(Collectors.groupingBy(
-                        BookCopy::getBook,
-                        LinkedHashMap::new,
-                        Collectors.counting()));
+        Map<Long, BookGroup> bookGroups = groupBooksById();
 
-        if (bookCounts.isEmpty()) {
+        if (bookGroups.isEmpty()) {
             return "";
         }
 
@@ -64,9 +57,9 @@ public class LoanBookListComponent implements MessageComponent {
         sb.append("Uitgeleende boeken");
         sb.append("</h3>");
 
-        for (Map.Entry<Book, Long> entry : bookCounts.entrySet()) {
-            Book book = entry.getKey();
-            long count = entry.getValue();
+        for (BookGroup group : bookGroups.values()) {
+            Book book = group.book();
+            long count = group.count();
 
             String bookUrl = frontendUrl + "/book/" + book.getId();
 
@@ -110,6 +103,30 @@ public class LoanBookListComponent implements MessageComponent {
         return sb.toString();
     }
 
+    private Map<Long, BookGroup> groupBooksById() {
+        Map<Long, BookGroup> groupedBooks = new LinkedHashMap<>();
+
+        loan.getCopies().stream()
+                .filter(copy -> copy != null && copy.getBook() != null)
+                .forEach(copy -> {
+                    Book book = copy.getBook();
+
+                    groupedBooks.compute(
+                            book.getId(),
+                            (bookId, existingGroup) -> {
+                                if (existingGroup == null) {
+                                    return new BookGroup(book, 1);
+                                }
+
+                                return new BookGroup(
+                                        existingGroup.book(),
+                                        existingGroup.count() + 1);
+                            });
+                });
+
+        return groupedBooks;
+    }
+
     private void appendCoverImage(StringBuilder sb, Book book) {
         if (book.getImageUrl() != null && !book.getImageUrl().isBlank()) {
             sb.append("<img src=\"").append(HtmlMessageBuilder.escapeHtml(book.getImageUrl()))
@@ -132,5 +149,8 @@ public class LoanBookListComponent implements MessageComponent {
             sb.append("</span>");
         }
         sb.append("</div>");
+    }
+
+    private record BookGroup(Book book, long count) {
     }
 }

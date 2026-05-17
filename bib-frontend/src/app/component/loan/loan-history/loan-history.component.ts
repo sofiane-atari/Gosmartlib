@@ -10,7 +10,7 @@ import {
   Calendar,
 } from 'lucide-angular';
 
-import { Loan, LoanHistory, LoanStatus } from '../../../model/loan.model';
+import { Loan, LoanHistory, LoanStatus } from '../../../model/loan/loan.model';
 import { LoansService } from '../../../services/loan/loans.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';

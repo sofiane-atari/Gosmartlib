@@ -15,7 +15,6 @@ import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -105,11 +103,12 @@ class LoanServiceIntegrationTest {
                 .build();
 
         // Act
-        LoanDTO result = loanService.create(loanDto, authentication);
-
+        List<LoanDTO> result = loanService.create(loanDto, authentication);
         // Assert
         assertNotNull(result);
-        assertNotNull(result.id());
-        assertEquals("loan-user-1", result.userId());
+        assertEquals(1, result.size());
+        assertNotNull(result.get(0).id());
+        assertEquals("loan-user-1", result.get(0).userId());
+        assertEquals(List.of(book.getId()), result.get(0).bookIds());
     }
 }

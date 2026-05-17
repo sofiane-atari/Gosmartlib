@@ -1,5 +1,6 @@
-import { LocalDate } from '../shared/types/local-date.type';
-import { PaginatedResponse } from './shared/paging/PaginatedResponse.model';
+import { LocalDate } from '../../shared/types/local-date.type';
+
+import { PaginatedResponse } from './../shared/paging/PaginatedResponse.model';
 
 export type LoanStatus = 'ACTIVE' | 'OVERDUE' | 'RETURNED';
 
