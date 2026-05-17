@@ -14,6 +14,8 @@ import org.springframework.util.StringUtils;
 import jakarta.transaction.Transactional;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
@@ -80,8 +82,9 @@ public class UserService {
                 .toList();
     }
 
-    public List<AuthUserDto> getTeachers(Authentication authentication,
-            boolean excludeLibrarians, boolean excludeAdmins) {
+    public PageDTO<AuthUserDto> getTeachers(Authentication authentication,
+            boolean excludeLibrarians, boolean excludeAdmins,
+            int page, int pageSize, String search) {
         String userId = currentUserService.extractCurrentUserId(authentication);
 
         boolean isLibrarian = authentication.getAuthorities().stream()
@@ -101,7 +104,7 @@ public class UserService {
         Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(school.getId()).stream()
                 .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
 
-        return rosterUsers.stream()
+        List<AuthUserDto> allUsers = rosterUsers.stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
                 .filter(dto -> dto.role() == Role.TEACHER)
@@ -121,6 +124,26 @@ public class UserService {
                 .filter(dto -> !excludeLibrarians || dto.role() != Role.LIBRARIAN)
                 .filter(dto -> !excludeAdmins || dto.role() != Role.ADMIN)
                 .toList();
+
+        List<AuthUserDto> filtered = allUsers;
+        if (StringUtils.hasText(search)) {
+            String query = search.trim().toLowerCase();
+            filtered = allUsers.stream()
+                    .filter(dto -> (dto.fullName() != null && dto.fullName().toLowerCase().contains(query))
+                            || (dto.firstName() != null && dto.firstName().toLowerCase().contains(query))
+                            || (dto.lastName() != null && dto.lastName().toLowerCase().contains(query))
+                            || (dto.email() != null && dto.email().toLowerCase().contains(query)))
+                    .toList();
+        }
+
+        int totalItems = filtered.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        int fromIndex = page * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+
+        List<AuthUserDto> pageData = fromIndex >= totalItems ? List.of() : filtered.subList(fromIndex, toIndex);
+
+        return new PageDTO<>(pageData, new PaginatedMeta(page, pageSize, totalItems, totalPages));
     }
 
     public User createUser(String userId, RoleEntity role, School school, Campus campus) {

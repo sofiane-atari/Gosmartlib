@@ -122,6 +122,10 @@
         </tbody>
       </table>
     </section>
+
+    @if (totalPages() > 1) {
+      <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
+    }
   }
 
   @if (isPromoting() && selectedUser()) {

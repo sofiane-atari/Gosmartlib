@@ -21,8 +21,10 @@ import { RoleService } from '../../services/role/role.service';
 import { AuthService } from '../../services/authorization/auth.service';
 import { ToastService } from '../../services/toast/toast.service';
 import { AuthUserDto, Role } from '../../model/auth.model';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 import { HttpErrorResponseError } from '../../error-reponse.model';
 
+import { PagingComponent, PagingMeta } from '../shared/paging/paging.component';
 import { SearchBarComponent } from '../shared/search-bar/search-bar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
 import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overlay.component';
@@ -33,6 +35,7 @@ import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overl
   imports: [
     CommonModule,
     LucideAngularModule,
+    PagingComponent,
     SearchBarComponent,
     ConfirmationModalComponent,
     LoadingOverlayComponent,
@@ -55,6 +58,8 @@ export class UserManagementComponent {
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
+  protected readonly page = signal(0);
+  protected readonly pageSize = signal(2);
   private readonly refreshTrigger = signal(0);
   private readonly searchSubject = new Subject<string>();
   protected readonly searchQuery = signal('');
@@ -73,35 +78,40 @@ export class UserManagementComponent {
   constructor() {
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((query) => this.searchQuery.set(query));
+      .subscribe((query) => {
+        this.searchQuery.set(query);
+        this.page.set(0);
+      });
   }
 
-  private readonly teachers$ = toObservable(this.refreshTrigger).pipe(
-    switchMap(() => this.userService.getTeachers()),
+  private readonly loadParams = computed(() => ({
+    page: this.page(),
+    pageSize: this.pageSize(),
+    search: this.searchQuery(),
+    trigger: this.refreshTrigger(),
+  }));
+
+  private readonly teachers$ = toObservable(this.loadParams).pipe(
+    switchMap(({ page, pageSize, search }) =>
+      this.userService.getTeachers(true, page, pageSize, search || undefined),
+    ),
   );
 
   private readonly teachersResponse = toSignal(this.teachers$, {
-    initialValue: [] as AuthUserDto[],
+    initialValue: { data: [], meta: { currentPage: 0, pageSize: 20, totalItems: 0, totalPages: 0 } } as PaginatedResponse<AuthUserDto>,
   });
 
-  protected readonly teachers = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const all = this.teachersResponse();
-
-    if (!query) {
-      return all;
-    }
-
-    return all.filter(
-      (u) =>
-        u.fullName?.toLowerCase().includes(query) ||
-        u.firstName?.toLowerCase().includes(query) ||
-        u.lastName?.toLowerCase().includes(query) ||
-        u.email?.toLowerCase().includes(query),
-    );
-  });
-
+  protected readonly teachers = computed(() => this.teachersResponse().data);
+  protected readonly totalItems = computed(() => this.teachersResponse().meta.totalItems);
+  protected readonly totalPages = computed(() => this.teachersResponse().meta.totalPages);
   protected readonly isLoading = computed(() => this.teachersResponse() === null);
+
+  protected readonly pagingMeta = computed<PagingMeta>(() => ({
+    currentPage: this.page(),
+    pageSize: this.pageSize(),
+    totalItems: this.totalItems(),
+    totalPages: this.totalPages(),
+  }));
 
   protected readonly actionLabel = computed(() =>
     this.isRevokeAction() ? 'wordt teruggezet' : 'wordt gepromoveerd',
@@ -150,6 +160,10 @@ export class UserManagementComponent {
 
   protected onSearch(query: string): void {
     this.searchSubject.next(query);
+  }
+
+  protected onPageChange(page: number): void {
+    this.page.set(page);
   }
 
   protected openSelfRevoke(): void {

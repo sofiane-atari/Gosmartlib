@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AuthUserDto, Role } from '../../model/auth.model';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 
 export interface GetUsersOpt {
   WithfirstName?: string;
@@ -17,9 +18,22 @@ export class UserService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  public getTeachers(excludeAdmins: boolean = true): Observable<AuthUserDto[]> {
-    const params = new HttpParams().set('excludeAdmins', excludeAdmins);
-    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/teachers`, { params });
+  public getTeachers(
+    excludeAdmins: boolean = true,
+    page: number = 0,
+    pageSize: number = 20,
+    search?: string,
+  ): Observable<PaginatedResponse<AuthUserDto>> {
+    let params = new HttpParams()
+      .set('excludeAdmins', excludeAdmins)
+      .set('page', page)
+      .set('pageSize', pageSize);
+
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    return this.http.get<PaginatedResponse<AuthUserDto>>(`${this.apiUrl}/users/teachers`, { params });
   }
 
   public getUsers(opt?: GetUsersOpt): Observable<AuthUserDto[]> {
