@@ -42,6 +42,12 @@ export class GamificationNotificationStreamService {
       signal: this.abortController.signal,
 
       onopen: async (response) => {
+        if (response.status === 401) {
+          this.disconnect();
+          this.authService.logout();
+          return;
+        }
+
         if (!response.ok) {
           this.disconnect();
           throw new Error(
