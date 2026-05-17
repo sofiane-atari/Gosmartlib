@@ -6,7 +6,9 @@ import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListBook;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -28,6 +30,7 @@ public class ReadingListService {
     private final ReadingListRepository readingListRepository;
     private final ReadingListBookRepository readingListBookRepository;
     private final UserRepository userRepository;
+    private final CampusRepository campusRepository;
     private final CurrentUserService currentUserService;
 
     private static final String FAVORITES_NAME = "Favorieten";
@@ -37,11 +40,13 @@ public class ReadingListService {
             ReadingListRepository readingListRepository,
             ReadingListBookRepository readingListBookRepository,
             UserRepository userRepository,
+            CampusRepository campusRepository,
             CurrentUserService currentUserService
     ) {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
         this.userRepository = userRepository;
+        this.campusRepository = campusRepository;
         this.currentUserService = currentUserService;
     }
 
@@ -51,7 +56,7 @@ public class ReadingListService {
         }
 
         User user = getUserOrThrow(userId);
-        Campus campus = requireUserCampus(user);
+        Campus campus = resolveReadingListCampus(user);
         AudienceContext audience = getAudienceContext();
 
         ReadingListTargetType targetType = dto.targetType() == null ? ReadingListTargetType.PERSONAL : dto.targetType();
@@ -70,7 +75,7 @@ public class ReadingListService {
 
     public List<ReadingList> getAllLists(String userId) {
         User user = getUserOrThrow(userId);
-        Campus campus = requireUserCampus(user);
+        Campus campus = resolveReadingListCampus(user);
         AudienceContext audience = getAudienceContext();
         ensureSharedListsExist(user, campus, audience);
 
@@ -86,7 +91,7 @@ public class ReadingListService {
 
     public ReadingList getListById(String userId, Long id) {
         User user = getUserOrThrow(userId);
-        Campus campus = requireUserCampus(user);
+        Campus campus = resolveReadingListCampus(user);
         AudienceContext audience = getAudienceContext();
 
         return readingListRepository.findVisibleById(
@@ -136,7 +141,7 @@ public class ReadingListService {
 
     public ReadingListBook addBookToFavorites(String userId, Long bookId) {
         User user = getUserOrThrow(userId);
-        Campus campus = requireUserCampus(user);
+        Campus campus = resolveReadingListCampus(user);
 
         ReadingList favoritesList = readingListRepository
                 .findByNameIgnoreCaseAndUser_IdAndTargetTypeAndCampusId(
@@ -176,12 +181,18 @@ public class ReadingListService {
                 .orElseThrow(() -> new IllegalArgumentException("Gebruiker met id " + userId + " bestaat niet"));
     }
 
-    private Campus requireUserCampus(User user) {
-        if (user.getCampus() == null) {
-            throw new IllegalStateException("Gebruiker heeft geen campus gekoppeld.");
+    private Campus resolveReadingListCampus(User user) {
+        if (user.getCampus() != null) {
+            return user.getCampus();
         }
 
-        return user.getCampus();
+        School school = user.getSchool();
+        if (school == null || school.getId() == null) {
+            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
+        }
+
+        return campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId())
+                .orElseThrow(() -> new IllegalStateException("School heeft geen campus voor leeslijsten."));
     }
 
     private boolean isFavoritesList(String name) {

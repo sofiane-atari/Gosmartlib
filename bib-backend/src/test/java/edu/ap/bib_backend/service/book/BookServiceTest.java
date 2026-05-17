@@ -156,7 +156,7 @@ class BookServiceTest {
         dto.setTitle("Test Boek");
         dto.setAuthor("Auteur X");
 
-        given(br.findByCampusId(1L)).willReturn(List.of(book));
+        given(br.findByCampusSchoolId(1L)).willReturn(List.of(book));
         given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
         List<BookDTO> result = bs.getAllBooks(authentication);
@@ -634,7 +634,7 @@ class BookServiceTest {
         savedDto.setTitle("Nieuwe Titel");
         savedDto.setIsbn("9781234567890");
 
-        given(br.findByIdAndCampusId(bookId, 1L)).willReturn(Optional.of(existingBook));
+        given(br.findByIdAndCampusSchoolId(bookId, 1L)).willReturn(Optional.of(existingBook));
         given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.empty());
         given(br.save(any(Book.class))).willReturn(savedBook);
         given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
@@ -646,7 +646,7 @@ class BookServiceTest {
         assertThat(result.getTitle()).isEqualTo("Nieuwe Titel");
         assertThat(result.getIsbn()).isEqualTo("9781234567890");
 
-        then(br).should().findByIdAndCampusId(bookId, 1L);
+        then(br).should().findByIdAndCampusSchoolId(bookId, 1L);
         then(br).should().findByIsbnAndCampusId("9781234567890", 1L);
         then(br).should().save(any(Book.class));
     }
@@ -678,7 +678,7 @@ class BookServiceTest {
         BookDTO savedDto = new BookDTO();
         savedDto.setTitle("Geüpdatete Titel");
 
-        given(br.findByIdAndCampusId(bookId, 1L)).willReturn(Optional.of(existingBook));
+        given(br.findByIdAndCampusSchoolId(bookId, 1L)).willReturn(Optional.of(existingBook));
         given(br.findByIsbnAndCampusId(isbn, 1L)).willReturn(Optional.of(existingBook));
         given(br.save(any(Book.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(any(Book.class))).willReturn(savedDto);
@@ -726,7 +726,7 @@ class BookServiceTest {
         BookDTO updateDto = new BookDTO();
         updateDto.setIsbn(duplicateIsbn);
 
-        given(br.findByIdAndCampusId(currentBookId, 1L)).willReturn(Optional.of(currentBook));
+        given(br.findByIdAndCampusSchoolId(currentBookId, 1L)).willReturn(Optional.of(currentBook));
         given(br.findByIsbnAndCampusId(duplicateIsbn, 1L)).willReturn(Optional.of(otherBookWithSameIsbn));
 
         assertThatThrownBy(() -> bs.updateBook(currentBookId, updateDto, authentication))
@@ -958,9 +958,10 @@ class BookServiceTest {
     void givenExistingBookWithNoBorrowedCopies_whenDeleteBook_thenDeleteSuccessfully() {
         Book book = new Book();
         book.setId(1L);
+        book.setCampus(campus);
         book.setGenres(new HashSet<>());
 
-        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(book));
+        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(book));
         given(bcr.existsByBookIdAndCampusIdAndAvailability(1L, 1L, Availability.BORROWED)).willReturn(false);
 
         bs.deleteBook(1L, authentication);
@@ -976,8 +977,9 @@ class BookServiceTest {
     void givenBookWithBorrowedCopies_whenDeleteBook_thenThrowException() {
         Book book = new Book();
         book.setId(1L);
+        book.setCampus(campus);
 
-        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(book));
+        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(book));
         given(bcr.existsByBookIdAndCampusIdAndAvailability(1L, 1L, Availability.BORROWED)).willReturn(true);
 
         assertThatThrownBy(() -> bs.deleteBook(1L, authentication))
@@ -1084,7 +1086,7 @@ class BookServiceTest {
         book.setDidactic(false);
         book.setCampus(campus);
 
-        given(br.findByIdAndCampusId(1L, 1L)).willReturn(Optional.of(book));
+        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(book));
 
         Book result = bs.getBookByIdForCurrentCampus(1L, authentication);
 

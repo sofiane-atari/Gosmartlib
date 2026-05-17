@@ -71,6 +71,8 @@ export class CreateLoanComponent {
   public readonly isCustomDate = signal(this.loadFromSession('isCustomDate', false));
   public readonly minReturnDate = signal(this.buildMinReturnDate());
 
+  public readonly selectedCampusId = computed(() => this.getSelectedCampusId());
+
   private loadFromSession<T>(key: string, defaultValue: T): T {
     if (typeof sessionStorage === 'undefined') return defaultValue;
     try {
@@ -335,10 +337,19 @@ export class CreateLoanComponent {
     }
 
     const selectedCount = this.selectedBooks().filter((selectedBook) => selectedBook.id === book.id).length;
-    const availableCopies = this.getAvailableCopies(book);
+    const selectedCampusId = this.getSelectedCampusId();
+    const allAvailableCopies = this.getAvailableCopies(book);
+    const availableCopies = selectedCampusId === null
+      ? allAvailableCopies
+      : allAvailableCopies.filter((copy) => this.getCopyCampusId(book, copy.id) === selectedCampusId);
 
-    if (selectedCount >= availableCopies.length) {
+    if (selectedCount >= allAvailableCopies.length) {
       this.showError('Er zijn niet genoeg beschikbare exemplaren voor dit boek.');
+      return;
+    }
+
+    if (availableCopies.length === 0) {
+      this.showError('Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.');
       return;
     }
 
@@ -390,6 +401,12 @@ export class CreateLoanComponent {
   }
 
   public updateSelectedCopy(bookId: number, index: number, copyId: number): void {
+    const book = this.selectedBooks().find((selectedBook) => selectedBook.id === bookId);
+    if (book && !this.canSelectCopyForCurrentLoan(book, copyId, bookId, index)) {
+      this.showError('Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.');
+      return;
+    }
+
     this.selectedCopyIdsByBook.update((current) => {
       const copyIds = [...(current[bookId] ?? [])];
       copyIds[index] = copyId;
@@ -440,6 +457,11 @@ export class CreateLoanComponent {
       return;
     }
 
+    if (!this.hasSingleSelectedCampus()) {
+      this.showError('Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.');
+      return;
+    }
+
     if (this.hasValidRefreshToken() === false) {
       this.showNoTokenWarningModal.set(true);
       return;
@@ -461,6 +483,11 @@ export class CreateLoanComponent {
     const returnDate = this.loanForm.controls.returnDate.value;
 
     if (user && returnDate) {
+      if (!this.hasSingleSelectedCampus()) {
+        this.showError('Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.');
+        return;
+      }
+
       this.submitLoan(user.id, bookCopyIds, booksPayload, returnDate);
     }
   }
@@ -498,6 +525,79 @@ export class CreateLoanComponent {
     return (book.copyLocations ?? [])
       .flatMap((location) => location.copies)
       .filter((copy) => copy.availability === 'AVAILABLE' && copy.condition !== 'LOST');
+  }
+
+  private getCopyCampusId(book: Book, copyId: number): number | null {
+    for (const location of book.copyLocations ?? []) {
+      if (location.copies.some((copy) => copy.id === copyId)) {
+        return location.campusId;
+      }
+    }
+
+    return null;
+  }
+
+  private canSelectCopyForCurrentLoan(book: Book, copyId: number, bookIdToReplace?: number, indexToReplace?: number): boolean {
+    const copyCampusId = this.getCopyCampusId(book, copyId);
+    if (copyCampusId === null) {
+      return false;
+    }
+
+    for (const selectedBook of this.selectedBooks()) {
+      if (selectedBook.id === undefined) {
+        continue;
+      }
+
+      const selectedCopyIds = this.selectedCopyIdsByBook()[selectedBook.id] ?? [];
+      for (let index = 0; index < selectedCopyIds.length; index++) {
+        if (selectedBook.id === bookIdToReplace && index === indexToReplace) {
+          continue;
+        }
+
+        const selectedCampusId = this.getCopyCampusId(selectedBook, selectedCopyIds[index]);
+        if (selectedCampusId !== null && selectedCampusId !== copyCampusId) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private getSelectedCampusId(): number | null {
+    for (const selectedBook of this.selectedBooks()) {
+      if (selectedBook.id === undefined) {
+        continue;
+      }
+
+      for (const copyId of this.selectedCopyIdsByBook()[selectedBook.id] ?? []) {
+        const campusId = this.getCopyCampusId(selectedBook, copyId);
+        if (campusId !== null) {
+          return campusId;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private hasSingleSelectedCampus(): boolean {
+    const campusIds = new Set<number>();
+
+    for (const selectedBook of this.selectedBooks()) {
+      if (selectedBook.id === undefined) {
+        continue;
+      }
+
+      for (const copyId of this.selectedCopyIdsByBook()[selectedBook.id] ?? []) {
+        const campusId = this.getCopyCampusId(selectedBook, copyId);
+        if (campusId !== null) {
+          campusIds.add(campusId);
+        }
+      }
+    }
+
+    return campusIds.size <= 1;
   }
 
   private loadUsers(firstName: string = '', lastName: string = ''): void {

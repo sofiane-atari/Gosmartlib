@@ -67,6 +67,7 @@
     <app-loan-summary-panel [loanForm]="loanForm" [minReturnDate]="minReturnDate()"
       [selectedBooks]="selectedBooks()" [selectedBookCounts]="selectedBookCounts()"
       [selectedCopyIdsByBook]="selectedCopyIdsByBook()"
+      [selectedCampusId]="selectedCampusId()"
       [hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()"
       [isCustomDate]="isCustomDate()"
       (createLoanRequested)="createLoan()"

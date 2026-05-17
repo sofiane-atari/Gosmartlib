@@ -44,8 +44,9 @@ public class LoanController {
     public ResponseEntity<PageDTO<LoanDTO>> getAllLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) Long campusId,
             Authentication authentication) {
-        return ResponseEntity.ok(loanService.findAll(page, pageSize, authentication));
+        return ResponseEntity.ok(loanService.findAll(page, pageSize, campusId, authentication));
     }
 
     @PatchMapping("/{loanId}/return")
@@ -60,8 +61,9 @@ public class LoanController {
     public ResponseEntity<PageDTO<LoanDTO>> getActiveLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) Long campusId,
             Authentication authentication) {
-        return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize, authentication));
+        return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize, campusId, authentication));
     }
 
     @GetMapping("/me/history")

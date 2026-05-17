@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.service.smartschool;
 
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
-import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
@@ -115,14 +114,13 @@ public class SmartschoolOAuth2UserService
         attributes.put(CLAIM_SCHOOL_CODE, schoolCode);
 
         School school = resolveSchool(schoolCode);
-        Campus firstCampus = ensureCampus(school);
 
         User user = userService.getUser(userId)
                 .orElseGet(() -> userService.createUser(
                         userId,
                         roleService.getRoleEntity(basisrol),
                         school,
-                        firstCampus
+                        null
                 ));
 
         String oneRosterSourcedId =
@@ -134,10 +132,6 @@ public class SmartschoolOAuth2UserService
 
         if (user.getSchool() == null) {
             user.setSchool(school);
-        }
-
-        if (user.getCampus() == null) {
-            user.setCampus(firstCampus);
         }
 
         userService.save(user);
@@ -168,7 +162,7 @@ public class SmartschoolOAuth2UserService
         }
 
         attributes.put("schoolId", school.getId());
-        attributes.put("campusId", user.getCampus() != null ? user.getCampus().getId() : firstCampus.getId());
+        attributes.put("campusId", user.getCampus() != null ? user.getCampus().getId() : null);
 
         String roleString = getOAuthUserRole(user.getRole().getRole());
 
@@ -192,18 +186,6 @@ public class SmartschoolOAuth2UserService
         school.setName(extractSchoolNameFromDomain(domainName));
 
         return schoolRepository.save(school);
-    }
-
-    private Campus ensureCampus(School school) {
-        return campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId())
-                .orElseGet(() -> {
-                    Campus campus = new Campus();
-                    campus.setSchool(school);
-                    campus.setName(school.getName());
-                    campus.setAddress("");
-                    campus.setPostalCode(0);
-                    return campusRepository.save(campus);
-                });
     }
 
     private String extractSchoolNameFromDomain(String domainName) {

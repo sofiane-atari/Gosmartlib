@@ -78,6 +78,7 @@ class LoanServiceTest {
     @Mock
     private Authentication authentication;
 
+    private final School school = new School();
     private final Campus campus = new Campus();
 
     @InjectMocks
@@ -85,15 +86,22 @@ class LoanServiceTest {
 
     @BeforeEach
     void setUp() {
+        school.setId(1L);
         campus.setId(1L);
+        campus.setSchool(school);
         lenient().when(currentUserService.getCurrentUserCampus(any())).thenReturn(campus);
+        lenient().when(currentUserService.getCurrentUserSchool(any())).thenReturn(school);
     }
 
     private BookCopy availableCopy(Long id, Book book) {
+        return availableCopy(id, book, campus);
+    }
+
+    private BookCopy availableCopy(Long id, Book book, Campus copyCampus) {
         BookCopy copy = new BookCopy();
         copy.setId(id);
         copy.setBook(book);
-        copy.setCampus(campus);
+        copy.setCampus(copyCampus);
         ReflectionTestUtils.setField(copy, "availability", Availability.AVAILABLE);
         return copy;
     }
@@ -128,6 +136,7 @@ class LoanServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(expectedDto, result);
+        assertEquals(campus, loan.getCampus());
         verify(loanRepository, atLeastOnce()).save(loan);
         verify(smartschoolTokenRefreshService).getValidSmartschoolAccessToken("user123");
     }
@@ -143,7 +152,7 @@ class LoanServiceTest {
 
         Loan loan = new Loan();
         loan.setUser(user);
-        when(loanRepository.findByCampusId(1L)).thenReturn(List.of(loan));
+        when(loanRepository.findByCampusSchoolId(1L)).thenReturn(List.of(loan));
 
         LoanDTO basicDto = LoanDTO.builder().id(1L).userId("user123").build();
         when(loanMapper.toDto(loan)).thenReturn(basicDto);
@@ -245,11 +254,6 @@ class LoanServiceTest {
                 .returnDate(returnDate)
                 .build();
 
-        Loan loan = new Loan();
-        loan.setCopies(new ArrayList<>());
-        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
-        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
-
         Book book = new Book();
         book.setId(1L);
         book.setTitle("Test Book");
@@ -259,6 +263,85 @@ class LoanServiceTest {
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> loanService.create(inputDto, authentication));
         assertEquals("Eén of meer boekexemplaren werden niet gevonden.", exception.getMessage());
+    }
+
+    @Test
+    void Given_CopyFromDifferentCampusInSameSchool_When_Create_Then_SetsLoanCampusToCopyCampus() {
+        String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
+        LoanDTO inputDto = LoanDTO.builder()
+                .userId("user123")
+                .bookCopyIds(List.of(10L))
+                .returnDate(returnDate)
+                .build();
+
+        Campus otherCampusInSchool = new Campus();
+        otherCampusInSchool.setId(2L);
+        otherCampusInSchool.setSchool(school);
+
+        Loan loan = new Loan();
+        loan.setCopies(new ArrayList<>());
+        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+
+        Book book = new Book();
+        book.setId(1L);
+        book.setTitle("Test Book");
+        when(bookCopyRepository.findAllById(List.of(10L))).thenReturn(List.of(availableCopy(10L, book, otherCampusInSchool)));
+        when(loanMapper.toDto(loan)).thenReturn(LoanDTO.builder().id(1L).build());
+
+        loanService.create(inputDto, authentication);
+
+        assertEquals(otherCampusInSchool, loan.getCampus());
+    }
+
+    @Test
+    void Given_CopiesFromMultipleCampuses_When_Create_Then_ThrowsIllegalStateException() {
+        String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
+        LoanDTO inputDto = LoanDTO.builder()
+                .userId("user123")
+                .bookCopyIds(List.of(1L, 2L))
+                .returnDate(returnDate)
+                .build();
+
+        Campus otherCampusInSchool = new Campus();
+        otherCampusInSchool.setId(2L);
+        otherCampusInSchool.setSchool(school);
+
+        Book book = new Book();
+        book.setId(1L);
+        when(bookCopyRepository.findAllById(List.of(1L, 2L)))
+                .thenReturn(List.of(availableCopy(1L, book), availableCopy(2L, book, otherCampusInSchool)));
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> loanService.create(inputDto, authentication));
+
+        assertEquals("Alle boekexemplaren moeten uit dezelfde campus komen.", exception.getMessage());
+    }
+
+    @Test
+    void Given_CopyFromDifferentSchool_When_Create_Then_ThrowsIllegalStateException() {
+        String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
+        LoanDTO inputDto = LoanDTO.builder()
+                .userId("user123")
+                .bookCopyIds(List.of(1L))
+                .returnDate(returnDate)
+                .build();
+
+        School otherSchool = new School();
+        otherSchool.setId(999L);
+        Campus otherSchoolCampus = new Campus();
+        otherSchoolCampus.setId(3L);
+        otherSchoolCampus.setSchool(otherSchool);
+
+        Book book = new Book();
+        book.setId(1L);
+        when(bookCopyRepository.findAllById(List.of(1L)))
+                .thenReturn(List.of(availableCopy(1L, book, otherSchoolCampus)));
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> loanService.create(inputDto, authentication));
+
+        assertEquals("Boekexemplaar behoort tot een andere school.", exception.getMessage());
     }
 
     @Test
@@ -346,7 +429,7 @@ class LoanServiceTest {
         // Arrange
         Loan loan = new Loan();
         loan.setUser(null);
-        when(loanRepository.findByCampusId(1L)).thenReturn(List.of(loan));
+        when(loanRepository.findByCampusSchoolId(1L)).thenReturn(List.of(loan));
 
         LoanDTO basicDto = LoanDTO.builder().id(1L).userId("user123").build();
         when(loanMapper.toDto(loan)).thenReturn(basicDto);
@@ -368,7 +451,7 @@ class LoanServiceTest {
 
         Loan loan = new Loan();
         loan.setUser(user);
-        when(loanRepository.findByCampusId(1L)).thenReturn(List.of(loan));
+        when(loanRepository.findByCampusSchoolId(1L)).thenReturn(List.of(loan));
 
         LoanDTO basicDto = LoanDTO.builder().id(1L).userId("user123").build();
         when(loanMapper.toDto(loan)).thenReturn(basicDto);
@@ -434,6 +517,38 @@ class LoanServiceTest {
         assertNotNull(result);
         assertNotNull(loan.getReturnedDate());
         verify(applicationEventPublisher).publishEvent(any(BookReturnedGamificationEvent.class));
+    }
+
+    @Test
+    void Given_CampusFilter_When_FindAll_Then_ReturnsCampusLoansWithinCurrentSchool() {
+        Loan loan = new Loan();
+        loan.setCampus(campus);
+        when(loanRepository.findByCampusId(1L)).thenReturn(List.of(loan));
+
+        LoanDTO basicDto = LoanDTO.builder().id(1L).userId("user123").build();
+        when(loanMapper.toDto(loan)).thenReturn(basicDto);
+
+        PageDTO<LoanDTO> result = loanService.findAll(0, 10, 1L, authentication);
+
+        assertNotNull(result);
+        assertEquals(1, result.data().size());
+    }
+
+    @Test
+    void Given_CampusFilterOutsideSchool_When_FindAll_Then_FiltersOutLoan() {
+        School otherSchool = new School();
+        otherSchool.setId(999L);
+        Campus otherCampus = new Campus();
+        otherCampus.setId(2L);
+        otherCampus.setSchool(otherSchool);
+        Loan loan = new Loan();
+        loan.setCampus(otherCampus);
+        when(loanRepository.findByCampusId(2L)).thenReturn(List.of(loan));
+
+        PageDTO<LoanDTO> result = loanService.findAll(0, 10, 2L, authentication);
+
+        assertNotNull(result);
+        assertTrue(result.data().isEmpty());
     }
 
     @Test
@@ -503,7 +618,7 @@ class LoanServiceTest {
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> loanService.returnLoan(1L, authentication));
 
-        assertEquals("Lening niet gevonden in deze campus.", exception.getMessage());
+        assertEquals("Lening niet gevonden in deze school.", exception.getMessage());
     }
 
     @Test
@@ -533,7 +648,7 @@ class LoanServiceTest {
         Loan returnedLoan = new Loan();
         returnedLoan.setReturnedDate(LocalDate.now());
 
-        when(loanRepository.findByUserIdAndCampusIdOrderByLoanDateDesc("user123", 1L))
+        when(loanRepository.findByUserIdOrderByLoanDateDesc("user123"))
                 .thenReturn(List.of(activeLoan, returnedLoan));
 
         when(loanMapper.toDto(activeLoan)).thenReturn(LoanDTO.builder()
@@ -555,9 +670,8 @@ class LoanServiceTest {
 
     @Test
     void Given_NoLoansForCurrentUser_When_FindHistoryForCurrentUser_Then_ReturnsEmptyHistory() {
-        when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
-        when(loanRepository.findByUserIdAndCampusIdOrderByLoanDateDesc("user123", 1L))
+        when(loanRepository.findByUserIdOrderByLoanDateDesc("user123"))
                 .thenReturn(List.of());
 
         LoanHistoryDTO result = loanService.findHistoryForCurrentUser(authentication);
@@ -570,7 +684,7 @@ class LoanServiceTest {
 
     @Test
     void Given_EmptyLoanList_When_FindAll_Then_ReturnsEmptyPage() {
-        when(loanRepository.findByCampusId(1L)).thenReturn(List.of());
+        when(loanRepository.findByCampusSchoolId(1L)).thenReturn(List.of());
 
         PageDTO<LoanDTO> result = loanService.findAll(0, 10, authentication);
 

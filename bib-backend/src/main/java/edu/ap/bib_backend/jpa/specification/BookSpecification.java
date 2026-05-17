@@ -75,8 +75,10 @@ public static Specification<Book> belongsToCampus(Long campusId) {
     }
 
     public static Specification<Book> belongsToSchool(Long schoolId) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("campus").get("school").get("id"), schoolId);
+        return (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+            return criteriaBuilder.equal(root.get("campus").get("school").get("id"), schoolId);
+        };
     }
 
     public static Specification<Book> hasCopyInCampus(Long campusId) {

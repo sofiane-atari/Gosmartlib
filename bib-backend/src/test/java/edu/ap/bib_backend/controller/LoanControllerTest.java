@@ -99,7 +99,7 @@ class LoanControllerTest {
                 List.of(loanDto),
                 meta);
 
-        when(loanService.findAll(anyInt(), anyInt(), any()))
+        when(loanService.findAll(anyInt(), anyInt(), any(), any()))
                 .thenReturn(page);
 
         // Act & Assert

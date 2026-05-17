@@ -37,7 +37,7 @@ public class User {
     private School school;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campus_id", nullable = false)
+    @JoinColumn(name = "campus_id")
     private Campus campus;
 
     @Column(name = "review_blocked", nullable = false)

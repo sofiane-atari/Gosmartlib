@@ -54,7 +54,7 @@
                         (change)="onCopySelectionChange(item.book, slot, $event)"
                     >
                         @for (copy of getAvailableCopies(item.book); track copy.id) {
-                            <option [value]="copy.id" [disabled]="isCopySelectedInOtherSlot(item.book, copy.id, slot)">
+                            <option [value]="copy.id" [disabled]="isCopyDisabled(item.book, copy, slot)">
                                 {{ getCopyLabel(copy, $index) }}
                             </option>
                         }

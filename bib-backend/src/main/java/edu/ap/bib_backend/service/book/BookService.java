@@ -90,8 +90,8 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getAllBooks(Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        return bookMapper.toDTOList(bookRepository.findByCampusId(campus.getId()));
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        return bookMapper.toDTOList(bookRepository.findByCampusSchoolId(school.getId()));
     }
 
     @Transactional
@@ -173,8 +173,13 @@ public class BookService {
 
     @Transactional
     public void deleteBook(Long id, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Book book = findBookInCampusOrThrow(id, campus.getId());
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Book book = findBookInSchoolOrThrow(id, school.getId());
+        Campus campus = book.getCampus();
+
+        if (campus == null) {
+            throw new IllegalStateException("Boek heeft geen campus gekoppeld.");
+        }
 
         if (bookCopyRepository.existsByBookIdAndCampusIdAndAvailability(id, campus.getId(), Availability.BORROWED)) {
             throw new IllegalStateException(
@@ -191,8 +196,13 @@ public class BookService {
 
     @Transactional
     public BookDTO updateBook(Long id, BookDTO dto, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Book book = findBookInCampusOrThrow(id, campus.getId());
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Book book = findBookInSchoolOrThrow(id, school.getId());
+        Campus campus = book.getCampus();
+
+        if (campus == null) {
+            throw new IllegalStateException("Boek heeft geen campus gekoppeld.");
+        }
 
         String isbn = IsbnUtils.normalizeIsbn(dto.getIsbn());
         validateUniqueIsbnInCampus(isbn, id, campus.getId());
@@ -228,8 +238,8 @@ public class BookService {
     }
 
     public Book getBookByIdForCurrentCampus(Long id, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        return findBookInCampusOrThrow(id, campus.getId());
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        return findBookInSchoolOrThrow(id, school.getId());
     }
 
     public Integer getMaxPages() {
@@ -244,8 +254,7 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getMostReadBooks(int limit, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Long schoolId = campus.getSchool().getId();
+        Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
@@ -262,8 +271,7 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getNewestBooks(int limit, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Long schoolId = campus.getSchool().getId();
+        Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
@@ -372,7 +380,7 @@ public class BookService {
 
     @Transactional
     public List<BookCandidateDTO> searchBooksInDb(String title, String author, Integer releaseYear, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        School school = currentUserService.getCurrentUserSchool(authentication);
 
         String cleanTitle = normalize(title);
         String cleanAuthor = normalize(author);
@@ -387,7 +395,7 @@ public class BookService {
 
         Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear)
                 .and((root, query, criteriaBuilder) ->
-                        criteriaBuilder.equal(root.get("campus").get("id"), campus.getId()));
+                        criteriaBuilder.equal(root.get("campus").get("school").get("id"), school.getId()));
 
         return bookRepository.findAll(spec).stream()
                 .limit(10)

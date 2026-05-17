@@ -2,7 +2,7 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.BookCopyConditionUpdateDTO;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.validation.Valid;
@@ -33,12 +33,13 @@ public class BookCopyController {
             @PathVariable Long copyId,
             @Valid @RequestBody BookCopyConditionUpdateDTO request,
             Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        School school = currentUserService.getCurrentUserSchool(authentication);
         BookCopy copy = bookCopyRepository.findById(copyId)
                 .orElseThrow(() -> new IllegalStateException("Boekexemplaar niet gevonden."));
 
-        if (copy.getCampus() == null || !copy.getCampus().getId().equals(campus.getId())) {
-            throw new IllegalStateException("Boekexemplaar niet gevonden in deze campus.");
+        if (copy.getCampus() == null || copy.getCampus().getSchool() == null
+                || !copy.getCampus().getSchool().getId().equals(school.getId())) {
+            throw new IllegalStateException("Boekexemplaar niet gevonden in deze school.");
         }
 
         copy.setCondition(request.condition());

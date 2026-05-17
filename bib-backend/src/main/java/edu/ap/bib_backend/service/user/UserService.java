@@ -87,9 +87,13 @@ public class UserService {
 
         user.setRole(Objects.requireNonNull(role, "role mag niet null zijn"));
         user.setSchool(Objects.requireNonNull(school, "school mag niet null zijn"));
-        user.setCampus(Objects.requireNonNull(campus, "campus mag niet null zijn"));
+        user.setCampus(campus);
 
         return userRepository.save(user);
+    }
+
+    public User createUser(String userId, RoleEntity role, School school) {
+        return createUser(userId, role, school, null);
     }
 
     public AuthUserDto setReviewBlocked(String userId, boolean blocked) {

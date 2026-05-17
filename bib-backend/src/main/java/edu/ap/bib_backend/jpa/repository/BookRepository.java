@@ -37,6 +37,8 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 
     List<Book> findByCampusId(Long campusId);
 
+    List<Book> findByCampusSchoolId(Long schoolId);
+
     @Query("SELECT b.isbn FROM Book b")
     List<String> findAllIsbns();
 

@@ -18,6 +18,10 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
         List<Loan> findByCampusIdAndReturnedDateIsNull(Long campusId);
 
+        List<Loan> findByCampusSchoolId(Long schoolId);
+
+        List<Loan> findByCampusSchoolIdAndReturnedDateIsNull(Long schoolId);
+
         long countByUserId(String userId);
 
         long countByUserIdAndReturnedDateIsNull(String userId);
@@ -72,8 +76,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         limit 6
                         """, nativeQuery = true)
         List<PopularGenreProjection> findPopularGenresForUsers(@Param("userIds") List<String> userIds);
-
-        List<Loan> findByUserIdAndCampusIdOrderByLoanDateDesc(String userId, Long campusId);
 
         long countByReturnedDateIsNullAndReturnDateGreaterThanEqual(LocalDate today);
 

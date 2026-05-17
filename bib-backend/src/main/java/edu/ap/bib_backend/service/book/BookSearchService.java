@@ -2,9 +2,11 @@ package edu.ap.bib_backend.service.book;
 
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
-import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
@@ -17,6 +19,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class BookSearchService {
@@ -51,8 +60,8 @@ public class BookSearchService {
             BookSortOption sortBy,
             Authentication authentication
     ) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Long schoolId = campus.getSchool().getId();
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Long schoolId = school.getId();
 
         String normalizedSearchTerm = normalizeSearchTerm(searchTerm);
         validatePageRange(minPages, maxPages);
@@ -81,8 +90,67 @@ public class BookSearchService {
             specification = specification.and(BookSpecification.hasAnyAvailableCopy());
         }
 
-        return bookRepository.findAll(specification, pageable)
-                .map(bookMapper::toDTO);
+        List<BookDTO> uniqueBooks = bookRepository.findAll(specification, sort).stream()
+                .collect(
+                        LinkedHashMap<String, List<Book>>::new,
+                        (groups, book) -> groups.computeIfAbsent(getCatalogKey(book), ignored -> new ArrayList<>()).add(book),
+                        Map::putAll
+                )
+                .values()
+                .stream()
+                .map(this::toCatalogDto)
+                .toList();
+
+        int start = Math.min(validatedPage * validatedSize, uniqueBooks.size());
+        int end = Math.min(start + validatedSize, uniqueBooks.size());
+
+        return new PageImpl<>(uniqueBooks.subList(start, end), pageable, uniqueBooks.size());
+    }
+
+    private BookDTO toCatalogDto(List<Book> books) {
+        BookDTO dto = bookMapper.toDTO(books.get(0));
+        dto.setTotalCopies(books.stream()
+                .map(Book::getTotalCopies)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum());
+        dto.setAvailableCopies((int) books.stream()
+                .flatMap(book -> book.getBookCopies().stream())
+                .filter(this::isAvailableCopy)
+                .count());
+        dto.setAvailableCampuses(books.stream()
+                .flatMap(book -> book.getBookCopies().stream())
+                .filter(this::isAvailableCopy)
+                .map(BookCopy::getCampus)
+                .filter(Objects::nonNull)
+                .map(Campus::getName)
+                .filter(Objects::nonNull)
+                .filter(name -> !name.isBlank())
+                .distinct()
+                .toList());
+
+        return dto;
+    }
+
+    private boolean isAvailableCopy(BookCopy copy) {
+        return copy.getAvailability() == Availability.AVAILABLE && copy.getCondition() != BookCondition.LOST;
+    }
+
+    private String getCatalogKey(Book book) {
+        if (book.getIsbn() != null && !book.getIsbn().isBlank()) {
+            return "isbn:" + book.getIsbn().trim().toLowerCase(Locale.ROOT);
+        }
+
+        return String.join("|",
+                "book",
+                normalizeKeyPart(book.getTitle()),
+                normalizeKeyPart(book.getAuthor()),
+                String.valueOf(book.getReleaseYear())
+        );
+    }
+
+    private String normalizeKeyPart(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
     private String normalizeSearchTerm(String searchTerm) {

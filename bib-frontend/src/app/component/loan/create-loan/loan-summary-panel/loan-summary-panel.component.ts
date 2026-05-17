@@ -17,6 +17,7 @@ export class LoanSummaryPanelComponent {
   public readonly selectedBooks = input.required<Book[]>();
   public readonly selectedBookCounts = input.required<Record<number, number>>();
   public readonly selectedCopyIdsByBook = input.required<Record<number, number[]>>();
+  public readonly selectedCampusId = input<number | null>(null);
   public readonly hasSelectedUser = input.required<boolean>();
   public readonly isSubmitting = input.required<boolean>();
   public readonly defaultLoanDays = input<number>();
@@ -78,7 +79,11 @@ export class LoanSummaryPanelComponent {
 
   public getAvailableCopies(book: Book): BookCopyLocation[] {
     return (book.copyLocations ?? [])
-      .flatMap((location) => location.copies)
+      .flatMap((location) => location.copies.map((copy) => ({
+        ...copy,
+        campusId: location.campusId,
+        campusName: location.campusName,
+      })))
       .filter((copy) => copy.availability === 'AVAILABLE' && copy.condition !== 'LOST');
   }
 
@@ -100,6 +105,16 @@ export class LoanSummaryPanelComponent {
     );
   }
 
+  public isCopyDisabled(book: Book, copy: BookCopyLocation, index: number): boolean {
+    const selectedCampusId = this.selectedCampusId();
+    const isDifferentCampus = selectedCampusId !== null
+      && copy.campusId !== undefined
+      && copy.campusId !== selectedCampusId
+      && this.getSelectedCopyId(book, index) !== copy.id;
+
+    return isDifferentCampus || this.isCopySelectedInOtherSlot(book, copy.id, index);
+  }
+
   public onCopySelectionChange(book: Book, index: number, event: Event): void {
     if (book.id === undefined) {
       return;
@@ -114,7 +129,8 @@ export class LoanSummaryPanelComponent {
   }
 
   public getCopyLabel(copy: BookCopyLocation, index: number): string {
-    return `Exemplaar ${index + 1} - ${this.getConditionLabel(copy.condition)}`;
+    const campus = copy.campusName ? ` (${copy.campusName})` : '';
+    return `Exemplaar ${index + 1} - Beschikbaar${campus}`;
   }
 
   public getConditionLabel(condition?: BookCondition): string {
