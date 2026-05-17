@@ -95,7 +95,7 @@ class LoanServiceIntegrationTest {
         bookCopyRepository.save(copy);
 
         Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
-        when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
 
         LoanDTO loanDto = LoanDTO.builder()
                 .userId("loan-user-1")
@@ -103,12 +103,11 @@ class LoanServiceIntegrationTest {
                 .build();
 
         // Act
-        List<LoanDTO> result = loanService.create(loanDto, authentication);
+        LoanDTO result = loanService.create(loanDto, authentication);
         // Assert
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertNotNull(result.get(0).id());
-        assertEquals("loan-user-1", result.get(0).userId());
-        assertEquals(List.of(book.getId()), result.get(0).bookIds());
+        assertNotNull(result.id());
+        assertEquals("loan-user-1", result.userId());
+        assertEquals(List.of(copy.getId()), result.bookCopyIds());
     }
 }
