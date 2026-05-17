@@ -66,7 +66,7 @@
         <tbody>
           @for (teacher of teachers(); track teacher.id) {
             <tr>
-              <td>
+              <td data-label="Naam">
                 <div class="user-cell">
                   <div class="user-cell__icon">
                     <lucide-icon [name]="GraduationCap"></lucide-icon>
@@ -78,7 +78,7 @@
                 </div>
               </td>
 
-              <td>
+              <td data-label="E-mail">
                 @if (teacher.email) {
                   <span>{{ teacher.email }}</span>
                 } @else {
@@ -86,13 +86,13 @@
                 }
               </td>
 
-              <td>
+              <td data-label="Huidige rol">
                 <span [class]="roleBadgeClass(teacher.role)">
                   {{ userService.getRoleLabel(teacher.role) }}
                 </span>
               </td>
 
-              <td>
+              <td data-label="Acties">
                 <div class="table-actions">
                   @if (teacher.role === 'LIBRARIAN') {
                     <button

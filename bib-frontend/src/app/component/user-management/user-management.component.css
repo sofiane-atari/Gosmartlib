@@ -372,8 +372,13 @@ lucide-icon svg {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .promoting-overlay lucide-icon svg {
@@ -391,19 +396,7 @@ lucide-icon svg {
   }
 }
 
-@media (max-width: 900px) {
-  .table-actions .btn-label {
-    display: none;
-  }
-
-  .table-actions .btn-promote,
-  .table-actions .btn-revoke {
-    padding: 8px 10px;
-    gap: 0;
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 1240px) {
   .user-management {
     gap: 20px;
   }
@@ -416,9 +409,113 @@ lucide-icon svg {
     font-size: 24px;
   }
 
+  .self-profile-card__body {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .self-profile-card__info {
+    align-items: center;
+    text-align: center;
+  }
+
+  .self-profile-card__info .role-badge {
+    align-self: center;
+  }
+
+
+  .self-profile-card__action {
+    width: 100%;
+  }
+
+  .table-card {
+    overflow: visible;
+    background: transparent;
+    border: none;
+  }
+
+  .table-card table,
+  .table-card thead,
+  .table-card tbody,
+  .table-card tr,
+  .table-card th,
+  .table-card td {
+    display: block;
+  }
+
+  .table-card thead {
+    display: none;
+  }
+
+  .table-card table {
+    min-width: auto;
+  }
+
+  .table-card tr {
+    background: #fff;
+    border: 1px solid #f0e4e8;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .table-card td {
+    padding: 8px 0;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .table-card td::before {
+    content: attr(data-label);
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a0a10;
+    flex: 0 0 110px;
+  }
+
+  .table-card td:last-child {
+    border-bottom: none;
+  }
+
+  .table-card td:first-child {
+    padding-left: 0;
+  }
+
+  .table-card td:last-child {
+    padding-right: 0;
+  }
+
+  .table-card .user-cell {
+    gap: 10px;
+  }
+
+  .table-card .table-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .table-card .table-actions .btn-label {
+    display: inline;
+  }
+
   .btn-promote,
   .btn-revoke {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 430px) {
+  .table-card tr {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 290px) {
+  .self-profile-card {
+    overflow-x: auto;
   }
 }
