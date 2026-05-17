@@ -142,6 +142,7 @@ lucide-icon {
   flex: 1;
   padding: 10px 12px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .menu-item {

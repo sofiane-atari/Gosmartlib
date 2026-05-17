@@ -7,7 +7,7 @@
   </div>
 
   @if (canSelfRevoke()) {
-    <section class="self-profile-card">
+    <section class="self-profile-card custom-scrollbar">
       <div class="self-profile-card__body">
         <div class="self-profile-card__icon">
           <lucide-icon [name]="UserRound"></lucide-icon>
@@ -52,7 +52,7 @@
       }
     </section>
   } @else {
-    <section class="table-card">
+    <section class="table-card custom-scrollbar">
       <table>
         <thead>
           <tr>
@@ -65,7 +65,7 @@
 
         <tbody>
           @for (teacher of teachers(); track teacher.id) {
-            <tr>
+            <tr class="custom-scrollbar">
               <td data-label="Naam">
                 <div class="user-cell">
                   <div class="user-cell__icon">
