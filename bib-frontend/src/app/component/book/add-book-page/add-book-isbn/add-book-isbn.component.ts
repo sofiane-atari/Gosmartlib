@@ -88,7 +88,19 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     }
   }
 
-  save() {
+  save(): void {
+    const isMissingRequiredBookFields =
+      !this.book.title?.trim() ||
+      !this.book.author?.trim() ||
+      !this.book.pages ||
+      !this.book.releaseYear ||
+      !this.campusId;
+
+    if (!this.isExistingBookLoaded && isMissingRequiredBookFields) {
+      this.ts.show('Vul eerst alle verplichte velden in.', 'error');
+      return;
+    }
+
     if (!this.campusId) {
       this.ts.show('Selecteer eerst een campus.', 'error');
       return;
@@ -104,14 +116,6 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
           this.ts.show('Kon geen exemplaar toevoegen.', 'error');
         },
       });
-      return;
-    }
-
-    if (!this.isGenreSelectionValid()) {
-      this.ts.show(
-        'Kies 1 hoofdgenre en selecteer daarvan 1 tot 3 subgenres.',
-        'error',
-      );
       return;
     }
 
