@@ -9,7 +9,23 @@
       <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
     </div>
   </div>
+  <section class="class-picker">
+    <label>
+      <span>Klas</span>
 
+      <select
+        [value]="selectedClassSourcedId"
+        [disabled]="loadingClasses || classOptions.length === 0"
+        (change)="onClassChange($any($event.target).value)"
+      >
+        @for (classOption of classOptions; track classOption.sourcedId) {
+          <option [value]="classOption.sourcedId">
+            {{ classOption.title }}
+          </option>
+        }
+      </select>
+    </label>
+  </section>
     @if (loading) {
     <article class="report-card report-card--skeleton">
         <div class="report-card__header">
@@ -144,8 +160,7 @@
     </article>
     }
 
-  @if (!loading) {
-  @for (report of reports; track report.classSourcedId) {
+  @if (!loading && selectedReport; as report) {
     <article class="report-card">
       <div class="report-card__header">
         <div>
@@ -451,6 +466,5 @@
         }
       </section>
     </article>
-    }
     }
 </section>

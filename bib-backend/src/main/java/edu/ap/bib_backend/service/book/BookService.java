@@ -44,7 +44,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Service
-@Transactional
 public class BookService {
 
     private final BookRepository bookRepository;

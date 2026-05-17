@@ -238,7 +238,7 @@ public class OneRosterClient {
         }
     }
 
-    private List<OneRosterClassDTO> fetchClasses(String schoolCode) {
+    public List<OneRosterClassDTO> fetchClasses(String schoolCode) {
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
         School school = resolveSchool(schoolCode);
         String accessToken = tokenService.fetchAccessToken(school, host);

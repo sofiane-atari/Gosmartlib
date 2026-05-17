@@ -27,13 +27,13 @@ public class ReportAccessService {
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(role -> role.equalsIgnoreCase("ROLE_TEACHER")
-                        || role.equalsIgnoreCase("ROLE_STUDENT")
+                        || role.equalsIgnoreCase("ROLE_LIBRARIAN")
                         || role.equalsIgnoreCase("ROLE_ADMIN"));
 
         if (!allowed) {
             throw new ResponseStatusException(
                     FORBIDDEN,
-                    "Alleen leerkrachten kunnen klasrapporten bekijken");
+                    "Alleen leerkrachten en bibliothecarissen kunnen klasrapporten bekijken");
         }
     }
 }
