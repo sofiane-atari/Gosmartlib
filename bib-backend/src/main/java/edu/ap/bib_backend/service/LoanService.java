@@ -15,10 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.BookCopyConditionUpdateDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.dto.loan.LoanReturnDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
@@ -27,6 +29,7 @@ import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
@@ -175,6 +178,11 @@ public class LoanService {
 
     @Transactional
     public LoanDTO returnLoan(Long loanId, Authentication authentication) {
+        return returnLoan(loanId, null, authentication);
+    }
+
+    @Transactional
+    public LoanDTO returnLoan(Long loanId, LoanReturnDTO request, Authentication authentication) {
         Campus campus = currentUserService.getCurrentUserCampus(authentication);
 
         Loan loan = loanRepository.findById(loanId)
@@ -189,6 +197,7 @@ public class LoanService {
         }
 
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
+        applyReturnedCopyConditions(loan, request);
         loan.setReturnedDate(today);
 
         Loan savedLoan = loanRepository.save(loan);
@@ -258,13 +267,46 @@ public class LoanService {
                 throw new IllegalStateException("Boekexemplaar niet gevonden in deze campus.");
             }
 
-            if (copy.getAvailability() != null && copy.getAvailability() != Availability.AVAILABLE) {
+            if (copy.getCondition() == BookCondition.LOST) {
+                String title = copy.getBook() != null ? copy.getBook().getTitle() : "onbekend boek";
+                throw new IllegalStateException("Boekexemplaar is verloren en kan niet worden uitgeleend voor boek: " + title);
+            }
+
+            if (copy.getAvailability() != Availability.AVAILABLE) {
                 String title = copy.getBook() != null ? copy.getBook().getTitle() : "onbekend boek";
                 throw new IllegalStateException("Boekexemplaar is niet beschikbaar voor boek: " + title);
             }
         }
 
         return selectedCopies;
+    }
+
+    private void applyReturnedCopyConditions(Loan loan, LoanReturnDTO request) {
+        if (request == null || request.copyConditions() == null || request.copyConditions().isEmpty()) {
+            return;
+        }
+
+        Map<Long, BookCopy> loanCopiesById = loan.getCopies().stream()
+                .filter(copy -> copy.getId() != null)
+                .collect(Collectors.toMap(BookCopy::getId, copy -> copy));
+
+        for (BookCopyConditionUpdateDTO update : request.copyConditions()) {
+            if (update.bookCopyId() == null) {
+                throw new IllegalStateException("Boekexemplaar ID is verplicht.");
+            }
+
+            if (update.condition() == null) {
+                throw new IllegalStateException("Boekstaat is verplicht.");
+            }
+
+            BookCopy copy = loanCopiesById.get(update.bookCopyId());
+            if (copy == null) {
+                throw new IllegalStateException("Boekexemplaar hoort niet bij deze lening.");
+            }
+
+            copy.setCondition(update.condition());
+            bookCopyRepository.save(copy);
+        }
     }
 
     private LocalDate calculateDefaultReturnDate(String userId) {

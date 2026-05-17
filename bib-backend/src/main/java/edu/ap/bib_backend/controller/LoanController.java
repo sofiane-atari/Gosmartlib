@@ -5,6 +5,7 @@ import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.dto.loan.LoanReturnDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.service.LoanExtensionService;
 import edu.ap.bib_backend.service.LoanService;
@@ -50,8 +51,9 @@ public class LoanController {
     @PatchMapping("/{loanId}/return")
     public ResponseEntity<LoanDTO> returnLoan(
             @PathVariable("loanId") Long loanId,
+            @RequestBody(required = false) LoanReturnDTO request,
             Authentication authentication) {
-        return ResponseEntity.ok(loanService.returnLoan(loanId, authentication));
+        return ResponseEntity.ok(loanService.returnLoan(loanId, request, authentication));
     }
 
     @GetMapping("/active")

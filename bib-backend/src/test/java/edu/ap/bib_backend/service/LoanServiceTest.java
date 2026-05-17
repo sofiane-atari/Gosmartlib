@@ -7,6 +7,8 @@ import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -22,11 +24,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import edu.ap.bib_backend.dto.BookCopyConditionUpdateDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanBookDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.dto.loan.LoanReturnDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 
 import java.time.LocalDate;
@@ -89,6 +94,7 @@ class LoanServiceTest {
         copy.setId(id);
         copy.setBook(book);
         copy.setCampus(campus);
+        ReflectionTestUtils.setField(copy, "availability", Availability.AVAILABLE);
         return copy;
     }
 
@@ -428,6 +434,52 @@ class LoanServiceTest {
         assertNotNull(result);
         assertNotNull(loan.getReturnedDate());
         verify(applicationEventPublisher).publishEvent(any(BookReturnedGamificationEvent.class));
+    }
+
+    @Test
+    void Given_ReturnedCopyCondition_When_ReturnLoan_Then_UpdatesBookCopyCondition() {
+        BookCopy copy = availableCopy(1L, new Book());
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setCampus(campus);
+        loan.setReturnedDate(null);
+        loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+        loan.setCopies(new ArrayList<>(List.of(copy)));
+        User user = new User();
+        user.setId("user123");
+        loan.setUser(user);
+
+        LoanReturnDTO request = new LoanReturnDTO(List.of(
+                new BookCopyConditionUpdateDTO(1L, BookCondition.DAMAGED)));
+
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+        when(loanMapper.toDto(loan)).thenReturn(LoanDTO.builder().id(1L).build());
+
+        loanService.returnLoan(1L, request, authentication);
+
+        assertEquals(BookCondition.DAMAGED, copy.getCondition());
+        verify(loanRepository).save(loan);
+    }
+
+    @Test
+    void Given_ReturnedCopyNotInLoan_When_ReturnLoan_Then_ThrowsIllegalStateException() {
+        Loan loan = new Loan();
+        loan.setId(1L);
+        loan.setCampus(campus);
+        loan.setReturnedDate(null);
+        loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+        loan.setCopies(new ArrayList<>());
+
+        LoanReturnDTO request = new LoanReturnDTO(List.of(
+                new BookCopyConditionUpdateDTO(99L, BookCondition.LOST)));
+
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> loanService.returnLoan(1L, request, authentication));
+
+        assertEquals("Boekexemplaar hoort niet bij deze lening.", exception.getMessage());
     }
 
     @Test

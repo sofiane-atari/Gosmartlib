@@ -30,6 +30,7 @@ import edu.ap.bib_backend.dto.PaginatedMeta;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.ArgumentMatchers.eq;
 
 @WebMvcTest(LoanController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -125,5 +126,28 @@ class LoanControllerTest {
                 .andExpect(jsonPath("$.returnedLoans").value(12));
 
         then(loanService).should().getLoanStats();
+    }
+
+    @Test
+    void Given_ReturnRequestWithCondition_When_ReturnLoan_Then_ReturnsOk() throws Exception {
+        LoanDTO loanDto = LoanDTO.builder()
+                .id(1L)
+                .userId("user1")
+                .build();
+
+        when(loanService.returnLoan(eq(1L), any(), any())).thenReturn(loanDto);
+
+        mockMvc.perform(patch("/loans/1/return")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "copyConditions": [
+                                    { "bookCopyId": 10, "condition": "DAMAGED" }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
     }
 }
