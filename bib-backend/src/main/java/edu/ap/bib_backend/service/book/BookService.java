@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
+import edu.ap.bib_backend.dto.BookCopyCampusLocationDTO;
+import edu.ap.bib_backend.dto.BookCopyLocationDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.ReadingLevelDTO;
@@ -18,6 +20,7 @@ import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.Availability;
@@ -87,14 +90,16 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getAllBooks(Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        return bookMapper.toDTOList(bookRepository.findByCampusId(campus.getId()));
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        return bookMapper.toDTOList(bookRepository.findByCampusSchoolId(school.getId()));
     }
 
     @Transactional
-    public BookDTO addCopyToBook(Long bookId, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Book book = findBookInCampusOrThrow(bookId, campus.getId());
+    public BookDTO addCopyToBook(Long bookId, Long campusId, Authentication authentication) {
+        Campus campus = campusId == null
+                ? currentUserService.getCurrentUserCampus(authentication)
+                : resolveCampusForCurrentUserSchool(campusId, authentication);
+        Book book = findBookForCopyTarget(bookId, campus, authentication);
 
         createAvailableCopy(book, campus);
 
@@ -124,10 +129,57 @@ public class BookService {
         return bookRepository.save(book);
     }
 
+    private Book findBookForCopyTarget(Long bookId, Campus targetCampus, Authentication authentication) {
+        Optional<Book> targetCampusBook = bookRepository.findByIdAndCampusId(bookId, targetCampus.getId());
+
+        if (targetCampusBook.isPresent()) {
+            return targetCampusBook.get();
+        }
+
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Book sourceBook = findBookInSchoolOrThrow(bookId, school.getId());
+        validateBookVisibility(sourceBook, authentication);
+
+        return findExistingTargetBook(sourceBook, targetCampus)
+                .orElseGet(() -> createBookForCampus(sourceBook, targetCampus));
+    }
+
+    private Optional<Book> findExistingTargetBook(Book sourceBook, Campus targetCampus) {
+        String isbn = sourceBook.getIsbn();
+
+        if (isbn == null || isbn.isBlank()) {
+            return Optional.empty();
+        }
+
+        return bookRepository.findByIsbnAndCampusId(isbn, targetCampus.getId());
+    }
+
+    private Book createBookForCampus(Book sourceBook, Campus targetCampus) {
+        Book book = new Book();
+        book.setIsbn(sourceBook.getIsbn());
+        book.setTitle(sourceBook.getTitle());
+        book.setAuthor(sourceBook.getAuthor());
+        book.setPages(sourceBook.getPages());
+        book.setImageUrl(sourceBook.getImageUrl());
+        book.setDescription(sourceBook.getDescription());
+        book.setReleaseYear(sourceBook.getReleaseYear());
+        book.setDidactic(sourceBook.isDidactic());
+        book.setGenres(new HashSet<>(sourceBook.getGenres()));
+        book.setReadingLevel(sourceBook.getReadingLevel());
+        book.setCampus(targetCampus);
+
+        return bookRepository.save(book);
+    }
+
     @Transactional
     public void deleteBook(Long id, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Book book = findBookInCampusOrThrow(id, campus.getId());
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Book book = findBookInSchoolOrThrow(id, school.getId());
+        Campus campus = book.getCampus();
+
+        if (campus == null) {
+            throw new IllegalStateException("Boek heeft geen campus gekoppeld.");
+        }
 
         if (bookCopyRepository.existsByBookIdAndCampusIdAndAvailability(id, campus.getId(), Availability.BORROWED)) {
             throw new IllegalStateException(
@@ -144,8 +196,13 @@ public class BookService {
 
     @Transactional
     public BookDTO updateBook(Long id, BookDTO dto, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Book book = findBookInCampusOrThrow(id, campus.getId());
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Book book = findBookInSchoolOrThrow(id, school.getId());
+        Campus campus = book.getCampus();
+
+        if (campus == null) {
+            throw new IllegalStateException("Boek heeft geen campus gekoppeld.");
+        }
 
         String isbn = IsbnUtils.normalizeIsbn(dto.getIsbn());
         validateUniqueIsbnInCampus(isbn, id, campus.getId());
@@ -164,7 +221,10 @@ public class BookService {
         School school = currentUserService.getCurrentUserSchool(authentication);
         Book book = findBookInSchoolOrThrow(id, school.getId());
         validateBookVisibility(book, authentication);
-        return bookMapper.toDTO(book);
+
+        BookDTO dto = bookMapper.toDTO(book);
+        dto.setCopyLocations(buildCopyLocations(book, school.getId(), authentication));
+        return dto;
     }
 
     public Book getBookById(Long id, boolean returnEntity) {
@@ -178,8 +238,8 @@ public class BookService {
     }
 
     public Book getBookByIdForCurrentCampus(Long id, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        return findBookInCampusOrThrow(id, campus.getId());
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        return findBookInSchoolOrThrow(id, school.getId());
     }
 
     public Integer getMaxPages() {
@@ -194,8 +254,7 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getMostReadBooks(int limit, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Long schoolId = campus.getSchool().getId();
+        Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
@@ -212,8 +271,7 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getNewestBooks(int limit, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
-        Long schoolId = campus.getSchool().getId();
+        Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
@@ -322,7 +380,7 @@ public class BookService {
 
     @Transactional
     public List<BookCandidateDTO> searchBooksInDb(String title, String author, Integer releaseYear, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        School school = currentUserService.getCurrentUserSchool(authentication);
 
         String cleanTitle = normalize(title);
         String cleanAuthor = normalize(author);
@@ -337,7 +395,7 @@ public class BookService {
 
         Specification<Book> spec = BookSpecification.withCandidateFilters(cleanTitle, cleanAuthor, releaseYear)
                 .and((root, query, criteriaBuilder) ->
-                        criteriaBuilder.equal(root.get("campus").get("id"), campus.getId()));
+                        criteriaBuilder.equal(root.get("campus").get("school").get("id"), school.getId()));
 
         return bookRepository.findAll(spec).stream()
                 .limit(10)
@@ -384,6 +442,56 @@ public class BookService {
         copy.setBook(book);
         copy.setCampus(campus);
         bookCopyRepository.save(copy);
+    }
+
+    private List<BookCopyCampusLocationDTO> buildCopyLocations(Book book, Long schoolId, Authentication authentication) {
+        List<Book> booksToShow = getSameBookAcrossSchoolCampuses(book, schoolId);
+        boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+
+        return booksToShow.stream()
+                .filter(locationBook -> canSeeDidacticBooks || !locationBook.isDidactic())
+                .map(locationBook -> {
+                    Campus campus = locationBook.getCampus();
+                    return BookCopyCampusLocationDTO.builder()
+                            .campusId(campus.getId())
+                            .campusName(campus.getName())
+                            .address(campus.getAddress())
+                            .postalCode(campus.getPostalCode())
+                            .copies(locationBook.getBookCopies().stream()
+                                    .map(this::toCopyLocationDTO)
+                                    .toList())
+                            .build();
+                })
+                .filter(location -> !location.copies().isEmpty())
+                .toList();
+    }
+
+    private List<Book> getSameBookAcrossSchoolCampuses(Book book, Long schoolId) {
+        String isbn = book.getIsbn();
+
+        if (isbn == null || isbn.isBlank()) {
+            return List.of(book);
+        }
+
+        return bookRepository.findAllByIsbnAndCampusSchoolId(isbn, schoolId);
+    }
+
+    private BookCopyLocationDTO toCopyLocationDTO(BookCopy copy) {
+        return BookCopyLocationDTO.builder()
+                .id(copy.getId())
+                .availability(copy.getAvailability())
+                .condition(copy.getCondition())
+                .expectedReturnDate(getExpectedReturnDate(copy))
+                .build();
+    }
+
+    private java.time.LocalDate getExpectedReturnDate(BookCopy copy) {
+        return copy.getLoans().stream()
+                .filter(loan -> loan.getReturnedDate() == null)
+                .map(Loan::getReturnDate)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     private void validateUniqueIsbnInCampus(String isbn, Long currentBookId, Long campusId) {

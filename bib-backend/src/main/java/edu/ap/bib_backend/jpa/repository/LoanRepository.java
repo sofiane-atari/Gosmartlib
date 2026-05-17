@@ -42,6 +42,15 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                 Pageable pageable
         );
 
+        List<Loan> findByCampusSchoolId(Long schoolId);
+
+        List<Loan> findByCampusSchoolIdAndReturnedDateIsNull(Long schoolId);
+
+        List<Loan> findByUserIdOrderByLoanDateDesc(String userId);
+
+        long countByUserId(String userId);
+
+        long countByUserIdAndReturnedDateIsNull(String userId);
         @Query("""
                 select count(l)
                 from Loan l
@@ -132,5 +141,5 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
         long countByReturnedDateIsNotNull();
 
-        
+
 }

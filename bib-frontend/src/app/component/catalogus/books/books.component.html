@@ -160,10 +160,10 @@
               <h3 class="book-title">{{ book.title }}</h3>
               <p class="book-author">{{ book.author }}</p>
 
-              @if (hasMultipleCampuses() && book.campusName?.trim()) {
-                <div class="book-campus" title="Campus waar het boek beschikbaar is">
+              @if (hasMultipleCampuses() && getBookCampusLabel(book)) {
+                <div class="book-campus" title="Campussen waar het boek beschikbaar is">
                   <lucide-icon [img]="Locate" [size]="14" class="book-campus__icon"></lucide-icon>
-                  <span class="book-campus__label">{{ book.campusName }}</span>
+                  <span class="book-campus__label">{{ getBookCampusLabel(book) }}</span>
                 </div>
               }
 

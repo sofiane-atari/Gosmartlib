@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Book } from '../../model/book/book.model';
+import { Book, BookCondition } from '../../model/book/book.model';
 import { BookPreview } from '../../model/book/book-preview.model';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
@@ -169,8 +169,19 @@ export class BookService {
     });
   }
 
-  public addCopy(bookId: number): Observable<Book> {
-    return this.http.post<Book>(`${this.apiUrl}/${bookId}/copies`, {});
+  public addCopy(bookId: number, campusId?: number | null): Observable<Book> {
+    const options = campusId ? { params: { campusId } } : {};
+    return this.http.post<Book>(`${this.apiUrl}/${bookId}/copies`, {}, options);
+  }
+
+  public updateBookCopyCondition(
+    copyId: number,
+    condition: BookCondition,
+  ): Observable<{ bookCopyId: number; condition: BookCondition }> {
+    return this.http.patch<{ bookCopyId: number; condition: BookCondition }>(
+      `${environment.apiUrl}/book-copies/${copyId}/condition`,
+      { condition },
+    );
   }
 
   getRelatedBooksCarousel(

@@ -48,7 +48,17 @@ public class CurrentUserService {
     }
 
     public School getCurrentUserSchool(Authentication authentication) {
-        Campus campus = getCurrentUserCampus(authentication);
+        User user = getCurrentUser(authentication);
+
+        if (user.getSchool() != null) {
+            return user.getSchool();
+        }
+
+        Campus campus = user.getCampus();
+
+        if (campus == null) {
+            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
+        }
 
         if (campus.getSchool() == null) {
             throw new IllegalStateException("Campus heeft geen school gekoppeld.");

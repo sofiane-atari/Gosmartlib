@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 
-import { Book } from '../../../model/book/book.model';
+import { Book, BookCondition, BookCopyCampusLocation, BookCopyLocation } from '../../../model/book/book.model';
 import {
   LucideAngularModule,
   BookOpen,
@@ -54,6 +54,13 @@ import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
 import { GamificationNotificationStoreService } from '../../../services/gamification/store/gamification-notification-store.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
+
+interface CopyStatusSummary {
+  status: 'available' | 'borrowed' | 'lost';
+  count: number;
+  trackKey: string;
+  expectedReturnDate?: string | null;
+}
 
 @Component({
   selector: 'app-book-detail',
@@ -252,8 +259,21 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   }
 
   public availabilityOptions = ['AVAILABLE', 'DAMAGED', 'LOST', 'BORROWED'];
+  public conditionOptions: { value: BookCondition; label: string }[] = [
+    { value: 'GOOD_CONDITION', label: 'Goede staat' },
+    { value: 'DAMAGED', label: 'Beschadigd' },
+    { value: 'LOST', label: 'Verloren' },
+  ];
   selectedBook?: Book;
   selectedCampus?: Campus;
+
+  protected get copyLocationGroups(): BookCopyCampusLocation[] {
+    return this.selectedBook?.copyLocations?.filter((group) => group.copies.length > 0) ?? [];
+  }
+
+  protected get hasLocationInfo(): boolean {
+    return this.copyLocationGroups.length > 0 || !!this.selectedBook?.campusId || !!this.selectedBook?.campusName;
+  }
 
   get campusName(): string {
     return this.selectedCampus?.name ?? this.selectedBook?.campusName ?? 'Onbekende campus';
@@ -265,6 +285,115 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     }
 
     return `${this.selectedCampus.address}, ${this.selectedCampus.postalCode}`;
+  }
+
+  protected getCampusAddress(group: BookCopyCampusLocation): string | null {
+    if (!group.address) {
+      return null;
+    }
+
+    return group.postalCode ? `${group.address}, ${group.postalCode}` : group.address;
+  }
+
+  protected getCampusStatusSummaries(group: BookCopyCampusLocation): CopyStatusSummary[] {
+    const summaries = new Map<string, CopyStatusSummary>();
+
+    for (const copy of group.copies) {
+      const status: CopyStatusSummary['status'] = this.isLostCopy(copy)
+        ? 'lost'
+        : this.isBorrowed(copy.availability) ? 'borrowed' : 'available';
+      const key = status === 'borrowed'
+        ? `${status}:${copy.expectedReturnDate ?? ''}`
+        : status;
+      const existing = summaries.get(key);
+
+      if (existing) {
+        existing.count += 1;
+        continue;
+      }
+
+      summaries.set(key, {
+        status,
+        count: 1,
+        trackKey: key,
+        expectedReturnDate: status === 'borrowed' ? copy.expectedReturnDate ?? null : null,
+      });
+    }
+
+    return Array.from(summaries.values()).sort((a, b) => {
+      if (a.status !== b.status) {
+        const order: Record<CopyStatusSummary['status'], number> = {
+          available: 0,
+          borrowed: 1,
+          lost: 2,
+        };
+
+        return order[a.status] - order[b.status];
+      }
+
+      return (a.expectedReturnDate ?? '').localeCompare(b.expectedReturnDate ?? '');
+    });
+  }
+
+  protected getCopyStatusText(summary: CopyStatusSummary): string {
+    const noun = summary.count === 1 ? 'exemplaar' : 'exemplaren';
+    const status = summary.status === 'available'
+      ? 'beschikbaar'
+      : summary.status === 'lost' ? 'verloren' : 'uitgeleend';
+
+    return `${summary.count} ${noun} ${status}`;
+  }
+
+  protected getStatusClass(status: CopyStatusSummary['status']): string {
+    if (status === 'lost') {
+      return 'copy-status--lost';
+    }
+
+    return status === 'available' ? 'copy-status--available' : 'copy-status--borrowed';
+  }
+
+  protected getCopyAvailabilityLabel(copy: BookCopyLocation): string {
+    if (this.isLostCopy(copy)) {
+      return 'Verloren';
+    }
+
+    return this.isBorrowed(copy.availability) ? 'Uitgeleend' : 'Beschikbaar';
+  }
+
+  protected isLostCopy(copy: BookCopyLocation): boolean {
+    return copy.condition === 'LOST';
+  }
+
+  protected getConditionLabel(condition?: BookCondition): string {
+    switch (condition) {
+      case 'DAMAGED':
+        return 'Beschadigd';
+      case 'LOST':
+        return 'Verloren';
+      case 'GOOD_CONDITION':
+      default:
+        return 'Goede staat';
+    }
+  }
+
+  protected getCopyConditionValue(copy: BookCopyLocation): BookCondition {
+    return copy.condition ?? 'GOOD_CONDITION';
+  }
+
+  protected updateCopyCondition(copy: BookCopyLocation, condition: BookCondition): void {
+    this.bookService.updateBookCopyCondition(copy.id, condition).subscribe({
+      next: () => {
+        copy.condition = condition;
+        this.toastService.show('Staat van het exemplaar is bijgewerkt.', 'success');
+      },
+      error: () => {
+        this.toastService.show('Staat van het exemplaar kon niet worden bijgewerkt.', 'error');
+      },
+    });
+  }
+
+  private isBorrowed(availability: string | null | undefined): boolean {
+    return availability === 'BORROWED' || availability === 'UITGELEEND';
   }
 
   private loadCampusForBook(book: Book): void {
@@ -681,6 +810,10 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     this.reviewDraftIntervalId = setInterval(() => {
       this.saveReviewDraft();
     }, 1000);
+  }
+
+  public goBack(): void {
+    void this.router.navigate(['/books']);
   }
 
   private loadSubscriptionStatus(bookId: number): void {

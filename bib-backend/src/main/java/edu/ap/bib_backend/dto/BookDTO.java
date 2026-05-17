@@ -33,6 +33,9 @@ public class BookDTO {
 
     private Long campusId;
     private String campusName;
+    private List<String> availableCampuses = new ArrayList<>();
+
+    private List<BookCopyCampusLocationDTO> copyLocations = new ArrayList<>();
 
     public BookDTO() {
     }

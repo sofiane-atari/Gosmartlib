@@ -15,11 +15,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.BookCopyConditionUpdateDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.dto.loan.LoanReturnDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.event.BookAvailableEvent;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
@@ -27,7 +29,10 @@ import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
@@ -85,11 +90,11 @@ public class LoanService {
     }
 
     @Transactional
-    public List<LoanDTO> create(LoanDTO loanDTO, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+    public LoanDTO create(LoanDTO loanDTO, Authentication authentication) {
+        School currentUserSchool = currentUserService.getCurrentUserSchool(authentication);
 
-        if (loanDTO.bookIds() == null || loanDTO.bookIds().isEmpty()) {
-            throw new IllegalStateException("Een uitlening moet minstens één boek bevatten.");
+        if (loanDTO.bookCopyIds() == null || loanDTO.bookCopyIds().isEmpty()) {
+            throw new IllegalStateException("Een uitlening moet minstens één boekexemplaar bevatten.");
         }
 
         User user = userRepository.findById(loanDTO.userId())
@@ -97,73 +102,86 @@ public class LoanService {
                         "Deze gebruiker bestaat nog niet in het systeem. Laat de gebruiker eerst inloggen."));
 
         LocalDate parsedReturnDate = resolveReturnDate(loanDTO);
-        List<Long> requestedBookIds = expandRequestedBookIds(loanDTO);
-
-        List<Loan> createdLoanEntities = new java.util.ArrayList<>();
-        List<LoanDTO> createdLoans = new java.util.ArrayList<>();
-        Set<Long> reservedCopyIds = new java.util.HashSet<>();
-
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
 
-        for (Long bookId : requestedBookIds) {
-            Book book = bookService.getBookById(bookId, true);
+        List<BookCopy> selectedCopies = resolveSelectedCopies(loanDTO.bookCopyIds(), currentUserSchool);
 
-            BookCopy availableCopy = bookCopyRepository
-                    .findAvailableCopiesByBookIdAndCampusId(bookId, campus.getId())
-                    .stream()
-                    .filter(copy -> !reservedCopyIds.contains(copy.getId()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Geen beschikbaar exemplaar voor boek: " + book.getTitle()));
+        Loan loan = loanMapper.toEntity(loanDTO);
+        loan.setUser(user);
+        loan.setCampus(selectedCopies.get(0).getCampus());
+        loan.setLoanDate(today);
+        loan.setReturnDate(parsedReturnDate);
+        loan.getCopies().clear();
+        loan.getCopies().addAll(selectedCopies);
 
-            reservedCopyIds.add(availableCopy.getId());
+        Loan savedLoan = loanRepository.save(loan);
 
-            Loan singleBookLoan = new Loan();
-            singleBookLoan.setUser(user);
-            singleBookLoan.setCampus(campus);
-            singleBookLoan.setLoanDate(today);
-            singleBookLoan.setReturnDate(parsedReturnDate);
-            singleBookLoan.getCopies().add(availableCopy);
-
-            Loan savedLoan = loanRepository.save(singleBookLoan);
-
-            createdLoanEntities.add(savedLoan);
-            createdLoans.add(loanMapper.toDto(savedLoan));
-        }
+        List<Long> selectedBookIds = selectedCopies.stream()
+                .map(BookCopy::getBook)
+                .filter(java.util.Objects::nonNull)
+                .map(Book::getId)
+                .distinct()
+                .toList();
 
         sendLoanConfirmationMessage(
                 loanDTO.userId(),
-                loanDTO.bookIds(),
-                createdLoanEntities);
+                selectedBookIds,
+                List.of(savedLoan));
 
-        return createdLoans;
+        return loanMapper.toDto(savedLoan);
     }
 
     public PageDTO<LoanDTO> findAll(int page, int pageSize, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        return findAll(page, pageSize, null, authentication);
+    }
 
-        List<Loan> loans = loanRepository.findByCampusId(campus.getId());
+    public PageDTO<LoanDTO> findAll(int page, int pageSize, Long campusId, Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
+
+        List<Loan> loans = campusId != null
+                ? loanRepository.findByCampusId(campusId).stream()
+                        .filter(loan -> loan.getCampus() != null)
+                        .filter(loan -> loan.getCampus().getSchool() != null)
+                        .filter(loan -> school.getId().equals(loan.getCampus().getSchool().getId()))
+                        .toList()
+                : loanRepository.findByCampusSchoolId(school.getId());
 
         return toPagedLoanDtoResponse(loans, page, pageSize);
     }
 
     public PageDTO<LoanDTO> findActiveLoans(int page, int pageSize, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        return findActiveLoans(page, pageSize, null, authentication);
+    }
 
-        List<Loan> loans = loanRepository.findByCampusIdAndReturnedDateIsNull(campus.getId());
+    public PageDTO<LoanDTO> findActiveLoans(int page, int pageSize, Long campusId, Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
+
+        List<Loan> loans = campusId != null
+                ? loanRepository.findByCampusIdAndReturnedDateIsNull(campusId).stream()
+                        .filter(loan -> loan.getCampus() != null)
+                        .filter(loan -> loan.getCampus().getSchool() != null)
+                        .filter(loan -> school.getId().equals(loan.getCampus().getSchool().getId()))
+                        .toList()
+                : loanRepository.findByCampusSchoolIdAndReturnedDateIsNull(school.getId());
 
         return toPagedLoanDtoResponse(loans, page, pageSize);
     }
 
     @Transactional
     public LoanDTO returnLoan(Long loanId, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        return returnLoan(loanId, null, authentication);
+    }
+
+    @Transactional
+    public LoanDTO returnLoan(Long loanId, LoanReturnDTO request, Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
 
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new IllegalStateException("Lening niet gevonden."));
 
-        if (loan.getCampus() == null || !loan.getCampus().getId().equals(campus.getId())) {
-            throw new IllegalStateException("Lening niet gevonden in deze campus.");
+        if (loan.getCampus() == null || loan.getCampus().getSchool() == null
+                || !loan.getCampus().getSchool().getId().equals(school.getId())) {
+            throw new IllegalStateException("Lening niet gevonden in deze school.");
         }
 
         if (loan.getReturnedDate() != null) {
@@ -171,6 +189,7 @@ public class LoanService {
         }
 
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
+        applyReturnedCopyConditions(loan, request);
         loan.setReturnedDate(today);
 
         Loan savedLoan = loanRepository.save(loan);
@@ -186,50 +205,37 @@ public class LoanService {
             int pageSize,
             Authentication authentication
     ) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
         String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
         int safePage = Math.max(page, 0);
         int safePageSize = Math.max(pageSize, 1);
 
-        Pageable pageable = PageRequest.of(safePage, safePageSize);
+        List<Loan> allLoans = loanRepository.findByUserIdOrderByLoanDateDesc(currentUserId);
+        List<Loan> activeLoanEntities = allLoans.stream()
+                .filter(loan -> loan.getReturnedDate() == null)
+                .toList();
+        List<LoanDTO> returnedLoanDtos = allLoans.stream()
+                .filter(loan -> loan.getReturnedDate() != null)
+                .sorted(Comparator
+                        .comparing(Loan::getReturnedDate, Comparator.nullsLast(LocalDate::compareTo))
+                        .reversed()
+                        .thenComparing(Loan::getLoanDate, Comparator.nullsLast(LocalDate::compareTo)).reversed())
+                .map(loanMapper::toDto)
+                .toList();
 
-        List<Loan> activeLoanEntities = loanRepository.findActiveHistoryLoans(
-                currentUserId,
-                campus.getId()
-        );
-
-        Page<Loan> returnedLoanEntities = loanRepository.findReturnedHistoryLoans(
-                currentUserId,
-                campus.getId(),
-                pageable
-        );
-
-        long activeLoanCount = loanRepository.countActiveHistoryLoans(
-                currentUserId,
-                campus.getId()
-        );
-
-        long returnedLoanCount = loanRepository.countReturnedHistoryLoans(
-                currentUserId,
-                campus.getId()
-        );
-
-        long totalLoanedBookCount = loanRepository.countLoanedBookCopiesForUserHistory(
-                currentUserId,
-                campus.getId()
-        );
-
-        Page<LoanDTO> returnedLoansPage = returnedLoanEntities.map(loanMapper::toDto);
+        int fromIndex = Math.min(safePage * safePageSize, returnedLoanDtos.size());
+        int toIndex = Math.min(fromIndex + safePageSize, returnedLoanDtos.size());
+        List<LoanDTO> returnedPageData = returnedLoanDtos.subList(fromIndex, toIndex);
+        int returnedTotalPages = (int) Math.ceil((double) returnedLoanDtos.size() / safePageSize);
 
         return LoanHistoryDTO.builder()
-                .activeLoanCount(Math.toIntExact(activeLoanCount))
-                .returnedLoanCount(Math.toIntExact(returnedLoanCount))
-                .totalLoanedBookCount(Math.toIntExact(totalLoanedBookCount))
+                .activeLoanCount(activeLoanEntities.size())
+                .returnedLoanCount(returnedLoanDtos.size())
+                .totalLoanedBookCount(allLoans.stream().mapToInt(loan -> loan.getCopies().size()).sum())
                 .activeLoans(loanMapper.toDtoList(activeLoanEntities))
                 .returnedLoans(new PageDTO<>(
-                        returnedLoansPage.getContent(),
-                        PageMapper.toPaginatedMeta(returnedLoansPage)
+                        returnedPageData,
+                        new PaginatedMeta(safePage, safePageSize, returnedLoanDtos.size(), returnedTotalPages)
                 ))
                 .build();
     }
@@ -263,16 +269,67 @@ public class LoanService {
                 });
     }
 
-    private int resolveCopiesCount(LoanDTO loanDTO, Long bookId) {
-        if (loanDTO.books() == null) {
-            return 1;
+    private List<BookCopy> resolveSelectedCopies(List<Long> bookCopyIds, School currentUserSchool) {
+        List<BookCopy> selectedCopies = bookCopyRepository.findAllById(bookCopyIds);
+
+        if (selectedCopies.size() != bookCopyIds.size()) {
+            throw new IllegalStateException("Eén of meer boekexemplaren werden niet gevonden.");
         }
 
-        return loanDTO.books().stream()
-                .filter(book -> bookId.equals(book.id()))
-                .findFirst()
-                .map(book -> book.copiesCount() != null ? book.copiesCount() : 1)
-                .orElse(1);
+        Long selectedCampusId = null;
+
+        for (BookCopy copy : selectedCopies) {
+            if (copy.getCampus() == null || copy.getCampus().getSchool() == null
+                    || !copy.getCampus().getSchool().getId().equals(currentUserSchool.getId())) {
+                throw new IllegalStateException("Boekexemplaar behoort tot een andere school.");
+            }
+
+            if (selectedCampusId == null) {
+                selectedCampusId = copy.getCampus().getId();
+            } else if (!selectedCampusId.equals(copy.getCampus().getId())) {
+                throw new IllegalStateException("Alle boekexemplaren moeten uit dezelfde campus komen.");
+            }
+
+            if (copy.getCondition() == BookCondition.LOST) {
+                String title = copy.getBook() != null ? copy.getBook().getTitle() : "onbekend boek";
+                throw new IllegalStateException("Boekexemplaar is verloren en kan niet worden uitgeleend voor boek: " + title);
+            }
+
+            if (copy.getAvailability() != Availability.AVAILABLE) {
+                String title = copy.getBook() != null ? copy.getBook().getTitle() : "onbekend boek";
+                throw new IllegalStateException("Boekexemplaar is niet beschikbaar voor boek: " + title);
+            }
+        }
+
+        return selectedCopies;
+    }
+
+    private void applyReturnedCopyConditions(Loan loan, LoanReturnDTO request) {
+        if (request == null || request.copyConditions() == null || request.copyConditions().isEmpty()) {
+            return;
+        }
+
+        Map<Long, BookCopy> loanCopiesById = loan.getCopies().stream()
+                .filter(copy -> copy.getId() != null)
+                .collect(Collectors.toMap(BookCopy::getId, copy -> copy));
+
+        for (BookCopyConditionUpdateDTO update : request.copyConditions()) {
+            if (update.bookCopyId() == null) {
+                throw new IllegalStateException("Boekexemplaar ID is verplicht.");
+            }
+
+            if (update.condition() == null) {
+                throw new IllegalStateException("Boekstaat is verplicht.");
+            }
+
+            BookCopy copy = loanCopiesById.get(update.bookCopyId());
+            if (copy == null) {
+                throw new IllegalStateException("Boekexemplaar hoort niet bij deze lening.");
+            }
+
+            copy.setCondition(update.condition());
+            bookCopyRepository.save(copy);
+        }
     }
 
     private LocalDate calculateDefaultReturnDate(String userId) {
@@ -322,7 +379,7 @@ public class LoanService {
                             .id(dto.id())
                             .userId(dto.userId())
                             .userDisplayName(displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"))
-                            .bookIds(dto.bookIds())
+                            .bookCopyIds(dto.bookCopyIds())
                             .books(dto.books())
                             .loanDate(dto.loanDate())
                             .returnDate(dto.returnDate())
@@ -382,9 +439,9 @@ public class LoanService {
     }
 
     public PageDTO<LoanGroupDTO> findAllGrouped(int page, int pageSize, Authentication authentication) {
-        Campus campus = currentUserService.getCurrentUserCampus(authentication);
+        School school = currentUserService.getCurrentUserSchool(authentication);
 
-        List<Loan> loans = loanRepository.findByCampusId(campus.getId());
+        List<Loan> loans = loanRepository.findByCampusSchoolId(school.getId());
 
         Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
                 .filter(loan -> loan.getUser() != null)
@@ -466,17 +523,16 @@ public class LoanService {
     }
 
     private List<Long> expandRequestedBookIds(LoanDTO loanDTO) {
-        List<Long> expandedBookIds = new java.util.ArrayList<>();
-
-        for (Long bookId : loanDTO.bookIds()) {
-            int copiesCount = resolveCopiesCount(loanDTO, bookId);
-
-            for (int i = 0; i < copiesCount; i++) {
-                expandedBookIds.add(bookId);
-            }
+        if (loanDTO.bookCopyIds() == null || loanDTO.bookCopyIds().isEmpty()) {
+            return List.of();
         }
 
-        return expandedBookIds;
+        return bookCopyRepository.findAllById(loanDTO.bookCopyIds()).stream()
+                .map(BookCopy::getBook)
+                .filter(java.util.Objects::nonNull)
+                .map(Book::getId)
+                .distinct()
+                .toList();
     }
 
     private void sendLoanConfirmationMessage(
@@ -603,7 +659,7 @@ public class LoanService {
                 .toList();
 
         int bookCount = loanDtos.stream()
-                .mapToInt(loan -> loan.books() != null ? loan.books().size() : loan.bookIds().size())
+                .mapToInt(loan -> loan.books() != null ? loan.books().size() : loan.bookCopyIds() == null ? 0 : loan.bookCopyIds().size())
                 .sum();
 
         String earliestReturnDate = loans.stream()

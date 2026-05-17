@@ -107,7 +107,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     }
 
     if (this.isExistingBookLoaded && this.selectedBookId) {
-      this.bs.addCopy(this.selectedBookId).subscribe({
+      this.bs.addCopy(this.selectedBookId, this.campusId).subscribe({
         next: () => {
           this.ts.show('Exemplaar toegevoegd.');
           this.clearForm();

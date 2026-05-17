@@ -256,3 +256,26 @@
     justify-content: center;
   }
 }
+.copy-selection-list {
+  display: grid;
+  gap: 8px;
+  margin: -4px 0 10px;
+}
+
+.copy-selection-field {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7a5560;
+}
+
+.copy-selection-field select {
+  width: 100%;
+  border: 1px solid #f0e4e8;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: white;
+  color: #1a0a10;
+  font: inherit;
+}

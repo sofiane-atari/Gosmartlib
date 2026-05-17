@@ -7,12 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -28,7 +26,6 @@ public class OneRosterUserSyncService {
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final GroupService groupService;
-    private final CampusRepository campusRepository;
 
     public OneRosterUserSyncService(
             OneRosterClient oneRosterClient,
@@ -36,15 +33,13 @@ public class OneRosterUserSyncService {
             SchoolRepository schoolRepository,
             UserRepository userRepository,
             RoleService roleService,
-            GroupService groupService,
-            CampusRepository campusRepository) {
+            GroupService groupService) {
         this.oneRosterClient = oneRosterClient;
         this.credentialRepository = credentialRepository;
         this.schoolRepository = schoolRepository;
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.groupService = groupService;
-        this.campusRepository = campusRepository;
     }
 
     @Transactional
@@ -79,14 +74,6 @@ public class OneRosterUserSyncService {
 
         if (user.getSchool() == null) {
             user.setSchool(school);
-        }
-
-        if (user.getCampus() == null) {
-            Campus firstCampus = campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId())
-                    .orElse(null);
-            if (firstCampus != null) {
-                user.setCampus(firstCampus);
-            }
         }
 
         String groupName = resolveGroupName(rosterUser);

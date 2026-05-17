@@ -33,6 +33,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.List;
+import edu.ap.bib_backend.dto.PaginatedMeta;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.ArgumentMatchers.eq;
+
 @WebMvcTest(LoanController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class LoanControllerTest {
@@ -61,7 +68,7 @@ class LoanControllerTest {
                 LoanDTO loanDto = LoanDTO.builder()
                                 .id(1L)
                                 .userId("user1")
-                                .bookIds(List.of(1L))
+                                .bookCopyIds(List.of(1L))
                                 .returnDate("2099-12-31")
                                 .build();
 
@@ -74,14 +81,14 @@ class LoanControllerTest {
                                 .content("""
                                                 {
                                                   "userId": "user1",
-                                                  "bookIds": [1],
+                                                  "bookCopyIds": [1],
                                                   "returnDate": "2099-12-31"
                                                 }
                                                 """))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[0].id").value(1))
                                 .andExpect(jsonPath("$[0].userId").value("user1"))
-                                .andExpect(jsonPath("$[0].bookIds[0]").value(1))
+                                .andExpect(jsonPath("$[0].bookCopyIds[0]").value(1))
                                 .andExpect(jsonPath("$[0].returnDate").value("2099-12-31"));
         }
 
@@ -134,7 +141,7 @@ class LoanControllerTest {
                 PaginatedMeta meta = new PaginatedMeta(0, 10, 1, 1);
                 PageDTO<LoanDTO> page = new PageDTO<>(List.of(loanDto), meta);
 
-                when(loanService.findAll(anyInt(), anyInt(), any())).thenReturn(page);
+                when(loanService.findAll(anyInt(), anyInt(), any(), any())).thenReturn(page);
 
                 // Act & Assert
                 mockMvc.perform(get("/loans"))
@@ -211,4 +218,27 @@ class LoanControllerTest {
 
                 then(loanService).should().getLoanStats();
         }
+
+    @Test
+    void Given_ReturnRequestWithCondition_When_ReturnLoan_Then_ReturnsOk() throws Exception {
+        LoanDTO loanDto = LoanDTO.builder()
+                .id(1L)
+                .userId("user1")
+                .build();
+
+        when(loanService.returnLoan(eq(1L), any(), any())).thenReturn(loanDto);
+
+        mockMvc.perform(patch("/loans/1/return")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "copyConditions": [
+                                    { "bookCopyId": 10, "condition": "DAMAGED" }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+    }
 }

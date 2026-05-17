@@ -1,6 +1,13 @@
 @if (selectedBook) {
   <div class="page-container">
     <div class="detail-wrapper">
+      <app-button-hover-help class="back-button-help" text="Terug naar de boekencatalogus">
+        <button type="button" class="back-button" (click)="goBack()">
+          <lucide-icon [img]="ChevronDown" [size]="20" style="transform: rotate(90deg)"></lucide-icon>
+          <span>Ga terug</span>
+        </button>
+      </app-button-hover-help>
+
       <aside class="sidebar">
         <div class="cover-container">
           <img
@@ -123,10 +130,7 @@
             </div>
           </section>
 
-          <section
-            class="detail-section"
-            style="background: white; border-radius: 8px; padding: 16px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06)"
-          >
+          <section class="detail-section">
             <div class="detail-section__header" style="margin-bottom: 16px">
               <p
                 class="detail-section__eyebrow"
@@ -228,24 +232,88 @@
           </div>
         </section>
 
-        @if (selectedBook.campusId || selectedBook.campusName) {
+        @if (hasLocationInfo) {
           <section class="summary-section campus-section">
             <h2 class="section-title">
               Locatie
             </h2>
 
-            <div class="campus-info-card">
-              <div class="campus-info-icon">
-                <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
-              </div>
+            @if (copyLocationGroups.length > 0) {
+              <div class="campus-location-list">
+                @for (group of copyLocationGroups; track group.campusId) {
+                  <div class="campus-info-card campus-info-card--with-status">
+                    <div class="campus-info-icon">
+                      <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
+                    </div>
 
-              <div class="campus-info-content">
-                <p class="campus-info-name">{{ campusName }}</p>
-                @if (campusAddress) {
-                  <p class="campus-info-address">{{ campusAddress }}</p>
+                    <div class="campus-info-content campus-info-content--wide">
+                      <div class="campus-info-heading">
+                        <p class="campus-info-name">{{ group.campusName }}</p>
+                        @if (getCampusAddress(group)) {
+                          <p class="campus-info-address">{{ getCampusAddress(group) }}</p>
+                        }
+                      </div>
+
+                      <div class="copy-status-list">
+                        @for (summary of getCampusStatusSummaries(group); track summary.trackKey) {
+                          <div class="copy-status-pill" [ngClass]="getStatusClass(summary.status)">
+                            <span class="copy-status-dot"></span>
+                            <span>{{ getCopyStatusText(summary) }}</span>
+                            @if (summary.status === "borrowed" && summary.expectedReturnDate) {
+                              <span class="copy-return-date">
+                                Verwacht terug {{ summary.expectedReturnDate | date: "dd/MM/yyyy" }}
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
+
+                      <div class="copy-condition-list">
+                        @for (copy of group.copies; track copy.id) {
+                          <div class="copy-condition-row" [class.copy-condition-row--lost]="isLostCopy(copy)">
+                            <div>
+                              <strong>Exemplaar #{{ copy.id }}</strong>
+                              @if (isLostCopy(copy)) {
+                                <span class="copy-lost-badge">Verloren</span>
+                              } @else {
+                                <span>{{ getCopyAvailabilityLabel(copy) }} · {{ getConditionLabel(copy.condition) }}</span>
+                              }
+                            </div>
+
+                            @if (roleService.canAccessAdminOnlyFeatures()) {
+                              <label>
+                                <span>Wijzig staat</span>
+                                 <select
+                                  [ngModel]="getCopyConditionValue(copy)"
+                                  (ngModelChange)="updateCopyCondition(copy, $event)"
+                                 >
+                                   @for (option of conditionOptions; track option.value) {
+                                    <option [ngValue]="option.value">{{ option.label }}</option>
+                                   }
+                                 </select>
+                              </label>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
                 }
               </div>
-            </div>
+            } @else {
+              <div class="campus-info-card">
+                <div class="campus-info-icon">
+                  <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
+                </div>
+
+                <div class="campus-info-content">
+                  <p class="campus-info-name">{{ campusName }}</p>
+                  @if (campusAddress) {
+                    <p class="campus-info-address">{{ campusAddress }}</p>
+                  }
+                </div>
+              </div>
+            }
           </section>
         }
 

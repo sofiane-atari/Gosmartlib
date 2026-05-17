@@ -10,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { LoansService } from '../../../services/loan/loans.service';
 import { Loan } from '../../../model/loan/loan.model';
+import { BookCondition } from '../../../model/book/book.model';
 import { Router } from '@angular/router';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
@@ -35,6 +36,12 @@ export class ReturnLoanComponent implements OnInit {
   protected readonly searchTerm = signal('');
   protected readonly isLoading = signal(false);
   protected readonly returningLoanId = signal<number | null>(null);
+  protected readonly returnConditions = signal<Record<number, BookCondition>>({});
+  protected readonly conditionOptions: { value: BookCondition; label: string }[] = [
+    { value: 'GOOD_CONDITION', label: 'In goede staat' },
+    { value: 'DAMAGED', label: 'Beschadigd' },
+    { value: 'LOST', label: 'Verloren' },
+  ];
 
   protected readonly page = signal(0);
   protected readonly pageSize = signal(10);
@@ -43,7 +50,7 @@ export class ReturnLoanComponent implements OnInit {
 
   private readonly toastService = inject(ToastService);
   protected readonly expandedLoanIds = new Set<number>();
-  
+
   protected readonly pagingMeta = computed<PagingMeta>(() => ({
     currentPage: this.page(),
     pageSize: this.pageSize(),
@@ -258,6 +265,35 @@ export class ReturnLoanComponent implements OnInit {
   protected onSearchChange(value: string): void {
     this.searchTerm.set(value);
   }
+
+  protected getBookCopyIdsForLoan(loan: Loan): number[] {
+    return loan.books?.flatMap((book) => book.bookCopyIds ?? []) ?? loan.bookCopyIds ?? [];
+  }
+
+  protected getCopyCondition(copyId: number): BookCondition {
+    return this.returnConditions()[copyId] ?? 'GOOD_CONDITION';
+  }
+
+  protected onReturnConditionChange(copyId: number, event: Event): void {
+    const condition = (event.target as HTMLSelectElement).value as BookCondition;
+    this.returnConditions.update((current) => ({
+      ...current,
+      [copyId]: condition,
+    }));
+  }
+
+  protected getConditionLabel(condition: BookCondition): string {
+    switch (condition) {
+      case 'DAMAGED':
+        return 'Beschadigd';
+      case 'LOST':
+        return 'Verloren';
+      case 'GOOD_CONDITION':
+      default:
+        return 'In goede staat';
+    }
+  }
+
   private confirmReturnLoan(loan: Loan): void {
     if (!loan.id) {
       return;
@@ -265,7 +301,12 @@ export class ReturnLoanComponent implements OnInit {
 
     this.returningLoanId.set(loan.id);
 
-    this.loansService.returnLoan(loan.id).subscribe({
+    const copyConditions = this.getBookCopyIdsForLoan(loan).map((copyId) => ({
+      bookCopyId: copyId,
+      condition: this.getCopyCondition(copyId),
+    }));
+
+    this.loansService.returnLoan(loan.id, { copyConditions }).subscribe({
       next: () => {
         this.toastService.show('Boek succesvol teruggebracht.', 'success');
         this.returningLoanId.set(null);

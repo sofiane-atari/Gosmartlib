@@ -2,9 +2,11 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
+import edu.ap.bib_backend.dto.loan.LoanExtensionDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
+import edu.ap.bib_backend.dto.loan.LoanReturnDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.service.LoanExtensionService;
 import edu.ap.bib_backend.service.LoanService;
@@ -36,7 +38,7 @@ public class LoanController {
     }
 
     @PostMapping
-    public ResponseEntity<List<LoanDTO>> createLoan(
+    public ResponseEntity<LoanDTO> createLoan(
             @Valid @RequestBody LoanDTO loanDTO,
             Authentication authentication) {
         return ResponseEntity.ok(loanService.create(loanDTO, authentication));
@@ -46,23 +48,26 @@ public class LoanController {
     public ResponseEntity<PageDTO<LoanDTO>> getAllLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) Long campusId,
             Authentication authentication) {
-        return ResponseEntity.ok(loanService.findAll(page, pageSize, authentication));
+        return ResponseEntity.ok(loanService.findAll(page, pageSize, campusId, authentication));
     }
 
     @PatchMapping("/{loanId}/return")
     public ResponseEntity<LoanDTO> returnLoan(
             @PathVariable("loanId") Long loanId,
+            @RequestBody(required = false) LoanReturnDTO request,
             Authentication authentication) {
-        return ResponseEntity.ok(loanService.returnLoan(loanId, authentication));
+        return ResponseEntity.ok(loanService.returnLoan(loanId, request, authentication));
     }
 
     @GetMapping("/active")
     public ResponseEntity<PageDTO<LoanDTO>> getActiveLoans(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) Long campusId,
             Authentication authentication) {
-        return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize, authentication));
+        return ResponseEntity.ok(loanService.findActiveLoans(page, pageSize, campusId, authentication));
     }
 
     @GetMapping("/me/history")

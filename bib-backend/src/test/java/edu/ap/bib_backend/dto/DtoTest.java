@@ -11,8 +11,9 @@ class DtoTest {
 
     @Test
     void Given_LoanBookDTO_When_Instantiated_Then_ValuesAreSet() {
-        LoanBookDTO dto = LoanBookDTO.builder().id(1L).title("Title").author("Author").isbn("12345").imageUrl(null).copiesCount(2).build();
+        LoanBookDTO dto = LoanBookDTO.builder().id(1L).title("Title").author("Author").isbn("12345").imageUrl(null).bookCopyIds(List.of(10L, 11L)).copiesCount(2).build();
         assertEquals(1L, dto.id());
+        assertEquals(List.of(10L, 11L), dto.bookCopyIds());
         assertEquals(2, dto.copiesCount());
     }
 

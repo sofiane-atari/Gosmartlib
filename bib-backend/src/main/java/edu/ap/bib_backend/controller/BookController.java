@@ -210,9 +210,10 @@ public class BookController {
     @PostMapping("/{bookId}/copies")
     public ResponseEntity<BookDTO> addCopy(
             Authentication authentication,
-            @PathVariable Long bookId
+            @PathVariable Long bookId,
+            @RequestParam(required = false) Long campusId
     ) {
-        BookDTO dto = bookService.addCopyToBook(bookId, authentication);
+        BookDTO dto = bookService.addCopyToBook(bookId, campusId, authentication);
         return ResponseEntity.ok(dto);
     }
 

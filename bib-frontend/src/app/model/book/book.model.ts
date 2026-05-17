@@ -18,4 +18,25 @@ export interface Book {
   readingLevel?: ReadingLevel;
   campusId?: number;
   campusName?: string;
+  availableCampuses?: string[];
+  copyLocations?: BookCopyCampusLocation[];
 }
+
+export interface BookCopyCampusLocation {
+  campusId: number;
+  campusName: string;
+  address?: string | null;
+  postalCode?: number | null;
+  copies: BookCopyLocation[];
+}
+
+export interface BookCopyLocation {
+  id: number;
+  availability: 'AVAILABLE' | 'BORROWED' | string;
+  condition?: BookCondition;
+  expectedReturnDate?: string | null;
+  campusId?: number;
+  campusName?: string;
+}
+
+export type BookCondition = 'GOOD_CONDITION' | 'DAMAGED' | 'LOST';

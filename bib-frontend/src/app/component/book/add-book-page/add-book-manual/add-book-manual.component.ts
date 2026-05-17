@@ -289,7 +289,7 @@ export class AddBookManualComponent
     }
 
     if (this.isCandidateLoaded && this.selectedBookId) {
-      this.bs.addCopy(this.selectedBookId).subscribe({
+      this.bs.addCopy(this.selectedBookId, this.campusId).subscribe({
         next: () => {
           this.ts.show('Exemplaar toegevoegd.');
           this.clearForm();

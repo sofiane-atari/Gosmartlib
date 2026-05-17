@@ -29,11 +29,15 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 
     Optional<Book> findByIsbnAndCampusSchoolId(String isbn, Long schoolId);
 
+    List<Book> findAllByIsbnAndCampusSchoolId(String isbn, Long schoolId);
+
     Optional<Book> findByIdAndCampusId(Long id, Long campusId);
 
     Optional<Book> findByIdAndCampusSchoolId(Long id, Long schoolId);
 
     List<Book> findByCampusId(Long campusId);
+
+    List<Book> findByCampusSchoolId(Long schoolId);
 
     @Query("SELECT b.isbn FROM Book b")
     List<String> findAllIsbns();

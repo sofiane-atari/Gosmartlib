@@ -682,7 +682,8 @@ public class BookControllerTest {
                                 .andExpect(r -> org.junit.jupiter.api.Assertions.assertEquals(
                                                 "Boek niet gevonden met id: 99",
                                                 r.getResolvedException() != null ? r.getResolvedException().getMessage() : null));
-                                                
+
                 Mockito.verify(bs, Mockito.times(1)).updateBook(Mockito.eq(bookId), Mockito.any(BookDTO.class), Mockito.nullable(Authentication.class));
         }
 }
+
