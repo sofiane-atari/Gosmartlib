@@ -38,7 +38,7 @@ export class ReturnLoanComponent implements OnInit {
   protected readonly returningLoanId = signal<number | null>(null);
   protected readonly returnConditions = signal<Record<number, BookCondition>>({});
   protected readonly conditionOptions: { value: BookCondition; label: string }[] = [
-    { value: 'GOOD_CONDITION', label: 'Goede staat' },
+    { value: 'GOOD_CONDITION', label: 'In goede staat' },
     { value: 'DAMAGED', label: 'Beschadigd' },
     { value: 'LOST', label: 'Verloren' },
   ];
@@ -290,7 +290,7 @@ export class ReturnLoanComponent implements OnInit {
         return 'Verloren';
       case 'GOOD_CONDITION':
       default:
-        return 'Goede staat';
+        return 'In goede staat';
     }
   }
 

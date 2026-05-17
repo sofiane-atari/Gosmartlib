@@ -260,14 +260,14 @@
                             @if (roleService.canAccessAdminOnlyFeatures()) {
                               <label>
                                 <span>Wijzig staat</span>
-                                <select
-                                  [value]="copy.condition ?? 'GOOD_CONDITION'"
-                                  (change)="updateCopyCondition(copy, $event)"
-                                >
-                                  @for (option of conditionOptions; track option.value) {
-                                    <option [value]="option.value">{{ option.label }}</option>
-                                  }
-                                </select>
+                                 <select
+                                  [ngModel]="getCopyConditionValue(copy)"
+                                  (ngModelChange)="updateCopyCondition(copy, $event)"
+                                 >
+                                   @for (option of conditionOptions; track option.value) {
+                                    <option [ngValue]="option.value">{{ option.label }}</option>
+                                   }
+                                 </select>
                               </label>
                             }
                           </div>

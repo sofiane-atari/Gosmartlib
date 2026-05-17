@@ -366,9 +366,11 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     }
   }
 
-  protected updateCopyCondition(copy: BookCopyLocation, event: Event): void {
-    const condition = (event.target as HTMLSelectElement).value as BookCondition;
+  protected getCopyConditionValue(copy: BookCopyLocation): BookCondition {
+    return copy.condition ?? 'GOOD_CONDITION';
+  }
 
+  protected updateCopyCondition(copy: BookCopyLocation, condition: BookCondition): void {
     this.bookService.updateBookCopyCondition(copy.id, condition).subscribe({
       next: () => {
         copy.condition = condition;
