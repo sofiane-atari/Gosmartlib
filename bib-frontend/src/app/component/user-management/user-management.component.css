@@ -381,13 +381,25 @@ lucide-icon svg {
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@media (max-width: 1240px) {
   .table-card {
     overflow-x: auto;
   }
 
   .table-card table {
     min-width: 700px;
+  }
+}
+
+@media (max-width: 900px) {
+  .table-actions .btn-label {
+    display: none;
+  }
+
+  .table-actions .btn-promote,
+  .table-actions .btn-revoke {
+    padding: 8px 10px;
+    gap: 0;
   }
 }
 
