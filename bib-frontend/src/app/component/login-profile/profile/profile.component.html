@@ -74,4 +74,33 @@
       <p>Er is geen profielinformatie beschikbaar.</p>
     </section>
   }
+
+  <section class="profile-panel">
+    <h2>Mijn abonnementen</h2>
+
+    @if (subscriptionsLoading()) {
+      <div class="profile-panel--state">
+        <p>Abonnementen laden...</p>
+      </div>
+    } @else if (subscriptions().length === 0) {
+      <div class="profile-panel--state">
+        <p>Je hebt nog geen abonnementen op boeken.</p>
+        <p class="profile-empty-hint">
+          Abonneer je op een boek via de boekdetailpagina om een melding te ontvangen wanneer het terug beschikbaar is.
+        </p>
+      </div>
+    } @else {
+      <div class="subscription-list">
+        @for (sub of subscriptions(); track sub.id) {
+          <a class="subscription-item" [routerLink]="['/book', sub.bookId]">
+            <div class="subscription-item__info">
+              <lucide-icon [img]="Bell" [size]="16" class="subscription-item__icon"></lucide-icon>
+              <span class="subscription-item__title">{{ sub.bookTitle }}</span>
+            </div>
+            <lucide-icon [img]="ExternalLink" [size]="14" class="subscription-item__link-icon"></lucide-icon>
+          </a>
+        }
+      </div>
+    }
+  </section>
 </div>

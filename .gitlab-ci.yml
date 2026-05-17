@@ -63,29 +63,15 @@ deploy:
       SCHOOL_SEED_ONEROSTER_CLIENT_SECRET=$SCHOOL_SEED_ONEROSTER_CLIENT_SECRET
 
       EOF2
+
       EOF
     # Run the services
     - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker compose --project-directory $DIR/ build --no-cache"
     - ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker compose --project-directory $DIR/ up -d"
-    # Waiting till the database fully has started
-    - |
-      ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<- EOF
-      set -e
-      echo "Waiting for MySQL to be ready..."
-      until docker compose --project-directory $DIR/ exec -T mysql mysql -u root -p$DB_ROOT_PASS -e "SELECT 1 FROM mysql.user LIMIT 1" --connect-timeout=5; do
-        sleep 2
-      done
-      echo "MySQL is ready!"
-      EOF
-    # Replacing the old database with the new one
-    - |
-      ssh -i $ID_25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP <<- EOF
-      set -e
-      docker compose --project-directory $DIR/ exec -T mysql \
-      mysql -u root -p$DB_ROOT_PASS $DB_NAME < $DB_PATH
-      EOF
+
   environment:
     name: production
     url: http://${SERVER_IP}
   only:
     - main
+

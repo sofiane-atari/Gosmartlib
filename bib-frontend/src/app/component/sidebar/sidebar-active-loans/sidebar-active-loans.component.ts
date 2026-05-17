@@ -20,6 +20,9 @@ import { RoleService } from '../../../services/role-service/role.service';
   styleUrl: './sidebar-active-loans.component.css',
 })
 export class SidebarActiveLoansComponent implements OnInit {
+  private static readonly HISTORY_PAGE = 0;
+  private static readonly HISTORY_PAGE_SIZE = 1;
+
   private readonly loansService = inject(LoansService);
   private readonly roleService = inject(RoleService);
 
@@ -38,13 +41,18 @@ export class SidebarActiveLoansComponent implements OnInit {
       return;
     }
 
-    this.loansService.getMyLoanHistory().subscribe({
-      next: (history) => {
-        this.activeLoans.set((history.activeLoans ?? []).slice(0, 2));
-      },
-      error: () => {
-        this.activeLoans.set([]);
-      },
-    });
+    this.loansService
+      .getMyLoanHistory(
+        SidebarActiveLoansComponent.HISTORY_PAGE,
+        SidebarActiveLoansComponent.HISTORY_PAGE_SIZE,
+      )
+      .subscribe({
+        next: (history) => {
+          this.activeLoans.set((history.activeLoans ?? []).slice(0, 2));
+        },
+        error: () => {
+          this.activeLoans.set([]);
+        },
+      });
   }
 }

@@ -1,5 +1,7 @@
 import { LocalDate } from '../../shared/types/local-date.type';
 
+import { PaginatedResponse } from './../shared/paging/PaginatedResponse.model';
+
 export type LoanStatus = 'ACTIVE' | 'OVERDUE' | 'RETURNED';
 
 export interface LoanBook {
@@ -29,5 +31,5 @@ export interface LoanHistory {
   returnedLoanCount: number;
   totalLoanedBookCount: number;
   activeLoans: Loan[];
-  returnedLoans: Loan[];
+  returnedLoans: PaginatedResponse<Loan>;
 }

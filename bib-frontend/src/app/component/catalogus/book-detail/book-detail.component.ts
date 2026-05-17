@@ -25,6 +25,8 @@ import {
   Pencil,
   ChevronDown,
   MapPin,
+  Bell,
+  BellOff,
 } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -51,6 +53,7 @@ import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-
 import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
 import { GamificationNotificationStoreService } from '../../../services/gamification/store/gamification-notification-store.service';
+import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
 
 @Component({
   selector: 'app-book-detail',
@@ -81,6 +84,8 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   readonly Flag = Flag;
   readonly ChevronDown = ChevronDown;
   readonly MapPin = MapPin;
+  readonly Bell = Bell;
+  readonly BellOff = BellOff;
   icons = [
     { icon: Library, label: 'Bibliotheek' },
     { icon: Star, label: 'Reviews' },
@@ -126,6 +131,10 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
   protected readonly isLoadingLessonTips = signal(false);
 
+  protected readonly isSubscribed = signal(false);
+  protected readonly subscriptionLoading = signal(false);
+  private readonly mailSubscriptionService = inject(MailSubscriptionService);
+
   Availability = Availability;
 
   // Related Books Carousel //
@@ -162,6 +171,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
         this.bookService.getBookById(numericBookId).subscribe((book) => {
           this.selectedBook = book;
           this.loadCampusForBook(book);
+          this.loadSubscriptionStatus(numericBookId);
 
           if (book.id) {
             this.loadLessonTips(book.id);
@@ -671,6 +681,64 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     this.reviewDraftIntervalId = setInterval(() => {
       this.saveReviewDraft();
     }, 1000);
+  }
+
+  private loadSubscriptionStatus(bookId: number): void {
+    this.mailSubscriptionService.getMySubscriptions().subscribe({
+      next: (subscriptions) => {
+        this.isSubscribed.set(subscriptions.some((s) => s.bookId === bookId));
+      },
+      error: () => {
+        this.isSubscribed.set(false);
+      },
+    });
+  }
+
+  protected toggleSubscription(): void {
+    const bookId = this.selectedBook?.id;
+    if (!bookId || this.subscriptionLoading()) {
+      return;
+    }
+
+    this.subscriptionLoading.set(true);
+
+    if (this.isSubscribed()) {
+      this.mailSubscriptionService.unsubscribe(bookId).subscribe({
+        next: () => {
+          this.isSubscribed.set(false);
+          this.subscriptionLoading.set(false);
+          this.toastService.show(
+            'Je ontvangt geen meldingen meer voor dit boek.',
+            'success',
+          );
+        },
+        error: () => {
+          this.subscriptionLoading.set(false);
+          this.toastService.show(
+            'Er is een fout opgetreden bij het uitschrijven.',
+            'error',
+          );
+        },
+      });
+    } else {
+      this.mailSubscriptionService.subscribe(bookId).subscribe({
+        next: () => {
+          this.isSubscribed.set(true);
+          this.subscriptionLoading.set(false);
+          this.toastService.show(
+            'Je ontvangt een melding zodra dit boek beschikbaar is!',
+            'success',
+          );
+        },
+        error: (err) => {
+          this.subscriptionLoading.set(false);
+          const message =
+            err?.error?.error?.message ??
+            'Er is een fout opgetreden bij het abonneren.';
+          this.toastService.show(message, 'error');
+        },
+      });
+    }
   }
 
   ngOnDestroy(): void {

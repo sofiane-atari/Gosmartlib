@@ -21,6 +21,7 @@ import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
+import edu.ap.bib_backend.event.BookAvailableEvent;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -31,6 +32,7 @@ import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
+import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
@@ -42,6 +44,9 @@ import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @Slf4j
@@ -171,38 +176,61 @@ public class LoanService {
         Loan savedLoan = loanRepository.save(loan);
 
         publishBookReturnedEvent(savedLoan, today);
+        publishBookAvailableEvents(savedLoan);
 
         return loanMapper.toDto(savedLoan);
     }
 
-    public LoanHistoryDTO findHistoryForCurrentUser(Authentication authentication) {
+    public LoanHistoryDTO findHistoryForCurrentUser(
+            int page,
+            int pageSize,
+            Authentication authentication
+    ) {
         Campus campus = currentUserService.getCurrentUserCampus(authentication);
         String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
-        List<LoanDTO> loans = loanRepository
-                .findByUserIdAndCampusIdOrderByLoanDateDesc(currentUserId, campus.getId())
-                .stream()
-                .map(loanMapper::toDto)
-                .toList();
+        int safePage = Math.max(page, 0);
+        int safePageSize = Math.max(pageSize, 1);
 
-        List<LoanDTO> activeLoans = loans.stream()
-                .filter(loan -> loan.status() == LoanStatus.ACTIVE || loan.status() == LoanStatus.OVERDUE)
-                .toList();
+        Pageable pageable = PageRequest.of(safePage, safePageSize);
 
-        List<LoanDTO> returnedLoans = loans.stream()
-                .filter(loan -> loan.status() == LoanStatus.RETURNED)
-                .toList();
+        List<Loan> activeLoanEntities = loanRepository.findActiveHistoryLoans(
+                currentUserId,
+                campus.getId()
+        );
 
-        int totalLoanedBookCount = loans.stream()
-                .mapToInt(loan -> loan.books() != null ? loan.books().size() : loan.bookIds().size())
-                .sum();
+        Page<Loan> returnedLoanEntities = loanRepository.findReturnedHistoryLoans(
+                currentUserId,
+                campus.getId(),
+                pageable
+        );
+
+        long activeLoanCount = loanRepository.countActiveHistoryLoans(
+                currentUserId,
+                campus.getId()
+        );
+
+        long returnedLoanCount = loanRepository.countReturnedHistoryLoans(
+                currentUserId,
+                campus.getId()
+        );
+
+        long totalLoanedBookCount = loanRepository.countLoanedBookCopiesForUserHistory(
+                currentUserId,
+                campus.getId()
+        );
+
+        Page<LoanDTO> returnedLoansPage = returnedLoanEntities.map(loanMapper::toDto);
 
         return LoanHistoryDTO.builder()
-                .activeLoanCount(activeLoans.size())
-                .returnedLoanCount(returnedLoans.size())
-                .totalLoanedBookCount(totalLoanedBookCount)
-                .activeLoans(activeLoans)
-                .returnedLoans(returnedLoans)
+                .activeLoanCount(Math.toIntExact(activeLoanCount))
+                .returnedLoanCount(Math.toIntExact(returnedLoanCount))
+                .totalLoanedBookCount(Math.toIntExact(totalLoanedBookCount))
+                .activeLoans(loanMapper.toDtoList(activeLoanEntities))
+                .returnedLoans(new PageDTO<>(
+                        returnedLoansPage.getContent(),
+                        PageMapper.toPaginatedMeta(returnedLoansPage)
+                ))
                 .build();
     }
 
@@ -221,6 +249,18 @@ public class LoanService {
                         loan.getReturnDate(),
                         returnedDate,
                         LocalDateTime.now()));
+    }
+
+    private void publishBookAvailableEvents(Loan loan) {
+        loan.getCopies().stream()
+                .map(copy -> copy.getBook())
+                .filter(book -> book != null && book.getId() != null)
+                .collect(Collectors.toSet())
+                .forEach(book -> {
+                    log.debug("Publishing BookAvailableEvent for book id={}", book.getId());
+                    applicationEventPublisher.publishEvent(
+                            new BookAvailableEvent(book.getId(), LocalDateTime.now()));
+                });
     }
 
     private int resolveCopiesCount(LoanDTO loanDTO, Long bookId) {

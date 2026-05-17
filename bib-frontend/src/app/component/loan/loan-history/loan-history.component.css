@@ -44,10 +44,10 @@
 /* Basis van de kaart: compacter */
 .stat-card {
   border-radius: 12px;
-  padding: 16px 20px; /* Was 20px 24px */
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  gap: 14px; /* Was 18px */
+  gap: 10px; /* Was 18px */
   border: 2px solid #e5e7eb;
   transition:
     transform 0.2s ease,
@@ -69,7 +69,7 @@
 /* Het grote cijfer */
 .stat-card strong {
   display: block;
-  font-size: 1.6rem; /* Was 2rem */
+  font-size: 1.4rem; /* Was 2rem */
   line-height: 1;
   font-weight: 800;
   color: #1f2937;
@@ -85,8 +85,8 @@
 
 /* Het Icoon Blokje */
 .stat-card lucide-icon {
-  width: 44px; /* Was 52px */
-  height: 44px; /* Was 52px */
+  width: 36px; /* Was 52px */
+  height: 36px; /* Was 52px */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,9 +152,9 @@
 .loan-card {
   position: relative;
   display: grid;
-  grid-template-columns: 80px 1fr; /* Cover smaller gemaakt (Was 100px) */
-  gap: 20px; /* Was 24px */
-  padding: 16px 20px; /* Was 24px */
+  grid-template-columns: 60px 1fr; /* Cover smaller gemaakt (Was 100px) */
+  gap: 16px;
+  padding: 12px 16px;
   border-radius: 12px;
   background: var(--bg-surface, #ffffff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Subtielere schaduw */
@@ -248,7 +248,7 @@
    4. BADGES & WARNINGS (Compacter)
    ========================================================= */
 .loan-warning {
-  padding: 10px 14px; /* Was 12px 16px */
+  padding: 8px 12px; /* Was 12px 16px */
   border: 1px solid #fde047;
   border-radius: 8px;
   background: #fefce8;
@@ -406,7 +406,7 @@
 }
 
 .skeleton--cover-loan {
-  width: 80px; /* Was 100px */
+  width: 60px; /* Was 100px */
   aspect-ratio: 2 / 3;
   border-radius: 6px;
   flex-shrink: 0;
@@ -414,7 +414,7 @@
 
 .skeleton--title-loan {
   width: 65%;
-  height: 18px; /* Was 20px */
+  height: 16px; /* Was 20px */
   margin-bottom: 6px;
 }
 
@@ -424,7 +424,7 @@
 } /* Was 14px */
 .skeleton--badge-loan {
   width: 70px;
-  height: 22px;
+  height: 20px;
   border-radius: 999px;
 } /* Compacter */
 .skeleton--meta-loan {
@@ -438,10 +438,10 @@
 }
 .skeleton--warning-loan {
   width: 100%;
-  height: 38px;
+  height: 32px;
   border-radius: 8px;
   margin-top: auto;
-} /* Was 44px */
+}
 
 /* =========================================================
    6. RESPONSIVENESS (Mobiel)

@@ -8,7 +8,7 @@ import { BookCandidate } from '../../../model/book/book-candidate.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './lesson-tip-book-selection-panel.component.html',
-styleUrl: './lesson-tip-book-selection-panel.component.css',
+  styleUrl: './lesson-tip-book-selection-panel.component.css',
 })
 export class LessonTipBookSelectionPanelComponent {
   public readonly panelEyebrow = input<string>('Gekoppelde boeken');
@@ -65,7 +65,7 @@ export class LessonTipBookSelectionPanelComponent {
     }
 
     if (selectedCount >= availableCopies) {
-      return 'Volzet';
+      return 'Alle exemplaren geselecteerd';
     }
 
     return 'Selecteren';

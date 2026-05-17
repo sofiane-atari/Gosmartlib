@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.service;
 
+import edu.ap.bib_backend.event.BookAvailableEvent;
 import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -21,6 +22,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.PageDTO;
@@ -665,51 +670,98 @@ class LoanServiceTest {
         }
 
         @Test
-        void Given_LoansExistForCurrentUser_When_FindHistoryForCurrentUser_Then_ReturnsHistoryWithActiveAndReturned() {
+        void givenLoansExistForCurrentUser_whenFindHistoryForCurrentUser_thenReturnsHistoryWithActiveAndReturned() {
+                // Arrange
                 Campus campus = new Campus();
                 campus.setId(1L);
-                lenient().when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
-                when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
 
                 Loan activeLoan = new Loan();
                 activeLoan.setReturnedDate(null);
                 activeLoan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+
                 Loan returnedLoan = new Loan();
                 returnedLoan.setReturnedDate(LocalDate.now());
 
-                when(loanRepository.findByUserIdAndCampusIdOrderByLoanDateDesc("user123", 1L))
-                                .thenReturn(List.of(activeLoan, returnedLoan));
-
-                when(loanMapper.toDto(activeLoan)).thenReturn(LoanDTO.builder()
+                LoanDTO activeLoanDto = LoanDTO.builder()
                                 .status(edu.ap.bib_backend.jpa.enums.LoanStatus.ACTIVE)
                                 .books(List.of(LoanBookDTO.builder().id(1L).build()))
-                                .build());
-                when(loanMapper.toDto(returnedLoan)).thenReturn(LoanDTO.builder()
+                                .build();
+
+                LoanDTO returnedLoanDto = LoanDTO.builder()
                                 .status(edu.ap.bib_backend.jpa.enums.LoanStatus.RETURNED)
                                 .books(List.of(LoanBookDTO.builder().id(2L).build()))
-                                .build());
+                                .build();
 
-                LoanHistoryDTO result = loanService.findHistoryForCurrentUser(authentication);
+                when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
+                when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
 
+                when(loanRepository.findActiveHistoryLoans("user123", 1L))
+                                .thenReturn(List.of(activeLoan));
+
+                when(loanRepository.findReturnedHistoryLoans(
+                                eq("user123"),
+                                eq(1L),
+                                any(Pageable.class)))
+                                .thenReturn(new PageImpl<>(List.of(returnedLoan), PageRequest.of(0, 10), 1));
+
+                when(loanRepository.countActiveHistoryLoans("user123", 1L)).thenReturn(1L);
+                when(loanRepository.countReturnedHistoryLoans("user123", 1L)).thenReturn(1L);
+                when(loanRepository.countLoanedBookCopiesForUserHistory("user123", 1L)).thenReturn(2L);
+
+                when(loanMapper.toDtoList(List.of(activeLoan))).thenReturn(List.of(activeLoanDto));
+                when(loanMapper.toDto(returnedLoan)).thenReturn(returnedLoanDto);
+
+                // Act
+                LoanHistoryDTO result = loanService.findHistoryForCurrentUser(0, 10, authentication);
+
+                // Assert
                 assertNotNull(result);
                 assertEquals(1, result.activeLoanCount());
                 assertEquals(1, result.returnedLoanCount());
                 assertEquals(2, result.totalLoanedBookCount());
+                assertEquals(1, result.activeLoans().size());
+                assertEquals(1, result.returnedLoans().data().size());
+                assertEquals(0, result.returnedLoans().meta().currentPage());
+                assertEquals(10, result.returnedLoans().meta().pageSize());
+                assertEquals(1, result.returnedLoans().meta().totalItems());
+                assertEquals(1, result.returnedLoans().meta().totalPages());
         }
 
         @Test
-        void Given_NoLoansForCurrentUser_When_FindHistoryForCurrentUser_Then_ReturnsEmptyHistory() {
+        void givenNoLoansForCurrentUser_whenFindHistoryForCurrentUser_thenReturnsEmptyHistory() {
+                // Arrange
+                Campus campus = new Campus();
+                campus.setId(1L);
+
                 when(currentUserService.getCurrentUserCampus(authentication)).thenReturn(campus);
                 when(currentUserService.extractCurrentUserId(authentication)).thenReturn("user123");
-                when(loanRepository.findByUserIdAndCampusIdOrderByLoanDateDesc("user123", 1L))
+
+                when(loanRepository.findActiveHistoryLoans("user123", 1L))
                                 .thenReturn(List.of());
 
-                LoanHistoryDTO result = loanService.findHistoryForCurrentUser(authentication);
+                when(loanRepository.findReturnedHistoryLoans(
+                                eq("user123"),
+                                eq(1L),
+                                any(Pageable.class)))
+                                .thenReturn(Page.empty(PageRequest.of(0, 10)));
 
+                when(loanRepository.countActiveHistoryLoans("user123", 1L)).thenReturn(0L);
+                when(loanRepository.countReturnedHistoryLoans("user123", 1L)).thenReturn(0L);
+                when(loanRepository.countLoanedBookCopiesForUserHistory("user123", 1L)).thenReturn(0L);
+
+                when(loanMapper.toDtoList(List.of())).thenReturn(List.of());
+
+                // Act
+                LoanHistoryDTO result = loanService.findHistoryForCurrentUser(0, 10, authentication);
+
+                // Assert
                 assertNotNull(result);
                 assertEquals(0, result.activeLoanCount());
                 assertEquals(0, result.returnedLoanCount());
                 assertEquals(0, result.totalLoanedBookCount());
+                assertTrue(result.activeLoans().isEmpty());
+                assertTrue(result.returnedLoans().data().isEmpty());
+                assertEquals(0, result.returnedLoans().meta().totalItems());
         }
 
         @Test
@@ -761,5 +813,81 @@ class LoanServiceTest {
                 copy.setBook(book);
                 copy.setCampus(campus);
                 return copy;
+        }
+
+        @Test
+        void Given_LoanWithBookCopies_When_ReturnLoan_Then_PublishesBookAvailableEventForEachDistinctBook() {
+                Loan loan = new Loan();
+                loan.setId(1L);
+                loan.setCampus(campus);
+                loan.setReturnedDate(null);
+                loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+
+                User user = new User();
+                user.setId("user123");
+                loan.setUser(user);
+
+                Book book1 = new Book();
+                book1.setId(100L);
+
+                BookCopy copy1 = new BookCopy();
+                copy1.setBook(book1);
+
+                BookCopy copy2 = new BookCopy();
+                copy2.setBook(book1);
+
+                Book book2 = new Book();
+                book2.setId(200L);
+
+                BookCopy copy3 = new BookCopy();
+                copy3.setBook(book2);
+
+                loan.setCopies(List.of(copy1, copy2, copy3));
+
+                when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+                when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+
+                LoanDTO expectedDto = LoanDTO.builder().id(1L).build();
+                when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+
+                LoanDTO result = loanService.returnLoan(1L, authentication);
+
+                assertNotNull(result);
+                verify(applicationEventPublisher).publishEvent(any(BookReturnedGamificationEvent.class));
+                verify(applicationEventPublisher, times(2)).publishEvent(any(BookAvailableEvent.class));
+        }
+
+        @Test
+        void Given_LoanWithCopyHavingNullBook_When_ReturnLoan_Then_SkipsNullBookInAvailableEvent() {
+                Loan loan = new Loan();
+                loan.setId(1L);
+                loan.setCampus(campus);
+                loan.setReturnedDate(null);
+                loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(5));
+
+                User user = new User();
+                user.setId("user123");
+                loan.setUser(user);
+
+                Book book = new Book();
+                book.setId(100L);
+
+                BookCopy copyWithBook = new BookCopy();
+                copyWithBook.setBook(book);
+
+                BookCopy copyWithNullBook = new BookCopy();
+
+                loan.setCopies(List.of(copyWithBook, copyWithNullBook));
+
+                when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+                when(loanRepository.save(any(Loan.class))).thenReturn(loan);
+
+                LoanDTO expectedDto = LoanDTO.builder().id(1L).build();
+                when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+
+                LoanDTO result = loanService.returnLoan(1L, authentication);
+
+                assertNotNull(result);
+                verify(applicationEventPublisher).publishEvent(any(BookAvailableEvent.class));
         }
 }

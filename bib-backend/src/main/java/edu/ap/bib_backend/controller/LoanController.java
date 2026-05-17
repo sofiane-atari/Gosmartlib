@@ -66,8 +66,12 @@ public class LoanController {
     }
 
     @GetMapping("/me/history")
-    public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(Authentication authentication) {
-        return ResponseEntity.ok(loanService.findHistoryForCurrentUser(authentication));
+    public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(loanService.findHistoryForCurrentUser(page, pageSize, authentication));
     }
 
     @PatchMapping("/{loanId}/extend")

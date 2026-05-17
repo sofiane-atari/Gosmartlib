@@ -3,23 +3,54 @@ import {
   Component,
   computed,
   inject,
+  signal,
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { LucideAngularModule, Bell, ExternalLink } from 'lucide-angular';
 
 import { AuthService } from '../../../services/authorization/auth.service';
 import { AuthUserDto, Role } from '../../../model/auth.model';
 import { ProfileViewModel } from '../../../model/profileView.model';
+import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
+import { MailSubscriptionDTO } from '../../../model/mail-subscription/mail-subscription.model';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule, RouterLink],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
+  readonly Bell = Bell;
+  readonly ExternalLink = ExternalLink;
+
   protected readonly authService = inject(AuthService);
+  private readonly mailSubscriptionService = inject(MailSubscriptionService);
+
+  protected readonly subscriptions = signal<MailSubscriptionDTO[]>([]);
+  protected readonly subscriptionsLoading = signal(false);
+
+  ngOnInit(): void {
+    this.loadSubscriptions();
+  }
+
+  private loadSubscriptions(): void {
+    this.subscriptionsLoading.set(true);
+    this.mailSubscriptionService.getMySubscriptions().subscribe({
+      next: (data) => {
+        this.subscriptions.set(data);
+        this.subscriptionsLoading.set(false);
+      },
+      error: () => {
+        this.subscriptions.set([]);
+        this.subscriptionsLoading.set(false);
+      },
+    });
+  }
 
   protected readonly profile = computed<AuthUserDto | null>(() =>
     this.authService.currentUser(),

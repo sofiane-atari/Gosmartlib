@@ -33,6 +33,8 @@ public interface LoanMapper {
     @Mapping(target = "extensionCount", expression = "java(loan.getExtensions() != null ? loan.getExtensions().size() : 0)")
     LoanDTO toDto(Loan loan);
 
+    List<LoanDTO> toDtoList(List<Loan> loans);
+
     default List<Long> mapBookIds(List<BookCopy> copies) {
         if (copies == null) {
             return List.of();
