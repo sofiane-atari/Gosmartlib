@@ -53,14 +53,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         if (!jwtService.isValid(token)) {
-            filterChain.doFilter(request, response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                "{\"error\":\"Unauthorized\",\"message\":\"Token is verlopen of ongeldig\",\"code\":\"TOKEN_INVALID\"}");
             return;
         }
 
         String username = jwtService.extractUsername(token);
 
         if (!tokenStorageService.isCurrentToken(username, token)) {
-            filterChain.doFilter(request, response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                "{\"error\":\"Unauthorized\",\"message\":\"Token is ingetrokken. Opnieuw aanmelden vereist\",\"code\":\"TOKEN_INVALID\"}");
             return;
         }
 
