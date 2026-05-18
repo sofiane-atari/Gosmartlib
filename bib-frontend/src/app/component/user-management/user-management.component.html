@@ -120,7 +120,7 @@
       <app-stat-card
         label="Bibliothecarissen"
         [value]="stats().librarians"
-        [icon]="ShieldCheck"
+        [icon]="BookOpen"
         variant="green"
         helpText="Aantal leerkrachten die zijn gepromoveerd tot bibliothecaris."
       />
@@ -162,7 +162,13 @@
                   <div class="user-cell">
                     <app-button-hover-help text="Accounticoon van deze leerkracht.">
                       <div class="user-cell__icon">
-                        <lucide-icon [name]="GraduationCap"></lucide-icon>
+                        @if (teacher.role === 'LIBRARIAN') {
+                          <lucide-icon [name]="BookOpen"></lucide-icon>
+                        } @else if (teacher.role === 'ADMIN') {
+                          <lucide-icon [name]="UserRound"></lucide-icon>
+                        } @else {
+                          <lucide-icon [name]="GraduationCap"></lucide-icon>
+                        }
                       </div>
                     </app-button-hover-help>
 

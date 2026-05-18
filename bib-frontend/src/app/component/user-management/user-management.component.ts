@@ -11,6 +11,7 @@ import {
   UserCog,
   GraduationCap,
   ShieldCheck,
+  BookOpen,
   ShieldOff,
   Loader,
   UserRound,
@@ -53,6 +54,7 @@ export class UserManagementComponent {
   protected readonly UserCog = UserCog;
   protected readonly GraduationCap = GraduationCap;
   protected readonly ShieldCheck = ShieldCheck;
+  protected readonly BookOpen = BookOpen;
   protected readonly ShieldOff = ShieldOff;
   protected readonly Loader = Loader;
   protected readonly UserRound = UserRound;
@@ -65,7 +67,7 @@ export class UserManagementComponent {
   private readonly toastService = inject(ToastService);
 
   protected readonly page = signal(0);
-  protected readonly pageSize = signal(1);
+  protected readonly pageSize = signal(10);
   private readonly refreshTrigger = signal(0);
   private readonly searchSubject = new Subject<string>();
   protected readonly searchQuery = signal('');

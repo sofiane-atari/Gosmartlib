@@ -131,6 +131,11 @@ lucide-icon svg {
   padding: 16px;
 }
 
+.search-panel app-search-bar {
+  display: block;
+  width: 100%;
+}
+
 /* Table */
 .table-card {
   background: #fff;
@@ -546,6 +551,17 @@ lucide-icon svg {
   .skeleton--action-btn {
     width: 100%;
     margin-left: 0;
+  }
+}
+
+@media (min-width: 1241px) {
+  .table-actions app-button-hover-help.full-button-help {
+    display: inline-flex;
+    width: auto;
+  }
+
+  .table-actions app-button-hover-help.full-button-help ::ng-deep button {
+    width: auto;
   }
 }
 

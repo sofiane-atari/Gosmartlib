@@ -14,6 +14,11 @@
   width: 100%;
 }
 
+:host(.stat-card-hover) {
+  display: block;
+  width: 100%;
+}
+
 .button-hover-help {
   position: relative;
   display: inline-flex;
@@ -32,6 +37,11 @@
   width: 100%;
   align-items: stretch;
   justify-content: flex-start;
+}
+
+:host(.stat-card-hover) .button-hover-help {
+  display: block;
+  width: 100%;
 }
 
 :host(.full-button-help) ::ng-deep button {
