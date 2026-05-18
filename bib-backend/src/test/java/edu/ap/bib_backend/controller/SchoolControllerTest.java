@@ -154,6 +154,7 @@ class SchoolControllerTest {
                 name,
                 15,
                 java.util.List.of(),
-                LocalDateTime.of(2026, 4, 28, 12, 0));
+                LocalDateTime.of(2026, 4, 28, 12, 0),
+                null);
     }
 }

@@ -1,9 +1,13 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
+import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,15 +35,23 @@ class SchoolServiceTest {
     @Mock
     private BookCopyRepository bookCopyRepository;
 
+    @Mock
+    private OneRosterCredentialRepository credentialRepository;
+
+    @Mock
+    private OneRosterClient oneRosterClient;
+
     @InjectMocks
     private SchoolService schoolService;
 
     @Test
-    void givenValidSchool_whenCreate_thenSaveAndReturnDto() {
-        SchoolDTO input = schoolDto(
+    void givenValidSchoolWithCredentials_whenCreate_thenSaveAndReturnDto() {
+        SchoolDTO input = schoolDtoWithCredentials(
                 null,
                 "  MySchool.be  ",
-                "  AP Hogeschool  ");
+                "  AP Hogeschool  ",
+                "test-client-id",
+                "test-client-secret");
 
         when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> {
             School school = invocation.getArgument(0);
@@ -51,7 +65,10 @@ class SchoolServiceTest {
         assertEquals("myschool.be", output.domainName());
         assertEquals("AP Hogeschool", output.name());
 
+        verify(oneRosterClient).validateCredentials(eq("test-client-id"), eq("test-client-secret"),
+                eq("  MySchool.be  "));
         verify(schoolRepository).save(any(School.class));
+        verify(credentialRepository).save(any(OneRosterCredential.class));
     }
 
     @Test
@@ -179,7 +196,24 @@ class SchoolServiceTest {
                 name,
                 15,
                 List.of(campusDto()),
-                LocalDateTime.of(2026, 4, 28, 12, 0));
+                LocalDateTime.of(2026, 4, 28, 12, 0),
+                null);
+    }
+
+    private SchoolDTO schoolDtoWithCredentials(
+            Long id,
+            String domainName,
+            String name,
+            String clientId,
+            String clientSecret) {
+        return new SchoolDTO(
+                id,
+                domainName,
+                name,
+                15,
+                List.of(campusDto()),
+                LocalDateTime.of(2026, 4, 28, 12, 0),
+                new OneRosterCredentialDTO(clientId, clientSecret));
     }
 
     private edu.ap.bib_backend.dto.CampusDTO campusDto() {
@@ -191,8 +225,7 @@ class SchoolServiceTest {
                 "Noorderplaats 2",
                 2000,
                 "03 123 45 67",
-                "info@ap.be"
-        );
+                "info@ap.be");
     }
 
     private School schoolEntity(
