@@ -76,7 +76,6 @@ public class ReportContextService {
                 .toList();
     }
 
-    @SuppressWarnings("unchecked")
     public String extractClassCodeFromAuthentication(Authentication authentication) {
         Object details = authentication.getDetails();
 

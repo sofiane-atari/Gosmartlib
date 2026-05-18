@@ -1,5 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ClassReport, ReportRow } from '../../../model/class-report.model';
+import {
+  ClassReport,
+  ReportClassOption,
+  ReportRow,
+} from '../../../model/class-report.model';
 import { TeacherClassReportService } from '../../../services/class-report/class-report.service';
 import { CommonModule } from '@angular/common';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
@@ -14,9 +18,10 @@ import {
   Clock3,
   Star,
   UserRound,
-  ArrowLeft
+  ArrowLeft,
+  ChevronDown,
 } from 'lucide-angular';
-import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { ToastService } from '../../../services/toast/toast.service';
 
 @Component({
@@ -28,19 +33,25 @@ import { ToastService } from '../../../services/toast/toast.service';
     LucideAngularModule,
     SearchBarComponent,
     PagingComponent,
-    ButtonHoverHelpComponent
-],
-  styleUrls: ['./class-report.component.css']
+    ButtonHoverHelpComponent,
+  ],
+  styleUrls: ['./class-report.component.css'],
 })
 export class ClassReportComponent implements OnInit {
+  classOptions: ReportClassOption[] = [];
+  selectedClassSourcedId = '';
+  selectedReport: ClassReport | null = null;
 
-  reports: ClassReport[] = [];
   loading = false;
+  loadingClasses = false;
 
   studentSearchQuery = '';
 
   currentStudentPage = 0;
   studentPageSize = 5;
+
+  isClassDropdownOpen = false;
+
 
   readonly icons = {
     library: LibraryBig,
@@ -49,30 +60,75 @@ export class ClassReportComponent implements OnInit {
     clock: Clock3,
     star: Star,
     user: UserRound,
-    arrowLeft: ArrowLeft
+    arrowLeft: ArrowLeft,
+    chevronDown: ChevronDown,
   };
 
-  constructor(private reportService: TeacherClassReportService, private toastService: ToastService, private router: Router) {}
+  constructor(
+    private reportService: TeacherClassReportService,
+    private toastService: ToastService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
-    this.loadReports();
+    this.loadClassOptions();
   }
 
-  loadReports(): void {
+  loadClassOptions(): void {
+    this.loadingClasses = true;
     this.loading = true;
 
-    this.reportService.getMyClassReports().subscribe({
-      next: reports => {
-        this.reports = reports;
-        this.currentStudentPage = 0;
+    this.reportService.getAvailableClasses().subscribe({
+      next: classOptions => {
+        this.classOptions = classOptions;
+        this.loadingClasses = false;
+
+        if (classOptions.length === 0) {
+          this.selectedReport = null;
+          this.loading = false;
+          return;
+        }
+
+        const firstClass = classOptions[0];
+        this.selectedClassSourcedId = firstClass.sourcedId;
+        this.loadReport(firstClass.sourcedId);
+      },
+      error: error => {
+        console.error(error);
+        this.toastService.show('Fout bij het laden van klassen', 'error');
+        this.selectedReport = null;
+        this.loadingClasses = false;
+        this.loading = false;
+      },
+    });
+  }
+
+  loadReport(classSourcedId: string): void {
+    this.loading = true;
+    this.currentStudentPage = 0;
+    this.studentSearchQuery = '';
+
+    this.reportService.getClassReport(classSourcedId).subscribe({
+      next: report => {
+        this.selectedReport = report;
         this.loading = false;
       },
       error: error => {
         console.error(error);
-        this.toastService.show('Fout bij het laden van rapporten', 'error');
+        this.toastService.show('Fout bij het laden van het klasrapport', 'error');
+        this.selectedReport = null;
         this.loading = false;
-      }
+      },
     });
+  }
+
+  onClassChange(classSourcedId: string): void {
+    if (!classSourcedId || classSourcedId === this.selectedClassSourcedId) {
+      return;
+    }
+
+    this.selectedClassSourcedId = classSourcedId;
+    this.loadReport(classSourcedId);
   }
 
   onStudentSearchChange(query: string): void {
@@ -116,7 +172,7 @@ export class ClassReportComponent implements OnInit {
       currentPage: this.currentStudentPage,
       pageSize: this.studentPageSize,
       totalItems,
-      totalPages
+      totalPages,
     };
   }
 
@@ -162,5 +218,26 @@ export class ClassReportComponent implements OnInit {
 
   goBackToReports(): void {
     this.router.navigate(['/reports']);
+  }
+
+  toggleClassDropdown(): void {
+    if (this.loadingClasses || this.classOptions.length === 0) {
+      return;
+    }
+
+    this.isClassDropdownOpen = !this.isClassDropdownOpen;
+  }
+
+  selectClass(classSourcedId: string): void {
+    this.isClassDropdownOpen = false;
+    this.onClassChange(classSourcedId);
+  }
+
+  getSelectedClassTitle(): string {
+    const selectedClass = this.classOptions.find(
+      classOption => classOption.sourcedId === this.selectedClassSourcedId
+    );
+
+    return selectedClass?.title ?? 'Kies een klas';
   }
 }
