@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, Input, ElementRef, HostListener, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UserSettingsService } from '../../../services/user-settings/user-settings.service';
 
@@ -9,7 +9,8 @@ import { UserSettingsService } from '../../../services/user-settings/user-settin
   templateUrl: './button-hover-help.component.html',
   styleUrls: ['./button-hover-help.component.css']
 })
-export class ButtonHoverHelpComponent {
+export class ButtonHoverHelpComponent implements OnDestroy {
+  private static activeInstance: ButtonHoverHelpComponent | null = null;
   @Input() text: string = '';
   @ViewChild('tooltipEl', { read: ElementRef }) tooltipEl!: ElementRef<HTMLElement>;
 
@@ -24,12 +25,22 @@ export class ButtonHoverHelpComponent {
 
   @HostListener('mouseenter')
   onMouseEnter(): void {
+    if (ButtonHoverHelpComponent.activeInstance && ButtonHoverHelpComponent.activeInstance !== this) {
+      ButtonHoverHelpComponent.activeInstance.forceHide();
+    }
+    ButtonHoverHelpComponent.activeInstance = this;
     this.positionTooltip();
   }
 
   @HostListener('mouseleave')
   onMouseLeave(): void {
-    this.isVisible = false;
+    this.forceHide();
+  }
+
+  ngOnDestroy(): void {
+    if (ButtonHoverHelpComponent.activeInstance === this) {
+      ButtonHoverHelpComponent.activeInstance = null;
+    }
   }
 
   @HostListener('window:scroll')
@@ -83,6 +94,13 @@ export class ButtonHoverHelpComponent {
     this.isVisible = true;
 
     requestAnimationFrame(() => this.refinePosition(rect, vw, vh, gap, arrowSize, edgeThreshold));
+  }
+
+  private forceHide(): void {
+    this.isVisible = false;
+    if (ButtonHoverHelpComponent.activeInstance === this) {
+      ButtonHoverHelpComponent.activeInstance = null;
+    }
   }
 
   private refinePosition(
