@@ -290,41 +290,6 @@ export class LessonTipFormPageComponent {
     this.createLessonTip(enrichedRequest);
   }
 
-  public handleAttachmentFileChange(file: File | null): void {
-    this.selectedAttachmentFile.set(file);
-  }
-
-  public addAttachmentToQueue(): void {
-    const selectedFile = this.selectedAttachmentFile();
-
-    if (!selectedFile) {
-      this.toastService.show('Selecteer eerst een bestand.', 'error');
-      return;
-    }
-
-    const alreadyQueued = this.queuedFiles().some(
-      (queuedFile) =>
-        queuedFile.name === selectedFile.name &&
-        queuedFile.size === selectedFile.size &&
-        queuedFile.lastModified === selectedFile.lastModified,
-    );
-
-    if (alreadyQueued) {
-      this.toastService.show('Dit bestand staat al in de wachtrij.', 'error');
-      return;
-    }
-
-    this.queuedFiles.update((currentFiles) => [...currentFiles, selectedFile]);
-    this.selectedAttachmentFile.set(null);
-    this.toastService.show('Bestand toegevoegd aan de wachtrij.', 'success');
-  }
-
-  public removeQueuedFile(fileIndex: number): void {
-    this.queuedFiles.update((currentFiles) =>
-      currentFiles.filter((_, index) => index !== fileIndex),
-    );
-  }
-
   private createLessonTip(request: CreateLessonTipRequest): void {
     this.lessonTipService
       .create(request)

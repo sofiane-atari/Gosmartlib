@@ -227,92 +227,139 @@
               </p>
 
               @if (draftBasicData(); as basicData) {
-                <section class="wizard-summary">
-                  <h3 class="wizard-summary__heading">Basisgegevens</h3>
-                  <dl class="wizard-summary__list">
-                    <div class="wizard-summary__row">
-                      <dt>Titel</dt>
-                      <dd>{{ basicData.title }}</dd>
-                    </div>
-                    <div class="wizard-summary__row">
-                      <dt>Categorie</dt>
-                      <dd>
-                        {{ getLessonTipTypeLabel(basicData.lessonTipType) }}
-                      </dd>
-                    </div>
-                    <div class="wizard-summary__row">
-                      <dt>Beschrijving</dt>
-                      <dd>{{ basicData.description }}</dd>
-                    </div>
-                    <div class="wizard-summary__row">
-                      <dt>Vak</dt>
-                      <dd>
-                        {{ formatOptionalSummaryValue(basicData.subject) }}
-                      </dd>
-                    </div>
-                    <div class="wizard-summary__row">
-                      <dt>Niveau</dt>
-                      <dd>
-                        {{
-                          formatOptionalSummaryValue(basicData.educationLevel)
-                        }}
-                      </dd>
-                    </div>
-                    <div class="wizard-summary__row">
-                      <dt>Trefwoorden</dt>
-                      <dd>
-                        {{ formatOptionalSummaryValue(basicData.keywords) }}
-                      </dd>
-                    </div>
-                  </dl>
-                </section>
-
-                <section class="wizard-summary">
-                  <h3 class="wizard-summary__heading">Gekoppelde boeken</h3>
-                  @if (selectedLinkedBooks().length > 0) {
-                    <ul class="wizard-summary__books">
-                      @for (
-                        linkedBook of selectedLinkedBooks();
-                        track linkedBook.id
-                      ) {
-                        <li>
-                          <span class="wizard-summary__book-title">{{
-                            linkedBook.title
-                          }}</span>
-                          <span class="wizard-summary__book-author">{{
-                            linkedBook.author
-                          }}</span>
-                        </li>
-                      }
-                    </ul>
-                  } @else {
-                    <p class="wizard-summary__empty">Geen boeken gekoppeld.</p>
-                  }
-                </section>
-
-                @if (!isEditMode()) {
-                  <section class="wizard-summary">
-                    <h3 class="wizard-summary__heading">
-                      Bijlagen in wachtrij
-                    </h3>
-                    @if (queuedFiles().length > 0) {
-                      <ul class="wizard-summary__files">
-                        @for (
-                          queuedFile of queuedFiles();
-                          track queuedFile.name +
-                            queuedFile.size +
-                            queuedFile.lastModified
-                        ) {
-                          <li>{{ queuedFile.name }}</li>
-                        }
-                      </ul>
-                    } @else {
-                      <p class="wizard-summary__empty">
-                        Geen bijlagen in wachtrij.
-                      </p>
-                    }
+                <div class="wizard-summary-grid">
+                  <section class="wizard-summary wizard-summary--main">
+                    <h3 class="wizard-summary__heading">Basisgegevens</h3>
+                    <dl class="wizard-summary__list">
+                      <div class="wizard-summary__row">
+                        <dt>Titel</dt>
+                        <dd>{{ basicData.title }}</dd>
+                      </div>
+                      <div class="wizard-summary__row">
+                        <dt>Categorie</dt>
+                        <dd>
+                          {{ getLessonTipTypeLabel(basicData.lessonTipType) }}
+                        </dd>
+                      </div>
+                      <div class="wizard-summary__row">
+                        <dt>Beschrijving</dt>
+                        <dd>{{ basicData.description }}</dd>
+                      </div>
+                      <div class="wizard-summary__row">
+                        <dt>Vak</dt>
+                        <dd>
+                          {{ formatOptionalSummaryValue(basicData.subject) }}
+                        </dd>
+                      </div>
+                      <div class="wizard-summary__row">
+                        <dt>Niveau</dt>
+                        <dd>
+                          {{
+                            formatOptionalSummaryValue(basicData.educationLevel)
+                          }}
+                        </dd>
+                      </div>
+                      <div class="wizard-summary__row">
+                        <dt>Trefwoorden</dt>
+                        <dd>
+                          {{ formatOptionalSummaryValue(basicData.keywords) }}
+                        </dd>
+                      </div>
+                    </dl>
                   </section>
-                }
+
+                  <div class="wizard-summary-sidebar">
+                    <section class="wizard-summary">
+                      <h3 class="wizard-summary__heading">Gekoppelde boeken</h3>
+                      @if (selectedLinkedBooks().length > 0) {
+                        <div class="linked-books-list linked-books-list--cards">
+                          @for (
+                            linkedBook of selectedLinkedBooks();
+                            track linkedBook.id
+                          ) {
+                            <article
+                              class="linked-book-card linked-book-card--summary"
+                            >
+                              <div class="linked-book-card__cover">
+                                @if (linkedBook.imageUrl) {
+                                  <img
+                                    [src]="linkedBook.imageUrl"
+                                    [alt]="linkedBook.title"
+                                    class="linked-book-card__image"
+                                  />
+                                } @else {
+                                  <div class="linked-book-card__placeholder">
+                                    <span>Geen cover</span>
+                                  </div>
+                                }
+                              </div>
+
+                              <div class="linked-book-card__content">
+                                <h3 class="linked-book-card__title">
+                                  {{ linkedBook.title }}
+                                </h3>
+                                <p class="linked-book-card__author">
+                                  {{ linkedBook.author }}
+                                </p>
+                              </div>
+                            </article>
+                          }
+                        </div>
+                      } @else {
+                        <p class="wizard-summary__empty">
+                          Geen boeken gekoppeld.
+                        </p>
+                      }
+                    </section>
+
+                    @if (isEditMode()) {
+                      <section class="wizard-summary">
+                        <h3 class="wizard-summary__heading">Bijlagen</h3>
+
+                        @if (canShowAttachmentsPanel()) {
+                          <app-lesson-tip-attachments-panel
+                            [lessonTipId]="lessonTipId()!"
+                            [canManageAttachments]="false"
+                            [compactMode]="true"
+                          ></app-lesson-tip-attachments-panel>
+                        } @else {
+                          <p class="wizard-summary__empty">
+                            De bijlagen kunnen momenteel niet geladen worden.
+                          </p>
+                        }
+                      </section>
+                    } @else {
+                      <section class="wizard-summary">
+                        <h3 class="wizard-summary__heading">
+                          Bijlagen in wachtrij
+                        </h3>
+
+                        @if (queuedFiles().length > 0) {
+                          <div class="queued-files-list">
+                            @for (
+                              queuedFile of queuedFiles();
+                              track queuedFile.name +
+                                queuedFile.size +
+                                queuedFile.lastModified
+                            ) {
+                              <div
+                                class="queued-file-item queued-file-item--summary"
+                              >
+                                <span class="queued-file-name">
+                                  {{ queuedFile.name }}
+                                </span>
+                              </div>
+                            }
+                          </div>
+                        } @else {
+                          <p class="wizard-summary__empty">
+                            Geen bijlagen in wachtrij.
+                          </p>
+                        }
+                      </section>
+                    }
+                  </div>
+                </div>
               } @else {
                 <div class="state-panel state-panel--compact">
                   <p>

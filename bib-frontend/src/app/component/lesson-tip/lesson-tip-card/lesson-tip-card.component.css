@@ -155,14 +155,6 @@
   min-width: 0;
 }
 
-.material-card__author-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: var(--sec-light-color);
-  flex-shrink: 0;
-}
-
 .material-card__author-details {
   display: flex;
   flex-direction: column;

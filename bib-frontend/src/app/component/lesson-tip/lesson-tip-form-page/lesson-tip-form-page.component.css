@@ -97,9 +97,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 32px;
-
   max-width: 1000px;
-
   margin-left: auto;
   margin-right: auto;
 }
@@ -112,9 +110,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-
   padding: 20px;
-
   border: 1px solid var(--border-color);
   border-radius: 12px;
   background: var(--bg-surface);
@@ -166,7 +162,7 @@
 }
 
 /* =========================================================
-   GESELECTEERDE BOEKEN (Mooier en Strakker)
+   GESELECTEERDE BOEKEN
    ========================================================= */
 .linked-books-box {
   margin-top: 24px;
@@ -363,7 +359,7 @@
 }
 
 /* =========================================================
-   BUTTONS (Mochten ze globaal ontbreken, vangen we ze hier op)
+   BUTTONS
    ========================================================= */
 .action-button {
   display: inline-flex;
@@ -419,6 +415,9 @@
   border-color: var(--main-color-hover);
 }
 
+/* =========================================================
+   WIZARD ALGEMEEN
+   ========================================================= */
 .wizard-step-content {
   display: flex;
   flex-direction: column;
@@ -443,11 +442,28 @@
   justify-content: space-between;
 }
 
+/* =========================================================
+   WIZARD SUMMARY (STAP 4 LAYOUT)
+   ========================================================= */
+.wizard-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.wizard-summary-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .wizard-summary {
   padding: 20px 24px;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   background: var(--bg-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); /* Samengevoegd */
 }
 
 .wizard-summary__heading {
@@ -517,15 +533,38 @@
   color: var(--text-muted);
 }
 
-@media (max-width: 768px) {
-  .wizard-summary__row {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
+/* Compacte boekweergave voor de samenvatting (zonder verwijder knop) */
+.linked-book-card--summary {
+  grid-template-columns: 48px 1fr !important; /* !important helpt hier tegen specificity issues op mobiel */
+  padding: 10px 12px;
+  background-color: var(--bg-surface);
+}
+
+.linked-book-card--summary .linked-book-card__cover {
+  width: 48px;
+  height: 72px;
+}
+
+.linked-book-card--summary .linked-book-card__title {
+  font-size: 14px;
+}
+
+.linked-book-card--summary:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border-color);
+}
+
+/* Compacte weergave voor geplande bestanden */
+.queued-file-item--summary {
+  padding: 10px 12px;
+  justify-content: flex-start;
+  box-shadow: none;
+  background: #f9f9f9;
 }
 
 /* =========================================================
-   ANIMATIONS & RESPONSIVE
+   ANIMATIONS
    ========================================================= */
 @keyframes fadeInInfo {
   from {
@@ -538,18 +577,30 @@
   }
 }
 
+/* =========================================================
+   RESPONSIVE (MEDIA QUERIES)
+   ========================================================= */
+@media (max-width: 900px) {
+  .wizard-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .layout {
     padding: 16px;
   }
+
   .form-section {
     padding: 16px;
   }
+
   .step-row,
   .step-row--wizard {
     grid-template-columns: 1fr;
   }
 
+  /* Behoudt de standaard grid layout op mobiel voor stap 2 */
   .linked-book-card {
     grid-template-columns: 56px 1fr;
   }
@@ -563,5 +614,10 @@
     flex-direction: column;
     align-items: stretch;
     text-align: center;
+  }
+
+  .wizard-summary__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
