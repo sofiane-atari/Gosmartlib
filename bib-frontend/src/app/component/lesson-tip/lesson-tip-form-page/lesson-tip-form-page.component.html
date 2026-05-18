@@ -11,199 +11,359 @@
   </div>
 
   <div class="form-section">
-    <div class="section-label">Stappenplan</div>
+    @if (isCreateWizardMode()) {
+      <div class="section-label">Stappenplan</div>
 
-    <div class="step-row">
-      <div class="step-item">
-        <span class="step-num">Stap 1</span>
-        <span class="step-title">Vul de basisgegevens in</span>
-        <span class="step-desc">
-          Geef een titel, beschrijving en categorie op.
-        </span>
+      <div class="step-row step-row--wizard">
+        @for (wizardStep of wizardSteps; track wizardStep.step) {
+          <div [class]="getStepItemClass(wizardStep.step)">
+            <span class="step-num">Stap {{ wizardStep.step }}</span>
+            <span class="step-title">{{ wizardStep.title }}</span>
+            <span class="step-desc">{{ wizardStep.description }}</span>
+          </div>
+        }
       </div>
 
-      <div class="step-item">
-        <span class="step-num">Stap 2</span>
-        <span class="step-title">Voeg lestip context toe</span>
-        <span class="step-desc"> Vul vak, niveau en trefwoorden in. </span>
-      </div>
+      <hr class="divider" />
 
-      <div class="step-item">
-        <span class="step-num">Stap 3</span>
-        <span class="step-title">
-          {{ isEditMode() ? "Werk de lestip bij" : "Sla de lestip op" }}
-        </span>
-        <span class="step-desc">
-          Controleer de gegevens en bevestig je wijzigingen.
-        </span>
-      </div>
-    </div>
+      @if (isLoading()) {
+        <div class="state-panel">
+          <p>Lestip wordt geladen...</p>
+        </div>
+      } @else {
+        @switch (currentStep()) {
+          @case (1) {
+            <div class="wizard-step-content">
+              <div class="section-label">Basisgegevens</div>
 
-    <hr class="divider" />
+              <app-lesson-tip-form
+                #lessonTipForm
+                [wizardMode]="true"
+                [showSubmitButton]="false"
+                [isSubmitting]="isSubmitting()"
+                [initialValue]="formInitialValue()"
+                (stepValidated)="handleStep1Validated($event)"
+              />
 
-    @if (isLoading()) {
-      <div class="state-panel">
-        <p>Lestip wordt geladen...</p>
-      </div>
+              <div class="wizard-actions">
+                <button
+                  type="button"
+                  class="action-button action-button--primary"
+                  (click)="requestStep1Validation(lessonTipForm)"
+                >
+                  Volgende
+                </button>
+              </div>
+            </div>
+          }
+          @case (2) {
+            <div class="wizard-step-content">
+              <div class="section-label">Gekoppelde boeken</div>
+
+              <p class="wizard-step-hint">
+                Zoek boeken op titel, auteur of ISBN. Je kan deze stap ook
+                overslaan zonder boeken te koppelen.
+              </p>
+
+              <app-lesson-tip-book-selection-panel
+                [searchQuery]="bookSearchQuery()"
+                [searchIsbn]="bookSearchIsbn()"
+                [isLoadingBooks]="isLoadingBooks()"
+                [hasBookSearchInput]="hasBookSearchInput()"
+                [filteredBooks]="filteredBooks()"
+                [selectedBooksCount]="selectedLinkedBooksCount()"
+                [selectedBookIds]="selectedLinkedBookIds()"
+                (searchQueryChanged)="handleBookSearchQueryChanged($event)"
+                (isbnSearchChanged)="handleBookSearchIsbnChanged($event)"
+                (isbnKeydown)="handleBookSearchIsbnKeydown($event)"
+                (addBookRequested)="addLinkedBook($event)"
+              ></app-lesson-tip-book-selection-panel>
+
+              @if (selectedLinkedBooks().length > 0) {
+                <div class="linked-books-box">
+                  <div class="linked-books-box__title">
+                    Geselecteerde boeken ({{ selectedLinkedBooks().length }})
+                  </div>
+
+                  <div class="linked-books-list linked-books-list--cards">
+                    @for (
+                      linkedBook of selectedLinkedBooks();
+                      track linkedBook.id
+                    ) {
+                      <article class="linked-book-card">
+                        <div class="linked-book-card__cover">
+                          @if (linkedBook.imageUrl) {
+                            <img
+                              [src]="linkedBook.imageUrl"
+                              [alt]="linkedBook.title"
+                              class="linked-book-card__image"
+                            />
+                          } @else {
+                            <div class="linked-book-card__placeholder">
+                              <span>Geen cover</span>
+                            </div>
+                          }
+                        </div>
+
+                        <div class="linked-book-card__content">
+                          <h3 class="linked-book-card__title">
+                            {{ linkedBook.title }}
+                          </h3>
+                          <p class="linked-book-card__author">
+                            {{ linkedBook.author }}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          class="action-button action-button--danger linked-book-card__remove"
+                          (click)="removeLinkedBook(linkedBook.id)"
+                        >
+                          Verwijderen
+                        </button>
+                      </article>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="state-panel state-panel--compact">
+                  <p>Er zijn nog geen boeken gekoppeld aan deze lestip.</p>
+                </div>
+              }
+
+              <div class="wizard-actions wizard-actions--split">
+                <button
+                  type="button"
+                  class="action-button action-button--secondary"
+                  (click)="goToPreviousStep()"
+                >
+                  Vorige
+                </button>
+                <button
+                  type="button"
+                  class="action-button action-button--primary"
+                  (click)="goToNextStep()"
+                >
+                  Volgende
+                </button>
+              </div>
+            </div>
+          }
+          @default {
+            <div class="wizard-step-content">
+              <div class="state-panel state-panel--compact">
+                <p>
+                  Stap {{ currentStep() }} wordt in een volgende iteratie
+                  toegevoegd.
+                </p>
+              </div>
+
+              <div class="wizard-actions wizard-actions--split">
+                <button
+                  type="button"
+                  class="action-button action-button--secondary"
+                  (click)="goToPreviousStep()"
+                >
+                  Vorige
+                </button>
+              </div>
+            </div>
+          }
+        }
+      }
     } @else {
-      <app-lesson-tip-form
-        [isSubmitting]="isSubmitting()"
-        [initialValue]="initialValue()"
-        [submitLabel]="submitLabel()"
-        (formSubmitted)="handleFormSubmitted($event)"
-      />
-    }
+      <div class="section-label">Stappenplan</div>
 
-    <hr class="divider" />
-
-    <div class="section-label">Gekoppelde boeken</div>
-
-    <app-lesson-tip-book-selection-panel
-      [searchQuery]="bookSearchQuery()"
-      [searchIsbn]="bookSearchIsbn()"
-      [isLoadingBooks]="isLoadingBooks()"
-      [hasBookSearchInput]="hasBookSearchInput()"
-      [filteredBooks]="filteredBooks()"
-      [selectedBooksCount]="selectedLinkedBooksCount()"
-      [selectedBookIds]="selectedLinkedBookIds()"
-      (searchQueryChanged)="handleBookSearchQueryChanged($event)"
-      (isbnSearchChanged)="handleBookSearchIsbnChanged($event)"
-      (isbnKeydown)="handleBookSearchIsbnKeydown($event)"
-      (addBookRequested)="addLinkedBook($event)"
-    ></app-lesson-tip-book-selection-panel>
-
-    @if (selectedLinkedBooks().length > 0) {
-      <div class="linked-books-box">
-        <div class="linked-books-box__title">
-          Geselecteerde boeken ({{ selectedLinkedBooks().length }})
+      <div class="step-row">
+        <div class="step-item">
+          <span class="step-num">Stap 1</span>
+          <span class="step-title">Vul de basisgegevens in</span>
+          <span class="step-desc">
+            Geef een titel, beschrijving en categorie op.
+          </span>
         </div>
 
-        <div class="linked-books-list linked-books-list--cards">
-          @for (linkedBook of selectedLinkedBooks(); track linkedBook.id) {
-            <article class="linked-book-card">
-              <div class="linked-book-card__cover">
-                @if (linkedBook.imageUrl) {
-                  <img
-                    [src]="linkedBook.imageUrl"
-                    [alt]="linkedBook.title"
-                    class="linked-book-card__image"
-                  />
-                } @else {
-                  <div class="linked-book-card__placeholder">
-                    <span>Geen cover</span>
+        <div class="step-item">
+          <span class="step-num">Stap 2</span>
+          <span class="step-title">Voeg lestip context toe</span>
+          <span class="step-desc"> Vul vak, niveau en trefwoorden in. </span>
+        </div>
+
+        <div class="step-item">
+          <span class="step-num">Stap 3</span>
+          <span class="step-title">Werk de lestip bij</span>
+          <span class="step-desc">
+            Controleer de gegevens en bevestig je wijzigingen.
+          </span>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      @if (isLoading()) {
+        <div class="state-panel">
+          <p>Lestip wordt geladen...</p>
+        </div>
+      } @else {
+        <app-lesson-tip-form
+          [isSubmitting]="isSubmitting()"
+          [initialValue]="initialValue()"
+          [submitLabel]="submitLabel()"
+          (formSubmitted)="handleFormSubmitted($event)"
+        />
+      }
+
+      <hr class="divider" />
+
+      <div class="section-label">Gekoppelde boeken</div>
+
+      <app-lesson-tip-book-selection-panel
+        [searchQuery]="bookSearchQuery()"
+        [searchIsbn]="bookSearchIsbn()"
+        [isLoadingBooks]="isLoadingBooks()"
+        [hasBookSearchInput]="hasBookSearchInput()"
+        [filteredBooks]="filteredBooks()"
+        [selectedBooksCount]="selectedLinkedBooksCount()"
+        [selectedBookIds]="selectedLinkedBookIds()"
+        (searchQueryChanged)="handleBookSearchQueryChanged($event)"
+        (isbnSearchChanged)="handleBookSearchIsbnChanged($event)"
+        (isbnKeydown)="handleBookSearchIsbnKeydown($event)"
+        (addBookRequested)="addLinkedBook($event)"
+      ></app-lesson-tip-book-selection-panel>
+
+      @if (selectedLinkedBooks().length > 0) {
+        <div class="linked-books-box">
+          <div class="linked-books-box__title">
+            Geselecteerde boeken ({{ selectedLinkedBooks().length }})
+          </div>
+
+          <div class="linked-books-list linked-books-list--cards">
+            @for (linkedBook of selectedLinkedBooks(); track linkedBook.id) {
+              <article class="linked-book-card">
+                <div class="linked-book-card__cover">
+                  @if (linkedBook.imageUrl) {
+                    <img
+                      [src]="linkedBook.imageUrl"
+                      [alt]="linkedBook.title"
+                      class="linked-book-card__image"
+                    />
+                  } @else {
+                    <div class="linked-book-card__placeholder">
+                      <span>Geen cover</span>
+                    </div>
+                  }
+                </div>
+
+                <div class="linked-book-card__content">
+                  <h3 class="linked-book-card__title">{{ linkedBook.title }}</h3>
+                  <p class="linked-book-card__author">{{ linkedBook.author }}</p>
+                </div>
+
+                <button
+                  type="button"
+                  class="action-button action-button--danger linked-book-card__remove"
+                  (click)="removeLinkedBook(linkedBook.id)"
+                >
+                  Verwijderen
+                </button>
+              </article>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="state-panel state-panel--compact">
+          <p>Er zijn nog geen boeken gekoppeld aan deze lestip.</p>
+        </div>
+      }
+
+      <hr class="divider" />
+
+      <div class="section-label">Bijlagen</div>
+
+      @if (canShowAttachmentsPanel()) {
+        <app-lesson-tip-attachments-panel
+          [lessonTipId]="lessonTipId()!"
+          [canManageAttachments]="true"
+        ></app-lesson-tip-attachments-panel>
+      } @else {
+        <div class="attachment-prep-section">
+          <app-file-upload
+            [selectedFile]="selectedAttachmentFile()"
+            [accept]="'.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx'"
+            [subLabel]="'PDF, Word, PowerPoint en Excel bestanden'"
+            [maxSizeMB]="20"
+            [disabled]="isUploadingQueuedFiles()"
+            [showProgress]="false"
+            (fileChanged)="handleAttachmentFileChange($event)"
+          ></app-file-upload>
+
+          <div class="form-actions attachment-prep-actions">
+            <button
+              type="button"
+              class="action-button action-button--secondary"
+              [disabled]="!selectedAttachmentFile() || isUploadingQueuedFiles()"
+              (click)="addAttachmentToQueue()"
+            >
+              Aan wachtrij toevoegen
+            </button>
+          </div>
+
+          @if (queuedFiles().length > 0) {
+            <div class="queued-files-box">
+              <div class="queued-files-title">Bestanden in wachtrij</div>
+
+              <div class="queued-files-list">
+                @for (
+                  queuedFile of queuedFiles();
+                  track queuedFile.name + queuedFile.lastModified;
+                  let index = $index
+                ) {
+                  <div class="queued-file-item">
+                    <span class="queued-file-name">{{ queuedFile.name }}</span>
+
+                    <button
+                      type="button"
+                      class="action-button action-button--danger"
+                      [disabled]="isUploadingQueuedFiles()"
+                      (click)="removeQueuedFile(index)"
+                    >
+                      Verwijderen
+                    </button>
                   </div>
                 }
               </div>
+            </div>
+          }
 
-              <div class="linked-book-card__content">
-                <h3 class="linked-book-card__title">{{ linkedBook.title }}</h3>
-                <p class="linked-book-card__author">{{ linkedBook.author }}</p>
+          @if (isUploadingQueuedFiles()) {
+            <div class="progress-wrap">
+              <div class="progress-header">
+                <span>
+                  Bijlage uploaden:
+                  <strong>{{ currentUploadingFileName() }}</strong>
+                </span>
+                <span class="progress-percentage">
+                  {{ queuedUploadProgress() ?? 0 }}%
+                </span>
               </div>
 
-              <button
-                type="button"
-                class="action-button action-button--danger linked-book-card__remove"
-                (click)="removeLinkedBook(linkedBook.id)"
-              >
-                Verwijderen
-              </button>
-            </article>
+              <div class="progress-track">
+                <div
+                  class="progress-bar"
+                  [style.width.%]="queuedUploadProgress() ?? 0"
+                ></div>
+              </div>
+            </div>
+          } @else {
+            <div class="state-panel state-panel--compact">
+              <p>
+                Sla de lestip eerst op. Daarna verschijnen de opgeslagen bijlagen
+                hieronder in het overzicht.
+              </p>
+            </div>
           }
         </div>
-      </div>
-    } @else {
-      <div class="state-panel state-panel--compact">
-        <p>Er zijn nog geen boeken gekoppeld aan deze lestip.</p>
-      </div>
-    }
-
-    <hr class="divider" />
-
-    <div class="section-label">Bijlagen</div>
-
-    @if (canShowAttachmentsPanel()) {
-      <app-lesson-tip-attachments-panel
-        [lessonTipId]="lessonTipId()!"
-        [canManageAttachments]="true"
-      ></app-lesson-tip-attachments-panel>
-    } @else {
-      <div class="attachment-prep-section">
-        <app-file-upload
-          [selectedFile]="selectedAttachmentFile()"
-          [accept]="'.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx'"
-          [subLabel]="'PDF, Word, PowerPoint en Excel bestanden'"
-          [maxSizeMB]="20"
-          [disabled]="isUploadingQueuedFiles()"
-          [showProgress]="false"
-          (fileChanged)="handleAttachmentFileChange($event)"
-        ></app-file-upload>
-
-        <div class="form-actions attachment-prep-actions">
-          <button
-            type="button"
-            class="action-button action-button--secondary"
-            [disabled]="!selectedAttachmentFile() || isUploadingQueuedFiles()"
-            (click)="addAttachmentToQueue()"
-          >
-            Aan wachtrij toevoegen
-          </button>
-        </div>
-
-        @if (queuedFiles().length > 0) {
-          <div class="queued-files-box">
-            <div class="queued-files-title">Bestanden in wachtrij</div>
-
-            <div class="queued-files-list">
-              @for (
-                queuedFile of queuedFiles();
-                track queuedFile.name + queuedFile.lastModified;
-                let index = $index
-              ) {
-                <div class="queued-file-item">
-                  <span class="queued-file-name">{{ queuedFile.name }}</span>
-
-                  <button
-                    type="button"
-                    class="action-button action-button--danger"
-                    [disabled]="isUploadingQueuedFiles()"
-                    (click)="removeQueuedFile(index)"
-                  >
-                    Verwijderen
-                  </button>
-                </div>
-              }
-            </div>
-          </div>
-        }
-
-        @if (isUploadingQueuedFiles()) {
-          <div class="progress-wrap">
-            <div class="progress-header">
-              <span>
-                Bijlage uploaden:
-                <strong>{{ currentUploadingFileName() }}</strong>
-              </span>
-              <span class="progress-percentage">
-                {{ queuedUploadProgress() ?? 0 }}%
-              </span>
-            </div>
-
-            <div class="progress-track">
-              <div
-                class="progress-bar"
-                [style.width.%]="queuedUploadProgress() ?? 0"
-              ></div>
-            </div>
-          </div>
-        } @else {
-          <div class="state-panel state-panel--compact">
-            <p>
-              Sla de lestip eerst op. Daarna verschijnen de opgeslagen bijlagen
-              hieronder in het overzicht.
-            </p>
-          </div>
-        }
-      </div>
+      }
     }
   </div>
 </div>

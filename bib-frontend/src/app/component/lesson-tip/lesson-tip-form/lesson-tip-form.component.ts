@@ -17,7 +17,10 @@ export class LessonTipFormComponent {
   public readonly isSubmitting = input<boolean>(false);
   public readonly initialValue = input<CreateLessonTipRequest | null>(null);
   public readonly submitLabel = input<string>('Lestip opslaan');
+  public readonly wizardMode = input<boolean>(false);
+  public readonly showSubmitButton = input<boolean>(true);
   public readonly formSubmitted = output<CreateLessonTipRequest>();
+  public readonly stepValidated = output<CreateLessonTipRequest>();
 
   protected readonly title = signal('');
   protected readonly description = signal('');
@@ -66,17 +69,32 @@ export class LessonTipFormComponent {
   }
 
   public submitForm(): void {
+    const request = this.buildValidatedRequest();
+
+    if (request === null) {
+      return;
+    }
+
+    if (this.wizardMode()) {
+      this.stepValidated.emit(request);
+      return;
+    }
+
+    this.formSubmitted.emit(request);
+  }
+
+  private buildValidatedRequest(): CreateLessonTipRequest | null {
     const trimmedTitle = this.title().trim();
     const trimmedDescription = this.description().trim();
 
     if (!trimmedTitle || !trimmedDescription) {
       this.validationMessage.set('Titel en beschrijving zijn verplicht.');
-      return;
+      return null;
     }
 
     this.validationMessage.set(null);
 
-    this.formSubmitted.emit({
+    return {
       title: trimmedTitle,
       description: trimmedDescription,
       lessonTipType: this.lessonTipType(),
@@ -84,7 +102,7 @@ export class LessonTipFormComponent {
       educationLevel: this.normalizeOptionalValue(this.educationLevel()),
       keywords: this.normalizeOptionalValue(this.keywords()),
       linkedBookIds: this.linkedBookIds(),
-    });
+    };
   }
 
   private resetForm(): void {

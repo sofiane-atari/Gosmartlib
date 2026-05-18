@@ -17,6 +17,10 @@ import {
   CreateLessonTipRequest,
   LessonTip,
 } from '../../../model/lesson-tip/lesson-tip.model';
+import {
+  LESSON_TIP_CREATE_WIZARD_STEPS,
+  LessonTipWizardStep,
+} from '../../../model/lesson-tip/lesson-tip-wizard.model';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 
 @Component({
@@ -62,6 +66,24 @@ export class LessonTipFormPageComponent {
 
   protected readonly isEditMode = computed(() => this.lessonTipId() !== null);
 
+  protected readonly isCreateWizardMode = computed(() => !this.isEditMode());
+
+  protected readonly currentStep = signal<LessonTipWizardStep>(1);
+
+  protected readonly draftBasicData = signal<CreateLessonTipRequest | null>(
+    null,
+  );
+
+  protected readonly wizardSteps = LESSON_TIP_CREATE_WIZARD_STEPS;
+
+  protected readonly formInitialValue = computed(() => {
+    if (!this.isCreateWizardMode()) {
+      return this.initialValue();
+    }
+
+    return this.draftBasicData() ?? this.initialValue();
+  });
+
   protected readonly selectedLinkedBooks =
     this.lessonTipBookSelectionService.selectedLinkedBooks;
 
@@ -101,11 +123,13 @@ export class LessonTipFormPageComponent {
     this.isEditMode() ? 'Lestip bewerken' : 'Lestip toevoegen',
   );
 
-  protected readonly pageDescription = computed(() =>
-    this.isEditMode()
-      ? 'Werk de basisgegevens van de Lestip bij.'
-      : 'Voeg de basisgegevens van de Lestip toe.',
-  );
+  protected readonly pageDescription = computed(() => {
+    if (this.isEditMode()) {
+      return 'Werk de basisgegevens van de lestip bij.';
+    }
+
+    return 'Doorloop de stappen om een nieuwe lestip aan te maken.';
+  });
 
   protected readonly submitLabel = computed(() =>
     this.isEditMode() ? 'Lestip bijwerken' : 'Lestip opslaan',
@@ -127,6 +151,53 @@ export class LessonTipFormPageComponent {
 
     this.lessonTipId.set(lessonTipId);
     this.loadLessonTipForEdit(lessonTipId);
+  }
+
+  protected getStepItemClass(step: LessonTipWizardStep): string {
+    const activeStep = this.currentStep();
+
+    if (step < activeStep) {
+      return 'step-item step-item--completed';
+    }
+
+    if (step === activeStep) {
+      return 'step-item step-item--active';
+    }
+
+    return 'step-item step-item--upcoming';
+  }
+
+  public handleStep1Validated(request: CreateLessonTipRequest): void {
+    this.draftBasicData.set({
+      ...request,
+      linkedBookIds: [],
+    });
+    this.currentStep.set(2);
+  }
+
+  public goToPreviousStep(): void {
+    const currentStep = this.currentStep();
+
+    if (currentStep <= 1) {
+      return;
+    }
+
+    this.currentStep.set((currentStep - 1) as LessonTipWizardStep);
+  }
+
+  public goToNextStep(): void {
+    const currentStep = this.currentStep();
+    const maxStep = LESSON_TIP_CREATE_WIZARD_STEPS.length;
+
+    if (currentStep >= maxStep) {
+      return;
+    }
+
+    this.currentStep.set((currentStep + 1) as LessonTipWizardStep);
+  }
+
+  public requestStep1Validation(lessonTipForm: LessonTipFormComponent): void {
+    lessonTipForm.submitForm();
   }
 
   public handleFormSubmitted(request: CreateLessonTipRequest): void {
