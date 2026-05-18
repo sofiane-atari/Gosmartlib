@@ -2,11 +2,16 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.CampusDTO;
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
 import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,13 +23,19 @@ public class SchoolService {
 
     private final SchoolRepository schoolRepository;
     private final BookCopyRepository bookCopyRepository;
+    private final OneRosterCredentialRepository credentialRepository;
+    private final OneRosterClient oneRosterClient;
 
     public SchoolService(
             SchoolRepository schoolRepository,
-            BookCopyRepository bookCopyRepository
+            BookCopyRepository bookCopyRepository,
+            OneRosterCredentialRepository credentialRepository,
+            OneRosterClient oneRosterClient
     ) {
         this.schoolRepository = schoolRepository;
         this.bookCopyRepository = bookCopyRepository;
+        this.credentialRepository = credentialRepository;
+        this.oneRosterClient = oneRosterClient;
     }
 
     public List<SchoolDTO> getAll() {
@@ -34,17 +45,40 @@ public class SchoolService {
                 .toList();
     }
 
+    @Transactional
     public SchoolDTO create(SchoolDTO dto) {
-        School school = new School();
+        OneRosterCredentialDTO credentialDto = dto.onerosterCredential();
+        if (credentialDto == null) {
+            throw new IllegalArgumentException("OneRoster credentials zijn verplicht bij het aanmaken van een school.");
+        }
 
+        String clientId = trimOrNull(credentialDto.clientId());
+        String clientSecret = trimOrNull(credentialDto.clientSecret());
+
+        if (clientId == null || clientId.isBlank() || clientSecret == null || clientSecret.isBlank()) {
+            throw new IllegalArgumentException("OneRoster client ID en client secret zijn verplicht.");
+        }
+
+        oneRosterClient.validateCredentials(clientId, clientSecret, dto.domainName());
+
+        School school = new School();
         school.setDomainName(normalizeDomainName(dto.domainName()));
         school.setName(trimOrNull(dto.name()));
         school.setDefaultLoanDurationDays(dto.defaultLoanDurationDays() != null ? dto.defaultLoanDurationDays() : 15);
         school.setCampuses(createCampuses(dto.campuses(), school));
 
-        return toDto(schoolRepository.save(school));
+        School savedSchool = schoolRepository.save(school);
+
+        OneRosterCredential credential = new OneRosterCredential();
+        credential.setSchool(savedSchool);
+        credential.setClientId(clientId);
+        credential.setClientSecret(clientSecret);
+        credentialRepository.save(credential);
+
+        return toDto(savedSchool);
     }
 
+    @Transactional
     public SchoolDTO update(Long id, SchoolDTO dto) {
         School school = schoolRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
@@ -53,6 +87,22 @@ public class SchoolService {
         school.setName(trimOrNull(dto.name()));
         if (dto.defaultLoanDurationDays() != null) {
             school.setDefaultLoanDurationDays(dto.defaultLoanDurationDays());
+        }
+
+        if (dto.onerosterCredential() != null) {
+            String clientId = trimOrNull(dto.onerosterCredential().clientId());
+            String clientSecret = trimOrNull(dto.onerosterCredential().clientSecret());
+
+            if (clientId != null && !clientId.isBlank() && clientSecret != null && !clientSecret.isBlank()) {
+                oneRosterClient.validateCredentials(clientId, clientSecret, dto.domainName());
+
+                OneRosterCredential credential = credentialRepository.findBySchoolId(school.getId())
+                        .orElseGet(OneRosterCredential::new);
+                credential.setSchool(school);
+                credential.setClientId(clientId);
+                credential.setClientSecret(clientSecret);
+                credentialRepository.save(credential);
+            }
         }
 
         return toDto(schoolRepository.save(school));
@@ -87,7 +137,8 @@ public class SchoolService {
                 school.getCampuses().stream()
                         .map(this::toCampusDto)
                         .toList(),
-                school.getCreatedAt());
+                school.getCreatedAt(),
+                null);
     }
 
     private List<Campus> createCampuses(List<CampusDTO> campusDtos, School school) {
