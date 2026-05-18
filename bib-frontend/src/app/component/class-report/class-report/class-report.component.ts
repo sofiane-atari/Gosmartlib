@@ -19,6 +19,7 @@ import {
   Star,
   UserRound,
   ArrowLeft,
+  ChevronDown,
 } from 'lucide-angular';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { ToastService } from '../../../services/toast/toast.service';
@@ -49,6 +50,9 @@ export class ClassReportComponent implements OnInit {
   currentStudentPage = 0;
   studentPageSize = 5;
 
+  isClassDropdownOpen = false;
+
+
   readonly icons = {
     library: LibraryBig,
     users: Users,
@@ -57,6 +61,7 @@ export class ClassReportComponent implements OnInit {
     star: Star,
     user: UserRound,
     arrowLeft: ArrowLeft,
+    chevronDown: ChevronDown,
   };
 
   constructor(
@@ -213,5 +218,26 @@ export class ClassReportComponent implements OnInit {
 
   goBackToReports(): void {
     this.router.navigate(['/reports']);
+  }
+
+  toggleClassDropdown(): void {
+    if (this.loadingClasses || this.classOptions.length === 0) {
+      return;
+    }
+
+    this.isClassDropdownOpen = !this.isClassDropdownOpen;
+  }
+
+  selectClass(classSourcedId: string): void {
+    this.isClassDropdownOpen = false;
+    this.onClassChange(classSourcedId);
+  }
+
+  getSelectedClassTitle(): string {
+    const selectedClass = this.classOptions.find(
+      classOption => classOption.sourcedId === this.selectedClassSourcedId
+    );
+
+    return selectedClass?.title ?? 'Kies een klas';
   }
 }

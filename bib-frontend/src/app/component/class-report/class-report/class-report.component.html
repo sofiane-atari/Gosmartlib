@@ -13,30 +13,52 @@
   </div>
 
   <section class="class-picker">
-    <label>
-      <select
-        [value]="selectedClassSourcedId"
+    <div class="class-dropdown">
+      <span class="class-dropdown__label">Klas</span>
+
+      <button
+        type="button"
+        class="class-dropdown__trigger"
+        [class.class-dropdown__trigger--open]="isClassDropdownOpen"
         [disabled]="loadingClasses || classOptions.length === 0"
-        (change)="onClassChange($any($event.target).value)"
+        (click)="toggleClassDropdown()"
       >
-        @for (classOption of classOptions; track classOption.sourcedId) {
-          <option [value]="classOption.sourcedId">
-            {{ classOption.title }}
-          </option>
-        }
-      </select>
-    </label>
+        <span>
+          {{ getSelectedClassTitle() }}
+        </span>
+
+        <span class="class-dropdown__chevron">
+          <lucide-icon [img]="icons.chevronDown"></lucide-icon>
+        </span>
+      </button>
+
+      @if (isClassDropdownOpen) {
+        <div class="class-dropdown__menu">
+          @for (classOption of classOptions; track classOption.sourcedId) {
+            <button
+              type="button"
+              class="class-dropdown__option"
+              [class.class-dropdown__option--selected]="classOption.sourcedId === selectedClassSourcedId"
+              (click)="selectClass(classOption.sourcedId)"
+            >
+              <span class="class-dropdown__option-main">
+                {{ classOption.title }}
+              </span>
+            </button> 
+          }
+        </div>
+      }
+    </div>
   </section>
 </div>
     @if (loading) {
-    <article class="report-card report-card--skeleton">
+    <article class="report-card report-card--skeleton"> 
         <div class="report-card__header">
         <div>
             <span class="skeleton-block skeleton-label"></span>
             <span class="skeleton-block skeleton-title"></span>
             <span class="skeleton-block skeleton-text skeleton-text--wide"></span>
         </div>
-
         <span class="skeleton-block skeleton-count-badge"></span>
         </div>
 
