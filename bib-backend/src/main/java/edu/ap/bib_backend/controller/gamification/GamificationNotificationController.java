@@ -21,26 +21,22 @@ public class GamificationNotificationController {
 
     public GamificationNotificationController(
             GamificationNotificationService gamificationNotificationService,
-            GamificationNotificationSseService gamificationNotificationSseService
-    ) {
+            GamificationNotificationSseService gamificationNotificationSseService) {
         this.gamificationNotificationService = gamificationNotificationService;
         this.gamificationNotificationSseService = gamificationNotificationSseService;
     }
 
     @GetMapping("/unread")
     public ResponseEntity<List<GamificationNotificationDTO>> getUnreadNotifications(
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(
-                gamificationNotificationService.getUnreadNotifications(authentication)
-        );
+                gamificationNotificationService.getUnreadNotifications(authentication));
     }
 
     @PatchMapping("/{notificationId}/read")
     public ResponseEntity<Void> markAsRead(
             Authentication authentication,
-            @PathVariable Long notificationId
-    ) {
+            @PathVariable Long notificationId) {
         gamificationNotificationService.markAsRead(authentication, notificationId);
 
         return ResponseEntity.noContent().build();
@@ -48,8 +44,10 @@ public class GamificationNotificationController {
 
     @GetMapping("/stream")
     public SseEmitter streamNotifications(Authentication authentication) {
-        String currentUserId = gamificationNotificationService.getCurrentUserId(authentication);
+        return null;
+        // String currentUserId =
+        // gamificationNotificationService.getCurrentUserId(authentication);
 
-        return gamificationNotificationSseService.subscribe(currentUserId);
+        // return gamificationNotificationSseService.subscribe(currentUserId);
     }
 }

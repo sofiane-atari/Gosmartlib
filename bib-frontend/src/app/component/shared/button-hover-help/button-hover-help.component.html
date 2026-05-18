@@ -2,8 +2,14 @@
   <ng-content></ng-content>
 
   @if (userSettingsService.hoverHelpEnabled$ | async) {
-    <span class="button-hover-help__text">
+    <span
+      #tooltipEl
+      class="button-hover-help__text"
+      [class.visible]="isVisible"
+      [ngStyle]="tooltipStyle"
+    >
       {{ text }}
+      <span class="button-hover-help__arrow" [ngStyle]="arrowStyle"></span>
     </span>
   }
 </span>

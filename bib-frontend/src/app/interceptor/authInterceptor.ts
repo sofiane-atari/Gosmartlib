@@ -1,6 +1,15 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject, Injector } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
+import { AuthService } from '../services/authorization/auth.service';
+
+const REDIRECT_PATHS = ['/login', '/unauthorized'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
+  const injector = inject(Injector);
+
   const token = localStorage.getItem('authToken');
   const expiry = localStorage.getItem('authTokenExpiry');
 
@@ -11,8 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isExpired = Date.now() > Number(expiry);
 
   if (isExpired) {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authTokenExpiry');
+    injector.get(AuthService).clearToken();
     return next(req);
   }
 
@@ -22,5 +30,23 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     },
   });
 
-  return next(authReq);
+  return next(authReq).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (REDIRECT_PATHS.includes(router.url)) {
+        return throwError(() => error);
+      }
+
+      const code = error.error?.code;
+
+      if (error.status === 401 && code === 'TOKEN_INVALID') {
+        injector.get(AuthService).logout();
+      }
+
+      if (error.status === 403 && code === 'FORBIDDEN') {
+        router.navigate(['/unauthorized']);
+      }
+
+      return throwError(() => error);
+    }),
+  );
 };

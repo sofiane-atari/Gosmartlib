@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
@@ -12,9 +14,13 @@ import org.springframework.util.StringUtils;
 import jakarta.transaction.Transactional;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.TeacherStatsDTO;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
@@ -74,6 +80,110 @@ public class UserService {
                 .filter(Objects::nonNull)
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
+    }
+
+    public TeacherStatsDTO getTeacherStats(Authentication authentication) {
+        String userId = currentUserService.extractCurrentUserId(authentication);
+
+        boolean isLibrarian = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isLibrarian && !isAdmin) {
+            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
+        }
+
+        School school = getCurrentUserSchool(userId);
+        String schoolCode = school.getDomainName();
+        String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
+        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
+
+        Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(school.getId()).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
+
+        List<AuthUserDto> allUsers = rosterUsers.stream()
+                .map(user -> toAuthUserDto(user, school))
+                .filter(Objects::nonNull)
+                .filter(dto -> dto.role() == Role.TEACHER)
+                .toList();
+
+        int totalTeachers = allUsers.size();
+
+        int librarians = (int) allUsers.stream()
+                .filter(dto -> {
+                    Role localRole = localRolesByUserId.get(dto.id());
+                    return localRole == Role.LIBRARIAN;
+                })
+                .count();
+
+        int activeTeachers = totalTeachers - librarians;
+
+        return new TeacherStatsDTO(totalTeachers, activeTeachers, librarians);
+    }
+
+    public PageDTO<AuthUserDto> getTeachers(Authentication authentication,
+            boolean excludeLibrarians, boolean excludeAdmins,
+            int page, int pageSize, String search) {
+        String userId = currentUserService.extractCurrentUserId(authentication);
+
+        boolean isLibrarian = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isLibrarian && !isAdmin) {
+            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
+        }
+
+        School school = getCurrentUserSchool(userId);
+        String schoolCode = school.getDomainName();
+        String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
+        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
+
+        Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(school.getId()).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
+
+        List<AuthUserDto> allUsers = rosterUsers.stream()
+                .map(user -> toAuthUserDto(user, school))
+                .filter(Objects::nonNull)
+                .filter(dto -> dto.role() == Role.TEACHER)
+                .map(dto -> {
+                    Role actualRole = localRolesByUserId.get(dto.id());
+                    if (actualRole != null) {
+                        return new AuthUserDto(
+                                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                                actualRole, dto.email(),
+                                dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
+                                dto.parentGroupNames(), dto.reviewBlocked(),
+                                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                                dto.school());
+                    }
+                    return dto;
+                })
+                .filter(dto -> !excludeLibrarians || dto.role() != Role.LIBRARIAN)
+                .filter(dto -> !excludeAdmins || dto.role() != Role.ADMIN)
+                .toList();
+
+        List<AuthUserDto> filtered = allUsers;
+        if (StringUtils.hasText(search)) {
+            String query = search.trim().toLowerCase();
+            filtered = allUsers.stream()
+                    .filter(dto -> (dto.fullName() != null && dto.fullName().toLowerCase().contains(query))
+                            || (dto.firstName() != null && dto.firstName().toLowerCase().contains(query))
+                            || (dto.lastName() != null && dto.lastName().toLowerCase().contains(query))
+                            || (dto.email() != null && dto.email().toLowerCase().contains(query)))
+                    .toList();
+        }
+
+        int totalItems = filtered.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        int fromIndex = page * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+
+        List<AuthUserDto> pageData = fromIndex >= totalItems ? List.of() : filtered.subList(fromIndex, toIndex);
+
+        return new PageDTO<>(pageData, new PaginatedMeta(page, pageSize, totalItems, totalPages));
     }
 
     public User createUser(String userId, RoleEntity role, School school, Campus campus) {
@@ -188,6 +298,7 @@ public class UserService {
         }
 
         String email = firstNonBlank(rosterUser, "email", "emailAddress", "mail");
+        Role role = mapOneRosterRole(firstNonBlank(rosterUser, "role"));
 
         SchoolSummaryDto schoolSummary = ctxSchool.getSchoolSummaryDto();
 
@@ -196,7 +307,7 @@ public class UserService {
                 firstName,
                 lastName,
                 fullName,
-                null,
+                role,
                 email,
                 null,
                 null,
@@ -208,6 +319,20 @@ public class UserService {
                 null,
                 null,
                 schoolSummary);
+    }
+
+    private Role mapOneRosterRole(String roleStr) {
+        if (roleStr == null) {
+            return null;
+        }
+
+        return switch (roleStr.toLowerCase()) {
+            case "teacher", "leerkracht" -> Role.TEACHER;
+            case "student", "leerling" -> Role.STUDENT;
+            case "administrator", "admin", "directie" -> Role.ADMIN;
+            case "librarian", "bibliothecaris" -> Role.LIBRARIAN;
+            default -> null;
+        };
     }
 
     private boolean matchesOptions(AuthUserDto dto, UserGetOptions options) {
@@ -271,3 +396,5 @@ public class UserService {
         return null;
     }
 }
+
+
