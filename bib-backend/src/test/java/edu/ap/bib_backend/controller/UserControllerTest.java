@@ -1,6 +1,9 @@
 package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.PaginatedMeta;
+import edu.ap.bib_backend.dto.TeacherStatsDTO;
 import edu.ap.bib_backend.dto.UserReviewAccessUpdateDto;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
@@ -12,12 +15,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -53,9 +58,11 @@ class UserControllerTest {
         // Arrange
         when(userService.getUsers(any())).thenReturn(Collections.emptyList());
 
-        // Act & Assert
-        mockMvc.perform(get("/users"))
-                .andExpect(status().isOk())
+        // Act
+        var result = mockMvc.perform(get("/users"));
+
+        // Assert
+        result.andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
@@ -64,9 +71,11 @@ class UserControllerTest {
         // Arrange
         when(tokenStorageService.hasValidSmartschoolRefreshToken("user123")).thenReturn(true);
 
-        // Act & Assert
-        mockMvc.perform(get("/users/has-refresh-token").param("userId", "user123"))
-                .andExpect(status().isOk())
+        // Act
+        var result = mockMvc.perform(get("/users/has-refresh-token").param("userId", "user123"));
+
+        // Assert
+        result.andExpect(status().isOk())
                 .andExpect(content().string("true"));
     }
 
@@ -74,18 +83,59 @@ class UserControllerTest {
     @WithMockUser(roles = "LIBRARIAN")
     void Given_Moderator_When_UpdateReviewAccess_Then_ReturnsUpdatedUser() throws Exception {
         // Arrange
-        UserReviewAccessUpdateDto payload = new UserReviewAccessUpdateDto(true);
         AuthUserDto updatedUser = AuthUserDto.builder().id("user123").reviewBlocked(true).build();
         
         when(currentUserService.isModerator(any())).thenReturn(true);
         when(userService.setReviewBlocked(eq("user123"), eq(true))).thenReturn(updatedUser);
 
-        // Act & Assert
-        mockMvc.perform(patch("/users/user123/review-access")
+        // Act
+        var result = mockMvc.perform(patch("/users/user123/review-access")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"blocked\": true}"))
-                .andExpect(status().isOk())
+                        .content("{\"blocked\": true}"));
+
+        // Assert
+        result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.reviewBlocked").value(true));
+    }
+
+    @Test
+    void Given_Authentication_When_GetTeacherStats_Then_ReturnsStats() throws Exception {
+        // Arrange
+        when(userService.getTeacherStats(any(Authentication.class)))
+                .thenReturn(new TeacherStatsDTO(5, 4, 1));
+
+        // Act
+        var result = mockMvc.perform(get("/users/teachers/stats")
+                .principal(new UsernamePasswordAuthenticationToken("user", null)));
+
+        // Assert
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalTeachers").value(5))
+                .andExpect(jsonPath("$.activeTeachers").value(4))
+                .andExpect(jsonPath("$.librarians").value(1));
+    }
+
+    @Test
+    void Given_QueryParams_When_GetTeachers_Then_ReturnsPaginatedTeachers() throws Exception {
+        // Arrange
+        AuthUserDto teacher = AuthUserDto.builder().id("t1").fullName("Alice").build();
+        PageDTO<AuthUserDto> page = new PageDTO<>(List.of(teacher), new PaginatedMeta(0, 20, 1, 1));
+        when(userService.getTeachers(any(Authentication.class), eq(true), eq(true), eq(0), eq(20), eq("alice")))
+                .thenReturn(page);
+
+        // Act
+        var result = mockMvc.perform(get("/users/teachers")
+                .param("excludeLibrarians", "true")
+                .param("excludeAdmins", "true")
+                .param("page", "0")
+                .param("pageSize", "20")
+                .param("search", "alice")
+                .principal(new UsernamePasswordAuthenticationToken("user", null)));
+
+        // Assert
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].id").value("t1"))
+                .andExpect(jsonPath("$.meta.totalItems").value(1));
     }
 }

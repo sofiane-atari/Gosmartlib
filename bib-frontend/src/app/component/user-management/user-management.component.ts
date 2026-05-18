@@ -67,7 +67,7 @@ export class UserManagementComponent {
   private readonly toastService = inject(ToastService);
 
   protected readonly page = signal(0);
-  protected readonly pageSize = signal(10);
+  protected readonly pageSize = signal(20);
   private readonly refreshTrigger = signal(0);
   private readonly searchSubject = new Subject<string>();
   protected readonly searchQuery = signal('');
