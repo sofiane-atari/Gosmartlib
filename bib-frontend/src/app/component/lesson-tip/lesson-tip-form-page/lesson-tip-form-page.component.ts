@@ -22,6 +22,7 @@ import {
 import { LessonTipAttachmentsQueueComponent } from '../lesson-tip-attachments-queue/lesson-tip-attachments-queue.component';
 import {
   LESSON_TIP_CREATE_WIZARD_STEPS,
+  LESSON_TIP_EDIT_WIZARD_STEPS,
   LessonTipWizardStep,
 } from '../../../model/lesson-tip/lesson-tip-wizard.model';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
@@ -72,22 +73,33 @@ export class LessonTipFormPageComponent {
 
   private readonly isCreateWizardFlow = signal(false);
 
-  protected readonly isCreateWizardMode = computed(() => this.isCreateWizardFlow());
+  protected readonly isCreateWizardMode = computed(() =>
+    this.isCreateWizardFlow(),
+  );
 
+  protected readonly isWizardMode = computed(
+    () => this.isCreateWizardMode() || this.isEditMode(),
+  );
   protected readonly currentStep = signal<LessonTipWizardStep>(1);
 
   protected readonly draftBasicData = signal<CreateLessonTipRequest | null>(
     null,
   );
 
-  protected readonly wizardSteps = LESSON_TIP_CREATE_WIZARD_STEPS;
+  protected readonly wizardSteps = computed(() =>
+    this.isEditMode()
+      ? LESSON_TIP_EDIT_WIZARD_STEPS
+      : LESSON_TIP_CREATE_WIZARD_STEPS,
+  );
 
   protected readonly formInitialValue = computed(() => {
-    if (!this.isCreateWizardMode()) {
-      return this.initialValue();
+    const draftBasicData = this.draftBasicData();
+
+    if (draftBasicData !== null) {
+      return draftBasicData;
     }
 
-    return this.draftBasicData() ?? this.initialValue();
+    return this.initialValue();
   });
 
   protected readonly selectedLinkedBooks =
@@ -184,9 +196,10 @@ export class LessonTipFormPageComponent {
   public handleStep1Validated(request: CreateLessonTipRequest): void {
     this.draftBasicData.set({
       ...request,
-      linkedBookIds: [],
+      linkedBookIds: this.selectedLinkedBookIds(),
     });
-    this.currentStep.set(2);
+
+    this.goToNextStep();
   }
 
   public goToPreviousStep(): void {
@@ -201,7 +214,7 @@ export class LessonTipFormPageComponent {
 
   public goToNextStep(): void {
     const currentStep = this.currentStep();
-    const maxStep = LESSON_TIP_CREATE_WIZARD_STEPS.length;
+    const maxStep = this.wizardSteps().length;
 
     if (currentStep >= maxStep) {
       return;
@@ -219,7 +232,7 @@ export class LessonTipFormPageComponent {
   }
 
   public saveLessonTipFromWizard(): void {
-    const request = this.buildWizardCreateRequest();
+    const request = this.buildWizardRequest();
 
     if (request === null) {
       this.toastService.show(
@@ -231,6 +244,12 @@ export class LessonTipFormPageComponent {
     }
 
     this.isSubmitting.set(true);
+
+    if (this.isEditMode()) {
+      this.updateLessonTip(request);
+      return;
+    }
+
     this.createLessonTip(request);
   }
 
@@ -242,7 +261,7 @@ export class LessonTipFormPageComponent {
     return value?.trim() ? value : '—';
   }
 
-  private buildWizardCreateRequest(): CreateLessonTipRequest | null {
+  private buildWizardRequest(): CreateLessonTipRequest | null {
     const draft = this.draftBasicData();
 
     if (draft === null) {

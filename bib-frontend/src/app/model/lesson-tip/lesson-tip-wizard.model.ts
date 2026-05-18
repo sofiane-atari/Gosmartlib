@@ -17,7 +17,8 @@ export const LESSON_TIP_CREATE_WIZARD_STEPS: readonly LessonTipWizardStepDefinit
     {
       step: 2,
       title: 'Gekoppelde boeken',
-      description: 'Zoek boeken op titel, auteur of ISBN en koppel ze optioneel.',
+      description:
+        'Zoek boeken op titel, auteur of ISBN en koppel ze optioneel.',
     },
     {
       step: 3,
@@ -28,5 +29,29 @@ export const LESSON_TIP_CREATE_WIZARD_STEPS: readonly LessonTipWizardStepDefinit
       step: 4,
       title: 'Controle en opslaan',
       description: 'Controleer alles en sla de lestip definitief op.',
+    },
+  ];
+
+export const LESSON_TIP_EDIT_WIZARD_STEPS: readonly LessonTipWizardStepDefinition[] =
+  [
+    {
+      step: 1,
+      title: 'Basisgegevens aanpassen',
+      description: 'Pas titel, beschrijving en context aan.',
+    },
+    {
+      step: 2,
+      title: 'Boeken aanpassen',
+      description: 'Voeg gekoppelde boeken toe of verwijder ze.',
+    },
+    {
+      step: 3,
+      title: 'Bijlagen beheren',
+      description: 'Beheer de bestaande bijlagen van deze lestip.',
+    },
+    {
+      step: 4,
+      title: 'Controleren en bijwerken',
+      description: 'Controleer alles en bevestig je wijzigingen.',
     },
   ];
