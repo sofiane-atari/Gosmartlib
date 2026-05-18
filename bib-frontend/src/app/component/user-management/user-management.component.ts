@@ -1,4 +1,4 @@
-﻿import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -65,7 +65,7 @@ export class UserManagementComponent {
   private readonly toastService = inject(ToastService);
 
   protected readonly page = signal(0);
-  protected readonly pageSize = signal(20);
+  protected readonly pageSize = signal(1);
   private readonly refreshTrigger = signal(0);
   private readonly searchSubject = new Subject<string>();
   protected readonly searchQuery = signal('');

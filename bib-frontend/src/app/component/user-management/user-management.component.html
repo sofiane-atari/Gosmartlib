@@ -1,52 +1,66 @@
 <div class="user-management">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>Gebruikers beheren</h1>
+      <app-button-hover-help
+        class="block-hover"
+        text="Gebruikersbeheer in de bibliotheekmodule. Bekijk statistieken, zoek leerkrachten, beheer rollen en beheer je eigen toegang."
+      >
+        <h1>Gebruikers beheren</h1>
+      </app-button-hover-help>
       <p>Beheer de rollen van gebruikers binnen jouw school</p>
     </div>
   </div>
 
   @if (canSelfRevoke()) {
-    <section class="self-profile-card custom-scrollbar">
-      <div class="self-profile-card__body">
-        <app-button-hover-help text="Jouw accounticoon.">
-          <div class="self-profile-card__icon">
-            <lucide-icon [name]="UserRound"></lucide-icon>
+    <app-button-hover-help
+      class="block-hover"
+      text="Jouw profielkaart. Hier zie je je gegevens en kan je jouw bibliothecarisrol intrekken."
+    >
+      <section class="self-profile-card custom-scrollbar">
+          <div class="self-profile-card__body">
+            <app-button-hover-help text="Jouw accounticoon.">
+              <div class="self-profile-card__icon">
+                <lucide-icon [name]="UserRound"></lucide-icon>
+              </div>
+            </app-button-hover-help>
+
+            <div class="self-profile-card__info">
+              <strong>
+                <app-button-hover-help text="Jouw volledige naam zoals geregistreerd in Smartschool.">
+                  {{ userService.getDisplayName(currentUser()) }}
+                </app-button-hover-help>
+              </strong>
+                <span [class]="roleBadgeClass(currentUser()!.role)">
+                  <app-button-hover-help text="Jouw huidige rol binnen de bibliotheekmodule.">
+                      {{ userService.getRoleLabel(currentUser()!.role) }}
+                  </app-button-hover-help>
+                </span>
+                <small>
+                  <app-button-hover-help text="Dit account is gekoppeld aan Smartschool. Je kan hier je eigen bibliothecarisrol intrekken.">
+                    Dit is jouw account. Je kan je eigen bibliothecarisrol intrekken.
+                  </app-button-hover-help>
+                </small>
+            </div>
+
+            <div class="self-profile-card__action">
+              <app-button-hover-help
+                class="full-button-help"
+                text="Trek je eigen bibliothecarisrol in. Je verliest hierna beheerdersrechten."
+              >
+                <button
+                  type="button"
+                  class="btn-revoke"
+                  [disabled]="isPromoting()"
+                  (click)="openSelfRevoke()"
+                >
+                  <lucide-icon [name]="ShieldOff"></lucide-icon>
+                  Intrekken bibliothecarisrol
+                </button>
+              </app-button-hover-help>
+            </div>
           </div>
-        </app-button-hover-help>
-
-        <div class="self-profile-card__info">
-          <app-button-hover-help text="Jouw volledige naam zoals geregistreerd in Smartschool.">
-            <strong>{{ userService.getDisplayName(currentUser()) }}</strong>
-          </app-button-hover-help>
-          <app-button-hover-help text="Jouw huidige rol binnen de bibliotheekmodule.">
-            <span [class]="roleBadgeClass(currentUser()!.role)">
-              {{ userService.getRoleLabel(currentUser()!.role) }}
-            </span>
-          </app-button-hover-help>
-          <app-button-hover-help text="Dit account is gekoppeld aan Smartschool. Je kan hier je eigen bibliothecarisrol intrekken.">
-            <small>Dit is jouw account. Je kan je eigen bibliothecarisrol intrekken.</small>
-          </app-button-hover-help>
-        </div>
-
-        <div class="self-profile-card__action">
-          <app-button-hover-help
-            class="full-button-help"
-            text="Trek je eigen bibliothecarisrol in. Je verliest hierna beheerdersrechten."
-          >
-            <button
-              type="button"
-              class="btn-revoke"
-              [disabled]="isPromoting()"
-              (click)="openSelfRevoke()"
-            >
-              <lucide-icon [name]="ShieldOff"></lucide-icon>
-              Intrekken bibliothecarisrol
-            </button>
-          </app-button-hover-help>
-        </div>
-      </div>
-    </section>
+      </section>
+    </app-button-hover-help>
   }
 
   @if (loading()) {

@@ -61,7 +61,6 @@ lucide-icon svg {
 
 .self-profile-card:hover {
   box-shadow: 0 4px 16px rgba(138, 30, 65, 0.1);
-  transform: translateY(-1px);
   border-color: #e0b0c0;
 }
 
