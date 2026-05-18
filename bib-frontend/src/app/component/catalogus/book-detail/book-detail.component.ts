@@ -7,7 +7,12 @@ import {
   OnInit,
 } from '@angular/core';
 
-import { Book, BookCondition, BookCopyCampusLocation, BookCopyLocation } from '../../../model/book/book.model';
+import {
+  Book,
+  BookCondition,
+  BookCopyCampusLocation,
+  BookCopyLocation,
+} from '../../../model/book/book.model';
 import {
   LucideAngularModule,
   BookOpen,
@@ -52,8 +57,8 @@ import { ReviewDraft } from '../../../model/review/review-draft.model';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
-import { GamificationNotificationStoreService } from '../../../services/gamification/store/gamification-notification-store.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
+import { GamificationNotificationStoreService } from '../../../services/gamification/notification/gamification-notification-store.service';
 
 interface CopyStatusSummary {
   status: 'available' | 'borrowed' | 'lost';
@@ -268,15 +273,27 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   selectedCampus?: Campus;
 
   protected get copyLocationGroups(): BookCopyCampusLocation[] {
-    return this.selectedBook?.copyLocations?.filter((group) => group.copies.length > 0) ?? [];
+    return (
+      this.selectedBook?.copyLocations?.filter(
+        (group) => group.copies.length > 0,
+      ) ?? []
+    );
   }
 
   protected get hasLocationInfo(): boolean {
-    return this.copyLocationGroups.length > 0 || !!this.selectedBook?.campusId || !!this.selectedBook?.campusName;
+    return (
+      this.copyLocationGroups.length > 0 ||
+      !!this.selectedBook?.campusId ||
+      !!this.selectedBook?.campusName
+    );
   }
 
   get campusName(): string {
-    return this.selectedCampus?.name ?? this.selectedBook?.campusName ?? 'Onbekende campus';
+    return (
+      this.selectedCampus?.name ??
+      this.selectedBook?.campusName ??
+      'Onbekende campus'
+    );
   }
 
   get campusAddress(): string | null {
@@ -292,19 +309,26 @@ export class BookDetailComponent implements OnDestroy, OnInit {
       return null;
     }
 
-    return group.postalCode ? `${group.address}, ${group.postalCode}` : group.address;
+    return group.postalCode
+      ? `${group.address}, ${group.postalCode}`
+      : group.address;
   }
 
-  protected getCampusStatusSummaries(group: BookCopyCampusLocation): CopyStatusSummary[] {
+  protected getCampusStatusSummaries(
+    group: BookCopyCampusLocation,
+  ): CopyStatusSummary[] {
     const summaries = new Map<string, CopyStatusSummary>();
 
     for (const copy of group.copies) {
       const status: CopyStatusSummary['status'] = this.isLostCopy(copy)
         ? 'lost'
-        : this.isBorrowed(copy.availability) ? 'borrowed' : 'available';
-      const key = status === 'borrowed'
-        ? `${status}:${copy.expectedReturnDate ?? ''}`
-        : status;
+        : this.isBorrowed(copy.availability)
+          ? 'borrowed'
+          : 'available';
+      const key =
+        status === 'borrowed'
+          ? `${status}:${copy.expectedReturnDate ?? ''}`
+          : status;
       const existing = summaries.get(key);
 
       if (existing) {
@@ -316,7 +340,8 @@ export class BookDetailComponent implements OnDestroy, OnInit {
         status,
         count: 1,
         trackKey: key,
-        expectedReturnDate: status === 'borrowed' ? copy.expectedReturnDate ?? null : null,
+        expectedReturnDate:
+          status === 'borrowed' ? (copy.expectedReturnDate ?? null) : null,
       });
     }
 
@@ -331,15 +356,20 @@ export class BookDetailComponent implements OnDestroy, OnInit {
         return order[a.status] - order[b.status];
       }
 
-      return (a.expectedReturnDate ?? '').localeCompare(b.expectedReturnDate ?? '');
+      return (a.expectedReturnDate ?? '').localeCompare(
+        b.expectedReturnDate ?? '',
+      );
     });
   }
 
   protected getCopyStatusText(summary: CopyStatusSummary): string {
     const noun = summary.count === 1 ? 'exemplaar' : 'exemplaren';
-    const status = summary.status === 'available'
-      ? 'beschikbaar'
-      : summary.status === 'lost' ? 'verloren' : 'uitgeleend';
+    const status =
+      summary.status === 'available'
+        ? 'beschikbaar'
+        : summary.status === 'lost'
+          ? 'verloren'
+          : 'uitgeleend';
 
     return `${summary.count} ${noun} ${status}`;
   }
@@ -349,7 +379,9 @@ export class BookDetailComponent implements OnDestroy, OnInit {
       return 'copy-status--lost';
     }
 
-    return status === 'available' ? 'copy-status--available' : 'copy-status--borrowed';
+    return status === 'available'
+      ? 'copy-status--available'
+      : 'copy-status--borrowed';
   }
 
   protected getCopyAvailabilityLabel(copy: BookCopyLocation): string {
@@ -380,14 +412,23 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     return copy.condition ?? 'GOOD_CONDITION';
   }
 
-  protected updateCopyCondition(copy: BookCopyLocation, condition: BookCondition): void {
+  protected updateCopyCondition(
+    copy: BookCopyLocation,
+    condition: BookCondition,
+  ): void {
     this.bookService.updateBookCopyCondition(copy.id, condition).subscribe({
       next: () => {
         copy.condition = condition;
-        this.toastService.show('Staat van het exemplaar is bijgewerkt.', 'success');
+        this.toastService.show(
+          'Staat van het exemplaar is bijgewerkt.',
+          'success',
+        );
       },
       error: () => {
-        this.toastService.show('Staat van het exemplaar kon niet worden bijgewerkt.', 'error');
+        this.toastService.show(
+          'Staat van het exemplaar kon niet worden bijgewerkt.',
+          'error',
+        );
       },
     });
   }

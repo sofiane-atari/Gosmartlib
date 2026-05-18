@@ -76,7 +76,7 @@ public class GamificationNotificationService {
     );
 }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<GamificationNotificationDTO> getUnreadNotifications(
             Authentication authentication
     ) {
