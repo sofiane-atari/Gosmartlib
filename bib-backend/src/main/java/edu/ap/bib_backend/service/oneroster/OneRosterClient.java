@@ -198,6 +198,20 @@ public class OneRosterClient {
         }
     }
 
+    /**
+     * Validates OneRoster credentials by attempting to fetch an access token
+     * from the OneRoster API for the given school domain.
+     *
+     * @param clientId     the OAuth2 client ID
+     * @param clientSecret the OAuth2 client secret
+     * @param schoolDomain the school domain name or URL
+     * @throws ResponseStatusException if credentials are invalid or host is invalid
+     */
+    public void validateCredentials(String clientId, String clientSecret, String schoolDomain) {
+        String host = hostValidator.normalizeAndValidateSchoolHost(schoolDomain);
+        tokenService.validateCredentials(clientId, clientSecret, host);
+    }
+
     public Map<String, String> fetchUserDisplayNames(String schoolCode, Set<String> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return Map.of();
