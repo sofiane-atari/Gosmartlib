@@ -45,6 +45,7 @@ export class BookEditPageComponent {
     description: ['', [Validators.maxLength(5000)]],
     releaseYear: [null as number | null, [Validators.required, Validators.min(0)]],
     readingLevel: [null as ReadingLevel | null],
+    didactic: [false],
   });
 
   constructor(
@@ -104,7 +105,8 @@ export class BookEditPageComponent {
             imageUrl: book.imageUrl ?? '',
             description: book.description,
             releaseYear: book.releaseYear,
-            readingLevel: matchedReadingLevel
+            readingLevel: matchedReadingLevel,
+            didactic: book.didactic ?? false
           });
 
           setTimeout(() => {
@@ -250,6 +252,7 @@ export class BookEditPageComponent {
           description: formValue.description?.trim() || '',
           releaseYear: formValue.releaseYear || new Date().getFullYear(),
           readingLevel: formValue.readingLevel ?? undefined,
+          didactic: formValue.didactic ?? false,
           genres: this.selectedGenres,
         };
 
