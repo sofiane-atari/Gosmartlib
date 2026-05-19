@@ -14,6 +14,7 @@ import edu.ap.bib_backend.service.user.UserService;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -149,13 +150,13 @@ public class SmartschoolOAuth2UserService
             if (primaryGroupName != null && !primaryGroupName.isBlank()) {
                 Group group;
                 try {
-                    group = groupService.getGroup(primaryGroupName);
+                    group = groupService.getGroup(school.getId(), primaryGroupName);
                 } catch (RuntimeException e) {
-                    group = groupService.createGroup(primaryGroupName);
+                    group = groupService.createGroup(school.getId(), primaryGroupName);
                 }
 
                 if (group != null) {
-                    user.setGroup(group);
+                    user.setGroups(Set.of(group));
                     userService.save(user);
                 }
             }

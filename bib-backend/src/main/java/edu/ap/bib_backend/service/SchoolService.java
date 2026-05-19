@@ -10,6 +10,7 @@ import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
+import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,17 +26,20 @@ public class SchoolService {
     private final BookCopyRepository bookCopyRepository;
     private final OneRosterCredentialRepository credentialRepository;
     private final OneRosterClient oneRosterClient;
+    private final OneRosterUserSyncService oneRosterUserSyncService;
 
     public SchoolService(
             SchoolRepository schoolRepository,
             BookCopyRepository bookCopyRepository,
             OneRosterCredentialRepository credentialRepository,
-            OneRosterClient oneRosterClient
+            OneRosterClient oneRosterClient,
+            OneRosterUserSyncService oneRosterUserSyncService
     ) {
         this.schoolRepository = schoolRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.credentialRepository = credentialRepository;
         this.oneRosterClient = oneRosterClient;
+        this.oneRosterUserSyncService = oneRosterUserSyncService;
     }
 
     public List<SchoolDTO> getAll() {
@@ -75,6 +79,8 @@ public class SchoolService {
         credential.setClientSecret(clientSecret);
         credentialRepository.save(credential);
 
+        oneRosterUserSyncService.syncSchoolAsync(savedSchool);
+
         return toDto(savedSchool);
     }
 
@@ -102,6 +108,8 @@ public class SchoolService {
                 credential.setClientId(clientId);
                 credential.setClientSecret(clientSecret);
                 credentialRepository.save(credential);
+
+                oneRosterUserSyncService.syncSchoolAsync(school);
             }
         }
 
