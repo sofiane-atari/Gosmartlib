@@ -203,8 +203,6 @@ public class ReadingListService {
         return switch (targetType) {
             case PERSONAL -> null;
             case CLASS -> (requestedValue == null || requestedValue.isBlank()) ? audience.classCode() : requestedValue.trim();
-            case YEAR -> (requestedValue == null || requestedValue.isBlank()) ? audience.yearCode() : requestedValue.trim();
-            case SCHOOL -> (requestedValue == null || requestedValue.isBlank()) ? audience.schoolCode() : requestedValue.trim();
             case SYSTEM -> null;
         };
     }
@@ -257,19 +255,6 @@ public class ReadingListService {
                 ReadingListTargetType.CLASS,
                 audience.classCode(),
                 "Klas " + audience.classCode());
-
-        ensureSharedList(owner,
-                campus,
-                ReadingListTargetType.YEAR,
-                audience.yearCode(),
-                "Jaar " + audience.yearCode());
-
-        String schoolName = extractSchoolName(audience.schoolCode());
-        ensureSharedList(owner,
-                campus,
-                ReadingListTargetType.SCHOOL,
-                audience.schoolCode(),
-                schoolName);
 
         ensureSharedList(owner,
                 campus,

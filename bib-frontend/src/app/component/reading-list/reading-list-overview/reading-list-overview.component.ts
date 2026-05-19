@@ -19,8 +19,6 @@ import {
   Star,
   User,
   Users,
-  GraduationCap,
-  School,
   BookOpen,
   Book,
   BookCopy,
@@ -55,8 +53,6 @@ export class ReadingListOverviewComponent implements OnInit {
     { id: 'FEATURED', label: 'Uitgelicht', icon: Star },
     { id: 'PERSONAL', label: 'Persoonlijk', icon: User },
     { id: 'CLASS', label: 'Klaslijsten', icon: Users },
-    { id: 'YEAR', label: 'Jaarlijsten', icon: GraduationCap },
-    { id: 'SCHOOL', label: 'Schoollijsten', icon: School }
   ];
 
   constructor(

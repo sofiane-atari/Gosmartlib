@@ -28,10 +28,6 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                          OR (COALESCE(rl.targetValue, '') <> ''
                              AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
                      ))
-                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.YEAR
-                     AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:yearCode))
-                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SCHOOL
-                     AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:schoolCode))
                  OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
               )
             """)
@@ -60,10 +56,6 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                          OR (COALESCE(rl.targetValue, '') <> ''
                              AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
                      ))
-                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.YEAR
-                     AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:yearCode))
-                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SCHOOL
-                     AND LOWER(COALESCE(rl.targetValue, '')) = LOWER(:schoolCode))
                  OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
               )
             """)

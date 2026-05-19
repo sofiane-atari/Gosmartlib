@@ -128,28 +128,27 @@ class ReadingListIntegrationTest {
 
     @Test
     void givenNoLists_whenGetReadingLists_thenAutoCreateSharedLists() throws Exception {
-        mockMvc.perform(get("/reading-lists").principal(new UsernamePasswordAuthenticationToken(USER_ID, null, List.of())))
+        mockMvc.perform(
+                get("/reading-lists").principal(new UsernamePasswordAuthenticationToken(USER_ID, null, List.of())))
                 .andExpect(status().isOk());
 
         List<ReadingList> all = readingListRepository.findAll();
 
         long classCount = all.stream().filter(l -> l.getTargetType() == ReadingListTargetType.CLASS).count();
-        long yearCount = all.stream().filter(l -> l.getTargetType() == ReadingListTargetType.YEAR).count();
-        long schoolCount = all.stream().filter(l -> l.getTargetType() == ReadingListTargetType.SCHOOL).count();
         long systemCount = all.stream().filter(l -> l.getTargetType() == ReadingListTargetType.SYSTEM).count();
 
         assertEquals(1, classCount);
-        assertEquals(1, yearCount);
-        assertEquals(1, schoolCount);
         assertEquals(1, systemCount);
     }
 
     @Test
     void givenSharedListsExist_whenGetReadingListsTwice_thenNoDuplicates() throws Exception {
-        mockMvc.perform(get("/reading-lists").principal(new UsernamePasswordAuthenticationToken(USER_ID, null, List.of())))
+        mockMvc.perform(
+                get("/reading-lists").principal(new UsernamePasswordAuthenticationToken(USER_ID, null, List.of())))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/reading-lists").principal(new UsernamePasswordAuthenticationToken(USER_ID, null, List.of())))
+        mockMvc.perform(
+                get("/reading-lists").principal(new UsernamePasswordAuthenticationToken(USER_ID, null, List.of())))
                 .andExpect(status().isOk());
 
         List<ReadingList> all = readingListRepository.findAll();
@@ -157,8 +156,6 @@ class ReadingListIntegrationTest {
                 .collect(Collectors.groupingBy(ReadingList::getTargetType, Collectors.counting()));
 
         assertEquals(1L, counts.getOrDefault(ReadingListTargetType.CLASS, 0L));
-        assertEquals(1L, counts.getOrDefault(ReadingListTargetType.YEAR, 0L));
-        assertEquals(1L, counts.getOrDefault(ReadingListTargetType.SCHOOL, 0L));
         assertEquals(1L, counts.getOrDefault(ReadingListTargetType.SYSTEM, 0L));
     }
 
@@ -168,11 +165,10 @@ class ReadingListIntegrationTest {
         createList("Ander persoonlijk", OTHER_USER_ID, ReadingListTargetType.PERSONAL, null);
         createList("Klas gedeeld", OTHER_USER_ID, ReadingListTargetType.CLASS, CLASS_CODE);
         createList("Andere klas", OTHER_USER_ID, ReadingListTargetType.CLASS, "3ABC");
-        createList("Jaar gedeeld", OTHER_USER_ID, ReadingListTargetType.YEAR, YEAR_CODE);
-        createList("School gedeeld", OTHER_USER_ID, ReadingListTargetType.SCHOOL, SCHOOL_CODE);
         createList("Systeembreed", OTHER_USER_ID, ReadingListTargetType.SYSTEM, null);
 
-        mockMvc.perform(get("/reading-lists").principal(new UsernamePasswordAuthenticationToken(USER_ID, null, List.of())))
+        mockMvc.perform(
+                get("/reading-lists").principal(new UsernamePasswordAuthenticationToken(USER_ID, null, List.of())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].name", hasItem("Mijn persoonlijk")))
                 .andExpect(jsonPath("$[*].name", hasItem("Klas gedeeld")))
@@ -194,8 +190,8 @@ class ReadingListIntegrationTest {
     }
 
     private void setSecurityContext() {
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(USER_ID, null, List.of());
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(USER_ID, null,
+                List.of());
         Map<String, Object> details = new HashMap<>();
         details.put("classCode", CLASS_CODE);
         details.put("yearCode", YEAR_CODE);

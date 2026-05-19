@@ -8,7 +8,7 @@ export interface ReadingListBook {
   bookId: number;
 }
 
-export type ReadingListTargetType = 'PERSONAL' | 'CLASS' | 'YEAR' | 'SCHOOL' | 'SYSTEM';
+export type ReadingListTargetType = 'PERSONAL' | 'CLASS' | 'SYSTEM';
 
 export interface ReadingList {
   id: number;
