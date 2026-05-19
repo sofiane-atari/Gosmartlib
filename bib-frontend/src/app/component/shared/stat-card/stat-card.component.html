@@ -1,0 +1,23 @@
+@if (showHelp()) {
+  <app-button-hover-help class="stat-card-hover" [text]="helpText()!">
+    <article class="stat-card stat-card--{{ variant() }}">
+      <div class="stat-card__icon">
+        <lucide-icon [name]="icon()"></lucide-icon>
+      </div>
+      <div>
+        <p>{{ label() }}</p>
+        <strong>{{ value() }}</strong>
+      </div>
+    </article>
+  </app-button-hover-help>
+} @else {
+  <article class="stat-card stat-card--{{ variant() }}">
+    <div class="stat-card__icon">
+      <lucide-icon [name]="icon()"></lucide-icon>
+    </div>
+    <div>
+      <p>{{ label() }}</p>
+      <strong>{{ value() }}</strong>
+    </div>
+  </article>
+}

@@ -38,11 +38,14 @@ import { ReadingListDetailComponent } from './component/reading-list/reading-lis
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
 import { SettingsComponent } from './component/settings/settings.component';
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
+import { librarianOrAdminGuard } from './guards/authentication/librarian-or-admin.guard';
 import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashboard.component';
 import { ReturnLoanComponent } from './component/loan/return-loan/return-loan.component';
+import { UserManagementComponent } from './component/user-management/user-management.component';
 import { ClassReportComponent } from './component/class-report/class-report/class-report.component';
 import { CampusReportComponent } from './component/class-report/campus-report/campus-report.component';
 import { ReportSelectorComponent } from './component/class-report/report-selector/report-selector.component';
+import { UnauthorizedComponent } from './component/unauthorized/unauthorized.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/catalog', pathMatch: 'full' },
@@ -118,6 +121,7 @@ export const routes: Routes = [
     component: BadgePageComponent,
     canActivate: [authGuard],
   },
+  { path: 'unauthorized', component: UnauthorizedComponent },
   { path: 'login', component: LoginComponent, canActivate: [publicOnlyGuard] },
   {
     path: 'oauth2/callback/smartschool',
@@ -138,6 +142,11 @@ export const routes: Routes = [
     path: 'schools',
     component: SchoolDashboardComponent,
     canActivate: [authGuard, adminOnlyGuard],
+  },
+  {
+    path: 'user-management',
+    component: UserManagementComponent,
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
     path: 'tag',

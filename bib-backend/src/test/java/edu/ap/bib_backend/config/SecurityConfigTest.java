@@ -57,16 +57,22 @@ class SecurityConfigTest {
     @MockitoBean
     private OAuth2AuthorizedClientService authorizedClientService;
 
+    @MockitoBean
+    private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+
+    @MockitoBean
+    private RestAccessDeniedHandler restAccessDeniedHandler;
+
     @Test
-    void givenNoAuthentication_whenGetAuthMeEndpoint_thenReturnRedirectToOAuthLogin() throws Exception {
+    void givenNoAuthentication_whenGetAuthMeEndpoint_thenReturnUnauthorizedJson() throws Exception {
         mockMvc.perform(get("/test/probe"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isOk());
     }
 
     @Test
-    void givenNoAuthentication_whenGetBooksEndpoint_thenReturnRedirectToOAuthLogin() throws Exception {
+    void givenNoAuthentication_whenGetBooksEndpoint_thenReturnUnauthorizedJson() throws Exception {
         mockMvc.perform(get("/books/test"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isOk());
     }
 
     @Test

@@ -49,3 +49,8 @@ export interface ClassReport {
   topRatedBooks: TopRatedBookReport[];
   students: ReportRow[];
 }
+export interface ReportClassOption {
+  sourcedId: string;
+  title: string;
+  classCode: string;
+}

@@ -25,6 +25,7 @@ import {
   FolderKanban,
   LibraryBig,
   Trophy,
+  UserCog,
 } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
@@ -148,11 +149,18 @@ export class SidebarComponent {
     },
     { icon: Tag, label: 'Labelbeheer', route: '/tag', adminOnly: true },
     { icon: School, label: 'Schoolbeheer', route: '/schools', adminOnly: true },
+    {
+      icon: UserCog,
+      label: 'Gebruikersbeheer',
+      route: '/user-management',
+      librarianOrAdmin: true,
+    },
   ];
 
   protected readonly visibleMenuItems = computed(() => {
     const isAdmin = this.roleService.isAdmin();
     const canManageLessonTip = this.roleService.canManageLessonTip();
+    const canManageGenres = this.roleService.canManageGenres();
 
     return this.menuItems.filter((item) => {
       if (item.adminOnly && !isAdmin) {
@@ -160,6 +168,10 @@ export class SidebarComponent {
       }
 
       if (item.staffOnly && !canManageLessonTip) {
+        return false;
+      }
+
+      if ((item as { librarianOrAdmin?: boolean }).librarianOrAdmin && !canManageGenres) {
         return false;
       }
 

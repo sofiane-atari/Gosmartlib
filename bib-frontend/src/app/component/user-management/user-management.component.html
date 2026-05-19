@@ -1,0 +1,266 @@
+<div class="user-management">
+  <div class="page-header">
+    <div class="page-header__text">
+      <app-button-hover-help
+        class="block-hover"
+        text="Gebruikersbeheer in de bibliotheekmodule. Bekijk statistieken, zoek leerkrachten, beheer rollen en beheer je eigen toegang."
+      >
+        <h1>Gebruikers beheren</h1>
+      </app-button-hover-help>
+      <p>Beheer de rollen van gebruikers binnen jouw school</p>
+    </div>
+  </div>
+
+  @if (canSelfRevoke()) {
+    <app-button-hover-help
+      class="block-hover"
+      text="Jouw profielkaart. Hier zie je je gegevens en kan je jouw bibliothecarisrol intrekken."
+    >
+      <section class="self-profile-card custom-scrollbar">
+          <div class="self-profile-card__body">
+            <app-button-hover-help text="Jouw accounticoon.">
+              <div class="self-profile-card__icon">
+                <lucide-icon [name]="UserRound"></lucide-icon>
+              </div>
+            </app-button-hover-help>
+
+            <div class="self-profile-card__info">
+              <strong>
+                <app-button-hover-help text="Jouw volledige naam zoals geregistreerd in Smartschool.">
+                  {{ userService.getDisplayName(currentUser()) }}
+                </app-button-hover-help>
+              </strong>
+                <span [class]="roleBadgeClass(currentUser()!.role)">
+                  <app-button-hover-help text="Jouw huidige rol binnen de bibliotheekmodule.">
+                      {{ userService.getRoleLabel(currentUser()!.role) }}
+                  </app-button-hover-help>
+                </span>
+                <small>
+                  <app-button-hover-help text="Dit account is gekoppeld aan Smartschool. Je kan hier je eigen bibliothecarisrol intrekken.">
+                    Dit is jouw account. Je kan je eigen bibliothecarisrol intrekken.
+                  </app-button-hover-help>
+                </small>
+            </div>
+
+            <div class="self-profile-card__action">
+              <app-button-hover-help
+                class="full-button-help"
+                text="Trek je eigen bibliothecarisrol in. Je verliest hierna beheerdersrechten."
+              >
+                <button
+                  type="button"
+                  class="btn-revoke"
+                  [disabled]="isPromoting()"
+                  (click)="openSelfRevoke()"
+                >
+                  <lucide-icon [name]="ShieldOff"></lucide-icon>
+                  Intrekken bibliothecarisrol
+                </button>
+              </app-button-hover-help>
+            </div>
+          </div>
+      </section>
+    </app-button-hover-help>
+  }
+
+  @if (loading()) {
+    <section class="stat-cards">
+      <div class="skeleton-card">
+        <div class="skeleton skeleton--icon skeleton--icon-purple"></div>
+        <div class="skeleton-card__text">
+          <div class="skeleton skeleton--label"></div>
+          <div class="skeleton skeleton--value"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton skeleton--icon skeleton--icon-blue"></div>
+        <div class="skeleton-card__text">
+          <div class="skeleton skeleton--label"></div>
+          <div class="skeleton skeleton--value"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton skeleton--icon skeleton--icon-green"></div>
+        <div class="skeleton-card__text">
+          <div class="skeleton skeleton--label"></div>
+          <div class="skeleton skeleton--value"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="skeleton skeleton--search"></div>
+
+    <div class="skeleton-table">
+      @for (_ of [1,2,3,4,5]; track $index) {
+        <div class="skeleton-table__row">
+          <div class="skeleton skeleton--user-avatar"></div>
+          <div class="skeleton skeleton--user-name"></div>
+          <div class="skeleton skeleton--user-email"></div>
+          <div class="skeleton skeleton--badge"></div>
+          <div class="skeleton skeleton--action-btn"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <section class="stat-cards">
+      <app-stat-card
+        label="Totaal leerkrachten"
+        [value]="stats().totalTeachers"
+        [icon]="Users"
+        variant="purple"
+        helpText="Het totaal aantal leerkrachten uit Smartschool, inclusief gebruikers die tot bibliothecaris zijn gepromoveerd."
+      />
+      <app-stat-card
+        label="Leerkrachten"
+        [value]="stats().activeTeachers"
+        [icon]="GraduationCap"
+        variant="blue"
+        helpText="Aantal gebruikers die nog steeds de rol leerkracht hebben."
+      />
+      <app-stat-card
+        label="Bibliothecarissen"
+        [value]="stats().librarians"
+        [icon]="BookOpen"
+        variant="green"
+        helpText="Aantal leerkrachten die zijn gepromoveerd tot bibliothecaris."
+      />
+    </section>
+
+    <app-button-hover-help class="stat-card-hover" text="Zoek leerkrachten op naam of e-mailadres om hun gegevens te vinden.">
+      <section class="search-panel">
+        <app-search-bar
+          placeholder="Zoek leerkrachten op naam of e-mail..."
+          (searchChange)="onSearch($event)"
+        ></app-search-bar>
+      </section>
+    </app-button-hover-help>
+
+    @if (teachers().length === 0) {
+      <section class="state-panel state-panel--empty">
+        @if (searchQuery()) {
+          <p>Geen leerkrachten gevonden voor deze zoekopdracht.</p>
+        } @else {
+          <p>Er zijn nog geen leerkrachten gevonden in jouw school.</p>
+        }
+      </section>
+    } @else {
+      <section class="table-card custom-scrollbar">
+        <table>
+          <thead>
+            <tr>
+              <th>Naam</th>
+              <th>E-mail</th>
+              <th>Huidige rol</th>
+              <th class="actions-heading">Acties</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (teacher of teachers(); track teacher.id) {
+              <tr class="custom-scrollbar">
+                <td data-label="Naam">
+                  <div class="user-cell">
+                    <app-button-hover-help text="Accounticoon van deze leerkracht.">
+                      <div class="user-cell__icon">
+                        @if (teacher.role === 'LIBRARIAN') {
+                          <lucide-icon [name]="BookOpen"></lucide-icon>
+                        } @else if (teacher.role === 'ADMIN') {
+                          <lucide-icon [name]="UserRound"></lucide-icon>
+                        } @else {
+                          <lucide-icon [name]="GraduationCap"></lucide-icon>
+                        }
+                      </div>
+                    </app-button-hover-help>
+
+                    <div>
+                      <app-button-hover-help text="Naam van de leerkracht.">
+                        <strong>{{ userService.getDisplayName(teacher) }}</strong>
+                      </app-button-hover-help>
+                    </div>
+                  </div>
+                </td>
+
+                <td data-label="E-mail">
+                  @if (teacher.email) {
+                    <app-button-hover-help text="E-mailadres van de leerkracht.">
+                      <span>{{ teacher.email }}</span>
+                    </app-button-hover-help>
+                  } @else {
+                    <span class="table-placeholder">Geen e-mail</span>
+                  }
+                </td>
+
+                <td data-label="Huidige rol">
+                  <app-button-hover-help text="De huidige rol van deze gebruiker.">
+                    <span [class]="roleBadgeClass(teacher.role)">
+                      {{ userService.getRoleLabel(teacher.role) }}
+                    </span>
+                  </app-button-hover-help>
+                </td>
+
+                <td data-label="Acties">
+                  <div class="table-actions">
+                  @if (teacher.role === 'LIBRARIAN') {
+                    <app-button-hover-help
+                      class="full-button-help"
+                      text="Haal de beheerdersrechten van deze bibliothecaris terug."
+                    >
+                      <button
+                        type="button"
+                        class="btn-revoke"
+                        [disabled]="isPromoting()"
+                        (click)="openConfirmRevoke(teacher)"
+                      >
+                        <lucide-icon [name]="ShieldOff"></lucide-icon>
+                        <span class="btn-label">Intrekken bibliothecarisrol</span>
+                      </button>
+                    </app-button-hover-help>
+                  } @else {
+                    <app-button-hover-help
+                      class="full-button-help"
+                      text="Geef deze leerkracht beheerdersrechten binnen de bibliotheekmodule."
+                    >
+                      <button
+                        type="button"
+                        class="btn-promote"
+                        [disabled]="isPromoting()"
+                        (click)="openConfirmPromote(teacher)"
+                      >
+                        <lucide-icon [name]="ShieldCheck"></lucide-icon>
+                        <span class="btn-label">Promoveren tot bibliothecaris</span>
+                      </button>
+                    </app-button-hover-help>
+                  }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      @if (totalPages() > 1) {
+        <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
+      }
+    }
+  }
+
+  @if (isPromoting() && selectedUser()) {
+    <div class="promoting-overlay">
+      <lucide-icon [name]="Loader"></lucide-icon>
+      <span>{{ actionLabel() }}...</span>
+    </div>
+  }
+</div>
+
+<app-confirmation-modal
+  [isVisible]="isConfirmModalOpen()"
+  [title]="confirmTitle()"
+  [description]="confirmDescription()"
+  [confirmLabel]="confirmButtonLabel()"
+  [confirmLoadingLabel]="confirmLoadingLabel()"
+  [cancelLabel]="'Annuleren'"
+  [isConfirmLoading]="isPromoting()"
+  (confirmRequested)="onConfirmAction()"
+  (cancelRequested)="closeConfirmModal()"
+></app-confirmation-modal>

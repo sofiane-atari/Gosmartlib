@@ -1,7 +1,9 @@
 package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.SwitchCampusRequestDto;
+import edu.ap.bib_backend.dto.TeacherStatsDTO;
 import edu.ap.bib_backend.dto.UserReviewAccessUpdateDto;
 import edu.ap.bib_backend.options.UserGetOptions;
 import edu.ap.bib_backend.service.user.CurrentUserService;
@@ -30,6 +32,22 @@ public class UserController {
     @GetMapping
     public ResponseEntity<List<AuthUserDto>> getUsers(@ModelAttribute UserGetOptions options) {
         return ResponseEntity.ok(userService.getUsers(options));
+    }
+
+    @GetMapping("/teachers/stats")
+    public ResponseEntity<TeacherStatsDTO> getTeacherStats(Authentication authentication) {
+        return ResponseEntity.ok(userService.getTeacherStats(authentication));
+    }
+
+    @GetMapping("/teachers")
+    public ResponseEntity<PageDTO<AuthUserDto>> getTeachers(
+            Authentication authentication,
+            @RequestParam(defaultValue = "false") boolean excludeLibrarians,
+            @RequestParam(defaultValue = "true") boolean excludeAdmins,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(userService.getTeachers(authentication, excludeLibrarians, excludeAdmins, page, pageSize, search));
     }
 
     @PatchMapping("/me/campus")

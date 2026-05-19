@@ -1,24 +1,34 @@
 package edu.ap.bib_backend.service.user;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.PageDTO;
+import edu.ap.bib_backend.dto.TeacherStatsDTO;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
+import edu.ap.bib_backend.service.GroupService;
+import edu.ap.bib_backend.service.review.ProfanityFilterService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,9 +45,15 @@ class UserServiceTest {
     @Mock
     private UserMapper userMapper;
     @Mock
+    private ProfanityFilterService profanityFilterService;
+    @Mock
+    private GroupService groupService;
+    @Mock
     private OneRosterClient oneRosterClient;
     @Mock
     private TokenStorageService tokenStorageService;
+    @Mock
+    private CurrentUserService currentUserService;
 
     @InjectMocks
     private UserService userService;
@@ -84,8 +100,12 @@ class UserServiceTest {
         // Arrange
         when(userRepository.existsById(userId)).thenReturn(true);
 
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> userService.createUser(userId, new RoleEntity(), new School(), new Campus()));
+        // Act
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userService.createUser(userId, new RoleEntity(), new School(), new Campus()));
+
+        // Assert
+        assertNotNull(exception.getMessage());
     }
 
     @Test
@@ -96,7 +116,7 @@ class UserServiceTest {
         user.setReviewBlocked(false);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(user)).thenReturn(user);
-        
+
         AuthUserDto expectedDto = mock(AuthUserDto.class);
         when(userMapper.toDto(user)).thenReturn(expectedDto);
 
@@ -123,15 +143,14 @@ class UserServiceTest {
         school.setDomainName("test.smartschool.be");
         currentUser.setSchool(school);
         when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
-        
+
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
-        
+
         Map<String, Object> rosterUser = Map.of(
-            "metadata", Map.of("smsc.legacyIdentifier", "other-user"),
-            "fullName", "Other User"
-        );
+                "metadata", Map.of("smsc.legacyIdentifier", "other-user"),
+                "fullName", "Other User");
         when(oneRosterClient.fetchUsersWithBearer("test.smartschool.be", "token"))
-            .thenReturn(List.of(rosterUser));
+                .thenReturn(List.of(rosterUser));
 
         UserGetOptions options = new UserGetOptions();
         options.setId("other");
@@ -143,7 +162,225 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("other-user", result.get(0).id());
-        
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void Given_LibrarianAuthentication_When_GetTeacherStats_Then_ReturnsCounts() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("school.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setId(userId);
+        currentUser.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
+
+        Map<String, Object> rosterUser1 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t1"),
+                "fullName", "Alice Teacher",
+                "role", "teacher");
+        Map<String, Object> rosterUser2 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t2"),
+                "fullName", "Bob Librarian",
+                "role", "teacher");
+        Map<String, Object> rosterUser3 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t3"),
+                "fullName", "Cara Admin",
+                "role", "teacher");
+
+        when(oneRosterClient.fetchUsersWithBearer("school.smartschool.be", "token"))
+                .thenReturn(List.of(rosterUser1, rosterUser2, rosterUser3));
+
+        RoleEntity librarianRole = new RoleEntity();
+        librarianRole.setRole(Role.LIBRARIAN);
+        User librarianUser = new User();
+        librarianUser.setId("t2");
+        librarianUser.setRole(librarianRole);
+
+        RoleEntity adminRole = new RoleEntity();
+        adminRole.setRole(Role.ADMIN);
+        User adminUser = new User();
+        adminUser.setId("t3");
+        adminUser.setRole(adminRole);
+
+        when(userRepository.findBySchoolId(1L)).thenReturn(List.of(librarianUser, adminUser));
+
+        // Act
+        TeacherStatsDTO result = userService.getTeacherStats(authentication);
+
+        // Assert
+        assertEquals(3, result.totalTeachers());
+        assertEquals(2, result.activeTeachers());
+        assertEquals(1, result.librarians());
+    }
+
+    @Test
+    void Given_LibrarianAuthentication_When_GetTeachers_Then_ReturnsPaginatedTeachers() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("school.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setId(userId);
+        currentUser.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
+
+        Map<String, Object> rosterUser1 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t1"),
+                "fullName", "Alice Teacher",
+                "role", "teacher",
+                "email", "alice@school.be");
+        Map<String, Object> rosterUser2 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t2"),
+                "fullName", "Bob Librarian",
+                "role", "teacher");
+        Map<String, Object> rosterUser3 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t3"),
+                "fullName", "Cara Admin",
+                "role", "teacher");
+
+        when(oneRosterClient.fetchUsersWithBearer("school.smartschool.be", "token"))
+                .thenReturn(List.of(rosterUser1, rosterUser2, rosterUser3));
+
+        RoleEntity librarianRole = new RoleEntity();
+        librarianRole.setRole(Role.LIBRARIAN);
+        User librarianUser = new User();
+        librarianUser.setId("t2");
+        librarianUser.setRole(librarianRole);
+
+        RoleEntity adminRole = new RoleEntity();
+        adminRole.setRole(Role.ADMIN);
+        User adminUser = new User();
+        adminUser.setId("t3");
+        adminUser.setRole(adminRole);
+
+        when(userRepository.findBySchoolId(1L)).thenReturn(List.of(librarianUser, adminUser));
+
+        // Act
+        PageDTO<AuthUserDto> result = userService.getTeachers(authentication, true, true, 0, 10, null);
+
+        // Assert
+        assertEquals(1, result.data().size());
+        assertEquals("t1", result.data().get(0).id());
+        assertEquals(1, result.meta().totalPages());
+    }
+
+    @Test
+    void Given_SearchQuery_When_GetTeachers_Then_FiltersByNameOrEmail() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("school.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setId(userId);
+        currentUser.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
+
+        Map<String, Object> rosterUser1 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t1"),
+                "fullName", "Alice Teacher",
+                "role", "teacher",
+                "email", "alice@school.be");
+        Map<String, Object> rosterUser2 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t2"),
+                "fullName", "Bob Teacher",
+                "role", "teacher",
+                "email", "bob@school.be");
+
+        when(oneRosterClient.fetchUsersWithBearer("school.smartschool.be", "token"))
+                .thenReturn(List.of(rosterUser1, rosterUser2));
+
+        when(userRepository.findBySchoolId(1L)).thenReturn(List.of());
+
+        // Act
+        PageDTO<AuthUserDto> result = userService.getTeachers(authentication, false, false, 0, 10, "alice");
+
+        // Assert
+        assertEquals(1, result.data().size());
+        assertEquals("t1", result.data().get(0).id());
+    }
+
+    @Test
+    void Given_NonPrivilegedAuthentication_When_GetTeachers_Then_ThrowsIllegalState() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        // Act
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> userService.getTeachers(authentication, false, false, 0, 10, null));
+
+        // Assert
+        assertEquals("Alleen bibliothecarissen en admins kunnen docenten bekijken.", exception.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "teacher", "student", "administrator", "librarian" })
+    void Given_RosterRole_When_GetUsers_Then_MapsRoleToDto(String rosterRole) {
+        // Arrange
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(userId);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        SecurityContextHolder.setContext(securityContext);
+
+        User currentUser = new User();
+        School school = new School();
+        school.setDomainName("test.smartschool.be");
+        currentUser.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
+
+        Map<String, Object> rosterUser = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "role-user"),
+                "fullName", "Role User",
+                "role", rosterRole);
+        when(oneRosterClient.fetchUsersWithBearer("test.smartschool.be", "token"))
+                .thenReturn(List.of(rosterUser));
+
+        // Act
+        List<AuthUserDto> result = userService.getUsers(null);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertNotNull(result.get(0).role());
+
         SecurityContextHolder.clearContext();
     }
 }

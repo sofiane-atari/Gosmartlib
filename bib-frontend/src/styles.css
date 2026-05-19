@@ -15,6 +15,28 @@ body {
   box-sizing: inherit;
 }
 
+html::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+html::-webkit-scrollbar-thumb {
+  background: var(--main-color, #8a1e41);
+  border-radius: 4px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--main-color-hover, #6e1733);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--main-color, #8a1e41) rgba(0, 0, 0, 0.05);
+}
+
 :root {
   --main-color: #8a1e41;
   --sec-color: #c4a3a8;
@@ -55,4 +77,43 @@ body {
 }
 .skeleton--pill {
   border-radius: 999px;
+}
+
+/* =========================================================
+   CUSTOM SCROLLBAR UTILITY
+   Usage:  Add class="custom-scrollbar" to any scrollable element.
+           Supports both vertical and horizontal scrollbars.
+           Default colors are optimized for dark backgrounds.
+           For light backgrounds, override CSS variables:
+             --sb-track: rgba(0,0,0,0.05);
+             --sb-thumb: rgba(0,0,0,0.2);
+             --sb-thumb-hover: rgba(0,0,0,0.3);
+   LLM: This is the project's shared scrollbar utility class.
+        Use it instead of duplicating ::-webkit-scrollbar rules.
+   ========================================================= */
+.custom-scrollbar {
+  --sb-track: rgba(255, 255, 255, 0.1);
+  --sb-thumb: rgba(255, 255, 255, 0.35);
+  --sb-thumb-hover: rgba(255, 255, 255, 0.5);
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) var(--sb-track);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--sb-track);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--sb-thumb-hover);
 }

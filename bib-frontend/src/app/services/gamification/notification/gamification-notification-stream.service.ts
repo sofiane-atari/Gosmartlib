@@ -43,8 +43,18 @@ export class GamificationNotificationStreamService {
       signal: this.abortController.signal,
 
       onopen: async (response) => {
+<<<<<<< HEAD:bib-frontend/src/app/services/gamification/notification/gamification-notification-stream.service.ts
         if (response.status === 401 || response.status === 403) {
           console.warn('Gamification stream niet geauthenticeerd.');
+=======
+        if (response.status === 401) {
+          this.disconnect();
+          this.authService.logout();
+          return;
+        }
+
+        if (!response.ok) {
+>>>>>>> 0b699fe89365d470ff08b2c8b7b08fa0e5e63948:bib-frontend/src/app/services/gamification/store/gamification-notification-stream.service.ts
           this.disconnect();
           return;
         }

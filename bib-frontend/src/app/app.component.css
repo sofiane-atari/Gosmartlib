@@ -9,7 +9,11 @@
   flex: 1;
   padding: 3rem;
   overflow-y: auto;
+  overflow-x: auto;
   transition: padding 0.3s ease;
+  --sb-track: rgba(0, 0, 0, 0.05);
+  --sb-thumb: rgba(0, 0, 0, 0.2);
+  --sb-thumb-hover: rgba(0, 0, 0, 0.3);
 }
 
 .content-wrapper {
