@@ -16,11 +16,16 @@
 
       <div class="step-row step-row--wizard">
         @for (wizardStep of wizardSteps(); track wizardStep.step) {
-          <div [class]="getStepItemClass(wizardStep.step)">
+          <button
+            type="button"
+            [class]="getStepItemClass(wizardStep.step)"
+            [disabled]="!canNavigateToStep(wizardStep.step)"
+            (click)="goToStep(wizardStep.step)"
+          >
             <span class="step-num">Stap {{ wizardStep.step }}</span>
             <span class="step-title">{{ wizardStep.title }}</span>
             <span class="step-desc">{{ wizardStep.description }}</span>
-          </div>
+          </button>
         }
       </div>
 
@@ -228,88 +233,47 @@
 
               @if (draftBasicData(); as basicData) {
                 <div class="wizard-summary-grid">
-                  <section class="wizard-summary wizard-summary--main">
-                    <h3 class="wizard-summary__heading">Basisgegevens</h3>
-                    <dl class="wizard-summary__list">
-                      <div class="wizard-summary__row">
-                        <dt>Titel</dt>
-                        <dd>{{ basicData.title }}</dd>
-                      </div>
-                      <div class="wizard-summary__row">
-                        <dt>Categorie</dt>
-                        <dd>
-                          {{ getLessonTipTypeLabel(basicData.lessonTipType) }}
-                        </dd>
-                      </div>
-                      <div class="wizard-summary__row">
-                        <dt>Beschrijving</dt>
-                        <dd>{{ basicData.description }}</dd>
-                      </div>
-                      <div class="wizard-summary__row">
-                        <dt>Vak</dt>
-                        <dd>
-                          {{ formatOptionalSummaryValue(basicData.subject) }}
-                        </dd>
-                      </div>
-                      <div class="wizard-summary__row">
-                        <dt>Niveau</dt>
-                        <dd>
-                          {{
-                            formatOptionalSummaryValue(basicData.educationLevel)
-                          }}
-                        </dd>
-                      </div>
-                      <div class="wizard-summary__row">
-                        <dt>Trefwoorden</dt>
-                        <dd>
-                          {{ formatOptionalSummaryValue(basicData.keywords) }}
-                        </dd>
-                      </div>
-                    </dl>
-                  </section>
-
-                  <div class="wizard-summary-sidebar">
-                    <section class="wizard-summary">
-                      <h3 class="wizard-summary__heading">Gekoppelde boeken</h3>
-                      @if (selectedLinkedBooks().length > 0) {
-                        <div class="linked-books-list linked-books-list--cards">
-                          @for (
-                            linkedBook of selectedLinkedBooks();
-                            track linkedBook.id
-                          ) {
-                            <article
-                              class="linked-book-card linked-book-card--summary"
-                            >
-                              <div class="linked-book-card__cover">
-                                @if (linkedBook.imageUrl) {
-                                  <img
-                                    [src]="linkedBook.imageUrl"
-                                    [alt]="linkedBook.title"
-                                    class="linked-book-card__image"
-                                  />
-                                } @else {
-                                  <div class="linked-book-card__placeholder">
-                                    <span>Geen cover</span>
-                                  </div>
-                                }
-                              </div>
-
-                              <div class="linked-book-card__content">
-                                <h3 class="linked-book-card__title">
-                                  {{ linkedBook.title }}
-                                </h3>
-                                <p class="linked-book-card__author">
-                                  {{ linkedBook.author }}
-                                </p>
-                              </div>
-                            </article>
-                          }
+                  <div class="wizard-summary-main-column">
+                    <section class="wizard-summary wizard-summary--main">
+                      <h3 class="wizard-summary__heading">Basisgegevens</h3>
+                      <dl class="wizard-summary__list">
+                        <div class="wizard-summary__row">
+                          <dt>Titel</dt>
+                          <dd>{{ basicData.title }}</dd>
                         </div>
-                      } @else {
-                        <p class="wizard-summary__empty">
-                          Geen boeken gekoppeld.
-                        </p>
-                      }
+                        <div class="wizard-summary__row">
+                          <dt>Categorie</dt>
+                          <dd>
+                            {{ getLessonTipTypeLabel(basicData.lessonTipType) }}
+                          </dd>
+                        </div>
+                        <div class="wizard-summary__row">
+                          <dt>Beschrijving</dt>
+                          <dd>{{ basicData.description }}</dd>
+                        </div>
+                        <div class="wizard-summary__row">
+                          <dt>Vak</dt>
+                          <dd>
+                            {{ formatOptionalSummaryValue(basicData.subject) }}
+                          </dd>
+                        </div>
+                        <div class="wizard-summary__row">
+                          <dt>Niveau</dt>
+                          <dd>
+                            {{
+                              formatOptionalSummaryValue(
+                                basicData.educationLevel
+                              )
+                            }}
+                          </dd>
+                        </div>
+                        <div class="wizard-summary__row">
+                          <dt>Trefwoorden</dt>
+                          <dd>
+                            {{ formatOptionalSummaryValue(basicData.keywords) }}
+                          </dd>
+                        </div>
+                      </dl>
                     </section>
 
                     @if (isEditMode()) {
@@ -358,6 +322,51 @@
                         }
                       </section>
                     }
+                  </div>
+
+                  <div class="wizard-summary-sidebar">
+                    <section class="wizard-summary">
+                      <h3 class="wizard-summary__heading">Gekoppelde boeken</h3>
+                      @if (selectedLinkedBooks().length > 0) {
+                        <div class="linked-books-list linked-books-list--cards">
+                          @for (
+                            linkedBook of selectedLinkedBooks();
+                            track linkedBook.id
+                          ) {
+                            <article
+                              class="linked-book-card linked-book-card--summary"
+                            >
+                              <div class="linked-book-card__cover">
+                                @if (linkedBook.imageUrl) {
+                                  <img
+                                    [src]="linkedBook.imageUrl"
+                                    [alt]="linkedBook.title"
+                                    class="linked-book-card__image"
+                                  />
+                                } @else {
+                                  <div class="linked-book-card__placeholder">
+                                    <span>Geen cover</span>
+                                  </div>
+                                }
+                              </div>
+
+                              <div class="linked-book-card__content">
+                                <h3 class="linked-book-card__title">
+                                  {{ linkedBook.title }}
+                                </h3>
+                                <p class="linked-book-card__author">
+                                  {{ linkedBook.author }}
+                                </p>
+                              </div>
+                            </article>
+                          }
+                        </div>
+                      } @else {
+                        <p class="wizard-summary__empty">
+                          Geen boeken gekoppeld.
+                        </p>
+                      }
+                    </section>
                   </div>
                 </div>
               } @else {

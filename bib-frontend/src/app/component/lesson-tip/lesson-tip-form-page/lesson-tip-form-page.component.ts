@@ -454,4 +454,24 @@ export class LessonTipFormPageComponent {
         lessonTip.linkedBooks?.map((linkedBook) => linkedBook.id) ?? [],
     };
   }
+
+  public goToStep(step: LessonTipWizardStep): void {
+    if (!this.canNavigateToStep(step)) {
+      return;
+    }
+
+    this.currentStep.set(step);
+  }
+
+  protected canNavigateToStep(step: LessonTipWizardStep): boolean {
+    if (step <= this.currentStep()) {
+      return true;
+    }
+
+    if (step === 1) {
+      return true;
+    }
+
+    return this.draftBasicData() !== null;
+  }
 }

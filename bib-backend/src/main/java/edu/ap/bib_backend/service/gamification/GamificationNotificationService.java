@@ -122,7 +122,6 @@ public class GamificationNotificationService {
         return gamificationProfileService.getOrCreateProfile(user);
     }
 
-    @Transactional(readOnly = true)
     public String getCurrentUserId(Authentication authentication) {
         return currentUserService.extractCurrentUserId(authentication);
     }
