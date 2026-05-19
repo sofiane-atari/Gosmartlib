@@ -1,10 +1,10 @@
+import { WizardStepDefinition } from '../shared/step-wizard/step-wizard.odel';
+
 export type LessonTipWizardStep = 1 | 2 | 3 | 4;
 
-export interface LessonTipWizardStepDefinition {
+export type LessonTipWizardStepDefinition = WizardStepDefinition & {
   readonly step: LessonTipWizardStep;
-  readonly title: string;
-  readonly description: string;
-}
+};
 
 export const LESSON_TIP_CREATE_WIZARD_STEPS: readonly LessonTipWizardStepDefinition[] =
   [

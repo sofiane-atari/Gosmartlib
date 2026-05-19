@@ -49,15 +49,7 @@ public class GamificationNotificationController {
      */
     @GetMapping("/stream")
     public SseEmitter streamNotifications(Authentication authentication) {
-<<<<<<< HEAD
         String currentUserId = gamificationNotificationService.getCurrentUserId(authentication);
         return gamificationNotificationSseService.subscribe(currentUserId);
-=======
-        return null;
-        // String currentUserId =
-        // gamificationNotificationService.getCurrentUserId(authentication);
-
-        // return gamificationNotificationSseService.subscribe(currentUserId);
->>>>>>> 0b699fe89365d470ff08b2c8b7b08fa0e5e63948
     }
 }

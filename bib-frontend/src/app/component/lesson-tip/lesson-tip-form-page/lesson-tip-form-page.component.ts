@@ -25,6 +25,7 @@ import {
   LESSON_TIP_EDIT_WIZARD_STEPS,
   LessonTipWizardStep,
 } from '../../../model/lesson-tip/lesson-tip-wizard.model';
+import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 
 @Component({
@@ -38,6 +39,7 @@ import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
     LessonTipAttachmentsPanelComponent,
     LessonTipBookSelectionPanelComponent,
     LessonTipAttachmentsQueueComponent,
+    StepWizardComponent,
   ],
   providers: [LessonTipBookSelectionService],
   templateUrl: './lesson-tip-form-page.component.html',
@@ -455,7 +457,11 @@ export class LessonTipFormPageComponent {
     };
   }
 
-  public goToStep(step: LessonTipWizardStep): void {
+  public goToStep(step: number): void {
+    if (!this.isLessonTipWizardStep(step)) {
+      return;
+    }
+
     if (!this.canNavigateToStep(step)) {
       return;
     }
@@ -463,7 +469,11 @@ export class LessonTipFormPageComponent {
     this.currentStep.set(step);
   }
 
-  protected canNavigateToStep(step: LessonTipWizardStep): boolean {
+  public readonly canNavigateToStep = (step: number): boolean => {
+    if (!this.isLessonTipWizardStep(step)) {
+      return false;
+    }
+
     if (step <= this.currentStep()) {
       return true;
     }
@@ -473,5 +483,9 @@ export class LessonTipFormPageComponent {
     }
 
     return this.draftBasicData() !== null;
+  };
+
+  private isLessonTipWizardStep(step: number): step is LessonTipWizardStep {
+    return step >= 1 && step <= this.wizardSteps().length;
   }
 }
