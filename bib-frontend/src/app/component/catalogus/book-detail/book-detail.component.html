@@ -22,10 +22,12 @@
             <span class="stat-value">{{ selectedBook.pages }}</span>
             <span class="stat-label">Pagina's</span>
           </div>
+
           <div class="stat-item">
             <span class="stat-value">{{ selectedBook.releaseYear }}</span>
             <span class="stat-label">Jaar</span>
           </div>
+
           <div class="stat-item">
             <span class="stat-value">
               {{ selectedBook.readingLevel?.niveauName || "-" }}
@@ -33,7 +35,31 @@
             <span class="stat-label">Leesniveau</span>
           </div>
         </div>
+
+        <app-button-hover-help
+          class="full-button-help"
+          [text]="isSubscribed()
+            ? 'Je ontvangt een melding wanneer dit boek beschikbaar is. Klik om uit te schrijven.'
+            : 'Ontvang een melding zodra dit boek beschikbaar is.'"
+        >
+          <button
+            class="action-btn subscribe-btn"
+            [class.subscribed]="isSubscribed()"
+            [disabled]="subscriptionLoading()"
+            (click)="toggleSubscription()"
+          >
+            @if (subscriptionLoading()) {
+              <span class="subscribe-spinner"></span>
+            } @else if (isSubscribed()) {
+              <lucide-icon [img]="BellOff" [size]="18"></lucide-icon>
+            } @else {
+              <lucide-icon [img]="Bell" [size]="18"></lucide-icon>
+            }
+            <span>{{ isSubscribed() ? 'Melding aan' : 'Melding bij beschikbaarheid' }}</span>
+          </button>
+        </app-button-hover-help>
       </aside>
+      
 
       <main class="main-content">
         <header class="content-header">
@@ -55,57 +81,45 @@
               </button>
             </app-button-hover-help>
 
-            <app-button-hover-help
-              class="full-button-help"
-              text="Voeg dit boek toe aan één van je leeslijsten."
-            >
-              <button class="action-btn primary" style="position: relative" (click)="toggleListPicker()">
-                <lucide-icon [img]="Bookmark" [size]="18" style="margin-right: 8px"></lucide-icon>
-                <span>Aan leeslijst toevoegen</span>
-
-                @if (showListPicker) {
-                  <div class="list-picker-dropdown" (click)="$event.stopPropagation()">
-                    <div class="list-picker-header">Kies een leeslijst</div>
-                    @if (pickerReadingLists.length > 0) {
-                      <div class="list-picker-items">
-                        @for (list of pickerReadingLists; track list.id) {
-                          <div class="list-picker-item" (click)="addBookToList(list.id)">
-                            {{ list.name }}
-                          </div>
-                        }
-                      </div>
-                    } @else {
-                      <div class="list-picker-empty">
-                        Geen leeslijsten gevonden. Maak er eerst een aan in het overzicht.
-                      </div>
-                    }
-                  </div>
-                }
-              </button>
-            </app-button-hover-help>
-
-            <app-button-hover-help
-              class="full-button-help"
-              [text]="isSubscribed()
-                ? 'Je ontvangt een melding wanneer dit boek beschikbaar is. Klik om uit te schrijven.'
-                : 'Ontvang een melding zodra dit boek beschikbaar is.'"
-            >
-              <button
-                class="action-btn subscribe-btn"
-                [class.subscribed]="isSubscribed()"
-                [disabled]="subscriptionLoading()"
-                (click)="toggleSubscription()"
+            <div class="list-picker-wrapper">
+              <app-button-hover-help
+                class="full-button-help"
+                text="Voeg dit boek toe aan één van je leeslijsten."
               >
-                @if (subscriptionLoading()) {
-                  <span class="subscribe-spinner"></span>
-                } @else if (isSubscribed()) {
-                  <lucide-icon [img]="BellOff" [size]="18"></lucide-icon>
-                } @else {
-                  <lucide-icon [img]="Bell" [size]="18"></lucide-icon>
-                }
-                <span>{{ isSubscribed() ? 'Melding aan' : 'Melding bij beschikbaarheid' }}</span>
-              </button>
-            </app-button-hover-help>
+                <button
+                  class="action-btn primary"
+                  type="button"
+                  (click)="toggleListPicker()"
+                >
+                  <lucide-icon [img]="Bookmark" [size]="18" style="margin-right: 8px"></lucide-icon>
+                  <span>Aan leeslijst toevoegen</span>
+                </button>
+              </app-button-hover-help>
+
+              @if (showListPicker) {
+                <div class="list-picker-dropdown" (click)="$event.stopPropagation()">
+                  <div class="list-picker-header">Kies een leeslijst</div>
+
+                  @if (pickerReadingLists.length > 0) {
+                    <div class="list-picker-items">
+                      @for (list of pickerReadingLists; track list.id) {
+                        <button
+                          type="button"
+                          class="list-picker-item"
+                          (click)="addBookToList(list.id)"
+                        >
+                          {{ list.name }}
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <div class="list-picker-empty">
+                      Geen leeslijsten gevonden. Maak er eerst een aan in het overzicht.
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           </div>
         </section>
 
