@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, inject, signal, effect } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+  effect,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Book, BookCopyLocation } from '../../../model/book/book.model';
@@ -19,6 +26,11 @@ import { BookSelectionPanelComponent } from './book-selection-panel/book-selecti
 import { LoanSummaryPanelComponent } from './loan-summary-panel/loan-summary-panel.component';
 import { ScanIsbnComponent } from './scan-isbn/scan-isbn.component';
 import { ConfirmationModalComponent } from '../../shared/confirmation-modal/confirmation-modal.component';
+import {
+  CREATE_LOAN_WIZARD_STEPS,
+  CreateLoanWizardStep,
+} from '../../../model/loan/loan-wizard.model';
+import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
 
 @Component({
   selector: 'app-create-loan',
@@ -31,6 +43,7 @@ import { ConfirmationModalComponent } from '../../shared/confirmation-modal/conf
     LoanSummaryPanelComponent,
     ScanIsbnComponent,
     ConfirmationModalComponent,
+    StepWizardComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrl: './create-loan.component.css',
@@ -54,21 +67,55 @@ export class CreateLoanComponent {
   public readonly isLoadingCatalogBooks = signal(false);
   public readonly isLoadingIsbnBooks = signal(false);
   public readonly isSubmitting = signal(false);
+  public readonly wizardSteps = CREATE_LOAN_WIZARD_STEPS;
+  public readonly currentStep = signal<CreateLoanWizardStep>(1);
 
-  public readonly searchFirstname = signal(this.loadFromSession('searchFirstname', ''));
-  public readonly searchLastname = signal(this.loadFromSession('searchLastname', ''));
-  public readonly bookSearchQuery = signal(this.loadFromSession('bookSearchQuery', ''));
-  public readonly bookSearchIsbn = signal(this.loadFromSession('bookSearchIsbn', ''));
+  public readonly maxReachableStep = computed(() => {
+    if (this.selectedUser() === null) {
+      return 1;
+    }
+
+    if (this.selectedBooks().length === 0) {
+      return 2;
+    }
+
+    return CREATE_LOAN_WIZARD_STEPS.length;
+  });
+
+  public readonly searchFirstname = signal(
+    this.loadFromSession('searchFirstname', ''),
+  );
+  public readonly searchLastname = signal(
+    this.loadFromSession('searchLastname', ''),
+  );
+  public readonly bookSearchQuery = signal(
+    this.loadFromSession('bookSearchQuery', ''),
+  );
+  public readonly bookSearchIsbn = signal(
+    this.loadFromSession('bookSearchIsbn', ''),
+  );
   public readonly users = signal<AuthUserDto[]>([]);
 
   public readonly catalogBooks = signal<Book[]>([]);
   public readonly isbnBooks = signal<Book[]>([]);
-  public readonly selectedUser = signal<AuthUserDto | null>(this.loadFromSession('selectedUser', null));
-  public readonly selectedBooks = signal<Book[]>(this.loadFromSession('selectedBooks', []));
-  public readonly selectedCopyIdsByBook = signal<Record<number, number[]>>(this.loadFromSession('selectedCopyIdsByBook', {}));
-  public readonly scannedBooks = signal<Book[]>(this.loadFromSession('scannedBooks', []));
-  public readonly schoolSummary = signal<SchoolSummaryDto | null>(this.loadFromSession('schoolSummary', null));
-  public readonly isCustomDate = signal(this.loadFromSession('isCustomDate', false));
+  public readonly selectedUser = signal<AuthUserDto | null>(
+    this.loadFromSession('selectedUser', null),
+  );
+  public readonly selectedBooks = signal<Book[]>(
+    this.loadFromSession('selectedBooks', []),
+  );
+  public readonly selectedCopyIdsByBook = signal<Record<number, number[]>>(
+    this.loadFromSession('selectedCopyIdsByBook', {}),
+  );
+  public readonly scannedBooks = signal<Book[]>(
+    this.loadFromSession('scannedBooks', []),
+  );
+  public readonly schoolSummary = signal<SchoolSummaryDto | null>(
+    this.loadFromSession('schoolSummary', null),
+  );
+  public readonly isCustomDate = signal(
+    this.loadFromSession('isCustomDate', false),
+  );
   public readonly minReturnDate = signal(this.buildMinReturnDate());
 
   public readonly selectedCampusId = computed(() => this.getSelectedCampusId());
@@ -91,11 +138,19 @@ export class CreateLoanComponent {
   private clearSession(): void {
     if (typeof sessionStorage === 'undefined') return;
     const keys = [
-      'selectedUser', 'selectedBooks', 'selectedCopyIdsByBook', 'scannedBooks', 'searchFirstname', 
-      'searchLastname', 'bookSearchQuery', 'bookSearchIsbn', 'schoolSummary', 
-      'isCustomDate', 'returnDate'
+      'selectedUser',
+      'selectedBooks',
+      'selectedCopyIdsByBook',
+      'scannedBooks',
+      'searchFirstname',
+      'searchLastname',
+      'bookSearchQuery',
+      'bookSearchIsbn',
+      'schoolSummary',
+      'isCustomDate',
+      'returnDate',
     ];
-    keys.forEach(k => sessionStorage.removeItem(`create_loan_${k}`));
+    keys.forEach((k) => sessionStorage.removeItem(`create_loan_${k}`));
   }
 
   public clearAllProgress(): void {
@@ -145,7 +200,10 @@ export class CreateLoanComponent {
   });
 
   protected loanForm = this.fb.group({
-    returnDate: [this.loadFromSession<string>('returnDate', ''), Validators.required],
+    returnDate: [
+      this.loadFromSession<string>('returnDate', ''),
+      Validators.required,
+    ],
   });
 
   public constructor() {
@@ -205,19 +263,22 @@ export class CreateLoanComponent {
       this.saveToSession('isCustomDate', this.isCustomDate());
     });
 
-    this.loanForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(val => {
-      this.saveToSession('returnDate', val.returnDate);
-    });
+    this.loanForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => {
+        this.saveToSession('returnDate', val.returnDate);
+      });
 
     if (this.selectedUser()) {
       const user = this.selectedUser()!;
-      this.userService.hasValidRefreshToken(user.id).pipe(
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe({
-        next: (isValid) => this.hasValidRefreshToken.set(isValid),
-        error: () => this.hasValidRefreshToken.set(false)
-      });
-      
+      this.userService
+        .hasValidRefreshToken(user.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (isValid) => this.hasValidRefreshToken.set(isValid),
+          error: () => this.hasValidRefreshToken.set(false),
+        });
+
       if (this.bookSearchQuery().trim()) {
         this.triggerCatalogSearch();
       }
@@ -229,10 +290,12 @@ export class CreateLoanComponent {
     if (this.searchFirstname().trim() || this.searchLastname().trim()) {
       this.searchUsers();
     }
-}
+  }
 
   public readonly filteredBooks = computed(() => {
-    const selectedBookIds = new Set(this.selectedBooks().map((book) => book.id));
+    const selectedBookIds = new Set(
+      this.selectedBooks().map((book) => book.id),
+    );
     const mergedBooksByKey = new Map<string, Book>();
 
     [...this.catalogBooks(), ...this.isbnBooks()].forEach((book) => {
@@ -259,14 +322,17 @@ export class CreateLoanComponent {
   });
 
   public readonly selectedBookCounts = computed(() => {
-    return this.selectedBooks().reduce<Record<number, number>>((counts, book) => {
-      if (book.id === undefined) {
-        return counts;
-      }
+    return this.selectedBooks().reduce<Record<number, number>>(
+      (counts, book) => {
+        if (book.id === undefined) {
+          return counts;
+        }
 
-      counts[book.id] = (counts[book.id] ?? 0) + 1;
-      return counts;
-    }, {});
+        counts[book.id] = (counts[book.id] ?? 0) + 1;
+        return counts;
+      },
+      {},
+    );
   });
 
   public onFirstnameSearchChange(value: string): void {
@@ -291,12 +357,13 @@ export class CreateLoanComponent {
     this.triggerCatalogSearch();
     this.triggerIsbnSearch();
 
-    this.userService.hasValidRefreshToken(user.id).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: (isValid) => this.hasValidRefreshToken.set(isValid),
-      error: () => this.hasValidRefreshToken.set(false)
-    });
+    this.userService
+      .hasValidRefreshToken(user.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (isValid) => this.hasValidRefreshToken.set(isValid),
+        error: () => this.hasValidRefreshToken.set(false),
+      });
   }
 
   public clearSelectedUser(): void {
@@ -306,6 +373,7 @@ export class CreateLoanComponent {
     this.bookSearchQuery.set('');
     this.bookSearchIsbn.set('');
     this.hasValidRefreshToken.set(null);
+    this.currentStep.set(1);
   }
 
   public onBookSearchQueryChange(event: Event): void {
@@ -327,7 +395,8 @@ export class CreateLoanComponent {
 
     this.bookService.getBookById(book.id).subscribe({
       next: (detailedBook) => this.addBookCopySelection(detailedBook),
-      error: () => this.showError('Exemplaren konden niet geladen worden voor dit boek.'),
+      error: () =>
+        this.showError('Exemplaren konden niet geladen worden voor dit boek.'),
     });
   }
 
@@ -336,25 +405,36 @@ export class CreateLoanComponent {
       return;
     }
 
-    const selectedCount = this.selectedBooks().filter((selectedBook) => selectedBook.id === book.id).length;
+    const selectedCount = this.selectedBooks().filter(
+      (selectedBook) => selectedBook.id === book.id,
+    ).length;
     const selectedCampusId = this.getSelectedCampusId();
     const allAvailableCopies = this.getAvailableCopies(book);
-    const availableCopies = selectedCampusId === null
-      ? allAvailableCopies
-      : allAvailableCopies.filter((copy) => this.getCopyCampusId(book, copy.id) === selectedCampusId);
+    const availableCopies =
+      selectedCampusId === null
+        ? allAvailableCopies
+        : allAvailableCopies.filter(
+            (copy) => this.getCopyCampusId(book, copy.id) === selectedCampusId,
+          );
 
     if (selectedCount >= allAvailableCopies.length) {
-      this.showError('Er zijn niet genoeg beschikbare exemplaren voor dit boek.');
+      this.showError(
+        'Er zijn niet genoeg beschikbare exemplaren voor dit boek.',
+      );
       return;
     }
 
     if (availableCopies.length === 0) {
-      this.showError('Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.');
+      this.showError(
+        'Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.',
+      );
       return;
     }
 
     const selectedCopyIds = this.selectedCopyIdsByBook()[book.id] ?? [];
-    const nextCopy = availableCopies.find((copy) => !selectedCopyIds.includes(copy.id));
+    const nextCopy = availableCopies.find(
+      (copy) => !selectedCopyIds.includes(copy.id),
+    );
 
     if (!nextCopy) {
       this.showError('Er is geen beschikbaar exemplaar om te selecteren.');
@@ -400,10 +480,21 @@ export class CreateLoanComponent {
     });
   }
 
-  public updateSelectedCopy(bookId: number, index: number, copyId: number): void {
-    const book = this.selectedBooks().find((selectedBook) => selectedBook.id === bookId);
-    if (book && !this.canSelectCopyForCurrentLoan(book, copyId, bookId, index)) {
-      this.showError('Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.');
+  public updateSelectedCopy(
+    bookId: number,
+    index: number,
+    copyId: number,
+  ): void {
+    const book = this.selectedBooks().find(
+      (selectedBook) => selectedBook.id === bookId,
+    );
+    if (
+      book &&
+      !this.canSelectCopyForCurrentLoan(book, copyId, bookId, index)
+    ) {
+      this.showError(
+        'Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.',
+      );
       return;
     }
 
@@ -424,12 +515,16 @@ export class CreateLoanComponent {
     const returnDate = this.loanForm.controls.returnDate.value;
 
     if (!user || books.length === 0 || !returnDate) {
-      this.showError('Vul alle verplichte velden in voor je een lening aanmaakt.');
+      this.showError(
+        'Vul alle verplichte velden in voor je een lening aanmaakt.',
+      );
       return;
     }
 
     if (returnDate < this.minReturnDate()) {
-      this.showError('De terugbrengdatum moet minimaal één dag in de toekomst liggen.');
+      this.showError(
+        'De terugbrengdatum moet minimaal één dag in de toekomst liggen.',
+      );
       return;
     }
 
@@ -439,11 +534,13 @@ export class CreateLoanComponent {
       return;
     }
 
-    const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
-      id: Number(id),
-      bookCopyIds: this.selectedCopyIdsByBook()[Number(id)] ?? [],
-      copiesCount: count,
-    }));
+    const booksPayload = Object.entries(this.selectedBookCounts()).map(
+      ([id, count]) => ({
+        id: Number(id),
+        bookCopyIds: this.selectedCopyIdsByBook()[Number(id)] ?? [],
+        copiesCount: count,
+      }),
+    );
 
     if (booksPayload.length === 0) {
       this.showError('Er zijn geen geldige boeken geselecteerd.');
@@ -458,7 +555,9 @@ export class CreateLoanComponent {
     }
 
     if (!this.hasSingleSelectedCampus()) {
-      this.showError('Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.');
+      this.showError(
+        'Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.',
+      );
       return;
     }
 
@@ -472,19 +571,23 @@ export class CreateLoanComponent {
 
   public confirmLoanWithWarning(): void {
     this.showNoTokenWarningModal.set(false);
-    
+
     const user = this.selectedUser();
-    const booksPayload = Object.entries(this.selectedBookCounts()).map(([id, count]) => ({
-      id: Number(id),
-      bookCopyIds: this.selectedCopyIdsByBook()[Number(id)] ?? [],
-      copiesCount: count,
-    }));
+    const booksPayload = Object.entries(this.selectedBookCounts()).map(
+      ([id, count]) => ({
+        id: Number(id),
+        bookCopyIds: this.selectedCopyIdsByBook()[Number(id)] ?? [],
+        copiesCount: count,
+      }),
+    );
     const bookCopyIds = Object.values(this.selectedCopyIdsByBook()).flat();
     const returnDate = this.loanForm.controls.returnDate.value;
 
     if (user && returnDate) {
       if (!this.hasSingleSelectedCampus()) {
-        this.showError('Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.');
+        this.showError(
+          'Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.',
+        );
         return;
       }
 
@@ -496,9 +599,14 @@ export class CreateLoanComponent {
     this.showNoTokenWarningModal.set(false);
   }
 
-  private submitLoan(userId: string, bookCopyIds: number[], booksPayload: any[], returnDate: string): void {
+  private submitLoan(
+    userId: string,
+    bookCopyIds: number[],
+    booksPayload: any[],
+    returnDate: string,
+  ): void {
     this.isSubmitting.set(true);
-    
+
     this.loansService
       .createLoans({
         id: 0,
@@ -516,7 +624,9 @@ export class CreateLoanComponent {
         },
         error: () => {
           this.isSubmitting.set(false);
-          this.showError('De lening kon niet worden aangemaakt. Probeer opnieuw.');
+          this.showError(
+            'De lening kon niet worden aangemaakt. Probeer opnieuw.',
+          );
         },
       });
   }
@@ -524,7 +634,10 @@ export class CreateLoanComponent {
   private getAvailableCopies(book: Book): BookCopyLocation[] {
     return (book.copyLocations ?? [])
       .flatMap((location) => location.copies)
-      .filter((copy) => copy.availability === 'AVAILABLE' && copy.condition !== 'LOST');
+      .filter(
+        (copy) =>
+          copy.availability === 'AVAILABLE' && copy.condition !== 'LOST',
+      );
   }
 
   private getCopyCampusId(book: Book, copyId: number): number | null {
@@ -537,7 +650,12 @@ export class CreateLoanComponent {
     return null;
   }
 
-  private canSelectCopyForCurrentLoan(book: Book, copyId: number, bookIdToReplace?: number, indexToReplace?: number): boolean {
+  private canSelectCopyForCurrentLoan(
+    book: Book,
+    copyId: number,
+    bookIdToReplace?: number,
+    indexToReplace?: number,
+  ): boolean {
     const copyCampusId = this.getCopyCampusId(book, copyId);
     if (copyCampusId === null) {
       return false;
@@ -548,13 +666,17 @@ export class CreateLoanComponent {
         continue;
       }
 
-      const selectedCopyIds = this.selectedCopyIdsByBook()[selectedBook.id] ?? [];
+      const selectedCopyIds =
+        this.selectedCopyIdsByBook()[selectedBook.id] ?? [];
       for (let index = 0; index < selectedCopyIds.length; index++) {
         if (selectedBook.id === bookIdToReplace && index === indexToReplace) {
           continue;
         }
 
-        const selectedCampusId = this.getCopyCampusId(selectedBook, selectedCopyIds[index]);
+        const selectedCampusId = this.getCopyCampusId(
+          selectedBook,
+          selectedCopyIds[index],
+        );
         if (selectedCampusId !== null && selectedCampusId !== copyCampusId) {
           return false;
         }
@@ -570,7 +692,8 @@ export class CreateLoanComponent {
         continue;
       }
 
-      for (const copyId of this.selectedCopyIdsByBook()[selectedBook.id] ?? []) {
+      for (const copyId of this.selectedCopyIdsByBook()[selectedBook.id] ??
+        []) {
         const campusId = this.getCopyCampusId(selectedBook, copyId);
         if (campusId !== null) {
           return campusId;
@@ -589,7 +712,8 @@ export class CreateLoanComponent {
         continue;
       }
 
-      for (const copyId of this.selectedCopyIdsByBook()[selectedBook.id] ?? []) {
+      for (const copyId of this.selectedCopyIdsByBook()[selectedBook.id] ??
+        []) {
         const campusId = this.getCopyCampusId(selectedBook, copyId);
         if (campusId !== null) {
           campusIds.add(campusId);
@@ -618,7 +742,10 @@ export class CreateLoanComponent {
           this.isLoadingUsers.set(false);
           this.showError('Gebruikers konden niet worden geladen.');
           console.log('Error loading users:', err);
-          console.log('Error loading users with parameters:', { firstName, lastName });
+          console.log('Error loading users with parameters:', {
+            firstName,
+            lastName,
+          });
         },
       });
   }
@@ -631,27 +758,29 @@ export class CreateLoanComponent {
 
     this.isLoadingCatalogBooks.set(true);
 
-    this.bookService.getFilteredBooks(
-      searchTerm.length > 0 ? searchTerm : null,
-      'AVAILABLE',
-      null,
-      null,
-      null,
-      null,
-      0,
-      50,
-      'AZ',
-    ).subscribe({
-      next: (response: PaginatedResponse<Book>) => {
-        this.catalogBooks.set(response.data);
-        this.isLoadingCatalogBooks.set(false);
-      },
-      error: () => {
-        this.catalogBooks.set([]);
-        this.isLoadingCatalogBooks.set(false);
-        this.showError('Boeken konden niet worden geladen.');
-      },
-    });
+    this.bookService
+      .getFilteredBooks(
+        searchTerm.length > 0 ? searchTerm : null,
+        'AVAILABLE',
+        null,
+        null,
+        null,
+        null,
+        0,
+        50,
+        'AZ',
+      )
+      .subscribe({
+        next: (response: PaginatedResponse<Book>) => {
+          this.catalogBooks.set(response.data);
+          this.isLoadingCatalogBooks.set(false);
+        },
+        error: () => {
+          this.catalogBooks.set([]);
+          this.isLoadingCatalogBooks.set(false);
+          this.showError('Boeken konden niet worden geladen.');
+        },
+      });
   }
 
   private fetchBookByIsbn(isbn: string, autoSelect: boolean): void {
@@ -734,7 +863,7 @@ export class CreateLoanComponent {
   }
 
   private triggerIsbnSearch(isbnOverride?: string): void {
-    this.isbnSearchSubject.next((isbnOverride ?? this.bookSearchIsbn().trim()));
+    this.isbnSearchSubject.next(isbnOverride ?? this.bookSearchIsbn().trim());
   }
 
   private showSuccess(message: string): void {
@@ -765,7 +894,9 @@ export class CreateLoanComponent {
   public onCustomDate(): void {
     this.isCustomDate.set(true);
     setTimeout(() => {
-      const input = document.getElementById('returnDate') as HTMLInputElement | null;
+      const input = document.getElementById(
+        'returnDate',
+      ) as HTMLInputElement | null;
       input?.focus();
       input?.showPicker?.();
     });
@@ -778,7 +909,10 @@ export class CreateLoanComponent {
 
   public onChangeDefaultDays(): void {
     const currentDays = this.schoolSummary()?.defaultLoanDurationDays ?? 15;
-    const input = window.prompt('Wijzig de standaard uitleentermijn (in dagen):', currentDays.toString());
+    const input = window.prompt(
+      'Wijzig de standaard uitleentermijn (in dagen):',
+      currentDays.toString(),
+    );
 
     if (input === null) {
       return;
@@ -809,7 +943,45 @@ export class CreateLoanComponent {
         defaultLoanDurationDays: newDays,
       });
       this.updateDefaultReturnDate();
-      this.showSuccess(`Standaard uitleentermijn gewijzigd naar ${newDays} dagen.`);
+      this.showSuccess(
+        `Standaard uitleentermijn gewijzigd naar ${newDays} dagen.`,
+      );
     }
+  }
+
+  public setCurrentStep(step: number): void {
+    if (!this.isCreateLoanWizardStep(step)) {
+      return;
+    }
+
+    this.currentStep.set(step);
+  }
+
+  private isCreateLoanWizardStep(step: number): step is CreateLoanWizardStep {
+    return step >= 1 && step <= CREATE_LOAN_WIZARD_STEPS.length;
+  }
+
+  public goToNextStep(): void {
+    const nextStep = this.currentStep() + 1;
+
+    if (!this.isCreateLoanWizardStep(nextStep)) {
+      return;
+    }
+
+    if (nextStep > this.maxReachableStep()) {
+      return;
+    }
+
+    this.currentStep.set(nextStep);
+  }
+
+  public goToPreviousStep(): void {
+    const previousStep = this.currentStep() - 1;
+
+    if (!this.isCreateLoanWizardStep(previousStep)) {
+      return;
+    }
+
+    this.currentStep.set(previousStep);
   }
 }

@@ -18,8 +18,8 @@
         <app-step-wizard
           [steps]="wizardSteps()"
           [currentStep]="currentStep()"
-          [canNavigateToStep]="canNavigateToStep"
-          (stepSelected)="goToStep($event)"
+          [maxReachableStep]="maxReachableStep()"
+          (stepSelected)="setCurrentStep($event)"
         ></app-step-wizard>
       </div>
 

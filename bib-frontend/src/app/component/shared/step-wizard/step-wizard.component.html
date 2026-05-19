@@ -3,7 +3,7 @@
     <button
       type="button"
       [class]="getStepItemClass(wizardStep.step)"
-      [disabled]="!canNavigateToStep()(wizardStep.step)"
+      [disabled]="isStepDisabled(wizardStep.step)"
       (click)="selectStep(wizardStep.step)"
     >
       <span class="step-num">Stap {{ wizardStep.step }}</span>

@@ -1,4 +1,4 @@
-import { WizardStepDefinition } from '../shared/step-wizard/step-wizard.odel';
+import { WizardStepDefinition } from '../shared/step-wizard/step-wizard.model';
 
 export type LessonTipWizardStep = 1 | 2 | 3 | 4;
 

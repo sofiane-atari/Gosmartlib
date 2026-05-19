@@ -203,7 +203,6 @@
   position: relative;
   overflow: hidden;
   border-radius: 8px;
-  /* De nieuwe shimmer gradient uit je voorbeeld */
   background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 45%, #f9f4f6 90%);
   background-size: 220% 100%;
   animation: skeletonShimmer 1.6s ease-in-out infinite;
@@ -309,7 +308,6 @@
   display: block;
 }
 
-/* De shimmer animatie keyframes (deze vervangt lessonTipSkeletonShimmer) */
 @keyframes skeletonShimmer {
   0% {
     background-position: 220% 0;

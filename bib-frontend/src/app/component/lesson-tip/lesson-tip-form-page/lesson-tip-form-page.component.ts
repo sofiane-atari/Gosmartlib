@@ -457,35 +457,15 @@ export class LessonTipFormPageComponent {
     };
   }
 
-  public goToStep(step: number): void {
-    if (!this.isLessonTipWizardStep(step)) {
-      return;
-    }
-
-    if (!this.canNavigateToStep(step)) {
-      return;
-    }
-
-    this.currentStep.set(step);
+  public setCurrentStep(step: number): void {
+    this.currentStep.set(step as LessonTipWizardStep);
   }
 
-  public readonly canNavigateToStep = (step: number): boolean => {
-    if (!this.isLessonTipWizardStep(step)) {
-      return false;
+  protected readonly maxReachableStep = computed(() => {
+    if (this.draftBasicData() === null) {
+      return 1;
     }
 
-    if (step <= this.currentStep()) {
-      return true;
-    }
-
-    if (step === 1) {
-      return true;
-    }
-
-    return this.draftBasicData() !== null;
-  };
-
-  private isLessonTipWizardStep(step: number): step is LessonTipWizardStep {
-    return step >= 1 && step <= this.wizardSteps().length;
-  }
+    return this.wizardSteps().length;
+  });
 }
