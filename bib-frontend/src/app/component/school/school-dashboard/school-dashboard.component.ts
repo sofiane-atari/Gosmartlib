@@ -16,7 +16,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
-import { CreateSchoolRequest, School } from '../../../model/school.model';
+import { CreateSchoolRequest, OneRosterCredentialRequest, School } from '../../../model/school.model';
 import { Campus, CreateCampusRequest } from '../../../model/campus.model';
 import { SchoolService } from '../../../services/school/school.service';
 import { CampusService } from '../../../services/campus/campus.service';
@@ -102,6 +102,8 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly schoolForm = this.formBuilder.group({
     domainName: ['', [Validators.required]],
     name: ['', [Validators.required]],
+    clientId: ['', [Validators.required]],
+    clientSecret: ['', [Validators.required]],
     hasMultipleCampuses: [false],
     campuses: this.formBuilder.array([this.createCampusFormGroup()]),
   });
@@ -160,6 +162,8 @@ export class SchoolDashboardComponent implements OnInit {
     this.schoolForm.reset({
       domainName: '',
       name: '',
+      clientId: '',
+      clientSecret: '',
       hasMultipleCampuses: false,
     });
     this.resetCreateCampuses();
@@ -274,6 +278,11 @@ export class SchoolDashboardComponent implements OnInit {
 
     const formValue = this.schoolForm.getRawValue();
 
+    const onerosterCredential: OneRosterCredentialRequest = {
+      clientId: formValue.clientId?.trim() ?? '',
+      clientSecret: formValue.clientSecret?.trim() ?? '',
+    };
+
     const school: CreateSchoolRequest = {
       domainName: formValue.domainName?.trim() ?? '',
       name: formValue.name?.trim() ?? '',
@@ -284,6 +293,7 @@ export class SchoolDashboardComponent implements OnInit {
         contactPhone: campus.contactPhone?.trim() ?? '',
         contactEmail: campus.contactEmail?.trim() ?? '',
       })),
+      onerosterCredential,
       createdAt: undefined,
     };
 
@@ -301,7 +311,7 @@ export class SchoolDashboardComponent implements OnInit {
           this.isSubmitting.set(false);
           this.closeCreateModal();
           this.loadSchools();
-          this.showSuccess('School en campus succesvol toegevoegd.');
+          this.showSuccess('School en campus succesvol toegevoegd. Gegevens worden op de achtergrond gesynchroniseerd.');
         },
         error: (error: HttpErrorResponse) => {
           this.isSubmitting.set(false);
