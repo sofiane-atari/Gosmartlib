@@ -77,6 +77,10 @@
                   formControlName="title"
                   placeholder="Titel"
                 />
+
+                @if (isFieldInvalid('title')) {
+                  <p class="field-error">Titel is verplicht.</p>
+                }
               </div>
 
               <div class="form-group">
@@ -87,8 +91,12 @@
                   formControlName="author"
                   placeholder="Auteur"
                 />
+
+                @if (isFieldInvalid('author')) {
+                  <p class="field-error">Auteur is verplicht.</p>
+                }
               </div>
-            </div>
+              </div>
 
             <div class="form-row">
               <div class="form-group">
@@ -99,6 +107,10 @@
                   formControlName="pages"
                   placeholder="320"
                 />
+
+                @if (isFieldInvalid('pages')) {
+                  <p class="field-error">Aantal pagina's is verplicht.</p>
+                }
               </div>
 
               <div class="form-group">
@@ -109,6 +121,10 @@
                   formControlName="releaseYear"
                   placeholder="2024"
                 />
+
+                @if (isFieldInvalid('releaseYear')) {
+                  <p class="field-error">Jaar is verplicht.</p>
+                }
               </div>
             </div>
 
@@ -124,7 +140,7 @@
               </div>
 
               <div class="form-group">
-                <label for="readingLevel">Leesniveau *</label>
+                <label for="readingLevel">Leesniveau (optioneel)</label>
                 <select id="readingLevel" formControlName="readingLevel">
                   <option [ngValue]="null">Kies een niveau</option>
 
@@ -142,9 +158,23 @@
                 }
               </div>
             </div>
+            <div class="form-group full-width didactic-card">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  formControlName="didactic"
+                />
+                Didactisch boek
+              </label>
+
+              <p class="form-hint">
+                Didactische boeken zijn alleen zichtbaar voor leerkrachten en
+                beheerders.
+              </p>
+            </div>
 
             <div class="form-group full-width description-field">
-              <label for="description">Beschrijving *</label>
+              <label for="description">Beschrijving (optioneel)</label>
               <textarea
                 id="description"
                 formControlName="description"
@@ -169,7 +199,7 @@
         </div>
 
         <div class="form-group full-width genre-section">
-          <label>Genres * (kies 1 hoofdgenre en 1 tot 3 subgenres)</label>
+          <label>Genres: kies 1 hoofdgenre en 1 tot 3 subgenres</label>
 
           <div class="genre-grid main-genre-grid">
             @for (mainGenre of genres; track mainGenre.name) {
