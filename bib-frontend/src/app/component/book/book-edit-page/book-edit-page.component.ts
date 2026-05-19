@@ -40,11 +40,11 @@ export class BookEditPageComponent {
     isbn: [''],
     title: ['', [Validators.required, Validators.maxLength(255)]],
     author: ['', [Validators.required, Validators.maxLength(255)]],
-    pages: [1, [Validators.required, Validators.min(1)]],
+    pages: [null as number | null, [Validators.required, Validators.min(1)]],
     imageUrl: ['', [Validators.maxLength(1000)]],
-    description: ['', [Validators.required, Validators.maxLength(5000)]],
-    releaseYear: [new Date().getFullYear(), [Validators.required, Validators.min(0)]],
-    readingLevel: [null as ReadingLevel | null, [Validators.required]],
+    description: ['', [Validators.maxLength(5000)]],
+    releaseYear: [null as number | null, [Validators.required, Validators.min(0)]],
+    readingLevel: [null as ReadingLevel | null],
   });
 
   constructor(
@@ -61,7 +61,7 @@ export class BookEditPageComponent {
   }
 
   get isSubmitDisabled(): boolean {
-    return this.form.invalid || this.isSaving || !this.isGenreSelectionValid();
+    return this.form.invalid || this.isSaving;
   }
 
   private loadPageData(): void {
@@ -216,10 +216,15 @@ export class BookEditPageComponent {
     );
   }
 
+  isFieldInvalid(fieldName: keyof typeof this.form.controls): boolean {
+    const field = this.form.get(fieldName);
+    return !!field && field.invalid && field.touched;
+  }
+
   save(): void {
-    if (this.form.invalid || !this.isGenreSelectionValid() || this.isSaving) {
+    if (this.form.invalid || this.isSaving) {
       this.form.markAllAsTouched();
-      this.toastService.show('Controleer eerst alle verplichte velden.', 'error');
+      this.toastService.show('Vul eerst alle verplichte velden in.', 'error');
       return;
     }
 

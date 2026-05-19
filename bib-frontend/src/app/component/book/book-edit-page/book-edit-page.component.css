@@ -834,6 +834,12 @@ select:disabled {
   font-size: 0.9rem;
   border: 1px solid #e5e7eb;
 }
+.field-error {
+  margin-top: 0.35rem;
+  color: #b42318;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
 input[readonly],
 textarea[readonly],
 select:disabled {
