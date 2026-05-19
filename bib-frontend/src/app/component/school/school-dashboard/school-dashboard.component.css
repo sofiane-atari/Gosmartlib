@@ -353,11 +353,13 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   10%,
   90% {
     opacity: 1;
     transform: translateY(0);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-10px);
@@ -370,11 +372,13 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   10%,
   90% {
     opacity: 1;
     transform: translateY(0);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-10px);
@@ -575,6 +579,7 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
 lucide-icon {
   display: inline-flex;
   align-items: center;
@@ -630,6 +635,7 @@ lucide-icon svg {
   width: 17px;
   height: 17px;
 }
+
 .count-badge {
   display: inline-flex;
   align-items: center;
@@ -642,6 +648,7 @@ lucide-icon svg {
   font-weight: 600;
   white-space: nowrap;
 }
+
 .contact-cell {
   display: flex;
   flex-direction: column;
@@ -662,6 +669,7 @@ lucide-icon svg {
   color: #9b7a84 !important;
   font-size: 13px;
 }
+
 .stat-cards app-button-hover-help {
   display: block;
   width: 100%;
@@ -751,10 +759,27 @@ lucide-icon svg {
   margin: 20px 0;
 }
 
+.modal-required-note {
+  font-size: 12px;
+  color: #7a5560;
+  margin: 0 0 8px;
+}
+
+.required-indicator {
+  color: #ef4444;
+  font-weight: 700;
+}
+
 .modal-section-title {
   font-size: 15px;
   font-weight: 700;
   color: #1a0a10;
+  margin: 0 0 6px;
+}
+
+.modal-section-description {
+  font-size: 13px;
+  color: #7a5560;
   margin: 0 0 14px;
 }
 
@@ -774,6 +799,7 @@ lucide-icon svg {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-bottom: 10px;
 }
 
 .create-campus-card {

@@ -207,7 +207,7 @@
 
         <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
           <div class="modal-field">
-            <label for="name">Schoolnaam</label>
+            <label for="name">Schoolnaam <span class="required-indicator">*</span></label>
             <input
               id="name"
               type="text"
@@ -224,7 +224,7 @@
           </div>
 
           <div class="modal-field">
-            <label for="domainName">Domeinnaam</label>
+            <label for="domainName">Domeinnaam <span class="required-indicator">*</span></label>
             <input
               id="domainName"
               type="text"
@@ -237,6 +237,47 @@
               schoolForm.controls.domainName.touched
             ) {
               <small class="field-inline-error">Domeinnaam is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-divider"></div>
+
+          <h3 class="modal-section-title">OneRoster-integratie</h3>
+          <p class="modal-section-description">
+            Deze gegevens zijn nodig om leerlingen en leerkrachten te synchroniseren.
+          </p>
+
+          <div class="modal-field">
+            <label for="clientId">Client-ID <span class="required-indicator">*</span></label>
+            <input
+              id="clientId"
+              type="text"
+              formControlName="clientId"
+              placeholder="OneRoster client-ID"
+            />
+
+            @if (
+              schoolForm.controls.clientId.invalid &&
+              schoolForm.controls.clientId.touched
+            ) {
+              <small class="field-inline-error">Client-ID is verplicht.</small>
+            }
+          </div>
+
+          <div class="modal-field">
+            <label for="clientSecret">Client-geheim <span class="required-indicator">*</span></label>
+            <input
+              id="clientSecret"
+              type="password"
+              formControlName="clientSecret"
+              placeholder="OneRoster client-geheim"
+            />
+
+            @if (
+              schoolForm.controls.clientSecret.invalid &&
+              schoolForm.controls.clientSecret.touched
+            ) {
+              <small class="field-inline-error">Client-geheim is verplicht.</small>
             }
           </div>
 
@@ -372,6 +413,10 @@
               </section>
             }
           </div>
+
+          <p class="modal-required-note">
+            <span class="required-indicator">*</span> Verplicht veld
+          </p>
 
           <div class="modal-actions">
             <button
