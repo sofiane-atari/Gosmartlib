@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.service.mock;
 
+import edu.ap.bib_backend.service.JwtService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/ims/oneroster")
@@ -20,9 +20,11 @@ public class MockOneRosterController {
     private static final Logger log = LoggerFactory.getLogger(MockOneRosterController.class);
 
     private final MockSchoolRegistry registry;
+    private final JwtService jwtService;
 
-    public MockOneRosterController(MockSchoolRegistry registry) {
+    public MockOneRosterController(MockSchoolRegistry registry, JwtService jwtService) {
         this.registry = registry;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/token")
@@ -49,7 +51,14 @@ public class MockOneRosterController {
             return ResponseEntity.status(401).body(Map.of("error", "invalid_client"));
         }
 
-        String token = school.generateMockOnRosterToken();
+        Map<String, Object> claims = Map.of(
+                "schoolCode", school.getSchoolCode(),
+                "domainName", school.getDomainName(),
+                "type", "oneroster"
+        );
+
+        String token = jwtService.generateToken(resolvedClientId, "ONEROSTER_CLIENT", claims);
+
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("access_token", token);
         body.put("token_type", "Bearer");
@@ -178,7 +187,12 @@ public class MockOneRosterController {
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             return null;
         }
-        return registry.getActiveSchool();
+        String token = authorization.substring(7);
+        if (!jwtService.isValid(token)) {
+            return null;
+        }
+        String schoolCode = (String) jwtService.extractClaim(token, "schoolCode");
+        return registry.getSchoolByCode(schoolCode);
     }
 
     private ResponseEntity<Map<String, Object>> unauthorized() {

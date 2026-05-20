@@ -629,7 +629,4 @@ public class MockSchoolData {
         return "mock-oauth-token-" + schoolCode + "-" + userId + "-" + System.currentTimeMillis();
     }
 
-    public String generateMockOnRosterToken() {
-        return "mock-oneroster-token-" + schoolCode + "-" + System.currentTimeMillis();
-    }
 }

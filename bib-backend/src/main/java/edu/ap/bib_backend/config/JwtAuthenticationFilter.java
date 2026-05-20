@@ -62,6 +62,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String username = jwtService.extractUsername(token);
 
+        String tokenType = (String) jwtService.extractClaim(token, "type");
+        if ("oneroster".equals(tokenType)) {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    username,
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_ONEROSTER_CLIENT"))
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (!tokenStorageService.isCurrentToken(username, token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");

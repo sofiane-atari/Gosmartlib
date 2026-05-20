@@ -1,17 +1,17 @@
 package edu.ap.bib_backend.service.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.TokenStorageService;
+import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +25,13 @@ public class MockOAuthController {
     private static final Logger log = LoggerFactory.getLogger(MockOAuthController.class);
 
     private final MockSchoolRegistry registry;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JwtService jwtService;
+    private final TokenStorageService tokenStorageService;
 
-    public MockOAuthController(MockSchoolRegistry registry) {
+    public MockOAuthController(MockSchoolRegistry registry, JwtService jwtService, TokenStorageService tokenStorageService) {
         this.registry = registry;
+        this.jwtService = jwtService;
+        this.tokenStorageService = tokenStorageService;
     }
 
     @GetMapping(value = {"/OAuth", "/OAuth/index/authorize", "/OAuth/index/authorize/"})
@@ -117,8 +120,9 @@ public class MockOAuthController {
             @RequestParam(required = false) String state,
             HttpServletResponse response
     ) throws IOException {
-        MockSchoolData.MockUser user = registry.authenticateUser(username, password);
-        if (user == null) {
+        MockSchoolData school = registry.getActiveSchool();
+        MockSchoolData.MockUser user = school.getUserByUsername(username);
+        if (user == null || !user.password.equals(password)) {
             response.setContentType("text/html; charset=utf-8");
             response.getWriter().write("""
                     <!DOCTYPE html>
@@ -131,14 +135,14 @@ public class MockOAuthController {
             return;
         }
 
-        String code = registry.generateAuthCode(user);
+        String code = registry.generateAuthCode(user, school);
         String location = (redirect_uri != null && !redirect_uri.isEmpty()
                 ? redirect_uri
                 : "http://localhost:8080/api/login/oauth2/code/smartschool")
                 + "?code=" + code + (state != null ? "&state=" + state : "");
 
         response.sendRedirect(location);
-        log.info("Mock OAuth login: user={} -> code={}", username, code);
+        log.info("Mock OAuth login: user={} school={} -> code={}", username, school.getSchoolCode(), code);
     }
 
     @PostMapping(value = {"/OAuth/index/token", "/OAuth/token"})
@@ -150,43 +154,36 @@ public class MockOAuthController {
             @RequestParam(required = false) String client_secret,
             @RequestParam(required = false) String redirect_uri
     ) {
-        String token;
+        String accessToken;
         String refreshToken;
 
         if ("refresh_token".equals(grant_type)) {
-            MockSchoolData.MockUser user = registry.getUserByToken(refresh_token);
-            MockSchoolData school = registry.getSchoolByToken(refresh_token);
-            if (user != null && school != null) {
-                token = school.generateMockAccessToken(user.username);
-                refreshToken = token.replace("mock-oauth-token", "mock-refresh-token");
-                registry.registerToken(token, user, school);
-            } else {
+            String legacyId = jwtService.extractUsername(refresh_token);
+            String schoolCode = (String) jwtService.extractClaim(refresh_token, "schoolCode");
+            MockSchoolData school = registry.getSchoolByCode(schoolCode);
+            MockSchoolData.MockUser user = school != null ? school.getUserByLegacyId(legacyId) : null;
+
+            if (user == null || school == null) {
                 return ResponseEntity.status(401).body(Map.of("error", "invalid_grant"));
             }
+
+            TokenPair pair = generateTokenPair(user, school);
+            accessToken = pair.accessToken();
+            refreshToken = pair.refreshToken();
         } else {
+            MockSchoolData school = registry.getSchoolByAuthCode(code);
             MockSchoolData.MockUser user = registry.resolveUserFromAuthCode(code);
-            if (user == null) {
+            if (user == null || school == null) {
                 return ResponseEntity.status(401).body(Map.of("error", "invalid_grant"));
             }
 
-            MockSchoolData school = null;
-            for (MockSchoolData s : registry.getAllSchools()) {
-                if (s.getUserByUsername(user.username) != null) {
-                    school = s;
-                    break;
-                }
-            }
-            if (school == null) {
-                school = registry.getActiveSchool();
-            }
-
-            token = school.generateMockAccessToken(user.username);
-            refreshToken = token.replace("mock-oauth-token", "mock-refresh-token");
-            registry.registerToken(token, user, school);
+            TokenPair pair = generateTokenPair(user, school);
+            accessToken = pair.accessToken();
+            refreshToken = pair.refreshToken();
         }
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("access_token", token);
+        body.put("access_token", accessToken);
         body.put("token_type", "Bearer");
         body.put("expires_in", 3600);
         body.put("refresh_token", refreshToken);
@@ -204,12 +201,13 @@ public class MockOAuthController {
             return ResponseEntity.status(401).body(Map.of("error", "invalid_token"));
         }
 
-        MockSchoolData.MockUser user = registry.getUserByToken(token);
+        String legacyId = jwtService.extractUsername(token);
+        MockSchoolData.MockUser user = registry.getUserByLegacyId(legacyId);
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of("error", "invalid_token"));
         }
 
-        MockSchoolData school = registry.getSchoolByToken(token);
+        MockSchoolData school = registry.getSchoolByLegacyId(legacyId);
         return ResponseEntity.ok(school.buildFullUserInfo(user));
     }
 
@@ -223,12 +221,13 @@ public class MockOAuthController {
             return ResponseEntity.status(401).body(Map.of("error", "invalid_token"));
         }
 
-        MockSchoolData.MockUser user = registry.getUserByToken(token);
+        String legacyId = jwtService.extractUsername(token);
+        MockSchoolData.MockUser user = registry.getUserByLegacyId(legacyId);
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of("error", "invalid_token"));
         }
 
-        MockSchoolData school = registry.getSchoolByToken(token);
+        MockSchoolData school = registry.getSchoolByLegacyId(legacyId);
         return ResponseEntity.ok(school.buildUserInfo(user));
     }
 
@@ -242,12 +241,13 @@ public class MockOAuthController {
             return ResponseEntity.status(401).body(Map.of("error", "invalid_token"));
         }
 
-        MockSchoolData.MockUser user = registry.getUserByToken(token);
+        String legacyId = jwtService.extractUsername(token);
+        MockSchoolData.MockUser user = registry.getUserByLegacyId(legacyId);
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of("error", "invalid_token"));
         }
 
-        MockSchoolData school = registry.getSchoolByToken(token);
+        MockSchoolData school = registry.getSchoolByLegacyId(legacyId);
         return ResponseEntity.ok(school.buildGroupInfo(user));
     }
 
@@ -261,10 +261,38 @@ public class MockOAuthController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    private TokenPair generateTokenPair(MockSchoolData.MockUser user, MockSchoolData school) {
+        String role = switch (user.basisrol) {
+            case "Leerling" -> "ROLE_STUDENT";
+            case "Leerkracht" -> "ROLE_TEACHER";
+            case "Beheerder" -> "ROLE_ADMIN";
+            default -> "ROLE_STUDENT";
+        };
+
+        Map<String, Object> claims = Map.of(
+                SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, user.classCode,
+                SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, user.classCode.substring(0, 1),
+                SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, school.getDomainName(),
+                "schoolId", school.getSchoolName(),
+                "campusId", ""
+        );
+
+        String accessToken = jwtService.generateToken(user.legacyIdentifier, role, claims);
+        Instant expiresAt = jwtService.extractExpirationInstant(accessToken);
+        tokenStorageService.storeToken(user.legacyIdentifier, accessToken, role, expiresAt);
+
+        String refreshToken = jwtService.generateToken(user.legacyIdentifier, role,
+                Map.of("type", "refresh", "schoolCode", school.getSchoolCode()));
+
+        return new TokenPair(accessToken, refreshToken);
+    }
+
     private String extractToken(String authorization, String queryToken) {
         if (authorization != null && authorization.startsWith("Bearer ")) {
             return authorization.substring(7);
         }
         return queryToken;
     }
+
+    private record TokenPair(String accessToken, String refreshToken) {}
 }

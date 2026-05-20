@@ -12,8 +12,8 @@ public class MockSchoolRegistry {
     private final Map<String, MockSchoolData> schoolsByCode = new ConcurrentHashMap<>();
     private final Map<String, MockSchoolData> schoolsByOnRosterClientId = new ConcurrentHashMap<>();
     private final Map<String, MockSchoolData> schoolsByDomain = new ConcurrentHashMap<>();
-    private final Map<String, MockSchoolData.MockUser> usersByToken = new ConcurrentHashMap<>();
-    private final Map<String, MockSchoolData> schoolByToken = new ConcurrentHashMap<>();
+    private final Map<String, MockSchoolData.MockUser> usersByAuthCode = new ConcurrentHashMap<>();
+    private final Map<String, MockSchoolData> schoolByAuthCode = new ConcurrentHashMap<>();
 
     private volatile MockSchoolData activeSchool;
     private volatile boolean passthroughMode = false;
@@ -72,51 +72,41 @@ public class MockSchoolRegistry {
         return schoolsByDomain.get(domain);
     }
 
-    public MockSchoolData.MockUser authenticateUser(String username, String password) {
+    public MockSchoolData getSchoolByCode(String code) {
+        return schoolsByCode.get(code);
+    }
+
+    public MockSchoolData.MockUser getUserByLegacyId(String legacyId) {
         for (MockSchoolData school : schoolsByCode.values()) {
-            MockSchoolData.MockUser user = school.getUserByUsername(username);
-            if (user != null && user.password.equals(password)) {
-                String token = school.generateMockAccessToken(user.username);
-                usersByToken.put(token, user);
-                schoolByToken.put(token, school);
-                return user;
-            }
-        }
-        return null;
-    }
-
-    public MockSchoolData.MockUser getUserByToken(String token) {
-        return usersByToken.get(token);
-    }
-
-    public MockSchoolData getSchoolByToken(String token) {
-        return schoolByToken.get(token);
-    }
-
-    public void registerToken(String token, MockSchoolData.MockUser user, MockSchoolData school) {
-        usersByToken.put(token, user);
-        schoolByToken.put(token, school);
-    }
-
-    public String generateAuthCode(MockSchoolData.MockUser user) {
-        return "mock-code-" + user.username + "-" + System.currentTimeMillis();
-    }
-
-    public MockSchoolData.MockUser resolveUserFromAuthCode(String code) {
-        if (code == null || !code.startsWith("mock-code-")) {
-            return null;
-        }
-        String[] parts = code.split("-");
-        if (parts.length < 3) {
-            return null;
-        }
-        String username = parts[1] + "." + parts[2];
-        for (MockSchoolData school : schoolsByCode.values()) {
-            MockSchoolData.MockUser user = school.getUserByUsername(username);
+            MockSchoolData.MockUser user = school.getUserByLegacyId(legacyId);
             if (user != null) {
                 return user;
             }
         }
         return null;
+    }
+
+    public MockSchoolData getSchoolByLegacyId(String legacyId) {
+        for (MockSchoolData school : schoolsByCode.values()) {
+            if (school.getUserByLegacyId(legacyId) != null) {
+                return school;
+            }
+        }
+        return null;
+    }
+
+    public String generateAuthCode(MockSchoolData.MockUser user, MockSchoolData school) {
+        String code = "mock-code-" + user.username + "-" + System.currentTimeMillis();
+        usersByAuthCode.put(code, user);
+        schoolByAuthCode.put(code, school);
+        return code;
+    }
+
+    public MockSchoolData.MockUser resolveUserFromAuthCode(String code) {
+        return usersByAuthCode.get(code);
+    }
+
+    public MockSchoolData getSchoolByAuthCode(String code) {
+        return schoolByAuthCode.get(code);
     }
 }
