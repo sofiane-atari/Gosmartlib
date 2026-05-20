@@ -742,6 +742,10 @@
   cursor: not-allowed;
 }
 
+.main-content--no-sidebar .books-grid {
+  grid-template-columns: repeat(6, 1fr);
+}
+
 @keyframes catalogSkeletonShimmer {
   from {
     background-position: 200% 0;
@@ -785,6 +789,10 @@
   .panel-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .main-content--no-sidebar .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -826,6 +834,10 @@
 
   .book-image {
     height: 150px;
+  }
+
+  .main-content--no-sidebar .books-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

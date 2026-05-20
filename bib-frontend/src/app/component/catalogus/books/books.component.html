@@ -134,7 +134,10 @@
     </div>
   </div>
 
-  <div class="main-content">
+  <div
+    class="main-content"
+    [class.main-content--no-sidebar]="catalogSidebarHidden$ | async"
+  >
       @if (catalogLoading()) {
         <div class="books-grid">
           @for (_ of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
@@ -222,25 +225,37 @@
         }
       </div>
     }
-    <aside class="sidebar">
-      <app-featured-reading-lists-sidebar
-        [readingLists]="featuredReadingLists"
-        [isLoading]="isLoadingFeaturedReadingLists"
-      ></app-featured-reading-lists-sidebar>
+    @if (
+      (userSettingsService.catalogFeaturedListsEnabled$ | async) ||
+      (userSettingsService.catalogMostReadEnabled$ | async) ||
+      (userSettingsService.catalogNewestEnabled$ | async)
+    ) {
+      <aside class="sidebar">
+        @if (userSettingsService.catalogFeaturedListsEnabled$ | async) {
+          <app-featured-reading-lists-sidebar
+            [readingLists]="featuredReadingLists"
+            [isLoading]="isLoadingFeaturedReadingLists"
+          ></app-featured-reading-lists-sidebar>
+        }
 
-      <app-book-list-sidebar
-        title="Meest gelezen"
-        [books]="mostReadBooks()"
-        [loading]="mostReadLoading()"
-      ></app-book-list-sidebar>
+        @if (userSettingsService.catalogMostReadEnabled$ | async) {
+          <app-book-list-sidebar
+            title="Meest gelezen"
+            [books]="mostReadBooks()"
+            [loading]="mostReadLoading()"
+          ></app-book-list-sidebar>
+        }
 
-      <app-book-list-sidebar
-        title="Nieuwste"
-        [books]="newestBooks()"
-        [loading]="newestLoading()"
-      ></app-book-list-sidebar>
-    </aside>
-  </div>
+        @if (userSettingsService.catalogNewestEnabled$ | async) {
+          <app-book-list-sidebar
+            title="Nieuwste"
+            [books]="newestBooks()"
+            [loading]="newestLoading()"
+          ></app-book-list-sidebar>
+        }
+      </aside>
+    }
+    </div>
 
   @if (pagingMeta().totalPages > 1) {
     <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
