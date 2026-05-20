@@ -14,6 +14,9 @@ public record SchoolReportDTO(
         @JsonProperty("activeLoans") long activeLoans,
         @JsonProperty("classCount") int classCount,
         @JsonProperty("totalStudentCount") long totalStudentCount,
+        @JsonProperty("loansPerStudent") double loansPerStudent,
+        @JsonProperty("popularGenres") List<PopularGenreDTO> popularGenres,
+        @JsonProperty("topRatedBooks") List<TopRatedBookReportDTO> topRatedBooks,
         @JsonProperty("popularBooks") List<PopularLoanedBookDTO> popularBooks,
         @JsonProperty("loanVolume") List<LoanVolumePeriodDTO> loanVolume,
         @JsonProperty("classActivity") List<SchoolReportClassActivityDTO> classActivity) {

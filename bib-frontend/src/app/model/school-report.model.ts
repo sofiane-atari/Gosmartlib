@@ -1,3 +1,5 @@
+import { PopularGenre, TopRatedBookReport } from './class-report.model';
+
 export interface PopularLoanedBook {
   bookId: number;
   title: string;
@@ -34,6 +36,9 @@ export interface SchoolReport {
   activeLoans: number;
   classCount: number;
   totalStudentCount: number;
+  loansPerStudent: number;
+  popularGenres: PopularGenre[];
+  topRatedBooks: TopRatedBookReport[];
   popularBooks: PopularLoanedBook[];
   loanVolume: LoanVolumePeriod[];
   classActivity: SchoolReportClassActivity[];

@@ -37,8 +37,10 @@ public class ReportController {
 
     @GetMapping("/school")
     public SchoolReportDTO getSchoolReport(
+            @RequestParam(required = false) Long schoolId,
             @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "0") int offset,
             Authentication authentication) {
-        return schoolReportService.generateSchoolReport(authentication, limit);
+        return schoolReportService.generateSchoolReport(authentication, schoolId, limit, offset);
     }
 }

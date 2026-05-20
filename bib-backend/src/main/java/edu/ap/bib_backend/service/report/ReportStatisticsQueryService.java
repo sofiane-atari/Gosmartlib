@@ -4,6 +4,7 @@ import edu.ap.bib_backend.dto.report.PopularGenreDTO;
 import edu.ap.bib_backend.dto.report.TopRatedBookReportDTO;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -58,6 +59,30 @@ public class ReportStatisticsQueryService {
         }
 
         return reviewRepository.findTopRatedBooksForUsers(userIds)
+                .stream()
+                .map(item -> new TopRatedBookReportDTO(
+                        item.getBookId(),
+                        item.getTitle(),
+                        item.getAuthor(),
+                        item.getImageUrl(),
+                        round(item.getAverageRating() == null ? 0 : item.getAverageRating()),
+                        item.getReviewCount() == null ? 0 : item.getReviewCount()))
+                .toList();
+    }
+
+    public List<PopularGenreDTO> findPopularGenresForSchool(Long schoolId, Long campusId, Pageable pageable) {
+        return loanRepository.findPopularGenresForSchool(schoolId, campusId, pageable)
+                .stream()
+                .map(item -> new PopularGenreDTO(
+                        item.getGenreId(),
+                        item.getName(),
+                        item.getColor(),
+                        item.getLoanCount() == null ? 0 : item.getLoanCount()))
+                .toList();
+    }
+
+    public List<TopRatedBookReportDTO> findTopRatedBooksForSchool(Long schoolId, Long campusId, Pageable pageable) {
+        return reviewRepository.findTopRatedBooksForSchool(schoolId, campusId, pageable)
                 .stream()
                 .map(item -> new TopRatedBookReportDTO(
                         item.getBookId(),

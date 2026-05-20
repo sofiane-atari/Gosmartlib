@@ -138,6 +138,30 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         """, nativeQuery = true)
         List<PopularGenreProjection> findPopularGenresForUsers(@Param("userIds") List<String> userIds);
 
+        @Query(value = """
+                        select g.id as genreId,
+                               g.name as name,
+                               g.color as color,
+                               count(*) as loanCount
+                        from loans l
+                        join users u on u.id = l.user_id
+                        join auth_sessions s on s.user_id = u.id
+                        join loan_copies lc on lc.loan_id = l.id
+                        join book_copies bc on bc.id = lc.book_copy_id
+                        join book_genres bg on bg.book_id = bc.book_id
+                        join genres g on g.id = bg.genre_id
+                        where u.school_id = :schoolId
+                        and s.smartschool_refresh_token is not null
+                        and (s.smartschool_refresh_token_expires_at is null or s.smartschool_refresh_token_expires_at > current_timestamp)
+                        and (:campusId is null or l.campus_id = :campusId)
+                        group by g.id, g.name, g.color
+                        order by loanCount desc, g.name asc
+                        """, nativeQuery = true)
+        List<PopularGenreProjection> findPopularGenresForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId,
+                Pageable pageable);
+
         @Query("""
                         select bc.book.id as bookId,
                                bc.book.title as title,

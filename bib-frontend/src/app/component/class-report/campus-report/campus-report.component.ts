@@ -155,8 +155,64 @@ export class CampusReportComponent implements OnInit {
     return `${Math.max((loanCount / this.getMaxBookLoans()) * 100, 6)}%`;
   }
 
-  getVolumeBarHeight(period: LoanVolumePeriod): string {
-    return `${Math.max((period.loanCount / this.getMaxPeriodLoans()) * 100, 8)}%`;
+  getLoanVolumeTicks(): number[] {
+    return [...this.getYAxisTicks()].reverse();
+  }
+
+  getLoanVolumeTickY(index: number): number {
+    const top = 20;
+    const bottom = 150;
+    const steps = 5;
+
+    return top + (index / steps) * (bottom - top);
+  }
+
+  getNiceMax(): number {
+    const raw = this.getMaxPeriodLoans();
+    const niceSteps = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
+    const targetSteps = 5;
+    const rawStep = raw / targetSteps;
+    const step = niceSteps.find(s => s >= rawStep) ?? 1000;
+    return Math.ceil(raw / step) * step;
+  }
+
+  getYAxisTicks(): number[] {
+    const max = this.getNiceMax();
+    const targetSteps = 5;
+    const step = max / targetSteps;
+    return Array.from({ length: targetSteps + 1 }, (_, i) => i * step);
+  }
+
+  getLoanVolumeBarWidth(): number {
+    const count = this.report?.loanVolume.length ?? 0;
+    if (count === 0) {
+      return 0;
+    }
+
+    return Math.max(10, Math.min(32, (420 / count) * 0.55));
+  }
+
+  getLoanVolumeBarX(index: number): number {
+    const count = this.report?.loanVolume.length ?? 1;
+    const slotWidth = 420 / count;
+
+    return 52 + index * slotWidth + (slotWidth - this.getLoanVolumeBarWidth()) / 2;
+  }
+
+  getLoanVolumeBarY(loanCount: number): number {
+    const max = this.getNiceMax();
+    const top = 20;
+    const bottom = 150;
+
+    return bottom - (loanCount / max) * (bottom - top);
+  }
+
+  getLoanVolumeBarHeight(loanCount: number): number {
+    if (loanCount === 0) {
+      return 0;
+    }
+
+    return Math.max(3, 150 - this.getLoanVolumeBarY(loanCount));
   }
 
   formatPeriod(period: string): string {

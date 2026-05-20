@@ -75,13 +75,84 @@
             <lucide-icon [img]="icons.trending"></lucide-icon>
           </div>
           <div>
-            <p>Populaire boeken</p>
-            <strong>{{ report.popularBooks.length }}</strong>
+            <p>Gemiddeld gelezen</p>
+            <strong>{{ report.loansPerStudent }}</strong>
           </div>
         </article>
       </section>
 
       <section class="insight-grid school-insight-grid">
+        <section class="insight-card school-card">
+          <div class="insight-card__header">
+            <div>
+              <h3>Populaire genres</h3>
+              <p>Meest uitgeleend over de volledige school.</p>
+            </div>
+          </div>
+
+          @if (report.popularGenres.length === 0) {
+            <div class="empty-table-state">Geen genredata beschikbaar.</div>
+          } @else {
+            <div class="ranking-list">
+              @for (genre of report.popularGenres; track genre.genreId; let index = $index) {
+                <div class="ranking-row">
+                  <span class="rank-badge">#{{ index + 1 }}</span>
+
+                  <span
+                    class="genre-dot"
+                    [style.background]="genre.color || 'var(--main-color)'">
+                  </span>
+
+                  <div class="ranking-main">
+                    <strong>{{ genre.name }}</strong>
+                    <span>Genre</span>
+                  </div>
+
+                  <span class="count-badge">{{ genre.loanCount }} boeken</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="insight-card school-card">
+          <div class="insight-card__header">
+            <div>
+              <h3>Hoogst beoordeelde boeken</h3>
+              <p>Minstens 3 beoordelingen, gededupliceerd op ISBN of titel.</p>
+            </div>
+          </div>
+
+          @if (report.topRatedBooks.length === 0) {
+            <div class="empty-table-state">Geen ratings beschikbaar.</div>
+          } @else {
+            <div class="book-list">
+              @for (book of report.topRatedBooks; track book.bookId) {
+                <div class="book-row">
+                  <div class="book-cover">
+                    @if (book.imageUrl) {
+                      <img [src]="book.imageUrl" [alt]="book.title">
+                    } @else {
+                      <lucide-icon [img]="icons.bookOpen"></lucide-icon>
+                    }
+                  </div>
+
+                  <div class="book-info">
+                    <strong>{{ book.title }}</strong>
+                    <span>{{ book.author || 'Onbekende auteur' }}</span>
+                    <small>{{ book.reviewCount }} reviews</small>
+                  </div>
+
+                  <span class="rating-badge">
+                    <lucide-icon [img]="icons.star"></lucide-icon>
+                    {{ book.averageRating }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
         <section class="insight-card school-card">
           <div class="insight-card__header">
             <div>
@@ -124,17 +195,56 @@
           @if (report.loanVolume.length === 0) {
             <div class="empty-table-state">Geen periodegegevens beschikbaar.</div>
           } @else {
-            <div class="volume-chart">
-              @for (period of report.loanVolume; track period.period) {
-                <div class="volume-bar">
-                  <div class="volume-bar__track">
-                    <span [style.height]="getVolumeBarHeight(period)"></span>
-                  </div>
-                  <strong>{{ period.loanCount }}</strong>
-                  <small>{{ formatPeriod(period.period) }}</small>
-                </div>
+            <svg class="volume-bar-chart" viewBox="0 0 500 200" role="img" aria-label="Uitleenvolume per maand">
+              <defs>
+                <linearGradient id="volumeBarGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#2563eb" />
+                  <stop offset="100%" stop-color="var(--main-color)" />
+                </linearGradient>
+              </defs>
+
+              @for (tick of getLoanVolumeTicks(); track tick; let tickIndex = $index) {
+                <line
+                  class="volume-grid-line"
+                  x1="52"
+                  x2="472"
+                  [attr.y1]="getLoanVolumeTickY(tickIndex)"
+                  [attr.y2]="getLoanVolumeTickY(tickIndex)" />
+                <text class="volume-axis-label" x="42" [attr.y]="getLoanVolumeTickY(tickIndex) + 4" text-anchor="end">
+                  {{ tick }}
+                </text>
               }
-            </div>
+
+              <line class="volume-axis-line" x1="52" y1="20" x2="52" y2="150" />
+              <line class="volume-axis-line" x1="52" y1="150" x2="472" y2="150" />
+
+              @for (period of report.loanVolume; track period.period; let i = $index) {
+                <rect
+                  class="volume-chart-bar"
+                  [attr.x]="getLoanVolumeBarX(i)"
+                  [attr.y]="getLoanVolumeBarY(period.loanCount)"
+                  [attr.width]="getLoanVolumeBarWidth()"
+                  [attr.height]="getLoanVolumeBarHeight(period.loanCount)"
+                  rx="5" />
+                <text
+                  class="volume-value-label"
+                  [attr.x]="getLoanVolumeBarX(i) + getLoanVolumeBarWidth() / 2"
+                  [attr.y]="getLoanVolumeBarY(period.loanCount) - 6"
+                  text-anchor="middle">
+                  {{ period.loanCount }}
+                </text>
+                <text
+                  class="volume-x-label"
+                  [attr.x]="getLoanVolumeBarX(i) + getLoanVolumeBarWidth() / 2"
+                  y="172"
+                  text-anchor="middle">
+                  {{ formatPeriod(period.period) }}
+                </text>
+              }
+
+              <text class="volume-axis-title" x="262" y="195" text-anchor="middle">Maand</text>
+              <text class="volume-axis-title" x="15" y="88" text-anchor="middle" transform="rotate(-90 15 88)">Uitleningen</text>
+            </svg>
           }
         </section>
       </section>
