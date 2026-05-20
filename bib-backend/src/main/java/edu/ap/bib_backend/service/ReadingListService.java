@@ -13,6 +13,8 @@ import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,8 +43,7 @@ public class ReadingListService {
             ReadingListBookRepository readingListBookRepository,
             UserRepository userRepository,
             CampusRepository campusRepository,
-            CurrentUserService currentUserService
-    ) {
+            CurrentUserService currentUserService) {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
         this.userRepository = userRepository;
@@ -85,8 +86,7 @@ public class ReadingListService {
                 audience.classCode(),
                 audience.yearCode(),
                 audience.schoolCode(),
-                shouldIncludeOwnSharedLists()
-        );
+                shouldIncludeOwnSharedLists());
     }
 
     public ReadingList getListById(String userId, Long id) {
@@ -95,13 +95,13 @@ public class ReadingListService {
         AudienceContext audience = getAudienceContext();
 
         return readingListRepository.findVisibleById(
-                        id,
-                        userId,
-                        campus.getId(),
-                        audience.classCode(),
-                        audience.yearCode(),
-                        audience.schoolCode(),
-                        shouldIncludeOwnSharedLists())
+                id,
+                userId,
+                campus.getId(),
+                audience.classCode(),
+                audience.yearCode(),
+                audience.schoolCode(),
+                shouldIncludeOwnSharedLists())
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet"));
     }
 
@@ -199,10 +199,12 @@ public class ReadingListService {
         return name != null && FAVORITES_NAME.equalsIgnoreCase(name.trim());
     }
 
-    private String normalizeTargetValue(ReadingListTargetType targetType, String requestedValue, AudienceContext audience) {
+    private String normalizeTargetValue(ReadingListTargetType targetType, String requestedValue,
+            AudienceContext audience) {
         return switch (targetType) {
             case PERSONAL -> null;
-            case CLASS -> (requestedValue == null || requestedValue.isBlank()) ? audience.classCode() : requestedValue.trim();
+            case CLASS ->
+                (requestedValue == null || requestedValue.isBlank()) ? audience.classCode() : requestedValue.trim();
             case SYSTEM -> null;
         };
     }
@@ -224,9 +226,11 @@ public class ReadingListService {
 
         Object principal = authentication.getPrincipal();
         if (principal instanceof OAuth2AuthenticatedPrincipal oauthPrincipal) {
-            String classCode = readPrincipalAttribute(oauthPrincipal, "classCode", AudienceContext.defaults().classCode());
+            String classCode = readPrincipalAttribute(oauthPrincipal, "classCode",
+                    AudienceContext.defaults().classCode());
             String yearCode = readPrincipalAttribute(oauthPrincipal, "yearCode", AudienceContext.defaults().yearCode());
-            String schoolCode = readPrincipalAttribute(oauthPrincipal, "schoolCode", AudienceContext.defaults().schoolCode());
+            String schoolCode = readPrincipalAttribute(oauthPrincipal, "schoolCode",
+                    AudienceContext.defaults().schoolCode());
             return new AudienceContext(classCode, yearCode, schoolCode);
         }
 
@@ -291,8 +295,7 @@ public class ReadingListService {
             Campus campus,
             ReadingListTargetType targetType,
             String targetValue,
-            String defaultName
-    ) {
+            String defaultName) {
         if (targetType == ReadingListTargetType.SYSTEM) {
             if (readingListRepository.findFirstByTargetTypeAndCampusId(targetType, campus.getId()).isPresent()) {
                 return;
@@ -323,15 +326,19 @@ public class ReadingListService {
     }
 
     private void assertCanModifyList(ReadingList list) {
-        if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
-            throw new IllegalArgumentException("De systeembrede leeslijst kan niet aangepast worden");
-        }
-
         if (list.getTargetType() == ReadingListTargetType.PERSONAL) {
             return;
         }
 
-        if (!isTeacherAuthenticated()) {
+        if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
+            if (currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+                return;
+            }
+
+            throw new IllegalArgumentException("De systeembrede leeslijst kan niet aangepast worden");
+        }
+
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN")) {
             throw new IllegalArgumentException("Alleen leerkrachten kunnen deze leeslijst aanpassen");
         }
     }
@@ -341,14 +348,7 @@ public class ReadingListService {
     }
 
     private boolean isTeacherAuthenticated() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getAuthorities() == null) {
-            return false;
-        }
-
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch("ROLE_TEACHER"::equals);
+        return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER");
     }
 
     public ReadingListShareDTO enableSharing(String userId, Long listId, String frontendBaseUrl) {
@@ -371,8 +371,7 @@ public class ReadingListService {
 
         return new ReadingListShareDTO(
                 saved.getPublicShareId(),
-                baseUrl + "/reading-list/shared/" + saved.getPublicShareId()
-        );
+                baseUrl + "/reading-list/shared/" + saved.getPublicShareId());
     }
 
     public ReadingList getSharedList(String publicShareId) {
