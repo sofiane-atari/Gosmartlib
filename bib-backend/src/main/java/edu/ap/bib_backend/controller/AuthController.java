@@ -61,12 +61,18 @@ public class AuthController {
     }
 
     @GetMapping("/error")
-    public ResponseEntity<?> oauthError(HttpSession session,
-            @RequestParam(value = "message", required = false) String message) {
+    public void oauthError(HttpSession session, HttpServletResponse response) throws IOException {
         Object exception = session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        String errorMessage = (message != null && !message.isBlank()) ? message
-                : (exception == null ? "OAuth2 login failed" : exception.toString());
-        return ResponseEntity.status(401).body(Map.of("error", errorMessage));
+        String errorCode = "authentication_failed";
+
+        if (exception instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthEx) {
+            String errorType = oauthEx.getError().getErrorCode();
+            if ("school_not_authorized".equals(errorType)) {
+                errorCode = "school_not_authorized";
+            }
+        }
+
+        response.sendRedirect(frontendRedirectUrl + "?error=" + errorCode);
     }
 
     @PostMapping("/refresh")

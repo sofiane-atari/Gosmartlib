@@ -178,24 +178,10 @@ public class SmartschoolOAuth2UserService
         String domainName = mapSchoolCodeToDomainName(schoolCode);
 
         return schoolRepository.findByDomainName(domainName)
-                .orElseGet(() -> createSchool(domainName));
-    }
-
-    private School createSchool(String domainName) {
-        School school = new School();
-        school.setDomainName(domainName);
-        school.setName(extractSchoolNameFromDomain(domainName));
-
-        return schoolRepository.save(school);
-    }
-
-    private String extractSchoolNameFromDomain(String domainName) {
-        if (domainName == null || !domainName.contains(".")) {
-            return "Unknown School";
-        }
-
-        String name = domainName.split("\\.")[0];
-        return name.substring(0, 1).toUpperCase() + name.substring(1);
+                .orElseThrow(() -> new OAuth2AuthenticationException(
+                        new OAuth2Error("school_not_authorized"),
+                        "Je school is niet gemachtigd voor deze website. Neem contact op met GO! Antwerpen voor hulp: https://go-antwerpen.be/contact/"
+                ));
     }
 
     private String mapSchoolCodeToDomainName(String schoolCode) {
