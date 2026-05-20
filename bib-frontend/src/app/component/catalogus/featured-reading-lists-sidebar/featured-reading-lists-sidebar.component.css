@@ -217,3 +217,44 @@
     background-position: -200% 0;
   }
 }
+
+/* Additional styles for the sidebar skeleton state */
+.skeleton-list-item {
+  pointer-events: none;
+  cursor: default;
+}
+
+.skeleton-cover {
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: sidebarSkeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: sidebarSkeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-title {
+  width: 130px;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-subtitle {
+  width: 72px;
+  height: 12px;
+}
+
+@keyframes sidebarSkeletonShimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}

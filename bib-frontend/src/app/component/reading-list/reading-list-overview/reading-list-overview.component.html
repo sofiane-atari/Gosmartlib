@@ -36,6 +36,7 @@
             <button
               class="filter-tab"
               [class.active]="selectedFilters.has(filter.id)"
+              [disabled]="isLoadingReadingLists"
               (click)="toggleFilter(filter.id)"
               type="button"
             >
@@ -49,7 +50,27 @@
         }
       </div>
 
-      @if (getFilteredLists().length === 0) {
+      @if (isLoadingReadingLists) {
+        <div class="cards-grid">
+          @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+            <div class="card skeleton-card">
+              <div class="card-cover skeleton-cover">
+                <div class="skeleton-icon"></div>
+              </div>
+
+              <div class="card-body">
+                <div class="skeleton-line skeleton-title"></div>
+                <div class="skeleton-line skeleton-subtitle"></div>
+
+                <div class="card-actions">
+                  <div class="skeleton-action"></div>
+                  <div class="skeleton-action"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (getFilteredLists().length === 0) {
         <!-- Empty state -->
         <div class="empty-state">
           <div class="empty-icon">
@@ -69,8 +90,8 @@
         <!-- Grid of cards -->
         <div class="cards-grid">
           @for (list of getFilteredLists(); track list.id) {
-            <div class="card" [routerLink]="['/reading-list', list.id]">
-              <div class="card-cover">
+                  <div class="card" [routerLink]="['/reading-list', list.id]" @fadeInUp>
+                  <div class="card-cover">
                 @if (listCovers[list.id] && listCovers[list.id].length > 0) {
                   <div class="stacked-covers">
                     @for (cover of listCovers[list.id]; track $index) {

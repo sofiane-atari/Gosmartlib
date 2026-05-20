@@ -22,13 +22,15 @@ import {
 } from 'lucide-angular';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { ReadingList, ReadingListTargetType } from '../../../model/readingList.model';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-reading-list-overview',
   standalone: true,
   imports: [CommonModule, RouterLink, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './reading-list-overview.component.html',
-  styleUrl: './reading-list-overview.component.css'
+  styleUrl: './reading-list-overview.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class ReadingListOverviewComponent implements OnInit {
 
@@ -45,6 +47,7 @@ export class ReadingListOverviewComponent implements OnInit {
   private static readonly FEATURED_TARGET_TYPE: ReadingListTargetType = 'SYSTEM';
   private readonly MAX_CATALOG_FEATURED_LISTS = 2;
   protected readonly BookCopy = BookCopy;
+  isLoadingReadingLists = true;
 
   // Filter state
   selectedFilters: Set<string> = new Set(['ALL']);
@@ -67,9 +70,20 @@ export class ReadingListOverviewComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.readingListService.getLists().subscribe(lists => {
-      this.readingLists = lists;
-      this.fetchCoversForLists(lists);
+    this.isLoadingReadingLists = true;
+
+    this.readingListService.getLists().subscribe({
+      next: (lists) => {
+        this.readingLists = lists;
+        this.fetchCoversForLists(lists);
+        this.isLoadingReadingLists = false;
+      },
+      error: (error) => {
+        console.error('Fout bij laden van leeslijsten:', error);
+        this.readingLists = [];
+        this.isLoadingReadingLists = false;
+        this.toastService.show('Leeslijsten konden niet worden geladen.', 'error');
+      },
     });
   }
 

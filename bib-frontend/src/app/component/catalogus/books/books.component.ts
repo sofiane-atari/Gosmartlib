@@ -36,6 +36,7 @@ import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/gen
 import { CampusService } from '../../../services/campus/campus.service';
 import { ReadingList } from '../../../model/readingList.model';
 import { FeaturedReadingListsSidebarComponent } from "../featured-reading-lists-sidebar/featured-reading-lists-sidebar.component";
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-books',
@@ -51,6 +52,7 @@ import { FeaturedReadingListsSidebarComponent } from "../featured-reading-lists-
 ],
   templateUrl: './books.component.html',
   styleUrl: './books.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class BooksComponent implements OnInit {
   readonly Book = BookPlus;
