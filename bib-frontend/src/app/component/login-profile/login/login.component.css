@@ -109,11 +109,20 @@
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: background 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 82, 14, 0.2);
+  cursor: pointer;
 }
 
 .contact-link:hover {
-  background: var(--primary-color);
+  background: var(--main-color-hover);
+  box-shadow: 0 6px 20px rgba(138, 30, 65, 0.3);
+  transform: translateY(-2px);
+}
+
+.contact-link:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 82, 14, 0.2);
 }
 
 .login-benefits {

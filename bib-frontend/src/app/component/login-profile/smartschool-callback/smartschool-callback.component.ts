@@ -14,6 +14,14 @@ export class SmartschoolCallbackComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   public ngOnInit(): void {
+    const queryParams = new URLSearchParams(window.location.search);
+    const error = queryParams.get('error');
+
+    if (error) {
+      this.router.navigate(['/login'], { queryParams: { error } });
+      return;
+    }
+
     const token = this.resolveTokenFromUrl();
 
     if (!token || !this.authService.storeToken(token)) {
