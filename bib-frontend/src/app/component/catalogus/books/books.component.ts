@@ -93,7 +93,7 @@ export class BooksComponent implements OnInit {
   protected readonly hasMultipleCampuses = signal(false);
 
   protected readonly currentPage = signal(0);
-  private readonly pageSize = signal(10);
+  private readonly pageSize = signal(15);
 
   featuredReadingLists: ReadingList[] = [];
   isLoadingFeaturedReadingLists = false;

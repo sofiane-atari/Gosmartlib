@@ -21,8 +21,8 @@ export class FeaturedReadingListsSidebarComponent {
     const count = list.books?.length ?? 0;
     return `${count} boek${count !== 1 ? 'en' : ''}`;
   }
-  
+
   protected get visibleReadingLists(): ReadingList[] {
-    return this.readingLists.slice(0, 3);
+    return this.readingLists.slice(0, 2);
   }
 }

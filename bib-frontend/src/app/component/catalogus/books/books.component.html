@@ -203,15 +203,11 @@
       </div>
     }
     <aside class="sidebar">
+      <app-featured-reading-lists-sidebar
+        [readingLists]="featuredReadingLists"
+        [isLoading]="isLoadingFeaturedReadingLists"
+      ></app-featured-reading-lists-sidebar>
 
-      <aside class="sidebar">
-        <app-featured-reading-lists-sidebar
-          [readingLists]="featuredReadingLists"
-          [isLoading]="isLoadingFeaturedReadingLists"
-        ></app-featured-reading-lists-sidebar>
-
-        <app-book-list-sidebar></app-book-list-sidebar>
-      </aside>
       <app-book-list-sidebar
         title="Meest gelezen"
         [books]="mostReadBooks()"
