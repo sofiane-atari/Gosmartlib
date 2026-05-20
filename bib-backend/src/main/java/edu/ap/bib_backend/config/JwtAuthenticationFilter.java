@@ -109,6 +109,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         ));
         details.put("schoolId", jwtService.extractClaim(token, "schoolId"));
         details.put("campusId", jwtService.extractClaim(token, "campusId"));
+        details.put("name", jwtService.extractClaim(token, "name"));
+        details.put("surname", jwtService.extractClaim(token, "surname"));
+        details.put("email", jwtService.extractClaim(token, "email"));
+        details.put("platform", jwtService.extractClaim(token, "platform"));
 
         authentication.setDetails(details);
 

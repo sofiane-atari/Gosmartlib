@@ -118,8 +118,44 @@ public class AuthService {
                         schoolSummary
                 );
             } catch (Exception ignored) {
-                // Fallback hieronder
+                // Fallback to JWT claims below
             }
+        }
+
+        String firstName = null;
+        String surname = null;
+        String email = null;
+        String platform = null;
+
+        if (authentication.getDetails() instanceof Map<?, ?> details) {
+            firstName = asString(details.get("name"));
+            surname = asString(details.get("surname"));
+            email = asString(details.get("email"));
+            platform = asString(details.get("platform"));
+        }
+
+        if (firstName != null && !firstName.isBlank()) {
+            String fullName = (surname != null && !surname.isBlank())
+                    ? firstName + " " + surname
+                    : firstName;
+            return new AuthUserDto(
+                    userId,
+                    firstName,
+                    surname,
+                    fullName,
+                    role,
+                    email,
+                    null,
+                    platform,
+                    null,
+                    List.of(),
+                    reviewBlocked,
+                    schoolId,
+                    schoolName,
+                    campusId,
+                    campusName,
+                    schoolSummary
+            );
         }
 
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
@@ -229,6 +265,10 @@ public class AuthService {
     private String getAttributeOrDefault(OAuth2AuthenticationToken token, String attr, String defaultValue) {
         Object val = token.getPrincipal().getAttribute(attr);
         return val == null ? defaultValue : val.toString();
+    }
+
+    private String asString(Object value) {
+        return value instanceof String str ? str : null;
     }
 
     public JwtTokenDTO refreshJwtToken(String oldToken) {

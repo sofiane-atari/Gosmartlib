@@ -274,7 +274,11 @@ public class MockOAuthController {
                 SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, user.classCode.substring(0, 1),
                 SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, school.getDomainName(),
                 "schoolId", school.getSchoolName(),
-                "campusId", ""
+                "campusId", "",
+                "name", user.givenName,
+                "surname", user.familyName,
+                "email", user.email,
+                "platform", school.getPlatformUrl()
         );
 
         String accessToken = jwtService.generateToken(user.legacyIdentifier, role, claims);
