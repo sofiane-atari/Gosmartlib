@@ -45,6 +45,7 @@ public class OneRosterClient {
             @Value("${oneroster.token-auth-method:basic}") String tokenAuthMethod,
             @Value("${oneroster.token-endpoint-mode:auto}") String tokenEndpointMode,
             @Value("${oneroster.scope:}") String tokenScope,
+            @Value("${oneroster.base-url:}") String baseUrl,
             @Value("${oneroster.allow-private-hosts:false}") boolean allowPrivateHosts,
             OneRosterCredentialRepository credentialRepository,
             OneRosterTokenRepository tokenRepository,
@@ -69,6 +70,7 @@ public class OneRosterClient {
         this.dataService = new OneRosterDataService(
                 template,
                 normalizeApiPath(apiPath),
+                baseUrl,
                 new OneRosterLabelFilter());
         this.schoolRepository = schoolRepository;
     }
