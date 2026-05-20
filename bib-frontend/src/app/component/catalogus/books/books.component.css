@@ -561,7 +561,124 @@
   flex-direction: column;
   gap: 20px;
 }
+.sidebar-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
 
+.sidebar-title {
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--main-color, #8a1e41);
+  color: #1f2937;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sidebar-list-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sidebar-list-item:hover .sidebar-list-content h3 {
+  color: var(--main-color, #8a1e41);
+}
+
+.sidebar-thumb {
+  width: 56px;
+  height: 78px;
+  flex: 0 0 56px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.reading-list-thumb {
+  display: grid;
+  place-items: center;
+  background: var(--main-light-color, #fff5f8);
+  color: var(--main-color, #8a1e41);
+  border: 1px solid #f0e4e8;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.sidebar-list-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-list-content h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.25;
+  transition: color 0.2s ease;
+}
+
+.sidebar-list-content p {
+  margin: 0;
+  color: var(--sec-color, #bc808b);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.sidebar-list-item--skeleton {
+  pointer-events: none;
+}
+
+.skeleton-block {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 14px;
+}
+
+.skeleton-line--title {
+  width: 140px;
+}
+
+.skeleton-line--small {
+  width: 80px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
 /* =========================================================
    7. RESPONSIVE DESIGN
    ========================================================= */

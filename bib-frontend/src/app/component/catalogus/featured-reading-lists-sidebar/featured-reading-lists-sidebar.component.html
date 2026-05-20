@@ -1,0 +1,38 @@
+@if (isLoading || readingLists.length > 0) {
+  <section class="sidebar-section">
+    <h2 class="sidebar-title">Uitgelichte leeslijsten</h2>
+
+    @if (isLoading) {
+      <div class="loading-state">
+        Leeslijsten worden geladen...
+      </div>
+    } @else if (readingLists.length === 0) {
+      <div class="empty-state">
+        Geen uitgelichte leeslijsten gevonden.
+      </div>
+    } @else {
+      <div class="book-list">
+        @for (list of visibleReadingLists; track list.id) {
+          <button
+            type="button"
+            class="book-item"
+            [routerLink]="['/reading-list', list.id]"
+          >
+            <div class="book-cover reading-list-cover">
+              <lucide-angular
+                [img]="ListChecks"
+                size="26"
+                strokeWidth="2.4"
+              ></lucide-angular>
+            </div>
+
+            <div class="book-details">
+              <h3 class="book-title">{{ list.name }}</h3>
+              <p class="book-author">{{ getBookCountLabel(list) }}</p>
+            </div>
+          </button>
+        }
+      </div>
+    }
+  </section>
+}

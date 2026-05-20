@@ -383,6 +383,15 @@ public class ReadingListService {
                 .orElseThrow(() -> new IllegalArgumentException("Gedeelde leeslijst niet gevonden"));
     }
 
+    public List<ReadingList> getFeaturedListsForCurrentUserCampus(String userId) {
+        User user = getUserOrThrow(userId);
+        Campus campus = resolveReadingListCampus(user);
+
+        return readingListRepository.findByTargetTypeAndCampus_IdOrderByNameAsc(
+                ReadingListTargetType.SYSTEM,
+                campus.getId());
+    }
+
     private String generateUniquePublicShareId() {
         String id;
 

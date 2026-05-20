@@ -1,11 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import {
-  ReadingListService,
-  ReadingList,
-  ReadingListTargetType
-} from '../../../services/reading-list/reading-list.service';
+import {ReadingListService} from '../../../services/reading-list/reading-list.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { RoleService } from '../../../services/role-service/role.service';
@@ -25,6 +21,7 @@ import {
   LucideIconData
 } from 'lucide-angular';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { ReadingList, ReadingListTargetType } from '../../../model/readingList.model';
 
 @Component({
   selector: 'app-reading-list-overview',

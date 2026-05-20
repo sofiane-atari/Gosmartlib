@@ -38,8 +38,7 @@ import { Review } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import {
-  ReadingListService,
-  ReadingList,
+  ReadingListService
 } from '../../../services/reading-list/reading-list.service';
 import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
@@ -54,6 +53,7 @@ import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
 import { GamificationNotificationStoreService } from '../../../services/gamification/store/gamification-notification-store.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
+import { ReadingList } from '../../../model/readingList.model';
 
 interface CopyStatusSummary {
   status: 'available' | 'borrowed' | 'lost';

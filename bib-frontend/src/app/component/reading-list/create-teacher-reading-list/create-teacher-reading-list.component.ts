@@ -2,12 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import {
-  TeacherAudienceOptions,
-  CreateReadingListDTO,
-  ReadingListService,
-  ReadingListTargetType
-} from '../../../services/reading-list/reading-list.service';
+import { ReadingListService } from '../../../services/reading-list/reading-list.service';
+import { CreateReadingListDTO, ReadingListTargetType, TeacherAudienceOptions } from '../../../model/readingList.model';
 
 interface ScopeOption {
   value: ReadingListTargetType;

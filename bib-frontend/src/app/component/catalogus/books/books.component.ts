@@ -34,6 +34,8 @@ import { Genre } from '../../../model/genre/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/genre-picker.component';
 import { CampusService } from '../../../services/campus/campus.service';
+import { ReadingList } from '../../../model/readingList.model';
+import { FeaturedReadingListsSidebarComponent } from "../featured-reading-lists-sidebar/featured-reading-lists-sidebar.component";
 
 @Component({
   selector: 'app-books',
@@ -45,7 +47,8 @@ import { CampusService } from '../../../services/campus/campus.service';
     BookListSidebarComponent,
     PagingComponent,
     GenrePickerComponent,
-  ],
+    FeaturedReadingListsSidebarComponent
+],
   templateUrl: './books.component.html',
   styleUrl: './books.component.css',
 })
@@ -91,6 +94,9 @@ export class BooksComponent implements OnInit {
 
   protected readonly currentPage = signal(0);
   private readonly pageSize = signal(10);
+
+  featuredReadingLists: ReadingList[] = [];
+  isLoadingFeaturedReadingLists = false;
 
   constructor() {
     effect(() => {
@@ -145,6 +151,23 @@ export class BooksComponent implements OnInit {
     this.loadGenres();
     this.loadCampuses();
     this.loadSidebarBooks();
+    this.loadFeaturedReadingLists();
+  }
+
+  private loadFeaturedReadingLists(): void {
+    this.isLoadingFeaturedReadingLists = true;
+
+    this.readingListService.getFeaturedListsForCampus().subscribe({
+      next: (lists) => {
+        this.featuredReadingLists = lists;
+        this.isLoadingFeaturedReadingLists = false;
+      },
+      error: (error) => {
+        console.error('Fout bij laden van uitgelichte leeslijsten', error);
+        this.featuredReadingLists = [];
+        this.isLoadingFeaturedReadingLists = false;
+      },
+    });
   }
 
   private loadCampuses(): void {
