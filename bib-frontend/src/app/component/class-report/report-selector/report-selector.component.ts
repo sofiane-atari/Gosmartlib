@@ -38,7 +38,7 @@ export class ReportSelectorComponent {
   navigateToCampusReport(): void {
     console.log('navigateToCampusReport() called');
     try {
-      const result = this.router.navigate(['/reports/campus']);
+      const result = this.router.navigate(['/reports/school']);
       console.log('Navigate result:', result);
       result.then(success => {
         console.log('Navigation successful:', success);

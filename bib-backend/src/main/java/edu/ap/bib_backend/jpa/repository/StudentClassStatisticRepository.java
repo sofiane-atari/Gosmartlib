@@ -13,4 +13,6 @@ public interface StudentClassStatisticRepository extends JpaRepository<StudentCl
             String classSourcedId);
 
     List<StudentClassStatistic> findByClassSourcedId(String classSourcedId);
+
+    List<StudentClassStatistic> findByClassSourcedIdIn(List<String> classSourcedIds);
 }

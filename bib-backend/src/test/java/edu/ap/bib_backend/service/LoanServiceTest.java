@@ -219,8 +219,12 @@ class LoanServiceTest {
     @Test
     void Given_ReturnedCopyCondition_When_ReturnLoan_Then_UpdatesBookCopyCondition() {
         BookCopy copy = availableCopy(10L, new Book(), campus);
+        User user = new User();
+        user.setId("user123");
+
         Loan loan = new Loan();
         loan.setId(1L);
+        loan.setUser(user);
         loan.setCampus(campus);
         loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(1));
         loan.getCopies().add(copy);

@@ -2,7 +2,9 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.report.ClassReportDTO;
 import edu.ap.bib_backend.dto.report.ReportClassOptionDTO;
+import edu.ap.bib_backend.dto.report.SchoolReportDTO;
 import edu.ap.bib_backend.service.report.ReportService;
+import edu.ap.bib_backend.service.report.SchoolReportService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +16,11 @@ import java.util.List;
 public class ReportController {
 
     private final ReportService reportService;
+    private final SchoolReportService schoolReportService;
 
-    public ReportController(ReportService reportService) {
+    public ReportController(ReportService reportService, SchoolReportService schoolReportService) {
         this.reportService = reportService;
+        this.schoolReportService = schoolReportService;
     }
 
     @GetMapping("/classes")
@@ -29,5 +33,12 @@ public class ReportController {
             @RequestParam String classSourcedId,
             Authentication authentication) {
         return reportService.getClassReport(classSourcedId, authentication);
+    }
+
+    @GetMapping("/school")
+    public SchoolReportDTO getSchoolReport(
+            @RequestParam(defaultValue = "10") int limit,
+            Authentication authentication) {
+        return schoolReportService.generateSchoolReport(authentication, limit);
     }
 }

@@ -177,7 +177,7 @@ export const routes: Routes = [
         canActivate: [authGuard, staffOnlyGuard]
       },
       {
-        path: 'campus',
+        path: 'school',
         component: CampusReportComponent,
         canActivate: [authGuard, staffOnlyGuard]
       }
