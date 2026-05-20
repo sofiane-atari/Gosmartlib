@@ -72,13 +72,17 @@ public class SecurityConfig {
                                                 // Preflight
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                                                // 🔓 Public endpoints
-                                                .requestMatchers(
-                                                                "/auth/error",
-                                                                "/auth/callback",
-                                                                "/oauth2/**",
-                                                                "/login/**")
-                                                .permitAll()
+						// 🔓 Public endpoints
+						.requestMatchers(
+								"/auth/error",
+								"/auth/callback",
+								"/oauth2/**",
+								"/login/**",
+								"/OAuth/**",
+								"/Api/V1/**",
+								"/ims/oneroster/**",
+								"/mock/schools/**")
+						.permitAll()
 
                                                 // 🔓 Tijdelijke / dev endpoints (optioneel)
                                                 .requestMatchers(
