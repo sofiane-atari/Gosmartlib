@@ -657,4 +657,52 @@ app-button-hover-help {
   position: relative;
   z-index: 1;
 }
-/* ========== CARDS AREA ========== */
+.btn-catalog-featured {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  background: var(--main-color, #8a1e41);
+  color: white;
+
+  box-shadow: 0 2px 6px rgba(138, 30, 65, 0.22);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.btn-catalog-featured:hover {
+  background: #6e1733;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(138, 30, 65, 0.28);
+}
+
+/* Niet geselecteerd: witte outline ster */
+:host ::ng-deep .btn-catalog-featured lucide-angular svg {
+  color: white !important;
+  stroke: white !important;
+  fill: none !important;
+  filter: none;
+}
+
+/* Geselecteerd: goudgele ster met witte uitlijning */
+:host ::ng-deep .btn-catalog-featured.active lucide-angular svg {
+  color: #f59e0b !important;
+  stroke: white !important;
+  fill: #facc15 !important;
+  stroke-width: 1.4px;
+  filter: drop-shadow(0 1px 2px rgba(250, 204, 21, 0.45));
+}
+
+/* Bij hover blijft geselecteerd mooi geel */
+:host ::ng-deep .btn-catalog-featured.active:hover lucide-angular svg {
+  color: #f59e0b !important;
+  stroke: white !important;
+  fill: #fbbf24 !important;
+  filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.7));
+}

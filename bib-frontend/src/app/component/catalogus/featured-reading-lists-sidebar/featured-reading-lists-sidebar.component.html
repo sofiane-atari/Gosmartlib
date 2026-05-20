@@ -18,9 +18,10 @@
             class="book-item"
             [routerLink]="['/reading-list', list.id]"
           >
-            <div class="book-cover reading-list-cover">
+            <div class="book-cover reading-list-cover reading-list-cover--selected">
               <lucide-angular
-                [img]="ListChecks"
+                class="reading-list-star"
+                [img]="Star"
                 size="26"
                 strokeWidth="2.4"
               ></lucide-angular>

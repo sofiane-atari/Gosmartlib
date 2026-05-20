@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideAngularModule, ListChecks } from 'lucide-angular';
+import { LucideAngularModule, Star } from 'lucide-angular';
 import { ReadingList } from '../../../model/readingList.model';
 
 @Component({
@@ -15,7 +15,7 @@ export class FeaturedReadingListsSidebarComponent {
   @Input({ required: true }) readingLists: ReadingList[] = [];
   @Input() isLoading = false;
 
-  protected readonly ListChecks = ListChecks;
+  protected readonly Star = Star;
 
   protected getBookCountLabel(list: ReadingList): string {
     const count = list.books?.length ?? 0;
