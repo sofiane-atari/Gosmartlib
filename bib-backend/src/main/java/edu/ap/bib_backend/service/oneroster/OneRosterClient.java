@@ -45,6 +45,7 @@ public class OneRosterClient {
             @Value("${oneroster.token-auth-method:basic}") String tokenAuthMethod,
             @Value("${oneroster.token-endpoint-mode:auto}") String tokenEndpointMode,
             @Value("${oneroster.scope:}") String tokenScope,
+            @Value("${oneroster.allow-private-hosts:false}") boolean allowPrivateHosts,
             OneRosterCredentialRepository credentialRepository,
             OneRosterTokenRepository tokenRepository,
             OneRosterMapper oneRosterMapper,
@@ -56,7 +57,7 @@ public class OneRosterClient {
         template.setRequestFactory(requestFactory);
 
         this.oneRosterMapper = oneRosterMapper;
-        this.hostValidator = new OneRosterHostValidator(allowedHostSuffixes);
+        this.hostValidator = new OneRosterHostValidator(allowedHostSuffixes, allowPrivateHosts);
         this.tokenService = new OneRosterTokenService(
                 template,
                 tokenUrl,
