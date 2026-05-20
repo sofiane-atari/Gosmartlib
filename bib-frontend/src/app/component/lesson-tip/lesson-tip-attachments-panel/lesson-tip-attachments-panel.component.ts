@@ -28,6 +28,7 @@ export class LessonTipAttachmentsPanelComponent {
 
   public readonly lessonTipId = input.required<number>();
   public readonly canManageAttachments = input<boolean>(false);
+  public readonly compactMode = input<boolean>(false);
 
   protected readonly attachments = signal<LessonTipAttachment[]>([]);
   protected readonly selectedFile = signal<File | null>(null);

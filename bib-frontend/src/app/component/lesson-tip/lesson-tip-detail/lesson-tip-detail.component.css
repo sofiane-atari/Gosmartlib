@@ -275,14 +275,6 @@
   border-radius: 12px;
 }
 
-.creator-card__avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: var(--sec-light-color);
-  flex-shrink: 0;
-}
-
 .creator-card__content {
   display: flex;
   flex-direction: column;

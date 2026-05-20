@@ -38,21 +38,29 @@ export class GamificationNotificationStreamService {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
+        Accept: 'text/event-stream',
       },
       signal: this.abortController.signal,
 
       onopen: async (response) => {
-        if (response.status === 401) {
+        if (response.status === 401 || response.status === 403) {
+          console.warn('Gamification stream niet geauthenticeerd.');
           this.disconnect();
-          this.authService.logout();
+          return;
+        }
+
+        if (response.redirected) {
+          console.warn('Gamification stream werd geredirect. Stream gestopt.');
+          this.disconnect();
           return;
         }
 
         if (!response.ok) {
-          this.disconnect();
-          throw new Error(
-            `Gamification notificatie stream kon niet openen. Status: ${response.status}`,
+          console.warn(
+            `Gamification stream kon niet openen. Status: ${response.status}`,
           );
+          this.disconnect();
+          return;
         }
 
         console.log('Gamification notification stream connected');
@@ -77,7 +85,7 @@ export class GamificationNotificationStreamService {
 
         this.disconnect();
 
-        throw error;
+        return;
       },
     });
   }

@@ -192,6 +192,12 @@
   font-size: 10px;
 }
 
+.list--scrollable {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
 /* =========================================================
    BUTTONS (Aangesloten op de action-button conventie)
    ========================================================= */

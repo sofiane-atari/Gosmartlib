@@ -1,53 +1,51 @@
 <article class="material-card" [class.material-card--skeleton]="isLoading()">
-  @if (lessonTip(); as selectedLessonTip) {
-    @if (isLoading()) {
-      <div class="material-card__body">
-        <div class="material-card__header">
-          <div class="skeleton skeleton--title"></div>
+  @if (isLoading()) {
+    <div class="material-card__body">
+      <div class="material-card__header">
+        <div class="skeleton skeleton--title"></div>
+      </div>
+
+      <div class="material-card__divider"></div>
+
+      <div class="material-card__content-row">
+        <div class="material-card__content">
+          <div class="skeleton skeleton--text"></div>
+          <div class="skeleton skeleton--text"></div>
+          <div class="skeleton skeleton--text-short"></div>
         </div>
 
-        <div class="material-card__divider"></div>
-
-        <div class="material-card__content-row">
-          <div class="material-card__content">
-            <div class="skeleton skeleton--text"></div>
-            <div class="skeleton skeleton--text"></div>
-            <div class="skeleton skeleton--text-short"></div>
-          </div>
-
-          <div class="material-card__preview">
-            <div class="skeleton skeleton--preview"></div>
-          </div>
-        </div>
-
-        <div class="material-card__meta-row">
-          <div class="material-card__meta-left">
-            <div class="skeleton skeleton--pill"></div>
-            <div class="skeleton skeleton--pill"></div>
-            <div class="skeleton skeleton--pill"></div>
+        <div class="material-card__preview">
+          <div class="material-card__preview-stack">
+            <div class="skeleton skeleton--preview-book"></div>
+            <div class="skeleton skeleton--preview-book"></div>
+            <div class="skeleton skeleton--preview-book"></div>
           </div>
         </div>
       </div>
 
-      <div class="material-card__footer">
-        <div class="material-card__author">
-          <div class="skeleton skeleton--avatar"></div>
-          <div class="material-card__author-details">
-            <div
-              class="skeleton skeleton--text-short"
-              style="margin-bottom: 4px"
-            ></div>
-            <div
-              class="skeleton skeleton--text"
-              style="width: 60px; margin: 0"
-            ></div>
-          </div>
-        </div>
-        <div class="material-card__actions">
-          <div class="skeleton skeleton--button"></div>
+      <div class="material-card__meta-row">
+        <div class="material-card__meta-left">
+          <div class="skeleton skeleton--pill"></div>
+          <div class="skeleton skeleton--pill"></div>
+          <div class="skeleton skeleton--pill"></div>
         </div>
       </div>
-    } @else {
+    </div>
+
+    <div class="material-card__footer">
+      <div class="material-card__author">
+        <div class="material-card__author-details">
+          <div class="skeleton skeleton--author-name"></div>
+          <div class="skeleton skeleton--author-role"></div>
+        </div>
+      </div>
+
+      <div class="material-card__actions">
+        <div class="skeleton skeleton--button"></div>
+      </div>
+    </div>
+  } @else {
+    @if (lessonTip(); as selectedLessonTip) {
       <div class="material-card__body">
         <div class="material-card__header">
           <h2 class="material-title">{{ selectedLessonTip.title }}</h2>
@@ -125,8 +123,6 @@
 
       <div class="material-card__footer">
         <div class="material-card__author">
-          <div class="material-card__author-avatar"></div>
-
           <div class="material-card__author-details">
             @if (isOwnLessonTip()) {
               <span class="material-card__author-name">{{

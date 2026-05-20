@@ -7,8 +7,8 @@ import { ToastComponent } from './component/shared/toast/toast.component';
 import { AuthService } from './services/authorization/auth.service';
 import { SessionExpiryModalComponent } from './component/shared/session-expired-modal/session-expired-modal.component';
 import { GamificationRewardNotificationComponent } from './component/gamification/components/gamification-reward-notification/gamification-reward-notification.component';
-import { GamificationNotificationStoreService } from './services/gamification/store/gamification-notification-store.service';
-import { GamificationNotificationStreamService } from './services/gamification/store/gamification-notification-stream.service';
+import { GamificationNotificationStoreService } from './services/gamification/notification/gamification-notification-store.service';
+import { GamificationNotificationStreamService } from './services/gamification/notification/gamification-notification-stream.service';
 
 @Component({
   selector: 'app-root',

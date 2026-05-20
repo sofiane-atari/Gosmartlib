@@ -38,7 +38,7 @@
       <div class="queued-files-list">
         @for (
           queuedFile of queuedFiles();
-          track queuedFile.name + queuedFile.lastModified;
+          track queuedFile.name + queuedFile.size + queuedFile.lastModified;
           let index = $index
         ) {
           <div class="queued-file-item">
@@ -58,10 +58,7 @@
     </div>
   } @else {
     <div class="state-panel state-panel--compact">
-      <p>
-        Je kan hier al bestanden klaarzetten. Ze worden opgeladen zodra je de
-        les tip opslaat.
-      </p>
+      <p>{{ emptyStateMessage() }}</p>
     </div>
   }
 

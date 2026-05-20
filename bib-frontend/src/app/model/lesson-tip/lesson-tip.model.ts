@@ -10,6 +10,17 @@ export type LessonTipType =
   | 'PRESENTATION'
   | 'OTHER';
 
+export const LESSON_TIP_TYPE_LABELS: Readonly<Record<LessonTipType, string>> = {
+  LESSON_METHOD: 'Lesmethode',
+  DIDACTIC_HANDBOOK: 'Didactisch handboek',
+  EVALUATION_MATERIAL: 'Evaluatiemateriaal',
+  REFERENCE_WORK: 'Naslagwerk',
+  LESSON_IDEA: 'Lesidee',
+  WORKSHEET: 'Werkblad',
+  PRESENTATION: 'Presentatie',
+  OTHER: 'Overig',
+};
+
 export interface LessonTipBookSummary {
   id: number;
   title: string;
