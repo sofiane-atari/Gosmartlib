@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.service.mock;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,8 +19,15 @@ public class MockSchoolRegistry {
     private volatile MockSchoolData activeSchool;
     private volatile boolean passthroughMode = false;
 
-    public MockSchoolRegistry() {
-        MockSchoolData school1 = MockSchoolData.createTestSchool1();
+    public MockSchoolRegistry(
+            @Value("${school.seed.domain:}") String schoolDomain,
+            @Value("${school.seed.name:}") String schoolName,
+            @Value("${school.seed.oneroster-client-id:}") String onerosterClientId,
+            @Value("${school.seed.oneroster-client-secret:}") String onerosterClientSecret
+    ) {
+        MockSchoolData school1 = MockSchoolData.createFromEnvVars(
+                schoolDomain, schoolName, onerosterClientId, onerosterClientSecret
+        );
         MockSchoolData school2 = MockSchoolData.createTestSchool2();
 
         schoolsByCode.put(school1.getSchoolCode(), school1);
