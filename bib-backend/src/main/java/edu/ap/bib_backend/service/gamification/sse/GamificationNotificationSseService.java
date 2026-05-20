@@ -28,10 +28,16 @@ public class GamificationNotificationSseService {
                 .add(emitter);
 
         emitter.onCompletion(() -> removeEmitter(userId, emitter));
-        emitter.onTimeout(() -> removeEmitter(userId, emitter));
-        emitter.onError(error -> removeEmitter(userId, emitter));
+        emitter.onTimeout(() -> {
+            removeEmitter(userId, emitter);
+            emitter.complete();
+        });
+        emitter.onError(error -> {
+            removeEmitter(userId, emitter);
+            emitter.completeWithError(error);
+        });
 
-        sendConnectionOpenedEvent(emitter);
+        sendConnectionOpenedEvent(userId, emitter);
 
         return emitter;
     }
@@ -67,12 +73,13 @@ public class GamificationNotificationSseService {
         }
     }
 
-    private void sendConnectionOpenedEvent(SseEmitter emitter) {
+    private void sendConnectionOpenedEvent(String userId, SseEmitter emitter) {
         try {
             emitter.send(SseEmitter.event()
                     .name("connected")
                     .data("connected"));
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            removeEmitter(userId, emitter);
             emitter.complete();
         }
     }
@@ -87,7 +94,7 @@ public class GamificationNotificationSseService {
         emitters.remove(emitter);
 
         if (emitters.isEmpty()) {
-            emittersByUserId.remove(userId);
+            emittersByUserId.remove(userId, emitters);
         }
     }
 }

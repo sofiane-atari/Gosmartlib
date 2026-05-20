@@ -15,8 +15,17 @@ import { LessonTipBookSelectionService } from '../../../services/lesson-tip/less
 import { LessonTipAttachmentService } from '../../../services/lesson-tip/lesson-tip-attachment.service';
 import {
   CreateLessonTipRequest,
+  LESSON_TIP_TYPE_LABELS,
   LessonTip,
+  LessonTipType,
 } from '../../../model/lesson-tip/lesson-tip.model';
+import { LessonTipAttachmentsQueueComponent } from '../lesson-tip-attachments-queue/lesson-tip-attachments-queue.component';
+import {
+  LESSON_TIP_CREATE_WIZARD_STEPS,
+  LESSON_TIP_EDIT_WIZARD_STEPS,
+  LessonTipWizardStep,
+} from '../../../model/lesson-tip/lesson-tip-wizard.model';
+import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 
 @Component({
@@ -29,6 +38,8 @@ import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
     FileUploadComponent,
     LessonTipAttachmentsPanelComponent,
     LessonTipBookSelectionPanelComponent,
+    LessonTipAttachmentsQueueComponent,
+    StepWizardComponent,
   ],
   providers: [LessonTipBookSelectionService],
   templateUrl: './lesson-tip-form-page.component.html',
@@ -61,6 +72,37 @@ export class LessonTipFormPageComponent {
   protected readonly currentUploadingFileName = signal<string | null>(null);
 
   protected readonly isEditMode = computed(() => this.lessonTipId() !== null);
+
+  private readonly isCreateWizardFlow = signal(false);
+
+  protected readonly isCreateWizardMode = computed(() =>
+    this.isCreateWizardFlow(),
+  );
+
+  protected readonly isWizardMode = computed(
+    () => this.isCreateWizardMode() || this.isEditMode(),
+  );
+  protected readonly currentStep = signal<LessonTipWizardStep>(1);
+
+  protected readonly draftBasicData = signal<CreateLessonTipRequest | null>(
+    null,
+  );
+
+  protected readonly wizardSteps = computed(() =>
+    this.isEditMode()
+      ? LESSON_TIP_EDIT_WIZARD_STEPS
+      : LESSON_TIP_CREATE_WIZARD_STEPS,
+  );
+
+  protected readonly formInitialValue = computed(() => {
+    const draftBasicData = this.draftBasicData();
+
+    if (draftBasicData !== null) {
+      return draftBasicData;
+    }
+
+    return this.initialValue();
+  });
 
   protected readonly selectedLinkedBooks =
     this.lessonTipBookSelectionService.selectedLinkedBooks;
@@ -101,20 +143,30 @@ export class LessonTipFormPageComponent {
     this.isEditMode() ? 'Lestip bewerken' : 'Lestip toevoegen',
   );
 
-  protected readonly pageDescription = computed(() =>
-    this.isEditMode()
-      ? 'Werk de basisgegevens van de Lestip bij.'
-      : 'Voeg de basisgegevens van de Lestip toe.',
-  );
+  protected readonly pageDescription = computed(() => {
+    if (this.isEditMode()) {
+      return 'Werk de basisgegevens van de lestip bij.';
+    }
+
+    return 'Doorloop de stappen om een nieuwe lestip aan te maken.';
+  });
 
   protected readonly submitLabel = computed(() =>
     this.isEditMode() ? 'Lestip bijwerken' : 'Lestip opslaan',
+  );
+
+  protected readonly canSaveWizard = computed(
+    () =>
+      this.draftBasicData() !== null &&
+      !this.isSubmitting() &&
+      !this.isUploadingQueuedFiles(),
   );
 
   public ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
 
     if (!idParam) {
+      this.isCreateWizardFlow.set(true);
       return;
     }
 
@@ -127,6 +179,101 @@ export class LessonTipFormPageComponent {
 
     this.lessonTipId.set(lessonTipId);
     this.loadLessonTipForEdit(lessonTipId);
+  }
+
+  protected getStepItemClass(step: LessonTipWizardStep): string {
+    const activeStep = this.currentStep();
+
+    if (step < activeStep) {
+      return 'step-item step-item--completed';
+    }
+
+    if (step === activeStep) {
+      return 'step-item step-item--active';
+    }
+
+    return 'step-item step-item--upcoming';
+  }
+
+  public handleStep1Validated(request: CreateLessonTipRequest): void {
+    this.draftBasicData.set({
+      ...request,
+      linkedBookIds: this.selectedLinkedBookIds(),
+    });
+
+    this.goToNextStep();
+  }
+
+  public goToPreviousStep(): void {
+    const currentStep = this.currentStep();
+
+    if (currentStep <= 1) {
+      return;
+    }
+
+    this.currentStep.set((currentStep - 1) as LessonTipWizardStep);
+  }
+
+  public goToNextStep(): void {
+    const currentStep = this.currentStep();
+    const maxStep = this.wizardSteps().length;
+
+    if (currentStep >= maxStep) {
+      return;
+    }
+
+    this.currentStep.set((currentStep + 1) as LessonTipWizardStep);
+  }
+
+  public requestStep1Validation(lessonTipForm: LessonTipFormComponent): void {
+    lessonTipForm.submitForm();
+  }
+
+  public handleQueueChanged(files: File[]): void {
+    this.queuedFiles.set(files);
+  }
+
+  public saveLessonTipFromWizard(): void {
+    const request = this.buildWizardRequest();
+
+    if (request === null) {
+      this.toastService.show(
+        'Vul eerst de basisgegevens in voordat je opslaat.',
+        'error',
+      );
+      this.currentStep.set(1);
+      return;
+    }
+
+    this.isSubmitting.set(true);
+
+    if (this.isEditMode()) {
+      this.updateLessonTip(request);
+      return;
+    }
+
+    this.createLessonTip(request);
+  }
+
+  protected getLessonTipTypeLabel(type: LessonTipType): string {
+    return LESSON_TIP_TYPE_LABELS[type];
+  }
+
+  protected formatOptionalSummaryValue(value: string | null): string {
+    return value?.trim() ? value : '—';
+  }
+
+  private buildWizardRequest(): CreateLessonTipRequest | null {
+    const draft = this.draftBasicData();
+
+    if (draft === null) {
+      return null;
+    }
+
+    return {
+      ...draft,
+      linkedBookIds: this.selectedLinkedBookIds(),
+    };
   }
 
   public handleFormSubmitted(request: CreateLessonTipRequest): void {
@@ -143,41 +290,6 @@ export class LessonTipFormPageComponent {
     }
 
     this.createLessonTip(enrichedRequest);
-  }
-
-  public handleAttachmentFileChange(file: File | null): void {
-    this.selectedAttachmentFile.set(file);
-  }
-
-  public addAttachmentToQueue(): void {
-    const selectedFile = this.selectedAttachmentFile();
-
-    if (!selectedFile) {
-      this.toastService.show('Selecteer eerst een bestand.', 'error');
-      return;
-    }
-
-    const alreadyQueued = this.queuedFiles().some(
-      (queuedFile) =>
-        queuedFile.name === selectedFile.name &&
-        queuedFile.size === selectedFile.size &&
-        queuedFile.lastModified === selectedFile.lastModified,
-    );
-
-    if (alreadyQueued) {
-      this.toastService.show('Dit bestand staat al in de wachtrij.', 'error');
-      return;
-    }
-
-    this.queuedFiles.update((currentFiles) => [...currentFiles, selectedFile]);
-    this.selectedAttachmentFile.set(null);
-    this.toastService.show('Bestand toegevoegd aan de wachtrij.', 'success');
-  }
-
-  public removeQueuedFile(fileIndex: number): void {
-    this.queuedFiles.update((currentFiles) =>
-      currentFiles.filter((_, index) => index !== fileIndex),
-    );
   }
 
   private createLessonTip(request: CreateLessonTipRequest): void {
@@ -344,4 +456,16 @@ export class LessonTipFormPageComponent {
         lessonTip.linkedBooks?.map((linkedBook) => linkedBook.id) ?? [],
     };
   }
+
+  public setCurrentStep(step: number): void {
+    this.currentStep.set(step as LessonTipWizardStep);
+  }
+
+  protected readonly maxReachableStep = computed(() => {
+    if (this.draftBasicData() === null) {
+      return 1;
+    }
+
+    return this.wizardSteps().length;
+  });
 }

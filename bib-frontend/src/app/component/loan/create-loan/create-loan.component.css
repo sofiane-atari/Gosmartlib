@@ -113,6 +113,74 @@ h1 {
   color: var(--text-muted, #6b7280);
 }
 
+.wizard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.wizard-actions--between {
+  justify-content: space-between;
+}
+
+.wizard-actions--start {
+  justify-content: flex-start;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  font-family: var(--main-font);
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.action-button--secondary {
+  background-color: var(--bg-surface);
+  border-color: var(--border-color);
+  color: var(--main-color);
+}
+
+.action-button--secondary:hover:not(:disabled) {
+  background-color: var(--main-light-color);
+  border-color: var(--main-color);
+}
+
+.action-button--primary {
+  background-color: var(--main-color);
+  border-color: var(--main-color);
+  color: var(--bg-surface);
+  min-height: 44px;
+  padding: 10px 20px;
+}
+
+.action-button--primary:hover:not(:disabled) {
+  background-color: var(--main-color-hover);
+  border-color: var(--main-color-hover);
+}
+@media (max-width: 720px) {
+  .wizard-actions,
+  .wizard-actions--between,
+  .wizard-actions--start {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 @media (max-width: 900px) {
   .step-overview {
     grid-template-columns: 1fr;
