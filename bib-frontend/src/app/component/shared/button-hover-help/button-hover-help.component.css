@@ -140,3 +140,38 @@
   display: block;
   width: 100%;
 }
+:host(.reading-list-action-help) {
+  position: relative;
+  display: inline-flex;
+  overflow: visible;
+  z-index: 1000;
+}
+
+:host(.reading-list-action-help):hover {
+  z-index: 99999;
+}
+
+:host(.reading-list-action-help) .button-hover-help {
+  position: relative;
+  display: inline-flex;
+  overflow: visible;
+}
+
+:host(.reading-list-action-help) .button-hover-help__text {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: calc(100% + 12px) !important;
+  top: auto !important;
+  right: auto !important;
+
+  transform: translateX(-50%) translateY(8px) scale(0.96);
+  z-index: 999999 !important;
+}
+
+:host(.reading-list-action-help) .button-hover-help__text.visible {
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+:host(.reading-list-action-help) .button-hover-help__arrow {
+  display: none !important;
+}

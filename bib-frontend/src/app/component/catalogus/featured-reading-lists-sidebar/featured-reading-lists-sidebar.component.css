@@ -1,0 +1,260 @@
+.sidebar-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-title {
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--main-color, #8a1e41);
+  color: #1f2937;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sidebar-list-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sidebar-list-item:hover .sidebar-list-content h3 {
+  color: var(--main-color, #8a1e41);
+}
+
+.sidebar-thumb {
+  width: 56px;
+  height: 78px;
+  flex: 0 0 56px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.reading-list-thumb {
+  display: grid;
+  place-items: center;
+  background: var(--main-light-color, #fff5f8);
+  color: var(--main-color, #8a1e41);
+  border: 1px solid #f0e4e8;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.sidebar-list-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-list-content h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.25;
+  transition: color 0.2s ease;
+}
+
+.sidebar-list-content p {
+  margin: 0;
+  color: var(--sec-color, #bc808b);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.sidebar-list-item--skeleton {
+  pointer-events: none;
+}
+
+.skeleton-block {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 14px;
+}
+
+.skeleton-line--title {
+  width: 140px;
+}
+
+.skeleton-line--small {
+  width: 80px;
+}
+.sidebar-section {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.sidebar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--main-color, #8a1e41);
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 20px 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book-item {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: left;
+  font-family: inherit;
+}
+
+.book-item:hover {
+  background-color: #f9fafb;
+}
+
+.book-cover {
+  width: 50px;
+  height: 70px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f3f4f6;
+}
+
+.reading-list-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--main-color, #8a1e41);
+  background: var(--main-light-color, #fff5f8);
+  border: 1px solid #f0e4e8;
+}
+
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.book-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.book-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-author {
+  font-size: 0.8rem;
+  color: var(--sec-color, #bc808b);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Additional styles for the sidebar skeleton state */
+.skeleton-list-item {
+  pointer-events: none;
+  cursor: default;
+}
+
+.skeleton-cover {
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: sidebarSkeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: sidebarSkeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-title {
+  width: 130px;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-subtitle {
+  width: 72px;
+  height: 12px;
+}
+
+@keyframes sidebarSkeletonShimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
-import { ReadingListService, ReadingList } from '../../../services/reading-list/reading-list.service';
+import { ReadingListService } from '../../../services/reading-list/reading-list.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { Book } from '../../../model/book/book.model';
 import { forkJoin, of } from 'rxjs';
@@ -10,6 +10,7 @@ import { ToastService } from '../../../services/toast/toast.service';
 import { LucideAngularModule, Trash2 } from 'lucide-angular';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../services/authorization/auth.service';
+import { ReadingList } from '../../../model/readingList.model';
 
 @Component({
     selector: 'app-reading-list-detail',

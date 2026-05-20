@@ -1,0 +1,47 @@
+<section class="sidebar-section">
+  <h2 class="sidebar-title">Uitgelichte leeslijsten</h2>
+
+  @if (isLoading) {
+    <div class="book-list">
+      @for (_ of [1, 2]; track $index) {
+        <div class="book-item skeleton-list-item">
+          <div class="book-cover skeleton-cover"></div>
+
+          <div class="book-details">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-subtitle"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (readingLists.length === 0) {
+    <div class="empty-state" @fadeInUp>
+      Geen uitgelichte leeslijsten gevonden.
+    </div>
+  } @else {
+    <div class="book-list">
+      @for (list of visibleReadingLists; track list.id) {
+        <button
+          type="button"
+          class="book-item"
+          [routerLink]="['/reading-list', list.id]"
+          @fadeInUp
+        >
+          <div class="book-cover reading-list-cover reading-list-cover--selected">
+            <lucide-angular
+              class="reading-list-star"
+              [img]="Star"
+              size="26"
+              strokeWidth="2.4"
+            ></lucide-angular>
+          </div>
+
+          <div class="book-details">
+            <h3 class="book-title">{{ list.name }}</h3>
+            <p class="book-author">{{ getBookCountLabel(list) }}</p>
+          </div>
+        </button>
+      }
+    </div>
+  }
+</section>

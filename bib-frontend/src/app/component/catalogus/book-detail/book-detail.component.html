@@ -29,10 +29,12 @@
             <span class="stat-value">{{ selectedBook.pages }}</span>
             <span class="stat-label">Pagina's</span>
           </div>
+
           <div class="stat-item">
             <span class="stat-value">{{ selectedBook.releaseYear }}</span>
             <span class="stat-label">Jaar</span>
           </div>
+
           <div class="stat-item">
             <span class="stat-value">
               {{ selectedBook.readingLevel?.niveauName || "-" }}
@@ -40,6 +42,34 @@
             <span class="stat-label">Leesniveau</span>
           </div>
         </div>
+
+        <app-button-hover-help
+          class="full-button-help"
+          [text]="
+            isSubscribed()
+              ? 'Je ontvangt een melding wanneer dit boek beschikbaar is. Klik om uit te schrijven.'
+              : 'Ontvang een melding zodra dit boek beschikbaar is.'
+          "
+        >
+          <button
+            class="action-btn subscribe-btn"
+            [class.subscribed]="isSubscribed()"
+            [disabled]="subscriptionLoading()"
+            (click)="toggleSubscription()"
+          >
+            @if (subscriptionLoading()) {
+              <span class="subscribe-spinner"></span>
+            } @else if (isSubscribed()) {
+              <lucide-icon [img]="BellOff" [size]="18"></lucide-icon>
+            } @else {
+              <lucide-icon [img]="Bell" [size]="18"></lucide-icon>
+            }
+
+            <span>
+              {{ isSubscribed() ? "Melding aan" : "Melding bij beschikbaarheid" }}
+            </span>
+          </button>
+        </app-button-hover-help>
       </aside>
 
       <main class="main-content">
@@ -66,76 +96,53 @@
               </button>
             </app-button-hover-help>
 
-            <app-button-hover-help
-              class="full-button-help"
-              text="Voeg dit boek toe aan één van je leeslijsten."
-            >
-              <button
-                class="action-btn primary"
-                style="position: relative"
-                (click)="toggleListPicker()"
+            <div class="list-picker-wrapper">
+              <app-button-hover-help
+                class="full-button-help"
+                text="Voeg dit boek toe aan één van je leeslijsten."
               >
-                <lucide-icon
-                  [img]="Bookmark"
-                  [size]="18"
-                  style="margin-right: 8px"
-                ></lucide-icon>
-                <span>Aan leeslijst toevoegen</span>
+                <button
+                  class="action-btn primary"
+                  type="button"
+                  (click)="toggleListPicker()"
+                >
+                  <lucide-icon
+                    [img]="Bookmark"
+                    [size]="18"
+                    style="margin-right: 8px"
+                  ></lucide-icon>
+                  <span>Aan leeslijst toevoegen</span>
+                </button>
+              </app-button-hover-help>
 
-                @if (showListPicker) {
-                  <div
-                    class="list-picker-dropdown"
-                    (click)="$event.stopPropagation()"
-                  >
-                    <div class="list-picker-header">Kies een leeslijst</div>
-                    @if (pickerReadingLists.length > 0) {
-                      <div class="list-picker-items">
-                        @for (list of pickerReadingLists; track list.id) {
-                          <div
-                            class="list-picker-item"
-                            (click)="addBookToList(list.id)"
-                          >
-                            {{ list.name }}
-                          </div>
-                        }
-                      </div>
-                    } @else {
-                      <div class="list-picker-empty">
-                        Geen leeslijsten gevonden. Maak er eerst een aan in het
-                        overzicht.
-                      </div>
-                    }
-                  </div>
-                }
-              </button>
-            </app-button-hover-help>
+              @if (showListPicker) {
+                <div
+                  class="list-picker-dropdown"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="list-picker-header">Kies een leeslijst</div>
 
-            <app-button-hover-help
-              class="full-button-help"
-              [text]="
-                isSubscribed()
-                  ? 'Je ontvangt een melding wanneer dit boek beschikbaar is. Klik om uit te schrijven.'
-                  : 'Ontvang een melding zodra dit boek beschikbaar is.'
-              "
-            >
-              <button
-                class="action-btn subscribe-btn"
-                [class.subscribed]="isSubscribed()"
-                [disabled]="subscriptionLoading()"
-                (click)="toggleSubscription()"
-              >
-                @if (subscriptionLoading()) {
-                  <span class="subscribe-spinner"></span>
-                } @else if (isSubscribed()) {
-                  <lucide-icon [img]="BellOff" [size]="18"></lucide-icon>
-                } @else {
-                  <lucide-icon [img]="Bell" [size]="18"></lucide-icon>
-                }
-                <span>{{
-                  isSubscribed() ? "Melding aan" : "Melding bij beschikbaarheid"
-                }}</span>
-              </button>
-            </app-button-hover-help>
+                  @if (pickerReadingLists.length > 0) {
+                    <div class="list-picker-items">
+                      @for (list of pickerReadingLists; track list.id) {
+                        <button
+                          type="button"
+                          class="list-picker-item"
+                          (click)="addBookToList(list.id)"
+                        >
+                          {{ list.name }}
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <div class="list-picker-empty">
+                      Geen leeslijsten gevonden. Maak er eerst een aan in het
+                      overzicht.
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           </div>
         </section>
 
@@ -198,6 +205,7 @@
               >
                 Lestips
               </p>
+
               <h2
                 class="detail-section__title"
                 style="
@@ -235,9 +243,11 @@
                       <h3 class="lesson-tip-preview-card__title">
                         {{ lessonTip.title }}
                       </h3>
+
                       <p class="lesson-tip-preview-card__description">
                         {{ lessonTip.description }}
                       </p>
+
                       <span class="lesson-tip-preview-card__meta">
                         Laatst bijgewerkt op
                         {{ lessonTip.updatedAt | date: "dd/MM/yyyy" }}
@@ -271,6 +281,7 @@
 
         <section class="meta-section">
           <h2 class="section-title">Details</h2>
+
           <div class="meta-grid">
             <div class="meta-row">
               <span class="meta-label">Pagina's</span>
@@ -284,6 +295,7 @@
 
             <div class="meta-row">
               <span class="meta-label">Rating</span>
+
               @if (reviews.length > 0) {
                 <div style="display: flex; align-items: center; gap: 8px">
                   <div
@@ -295,29 +307,32 @@
                         [style.color]="
                           star <= getRoundedAverage() ? '#fbbf24' : '#e2e8f0'
                         "
-                        >★</span
                       >
+                        ★
+                      </span>
                     }
                   </div>
+
                   <span class="meta-value" style="font-size: 0.9rem">
                     ({{ averageRating | number: "1.1-1" }})
                   </span>
                 </div>
               } @else {
-                <span class="meta-value meta-placeholder"
-                  >Nog geen beoordelingen</span
-                >
+                <span class="meta-value meta-placeholder">
+                  Nog geen beoordelingen
+                </span>
               }
             </div>
 
             <div class="meta-row">
               <span class="meta-label">Reviews</span>
+
               @if (reviews.length > 0) {
                 <span class="meta-value">{{ reviews.length }} reviews</span>
               } @else {
-                <span class="meta-value meta-placeholder"
-                  >Nog geen reviews</span
-                >
+                <span class="meta-value meta-placeholder">
+                  Nog geen reviews
+                </span>
               }
             </div>
           </div>
@@ -338,6 +353,7 @@
                     <div class="campus-info-content campus-info-content--wide">
                       <div class="campus-info-heading">
                         <p class="campus-info-name">{{ group.campusName }}</p>
+
                         @if (getCampusAddress(group)) {
                           <p class="campus-info-address">
                             {{ getCampusAddress(group) }}
@@ -356,6 +372,7 @@
                           >
                             <span class="copy-status-dot"></span>
                             <span>{{ getCopyStatusText(summary) }}</span>
+
                             @if (
                               summary.status === "borrowed" &&
                               summary.expectedReturnDate
@@ -380,19 +397,21 @@
                           >
                             <div>
                               <strong>Exemplaar #{{ copy.id }}</strong>
+
                               @if (isLostCopy(copy)) {
                                 <span class="copy-lost-badge">Verloren</span>
                               } @else {
-                                <span
-                                  >{{ getCopyAvailabilityLabel(copy) }} ·
-                                  {{ getConditionLabel(copy.condition) }}</span
-                                >
+                                <span>
+                                  {{ getCopyAvailabilityLabel(copy) }} ·
+                                  {{ getConditionLabel(copy.condition) }}
+                                </span>
                               }
                             </div>
 
                             @if (roleService.canAccessAdminOnlyFeatures()) {
                               <label>
                                 <span>Wijzig staat</span>
+
                                 <select
                                   [ngModel]="getCopyConditionValue(copy)"
                                   (ngModelChange)="
@@ -425,6 +444,7 @@
 
                 <div class="campus-info-content">
                   <p class="campus-info-name">{{ campusName }}</p>
+
                   @if (campusAddress) {
                     <p class="campus-info-address">{{ campusAddress }}</p>
                   }
@@ -441,6 +461,7 @@
 
         <section class="genres-section">
           <h2 class="section-title">Genres</h2>
+
           @if ((selectedBook.genres?.length ?? 0) > 0) {
             <div class="genres-tags">
               @for (genre of selectedBook.genres; track genre.name) {
@@ -450,9 +471,9 @@
               }
             </div>
           } @else {
-            <span class="meta-value meta-placeholder"
-              >Geen genres beschikbaar</span
-            >
+            <span class="meta-value meta-placeholder">
+              Geen genres beschikbaar
+            </span>
           }
         </section>
 
@@ -532,6 +553,7 @@
                   <div class="review-header">
                     <div style="display: flex; align-items: center; gap: 12px">
                       <strong>Anonieme lezer</strong>
+
                       <div
                         class="stars-display"
                         style="display: flex; gap: 2px"
@@ -540,8 +562,9 @@
                           <span
                             class="star"
                             [class.filled]="star <= review.rating"
-                            >★</span
                           >
+                            ★
+                          </span>
                         }
                       </div>
                     </div>
@@ -627,6 +650,7 @@
             } @else {
               <div class="rating-input-group">
                 <span class="rating-label">Jouw beoordeling:</span>
+
                 <div class="stars-clickable">
                   @for (star of starsArray; track $index) {
                     <span
@@ -652,32 +676,35 @@
 
                 <div class="review-help-content">
                   <p>
-                    <span class="review-step-number">1</span
-                    ><span
-                      ><strong>Korte samenvatting</strong><br />Dit boek gaat
-                      over ...</span
-                    >
+                    <span class="review-step-number">1</span>
+                    <span>
+                      <strong>Korte samenvatting</strong><br />
+                      Dit boek gaat over ...
+                    </span>
                   </p>
+
                   <p>
-                    <span class="review-step-number">2</span
-                    ><span
-                      ><strong>Mijn mening</strong><br />Ik vond het boek ...
-                      omdat ...</span
-                    >
+                    <span class="review-step-number">2</span>
+                    <span>
+                      <strong>Mijn mening</strong><br />
+                      Ik vond het boek ... omdat ...
+                    </span>
                   </p>
+
                   <p>
-                    <span class="review-step-number">3</span
-                    ><span
-                      ><strong>Personage</strong><br />Mijn favoriete personage
-                      was ... omdat ...</span
-                    >
+                    <span class="review-step-number">3</span>
+                    <span>
+                      <strong>Personage</strong><br />
+                      Mijn favoriete personage was ... omdat ...
+                    </span>
                   </p>
+
                   <p>
-                    <span class="review-step-number">4</span
-                    ><span
-                      ><strong>Aanrader</strong><br />Ik zou dit boek wel/niet
-                      aanraden, want ...</span
-                    >
+                    <span class="review-step-number">4</span>
+                    <span>
+                      <strong>Aanrader</strong><br />
+                      Ik zou dit boek wel/niet aanraden, want ...
+                    </span>
                   </p>
                 </div>
               </details>

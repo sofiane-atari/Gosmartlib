@@ -458,7 +458,180 @@
   position: relative;
   z-index: 20;
 }
+.btn-catalog-featured {
+  border: none;
+  background: #f9fafb;
+  color: #9ca3af;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
+.btn-catalog-featured:hover {
+  background: var(--main-light-color, #fff5f8);
+  color: var(--main-color, #8a1e41);
+}
+
+.btn-catalog-featured.active {
+  background: var(--main-color, #8a1e41);
+  color: white;
+}
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-actions app-button-hover-help {
+  display: inline-flex;
+}
+
+.btn-catalog-featured {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  background: var(--main-color, #8a1e41);
+  color: white;
+
+  box-shadow: 0 2px 6px rgba(138, 30, 65, 0.22);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.btn-catalog-featured:hover {
+  background: #6e1733;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(138, 30, 65, 0.28);
+}
+
+.btn-catalog-featured lucide-angular {
+  display: grid;
+  place-items: center;
+}
+
+/* Niet geselecteerd: witte outline ster */
+.btn-catalog-featured lucide-angular svg {
+  color: white;
+  stroke: white;
+  fill: none;
+}
+
+/* Geselecteerd: gele gevulde ster */
+.btn-catalog-featured.active lucide-angular svg {
+  color: #facc15;
+  stroke: #facc15;
+  fill: #facc15;
+}
+
+.btn-catalog-featured.active:hover lucide-angular svg {
+  color: #fbbf24;
+  stroke: #fbbf24;
+  fill: #fbbf24;
+}
+.card {
+  position: relative;
+  overflow: visible;
+}
+
+.card-body {
+  position: relative;
+  overflow: visible;
+}
+
+.card-actions {
+  position: relative;
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-actions app-button-hover-help {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: visible;
+  z-index: 30;
+}
+.card,
+.card-body,
+.cards-grid,
+.cards-area,
+.content-layout {
+  overflow: visible;
+}
+
+.card {
+  position: relative;
+}
+
+.card-actions {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-actions app-button-hover-help {
+  display: inline-flex;
+  flex: 0 0 auto;
+  position: relative;
+  overflow: visible;
+}
+.content-layout,
+.cards-area,
+.cards-grid,
+.card,
+.card-body {
+  overflow: visible;
+}
+
+.cards-grid {
+  position: relative;
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+}
+
+.card:hover {
+  z-index: 1000;
+}
+
+.card-actions {
+  position: relative;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: visible;
+}
+
+.card-actions app-button-hover-help {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: visible;
+  z-index: 60;
+}
+
+.card-actions app-button-hover-help:hover {
+  z-index: 99999;
+}
 app-button-hover-help {
   display: inline-flex;
 }
@@ -484,4 +657,117 @@ app-button-hover-help {
   position: relative;
   z-index: 1;
 }
-/* ========== CARDS AREA ========== */
+.btn-catalog-featured {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  background: var(--main-color, #8a1e41);
+  color: white;
+
+  box-shadow: 0 2px 6px rgba(138, 30, 65, 0.22);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.btn-catalog-featured:hover {
+  background: #6e1733;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(138, 30, 65, 0.28);
+}
+
+/* Niet geselecteerd: witte outline ster */
+:host ::ng-deep .btn-catalog-featured lucide-angular svg {
+  color: white !important;
+  stroke: white !important;
+  fill: none !important;
+  filter: none;
+}
+
+/* Geselecteerd: goudgele ster met witte uitlijning */
+:host ::ng-deep .btn-catalog-featured.active lucide-angular svg {
+  color: #f59e0b !important;
+  stroke: white !important;
+  fill: #facc15 !important;
+  stroke-width: 1px;
+  filter: drop-shadow(0 1px 2px rgba(250, 204, 21, 0.45));
+}
+
+/* Bij hover blijft geselecteerd mooi geel */
+:host ::ng-deep .btn-catalog-featured.active:hover lucide-angular svg {
+  color: #f59e0b !important;
+  stroke: white !important;
+  fill: #fbbf24 !important;
+  stroke-width: 1px;
+  filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.55));
+}
+/* ========== skeleton ========== */
+.skeleton-card {
+  pointer-events: none;
+  cursor: default;
+}
+
+.skeleton-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9f4f6;
+}
+
+.skeleton-icon {
+  width: 72px;
+  height: 96px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-title {
+  width: 75%;
+  height: 18px;
+  margin-bottom: 10px;
+}
+
+.skeleton-subtitle {
+  width: 45%;
+  height: 14px;
+  margin-bottom: 18px;
+}
+
+.skeleton-action {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f9f4f6 0%, #f0e4e8 50%, #f9f4f6 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+.filter-tab:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes skeletonShimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}

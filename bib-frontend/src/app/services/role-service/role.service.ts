@@ -133,7 +133,7 @@ export class RoleService {
    * @returns `true` if the user is allowed to moderate reviews, otherwise `false`.
    */
   public canModerateReviews(): boolean {
-    return this.hasAnyRole(['ADMIN', 'LIBRARIAN']);
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
   }
 
   /**
@@ -144,6 +144,10 @@ export class RoleService {
    */
   public canAccessAdminOnlyFeatures(): boolean {
     return this.hasRole('ADMIN');
+  }
+
+  public canManageReadingLists(): boolean {
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
   }
 
   public canModifyLessonTip(ownerUserId: string | null | undefined): boolean {

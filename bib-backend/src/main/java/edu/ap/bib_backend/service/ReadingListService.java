@@ -13,8 +13,8 @@ import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
+
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
@@ -34,6 +34,7 @@ public class ReadingListService {
     private final CurrentUserService currentUserService;
 
     private static final String FAVORITES_NAME = "Favorieten";
+    private static final int MAX_CATALOG_FEATURED_LISTS = 2;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     public ReadingListService(
@@ -41,8 +42,7 @@ public class ReadingListService {
             ReadingListBookRepository readingListBookRepository,
             UserRepository userRepository,
             CampusRepository campusRepository,
-            CurrentUserService currentUserService
-    ) {
+            CurrentUserService currentUserService) {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
         this.userRepository = userRepository;
@@ -85,8 +85,7 @@ public class ReadingListService {
                 audience.classCode(),
                 audience.yearCode(),
                 audience.schoolCode(),
-                shouldIncludeOwnSharedLists()
-        );
+                shouldIncludeOwnSharedLists());
     }
 
     public ReadingList getListById(String userId, Long id) {
@@ -95,13 +94,13 @@ public class ReadingListService {
         AudienceContext audience = getAudienceContext();
 
         return readingListRepository.findVisibleById(
-                        id,
-                        userId,
-                        campus.getId(),
-                        audience.classCode(),
-                        audience.yearCode(),
-                        audience.schoolCode(),
-                        shouldIncludeOwnSharedLists())
+                id,
+                userId,
+                campus.getId(),
+                audience.classCode(),
+                audience.yearCode(),
+                audience.schoolCode(),
+                shouldIncludeOwnSharedLists())
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet"));
     }
 
@@ -199,12 +198,12 @@ public class ReadingListService {
         return name != null && FAVORITES_NAME.equalsIgnoreCase(name.trim());
     }
 
-    private String normalizeTargetValue(ReadingListTargetType targetType, String requestedValue, AudienceContext audience) {
+    private String normalizeTargetValue(ReadingListTargetType targetType, String requestedValue,
+            AudienceContext audience) {
         return switch (targetType) {
             case PERSONAL -> null;
-            case CLASS -> (requestedValue == null || requestedValue.isBlank()) ? audience.classCode() : requestedValue.trim();
-            case YEAR -> (requestedValue == null || requestedValue.isBlank()) ? audience.yearCode() : requestedValue.trim();
-            case SCHOOL -> (requestedValue == null || requestedValue.isBlank()) ? audience.schoolCode() : requestedValue.trim();
+            case CLASS ->
+                (requestedValue == null || requestedValue.isBlank()) ? audience.classCode() : requestedValue.trim();
             case SYSTEM -> null;
         };
     }
@@ -226,9 +225,11 @@ public class ReadingListService {
 
         Object principal = authentication.getPrincipal();
         if (principal instanceof OAuth2AuthenticatedPrincipal oauthPrincipal) {
-            String classCode = readPrincipalAttribute(oauthPrincipal, "classCode", AudienceContext.defaults().classCode());
+            String classCode = readPrincipalAttribute(oauthPrincipal, "classCode",
+                    AudienceContext.defaults().classCode());
             String yearCode = readPrincipalAttribute(oauthPrincipal, "yearCode", AudienceContext.defaults().yearCode());
-            String schoolCode = readPrincipalAttribute(oauthPrincipal, "schoolCode", AudienceContext.defaults().schoolCode());
+            String schoolCode = readPrincipalAttribute(oauthPrincipal, "schoolCode",
+                    AudienceContext.defaults().schoolCode());
             return new AudienceContext(classCode, yearCode, schoolCode);
         }
 
@@ -257,19 +258,6 @@ public class ReadingListService {
                 ReadingListTargetType.CLASS,
                 audience.classCode(),
                 "Klas " + audience.classCode());
-
-        ensureSharedList(owner,
-                campus,
-                ReadingListTargetType.YEAR,
-                audience.yearCode(),
-                "Jaar " + audience.yearCode());
-
-        String schoolName = extractSchoolName(audience.schoolCode());
-        ensureSharedList(owner,
-                campus,
-                ReadingListTargetType.SCHOOL,
-                audience.schoolCode(),
-                schoolName);
 
         ensureSharedList(owner,
                 campus,
@@ -306,8 +294,7 @@ public class ReadingListService {
             Campus campus,
             ReadingListTargetType targetType,
             String targetValue,
-            String defaultName
-    ) {
+            String defaultName) {
         if (targetType == ReadingListTargetType.SYSTEM) {
             if (readingListRepository.findFirstByTargetTypeAndCampusId(targetType, campus.getId()).isPresent()) {
                 return;
@@ -338,15 +325,19 @@ public class ReadingListService {
     }
 
     private void assertCanModifyList(ReadingList list) {
-        if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
-            throw new IllegalArgumentException("De systeembrede leeslijst kan niet aangepast worden");
-        }
-
         if (list.getTargetType() == ReadingListTargetType.PERSONAL) {
             return;
         }
 
-        if (!isTeacherAuthenticated()) {
+        if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
+            if (currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+                return;
+            }
+
+            throw new IllegalArgumentException("De systeembrede leeslijst kan niet aangepast worden");
+        }
+
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN")) {
             throw new IllegalArgumentException("Alleen leerkrachten kunnen deze leeslijst aanpassen");
         }
     }
@@ -356,14 +347,7 @@ public class ReadingListService {
     }
 
     private boolean isTeacherAuthenticated() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getAuthorities() == null) {
-            return false;
-        }
-
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch("ROLE_TEACHER"::equals);
+        return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER");
     }
 
     public ReadingListShareDTO enableSharing(String userId, Long listId, String frontendBaseUrl) {
@@ -386,8 +370,7 @@ public class ReadingListService {
 
         return new ReadingListShareDTO(
                 saved.getPublicShareId(),
-                baseUrl + "/reading-list/shared/" + saved.getPublicShareId()
-        );
+                baseUrl + "/reading-list/shared/" + saved.getPublicShareId());
     }
 
     public ReadingList getSharedList(String publicShareId) {
@@ -397,6 +380,97 @@ public class ReadingListService {
 
         return readingListRepository.findByPublicShareIdAndShareEnabledTrue(publicShareId)
                 .orElseThrow(() -> new IllegalArgumentException("Gedeelde leeslijst niet gevonden"));
+    }
+
+    public List<ReadingList> getCatalogFeaturedListsForCurrentUserCampus(String userId) {
+        User user = getUserOrThrow(userId);
+        Campus campus = resolveReadingListCampus(user);
+
+        return readingListRepository
+                .findTop2ByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType.SYSTEM,
+                        campus.getId());
+    }
+
+    public List<ReadingList> selectFeaturedListForCatalog(String userId, Long listId) {
+        User user = getUserOrThrow(userId);
+        Campus campus = resolveReadingListCampus(user);
+
+        ReadingList selectedList = readingListRepository.findById(listId)
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst niet gevonden"));
+
+        if (selectedList.getTargetType() != ReadingListTargetType.SYSTEM) {
+            throw new IllegalArgumentException("Alleen uitgelichte leeslijsten kunnen op de catalogus getoond worden");
+        }
+
+        if (selectedList.getCampus() == null || !selectedList.getCampus().getId().equals(campus.getId())) {
+            throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
+        }
+
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+            throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
+        }
+
+        List<ReadingList> currentSelected = readingListRepository
+                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType.SYSTEM,
+                        campus.getId());
+
+        if (selectedList.isShowOnCatalog()) {
+            return currentSelected;
+        }
+
+        if (currentSelected.size() >= MAX_CATALOG_FEATURED_LISTS) {
+            ReadingList oldestSelected = currentSelected.get(0);
+            oldestSelected.setShowOnCatalog(false);
+            oldestSelected.setCatalogFeaturedOrder(null);
+            readingListRepository.save(oldestSelected);
+            currentSelected.remove(0);
+        }
+
+        int nextOrder = currentSelected.stream()
+                .map(ReadingList::getCatalogFeaturedOrder)
+                .filter(order -> order != null)
+                .max(Integer::compareTo)
+                .orElse(0) + 1;
+
+        selectedList.setShowOnCatalog(true);
+        selectedList.setCatalogFeaturedOrder(nextOrder);
+        readingListRepository.save(selectedList);
+
+        return readingListRepository
+                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType.SYSTEM,
+                        campus.getId());
+    }
+
+    public List<ReadingList> unselectFeaturedListForCatalog(String userId, Long listId) {
+        User user = getUserOrThrow(userId);
+        Campus campus = resolveReadingListCampus(user);
+
+        ReadingList list = readingListRepository.findById(listId)
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst niet gevonden"));
+
+        if (list.getTargetType() != ReadingListTargetType.SYSTEM) {
+            throw new IllegalArgumentException("Alleen uitgelichte leeslijsten kunnen aangepast worden");
+        }
+
+        if (list.getCampus() == null || !list.getCampus().getId().equals(campus.getId())) {
+            throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
+        }
+
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+            throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
+        }
+
+        list.setShowOnCatalog(false);
+        list.setCatalogFeaturedOrder(null);
+        readingListRepository.save(list);
+
+        return readingListRepository
+                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType.SYSTEM,
+                        campus.getId());
     }
 
     private String generateUniquePublicShareId() {

@@ -43,8 +43,7 @@ import { Review } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import {
-  ReadingListService,
-  ReadingList,
+  ReadingListService
 } from '../../../services/reading-list/reading-list.service';
 import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
@@ -58,8 +57,8 @@ import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-
 import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
+import { ReadingList } from '../../../model/readingList.model';
 import { GamificationNotificationStoreService } from '../../../services/gamification/notification/gamification-notification-store.service';
-
 interface CopyStatusSummary {
   status: 'available' | 'borrowed' | 'lost';
   count: number;
@@ -481,7 +480,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     const role = this.authService.currentUser()?.role;
 
     if (target === 'SYSTEM') {
-      return false;
+      return role === 'TEACHER' || role === 'LIBRARIAN' || role === 'ADMIN';
     }
 
     if (target === 'PERSONAL') {
