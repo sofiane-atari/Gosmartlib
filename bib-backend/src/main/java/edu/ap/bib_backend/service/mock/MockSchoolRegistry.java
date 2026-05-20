@@ -117,4 +117,16 @@ public class MockSchoolRegistry {
     public MockSchoolData getSchoolByAuthCode(String code) {
         return schoolByAuthCode.get(code);
     }
+
+    public record AuthResult(MockSchoolData.MockUser user, MockSchoolData school) {}
+
+    public AuthResult authenticateUserAnySchool(String username, String password) {
+        for (MockSchoolData school : schoolsByCode.values()) {
+            MockSchoolData.MockUser user = school.getUserByUsername(username);
+            if (user != null && user.password.equals(password)) {
+                return new AuthResult(user, school);
+            }
+        }
+        return null;
+    }
 }

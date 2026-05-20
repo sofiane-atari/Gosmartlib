@@ -43,11 +43,22 @@ public class MockOAuthController {
             @RequestParam(required = false) String scope,
             HttpServletResponse response
     ) throws IOException {
-        MockSchoolData school = registry.getActiveSchool();
+        MockSchoolData active = registry.getActiveSchool();
 
-        String credentialsRows = school.getUsers().stream()
-                .map(u -> "<tr><td><code>%s</code></td><td><code>%s</code></td><td>%s</td></tr>"
-                        .formatted(u.username, u.password, u.basisrol))
+        String allCredentialsHtml = registry.getAllSchools().stream()
+                .map(s -> {
+                    String rows = s.getUsers().stream()
+                            .map(u -> "<tr><td><code>%s</code></td><td><code>%s</code></td><td>%s</td></tr>"
+                                    .formatted(u.username, u.password, u.basisrol))
+                            .collect(Collectors.joining());
+                    return """
+                            <h4 style="margin:12px 0 4px">%s (%s)</h4>
+                            <table>
+                            <tr><th>Username</th><th>Password</th><th>Role</th></tr>
+                            %s
+                            </table>
+                            """.formatted(s.getSchoolName(), s.getDomainName(), rows);
+                })
                 .collect(Collectors.joining());
 
         String html = """
@@ -56,9 +67,11 @@ public class MockOAuthController {
                 <head>
                     <title>Mock Smartschool Login</title>
                     <style>
-                        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+                        body { font-family: Arial, sans-serif; max-width: 700px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
                         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
                         h1 { color: #1a73e8; margin-bottom: 10px; }
+                        h2 { color: #333; margin: 20px 0 10px; }
+                        h4 { color: #555; margin: 16px 0 4px; }
                         .badge { background: #ff9800; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
                         .school-info { background: #e8f5e9; padding: 10px; border-radius: 4px; margin: 15px 0; }
                         form { margin-top: 20px; }
@@ -68,7 +81,7 @@ public class MockOAuthController {
                         button:hover { background: #1557b0; }
                         .credentials { background: #fff3e0; padding: 15px; border-radius: 4px; margin-top: 20px; }
                         .credentials h3 { margin-top: 0; }
-                        table { width: 100%%; border-collapse: collapse; }
+                        table { width: 100%%; border-collapse: collapse; margin-bottom: 8px; }
                         td, th { padding: 6px 10px; text-align: left; border-bottom: 1px solid #ddd; }
                         code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
                         input[type="hidden"] { display: none; }
@@ -78,9 +91,10 @@ public class MockOAuthController {
                     <div class="container">
                         <h1>Mock Smartschool Login <span class="badge">DEV MODE</span></h1>
                         <div class="school-info">
-                            <strong>School:</strong> %s<br>
+                            <strong>Active School:</strong> %s<br>
                             <strong>Domain:</strong> %s
                         </div>
+                        <p style="color:#666;font-size:13px">You can log in with credentials from any school below.</p>
                         <form method="POST" action="/api/OAuth/index/authorize">
                             <input type="hidden" name="redirect_uri" value="%s">
                             <input type="hidden" name="state" value="%s">
@@ -92,20 +106,17 @@ public class MockOAuthController {
                         </form>
                         <div class="credentials">
                             <h3>Valid Credentials</h3>
-                            <table>
-                                <tr><th>Username</th><th>Password</th><th>Role</th></tr>
-                                %s
-                            </table>
+                            %s
                         </div>
                     </div>
                 </body>
                 </html>
                 """.formatted(
-                school.getSchoolName(),
-                school.getDomainName(),
+                active.getSchoolName(),
+                active.getDomainName(),
                 redirect_uri != null ? redirect_uri : "",
                 state != null ? state : "",
-                credentialsRows
+                allCredentialsHtml
         );
 
         response.setContentType("text/html; charset=utf-8");
@@ -120,9 +131,8 @@ public class MockOAuthController {
             @RequestParam(required = false) String state,
             HttpServletResponse response
     ) throws IOException {
-        MockSchoolData school = registry.getActiveSchool();
-        MockSchoolData.MockUser user = school.getUserByUsername(username);
-        if (user == null || !user.password.equals(password)) {
+        MockSchoolRegistry.AuthResult result = registry.authenticateUserAnySchool(username, password);
+        if (result == null) {
             response.setContentType("text/html; charset=utf-8");
             response.getWriter().write("""
                     <!DOCTYPE html>
@@ -135,6 +145,8 @@ public class MockOAuthController {
             return;
         }
 
+        MockSchoolData.MockUser user = result.user();
+        MockSchoolData school = result.school();
         String code = registry.generateAuthCode(user, school);
         String location = (redirect_uri != null && !redirect_uri.isEmpty()
                 ? redirect_uri
