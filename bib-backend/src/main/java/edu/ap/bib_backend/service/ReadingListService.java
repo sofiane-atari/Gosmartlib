@@ -407,7 +407,7 @@ public class ReadingListService {
             throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
         }
 
-        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
             throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
         }
 

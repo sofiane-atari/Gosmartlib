@@ -231,7 +231,7 @@ export class ReadingListOverviewComponent implements OnInit {
   }
 
   canManageCatalogFeaturedLists(): boolean {
-    return this.roleService.isAdmin() || this.roleService.isTeacher() || this.roleService.isLibrarian();
+    return this.roleService.canManageReadingLists();
   }
 
   isCatalogFeatured(list: ReadingList): boolean {
