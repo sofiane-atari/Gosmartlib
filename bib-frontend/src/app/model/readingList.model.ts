@@ -10,6 +10,8 @@ export interface ReadingList {
   targetType?: ReadingListTargetType;
   targetValue?: string | null;
   books?: ReadingListBook[];
+  showOnCatalog?: boolean;
+  catalogFeaturedOrder?: number | null;
 }
 
 // wat je naar de backend stuurt

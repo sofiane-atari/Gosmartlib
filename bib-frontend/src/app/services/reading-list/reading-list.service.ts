@@ -66,7 +66,15 @@ export class ReadingListService {
     );
   }
 
-  getFeaturedListsForCampus(): Observable<ReadingList[]> {
-    return this.http.get<ReadingList[]>(`${this.apiUrl}/featured`);
+  getCatalogFeaturedLists(): Observable<ReadingList[]> {
+    return this.http.get<ReadingList[]>(`${this.apiUrl}/featured/catalog`);
+  }
+
+  selectCatalogFeaturedList(id: number): Observable<ReadingList[]> {
+    return this.http.post<ReadingList[]>(`${this.apiUrl}/${id}/catalog-featured`, {});
+  }
+
+  unselectCatalogFeaturedList(id: number): Observable<ReadingList[]> {
+    return this.http.delete<ReadingList[]>(`${this.apiUrl}/${id}/catalog-featured`);
   }
 }

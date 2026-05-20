@@ -79,6 +79,17 @@ public class ReadingListController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toReadingListResponse(created));
     }
 
+    @GetMapping("/featured/catalog")
+    public ResponseEntity<List<ReadingListResponseDTO>> getCatalogFeaturedLists(Principal principal) {
+        List<ReadingListResponseDTO> lists = readingListService
+                .getCatalogFeaturedListsForCurrentUserCampus(requireUserId(principal))
+                .stream()
+                .map(this::toReadingListResponse)
+                .toList();
+
+        return ResponseEntity.ok(lists);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReadingList(
             @PathVariable("id") Long id,
@@ -149,10 +160,25 @@ public class ReadingListController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
-    @GetMapping("/featured")
-    public ResponseEntity<List<ReadingListResponseDTO>> getFeaturedLists(Principal principal) {
+    @PostMapping("/{id}/catalog-featured")
+    public ResponseEntity<List<ReadingListResponseDTO>> selectCatalogFeaturedList(
+            @PathVariable Long id,
+            Principal principal) {
         List<ReadingListResponseDTO> lists = readingListService
-                .getFeaturedListsForCurrentUserCampus(requireUserId(principal))
+                .selectFeaturedListForCatalog(requireUserId(principal), id)
+                .stream()
+                .map(this::toReadingListResponse)
+                .toList();
+
+        return ResponseEntity.ok(lists);
+    }
+
+    @DeleteMapping("/{id}/catalog-featured")
+    public ResponseEntity<List<ReadingListResponseDTO>> unselectCatalogFeaturedList(
+            @PathVariable Long id,
+            Principal principal) {
+        List<ReadingListResponseDTO> lists = readingListService
+                .unselectFeaturedListForCatalog(requireUserId(principal), id)
                 .stream()
                 .map(this::toReadingListResponse)
                 .toList();
@@ -171,6 +197,8 @@ public class ReadingListController {
                 list.getTargetValue(),
                 list.getPublicShareId(),
                 list.isShareEnabled(),
+                list.isShowOnCatalog(),
+                list.getCatalogFeaturedOrder(),
                 list.getBooks() == null
                         ? List.of()
                         : list.getBooks()

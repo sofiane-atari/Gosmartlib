@@ -14,9 +14,7 @@ import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
@@ -36,6 +34,7 @@ public class ReadingListService {
     private final CurrentUserService currentUserService;
 
     private static final String FAVORITES_NAME = "Favorieten";
+    private static final int MAX_CATALOG_FEATURED_LISTS = 2;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     public ReadingListService(
@@ -383,13 +382,95 @@ public class ReadingListService {
                 .orElseThrow(() -> new IllegalArgumentException("Gedeelde leeslijst niet gevonden"));
     }
 
-    public List<ReadingList> getFeaturedListsForCurrentUserCampus(String userId) {
+    public List<ReadingList> getCatalogFeaturedListsForCurrentUserCampus(String userId) {
         User user = getUserOrThrow(userId);
         Campus campus = resolveReadingListCampus(user);
 
-        return readingListRepository.findByTargetTypeAndCampus_IdOrderByNameAsc(
-                ReadingListTargetType.SYSTEM,
-                campus.getId());
+        return readingListRepository
+                .findTop2ByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType.SYSTEM,
+                        campus.getId());
+    }
+
+    public List<ReadingList> selectFeaturedListForCatalog(String userId, Long listId) {
+        User user = getUserOrThrow(userId);
+        Campus campus = resolveReadingListCampus(user);
+
+        ReadingList selectedList = readingListRepository.findById(listId)
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst niet gevonden"));
+
+        if (selectedList.getTargetType() != ReadingListTargetType.SYSTEM) {
+            throw new IllegalArgumentException("Alleen uitgelichte leeslijsten kunnen op de catalogus getoond worden");
+        }
+
+        if (selectedList.getCampus() == null || !selectedList.getCampus().getId().equals(campus.getId())) {
+            throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
+        }
+
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+            throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
+        }
+
+        List<ReadingList> currentSelected = readingListRepository
+                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType.SYSTEM,
+                        campus.getId());
+
+        if (selectedList.isShowOnCatalog()) {
+            return currentSelected;
+        }
+
+        if (currentSelected.size() >= MAX_CATALOG_FEATURED_LISTS) {
+            ReadingList oldestSelected = currentSelected.get(0);
+            oldestSelected.setShowOnCatalog(false);
+            oldestSelected.setCatalogFeaturedOrder(null);
+            readingListRepository.save(oldestSelected);
+            currentSelected.remove(0);
+        }
+
+        int nextOrder = currentSelected.stream()
+                .map(ReadingList::getCatalogFeaturedOrder)
+                .filter(order -> order != null)
+                .max(Integer::compareTo)
+                .orElse(0) + 1;
+
+        selectedList.setShowOnCatalog(true);
+        selectedList.setCatalogFeaturedOrder(nextOrder);
+        readingListRepository.save(selectedList);
+
+        return readingListRepository
+                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType.SYSTEM,
+                        campus.getId());
+    }
+
+    public List<ReadingList> unselectFeaturedListForCatalog(String userId, Long listId) {
+        User user = getUserOrThrow(userId);
+        Campus campus = resolveReadingListCampus(user);
+
+        ReadingList list = readingListRepository.findById(listId)
+                .orElseThrow(() -> new IllegalArgumentException("Leeslijst niet gevonden"));
+
+        if (list.getTargetType() != ReadingListTargetType.SYSTEM) {
+            throw new IllegalArgumentException("Alleen uitgelichte leeslijsten kunnen aangepast worden");
+        }
+
+        if (list.getCampus() == null || !list.getCampus().getId().equals(campus.getId())) {
+            throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
+        }
+
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+            throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
+        }
+
+        list.setShowOnCatalog(false);
+        list.setCatalogFeaturedOrder(null);
+        readingListRepository.save(list);
+
+        return readingListRepository
+                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType.SYSTEM,
+                        campus.getId());
     }
 
     private String generateUniquePublicShareId() {

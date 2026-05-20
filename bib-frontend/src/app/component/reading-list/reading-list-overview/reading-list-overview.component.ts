@@ -36,12 +36,15 @@ export class ReadingListOverviewComponent implements OnInit {
   readonly Trash2 = Trash2;
   readonly EmptyStateIcon = BookOpen;
   readonly EmptyCoverIcon = Book;
+  readonly Star = Star;
 
   private static readonly FAVORITES_NAME = 'favorieten';
   readingLists: ReadingList[] = [];
   listCovers: { [key: number]: string[] } = {};
 
   private static readonly FEATURED_TARGET_TYPE: ReadingListTargetType = 'SYSTEM';
+  private readonly MAX_CATALOG_FEATURED_LISTS = 2;
+  protected readonly BookCopy = BookCopy;
 
   // Filter state
   selectedFilters: Set<string> = new Set(['ALL']);
@@ -217,6 +220,90 @@ export class ReadingListOverviewComponent implements OnInit {
       }
     });
   }
+  get catalogFeaturedLists(): ReadingList[] {
+    return this.readingLists
+      .filter((list) => list.showOnCatalog === true)
+      .sort(
+        (a, b) =>
+          (a.catalogFeaturedOrder ?? Number.MAX_SAFE_INTEGER) -
+          (b.catalogFeaturedOrder ?? Number.MAX_SAFE_INTEGER),
+      );
+  }
 
-  protected readonly BookCopy = BookCopy;
+  canManageCatalogFeaturedLists(): boolean {
+    return this.roleService.isAdmin() || this.roleService.isTeacher() || this.roleService.isLibrarian();
+  }
+
+  isCatalogFeatured(list: ReadingList): boolean {
+    return list.showOnCatalog === true;
+  }
+
+  toggleCatalogFeatured(list: ReadingList, event: Event): void {
+    event.stopPropagation();
+
+    if (!this.canManageCatalogFeaturedLists()) {
+      this.toastService.show('Je hebt geen rechten om uitgelichte cataloguslijsten te beheren.', 'error');
+      return;
+    }
+
+    if (list.targetType !== 'SYSTEM') {
+      this.toastService.show('Alleen uitgelichte lijsten kunnen op de catalogus getoond worden.', 'error');
+      return;
+    }
+
+    if (this.isCatalogFeatured(list)) {
+      this.readingListService.unselectCatalogFeaturedList(list.id).subscribe({
+        next: (selectedLists) => {
+          this.syncCatalogFeaturedSelection(selectedLists);
+          this.toastService.show('Leeslijst wordt niet meer op de catalogus getoond.', 'success');
+        },
+        error: () => {
+          this.toastService.show('De selectie kon niet worden aangepast.', 'error');
+        },
+      });
+
+      return;
+    }
+    const selectedCount = this.catalogFeaturedLists.length;
+
+    if (selectedCount >= this.MAX_CATALOG_FEATURED_LISTS) {
+      const firstSelected = this.catalogFeaturedLists
+        .slice()
+        .sort((a, b) => (a.catalogFeaturedOrder ?? 0) - (b.catalogFeaturedOrder ?? 0))[0];
+
+        this.toastService.showConfirm(
+          `Er kunnen maximaal ${this.MAX_CATALOG_FEATURED_LISTS} uitgelichte leeslijsten op de catalogus staan. Als je doorgaat, wordt "${firstSelected.name}" van de catalogus gehaald en wordt "${list.name}" toegevoegd.`,
+          () => this.selectCatalogFeaturedList(list),
+        );
+
+      return;
+    }
+
+    this.selectCatalogFeaturedList(list);
+  }
+
+  private selectCatalogFeaturedList(list: ReadingList): void {
+    this.readingListService.selectCatalogFeaturedList(list.id).subscribe({
+      next: (selectedLists) => {
+        this.syncCatalogFeaturedSelection(selectedLists);
+        this.toastService.show('Leeslijst wordt nu op de catalogus getoond.', 'success');
+      },
+      error: () => {
+        this.toastService.show('De leeslijst kon niet op de catalogus gezet worden.', 'error');
+      },
+    });
+  }
+
+  private syncCatalogFeaturedSelection(selectedLists: ReadingList[]): void {
+    const selectedIds = new Set(selectedLists.map((list) => list.id));
+    const orderById = new Map(
+      selectedLists.map((list) => [list.id, list.catalogFeaturedOrder ?? null])
+    );
+
+    this.readingLists = this.readingLists.map((list) => ({
+      ...list,
+      showOnCatalog: selectedIds.has(list.id),
+      catalogFeaturedOrder: orderById.get(list.id) ?? null,
+    }));
+  }
 }

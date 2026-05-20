@@ -89,4 +89,13 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
         List<ReadingList> findByTargetTypeAndCampus_IdOrderByNameAsc(
                         ReadingListTargetType targetType,
                         Long campusId);
+
+        List<ReadingList> findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType targetType,
+                        Long campusId);
+
+        List<ReadingList> findTop2ByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                        ReadingListTargetType targetType,
+                        Long campusId);
+                        
 }

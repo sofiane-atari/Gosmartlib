@@ -1,5 +1,4 @@
 <div class="page">
-
   <!-- Page header -->
   <div class="page-header">
     <div>
@@ -9,15 +8,14 @@
       </p>
     </div>
 
-      <button class="btn-primary" [routerLink]="createRoute">
-        + Nieuwe leeslijst
-      </button>
+    <button class="btn-primary" [routerLink]="createRoute">
+      + Nieuwe leeslijst
+    </button>
   </div>
 
   <div class="content-layout">
     <!-- Left: cards -->
     <div class="cards-area">
-
       <!-- Filter tabs -->
       <div class="filter-tabs">
         @for (filter of filterOptions; track filter.id) {
@@ -27,18 +25,20 @@
               filter.id === 'ALL'
                 ? 'Toon alle leeslijsten.'
                 : filter.id === 'FEATURED'
-                  ? 'Uitgelichte leeslijsten zijn publieke lijsten die voor iedereen zichtbaar zijn die gemaakt is door een leerkracht.'
+                  ? 'Uitgelichte leeslijsten zijn publieke lijsten die voor iedereen zichtbaar zijn.'
                   : filter.id === 'PERSONAL'
                     ? 'Persoonlijke leeslijsten zijn alleen zichtbaar voor jou.'
                     : filter.id === 'CLASS'
                       ? 'Klaslijsten zijn leeslijsten die door je leerkracht met je klas gedeeld werden.'
-                        : 'Filter de leeslijsten op: ' + filter.label
-            ">
+                      : 'Filter de leeslijsten op: ' + filter.label
+            "
+          >
             <button
               class="filter-tab"
               [class.active]="selectedFilters.has(filter.id)"
               (click)="toggleFilter(filter.id)"
-              type="button">
+              type="button"
+            >
               <span class="filter-icon">
                 <lucide-angular [img]="filter.icon" size="16"></lucide-angular>
               </span>
@@ -70,7 +70,6 @@
         <div class="cards-grid">
           @for (list of getFilteredLists(); track list.id) {
             <div class="card" [routerLink]="['/reading-list', list.id]">
-
               <div class="card-cover">
                 @if (listCovers[list.id] && listCovers[list.id].length > 0) {
                   <div class="stacked-covers">
@@ -79,7 +78,8 @@
                         [src]="cover"
                         class="stacked-cover"
                         [ngStyle]="getCoverStyle($index, listCovers[list.id].length)"
-                        alt="Cover" />
+                        alt="Cover"
+                      />
                     }
                   </div>
                 } @else {
@@ -91,14 +91,45 @@
 
               <div class="card-body">
                 <h3 class="card-title">{{ list.name }}</h3>
-                <p class="card-author">Leeslijst</p>
 
+                <p class="card-author">
+                  @if (list.targetType === 'SYSTEM') {
+                    Uitgelichte leeslijst
+                  } @else if (list.targetType === 'CLASS') {
+                    Klaslijst
+                  } @else {
+                    Leeslijst
+                  }
+                </p>
                 <div class="card-actions">
-                  <app-button-hover-help text="Deel deze leeslijst met iemand anders.">
+                  @if (canManageCatalogFeaturedLists() && list.targetType === 'SYSTEM') {
+                    <app-button-hover-help
+                      class="reading-list-action-help"
+                      [text]="
+                        isCatalogFeatured(list)
+                          ? 'Deze leeslijst wordt op de catalogus getoond. Klik om te verwijderen.'
+                          : 'Toon deze uitgelichte leeslijst op de catalogus.'
+                      "
+                    >
+                      <button
+                        class="btn-catalog-featured"
+                        [class.active]="isCatalogFeatured(list)"
+                        type="button"
+                        (click)="toggleCatalogFeatured(list, $event)"
+                      >
+                        <lucide-angular [img]="Star" size="18"></lucide-angular>
+                      </button>
+                    </app-button-hover-help>
+                  }
+
+                  <app-button-hover-help   
+                    class="reading-list-action-help"
+                    text="Deel deze leeslijst met iemand anders.">
                     <button
                       class="btn-share"
                       type="button"
-                      (click)="shareList(list.id); $event.stopPropagation()">
+                      (click)="shareList(list.id); $event.stopPropagation()"
+                    >
                       <lucide-angular [img]="Share2" size="18"></lucide-angular>
                     </button>
                   </app-button-hover-help>
@@ -108,7 +139,8 @@
                       <button
                         class="btn-delete"
                         type="button"
-                        (click)="deleteList(list); $event.stopPropagation()">
+                        (click)="deleteList(list); $event.stopPropagation()"
+                      >
                         <lucide-angular [img]="Trash2" size="18"></lucide-angular>
                       </button>
                     </app-button-hover-help>
@@ -122,6 +154,5 @@
     </div>
 
     <!-- Right: purple widgets -->
-
   </div>
 </div>

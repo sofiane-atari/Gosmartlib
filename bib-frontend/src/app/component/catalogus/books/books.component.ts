@@ -157,7 +157,7 @@ export class BooksComponent implements OnInit {
   private loadFeaturedReadingLists(): void {
     this.isLoadingFeaturedReadingLists = true;
 
-    this.readingListService.getFeaturedListsForCampus().subscribe({
+    this.readingListService.getCatalogFeaturedLists().subscribe({
       next: (lists) => {
         this.featuredReadingLists = lists;
         this.isLoadingFeaturedReadingLists = false;
