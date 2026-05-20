@@ -1,7 +1,7 @@
 <div class="book-management">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>Boekbeheer</h1>
+      <h1>Uitleenbeheer</h1>
       <p>Beheer uitleningen, terugnames en de status van boeken.</p>
     </div>
   </div>
@@ -226,7 +226,8 @@
                           }
 
                           <small>
-                            Retourdatum: {{ loan.returnDate | date: "dd/MM/yyyy" }}
+                            Retourdatum:
+                            {{ loan.returnDate | date: "dd/MM/yyyy" }}
                           </small>
 
                           <small>
@@ -236,9 +237,7 @@
                             </span>
                           </small>
 
-                          <small>
-                            Status: {{ getLoanStatus(loan) }}
-                          </small>
+                          <small> Status: {{ getLoanStatus(loan) }} </small>
 
                           @if (canExtendLoan(loan)) {
                             <button
