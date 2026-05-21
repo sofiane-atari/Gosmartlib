@@ -48,6 +48,15 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
     @Query("SELECT MIN(b.pages) FROM Book b")
     Integer findMinPages();
 
+    @Query(value = """
+            select count(distinct case
+                when nullif(trim(b.isbn), '') is not null then concat('isbn:', trim(b.isbn))
+                else concat('title:', lower(trim(b.title)))
+            end)
+            from books b
+            """, nativeQuery = true)
+    long countUniqueTitlesForSystem();
+
     @Query("""
             SELECT b
             FROM Book b
