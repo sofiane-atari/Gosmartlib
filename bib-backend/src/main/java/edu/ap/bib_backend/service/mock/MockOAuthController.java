@@ -99,9 +99,9 @@ public class MockOAuthController {
                             <input type="hidden" name="redirect_uri" value="%s">
                             <input type="hidden" name="state" value="%s">
                             <label for="username">Username:</label>
-                            <input type="text" id="username" name="username" required placeholder="e.g. ts1.student1">
+                            <input type="text" id="username" name="username" required placeholder="e.g., sof1.sofie.vermeulen">
                             <label for="password">Password:</label>
-                            <input type="password" id="password" name="password" required placeholder="e.g. student1">
+                            <input type="password" id="password" name="password" required placeholder="e.g., sofievermeulen">
                             <button type="submit">Login</button>
                         </form>
                         <div class="credentials">
@@ -281,16 +281,18 @@ public class MockOAuthController {
             default -> "ROLE_STUDENT";
         };
 
-        Map<String, Object> claims = Map.of(
-                SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, user.classCode,
-                SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, user.classCode.substring(0, 1),
-                SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, school.getDomainName(),
-                "schoolId", school.getSchoolName(),
-                "campusId", "",
-                "name", user.givenName,
-                "surname", user.familyName,
-                "email", user.email,
-                "platform", school.getPlatformUrl()
+        Map<String, Object> claims = Map.ofEntries(
+                Map.entry(SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, user.classCode),
+                Map.entry(SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, user.classCode.substring(0, 1)),
+                Map.entry(SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, school.getDomainName()),
+                Map.entry("schoolId", school.getSchoolName()),
+                Map.entry("campusId", ""),
+                Map.entry("name", user.givenName),
+                Map.entry("surname", user.familyName),
+                Map.entry("email", user.email),
+                Map.entry("platform", school.getPlatformUrl()),
+                Map.entry("primaryGroupName", user.groupName),
+                Map.entry("parentGroupNames", user.parentGroupNames)
         );
 
         String accessToken = jwtService.generateToken(user.legacyIdentifier, role, claims);

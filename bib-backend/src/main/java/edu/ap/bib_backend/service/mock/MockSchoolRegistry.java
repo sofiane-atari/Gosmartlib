@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.service.mock;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,29 +16,21 @@ public class MockSchoolRegistry {
     private final Map<String, MockSchoolData> schoolByAuthCode = new ConcurrentHashMap<>();
 
     private volatile MockSchoolData activeSchool;
-    private volatile boolean passthroughMode = false;
 
-    public MockSchoolRegistry(
-            @Value("${school.seed.domain:}") String schoolDomain,
-            @Value("${school.seed.name:}") String schoolName,
-            @Value("${school.seed.oneroster-client-id:}") String onerosterClientId,
-            @Value("${school.seed.oneroster-client-secret:}") String onerosterClientSecret
-    ) {
-        MockSchoolData school1 = MockSchoolData.createFromEnvVars(
-                schoolDomain, schoolName, onerosterClientId, onerosterClientSecret
-        );
-        MockSchoolData school2 = MockSchoolData.createTestSchool2();
+    public MockSchoolRegistry() {
+        MockSchoolData goa = MockSchoolData.createTestSchool1();
+        MockSchoolData kul = MockSchoolData.createTestSchool2();
 
-        schoolsByCode.put(school1.getSchoolCode(), school1);
-        schoolsByCode.put(school2.getSchoolCode(), school2);
+        schoolsByCode.put(goa.getSchoolCode(), goa);
+        schoolsByCode.put(kul.getSchoolCode(), kul);
 
-        schoolsByOnRosterClientId.put(school1.getOnRosterClientId(), school1);
-        schoolsByOnRosterClientId.put(school2.getOnRosterClientId(), school2);
+        schoolsByOnRosterClientId.put(goa.getOnRosterClientId(), goa);
+        schoolsByOnRosterClientId.put(kul.getOnRosterClientId(), kul);
 
-        schoolsByDomain.put(school1.getDomainName(), school1);
-        schoolsByDomain.put(school2.getDomainName(), school2);
+        schoolsByDomain.put(goa.getDomainName(), goa);
+        schoolsByDomain.put(kul.getDomainName(), kul);
 
-        this.activeSchool = school1;
+        this.activeSchool = goa;
     }
 
     public List<MockSchoolData> getAllSchools() {
@@ -54,22 +45,7 @@ public class MockSchoolRegistry {
         MockSchoolData school = schoolsByCode.get(schoolCode);
         if (school != null) {
             activeSchool = school;
-            passthroughMode = false;
         }
-    }
-
-    public void setPassthroughMode(boolean enabled) {
-        passthroughMode = enabled;
-        if (enabled) {
-            MockSchoolData aph = schoolsByCode.get("aphogeschool");
-            if (aph != null) {
-                activeSchool = aph;
-            }
-        }
-    }
-
-    public boolean isPassthroughMode() {
-        return passthroughMode;
     }
 
     public MockSchoolData getSchoolByOnRosterClientId(String clientId) {

@@ -40,7 +40,6 @@ public class MockSchoolController {
                 "code", school.getSchoolCode(),
                 "domain", school.getDomainName(),
                 "name", school.getSchoolName(),
-                "passthroughMode", registry.isPassthroughMode(),
                 "users", school.getUsers().stream()
                         .map(u -> Map.of(
                                 "username", u.username,
@@ -74,15 +73,6 @@ public class MockSchoolController {
                 "message", "Switched to " + school.getSchoolName(),
                 "code", school.getSchoolCode(),
                 "domain", school.getDomainName()
-        ));
-    }
-
-    @PostMapping("/reset")
-    public ResponseEntity<Map<String, Object>> resetToPassthrough() {
-        registry.setPassthroughMode(true);
-        return ResponseEntity.ok(Map.of(
-                "message", "Reset to real aphogeschool passthrough mode",
-                "passthroughMode", true
         ));
     }
 }

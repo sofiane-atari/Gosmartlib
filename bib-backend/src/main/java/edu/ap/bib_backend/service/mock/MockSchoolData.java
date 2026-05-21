@@ -121,208 +121,21 @@ public class MockSchoolData {
         }
     }
 
-    public static MockSchoolData createFromEnvVars(
-            String schoolDomain,
-            String schoolName,
-            String onerosterClientId,
-            String onerosterClientSecret
-    ) {
-        String platformId = "7001";
-        String domainName = schoolDomain != null && !schoolDomain.isBlank() ? schoolDomain.trim() : "envschool.smartschool.be";
-        String platformUrl = "https://" + domainName;
-        String name = schoolName != null && !schoolName.isBlank() ? schoolName.trim() : "Env School";
-        String clientId = onerosterClientId != null && !onerosterClientId.isBlank() ? onerosterClientId.trim() : "env-client";
-        String clientSecret = onerosterClientSecret != null && !onerosterClientSecret.isBlank() ? onerosterClientSecret.trim() : "env-secret";
-        String schoolCode = domainName.replace(".smartschool.be", "").replace(".", "");
-        String classSourcedId = platformId + "_usermanagement_300";
-        String termSourcedId = platformId + "_2025-09-01";
-        String orgSourcedId = platformId;
-
-        MockUser student1 = new MockUser(
-                "env.student1", "student1",
-                "EnvS1LegacyId00000000000000000000==",
-                platformId + "_7001_0",
-                "Sofie", "Vermeulen", "sofie.vermeulen@student.env.be",
-                "Leerling", "female",
-                "1ITSOF1", "Bachelor IT Software - 1",
-                "1ITSOF1", "1ITSOF1", classSourcedId,
-                List.of("Leerlingen", "1ste jaar")
-        );
-
-        MockUser student2 = new MockUser(
-                "env.student2", "student2",
-                "EnvS2LegacyId00000000000000000000==",
-                platformId + "_7002_0",
-                "Bram", "De Smet", "bram.desmet@student.env.be",
-                "Leerling", "male",
-                "1ITSOF1", "Bachelor IT Software - 1",
-                "1ITSOF1", "1ITSOF1", classSourcedId,
-                List.of("Leerlingen", "1ste jaar")
-        );
-
-        MockUser teacher1 = new MockUser(
-                "env.teacher1", "teacher1",
-                "EnvT1LegacyId00000000000000000000==",
-                platformId + "_7101_0",
-                "Katrien", "Janssens", "katrien.janssens@env.be",
-                "Leerkracht", "female",
-                "IT-Team", "IT Department",
-                "IT-TEAM", "IT-TEAM", platformId + "_usermanagement_301",
-                List.of("Leerkrachten", "Technisch")
-        );
-
-        MockUser teacher2 = new MockUser(
-                "env.teacher2", "teacher2",
-                "EnvT2LegacyId00000000000000000000==",
-                platformId + "_7102_0",
-                "Wim", "Claes", "wim.claes@env.be",
-                "Leerkracht", "male",
-                "IT-Team", "IT Department",
-                "IT-TEAM", "IT-TEAM", platformId + "_usermanagement_301",
-                List.of("Leerkrachten", "Technisch")
-        );
-
-        MockUser admin1 = new MockUser(
-                "env.admin1", "admin1",
-                "EnvA1LegacyId00000000000000000000==",
-                platformId + "_7201_0",
-                "Annelies", "Directeur", "annelies.directeur@env.be",
-                "Beheerder", "female",
-                "Beheer", "Administratie",
-                "BEHEER", "BEHEER", platformId + "_usermanagement_302",
-                List.of("Beheer")
-        );
-
-        List<MockUser> users = List.of(student1, student2, teacher1, teacher2, admin1);
-
-        Map<String, Object> class1 = Map.of(
-                "sourcedId", classSourcedId,
-                "status", "active",
-                "title", "1ITSOF1",
-                "classCode", "1ITSOF1",
-                "classType", "scheduled",
-                "school", Map.of(
-                        "sourcedId", orgSourcedId,
-                        "status", "active",
-                        "name", name,
-                        "type", "school",
-                        "identifier", "platform_" + platformId
-                ),
-                "terms", List.of(Map.of(
-                        "sourcedId", termSourcedId,
-                        "status", "active",
-                        "title", "2025-2026",
-                        "startDate", "2025-09-01",
-                        "endDate", "2026-08-31",
-                        "type", "schoolYear"
-                )),
-                "metadata", Map.of(
-                        "smsc.classType", "class",
-                        "smsc.legacyIdentifier", "EnvClassLegacy00000000=="
-                )
-        );
-
-        Map<String, Object> class2 = Map.of(
-                "sourcedId", platformId + "_usermanagement_301",
-                "status", "active",
-                "title", "IT-TEAM",
-                "classCode", "IT-TEAM",
-                "classType", "scheduled",
-                "school", Map.of(
-                        "sourcedId", orgSourcedId,
-                        "status", "active",
-                        "name", name,
-                        "type", "school",
-                        "identifier", "platform_" + platformId
-                ),
-                "terms", List.of(Map.of(
-                        "sourcedId", termSourcedId,
-                        "status", "active",
-                        "title", "2025-2026",
-                        "startDate", "2025-09-01",
-                        "endDate", "2026-08-31",
-                        "type", "schoolYear"
-                )),
-                "metadata", Map.of(
-                        "smsc.classType", "class",
-                        "smsc.legacyIdentifier", "EnvClassLegacy00000001=="
-                )
-        );
-
-        List<Map<String, Object>> classes = List.of(class1, class2);
-
-        List<Map<String, Object>> enrollments = List.of(
-                buildEnrollment(student1, class1, platformId, orgSourcedId, name, termSourcedId),
-                buildEnrollment(student2, class1, platformId, orgSourcedId, name, termSourcedId),
-                buildEnrollment(teacher1, class2, platformId, orgSourcedId, name, termSourcedId),
-                buildEnrollment(teacher2, class2, platformId, orgSourcedId, name, termSourcedId),
-                buildEnrollment(admin1, Map.of(
-                        "sourcedId", platformId + "_usermanagement_302",
-                        "status", "active",
-                        "title", "BEHEER",
-                        "classCode", "BEHEER",
-                        "classType", "scheduled",
-                        "school", Map.of(
-                                "sourcedId", orgSourcedId,
-                                "status", "active",
-                                "name", name,
-                                "type", "school",
-                                "identifier", "platform_" + platformId
-                        ),
-                        "terms", List.of(Map.of(
-                                "sourcedId", termSourcedId,
-                                "status", "active",
-                                "title", "2025-2026",
-                                "startDate", "2025-09-01",
-                                "endDate", "2026-08-31",
-                                "type", "schoolYear"
-                        )),
-                        "metadata", Map.of(
-                                "smsc.classType", "class",
-                                "smsc.legacyIdentifier", "EnvClassLegacy00000002=="
-                        )
-                ), platformId, orgSourcedId, name, termSourcedId)
-        );
-
-        List<Map<String, Object>> academicSessions = List.of(Map.of(
-                "sourcedId", termSourcedId,
-                "status", "active",
-                "title", "2025-2026",
-                "startDate", "2025-09-01",
-                "endDate", "2026-08-31",
-                "type", "schoolYear",
-                "schoolYear", "2026"
-        ));
-
-        List<Map<String, Object>> orgs = List.of(Map.of(
-                "sourcedId", orgSourcedId,
-                "status", "active",
-                "name", name,
-                "type", "school",
-                "identifier", "platform_" + platformId
-        ));
-
-        return new MockSchoolData(
-                schoolCode, domainName, platformUrl, name, platformId,
-                clientId, clientSecret,
-                users, classes, enrollments, academicSessions, orgs
-        );
-    }
-
     public static MockSchoolData createTestSchool1() {
         String platformId = "6001";
-        String domainName = "testschool1.smartschool.be";
+        String domainName = "goatheneum.smartschool.be";
         String platformUrl = "https://" + domainName;
-        String schoolName = "Test School 1";
+        String schoolName = "GO! Atheneum Antwerpen";
+        String schoolCode = "goatheneum";
         String classSourcedId = platformId + "_usermanagement_100";
         String termSourcedId = platformId + "_2025-09-01";
         String orgSourcedId = platformId;
 
         MockUser student1 = new MockUser(
-                "ts1.student1", "student1",
+                "sof3.jan.janssens", "janjanssens",
                 "T1s1LegacyId0000000000000000000000==",
                 platformId + "_8001_0",
-                "Jan", "Janssens", "jan.janssens@student.test1.be",
+                "Jan", "Janssens", "jan.janssens@student.goatheneum.be",
                 "Leerling", "male",
                 "3ITSOF1", "Bachelor IT Software - 1",
                 "3ITSOF1", "3ITSOF1", classSourcedId,
@@ -330,10 +143,10 @@ public class MockSchoolData {
         );
 
         MockUser student2 = new MockUser(
-                "ts1.student2", "student2",
+                "sof3.lisa.peeters", "lisapeeters",
                 "T1s2LegacyId0000000000000000000000==",
                 platformId + "_8002_0",
-                "Lisa", "Peeters", "lisa.peeters@student.test1.be",
+                "Lisa", "Peeters", "lisa.peeters@student.goatheneum.be",
                 "Leerling", "female",
                 "3ITSOF1", "Bachelor IT Software - 1",
                 "3ITSOF1", "3ITSOF1", classSourcedId,
@@ -341,10 +154,10 @@ public class MockSchoolData {
         );
 
         MockUser teacher1 = new MockUser(
-                "ts1.teacher1", "teacher1",
+                "it02_1.marc.devries", "marcdevries",
                 "T1t1LegacyId0000000000000000000000==",
                 platformId + "_8101_0",
-                "Marc", "De Vries", "marc.devries@test1.be",
+                "Marc", "De Vries", "marc.devries@goatheneum.be",
                 "Leerkracht", "male",
                 "IT-Team", "IT Department",
                 "IT-TEAM", "IT-TEAM", platformId + "_usermanagement_101",
@@ -352,10 +165,10 @@ public class MockSchoolData {
         );
 
         MockUser teacher2 = new MockUser(
-                "ts1.teacher2", "teacher2",
+                "it02_2.sara.bakker", "sarabakker",
                 "T1t2LegacyId0000000000000000000000==",
                 platformId + "_8102_0",
-                "Sara", "Bakker", "sara.bakker@test1.be",
+                "Sara", "Bakker", "sara.bakker@goatheneum.be",
                 "Leerkracht", "female",
                 "IT-Team", "IT Department",
                 "IT-TEAM", "IT-TEAM", platformId + "_usermanagement_101",
@@ -363,10 +176,10 @@ public class MockSchoolData {
         );
 
         MockUser admin1 = new MockUser(
-                "ts1.admin1", "admin1",
+                "beheer.koen.admin", "koenadmin",
                 "T1a1LegacyId0000000000000000000000==",
                 platformId + "_8201_0",
-                "Koen", "Admin", "koen.admin@test1.be",
+                "Koen", "Admin", "koen.admin@goatheneum.be",
                 "Beheerder", "male",
                 "Beheer", "Administratie",
                 "BEHEER", "BEHEER", platformId + "_usermanagement_102",
@@ -483,7 +296,7 @@ public class MockSchoolData {
         ));
 
         return new MockSchoolData(
-                "testschool1", domainName, platformUrl, schoolName, platformId,
+                schoolCode, domainName, platformUrl, schoolName, platformId,
                 "ts1-client", "ts1-secret",
                 users, classes, enrollments, academicSessions, orgs
         );
@@ -491,18 +304,19 @@ public class MockSchoolData {
 
     public static MockSchoolData createTestSchool2() {
         String platformId = "6002";
-        String domainName = "testschool2.smartschool.be";
+        String domainName = "kuleuven.smartschool.be";
         String platformUrl = "https://" + domainName;
-        String schoolName = "Test School 2";
+        String schoolName = "Katholieke Universiteit Leuven";
+        String schoolCode = "kuleuven";
         String classSourcedId = platformId + "_usermanagement_200";
         String termSourcedId = platformId + "_2025-09-01";
         String orgSourcedId = platformId;
 
         MockUser student1 = new MockUser(
-                "ts2.student1", "student1",
+                "lok2.emma.claes", "emmaclaes",
                 "T2s1LegacyId0000000000000000000000==",
                 platformId + "_9001_0",
-                "Emma", "Claes", "emma.claes@student.test2.be",
+                "Emma", "Claes", "emma.claes@student.kuleuven.be",
                 "Leerling", "female",
                 "2GRADLOK2", "2de Graad Lokale Dienstverlening - 2",
                 "2GRADLOK2", "2GRADLOK2", classSourcedId,
@@ -510,10 +324,10 @@ public class MockSchoolData {
         );
 
         MockUser student2 = new MockUser(
-                "ts2.student2", "student2",
+                "lok2.thomas.willems", "thomaswillems",
                 "T2s2LegacyId0000000000000000000000==",
                 platformId + "_9002_0",
-                "Thomas", "Willems", "thomas.willems@student.test2.be",
+                "Thomas", "Willems", "thomas.willems@student.kuleuven.be",
                 "Leerling", "male",
                 "2GRADLOK2", "2de Graad Lokale Dienstverlening - 2",
                 "2GRADLOK2", "2GRADLOK2", classSourcedId,
@@ -521,10 +335,10 @@ public class MockSchoolData {
         );
 
         MockUser teacher1 = new MockUser(
-                "ts2.teacher1", "teacher1",
+                "lok02_1.an.verhoeven", "anverhoeven",
                 "T2t1LegacyId0000000000000000000000==",
                 platformId + "_9101_0",
-                "An", "Verhoeven", "an.verhoeven@test2.be",
+                "An", "Verhoeven", "an.verhoeven@kuleuven.be",
                 "Leerkracht", "female",
                 "LOK-Team", "Lokale Dienstverlening Department",
                 "LOK-TEAM", "LOK-TEAM", platformId + "_usermanagement_201",
@@ -532,10 +346,10 @@ public class MockSchoolData {
         );
 
         MockUser teacher2 = new MockUser(
-                "ts2.teacher2", "teacher2",
+                "lok02_2.pieter.maes", "pietermaes",
                 "T2t2LegacyId0000000000000000000000==",
                 platformId + "_9102_0",
-                "Pieter", "Maes", "pieter.maes@test2.be",
+                "Pieter", "Maes", "pieter.maes@kuleuven.be",
                 "Leerkracht", "male",
                 "LOK-Team", "Lokale Dienstverlening Department",
                 "LOK-TEAM", "LOK-TEAM", platformId + "_usermanagement_201",
@@ -543,10 +357,10 @@ public class MockSchoolData {
         );
 
         MockUser admin1 = new MockUser(
-                "ts2.admin1", "admin1",
+                "directie.inge.directeur", "ingedirecteur",
                 "T2a1LegacyId0000000000000000000000==",
                 platformId + "_9201_0",
-                "Inge", "Directeur", "inge.directeur@test2.be",
+                "Inge", "Directeur", "inge.directeur@kuleuven.be",
                 "Beheerder", "female",
                 "Directie", "School Management",
                 "DIRECTIE", "DIRECTIE", platformId + "_usermanagement_202",
@@ -663,7 +477,7 @@ public class MockSchoolData {
         ));
 
         return new MockSchoolData(
-                "testschool2", domainName, platformUrl, schoolName, platformId,
+                schoolCode, domainName, platformUrl, schoolName, platformId,
                 "ts2-client", "ts2-secret",
                 users, classes, enrollments, academicSessions, orgs
         );
