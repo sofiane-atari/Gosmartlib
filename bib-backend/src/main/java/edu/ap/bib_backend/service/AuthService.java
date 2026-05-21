@@ -126,12 +126,36 @@ public class AuthService {
         String surname = null;
         String email = null;
         String platform = null;
+        String primaryGroupName = null;
+        List<String> parentGroupNames = List.of();
 
         if (authentication.getDetails() instanceof Map<?, ?> details) {
             firstName = asString(details.get("name"));
             surname = asString(details.get("surname"));
             email = asString(details.get("email"));
             platform = asString(details.get("platform"));
+            primaryGroupName = asString(details.get("primaryGroupName"));
+            @SuppressWarnings("unchecked")
+            List<String> parents = (List<String>) details.get("parentGroupNames");
+            if (parents != null) {
+                parentGroupNames = parents;
+            }
+        }
+
+        if ((firstName == null || firstName.isBlank()) && jwtService != null) {
+            String jwtToken = tokenStorageService.getToken(userId);
+            if (jwtToken != null && jwtService.isValid(jwtToken)) {
+                firstName = asString(jwtService.extractClaim(jwtToken, "name"));
+                surname = asString(jwtService.extractClaim(jwtToken, "surname"));
+                email = asString(jwtService.extractClaim(jwtToken, "email"));
+                platform = asString(jwtService.extractClaim(jwtToken, "platform"));
+                primaryGroupName = asString(jwtService.extractClaim(jwtToken, "primaryGroupName"));
+                @SuppressWarnings("unchecked")
+                List<String> parents = (List<String>) jwtService.extractClaim(jwtToken, "parentGroupNames");
+                if (parents != null) {
+                    parentGroupNames = parents;
+                }
+            }
         }
 
         if (firstName != null && !firstName.isBlank()) {
@@ -147,8 +171,8 @@ public class AuthService {
                     email,
                     null,
                     platform,
-                    null,
-                    List.of(),
+                    primaryGroupName,
+                    parentGroupNames,
                     reviewBlocked,
                     schoolId,
                     schoolName,
@@ -157,7 +181,6 @@ public class AuthService {
                     schoolSummary
             );
         }
-
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             String name = oauthToken.getPrincipal().getAttribute("name");
 
