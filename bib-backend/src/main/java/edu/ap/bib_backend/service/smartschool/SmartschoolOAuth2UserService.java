@@ -148,6 +148,8 @@ public class SmartschoolOAuth2UserService
             String primaryGroupName = groupDto.primaryGroupName();
 
             if (primaryGroupName != null && !primaryGroupName.isBlank()) {
+                attributes.put("primaryGroupName", primaryGroupName);
+
                 Group group;
                 try {
                     group = groupService.getGroup(school.getId(), primaryGroupName);
@@ -159,6 +161,10 @@ public class SmartschoolOAuth2UserService
                     user.setGroups(Set.of(group));
                     userService.save(user);
                 }
+            }
+
+            if (groupDto.parentGroupNames() != null && !groupDto.parentGroupNames().isEmpty()) {
+                attributes.put("parentGroupNames", groupDto.parentGroupNames());
             }
         }
 

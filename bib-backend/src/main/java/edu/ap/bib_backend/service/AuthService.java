@@ -231,14 +231,32 @@ public class AuthService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No role found"));
 
-        Map<String, Object> claims = Map.of(
-                SmartschoolOAuth2UserService.CLAIM_CLASS_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, "GENERAL"),
-                SmartschoolOAuth2UserService.CLAIM_YEAR_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, "0"),
-                SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL")
-        );
+        Map<String, Object> claims = new java.util.HashMap<>();
+        claims.put(SmartschoolOAuth2UserService.CLAIM_CLASS_CODE,
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, "GENERAL"));
+        claims.put(SmartschoolOAuth2UserService.CLAIM_YEAR_CODE,
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, "0"));
+        claims.put(SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL"));
+
+        Object name = oauthToken.getPrincipal().getAttribute("name");
+        if (name instanceof String n && !n.isBlank()) claims.put("name", n);
+
+        Object surname = oauthToken.getPrincipal().getAttribute("surname");
+        if (surname instanceof String s && !s.isBlank()) claims.put("surname", s);
+
+        Object email = oauthToken.getPrincipal().getAttribute("email");
+        if (email instanceof String e && !e.isBlank()) claims.put("email", e);
+
+        Object platform = oauthToken.getPrincipal().getAttribute("platform");
+        if (platform instanceof String p && !p.isBlank()) claims.put("platform", p);
+
+        Object primaryGroupName = oauthToken.getPrincipal().getAttribute("primaryGroupName");
+        if (primaryGroupName instanceof String g && !g.isBlank()) claims.put("primaryGroupName", g);
+
+        @SuppressWarnings("unchecked")
+        Object parentGroupNames = oauthToken.getPrincipal().getAttribute("parentGroupNames");
+        if (parentGroupNames instanceof List<?> list && !list.isEmpty()) claims.put("parentGroupNames", list);
 
         String jwt = jwtService.generateToken(userId, roleStr, claims);
 

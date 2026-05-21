@@ -113,6 +113,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         details.put("surname", jwtService.extractClaim(token, "surname"));
         details.put("email", jwtService.extractClaim(token, "email"));
         details.put("platform", jwtService.extractClaim(token, "platform"));
+        details.put("primaryGroupName", jwtService.extractClaim(token, "primaryGroupName"));
+        details.put("parentGroupNames", jwtService.extractClaim(token, "parentGroupNames"));
 
         authentication.setDetails(details);
 
