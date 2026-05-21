@@ -85,6 +85,27 @@ class SystemReportServiceTest {
         verifyNoInteractions(loanRepository, schoolRepository, userRepository, bookRepository, bookCopyRepository);
     }
 
+    @Test
+    void generateSystemReport_handlesZeroStudentsAndNullProjectionValues() {
+        SystemSchoolActivityProjection schoolActivity = schoolActivity(10L, "School A", null, null, null, null);
+
+        when(userRepository.countStudentsForSystem()).thenReturn(0L);
+        when(userRepository.countLinkedStudentsForSystem()).thenReturn(0L);
+        when(loanRepository.findPopularLoanedBooksForSystem(any())).thenReturn(List.of());
+        when(loanRepository.findMonthlyLoanVolumeForSystem()).thenReturn(List.of());
+        when(userRepository.findSystemSchoolActivity()).thenReturn(List.of(schoolActivity));
+
+        SystemReportDTO result = service.generateSystemReport(adminAuthentication());
+
+        assertThat(result.linkedUsersPercentage()).isZero();
+        assertThat(result.schools()).hasSize(1);
+        assertThat(result.schools().get(0).totalStudents()).isZero();
+        assertThat(result.schools().get(0).linkedStudents()).isZero();
+        assertThat(result.schools().get(0).totalLoans()).isZero();
+        assertThat(result.schools().get(0).activeLoans()).isZero();
+        assertThat(result.schools().get(0).averageLoansPerStudent()).isZero();
+    }
+
     private UsernamePasswordAuthenticationToken adminAuthentication() {
         return new UsernamePasswordAuthenticationToken(
                 "admin-1",
