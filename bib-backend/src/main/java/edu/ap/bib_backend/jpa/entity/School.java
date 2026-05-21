@@ -58,6 +58,10 @@ public class School {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // New: timestamp of the last successful OneRoster sync for this school
+    @Column(name = "last_sync_at")
+    private LocalDateTime lastSyncAt;
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
 

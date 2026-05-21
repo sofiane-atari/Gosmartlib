@@ -45,6 +45,7 @@ import { UserManagementComponent } from './component/user-management/user-manage
 import { ClassReportComponent } from './component/class-report/class-report/class-report.component';
 import { CampusReportComponent } from './component/class-report/campus-report/campus-report.component';
 import { ReportSelectorComponent } from './component/class-report/report-selector/report-selector.component';
+import { SystemReportComponent } from './component/class-report/system-report/system-report.component';
 import { UnauthorizedComponent } from './component/unauthorized/unauthorized.component';
 
 export const routes: Routes = [
@@ -177,9 +178,14 @@ export const routes: Routes = [
         canActivate: [authGuard, staffOnlyGuard]
       },
       {
-        path: 'campus',
+        path: 'school',
         component: CampusReportComponent,
         canActivate: [authGuard, staffOnlyGuard]
+      },
+      {
+        path: 'system',
+        component: SystemReportComponent,
+        canActivate: [authGuard, adminOnlyGuard]
       }
     ]
   },

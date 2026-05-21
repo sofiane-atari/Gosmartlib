@@ -230,14 +230,7 @@ export class BooksComponent implements OnInit {
       });
   }
 
-  protected getBookCampusLabel(book: Book): string | null {
-    const campuses = book.availableCampuses?.filter((campus) => campus?.trim()) ?? [];
-    if (campuses.length > 0) {
-      return campuses.join(', ');
-    }
 
-    return book.campusName?.trim() || null;
-  }
 
   private loadFilterBounds(): void {
     this.bookService.getMaxPages().subscribe({
