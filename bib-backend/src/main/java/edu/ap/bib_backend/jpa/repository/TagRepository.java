@@ -28,4 +28,12 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
                 WHERE SIZE(t.books) = 0
             """)
     Long countUnusedTags();
+
+    @Query("""
+                SELECT COUNT(DISTINCT b.id)
+                FROM Tag t
+                LEFT JOIN t.books b
+                WHERE t.id = :tagId
+            """)
+    Long countBookAndCopyLinks(@Param("tagId") Long tagId);
 }

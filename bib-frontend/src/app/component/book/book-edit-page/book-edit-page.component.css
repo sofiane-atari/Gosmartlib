@@ -186,6 +186,11 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.meta-placeholder {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
 .form-group.full-width {
   grid-column: 1 / -1;
 }

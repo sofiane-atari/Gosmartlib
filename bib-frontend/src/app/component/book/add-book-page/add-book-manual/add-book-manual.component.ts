@@ -32,6 +32,7 @@ import { BookCandidate } from '../../../../model/book/book-candidate.model';
 import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
 import { Campus } from '../../../../model/campus.model';
+import { Tag } from '../../../../model/tag/tag.model';
 import {
   Info,
   LucideAngularModule,
@@ -45,6 +46,7 @@ import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
 import { addBookManualDraft } from '../../../../model/book/add-book-manual-draft.model';
 import { ButtonHoverHelpComponent } from '../../../shared/button-hover-help/button-hover-help.component';
+import { TagService } from '../../../../services/tag/tag.service';
 
 type BookFormGroup = FormGroup<{
   title: FormControl<string>;
@@ -84,6 +86,8 @@ export class AddBookManualComponent
   isCandidateLoaded = false;
   isSearching = false;
   selectedGenres: Genre[] = [];
+  tags: Tag[] = [];
+  selectedTags: Tag[] = [];
   private destroy$ = new Subject<void>();
 
   form: BookFormGroup;
@@ -94,6 +98,7 @@ export class AddBookManualComponent
     private rt: Router,
     private ts: ToastService,
     private draftStorage: DraftStorageService,
+    private tagService: TagService,
   ) {
     super();
     this.form = this.fb.group({
@@ -115,6 +120,7 @@ export class AddBookManualComponent
   }
 
   ngOnInit(): void {
+    this.loadTags();
     this.restoreDraft();
     this.setupDraftAutosave();
     this.setupCandidateSearch();
@@ -217,6 +223,7 @@ export class AddBookManualComponent
         );
 
         this.selectedGenres = book.genres ?? [];
+        this.selectedTags = book.tags ?? [];
 
         if (this.selectedGenres.length > 0) {
           const firstSelected = this.selectedGenres[0];
@@ -259,6 +266,7 @@ export class AddBookManualComponent
     });
 
     this.selectedGenres = [];
+    this.selectedTags = [];
     this.candidateBooks = [];
     this.isCandidateLoaded = false;
     this.isSearching = false;
@@ -310,6 +318,7 @@ export class AddBookManualComponent
       description: formValue.description,
       releaseYear: formValue.releaseYear ?? new Date().getFullYear(),
       genres: this.selectedGenres,
+      tags: this.selectedTags,
       readingLevel: formValue.readingLevel ?? undefined,
       didactic: formValue.didactic,
       campusId: this.campusId,
@@ -370,6 +379,39 @@ export class AddBookManualComponent
   protected showGenreError(message: string): void {
     this.ts.show(message, 'error');
   }
+
+  toggleTag(tag: Tag): void {
+    if (this.isCandidateLoaded) {
+      return;
+    }
+
+    const tagId = Number(tag.id);
+
+    if (this.isTagSelected(tag)) {
+      this.selectedTags = this.selectedTags.filter((selectedTag) => Number(selectedTag.id) !== tagId);
+      this.saveDraft();
+      return;
+    }
+
+    this.selectedTags = [...this.selectedTags, tag];
+    this.saveDraft();
+  }
+
+  isTagSelected(tag: Tag): boolean {
+    return this.selectedTags.some((selectedTag) => Number(selectedTag.id) === Number(tag.id));
+  }
+
+  private loadTags(): void {
+    this.tagService.getAllTags().subscribe({
+      next: (response) => {
+        this.tags = response.data ?? [];
+      },
+      error: () => {
+        this.ts.show('Tags konden niet geladen worden.', 'error');
+      },
+    });
+  }
+
   private setupDraftAutosave(): void {
     this.form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.saveDraft();
@@ -380,6 +422,7 @@ export class AddBookManualComponent
     const draft: addBookManualDraft = {
       formValue: this.form.getRawValue(),
       selectedGenres: this.selectedGenres,
+      selectedTags: this.selectedTags,
       selectedBookId: this.selectedBookId,
       candidateBooks: this.candidateBooks,
       isCandidateLoaded: this.isCandidateLoaded,
@@ -398,6 +441,7 @@ export class AddBookManualComponent
 
     this.form.patchValue(draft.formValue, { emitEvent: false });
     this.selectedGenres = draft.selectedGenres ?? [];
+    this.selectedTags = draft.selectedTags ?? [];
     this.selectedBookId = draft.selectedBookId ?? null;
     this.candidateBooks = draft.candidateBooks ?? [];
     this.isCandidateLoaded = draft.isCandidateLoaded ?? false;

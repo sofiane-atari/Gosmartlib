@@ -130,7 +130,7 @@ public class TagService {
     }
 
     private Long getBookCount(Tag tag) {
-        return 0L;
+        return tagRepository.countBookAndCopyLinks(tag.getId());
     }
 
     private String normalizeName(String name) {

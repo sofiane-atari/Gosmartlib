@@ -711,6 +711,11 @@
   cursor: not-allowed;
   pointer-events: none;
 }
+
+.meta-placeholder {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
 .genre-section {
   margin-top: 1.5rem;
   padding: 1.25rem;

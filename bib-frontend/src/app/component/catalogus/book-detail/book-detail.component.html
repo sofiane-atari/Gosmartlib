@@ -406,6 +406,7 @@
                                   {{ getConditionLabel(copy.condition) }}
                                 </span>
                               }
+
                             </div>
 
                             @if (roleService.canAccessAdminOnlyFeatures()) {
@@ -459,6 +460,8 @@
           <p class="summary-text">{{ selectedBook.description }}</p>
         </section>
 
+
+
         <section class="genres-section">
           <h2 class="section-title">Genres</h2>
 
@@ -473,6 +476,24 @@
           } @else {
             <span class="meta-value meta-placeholder">
               Geen genres beschikbaar
+            </span>
+          }
+        </section>
+
+        <section class="genres-section">
+          <h2 class="section-title">Tags</h2>
+
+          @if ((selectedBook.tags?.length ?? 0) > 0) {
+            <div class="genres-tags">
+              @for (tag of selectedBook.tags; track tag.id) {
+                <span class="genre-tag tag-chip">
+                  {{ tag.name }}
+                </span>
+              }
+            </div>
+          } @else {
+            <span class="meta-value meta-placeholder">
+              Geen tags beschikbaar
             </span>
           }
         </section>

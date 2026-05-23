@@ -1,5 +1,6 @@
 import { Genre } from '../genre/genre.model';
 import { ReadingLevel } from '../readingLevel.model';
+import { Tag } from '../tag/tag.model';
 
 export interface Book {
   id?: number;
@@ -15,6 +16,7 @@ export interface Book {
   availableCopies?: number;
   didactic: boolean;
   genres?: Genre[];
+  tags?: Tag[];
   readingLevel?: ReadingLevel;
   campusId?: number;
   campusName?: string;

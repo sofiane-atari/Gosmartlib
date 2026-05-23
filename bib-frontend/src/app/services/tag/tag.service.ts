@@ -44,6 +44,13 @@ export class TagService {
     return this.http.get<PaginatedResponse<Tag>>(this.url, { params });
   }
 
+  getAllTags(): Observable<PaginatedResponse<Tag>> {
+    return this.getTagsByPage({
+      tagGetOpt: { includeBookCount: false },
+      pagingOpt: { page: 0, pageSize: 1000 },
+    });
+  }
+
   getTagStats(): Observable<TagStats> {
     return this.http.get<TagStats>(`${this.url}/stats`);
   }

@@ -213,8 +213,7 @@ public class BookController {
             @PathVariable Long bookId,
             @RequestParam(required = false) Long campusId
     ) {
-        BookDTO dto = bookService.addCopyToBook(bookId, campusId, authentication);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(bookService.addCopyToBook(bookId, campusId, authentication));
     }
 
     @GetMapping("/{bookId}/lesson-tips")

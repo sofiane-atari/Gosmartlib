@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Book } from '../../../model/book/book.model';
 import { LucideAngularModule, BookOpen } from 'lucide-angular';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-book-list-sidebar',
@@ -10,6 +11,7 @@ import { LucideAngularModule, BookOpen } from 'lucide-angular';
   imports: [CommonModule, LucideAngularModule],
   templateUrl: './book-list-sidebar.component.html',
   styleUrl: './book-list-sidebar.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class BookListSidebarComponent {
   private readonly router = inject(Router);

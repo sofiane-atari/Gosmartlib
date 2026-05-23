@@ -871,6 +871,11 @@ select:disabled {
   cursor: not-allowed;
   pointer-events: none;
 }
+
+.meta-placeholder {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
 .action-buttons {
   display: flex;
   gap: 0.75rem;
