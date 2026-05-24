@@ -7,6 +7,7 @@ import edu.ap.bib_backend.dto.TagDTO;
 import edu.ap.bib_backend.dto.TagStatsDTO;
 import edu.ap.bib_backend.service.TagService;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/tags")
@@ -24,34 +25,63 @@ public class TagController {
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String bookCount,
-            @RequestParam(defaultValue = "false") boolean includeBookCount) {
+            @RequestParam(defaultValue = "false") boolean includeBookCount,
+            Authentication authentication) {
+        if (authentication == null) {
+            return tagService.getTagsByPage(
+                    page,
+                    pageSize,
+                    search,
+                    bookCount,
+                    includeBookCount);
+        }
+
         return tagService.getTagsByPage(
                 page,
                 pageSize,
                 search,
                 bookCount,
-                includeBookCount);
+                includeBookCount,
+                authentication);
     }
 
     @GetMapping("/stats")
-    public TagStatsDTO getTagStats() {
-        return tagService.getTagStats();
+    public TagStatsDTO getTagStats(Authentication authentication) {
+        if (authentication == null) {
+            return tagService.getTagStats();
+        }
+
+        return tagService.getTagStats(authentication);
     }
 
     @PostMapping
-    public TagDTO createTag(@Valid @RequestBody TagDTO tagDTO) {
-        return tagService.createTag(tagDTO);
+    public TagDTO createTag(@Valid @RequestBody TagDTO tagDTO, Authentication authentication) {
+        if (authentication == null) {
+            return tagService.createTag(tagDTO);
+        }
+
+        return tagService.createTag(tagDTO, authentication);
     }
 
     @PutMapping("/{id}")
     public TagDTO updateTag(
             @PathVariable Long id,
-            @Valid @RequestBody TagDTO tagDTO) {
-        return tagService.updateTag(id, tagDTO);
+            @Valid @RequestBody TagDTO tagDTO,
+            Authentication authentication) {
+        if (authentication == null) {
+            return tagService.updateTag(id, tagDTO);
+        }
+
+        return tagService.updateTag(id, tagDTO, authentication);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTag(@PathVariable Long id) {
-        tagService.deleteTag(id);
+    public void deleteTag(@PathVariable Long id, Authentication authentication) {
+        if (authentication == null) {
+            tagService.deleteTag(id);
+            return;
+        }
+
+        tagService.deleteTag(id, authentication);
     }
 }

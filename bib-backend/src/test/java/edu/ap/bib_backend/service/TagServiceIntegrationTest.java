@@ -3,13 +3,23 @@ package edu.ap.bib_backend.service;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.TagDTO;
 import edu.ap.bib_backend.dto.TagStatsDTO;
+import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.TagRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.*;
@@ -25,9 +35,53 @@ class TagServiceIntegrationTest {
     @Autowired
     private TagRepository tagRepository;
 
+    @Autowired
+    private SchoolRepository schoolRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleEntityRepository roleRepository;
+
+    private Authentication schoolAAuthentication;
+    private Authentication schoolBAuthentication;
+
     @BeforeEach
     void setUp() {
+        userRepository.deleteAll();
         tagRepository.deleteAll();
+        schoolRepository.deleteAll();
+
+        tagService.setCurrentUserService(new CurrentUserService(userRepository));
+
+        RoleEntity librarianRole = new RoleEntity();
+        librarianRole.setRole(Role.LIBRARIAN);
+        roleRepository.save(librarianRole);
+
+        School schoolA = createSchool("school-a.smartschool.be", "School A");
+        School schoolB = createSchool("school-b.smartschool.be", "School B");
+
+        createUser("librarian-a", librarianRole, schoolA);
+        createUser("librarian-b", librarianRole, schoolB);
+
+        schoolAAuthentication = new UsernamePasswordAuthenticationToken("librarian-a", null);
+        schoolBAuthentication = new UsernamePasswordAuthenticationToken("librarian-b", null);
+    }
+
+    private School createSchool(String domainName, String name) {
+        School school = new School();
+        school.setDomainName(domainName);
+        school.setName(name);
+        return schoolRepository.save(school);
+    }
+
+    private void createUser(String id, RoleEntity role, School school) {
+        User user = new User();
+        user.setId(id);
+        user.setRole(role);
+        user.setSchool(school);
+        userRepository.save(user);
     }
 
     @Test
@@ -240,6 +294,93 @@ class TagServiceIntegrationTest {
         tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null));
 
         TagStatsDTO stats = tagService.getTagStats();
+
+        assertThat(stats.totalItems()).isEqualTo(2L);
+        assertThat(stats.unActiveTags()).isEqualTo(2L);
+    }
+
+    @Test
+    void createTag_shouldAllowSameNameInDifferentSchools() {
+        TagDTO schoolATag = tagService.createTag(
+                new TagDTO(null, "Fantasy", "Fantasy boeken", null, null),
+                schoolAAuthentication);
+        TagDTO schoolBTag = tagService.createTag(
+                new TagDTO(null, "Fantasy", "Andere fantasy boeken", null, null),
+                schoolBAuthentication);
+
+        assertThat(schoolATag.id()).isNotEqualTo(schoolBTag.id());
+        assertThat(schoolATag.name()).isEqualTo("Fantasy");
+        assertThat(schoolBTag.name()).isEqualTo("Fantasy");
+        assertThat(tagRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void createTag_shouldRejectDuplicateNameWithinSameSchool() {
+        tagService.createTag(
+                new TagDTO(null, "Fantasy", "Fantasy boeken", null, null),
+                schoolAAuthentication);
+
+        assertThatThrownBy(() -> tagService.createTag(
+                new TagDTO(null, "fantasy", "Andere beschrijving", null, null),
+                schoolAAuthentication))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Deze tag bestaat al");
+    }
+
+    @Test
+    void getTagsByPage_shouldOnlyReturnTagsForCurrentSchool() {
+        tagService.createTag(new TagDTO(null, "Fantasy", "Fantasy boeken", null, null), schoolAAuthentication);
+        tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null), schoolAAuthentication);
+        tagService.createTag(new TagDTO(null, "Romantiek", "Romantische boeken", null, null), schoolBAuthentication);
+
+        PageDTO<TagDTO> page = tagService.getTagsByPage(
+                0,
+                10,
+                null,
+                null,
+                true,
+                schoolAAuthentication);
+
+        assertThat(page.data())
+                .extracting(TagDTO::name)
+                .containsExactlyInAnyOrder("Fantasy", "Thriller");
+        assertThat(page.meta().totalItems()).isEqualTo(2);
+    }
+
+    @Test
+    void updateTag_shouldNotFindTagFromOtherSchool() {
+        TagDTO schoolBTag = tagService.createTag(
+                new TagDTO(null, "Fantasy", "Fantasy boeken", null, null),
+                schoolBAuthentication);
+
+        assertThatThrownBy(() -> tagService.updateTag(
+                schoolBTag.id(),
+                new TagDTO(schoolBTag.id(), "Nieuw", "Nieuwe beschrijving", null, null),
+                schoolAAuthentication))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Tag niet gevonden");
+    }
+
+    @Test
+    void deleteTag_shouldNotDeleteTagFromOtherSchool() {
+        TagDTO schoolBTag = tagService.createTag(
+                new TagDTO(null, "Fantasy", "Fantasy boeken", null, null),
+                schoolBAuthentication);
+
+        assertThatThrownBy(() -> tagService.deleteTag(schoolBTag.id(), schoolAAuthentication))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Tag niet gevonden");
+
+        assertThat(tagRepository.existsById(schoolBTag.id())).isTrue();
+    }
+
+    @Test
+    void getTagStats_shouldOnlyCountTagsForCurrentSchool() {
+        tagService.createTag(new TagDTO(null, "Fantasy", "Fantasy boeken", null, null), schoolAAuthentication);
+        tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null), schoolAAuthentication);
+        tagService.createTag(new TagDTO(null, "Romantiek", "Romantische boeken", null, null), schoolBAuthentication);
+
+        TagStatsDTO stats = tagService.getTagStats(schoolAAuthentication);
 
         assertThat(stats.totalItems()).isEqualTo(2L);
         assertThat(stats.unActiveTags()).isEqualTo(2L);

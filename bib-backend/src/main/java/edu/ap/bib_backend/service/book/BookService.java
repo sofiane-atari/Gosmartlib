@@ -130,7 +130,7 @@ public class BookService {
         Book book = bookMapper.toEntity(dto);
         book.setCampus(campus);
         book.setGenres(genresFromDTO(dto.getGenres()));
-        book.setTags(tagsFromDTO(dto.getTags()));
+        book.setTags(tagsFromDTO(dto.getTags(), campus.getSchool().getId()));
         book.setReadingLevel(resolveReadingLevel(dto.getReadingLevel()));
         return bookRepository.save(book);
     }
@@ -219,7 +219,9 @@ public class BookService {
         bookMapper.updateEntity(book, dto);
         book.setCampus(campus);
         book.setGenres(genresFromDTO(dto.getGenres()));
-        book.setTags(tagsFromDTO(dto.getTags()));
+        Set<Tag> tags = tagsFromDTO(dto.getTags(), school.getId());
+        book.setTags(tags);
+        updateTagsForSameBookInSchool(book, school.getId(), tags);
         book.setReadingLevel(resolveReadingLevel(dto.getReadingLevel()));
 
         return bookMapper.toDTO(bookRepository.save(book));
@@ -531,7 +533,7 @@ public class BookService {
         return genres;
     }
 
-    private Set<Tag> tagsFromDTO(List<TagDTO> tagsDto) {
+    private Set<Tag> tagsFromDTO(List<TagDTO> tagsDto, Long schoolId) {
         Set<Tag> tags = new HashSet<>();
         if (tagsDto == null) {
             return tags;
@@ -542,12 +544,24 @@ public class BookService {
                 continue;
             }
 
-            Tag tag = tagRepository.findById(tagDto.id())
+            Tag tag = tagRepository.findByIdInSchool(tagDto.id(), schoolId)
                     .orElseThrow(() -> new ResourceNotFoundException("tagIds", "Tag bestaat niet: " + tagDto.id()));
             tags.add(tag);
         }
 
         return tags;
+    }
+
+    private void updateTagsForSameBookInSchool(Book book, Long schoolId, Set<Tag> tags) {
+        String isbn = book.getIsbn();
+
+        if (isbn == null || isbn.isBlank()) {
+            return;
+        }
+
+        bookRepository.findAllByIsbnAndCampusSchoolId(isbn, schoolId).stream()
+                .filter(sameBook -> !sameBook.getId().equals(book.getId()))
+                .forEach(sameBook -> sameBook.setTags(new HashSet<>(tags)));
     }
 
     private ReadingLevel resolveReadingLevel(ReadingLevelDTO readingLevelDto) {
