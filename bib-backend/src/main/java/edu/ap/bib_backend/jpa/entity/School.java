@@ -36,7 +36,7 @@ public class School {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "domain_name", nullable = false)
+    @Column(name = "domain_name", nullable = false, unique = true)
     private String domainName;
 
     @Column(nullable = false)

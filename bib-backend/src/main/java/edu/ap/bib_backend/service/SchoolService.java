@@ -65,6 +65,11 @@ public class SchoolService {
 
         oneRosterClient.validateCredentials(clientId, clientSecret, dto.domainName());
 
+        String normalized = normalizeDomainName(dto.domainName());
+        if (schoolRepository.findByDomainName(normalized).isPresent()) {
+            throw new IllegalArgumentException("School met domein '" + dto.domainName() + "' bestaat al.");
+        }
+
         School school = new School();
         school.setDomainName(normalizeDomainName(dto.domainName()));
         school.setName(trimOrNull(dto.name()));
@@ -89,7 +94,11 @@ public class SchoolService {
         School school = schoolRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
 
-        school.setDomainName(normalizeDomainName(dto.domainName()));
+        String normalized = normalizeDomainName(dto.domainName());
+        if (!school.getDomainName().equals(normalized) && schoolRepository.findByDomainName(normalized).isPresent()) {
+            throw new IllegalArgumentException("School met domein '" + dto.domainName() + "' bestaat al.");
+        }
+        school.setDomainName(normalized);
         school.setName(trimOrNull(dto.name()));
         if (dto.defaultLoanDurationDays() != null) {
             school.setDefaultLoanDurationDays(dto.defaultLoanDurationDays());
