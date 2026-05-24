@@ -636,12 +636,8 @@ export class SchoolDashboardComponent implements OnInit {
   private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
     const backendError = error.error as HttpErrorResponseError | undefined;
 
-    if (backendError?.error?.details && backendError.error.details.length > 0) {
-      const message = backendError.error.details
-        .map((detail) => detail.message)
-        .join('\n');
-
-      this.showError(message);
+    if (backendError?.error?.code === 502) {
+      this.showError('OneRoster credentials zijn ongeldig.');
       return;
     }
 
