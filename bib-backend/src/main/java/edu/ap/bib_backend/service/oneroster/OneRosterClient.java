@@ -23,6 +23,8 @@ import edu.ap.bib_backend.jpa.repository.OneRosterTokenRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.api.SchoolApiProvider;
 import edu.ap.bib_backend.service.api.SchoolApiProviderFactory;
+import edu.ap.bib_backend.service.mock.MockSchoolData;
+import edu.ap.bib_backend.service.mock.MockSchoolRegistry;
 
 @Service
 public class OneRosterClient {
@@ -37,6 +39,7 @@ public class OneRosterClient {
     private final OneRosterMapper oneRosterMapper;
     private final SchoolRepository schoolRepository;
     private final SchoolApiProviderFactory providerFactory;
+    private final MockSchoolRegistry mockSchoolRegistry;
 
     public OneRosterClient(
             RestTemplateBuilder restTemplateBuilder,
@@ -54,7 +57,8 @@ public class OneRosterClient {
             OneRosterTokenRepository tokenRepository,
             OneRosterMapper oneRosterMapper,
             SchoolRepository schoolRepository,
-            SchoolApiProviderFactory providerFactory) {
+            SchoolApiProviderFactory providerFactory,
+            MockSchoolRegistry mockSchoolRegistry) {
         RestTemplate template = restTemplateBuilder.build();
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(connectTimeoutMs);
@@ -78,6 +82,7 @@ public class OneRosterClient {
                 new OneRosterLabelFilter());
         this.schoolRepository = schoolRepository;
         this.providerFactory = providerFactory;
+        this.mockSchoolRegistry = mockSchoolRegistry;
     }
 
     /**
@@ -239,7 +244,21 @@ public class OneRosterClient {
      */
     public void validateCredentials(String clientId, String clientSecret, String schoolDomain) {
         SchoolApiProvider mock = mockProvider(schoolDomain);
-        if (mock != null) return;
+        if (mock != null) {
+            String normalized = normalizeSchoolCode(schoolDomain);
+            MockSchoolData mockSchool = mockSchoolRegistry.getSchoolByDomain(normalized);
+            if (mockSchool == null) {
+                mockSchool = mockSchoolRegistry.getSchoolByCode(normalized);
+            }
+            if (mockSchool != null) {
+                if (!mockSchool.getOnRosterClientId().equals(clientId)
+                        || !mockSchool.getOnRosterClientSecret().equals(clientSecret)) {
+                    throw new ResponseStatusException(org.springframework.http.HttpStatus.BAD_GATEWAY,
+                            "OneRoster credentials ongeldig voor mock school.");
+                }
+            }
+            return;
+        }
         String host = hostValidator.normalizeAndValidateSchoolHost(schoolDomain);
         tokenService.validateCredentials(clientId, clientSecret, host);
     }
