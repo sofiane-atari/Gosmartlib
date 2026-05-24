@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import edu.ap.bib_backend.dto.SchoolSummaryDto;
+import edu.ap.bib_backend.service.api.ProviderType;
 
 @Getter
 @Setter
@@ -57,6 +60,10 @@ public class School {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider_type", nullable = false)
+    private ProviderType providerType = ProviderType.REAL;
 
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
