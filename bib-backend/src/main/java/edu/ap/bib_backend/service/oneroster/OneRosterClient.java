@@ -43,13 +43,12 @@ public class OneRosterClient {
 
     public OneRosterClient(
             RestTemplateBuilder restTemplateBuilder,
-            @Value("${oneroster.token-url:https://oauth.smartschool.be/OAuth/index/token}") String tokenUrl,
+            @Value("${oneroster.token-path:/ims/oneroster/token}") String tokenPath,
             @Value("${oneroster.api-path:" + DEFAULT_ONE_ROSTER_PATH + "}") String apiPath,
             @Value("${oneroster.allowed-host-suffixes:.smartschool.be}") String allowedHostSuffixes,
             @Value("${oneroster.connect-timeout-ms:5000}") int connectTimeoutMs,
             @Value("${oneroster.read-timeout-ms:7000}") int readTimeoutMs,
             @Value("${oneroster.token-auth-method:basic}") String tokenAuthMethod,
-            @Value("${oneroster.token-endpoint-mode:auto}") String tokenEndpointMode,
             @Value("${oneroster.scope:}") String tokenScope,
             @Value("${oneroster.base-url:}") String baseUrl,
             @Value("${oneroster.allow-private-hosts:false}") boolean allowPrivateHosts,
@@ -69,9 +68,8 @@ public class OneRosterClient {
         this.hostValidator = new OneRosterHostValidator(allowedHostSuffixes, allowPrivateHosts);
         this.tokenService = new OneRosterTokenService(
                 template,
-                tokenUrl,
+                tokenPath,
                 tokenAuthMethod,
-                tokenEndpointMode,
                 tokenScope,
                 credentialRepository,
                 tokenRepository);

@@ -30,25 +30,22 @@ import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 
 class OneRosterTokenService {
     private final RestTemplate restTemplate;
-    private final String tokenUrl;
+    private final String tokenPath;
     private final TokenAuthMethod tokenAuthMethod;
-    private final TokenEndpointMode tokenEndpointMode;
     private final String tokenScope;
     private final OneRosterCredentialRepository credentialRepository;
     private final OneRosterTokenRepository tokenRepository;
 
     OneRosterTokenService(
             RestTemplate restTemplate,
-            String tokenUrl,
+            String tokenPath,
             String tokenAuthMethod,
-            String tokenEndpointMode,
             String tokenScope,
             OneRosterCredentialRepository credentialRepository,
             OneRosterTokenRepository tokenRepository) {
         this.restTemplate = restTemplate;
-        this.tokenUrl = tokenUrl;
+        this.tokenPath = tokenPath;
         this.tokenAuthMethod = TokenAuthMethod.fromProperty(tokenAuthMethod);
-        this.tokenEndpointMode = TokenEndpointMode.fromProperty(tokenEndpointMode);
         this.tokenScope = tokenScope == null ? "" : tokenScope.trim();
         this.credentialRepository = credentialRepository;
         this.tokenRepository = tokenRepository;
@@ -136,28 +133,7 @@ class OneRosterTokenService {
     }
 
     private List<String> resolveTokenEndpoints(String schoolHost) {
-        List<String> candidates = new ArrayList<>();
-        String globalEndpoint = tokenUrl.trim();
-        String schoolEndpoint = "https://" + schoolHost + "/ims/oneroster/token";
-
-        switch (tokenEndpointMode) {
-            case GLOBAL -> {
-                if (!globalEndpoint.isEmpty()) {
-                    candidates.add(globalEndpoint);
-                }
-            }
-            case SCHOOL -> candidates.add(schoolEndpoint);
-            case AUTO -> {
-                if (!globalEndpoint.isEmpty()) {
-                    candidates.add(globalEndpoint);
-                }
-                if (!globalEndpoint.equalsIgnoreCase(schoolEndpoint)) {
-                    candidates.add(schoolEndpoint);
-                }
-            }
-        }
-
-        return candidates;
+        return List.of("https://" + schoolHost + tokenPath);
     }
 
     private TokenAttemptResult fetchAccessTokenWithClientSecretPost(String endpointUrl,
@@ -297,25 +273,6 @@ class OneRosterTokenService {
                 case "post", "client_secret_post" -> POST;
                 case "auto" -> AUTO;
                 default -> BASIC;
-            };
-        }
-    }
-
-    private enum TokenEndpointMode {
-        GLOBAL,
-        SCHOOL,
-        AUTO;
-
-        private static TokenEndpointMode fromProperty(String rawValue) {
-            if (rawValue == null || rawValue.isBlank()) {
-                return AUTO;
-            }
-
-            return switch (rawValue.trim().toLowerCase(Locale.ROOT)) {
-                case "global" -> GLOBAL;
-                case "school" -> SCHOOL;
-                case "auto" -> AUTO;
-                default -> AUTO;
             };
         }
     }
