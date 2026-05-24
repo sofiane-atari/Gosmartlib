@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.service.mock;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,7 +8,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/mock/schools")
-@Profile("dev")
 public class MockSchoolController {
 
     private final MockSchoolRegistry registry;

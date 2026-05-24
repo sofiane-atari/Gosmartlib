@@ -3,10 +3,10 @@ package edu.ap.bib_backend.service.mock;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping
-@Profile("dev")
 public class MockOAuthController {
 
     private static final Logger log = LoggerFactory.getLogger(MockOAuthController.class);
@@ -496,8 +495,14 @@ public class MockOAuthController {
             @RequestParam(required = false) String response_type,
             @RequestParam(required = false) String client_id,
             @RequestParam(required = false) String scope,
+            HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
+        if (redirect_uri == null || redirect_uri.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/oauth2/authorization/smartschool-mock");
+            return;
+        }
+
         var schools = registry.getAllSchools();
         String schoolsJson = schools.stream()
                 .map(s -> "{\"name\":\"" + escapeJson(s.getSchoolName()) + "\",\"domain\":\"" + escapeJson(s.getDomainName()) + "\",\"code\":\"" + escapeJson(s.getSchoolCode()) + "\"}")
@@ -830,7 +835,7 @@ public class MockOAuthController {
         String code = registry.generateAuthCode(user, school);
         String location = (redirect_uri != null && !redirect_uri.isEmpty()
                 ? redirect_uri
-                : "http://localhost:8080/api/login/oauth2/code/smartschool")
+                : "http://localhost:8080/api/login/oauth2/code/smartschool-mock")
                 + "?code=" + code + (state != null ? "&state=" + state : "");
 
         response.sendRedirect(location);
