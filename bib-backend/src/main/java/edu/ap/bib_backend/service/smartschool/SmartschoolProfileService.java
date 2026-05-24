@@ -16,7 +16,12 @@ import org.springframework.web.client.RestTemplate;
 
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
+import edu.ap.bib_backend.dto.groupinfo.GroupInfoItemDTO;
 import edu.ap.bib_backend.dto.groupinfo.SmartschoolGroupInfoDTO;
+import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.api.SchoolApiProvider;
+import edu.ap.bib_backend.service.api.SchoolApiProviderFactory;
+import edu.ap.bib_backend.service.mock.MockSchoolRegistry;
 
 @Service
 public class SmartschoolProfileService {
@@ -24,17 +29,41 @@ public class SmartschoolProfileService {
     private final RestTemplate restTemplate;
     private final String fullUserInfoUrl;
     private final String groupInfoUrl;
+    private final SchoolApiProviderFactory providerFactory;
+    private final MockSchoolRegistry mockSchoolRegistry;
+    private final JwtService jwtService;
 
     public SmartschoolProfileService(
             RestTemplate restTemplate,
             @Value("${smartschool.fulluserinfo-url}") String fullUserInfoUrl,
-            @Value("${smartschool.groupinfo-url}") String groupInfoUrl) {
+            @Value("${smartschool.groupinfo-url}") String groupInfoUrl,
+            SchoolApiProviderFactory providerFactory,
+            MockSchoolRegistry mockSchoolRegistry,
+            JwtService jwtService) {
         this.restTemplate = restTemplate;
         this.fullUserInfoUrl = fullUserInfoUrl;
         this.groupInfoUrl = groupInfoUrl;
+        this.providerFactory = providerFactory;
+        this.mockSchoolRegistry = mockSchoolRegistry;
+        this.jwtService = jwtService;
+    }
+
+    private SchoolApiProvider resolveMockProvider(String accessToken) {
+        try {
+            String legacyId = jwtService.extractUsername(accessToken);
+            if (legacyId == null) return null;
+            var school = mockSchoolRegistry.getSchoolByLegacyId(legacyId);
+            if (school != null) {
+                return providerFactory.getProvider(school.getDomainName()).orElse(null);
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
     public SmartschoolProfileDto fetchProfile(String accessToken) {
+        SchoolApiProvider mock = resolveMockProvider(accessToken);
+        if (mock != null) return mock.fetchProfile(accessToken);
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
@@ -73,6 +102,8 @@ public class SmartschoolProfileService {
     }
 
     public SmartschoolGroupDto fetchGroups(String accessToken) {
+        SchoolApiProvider mock = resolveMockProvider(accessToken);
+        if (mock != null) return mock.fetchGroups(accessToken);
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
@@ -124,6 +155,19 @@ public class SmartschoolProfileService {
     }
 
     public SmartschoolGroupInfoDTO fetchGroupInfo(String accessToken, String platform) {
+        SchoolApiProvider mock = resolveMockProvider(accessToken);
+        if (mock != null) {
+            SmartschoolGroupDto groups = mock.fetchGroups(accessToken);
+            List<GroupInfoItemDTO> groupItems = new ArrayList<>();
+            if (groups.primaryGroupName() != null) {
+                groupItems.add(new GroupInfoItemDTO("mock-group-id", groups.primaryGroupName(), groups.primaryGroupName(), platform, null, null));
+            }
+            List<GroupInfoItemDTO> parentItems = new ArrayList<>();
+            for (String parentName : groups.parentGroupNames()) {
+                parentItems.add(new GroupInfoItemDTO("mock-parent-" + parentName.hashCode(), parentName, parentName, platform, null, null));
+            }
+            return new SmartschoolGroupInfoDTO(groupItems, parentItems);
+        }
         String baseUrl = normalizePlatform(platform);
 
         ResponseEntity<SmartschoolGroupInfoDTO> response = new RestTemplate().getForEntity(
