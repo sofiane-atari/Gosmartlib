@@ -1,12 +1,12 @@
 import { WizardStepDefinition } from '../shared/step-wizard/step-wizard.model';
 
-export type CreateSchoolWizardStep = 1 | 2 | 3 | 4;
+export type CreateSchoolWizardStep = 1 | 2 | 3 | 4 | 5;
 
 export type CreateSchoolWizardStepDefinition = WizardStepDefinition & {
   readonly step: CreateSchoolWizardStep;
 };
 
-export const CREATE_SCHOOL_WIZARD_STEPS: readonly CreateSchoolWizardStepDefinition[] =
+export const CREATE_SCHOOL_STEPS_1_4: readonly CreateSchoolWizardStepDefinition[] =
   [
     {
       step: 1,
@@ -30,5 +30,16 @@ export const CREATE_SCHOOL_WIZARD_STEPS: readonly CreateSchoolWizardStepDefiniti
       title: 'Controleren en aanmaken',
       description:
         'Controleer alle gegevens en maak de school definitief aan.',
+    },
+  ];
+
+export const CREATE_SCHOOL_ALL_STEPS: readonly CreateSchoolWizardStepDefinition[] =
+  [
+    ...CREATE_SCHOOL_STEPS_1_4,
+    {
+      step: 5,
+      title: 'Gebruikers toewijzen',
+      description:
+        'Promoveer leerkrachten tot bibliothecaris of platformbeheerder.',
     },
   ];

@@ -1,0 +1,132 @@
+<div class="promotion-panel">
+  @if (isLoading() || isPolling()) {
+    <div class="promotion-loading">
+      @if (isPolling()) {
+        <div class="promotion-spinner"></div>
+        <p>
+          Gebruikers worden gesynchroniseerd...
+          <span class="poll-progress">poging {{ pollAttempt() }}/{{ maxPollAttempts }}</span>
+        </p>
+        <p class="poll-hint">
+          De gegevens worden opgehaald via OneRoster. Dit kan enkele ogenblikken duren.
+        </p>
+      } @else {
+        <p>Gebruikers laden...</p>
+      }
+    </div>
+  } @else if (users().length === 0) {
+    <div class="promotion-empty">
+      @if (hasPollingExhausted()) {
+        <p>
+          De synchronisatie duurt langer dan verwacht. Er zijn nog geen leerkrachten
+          gevonden voor deze school.
+        </p>
+        <div class="promotion-empty-actions">
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            (click)="skip()"
+          >
+            Overslaan en later toewijzen
+          </button>
+          <button
+            type="button"
+            class="action-button action-button--primary"
+            (click)="retryNow()"
+          >
+            Opnieuw proberen
+          </button>
+        </div>
+      } @else {
+        <p>
+          Er zijn nog geen leerkrachten gevonden voor deze school. De synchronisatie
+          kan enkele ogenblikken duren. Kom later terug om gebruikers toe te wijzen.
+        </p>
+      }
+    </div>
+  } @else {
+    <p class="promotion-hint">
+      Wijs minstens één bibliothecaris toe. Je kan leerkrachten ook promoveren tot platformbeheerder.
+    </p>
+
+    <div class="promotion-list">
+      @for (user of users(); track user.id) {
+        <article class="promotion-row">
+          <div class="promotion-row__info">
+            <strong class="promotion-row__name">{{ getDisplayName(user) }}</strong>
+            @if (user.email) {
+              <span class="promotion-row__email">{{ user.email }}</span>
+            }
+          </div>
+
+          <div class="promotion-row__actions">
+            <span [class]="getRoleClass(user.role)">
+              {{ getRoleLabel(user.role) }}
+            </span>
+
+            @if (canPromote(user)) {
+              <button
+                type="button"
+                class="promotion-btn promotion-btn--promote"
+                [disabled]="isPromoting() === user.id"
+                (click)="promoteToLibrarian(user)"
+              >
+                <lucide-icon [name]="ShieldPlus" class="icon-sm"></lucide-icon>
+                @if (isPromoting() === user.id) {
+                  Toewijzen...
+                } @else {
+                  Bibliothecaris
+                }
+              </button>
+
+              @if (canPromoteToAdmin()) {
+                <button
+                  type="button"
+                  class="promotion-btn promotion-btn--admin"
+                  [disabled]="isPromoting() === user.id"
+                  (click)="promoteToAdmin(user)"
+                >
+                  <lucide-icon [name]="ShieldCheck" class="icon-sm"></lucide-icon>
+                  @if (isPromoting() === user.id) {
+                    Toewijzen...
+                  } @else {
+                    Beheerder
+                  }
+                </button>
+              }
+            }
+
+            @if (canDemote(user)) {
+              <button
+                type="button"
+                class="promotion-btn promotion-btn--demote"
+                [disabled]="isPromoting() === user.id"
+                (click)="demoteToTeacher(user)"
+              >
+                <lucide-icon [name]="ShieldOff" class="icon-sm"></lucide-icon>
+                @if (isPromoting() === user.id) {
+                  Wijzigen...
+                } @else {
+                  Leerkracht
+                }
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+
+    <div class="promotion-summary">
+      @if (librariansCount() > 0) {
+        <p class="promotion-summary__ok">
+          {{ librariansCount() }} bibliothecaris{{ librariansCount() !== 1 ? 'sen' : '' }}
+          toegewezen.
+        </p>
+      } @else {
+        <p class="promotion-summary__warn">
+          Je moet minstens één bibliothecaris toewijzen voordat je verder kunt.
+        </p>
+      }
+    </div>
+  }
+</div>

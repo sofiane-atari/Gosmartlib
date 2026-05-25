@@ -14,11 +14,14 @@ import { SchoolService } from '../../../services/school/school.service';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { ToastService } from '../../../services/toast/toast.service';
 import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
+import { UserRolePromotionComponent } from '../user-role-promotion/user-role-promotion.component';
 import {
-  CREATE_SCHOOL_WIZARD_STEPS,
+  CREATE_SCHOOL_STEPS_1_4,
+  CREATE_SCHOOL_ALL_STEPS,
   CreateSchoolWizardStep,
+  CreateSchoolWizardStepDefinition,
 } from '../../../model/school/school-wizard.model';
-import { CreateSchoolRequest, OneRosterCredentialRequest, OneRosterCredentialValidationRequest } from '../../../model/school.model';
+import { CreateSchoolRequest, OneRosterCredentialRequest, OneRosterCredentialValidationRequest, School } from '../../../model/school.model';
 
 @Component({
   selector: 'app-school-create',
@@ -28,6 +31,7 @@ import { CreateSchoolRequest, OneRosterCredentialRequest, OneRosterCredentialVal
     ReactiveFormsModule,
     LucideAngularModule,
     StepWizardComponent,
+    UserRolePromotionComponent,
   ],
   templateUrl: './school-create.component.html',
   styleUrl: './school-create.component.css',
@@ -47,11 +51,17 @@ export class SchoolCreateComponent {
   protected readonly isValidatingCredentials = signal(false);
   protected readonly stepError = signal<string | null>(null);
   protected readonly currentStep = signal<CreateSchoolWizardStep>(1);
-  protected readonly wizardSteps = CREATE_SCHOOL_WIZARD_STEPS;
+  protected readonly wizardSteps = signal<readonly CreateSchoolWizardStepDefinition[]>(CREATE_SCHOOL_STEPS_1_4);
   protected readonly validatedUpToStep = signal<CreateSchoolWizardStep>(1);
+  protected readonly createdSchoolId = signal<number | null>(null);
+  protected readonly step5LibrariansCount = signal(0);
 
   protected readonly maxReachableStep = computed(() =>
     this.validatedUpToStep(),
+  );
+
+  protected readonly canFinishWizard = computed(() =>
+    this.step5LibrariansCount() > 0,
   );
 
   protected readonly schoolForm = this.formBuilder.group({
@@ -190,8 +200,13 @@ export class SchoolCreateComponent {
       this.validatedUpToStep.set(4);
     }
 
+    if (current === 4) {
+      this.createSchoolAndAdvance();
+      return;
+    }
+
     const nextStep = (current + 1) as CreateSchoolWizardStep;
-    if (nextStep <= CREATE_SCHOOL_WIZARD_STEPS.length) {
+    if (nextStep <= this.wizardSteps().length) {
       this.currentStep.set(nextStep);
     }
   }
@@ -262,26 +277,10 @@ export class SchoolCreateComponent {
       });
   }
 
-  protected goToPreviousStep(): void {
-    const current = this.currentStep();
-    if (current <= 1) return;
-    this.stepError.set(null);
-    this.currentStep.set((current - 1) as CreateSchoolWizardStep);
-  }
-
-  protected setCurrentStep(step: number): void {
-    if (step >= 1 && step <= CREATE_SCHOOL_WIZARD_STEPS.length) {
-      this.currentStep.set(step as CreateSchoolWizardStep);
-    }
-  }
-
-  protected createSchool(): void {
+  protected createSchoolAndAdvance(): void {
     if (this.schoolForm.invalid) {
       this.schoolForm.markAllAsTouched();
-      this.toastService.show(
-        'Niet alle verplichte velden zijn correct ingevuld.',
-        'error',
-      );
+      this.toastService.show('Niet alle verplichte velden zijn correct ingevuld.', 'error');
       return;
     }
 
@@ -312,28 +311,45 @@ export class SchoolCreateComponent {
       .create(school)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
+        next: (createdSchool: School) => {
           this.isSubmitting.set(false);
-          this.toastService.show(
-            'School en campus succesvol toegevoegd. Gegevens worden op de achtergrond gesynchroniseerd.',
-            'success',
-          );
-          void this.router.navigate(['/schools']);
+          this.createdSchoolId.set(createdSchool.id);
+
+          this.wizardSteps.set(CREATE_SCHOOL_ALL_STEPS);
+          this.validatedUpToStep.set(5);
+          this.currentStep.set(5);
         },
         error: (error: HttpErrorResponse) => {
           this.isSubmitting.set(false);
-          this.handleError(
-            error,
-            'School kon niet toegevoegd worden. Probeer opnieuw.',
-          );
+          this.handleError(error, 'School kon niet toegevoegd worden. Probeer opnieuw.');
         },
       });
   }
 
-  private handleError(
-    error: HttpErrorResponse,
-    fallbackMessage: string,
-  ): void {
+  protected goToPreviousStep(): void {
+    const current = this.currentStep();
+    if (current <= 1) return;
+    this.stepError.set(null);
+    this.currentStep.set((current - 1) as CreateSchoolWizardStep);
+  }
+
+  protected setCurrentStep(step: number): void {
+    const max = this.wizardSteps().length;
+    if (step >= 1 && step <= max) {
+      this.currentStep.set(step as CreateSchoolWizardStep);
+    }
+  }
+
+  protected onStep5LibrariansCountChange(count: number): void {
+    this.step5LibrariansCount.set(count);
+  }
+
+  protected finishWizard(): void {
+    this.toastService.show('School succesvol aangemaakt.', 'success');
+    void this.router.navigate(['/schools']);
+  }
+
+  private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
     const backendError = error.error as HttpErrorResponseError | undefined;
 
     if (backendError?.error?.code === 502) {
@@ -346,9 +362,6 @@ export class SchoolCreateComponent {
       return;
     }
 
-    this.toastService.show(
-      backendError?.error?.message ?? fallbackMessage,
-      'error',
-    );
+    this.toastService.show(backendError?.error?.message ?? fallbackMessage, 'error');
   }
 }

@@ -15,7 +15,7 @@
 
     <div class="step-row step-row--wizard">
       <app-step-wizard
-        [steps]="wizardSteps"
+        [steps]="wizardSteps()"
         [currentStep]="currentStep()"
         [maxReachableStep]="maxReachableStep()"
         (stepSelected)="setCurrentStep($event)"
@@ -24,7 +24,7 @@
 
     <hr class="divider" />
 
-    <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
+    <form [formGroup]="schoolForm" (ngSubmit)="createSchoolAndAdvance()">
       @switch (currentStep()) {
         @case (1) {
           <div class="wizard-step-content">
@@ -443,5 +443,41 @@
         }
       }
     </form>
+
+    @if (currentStep() === 5 && createdSchoolId() !== null) {
+      <div class="wizard-step-content">
+        <div class="section-label">Gebruikers toewijzen</div>
+
+        <p class="wizard-step-hint">
+          De school is aangemaakt. Wijs nu leerkrachten toe als bibliothecaris of platformbeheerder.
+          Minstens één bibliothecaris is verplicht.
+        </p>
+
+        <app-user-role-promotion
+          [schoolId]="createdSchoolId()!"
+          (librariansCountChange)="onStep5LibrariansCountChange($event)"
+          (skipRequested)="finishWizard()"
+        />
+
+        <div class="wizard-actions wizard-actions--split">
+          <button
+            type="button"
+            class="action-button action-button--secondary"
+            (click)="goToPreviousStep()"
+          >
+            Vorige
+          </button>
+
+          <button
+            type="button"
+            class="action-button action-button--primary"
+            [disabled]="!canFinishWizard()"
+            (click)="finishWizard()"
+          >
+            Voltooien
+          </button>
+        </div>
+      </div>
+    }
   </div>
 </div>

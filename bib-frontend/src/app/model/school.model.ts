@@ -7,6 +7,7 @@ export interface School {
   defaultLoanDurationDays?: number;
   campuses?: Campus[];
   createdAt?: string;
+  hasLibrarian?: boolean;
 }
 
 export interface OneRosterCredentialRequest {

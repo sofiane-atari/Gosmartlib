@@ -1,0 +1,37 @@
+<div class="layout">
+  <div class="info-banner">
+    <lucide-icon [name]="Info" class="info-icon"></lucide-icon>
+
+    <div class="info-content">
+      <p>
+        <strong>Gebruikers toewijzen</strong>
+      </p>
+      <p>Wijs leerkrachten toe als bibliothecaris of platformbeheerder voor deze school.</p>
+    </div>
+  </div>
+
+  <div class="form-section">
+    @if (schoolId() !== null) {
+      <app-user-role-promotion
+        [schoolId]="schoolId()!"
+        (librariansCountChange)="onLibrariansCountChange($event)"
+        (skipRequested)="navigateBack()"
+      />
+
+      <div class="wizard-actions wizard-actions--split">
+        <button
+          type="button"
+          class="action-button action-button--secondary"
+          (click)="navigateBack()"
+        >
+          <lucide-icon [name]="ArrowLeft" class="icon-sm"></lucide-icon>
+          Terug naar scholen
+        </button>
+      </div>
+    } @else {
+      <div class="state-panel">
+        <p>Schoolgegevens laden...</p>
+      </div>
+    }
+  </div>
+</div>

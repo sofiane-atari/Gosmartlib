@@ -181,6 +181,25 @@
                 </div>
               </td>
             </tr>
+
+            @if (school.hasLibrarian === false) {
+              <tr class="warning-row">
+                <td colspan="5">
+                  <div class="librarian-warning">
+                    <span class="librarian-warning__icon">&#9888;</span>
+                    <span>
+                      Geen bibliothecaris toegewezen voor deze school.
+                    </span>
+                    <a
+                      class="librarian-warning__link"
+                      [routerLink]="['/schools', school.id, 'assign-users']"
+                    >
+                      Wijs gebruikers toe
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            }
           } @empty {
             <tr>
               <td colspan="5">

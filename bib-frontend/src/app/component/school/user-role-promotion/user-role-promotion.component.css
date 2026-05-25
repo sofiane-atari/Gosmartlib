@@ -1,0 +1,246 @@
+.promotion-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.promotion-loading,
+.promotion-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.promotion-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--main-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.poll-progress {
+  font-weight: 600;
+  color: var(--main-color);
+}
+
+.poll-hint {
+  font-size: 12px;
+  color: #9b7a84;
+  margin: 0;
+}
+
+.promotion-empty-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  font-family: inherit;
+}
+
+.action-button--secondary {
+  background-color: var(--bg-surface);
+  border-color: var(--border-color);
+  color: var(--main-color);
+}
+
+.action-button--secondary:hover:not(:disabled) {
+  background-color: var(--main-light-color);
+  border-color: var(--main-color);
+}
+
+.action-button--primary {
+  background-color: var(--main-color);
+  border-color: var(--main-color);
+  color: var(--bg-surface);
+}
+
+.action-button--primary:hover:not(:disabled) {
+  background-color: var(--main-color-hover);
+}
+
+.promotion-hint {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.promotion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.promotion-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.promotion-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.promotion-row__name {
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.promotion-row__email {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.promotion-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.role-tag--teacher {
+  background: #f0f4ff;
+  color: #2563eb;
+}
+
+.role-tag--librarian {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.role-tag--admin {
+  background: #fdf4ff;
+  color: #9333ea;
+}
+
+.promotion-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.promotion-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.promotion-btn--promote {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #16a34a;
+}
+
+.promotion-btn--promote:hover:not(:disabled) {
+  background: #dcfce7;
+}
+
+.promotion-btn--admin {
+  background: #fdf4ff;
+  border-color: #e9d5ff;
+  color: #9333ea;
+}
+
+.promotion-btn--admin:hover:not(:disabled) {
+  background: #f3e8ff;
+}
+
+.promotion-btn--demote {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.promotion-btn--demote:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.icon-sm {
+  width: 14px;
+  height: 14px;
+}
+
+.promotion-summary {
+  padding-top: 8px;
+}
+
+.promotion-summary__ok {
+  margin: 0;
+  font-size: 14px;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.promotion-summary__warn {
+  margin: 0;
+  font-size: 14px;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+@media (max-width: 768px) {
+  .promotion-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

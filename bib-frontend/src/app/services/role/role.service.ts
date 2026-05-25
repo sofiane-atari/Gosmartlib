@@ -22,4 +22,12 @@ export class RoleService {
   public revokeLibrarian(userId: string): Observable<AuthUserDto> {
     return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/revoke-librarian`, { userId });
   }
+
+  public assignAdmin(userId: string): Observable<AuthUserDto> {
+    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/assign-admin`, { userId });
+  }
+
+  public revokeAdmin(userId: string): Observable<AuthUserDto> {
+    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/revoke-admin`, { userId });
+  }
 }
