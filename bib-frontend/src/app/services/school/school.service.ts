@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CreateSchoolRequest, School } from '../../model/school.model';
+import { CreateSchoolRequest, OneRosterCredentialValidationRequest, School } from '../../model/school.model';
 
 @Injectable({
   providedIn: 'root',
@@ -33,5 +33,14 @@ export class SchoolService {
 
   public getTotalBookCount(): Observable<number> {
     return this.http.get<number>(`${this.url}/books/count`);
+  }
+
+  public checkDomain(domainName: string): Observable<void> {
+    const params = new HttpParams().set('domainName', domainName);
+    return this.http.get<void>(`${this.url}/check-domain`, { params });
+  }
+
+  public validateCredentials(dto: OneRosterCredentialValidationRequest): Observable<void> {
+    return this.http.post<void>(`${this.url}/validate-credentials`, dto);
   }
 }

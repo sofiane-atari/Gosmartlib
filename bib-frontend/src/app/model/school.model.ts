@@ -30,3 +30,9 @@ export interface CreateSchoolWithCampusFormValue {
   clientId: string;
   clientSecret: string;
 }
+
+export interface OneRosterCredentialValidationRequest {
+  domainName: string;
+  clientId: string;
+  clientSecret: string;
+}

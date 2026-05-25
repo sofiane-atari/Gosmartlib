@@ -1,0 +1,447 @@
+<div class="layout">
+  <div class="info-banner">
+    <lucide-icon [name]="Info" class="info-icon"></lucide-icon>
+
+    <div class="info-content">
+      <p>
+        <strong>School toevoegen</strong>
+      </p>
+      <p>Doorloop de stappen om een nieuwe school aan te maken.</p>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="section-label">Stappenplan</div>
+
+    <div class="step-row step-row--wizard">
+      <app-step-wizard
+        [steps]="wizardSteps"
+        [currentStep]="currentStep()"
+        [maxReachableStep]="maxReachableStep()"
+        (stepSelected)="setCurrentStep($event)"
+      ></app-step-wizard>
+    </div>
+
+    <hr class="divider" />
+
+    <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
+      @switch (currentStep()) {
+        @case (1) {
+          <div class="wizard-step-content">
+            <div class="section-label">Schoolgegevens</div>
+
+            <p class="wizard-step-hint">
+              Vul de naam en het domein van de school in.
+            </p>
+
+            <div class="modal-field">
+              <label for="name">Schoolnaam <span class="required-indicator">*</span></label>
+              <input
+                id="name"
+                type="text"
+                formControlName="name"
+                placeholder="bijv. AP Hogeschool"
+              />
+
+              @if (
+                schoolForm.controls.name.invalid &&
+                schoolForm.controls.name.touched
+              ) {
+                <small class="field-inline-error">Schoolnaam is verplicht.</small>
+              }
+            </div>
+
+            <div class="modal-field">
+              <label for="domainName">Domeinnaam <span class="required-indicator">*</span></label>
+              <input
+                id="domainName"
+                type="text"
+                formControlName="domainName"
+                placeholder="bijv. aphogeschool.smartschool.be"
+              />
+
+              @if (
+                schoolForm.controls.domainName.invalid &&
+                schoolForm.controls.domainName.touched
+              ) {
+                <small class="field-inline-error">Domeinnaam is verplicht.</small>
+              }
+            </div>
+
+            @if (stepError()) {
+              <div class="step-error">{{ stepError() }}</div>
+            }
+
+            <div class="wizard-actions">
+              <button
+                type="button"
+                class="action-button action-button--primary"
+                [disabled]="isCheckingDomain()"
+                (click)="goToNextStep()"
+              >
+                @if (isCheckingDomain()) {
+                  Controleren...
+                } @else {
+                  Volgende
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+        @case (2) {
+          <div class="wizard-step-content">
+            <div class="section-label">OneRoster-integratie</div>
+
+            <p class="wizard-step-hint">
+              Deze gegevens zijn nodig om leerlingen en leerkrachten te synchroniseren.
+            </p>
+
+            <div class="modal-field">
+              <label for="clientId">Client-ID <span class="required-indicator">*</span></label>
+              <input
+                id="clientId"
+                type="text"
+                formControlName="clientId"
+                placeholder="OneRoster client-ID"
+              />
+
+              @if (
+                schoolForm.controls.clientId.invalid &&
+                schoolForm.controls.clientId.touched
+              ) {
+                <small class="field-inline-error">Client-ID is verplicht.</small>
+              }
+            </div>
+
+            <div class="modal-field">
+              <label for="clientSecret">Client-geheim <span class="required-indicator">*</span></label>
+              <input
+                id="clientSecret"
+                type="password"
+                formControlName="clientSecret"
+                placeholder="OneRoster client-geheim"
+              />
+
+              @if (
+                schoolForm.controls.clientSecret.invalid &&
+                schoolForm.controls.clientSecret.touched
+              ) {
+                <small class="field-inline-error">Client-geheim is verplicht.</small>
+              }
+            </div>
+
+            @if (stepError()) {
+              <div class="step-error">{{ stepError() }}</div>
+            }
+
+            <div class="wizard-actions wizard-actions--split">
+              <button
+                type="button"
+                class="action-button action-button--secondary"
+                (click)="goToPreviousStep()"
+              >
+                Vorige
+              </button>
+
+              <button
+                type="button"
+                class="action-button action-button--primary"
+                [disabled]="isValidatingCredentials()"
+                (click)="goToNextStep()"
+              >
+                @if (isValidatingCredentials()) {
+                  Controleren...
+                } @else {
+                  Volgende
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+        @case (3) {
+          <div class="wizard-step-content">
+            <div class="section-label">Campussen</div>
+
+            <p class="wizard-step-hint">
+              Configureer de campussen van deze school. Eén school kan meerdere campussen hebben.
+            </p>
+
+            <label class="checkbox-row">
+              <input type="checkbox" formControlName="hasMultipleCampuses" />
+              Deze school heeft meerdere campussen
+            </label>
+
+            <div class="campus-form-header">
+              <h3 class="modal-section-title">Campussen</h3>
+
+              @if (hasMultipleCampuses) {
+                <button
+                  type="button"
+                  class="campus-add-button"
+                  (click)="addCampusToCreateForm()"
+                >
+                  + Campus
+                </button>
+              }
+            </div>
+
+            <div formArrayName="campuses" class="create-campus-list">
+              @for (
+                _campusGroup of campusControls.controls;
+                track $index;
+                let campusIndex = $index
+              ) {
+                <section class="create-campus-card" [formGroupName]="campusIndex">
+                  <div class="create-campus-card__header">
+                    <strong>Campus {{ campusIndex + 1 }}</strong>
+
+                    @if (hasMultipleCampuses) {
+                      <button
+                        type="button"
+                        class="campus-remove-button"
+                        (click)="removeCampusFromCreateForm(campusIndex)"
+                        [disabled]="campusControls.length === 1"
+                      >
+                        Verwijderen
+                      </button>
+                    }
+                  </div>
+
+                  <div class="modal-field">
+                    <label [for]="'campusName' + campusIndex">Campusnaam</label>
+                    <input
+                      [id]="'campusName' + campusIndex"
+                      type="text"
+                      formControlName="name"
+                      placeholder="bijv. Campus Zuid"
+                    />
+
+                    @if (
+                      isCreateCampusControlInvalid(campusIndex, "name") ||
+                      (campusIndex === 0 && isSingleCampusNameMissing)
+                    ) {
+                      <small class="field-inline-error">{{
+                        getCreateCampusNameError(campusIndex)
+                      }}</small>
+                    }
+                  </div>
+
+                  <div class="modal-field">
+                    <label [for]="'campusAddress' + campusIndex">Adres</label>
+                    <input
+                      [id]="'campusAddress' + campusIndex"
+                      type="text"
+                      formControlName="address"
+                      placeholder="Straat en nummer"
+                    />
+
+                    @if (isCreateCampusControlInvalid(campusIndex, "address")) {
+                      <small class="field-inline-error"
+                        >Adres is verplicht.</small
+                      >
+                    }
+                  </div>
+
+                  <div class="modal-field">
+                    <label [for]="'campusPostalCode' + campusIndex"
+                      >Postcode</label
+                    >
+                    <input
+                      [id]="'campusPostalCode' + campusIndex"
+                      type="number"
+                      formControlName="postalCode"
+                      placeholder="bijv. 2000"
+                    />
+
+                    @if (
+                      isCreateCampusControlInvalid(campusIndex, "postalCode")
+                    ) {
+                      <small class="field-inline-error"
+                        >Postcode moet groter zijn dan 0.</small
+                      >
+                    }
+                  </div>
+
+                  <div class="modal-field">
+                    <label [for]="'campusContactPhone' + campusIndex"
+                      >Telefoonnummer</label
+                    >
+                    <input
+                      [id]="'campusContactPhone' + campusIndex"
+                      type="text"
+                      formControlName="contactPhone"
+                      placeholder="bijv. 03 123 45 67"
+                    />
+                  </div>
+
+                  <div class="modal-field">
+                    <label [for]="'campusContactEmail' + campusIndex"
+                      >E-mailadres</label
+                    >
+                    <input
+                      [id]="'campusContactEmail' + campusIndex"
+                      type="email"
+                      formControlName="contactEmail"
+                      placeholder="bijv. info@school.be"
+                    />
+
+                    @if (
+                      isCreateCampusControlInvalid(campusIndex, "contactEmail")
+                    ) {
+                      <small class="field-inline-error"
+                        >Vul een geldig e-mailadres in.</small
+                      >
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+
+            <p class="modal-required-note">
+              <span class="required-indicator">*</span> Verplicht veld
+            </p>
+
+            <div class="wizard-actions wizard-actions--split">
+              <button
+                type="button"
+                class="action-button action-button--secondary"
+                (click)="goToPreviousStep()"
+              >
+                Vorige
+              </button>
+
+              <button
+                type="button"
+                class="action-button action-button--primary"
+                (click)="goToNextStep()"
+              >
+                Volgende
+              </button>
+            </div>
+          </div>
+        }
+
+        @case (4) {
+          <div class="wizard-step-content">
+            <div class="section-label">Controleren en aanmaken</div>
+
+            <p class="wizard-step-hint">
+              Controleer alle gegevens voordat je de school definitief aanmaakt.
+            </p>
+
+            <div class="wizard-summary-grid">
+              <div class="wizard-summary-main-column">
+                <section class="wizard-summary wizard-summary--main">
+                  <h3 class="wizard-summary__heading">Schoolgegevens</h3>
+                  <dl class="wizard-summary__list">
+                    <div class="wizard-summary__row">
+                      <dt>Schoolnaam</dt>
+                      <dd>{{ schoolForm.controls.name.value ?? '—' }}</dd>
+                    </div>
+                    <div class="wizard-summary__row">
+                      <dt>Domeinnaam</dt>
+                      <dd>{{ schoolForm.controls.domainName.value ?? '—' }}</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section class="wizard-summary">
+                  <h3 class="wizard-summary__heading">OneRoster-integratie</h3>
+                  <dl class="wizard-summary__list">
+                    <div class="wizard-summary__row">
+                      <dt>Client-ID</dt>
+                      <dd>{{ schoolForm.controls.clientId.value ?? '—' }}</dd>
+                    </div>
+                    <div class="wizard-summary__row">
+                      <dt>Client-geheim</dt>
+                      <dd>
+                        @if (schoolForm.controls.clientSecret.value) {
+                          ••••••••
+                        } @else {
+                          —
+                        }
+                      </dd>
+                    </div>
+                  </dl>
+                </section>
+              </div>
+
+              <div class="wizard-summary-sidebar">
+                <section class="wizard-summary">
+                  <h3 class="wizard-summary__heading">Campussen</h3>
+
+                  @if (campusControls.length > 0) {
+                    <div class="wizard-summary-campus-list">
+                      @for (
+                        _campusGroup of campusControls.controls;
+                        track $index;
+                        let campusIndex = $index
+                      ) {
+                        @if (
+                          $any(campusControls.at(campusIndex)).controls
+                            .name.value
+                        ) {
+                          <article class="wizard-summary-campus-card">
+                            <div class="wizard-summary-campus-card__icon">
+                              <lucide-icon [name]="Landmark" class="icon-sm"></lucide-icon>
+                            </div>
+                            <div class="wizard-summary-campus-card__content">
+                              <strong>{{
+                                $any(campusControls.at(campusIndex)).controls
+                                  .name.value
+                              }}</strong>
+                              @if (
+                                $any(campusControls.at(campusIndex)).controls
+                                  .address.value
+                              ) {
+                                <span>{{
+                                  $any(campusControls.at(campusIndex)).controls
+                                    .address.value
+                                }},
+                                {{
+                                  $any(campusControls.at(campusIndex)).controls
+                                    .postalCode.value
+                                }}</span>
+                              }
+                            </div>
+                          </article>
+                        }
+                      }
+                    </div>
+                  } @else {
+                    <p class="wizard-summary__empty">Geen campussen.</p>
+                  }
+                </section>
+              </div>
+            </div>
+
+            <p class="modal-required-note">
+              <span class="required-indicator">*</span> Verplicht veld
+            </p>
+
+            <div class="wizard-actions wizard-actions--split">
+              <button
+                type="button"
+                class="action-button action-button--secondary"
+                (click)="goToPreviousStep()"
+                [disabled]="isSubmitting()"
+              >
+                Vorige
+              </button>
+
+              <button
+                type="submit"
+                class="action-button action-button--primary"
+                [disabled]="isSubmitting()"
+              >
+                {{ isSubmitting() ? "Opslaan..." : "School aanmaken" }}
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </form>
+  </div>
+</div>

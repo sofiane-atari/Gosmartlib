@@ -36,6 +36,7 @@ import { CreateReadingListComponent } from './component/reading-list/create-read
 import { CreateTeacherReadingListComponent } from './component/reading-list/create-teacher-reading-list/create-teacher-reading-list.component';
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
+import { SchoolCreateComponent } from './component/school/school-create/school-create.component';
 import { SettingsComponent } from './component/settings/settings.component';
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
 import { librarianOrAdminGuard } from './guards/authentication/librarian-or-admin.guard';
@@ -139,9 +140,14 @@ export const routes: Routes = [
     component: CreateLoanComponent,
     canActivate: [authGuard, staffOnlyGuard],
   },
-{
+  {
     path: 'schools',
     component: SchoolDashboardComponent,
+    canActivate: [authGuard, adminOnlyGuard],
+  },
+  {
+    path: 'schools/create',
+    component: SchoolCreateComponent,
     canActivate: [authGuard, adminOnlyGuard],
   },
   {

@@ -11,8 +11,10 @@ import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -131,6 +133,17 @@ public class SchoolService {
         }
 
         schoolRepository.deleteById(id);
+    }
+
+    public void checkDomain(String domainName) {
+        String normalized = normalizeDomainName(domainName);
+
+        if (schoolRepository.existsByDomainName(normalized)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Er bestaat al een school met domein '" + domainName + "'."
+            );
+        }
     }
 
     public long getBookCountBySchool(Long schoolId) {

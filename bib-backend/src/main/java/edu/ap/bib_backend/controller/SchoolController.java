@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -63,5 +64,11 @@ public class SchoolController {
     @GetMapping("/books/count")
     public ResponseEntity<Long> getTotalBookCount() {
         return ResponseEntity.ok(schoolService.getTotalBookCount());
+    }
+
+    @GetMapping("/check-domain")
+    public ResponseEntity<Void> checkDomain(@RequestParam String domainName) {
+        schoolService.checkDomain(domainName);
+        return ResponseEntity.ok().build();
     }
 }
