@@ -2,12 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import {
-  TeacherAudienceOptions,
-  CreateReadingListDTO,
-  ReadingListService,
-  ReadingListTargetType
-} from '../../../services/reading-list/reading-list.service';
+import { ReadingListService } from '../../../services/reading-list/reading-list.service';
+import { CreateReadingListDTO, ReadingListTargetType, TeacherAudienceOptions } from '../../../model/readingList.model';
 
 interface ScopeOption {
   value: ReadingListTargetType;
@@ -55,16 +51,6 @@ export class CreateTeacherReadingListComponent implements OnInit {
       label: 'Klassikale lijst',
       description: 'Geldt voor jouw klasgroep.'
     },
-    {
-      value: 'YEAR',
-      label: 'Jaarleeslijst',
-      description: 'Geldt voor het schooljaar van jouw groep.'
-    },
-    {
-      value: 'SCHOOL',
-      label: 'Schoolleeslijst',
-      description: 'Zichtbaar voor de volledige school.'
-    }
   ];
 
   constructor(
@@ -84,7 +70,7 @@ export class CreateTeacherReadingListComponent implements OnInit {
   }
 
   get requiresTargetValue(): boolean {
-    return ['CLASS', 'YEAR', 'SCHOOL'].includes(this.selectedScope);
+    return ['CLASS'].includes(this.selectedScope);
   }
 
   get targetValueLabel(): string {
@@ -92,7 +78,7 @@ export class CreateTeacherReadingListComponent implements OnInit {
       CLASS: 'Klas',
       YEAR: 'Jaar',
       SCHOOL: 'School'
-    }[this.selectedScope as 'CLASS' | 'YEAR' | 'SCHOOL'] ?? 'Doelwaarde';
+    }[this.selectedScope as 'CLASS'] ?? 'Doelwaarde';
   }
 
   get targetValuePlaceholder(): string {
@@ -100,18 +86,12 @@ export class CreateTeacherReadingListComponent implements OnInit {
       CLASS: 'Bijv. 3A',
       YEAR: 'Bijv. 2',
       SCHOOL: 'Bijv. De Stadsschool'
-    }[this.selectedScope as 'CLASS' | 'YEAR' | 'SCHOOL'] ?? '';
+    }[this.selectedScope as 'CLASS'] ?? '';
   }
 
   get currentTargetOptions(): string[] {
     if (this.selectedScope === 'CLASS') {
       return this.audienceOptions.classes;
-    }
-    if (this.selectedScope === 'YEAR') {
-      return this.audienceOptions.years;
-    }
-    if (this.selectedScope === 'SCHOOL') {
-      return this.audienceOptions.schools;
     }
     return [];
   }

@@ -15,6 +15,7 @@ import edu.ap.bib_backend.dto.BookCopyLocationDTO;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.ReadingLevelDTO;
+import edu.ap.bib_backend.dto.TagDTO;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
@@ -23,12 +24,14 @@ import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.entity.Tag;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
+import edu.ap.bib_backend.jpa.repository.TagRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
@@ -56,6 +59,7 @@ public class BookService {
     private final BookLoanRepository bookLoanRepository;
     private final ReadingLevelRepository readingLevelRepository;
     private final CampusRepository campusRepository;
+    private final TagRepository tagRepository;
     private final BookMapper bookMapper;
     private final BookCandidateMapper bookCandidateMapper;
     private final OpenLibraryClient openLibraryClient;
@@ -69,6 +73,7 @@ public class BookService {
             BookLoanRepository bookLoanRepository,
             ReadingLevelRepository readingLevelRepository,
             CampusRepository campusRepository,
+            TagRepository tagRepository,
             BookMapper bookMapper,
             BookCandidateMapper bookCandidateMapper,
             OpenLibraryClient openLibraryClient,
@@ -81,6 +86,7 @@ public class BookService {
         this.bookLoanRepository = bookLoanRepository;
         this.readingLevelRepository = readingLevelRepository;
         this.campusRepository = campusRepository;
+        this.tagRepository = tagRepository;
         this.bookMapper = bookMapper;
         this.bookCandidateMapper = bookCandidateMapper;
         this.openLibraryClient = openLibraryClient;
@@ -124,6 +130,7 @@ public class BookService {
         Book book = bookMapper.toEntity(dto);
         book.setCampus(campus);
         book.setGenres(genresFromDTO(dto.getGenres()));
+        book.setTags(tagsFromDTO(dto.getTags(), campus.getSchool().getId()));
         book.setReadingLevel(resolveReadingLevel(dto.getReadingLevel()));
         return bookRepository.save(book);
     }
@@ -164,6 +171,7 @@ public class BookService {
         book.setReleaseYear(sourceBook.getReleaseYear());
         book.setDidactic(sourceBook.isDidactic());
         book.setGenres(new HashSet<>(sourceBook.getGenres()));
+        book.setTags(new HashSet<>(sourceBook.getTags()));
         book.setReadingLevel(sourceBook.getReadingLevel());
         book.setCampus(targetCampus);
 
@@ -190,6 +198,7 @@ public class BookService {
         bookCopyRepository.deleteByBookId(id);
 
         book.getGenres().clear();
+        book.getTags().clear();
         bookRepository.delete(book);
     }
 
@@ -210,6 +219,9 @@ public class BookService {
         bookMapper.updateEntity(book, dto);
         book.setCampus(campus);
         book.setGenres(genresFromDTO(dto.getGenres()));
+        Set<Tag> tags = tagsFromDTO(dto.getTags(), school.getId());
+        book.setTags(tags);
+        updateTagsForSameBookInSchool(book, school.getId(), tags);
         book.setReadingLevel(resolveReadingLevel(dto.getReadingLevel()));
 
         return bookMapper.toDTO(bookRepository.save(book));
@@ -519,6 +531,37 @@ public class BookService {
             genres.add(genre);
         }
         return genres;
+    }
+
+    private Set<Tag> tagsFromDTO(List<TagDTO> tagsDto, Long schoolId) {
+        Set<Tag> tags = new HashSet<>();
+        if (tagsDto == null) {
+            return tags;
+        }
+
+        for (TagDTO tagDto : tagsDto) {
+            if (tagDto.id() == null) {
+                continue;
+            }
+
+            Tag tag = tagRepository.findByIdInSchool(tagDto.id(), schoolId)
+                    .orElseThrow(() -> new ResourceNotFoundException("tagIds", "Tag bestaat niet: " + tagDto.id()));
+            tags.add(tag);
+        }
+
+        return tags;
+    }
+
+    private void updateTagsForSameBookInSchool(Book book, Long schoolId, Set<Tag> tags) {
+        String isbn = book.getIsbn();
+
+        if (isbn == null || isbn.isBlank()) {
+            return;
+        }
+
+        bookRepository.findAllByIsbnAndCampusSchoolId(isbn, schoolId).stream()
+                .filter(sameBook -> !sameBook.getId().equals(book.getId()))
+                .forEach(sameBook -> sameBook.setTags(new HashSet<>(tags)));
     }
 
     private ReadingLevel resolveReadingLevel(ReadingLevelDTO readingLevelDto) {

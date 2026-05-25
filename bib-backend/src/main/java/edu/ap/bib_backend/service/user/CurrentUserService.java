@@ -5,6 +5,7 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -73,6 +74,12 @@ public class CurrentUserService {
 
     public boolean canSeeDidacticBooks(Authentication authentication) {
         return hasAnyAuthority(authentication, ROLE_TEACHER, ROLE_LIBRARIAN, ROLE_ADMIN);
+    }
+
+    public boolean currentUserHasAnyAuthority(String... allowedAuthorities) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return hasAnyAuthority(authentication, allowedAuthorities);
     }
 
     private boolean hasAnyAuthority(Authentication authentication, String... allowedAuthorities) {

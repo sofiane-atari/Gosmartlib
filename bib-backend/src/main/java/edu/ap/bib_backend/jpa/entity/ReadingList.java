@@ -44,4 +44,10 @@ public class ReadingList {
 
     @Column(name = "share_enabled", nullable = false)
     private boolean shareEnabled = false;
+
+    @Column(name = "show_on_catalog", nullable = false)
+    private boolean showOnCatalog = false;
+
+    @Column(name = "catalog_featured_order")
+    private Integer catalogFeaturedOrder;
 }

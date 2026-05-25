@@ -1,11 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import {
-  ReadingListService,
-  ReadingList,
-  ReadingListTargetType
-} from '../../../services/reading-list/reading-list.service';
+import {ReadingListService} from '../../../services/reading-list/reading-list.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { RoleService } from '../../../services/role-service/role.service';
@@ -19,21 +15,22 @@ import {
   Star,
   User,
   Users,
-  GraduationCap,
-  School,
   BookOpen,
   Book,
   BookCopy,
   LucideIconData
 } from 'lucide-angular';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { ReadingList, ReadingListTargetType } from '../../../model/readingList.model';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-reading-list-overview',
   standalone: true,
   imports: [CommonModule, RouterLink, LucideAngularModule, ButtonHoverHelpComponent],
   templateUrl: './reading-list-overview.component.html',
-  styleUrl: './reading-list-overview.component.css'
+  styleUrl: './reading-list-overview.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class ReadingListOverviewComponent implements OnInit {
 
@@ -41,12 +38,16 @@ export class ReadingListOverviewComponent implements OnInit {
   readonly Trash2 = Trash2;
   readonly EmptyStateIcon = BookOpen;
   readonly EmptyCoverIcon = Book;
+  readonly Star = Star;
 
   private static readonly FAVORITES_NAME = 'favorieten';
   readingLists: ReadingList[] = [];
   listCovers: { [key: number]: string[] } = {};
 
   private static readonly FEATURED_TARGET_TYPE: ReadingListTargetType = 'SYSTEM';
+  private readonly MAX_CATALOG_FEATURED_LISTS = 2;
+  protected readonly BookCopy = BookCopy;
+  isLoadingReadingLists = true;
 
   // Filter state
   selectedFilters: Set<string> = new Set(['ALL']);
@@ -55,8 +56,6 @@ export class ReadingListOverviewComponent implements OnInit {
     { id: 'FEATURED', label: 'Uitgelicht', icon: Star },
     { id: 'PERSONAL', label: 'Persoonlijk', icon: User },
     { id: 'CLASS', label: 'Klaslijsten', icon: Users },
-    { id: 'YEAR', label: 'Jaarlijsten', icon: GraduationCap },
-    { id: 'SCHOOL', label: 'Schoollijsten', icon: School }
   ];
 
   constructor(
@@ -71,9 +70,20 @@ export class ReadingListOverviewComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.readingListService.getLists().subscribe(lists => {
-      this.readingLists = lists;
-      this.fetchCoversForLists(lists);
+    this.isLoadingReadingLists = true;
+
+    this.readingListService.getLists().subscribe({
+      next: (lists) => {
+        this.readingLists = lists;
+        this.fetchCoversForLists(lists);
+        this.isLoadingReadingLists = false;
+      },
+      error: (error) => {
+        console.error('Fout bij laden van leeslijsten:', error);
+        this.readingLists = [];
+        this.isLoadingReadingLists = false;
+        this.toastService.show('Leeslijsten konden niet worden geladen.', 'error');
+      },
     });
   }
 
@@ -224,6 +234,90 @@ export class ReadingListOverviewComponent implements OnInit {
       }
     });
   }
+  get catalogFeaturedLists(): ReadingList[] {
+    return this.readingLists
+      .filter((list) => list.showOnCatalog === true)
+      .sort(
+        (a, b) =>
+          (a.catalogFeaturedOrder ?? Number.MAX_SAFE_INTEGER) -
+          (b.catalogFeaturedOrder ?? Number.MAX_SAFE_INTEGER),
+      );
+  }
 
-  protected readonly BookCopy = BookCopy;
+  canManageCatalogFeaturedLists(): boolean {
+    return this.roleService.canManageReadingLists();
+  }
+
+  isCatalogFeatured(list: ReadingList): boolean {
+    return list.showOnCatalog === true;
+  }
+
+  toggleCatalogFeatured(list: ReadingList, event: Event): void {
+    event.stopPropagation();
+
+    if (!this.canManageCatalogFeaturedLists()) {
+      this.toastService.show('Je hebt geen rechten om uitgelichte cataloguslijsten te beheren.', 'error');
+      return;
+    }
+
+    if (list.targetType !== 'SYSTEM') {
+      this.toastService.show('Alleen uitgelichte lijsten kunnen op de catalogus getoond worden.', 'error');
+      return;
+    }
+
+    if (this.isCatalogFeatured(list)) {
+      this.readingListService.unselectCatalogFeaturedList(list.id).subscribe({
+        next: (selectedLists) => {
+          this.syncCatalogFeaturedSelection(selectedLists);
+          this.toastService.show('Leeslijst wordt niet meer op de catalogus getoond.', 'success');
+        },
+        error: () => {
+          this.toastService.show('De selectie kon niet worden aangepast.', 'error');
+        },
+      });
+
+      return;
+    }
+    const selectedCount = this.catalogFeaturedLists.length;
+
+    if (selectedCount >= this.MAX_CATALOG_FEATURED_LISTS) {
+      const firstSelected = this.catalogFeaturedLists
+        .slice()
+        .sort((a, b) => (a.catalogFeaturedOrder ?? 0) - (b.catalogFeaturedOrder ?? 0))[0];
+
+        this.toastService.showConfirm(
+          `Er kunnen maximaal ${this.MAX_CATALOG_FEATURED_LISTS} uitgelichte leeslijsten op de catalogus staan. Als je doorgaat, wordt "${firstSelected.name}" van de catalogus gehaald en wordt "${list.name}" toegevoegd.`,
+          () => this.selectCatalogFeaturedList(list),
+        );
+
+      return;
+    }
+
+    this.selectCatalogFeaturedList(list);
+  }
+
+  private selectCatalogFeaturedList(list: ReadingList): void {
+    this.readingListService.selectCatalogFeaturedList(list.id).subscribe({
+      next: (selectedLists) => {
+        this.syncCatalogFeaturedSelection(selectedLists);
+        this.toastService.show('Leeslijst wordt nu op de catalogus getoond.', 'success');
+      },
+      error: () => {
+        this.toastService.show('De leeslijst kon niet op de catalogus gezet worden.', 'error');
+      },
+    });
+  }
+
+  private syncCatalogFeaturedSelection(selectedLists: ReadingList[]): void {
+    const selectedIds = new Set(selectedLists.map((list) => list.id));
+    const orderById = new Map(
+      selectedLists.map((list) => [list.id, list.catalogFeaturedOrder ?? null])
+    );
+
+    this.readingLists = this.readingLists.map((list) => ({
+      ...list,
+      showOnCatalog: selectedIds.has(list.id),
+      catalogFeaturedOrder: orderById.get(list.id) ?? null,
+    }));
+  }
 }

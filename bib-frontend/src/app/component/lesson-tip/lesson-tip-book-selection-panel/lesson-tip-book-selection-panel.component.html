@@ -58,7 +58,7 @@
       <p>Vul minstens één zoekveld in om boeken te zoeken.</p>
     </div>
   } @else {
-    <div class="list">
+    <div class="list list--scrollable">
       @for (book of filteredBooks(); track book.isbn13) {
         <div class="list-item book-item book-item--with-cover">
           <div class="book-item__cover">
@@ -86,7 +86,9 @@
                 · ISBN: {{ book.isbn13 }}
               }
             </span>
-            @if (getAvailableCopiesLabel(book) || getSelectedCopiesLabel(book)) {
+            @if (
+              getAvailableCopiesLabel(book) || getSelectedCopiesLabel(book)
+            ) {
               <span class="list-item-meta">
                 {{ getAvailableCopiesLabel(book) }}
                 @if (getSelectedCopiesLabel(book)) {

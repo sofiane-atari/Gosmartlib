@@ -8,17 +8,19 @@ import { ToastService } from '../../../services/toast/toast.service';
 import { BookService } from '../../../services/bookService/book.service';
 import { GenreService } from '../../../services/genre/genre.service';
 import { ReadingLevelsService } from '../../../services/readingLevels/reading-levels.service';
+import { TagService } from '../../../services/tag/tag.service';
 
 import { Book } from '../../../model/book/book.model';
 import { Genre } from '../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
+import { Tag } from '../../../model/tag/tag.model';
 
 @Component({
   selector: 'app-book-edit-page',
   standalone: true,
   imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './book-edit-page.component.html',
-  styleUrl: './book-edit-page.component.scss',
+  styleUrl: './book-edit-page.component.css',
 })
 export class BookEditPageComponent {
   protected readonly infoIcon = Info;
@@ -30,8 +32,10 @@ export class BookEditPageComponent {
   currentBook: Book | null = null;
 
   genres: Genre[] = [];
+  tags: Tag[] = [];
   readingLevels: ReadingLevel[] = [];
   selectedGenres: Genre[] = [];
+  selectedTags: Tag[] = [];
   openedMainGenre: Genre | null = null;
 
   private readonly formBuilder = inject(FormBuilder);
@@ -40,11 +44,12 @@ export class BookEditPageComponent {
     isbn: [''],
     title: ['', [Validators.required, Validators.maxLength(255)]],
     author: ['', [Validators.required, Validators.maxLength(255)]],
-    pages: [1, [Validators.required, Validators.min(1)]],
+    pages: [null as number | null, [Validators.required, Validators.min(1)]],
     imageUrl: ['', [Validators.maxLength(1000)]],
-    description: ['', [Validators.required, Validators.maxLength(5000)]],
-    releaseYear: [new Date().getFullYear(), [Validators.required, Validators.min(0)]],
-    readingLevel: [null as ReadingLevel | null, [Validators.required]],
+    description: ['', [Validators.maxLength(5000)]],
+    releaseYear: [null as number | null, [Validators.required, Validators.min(0)]],
+    readingLevel: [null as ReadingLevel | null],
+    didactic: [false],
   });
 
   constructor(
@@ -53,6 +58,7 @@ export class BookEditPageComponent {
     private bookService: BookService,
     private genreService: GenreService,
     private readingLevelsService: ReadingLevelsService,
+    private tagService: TagService,
     private toastService: ToastService,
   ) {}
 
@@ -61,7 +67,7 @@ export class BookEditPageComponent {
   }
 
   get isSubmitDisabled(): boolean {
-    return this.form.invalid || this.isSaving || !this.isGenreSelectionValid();
+    return this.form.invalid || this.isSaving;
   }
 
   private loadPageData(): void {
@@ -78,6 +84,7 @@ export class BookEditPageComponent {
     this.errorMessage = null;
 
     this.loadGenres();
+    this.loadTags();
     this.loadReadingLevels();
 
     this.bookService
@@ -91,6 +98,7 @@ export class BookEditPageComponent {
         next: (book) => {
           this.currentBook = book;
           this.selectedGenres = book.genres ?? [];
+          this.selectedTags = book.tags ?? [];
 
           // HIER
           const matchedReadingLevel =
@@ -104,7 +112,8 @@ export class BookEditPageComponent {
             imageUrl: book.imageUrl ?? '',
             description: book.description,
             releaseYear: book.releaseYear,
-            readingLevel: matchedReadingLevel
+            readingLevel: matchedReadingLevel,
+            didactic: book.didactic ?? false
           });
 
           setTimeout(() => {
@@ -151,6 +160,17 @@ export class BookEditPageComponent {
     });
   }
 
+  loadTags(): void {
+    this.tagService.getAllTags().subscribe({
+      next: (response) => {
+        this.tags = response.data ?? [];
+      },
+      error: () => {
+        this.toastService.show('Tags konden niet geladen worden.', 'error');
+      },
+    });
+  }
+
   toggleMainGenre(mainGenre: Genre): void {
     if (this.openedMainGenre?.name === mainGenre.name) {
       this.openedMainGenre = null;
@@ -189,6 +209,21 @@ export class BookEditPageComponent {
     return this.selectedGenres.some((g) => g.name === subGenre.name);
   }
 
+  toggleTag(tag: Tag): void {
+    const tagId = Number(tag.id);
+
+    if (this.isTagSelected(tag)) {
+      this.selectedTags = this.selectedTags.filter((selectedTag) => Number(selectedTag.id) !== tagId);
+      return;
+    }
+
+    this.selectedTags = [...this.selectedTags, tag];
+  }
+
+  isTagSelected(tag: Tag): boolean {
+    return this.selectedTags.some((selectedTag) => Number(selectedTag.id) === Number(tag.id));
+  }
+
   findMainGenreForSelectedGenres(): Genre | null {
     const firstSelected = this.selectedGenres[0];
     if (!firstSelected) {
@@ -216,10 +251,15 @@ export class BookEditPageComponent {
     );
   }
 
+  isFieldInvalid(fieldName: keyof typeof this.form.controls): boolean {
+    const field = this.form.get(fieldName);
+    return !!field && field.invalid && field.touched;
+  }
+
   save(): void {
-    if (this.form.invalid || !this.isGenreSelectionValid() || this.isSaving) {
+    if (this.form.invalid || this.isSaving) {
       this.form.markAllAsTouched();
-      this.toastService.show('Controleer eerst alle verplichte velden.', 'error');
+      this.toastService.show('Vul eerst alle verplichte velden in.', 'error');
       return;
     }
 
@@ -245,7 +285,9 @@ export class BookEditPageComponent {
           description: formValue.description?.trim() || '',
           releaseYear: formValue.releaseYear || new Date().getFullYear(),
           readingLevel: formValue.readingLevel ?? undefined,
+          didactic: formValue.didactic ?? false,
           genres: this.selectedGenres,
+          tags: this.selectedTags,
         };
 
         this.bookService

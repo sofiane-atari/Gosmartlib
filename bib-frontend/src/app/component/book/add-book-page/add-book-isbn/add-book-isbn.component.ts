@@ -16,10 +16,12 @@ import { LoadingOverlayComponent } from '../../../shared/loading-overlay/loading
 import { Genre } from '../../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../../model/readingLevel.model';
 import { Campus } from '../../../../model/campus.model';
+import { Tag } from '../../../../model/tag/tag.model';
 import { GenreSelectionBase } from '../../../genre/genre-selection.base';
 import { DraftStorageService } from '../../../../services/storage/draft-storage.service';
 import { addBookIsbnDraft } from '../../../../model/book/add-book-isbn-draft.model';
 import { ButtonHoverHelpComponent } from "../../../shared/button-hover-help/button-hover-help.component";
+import { TagService } from '../../../../services/tag/tag.service';
 
 @Component({
   selector: 'app-add-book-isbn',
@@ -49,6 +51,8 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
   candidates: BookCandidate[] = [];
   showCandidates = false;
   isLoading = false;
+  tags: Tag[] = [];
+  selectedTags: Tag[] = [];
 
   book: Book = {
     title: '',
@@ -58,6 +62,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     description: '',
     releaseYear: null as any,
     genres: [],
+    tags: [],
     didactic: false,
     readingLevel: null as any,
   };
@@ -67,11 +72,13 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     private rt: Router,
     private ts: ToastService,
     private draftStorage: DraftStorageService,
+    private tagService: TagService,
   ) {
     super();
   }
 
   ngOnInit(): void {
+    this.loadTags();
     this.restoreDraft();
 
     this.draftIntervalId = setInterval(() => {
@@ -119,7 +126,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
       return;
     }
 
-    this.bookAdded.emit({ ...this.book, campusId: this.campusId });
+    this.bookAdded.emit({ ...this.book, campusId: this.campusId, tags: this.selectedTags });
     this.clearForm();
   }
 
@@ -180,6 +187,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
       next: (data) => {
         this.book = data;
         this.openedMainGenre = this.findMainGenreForSelectedGenres();
+        this.selectedTags = data.tags ?? [];
         this.selectedBookId = data.id ?? null;
         this.isExistingBookLoaded = !!data.id;
         this.isLoading = false;
@@ -207,6 +215,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     this.openedMainGenre = null;
     this.selectedBookId = null;
     this.isExistingBookLoaded = false;
+    this.selectedTags = [];
     this.clearDraft();
     this.resetGenreSelection();
     this.book = {
@@ -217,6 +226,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
       description: '',
       releaseYear: '' as any,
       genres: [],
+      tags: [],
       didactic: false,
       readingLevel: undefined,
     };
@@ -314,6 +324,39 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
   protected showGenreError(message: string): void {
     this.ts.show(message, 'error');
   }
+
+  toggleTag(tag: Tag): void {
+    if (this.isExistingBookLoaded) {
+      return;
+    }
+
+    const tagId = Number(tag.id);
+
+    if (this.isTagSelected(tag)) {
+      this.selectedTags = this.selectedTags.filter((selectedTag) => Number(selectedTag.id) !== tagId);
+      this.saveDraft();
+      return;
+    }
+
+    this.selectedTags = [...this.selectedTags, tag];
+    this.saveDraft();
+  }
+
+  isTagSelected(tag: Tag): boolean {
+    return this.selectedTags.some((selectedTag) => Number(selectedTag.id) === Number(tag.id));
+  }
+
+  private loadTags(): void {
+    this.tagService.getAllTags().subscribe({
+      next: (response) => {
+        this.tags = response.data ?? [];
+      },
+      error: () => {
+        this.ts.show('Tags konden niet geladen worden.', 'error');
+      },
+    });
+  }
+
   compareReadingLevels = (
     a: ReadingLevel | null,
     b: ReadingLevel | null,
@@ -329,6 +372,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
       candidates: this.candidates,
       showCandidates: this.showCandidates,
       openedMainGenre: this.openedMainGenre,
+      selectedTags: this.selectedTags,
     };
 
     this.draftStorage.saveDraft(this.draftKey, draft);
@@ -348,6 +392,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     this.candidates = draft.candidates ?? [];
     this.showCandidates = draft.showCandidates ?? false;
     this.openedMainGenre = draft.openedMainGenre ?? null;
+    this.selectedTags = draft.selectedTags ?? [];
   }
 
   private clearDraft(): void {

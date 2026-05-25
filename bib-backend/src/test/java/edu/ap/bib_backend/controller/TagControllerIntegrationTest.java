@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -29,6 +31,7 @@ class TagControllerIntegrationTest {
     private ObjectMapper objectMapper;
     private TagService tagService;
     private TagController tagController;
+    private Authentication authentication;
 
     @BeforeEach
     void setUp() {
@@ -36,6 +39,7 @@ class TagControllerIntegrationTest {
 
         tagService = Mockito.mock(TagService.class);
         tagController = new TagController(tagService);
+        authentication = new UsernamePasswordAuthenticationToken("librarian-a", null);
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(tagController)
@@ -170,5 +174,114 @@ class TagControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         Mockito.verify(tagService).deleteTag(1L);
+    }
+
+    @Test
+    void createTag_withAuthentication_shouldUseSchoolScopedService() throws Exception {
+        TagDTO request = new TagDTO(
+                null,
+                "Populair",
+                "Veel gelezen boeken",
+                null,
+                null);
+
+        TagDTO response = new TagDTO(
+                1L,
+                "Populair",
+                "Veel gelezen boeken",
+                0L,
+                null);
+
+        Mockito.when(tagService.createTag(any(TagDTO.class), eq(authentication)))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/tags")
+                .principal(authentication)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Populair"));
+
+        Mockito.verify(tagService).createTag(any(TagDTO.class), eq(authentication));
+    }
+
+    @Test
+    void getTags_withAuthentication_shouldUseSchoolScopedService() throws Exception {
+        PageDTO<TagDTO> response = new PageDTO<>(
+                List.of(new TagDTO(1L, "Fantasy", "Fantasy boeken", 0L, null)),
+                new PaginatedMeta(0, 10, 1, 1));
+
+        Mockito.when(tagService.getTagsByPage(
+                eq(0),
+                eq(10),
+                eq("fant"),
+                isNull(),
+                eq(true),
+                eq(authentication)))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/tags")
+                .principal(authentication)
+                .param("search", "fant")
+                .param("includeBookCount", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].name").value("Fantasy"));
+
+        Mockito.verify(tagService).getTagsByPage(0, 10, "fant", null, true, authentication);
+    }
+
+    @Test
+    void getTagStats_withAuthentication_shouldUseSchoolScopedService() throws Exception {
+        Mockito.when(tagService.getTagStats(authentication))
+                .thenReturn(new TagStatsDTO(2L, 2L));
+
+        mockMvc.perform(get("/tags/stats")
+                .principal(authentication))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalItems").value(2))
+                .andExpect(jsonPath("$.unActiveTags").value(2));
+
+        Mockito.verify(tagService).getTagStats(authentication);
+    }
+
+    @Test
+    void updateTag_withAuthentication_shouldUseSchoolScopedService() throws Exception {
+        TagDTO request = new TagDTO(
+                1L,
+                "Nieuw",
+                "Nieuwe beschrijving",
+                null,
+                null);
+
+        TagDTO response = new TagDTO(
+                1L,
+                "Nieuw",
+                "Nieuwe beschrijving",
+                0L,
+                null);
+
+        Mockito.when(tagService.updateTag(eq(1L), any(TagDTO.class), eq(authentication)))
+                .thenReturn(response);
+
+        mockMvc.perform(put("/tags/{id}", 1L)
+                .principal(authentication)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Nieuw"));
+
+        Mockito.verify(tagService).updateTag(eq(1L), any(TagDTO.class), eq(authentication));
+    }
+
+    @Test
+    void deleteTag_withAuthentication_shouldUseSchoolScopedService() throws Exception {
+        mockMvc.perform(delete("/tags/{id}", 1L)
+                .principal(authentication))
+                .andExpect(status().isOk());
+
+        Mockito.verify(tagService).deleteTag(1L, authentication);
     }
 }

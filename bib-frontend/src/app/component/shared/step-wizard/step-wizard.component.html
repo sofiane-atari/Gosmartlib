@@ -1,0 +1,14 @@
+<div class="step-row step-row--wizard">
+  @for (wizardStep of steps(); track wizardStep.step) {
+    <button
+      type="button"
+      [class]="getStepItemClass(wizardStep.step)"
+      [disabled]="isStepDisabled(wizardStep.step)"
+      (click)="selectStep(wizardStep.step)"
+    >
+      <span class="step-num">Stap {{ wizardStep.step }}</span>
+      <span class="step-title">{{ wizardStep.title }}</span>
+      <span class="step-desc">{{ wizardStep.description }}</span>
+    </button>
+  }
+</div>

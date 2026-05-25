@@ -65,6 +65,9 @@ public class School {
     @Column(name = "provider_type", nullable = false)
     private ProviderType providerType = ProviderType.REAL;
 
+    @Column(name = "last_sync_at")
+    private LocalDateTime lastSyncAt;
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
 

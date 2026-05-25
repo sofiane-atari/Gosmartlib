@@ -9,6 +9,7 @@ import edu.ap.bib_backend.projection.report.TopRatedBookProjection;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.data.domain.PageRequest;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -125,5 +126,51 @@ class ReportStatisticsQueryServiceTest {
         assertThat(result.get(0).imageUrl()).isEqualTo("hobbit.jpg");
         assertThat(result.get(0).averageRating()).isEqualTo(4.57);
         assertThat(result.get(0).reviewCount()).isEqualTo(5L);
+    }
+
+    @Test
+    void findPopularGenresForSchool_mapsProjectionToDto() {
+        PopularGenreProjection projection = mock(PopularGenreProjection.class);
+
+        when(projection.getGenreId()).thenReturn(1L);
+        when(projection.getName()).thenReturn("Fantasy");
+        when(projection.getColor()).thenReturn("#8A1E41");
+        when(projection.getLoanCount()).thenReturn(9L);
+
+        when(loanRepository.findPopularGenresForSchool(1L, null, PageRequest.of(0, 5)))
+                .thenReturn(List.of(projection));
+
+        List<PopularGenreDTO> result = service.findPopularGenresForSchool(1L, null, PageRequest.of(0, 5));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).genreId()).isEqualTo(1L);
+        assertThat(result.get(0).name()).isEqualTo("Fantasy");
+        assertThat(result.get(0).color()).isEqualTo("#8A1E41");
+        assertThat(result.get(0).loanCount()).isEqualTo(9L);
+    }
+
+    @Test
+    void findTopRatedBooksForSchool_mapsProjectionToDtoAndRoundsRating() {
+        TopRatedBookProjection projection = mock(TopRatedBookProjection.class);
+
+        when(projection.getBookId()).thenReturn(10L);
+        when(projection.getTitle()).thenReturn("De Hobbit");
+        when(projection.getAuthor()).thenReturn("J.R.R. Tolkien");
+        when(projection.getImageUrl()).thenReturn("hobbit.jpg");
+        when(projection.getAverageRating()).thenReturn(4.567);
+        when(projection.getReviewCount()).thenReturn(3L);
+
+        when(reviewRepository.findTopRatedBooksForSchool(1L, null, PageRequest.of(0, 10)))
+                .thenReturn(List.of(projection));
+
+        List<TopRatedBookReportDTO> result = service.findTopRatedBooksForSchool(1L, null, PageRequest.of(0, 10));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).bookId()).isEqualTo(10L);
+        assertThat(result.get(0).title()).isEqualTo("De Hobbit");
+        assertThat(result.get(0).author()).isEqualTo("J.R.R. Tolkien");
+        assertThat(result.get(0).imageUrl()).isEqualTo("hobbit.jpg");
+        assertThat(result.get(0).averageRating()).isEqualTo(4.57);
+        assertThat(result.get(0).reviewCount()).isEqualTo(3L);
     }
 }

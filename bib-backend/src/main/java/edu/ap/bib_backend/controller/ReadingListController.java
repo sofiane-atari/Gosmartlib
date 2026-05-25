@@ -36,8 +36,7 @@ public class ReadingListController {
     public ReadingListController(
             ReadingListService readingListService,
             OneRosterAudienceService oneRosterAudienceService,
-            JwtService jwtService
-    ) {
+            JwtService jwtService) {
         this.readingListService = readingListService;
         this.oneRosterAudienceService = oneRosterAudienceService;
         this.jwtService = jwtService;
@@ -57,8 +56,7 @@ public class ReadingListController {
     @GetMapping("/shared/{publicShareId}")
     public ResponseEntity<ReadingListResponseDTO> getSharedReadingList(
             @PathVariable String publicShareId,
-            Principal principal
-    ) {
+            Principal principal) {
         requireUserId(principal);
 
         ReadingList list = readingListService.getSharedList(publicShareId);
@@ -68,8 +66,7 @@ public class ReadingListController {
     @GetMapping("/{id}")
     public ResponseEntity<ReadingListResponseDTO> getReadingListById(
             @PathVariable("id") Long id,
-            Principal principal
-    ) {
+            Principal principal) {
         ReadingList list = readingListService.getListById(requireUserId(principal), id);
         return ResponseEntity.ok(toReadingListResponse(list));
     }
@@ -77,17 +74,26 @@ public class ReadingListController {
     @PostMapping
     public ResponseEntity<ReadingListResponseDTO> createReadingList(
             @RequestBody ReadingListDTO dto,
-            Principal principal
-    ) {
+            Principal principal) {
         ReadingList created = readingListService.createReadingList(requireUserId(principal), dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(toReadingListResponse(created));
+    }
+
+    @GetMapping("/featured/catalog")
+    public ResponseEntity<List<ReadingListResponseDTO>> getCatalogFeaturedLists(Principal principal) {
+        List<ReadingListResponseDTO> lists = readingListService
+                .getCatalogFeaturedListsForCurrentUserCampus(requireUserId(principal))
+                .stream()
+                .map(this::toReadingListResponse)
+                .toList();
+
+        return ResponseEntity.ok(lists);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReadingList(
             @PathVariable("id") Long id,
-            Principal principal
-    ) {
+            Principal principal) {
         readingListService.deleteReadingList(requireUserId(principal), id);
         return ResponseEntity.noContent().build();
     }
@@ -96,13 +102,11 @@ public class ReadingListController {
     public ResponseEntity<ReadingListBookResponseDTO> addBookToList(
             @PathVariable("listId") Long listId,
             @RequestBody AddBookDTO dto,
-            Principal principal
-    ) {
+            Principal principal) {
         ReadingListBook addedBook = readingListService.addBookToList(
                 requireUserId(principal),
                 listId,
-                dto.bookId()
-        );
+                dto.bookId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(toReadingListBookResponse(addedBook));
     }
@@ -110,12 +114,10 @@ public class ReadingListController {
     @PostMapping("/favorites/books")
     public ResponseEntity<ReadingListBookResponseDTO> addBookToFavorites(
             @RequestBody AddBookDTO dto,
-            Principal principal
-    ) {
+            Principal principal) {
         ReadingListBook addedBook = readingListService.addBookToFavorites(
                 requireUserId(principal),
-                dto.bookId()
-        );
+                dto.bookId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(toReadingListBookResponse(addedBook));
     }
@@ -124,23 +126,19 @@ public class ReadingListController {
     public ResponseEntity<ReadingListShareDTO> shareReadingList(
             @PathVariable("id") Long id,
             @RequestParam(required = false) String frontendBaseUrl,
-            Principal principal
-    ) {
+            Principal principal) {
         return ResponseEntity.ok(
                 readingListService.enableSharing(
                         requireUserId(principal),
                         id,
-                        frontendBaseUrl
-                )
-        );
+                        frontendBaseUrl));
     }
 
     @DeleteMapping("/{listId}/books/{bookId}")
     public ResponseEntity<Void> removeBookFromList(
             @PathVariable("listId") Long listId,
             @PathVariable("bookId") Long bookId,
-            Principal principal
-    ) {
+            Principal principal) {
         readingListService.removeBookFromList(requireUserId(principal), listId, bookId);
         return ResponseEntity.noContent().build();
     }
@@ -149,8 +147,7 @@ public class ReadingListController {
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<OneRosterAudienceOptionsDto> getTeacherAudienceOptions(
             HttpServletRequest request,
-            Principal principal
-    ) {
+            Principal principal) {
         String schoolCode = requireSchoolCodeFromAuthentication(request);
         String classCode = readClassCodeFromAuthentication();
         String userId = requireUserId(principal);
@@ -161,6 +158,32 @@ public class ReadingListController {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @PostMapping("/{id}/catalog-featured")
+    public ResponseEntity<List<ReadingListResponseDTO>> selectCatalogFeaturedList(
+            @PathVariable Long id,
+            Principal principal) {
+        List<ReadingListResponseDTO> lists = readingListService
+                .selectFeaturedListForCatalog(requireUserId(principal), id)
+                .stream()
+                .map(this::toReadingListResponse)
+                .toList();
+
+        return ResponseEntity.ok(lists);
+    }
+
+    @DeleteMapping("/{id}/catalog-featured")
+    public ResponseEntity<List<ReadingListResponseDTO>> unselectCatalogFeaturedList(
+            @PathVariable Long id,
+            Principal principal) {
+        List<ReadingListResponseDTO> lists = readingListService
+                .unselectFeaturedListForCatalog(requireUserId(principal), id)
+                .stream()
+                .map(this::toReadingListResponse)
+                .toList();
+
+        return ResponseEntity.ok(lists);
     }
 
     private ReadingListResponseDTO toReadingListResponse(ReadingList list) {
@@ -174,20 +197,20 @@ public class ReadingListController {
                 list.getTargetValue(),
                 list.getPublicShareId(),
                 list.isShareEnabled(),
+                list.isShowOnCatalog(),
+                list.getCatalogFeaturedOrder(),
                 list.getBooks() == null
                         ? List.of()
                         : list.getBooks()
-                        .stream()
-                        .map(this::toReadingListBookResponse)
-                        .toList()
-        );
+                                .stream()
+                                .map(this::toReadingListBookResponse)
+                                .toList());
     }
 
     private ReadingListBookResponseDTO toReadingListBookResponse(ReadingListBook book) {
         return new ReadingListBookResponseDTO(
                 book.getId(),
-                book.getBookId()
-        );
+                book.getBookId());
     }
 
     private String requireUserId(Principal principal) {

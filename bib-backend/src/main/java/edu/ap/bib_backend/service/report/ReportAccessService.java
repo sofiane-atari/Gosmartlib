@@ -36,4 +36,31 @@ public class ReportAccessService {
                     "Alleen leerkrachten en bibliothecarissen kunnen klasrapporten bekijken");
         }
     }
+
+    public void requireSameSchoolOrAdmin(Authentication authentication, Long userSchoolId, Long requestedSchoolId) {
+        if (requestedSchoolId == null || requestedSchoolId.equals(userSchoolId) || hasRole(authentication, "ROLE_ADMIN")) {
+            return;
+        }
+
+        throw new ResponseStatusException(
+                FORBIDDEN,
+                "Je hebt geen toegang tot rapporten van deze school");
+    }
+
+    public void requireAdmin(Authentication authentication) {
+        if (hasRole(authentication, "ROLE_ADMIN")) {
+            return;
+        }
+
+        throw new ResponseStatusException(
+                FORBIDDEN,
+                "Alleen administrators kunnen systeemrapporten bekijken");
+    }
+
+    private boolean hasRole(Authentication authentication, String role) {
+        return authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(authority -> authority.equalsIgnoreCase(role));
+    }
 }

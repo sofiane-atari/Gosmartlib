@@ -12,6 +12,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import edu.ap.bib_backend.projection.report.PopularGenreProjection;
+import edu.ap.bib_backend.projection.report.ClassLoanActivityProjection;
+import edu.ap.bib_backend.projection.report.LoanVolumePeriodProjection;
+import edu.ap.bib_backend.projection.report.PopularLoanedBookProjection;
 
 public interface LoanRepository extends JpaRepository<Loan, Long> {
 
@@ -134,6 +137,165 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         limit 6
                         """, nativeQuery = true)
         List<PopularGenreProjection> findPopularGenresForUsers(@Param("userIds") List<String> userIds);
+
+        @Query(value = """
+                        select g.id as genreId,
+                               g.name as name,
+                               g.color as color,
+                               count(*) as loanCount
+                        from loans l
+                        join users u on u.id = l.user_id
+                        join auth_sessions s on s.user_id = u.id
+                        join loan_copies lc on lc.loan_id = l.id
+                        join book_copies bc on bc.id = lc.book_copy_id
+                        join book_genres bg on bg.book_id = bc.book_id
+                        join genres g on g.id = bg.genre_id
+                        where u.school_id = :schoolId
+                        and s.smartschool_refresh_token is not null
+                        and (s.smartschool_refresh_token_expires_at is null or s.smartschool_refresh_token_expires_at > current_timestamp)
+                        and (:campusId is null or l.campus_id = :campusId)
+                        group by g.id, g.name, g.color
+                        order by loanCount desc, g.name asc
+                        """, nativeQuery = true)
+        List<PopularGenreProjection> findPopularGenresForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId,
+                Pageable pageable);
+
+        @Query("""
+                        select bc.book.id as bookId,
+                               bc.book.title as title,
+                               bc.book.author as author,
+                               bc.book.imageUrl as imageUrl,
+                               count(bc.id) as loanCount
+                        from Loan l
+                        join l.copies bc
+                        where l.campus.school.id = :schoolId
+                        and (:campusId is null or l.campus.id = :campusId)
+                        group by bc.book.id, bc.book.title, bc.book.author, bc.book.imageUrl
+                        order by count(bc.id) desc, bc.book.title asc
+                        """)
+        List<PopularLoanedBookProjection> findPopularLoanedBooksForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId,
+                Pageable pageable);
+
+        @Query("""
+                        select bc.book.id as bookId,
+                               bc.book.title as title,
+                               bc.book.author as author,
+                               bc.book.imageUrl as imageUrl,
+                               count(bc.id) as loanCount
+                        from Loan l
+                        join l.copies bc
+                        group by bc.book.id, bc.book.title, bc.book.author, bc.book.imageUrl
+                        order by count(bc.id) desc, bc.book.title asc
+                        """)
+        List<PopularLoanedBookProjection> findPopularLoanedBooksForSystem(Pageable pageable);
+
+        @Query("""
+                        select year(l.loanDate) as year,
+                               month(l.loanDate) as month,
+                               count(l.id) as loanCount
+                        from Loan l
+                        where l.campus.school.id = :schoolId
+                        and (:campusId is null or l.campus.id = :campusId)
+                        and l.loanDate is not null
+                        group by year(l.loanDate), month(l.loanDate)
+                        order by year(l.loanDate), month(l.loanDate)
+                        """)
+        List<LoanVolumePeriodProjection> findMonthlyLoanVolumeForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId);
+
+        @Query("""
+                        select year(l.loanDate) as year,
+                               month(l.loanDate) as month,
+                               count(l.id) as loanCount
+                        from Loan l
+                        where l.loanDate is not null
+                        group by year(l.loanDate), month(l.loanDate)
+                        order by year(l.loanDate), month(l.loanDate)
+                        """)
+        List<LoanVolumePeriodProjection> findMonthlyLoanVolumeForSystem();
+
+        @Query("""
+                        select coalesce(g.name, 'Geen klas') as classTitle,
+                               count(distinct u.id) as studentCount,
+                               count(bc.id) as totalLoans,
+                               sum(case when l.returnedDate is null then 1 else 0 end) as activeLoans
+                        from Loan l
+                        join l.user u
+                        left join u.groups g
+                        join l.copies bc
+                        where l.campus.school.id = :schoolId
+                        and (:campusId is null or l.campus.id = :campusId)
+                        group by coalesce(g.name, 'Geen klas')
+                        order by count(bc.id) desc, coalesce(g.name, 'Geen klas') asc
+                        """)
+        List<ClassLoanActivityProjection> findClassLoanActivityForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId);
+
+        @Query("""
+                        select count(distinct u.id)
+                        from User u
+                        where u.school.id = :schoolId
+                        and (:campusId is null or u.campus.id = :campusId)
+                        and size(u.groups) > 0
+                        """)
+        long countStudentsWithClassForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId);
+
+        @Query("""
+                        select count(distinct g.name)
+                        from User u
+                        join u.groups g
+                        where u.school.id = :schoolId
+                        and (:campusId is null or u.campus.id = :campusId)
+                        """)
+        long countClassesForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId);
+
+        @Query("""
+                        select count(bc.id)
+                        from Loan l
+                        join l.copies bc
+                        where l.campus.school.id = :schoolId
+                        and (:campusId is null or l.campus.id = :campusId)
+                        """)
+        long countLoanedBookCopiesForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId);
+
+        @Query("""
+                        select count(bc.id)
+                        from Loan l
+                        join l.copies bc
+                        where l.campus.school.id = :schoolId
+                        and (:campusId is null or l.campus.id = :campusId)
+                        and l.returnedDate is null
+                        """)
+        long countActiveLoanedBookCopiesForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId);
+
+        @Query("""
+                        select count(bc.id)
+                        from Loan l
+                        join l.copies bc
+                        """)
+        long countLoanedBookCopiesForSystem();
+
+        @Query("""
+                        select count(bc.id)
+                        from Loan l
+                        join l.copies bc
+                        where l.returnedDate is null
+                        """)
+        long countActiveLoanedBookCopiesForSystem();
 
         long countByReturnedDateIsNullAndReturnDateGreaterThanEqual(LocalDate today);
 

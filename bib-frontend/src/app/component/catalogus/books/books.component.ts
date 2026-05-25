@@ -14,8 +14,8 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { BookFilters } from '../../../model/book/bookFilter.model';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { combineLatest, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   LucideAngularModule,
@@ -34,6 +34,10 @@ import { Genre } from '../../../model/genre/genre.model';
 import { GenreService } from '../../../services/genre/genre.service';
 import { GenrePickerComponent } from '../../shared/genre-picker/genre-picker/genre-picker.component';
 import { CampusService } from '../../../services/campus/campus.service';
+import { ReadingList } from '../../../model/readingList.model';
+import { FeaturedReadingListsSidebarComponent } from "../featured-reading-lists-sidebar/featured-reading-lists-sidebar.component";
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
+import { UserSettingsService } from '../../../services/user-settings/user-settings.service';
 
 @Component({
   selector: 'app-books',
@@ -45,9 +49,11 @@ import { CampusService } from '../../../services/campus/campus.service';
     BookListSidebarComponent,
     PagingComponent,
     GenrePickerComponent,
-  ],
+    FeaturedReadingListsSidebarComponent
+],
   templateUrl: './books.component.html',
   styleUrl: './books.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class BooksComponent implements OnInit {
   readonly Book = BookPlus;
@@ -73,6 +79,8 @@ export class BooksComponent implements OnInit {
     totalPages: 0,
   });
 
+  
+
   protected readonly catalogLoading = signal(false);
 
   protected readonly mostReadBooks = signal<Book[]>([]);
@@ -90,7 +98,11 @@ export class BooksComponent implements OnInit {
   protected readonly hasMultipleCampuses = signal(false);
 
   protected readonly currentPage = signal(0);
-  private readonly pageSize = signal(10);
+  private readonly pageSize = signal(15);
+  protected readonly userSettingsService = inject(UserSettingsService);
+
+  featuredReadingLists: ReadingList[] = [];
+  isLoadingFeaturedReadingLists = false;
 
   constructor() {
     effect(() => {
@@ -131,6 +143,16 @@ export class BooksComponent implements OnInit {
     genreName: null,
   });
 
+  protected readonly catalogSidebarHidden$ = combineLatest([
+    this.userSettingsService.catalogFeaturedListsEnabled$,
+    this.userSettingsService.catalogMostReadEnabled$,
+    this.userSettingsService.catalogNewestEnabled$,
+  ]).pipe(
+    map(([featuredEnabled, mostReadEnabled, newestEnabled]) =>
+      !featuredEnabled && !mostReadEnabled && !newestEnabled
+    )
+  );
+  
   ngOnInit(): void {
     const parsedFilters: BookFilters | null = this.getSavedFilters();
 
@@ -145,6 +167,23 @@ export class BooksComponent implements OnInit {
     this.loadGenres();
     this.loadCampuses();
     this.loadSidebarBooks();
+    this.loadFeaturedReadingLists();
+  }
+
+  private loadFeaturedReadingLists(): void {
+    this.isLoadingFeaturedReadingLists = true;
+
+    this.readingListService.getCatalogFeaturedLists().subscribe({
+      next: (lists) => {
+        this.featuredReadingLists = lists;
+        this.isLoadingFeaturedReadingLists = false;
+      },
+      error: (error) => {
+        console.error('Fout bij laden van uitgelichte leeslijsten', error);
+        this.featuredReadingLists = [];
+        this.isLoadingFeaturedReadingLists = false;
+      },
+    });
   }
 
   private loadCampuses(): void {
@@ -191,14 +230,7 @@ export class BooksComponent implements OnInit {
       });
   }
 
-  protected getBookCampusLabel(book: Book): string | null {
-    const campuses = book.availableCampuses?.filter((campus) => campus?.trim()) ?? [];
-    if (campuses.length > 0) {
-      return campuses.join(', ');
-    }
 
-    return book.campusName?.trim() || null;
-  }
 
   private loadFilterBounds(): void {
     this.bookService.getMaxPages().subscribe({
@@ -524,4 +556,5 @@ export class BooksComponent implements OnInit {
     this.currentPage.set(page);
     this.loadCatalogBooks();
   }
+  
 }

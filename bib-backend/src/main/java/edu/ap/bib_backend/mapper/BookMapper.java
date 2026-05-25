@@ -7,8 +7,10 @@ import org.springframework.stereotype.Component;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.ReadingLevelDTO;
+import edu.ap.bib_backend.dto.TagDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.Genre;
+import edu.ap.bib_backend.jpa.entity.Tag;
 
 @Component
 public class BookMapper {
@@ -34,6 +36,10 @@ public class BookMapper {
         // Simpele mapping voor Genre (zonder DB call)
         dto.setGenres(book.getGenres().stream()
                 .map(this::genreToDTO)
+                .toList());
+
+        dto.setTags(book.getTags().stream()
+                .map(this::tagToDTO)
                 .toList());
 
         if (book.getReadingLevel() != null) {
@@ -84,5 +90,9 @@ public class BookMapper {
                 .name(genre.getName())
                 .color(genre.getColor())
                 .build();
+    }
+
+    private TagDTO tagToDTO(Tag tag) {
+        return new TagDTO(tag.getId(), tag.getName(), tag.getDescription(), null, tag.getCreatedAt());
     }
 }

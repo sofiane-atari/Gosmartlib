@@ -56,4 +56,19 @@ export class SettingsComponent {
     const input = event.target as HTMLInputElement;
     this.userSettingsService.setHoverHelpEnabled(input.checked);
   }
+  
+  protected toggleCatalogFeaturedLists(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.userSettingsService.setCatalogFeaturedListsEnabled(input.checked);
+  }
+
+  protected toggleCatalogMostRead(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.userSettingsService.setCatalogMostReadEnabled(input.checked);
+  }
+
+  protected toggleCatalogNewest(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.userSettingsService.setCatalogNewestEnabled(input.checked);
+  }
 }

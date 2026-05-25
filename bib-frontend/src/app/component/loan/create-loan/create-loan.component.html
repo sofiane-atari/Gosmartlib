@@ -5,76 +5,139 @@
       <p class="eyebrow">Uitleenbeheer</p>
       <h1>Lening aanmaken</h1>
       <p class="intro">
-        Kies een gebruiker, selecteer één of meerdere beschikbare boeken en
-        leg een terugbrengdatum vast.
+        Kies een gebruiker, selecteer één of meerdere beschikbare boeken en leg
+        een terugbrengdatum vast.
       </p>
     </div>
     <div class="header-actions">
-      <button class="clear-btn" (click)="requestClearAllProgress()">Wis alle voortgang</button>
+      <button
+        type="button"
+        class="clear-btn"
+        (click)="requestClearAllProgress()"
+      >
+        Wis alle voortgang
+      </button>
     </div>
   </header>
 
-  <section class="step-overview">
-    <div class="step-item">
-      <span class="step-num">Stap 1</span>
-      <span class="step-title">Selecteer een gebruiker</span>
-      <span class="step-desc">Zoek op naam.</span>
-    </div>
-    <div class="step-item">
-      <span class="step-num">Stap 2</span>
-      <span class="step-title">Kies boeken</span>
-      <span class="step-desc">Zoek op titel, auteur of ISBN.</span>
-    </div>
-    <div class="step-item">
-      <span class="step-num">Stap 3</span>
-      <span class="step-title">Bevestig de lening</span>
-      <span class="step-desc">Controleer de selectie en datum.</span>
-    </div>
-  </section>
+  <app-step-wizard
+    [steps]="wizardSteps"
+    [currentStep]="currentStep()"
+    [maxReachableStep]="maxReachableStep()"
+    (stepSelected)="setCurrentStep($event)"
+  />
 
-  <app-user-selection-panel [isLoadingUsers]="isLoadingUsers()" [users]="users()" [selectedUser]="selectedUser()"
-    [searchFirstname]="searchFirstname()" [searchLastname]="searchLastname()"
-    (firstnameChanged)="onFirstnameSearchChange($event)"
-    (lastnameChanged)="onLastnameSearchChange($event)"
-    (searchTriggered)="searchUsers()"
-    (userSelected)="selectUser($event)"
-    (clearSelectedUserRequested)="clearSelectedUser()" />
+  @if (currentStep() === 1) {
+    <app-user-selection-panel
+      [isLoadingUsers]="isLoadingUsers()"
+      [users]="users()"
+      [selectedUser]="selectedUser()"
+      [searchFirstname]="searchFirstname()"
+      [searchLastname]="searchLastname()"
+      (firstnameChanged)="onFirstnameSearchChange($event)"
+      (lastnameChanged)="onLastnameSearchChange($event)"
+      (searchTriggered)="searchUsers()"
+      (userSelected)="selectUser($event)"
+      (clearSelectedUserRequested)="clearSelectedUser()"
+    />
 
-  @if (selectedUser() !== null && hasValidRefreshToken() === false) {
-    <div class="warning-banner">
-      <span class="warning-icon">⚠️</span>
-      <div>
-        <strong>Waarschuwing:</strong> Deze gebruiker heeft nog niet succesvol ingelogd of de sessie is verlopen. Er worden <strong>geen</strong> bevestigingsmails of herinneringen gestuurd totdat hij/zij minstens één keer inlogt.
+    @if (selectedUser() !== null && hasValidRefreshToken() === false) {
+      <div class="warning-banner">
+        <span class="warning-icon">⚠️</span>
+        <div>
+          <strong>Waarschuwing:</strong>
+          Deze gebruiker heeft nog niet succesvol ingelogd of de sessie is
+          verlopen. Er worden <strong>geen</strong> bevestigingsmails of
+          herinneringen gestuurd totdat hij/zij minstens één keer inlogt.
+        </div>
       </div>
+    }
+
+    <div class="wizard-actions">
+      <button
+        type="button"
+        class="action-button action-button--primary"
+        [disabled]="selectedUser() === null"
+        (click)="goToNextStep()"
+      >
+        Verder naar boeken
+      </button>
     </div>
   }
 
-  @if (selectedUser() !== null) {
+  @if (currentStep() === 2 && selectedUser() !== null) {
     <app-scan-isbn
       [scannedBooks]="scannedBooks()"
       (scannedIsbn)="handleScannedIsbn($event)"
       (removeLastScannedRequested)="removeLastScannedBook()"
     />
-    <app-book-selection-panel [hasSelectedUser]="selectedUser() !== null" [selectedBooksCount]="selectedBooks().length"
-      [searchQuery]="bookSearchQuery()" [searchIsbn]="bookSearchIsbn()" [isLoadingBooks]="isLoadingBooks()"
-      [hasBookSearchInput]="hasBookSearchInput()" [filteredBooks]="filteredBooks()"
-      [selectedBookIds]="selectedBookIds()" [selectedBookCounts]="selectedBookCounts()"
-      (searchQueryChanged)="onBookSearchQueryChange($event)" (isbnSearchChanged)="onBookIsbnSearchChange($event)"
-      (addBookRequested)="addBook($event)" />
+
+    <app-book-selection-panel
+      [hasSelectedUser]="selectedUser() !== null"
+      [selectedBooksCount]="selectedBooks().length"
+      [searchQuery]="bookSearchQuery()"
+      [searchIsbn]="bookSearchIsbn()"
+      [isLoadingBooks]="isLoadingBooks()"
+      [hasBookSearchInput]="hasBookSearchInput()"
+      [filteredBooks]="filteredBooks()"
+      [selectedBookIds]="selectedBookIds()"
+      [selectedBookCounts]="selectedBookCounts()"
+      (searchQueryChanged)="onBookSearchQueryChange($event)"
+      (isbnSearchChanged)="onBookIsbnSearchChange($event)"
+      (addBookRequested)="addBook($event)"
+    />
+
+    <div class="wizard-actions wizard-actions--between">
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        (click)="goToPreviousStep()"
+      >
+        Terug naar gebruiker
+      </button>
+
+      <button
+        type="button"
+        class="action-button action-button--primary"
+        [disabled]="selectedBooks().length === 0"
+        (click)="goToNextStep()"
+      >
+        Verder naar controle
+      </button>
+    </div>
   }
 
-  @if (selectedUser() !== null && selectedBooks().length > 0) {
-    <app-loan-summary-panel [loanForm]="loanForm" [minReturnDate]="minReturnDate()"
-      [selectedBooks]="selectedBooks()" [selectedBookCounts]="selectedBookCounts()"
+  @if (
+    currentStep() === 3 && selectedUser() !== null && selectedBooks().length > 0
+  ) {
+    <app-loan-summary-panel
+      [loanForm]="loanForm"
+      [minReturnDate]="minReturnDate()"
+      [selectedBooks]="selectedBooks()"
+      [selectedBookCounts]="selectedBookCounts()"
       [selectedCopyIdsByBook]="selectedCopyIdsByBook()"
       [selectedCampusId]="selectedCampusId()"
-      [hasSelectedUser]="selectedUser() !== null" [isSubmitting]="isSubmitting()"
+      [hasSelectedUser]="selectedUser() !== null"
+      [isSubmitting]="isSubmitting()"
       [isCustomDate]="isCustomDate()"
       (createLoanRequested)="createLoan()"
       (removeBookRequested)="removeBook($event)"
-      (copySelectionChanged)="updateSelectedCopy($event.bookId, $event.index, $event.copyId)"
+      (copySelectionChanged)="
+        updateSelectedCopy($event.bookId, $event.index, $event.copyId)
+      "
       (customDateRequested)="onCustomDate()"
-      (useDefaultRequested)="onUseDefaultDate()" />
+      (useDefaultRequested)="onUseDefaultDate()"
+    />
+
+    <div class="wizard-actions wizard-actions--start">
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        (click)="goToPreviousStep()"
+      >
+        Terug naar boeken
+      </button>
+    </div>
   }
 </section>
 

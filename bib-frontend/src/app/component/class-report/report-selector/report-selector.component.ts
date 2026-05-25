@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Users, Building2 } from 'lucide-angular';
+import { LucideAngularModule, Users, Building2, BarChart3 } from 'lucide-angular';
 
 @Component({
   selector: 'app-report-selector',
@@ -13,7 +13,8 @@ import { LucideAngularModule, Users, Building2 } from 'lucide-angular';
 export class ReportSelectorComponent {
   readonly icons = {
     users: Users,
-    building: Building2
+    building: Building2,
+    system: BarChart3
   };
 
   constructor(private router: Router) {
@@ -38,7 +39,22 @@ export class ReportSelectorComponent {
   navigateToCampusReport(): void {
     console.log('navigateToCampusReport() called');
     try {
-      const result = this.router.navigate(['/reports/campus']);
+      const result = this.router.navigate(['/reports/school']);
+      console.log('Navigate result:', result);
+      result.then(success => {
+        console.log('Navigation successful:', success);
+      }).catch(error => {
+        console.error('Navigation error:', error);
+      });
+    } catch (error) {
+      console.error('Exception during navigation:', error);
+    }
+  }
+
+  navigateToSystemReport(): void {
+    console.log('navigateToSystemReport() called');
+    try {
+      const result = this.router.navigate(['/reports/system']);
       console.log('Navigate result:', result);
       result.then(success => {
         console.log('Navigation successful:', success);

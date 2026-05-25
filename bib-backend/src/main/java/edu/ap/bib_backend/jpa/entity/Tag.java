@@ -26,6 +26,10 @@ public class Tag {
     @Column(length = 1000)
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id")
+    private School school;
+
     private LocalDateTime createdAt;
 
     @PrePersist

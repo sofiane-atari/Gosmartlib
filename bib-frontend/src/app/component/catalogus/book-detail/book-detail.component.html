@@ -1,9 +1,16 @@
 @if (selectedBook) {
   <div class="page-container">
     <div class="detail-wrapper">
-      <app-button-hover-help class="back-button-help" text="Terug naar de boekencatalogus">
+      <app-button-hover-help
+        class="back-button-help"
+        text="Terug naar de boekencatalogus"
+      >
         <button type="button" class="back-button" (click)="goBack()">
-          <lucide-icon [img]="ChevronDown" [size]="20" style="transform: rotate(90deg)"></lucide-icon>
+          <lucide-icon
+            [img]="ChevronDown"
+            [size]="20"
+            style="transform: rotate(90deg)"
+          ></lucide-icon>
           <span>Ga terug</span>
         </button>
       </app-button-hover-help>
@@ -22,10 +29,12 @@
             <span class="stat-value">{{ selectedBook.pages }}</span>
             <span class="stat-label">Pagina's</span>
           </div>
+
           <div class="stat-item">
             <span class="stat-value">{{ selectedBook.releaseYear }}</span>
             <span class="stat-label">Jaar</span>
           </div>
+
           <div class="stat-item">
             <span class="stat-value">
               {{ selectedBook.readingLevel?.niveauName || "-" }}
@@ -33,6 +42,34 @@
             <span class="stat-label">Leesniveau</span>
           </div>
         </div>
+
+        <app-button-hover-help
+          class="full-button-help"
+          [text]="
+            isSubscribed()
+              ? 'Je ontvangt een melding wanneer dit boek beschikbaar is. Klik om uit te schrijven.'
+              : 'Ontvang een melding zodra dit boek beschikbaar is.'
+          "
+        >
+          <button
+            class="action-btn subscribe-btn"
+            [class.subscribed]="isSubscribed()"
+            [disabled]="subscriptionLoading()"
+            (click)="toggleSubscription()"
+          >
+            @if (subscriptionLoading()) {
+              <span class="subscribe-spinner"></span>
+            } @else if (isSubscribed()) {
+              <lucide-icon [img]="BellOff" [size]="18"></lucide-icon>
+            } @else {
+              <lucide-icon [img]="Bell" [size]="18"></lucide-icon>
+            }
+
+            <span>
+              {{ isSubscribed() ? "Melding aan" : "Melding bij beschikbaarheid" }}
+            </span>
+          </button>
+        </app-button-hover-help>
       </aside>
 
       <main class="main-content">
@@ -50,62 +87,62 @@
               text="Bekijk een korte preview van dit boek."
             >
               <button class="action-btn secondary" (click)="loadPreview()">
-                <lucide-icon [img]="BookOpen" [size]="18" style="margin-right: 8px"></lucide-icon>
+                <lucide-icon
+                  [img]="BookOpen"
+                  [size]="18"
+                  style="margin-right: 8px"
+                ></lucide-icon>
                 <span>Preview</span>
               </button>
             </app-button-hover-help>
 
-            <app-button-hover-help
-              class="full-button-help"
-              text="Voeg dit boek toe aan één van je leeslijsten."
-            >
-              <button class="action-btn primary" style="position: relative" (click)="toggleListPicker()">
-                <lucide-icon [img]="Bookmark" [size]="18" style="margin-right: 8px"></lucide-icon>
-                <span>Aan leeslijst toevoegen</span>
-
-                @if (showListPicker) {
-                  <div class="list-picker-dropdown" (click)="$event.stopPropagation()">
-                    <div class="list-picker-header">Kies een leeslijst</div>
-                    @if (pickerReadingLists.length > 0) {
-                      <div class="list-picker-items">
-                        @for (list of pickerReadingLists; track list.id) {
-                          <div class="list-picker-item" (click)="addBookToList(list.id)">
-                            {{ list.name }}
-                          </div>
-                        }
-                      </div>
-                    } @else {
-                      <div class="list-picker-empty">
-                        Geen leeslijsten gevonden. Maak er eerst een aan in het overzicht.
-                      </div>
-                    }
-                  </div>
-                }
-              </button>
-            </app-button-hover-help>
-
-            <app-button-hover-help
-              class="full-button-help"
-              [text]="isSubscribed()
-                ? 'Je ontvangt een melding wanneer dit boek beschikbaar is. Klik om uit te schrijven.'
-                : 'Ontvang een melding zodra dit boek beschikbaar is.'"
-            >
-              <button
-                class="action-btn subscribe-btn"
-                [class.subscribed]="isSubscribed()"
-                [disabled]="subscriptionLoading()"
-                (click)="toggleSubscription()"
+            <div class="list-picker-wrapper">
+              <app-button-hover-help
+                class="full-button-help"
+                text="Voeg dit boek toe aan één van je leeslijsten."
               >
-                @if (subscriptionLoading()) {
-                  <span class="subscribe-spinner"></span>
-                } @else if (isSubscribed()) {
-                  <lucide-icon [img]="BellOff" [size]="18"></lucide-icon>
-                } @else {
-                  <lucide-icon [img]="Bell" [size]="18"></lucide-icon>
-                }
-                <span>{{ isSubscribed() ? 'Melding aan' : 'Melding bij beschikbaarheid' }}</span>
-              </button>
-            </app-button-hover-help>
+                <button
+                  class="action-btn primary"
+                  type="button"
+                  (click)="toggleListPicker()"
+                >
+                  <lucide-icon
+                    [img]="Bookmark"
+                    [size]="18"
+                    style="margin-right: 8px"
+                  ></lucide-icon>
+                  <span>Aan leeslijst toevoegen</span>
+                </button>
+              </app-button-hover-help>
+
+              @if (showListPicker) {
+                <div
+                  class="list-picker-dropdown"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="list-picker-header">Kies een leeslijst</div>
+
+                  @if (pickerReadingLists.length > 0) {
+                    <div class="list-picker-items">
+                      @for (list of pickerReadingLists; track list.id) {
+                        <button
+                          type="button"
+                          class="list-picker-item"
+                          (click)="addBookToList(list.id)"
+                        >
+                          {{ list.name }}
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <div class="list-picker-empty">
+                      Geen leeslijsten gevonden. Maak er eerst een aan in het
+                      overzicht.
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           </div>
         </section>
 
@@ -114,16 +151,40 @@
             <h2 class="section-title">Bibliotheekbeheer</h2>
 
             <div class="action-buttons">
-              <app-button-hover-help class="full-button-help" text="Pas de gegevens van dit boek aan.">
-                <button type="button" class="action-btn action-button--edit" (click)="goToEditPage(selectedBook.id)">
-                  <lucide-icon [img]="Pencil" [size]="16" strokeWidth="2.5" style="margin-right: 6px"></lucide-icon>
+              <app-button-hover-help
+                class="full-button-help"
+                text="Pas de gegevens van dit boek aan."
+              >
+                <button
+                  type="button"
+                  class="action-btn action-button--edit"
+                  (click)="goToEditPage(selectedBook.id)"
+                >
+                  <lucide-icon
+                    [img]="Pencil"
+                    [size]="16"
+                    strokeWidth="2.5"
+                    style="margin-right: 6px"
+                  ></lucide-icon>
                   <span>Bewerken</span>
                 </button>
               </app-button-hover-help>
 
-              <app-button-hover-help class="full-button-help" text="Verwijder dit boek uit de bibliotheek.">
-                <button type="button" class="action-btn action-button--delete" (click)="deleteBook(selectedBook.id)">
-                  <lucide-icon [img]="Trash2" [size]="16" strokeWidth="2.5" style="margin-right: 6px"></lucide-icon>
+              <app-button-hover-help
+                class="full-button-help"
+                text="Verwijder dit boek uit de bibliotheek."
+              >
+                <button
+                  type="button"
+                  class="action-btn action-button--delete"
+                  (click)="deleteBook(selectedBook.id)"
+                >
+                  <lucide-icon
+                    [img]="Trash2"
+                    [size]="16"
+                    strokeWidth="2.5"
+                    style="margin-right: 6px"
+                  ></lucide-icon>
                   <span>Verwijderen</span>
                 </button>
               </app-button-hover-help>
@@ -134,15 +195,27 @@
             <div class="detail-section__header" style="margin-bottom: 16px">
               <p
                 class="detail-section__eyebrow"
-                style="margin: 0 0 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--main-color, #8a1e41)"
+                style="
+                  margin: 0 0 4px;
+                  font-size: 12px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  color: var(--main-color, #8a1e41);
+                "
               >
                 Lestips
               </p>
+
               <h2
                 class="detail-section__title"
-                style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #1f2937"
+                style="
+                  margin: 0;
+                  font-size: 1.2rem;
+                  font-weight: 800;
+                  color: #1f2937;
+                "
               >
-                Lestips bij dit boek
+                Lestip(s) bij dit boek
               </h2>
             </div>
 
@@ -150,19 +223,34 @@
               <div class="state-panel state-panel--compact">
                 <p>Lestips worden geladen...</p>
               </div>
-            } @else if (!lessonTipPreview() || lessonTipPreview()!.lessonTips.length === 0) {
+            } @else if (
+              !lessonTipPreview() || lessonTipPreview()!.lessonTips.length === 0
+            ) {
               <div class="state-panel state-panel--compact">
                 <p>Er zijn nog geen lestips gekoppeld aan dit boek.</p>
               </div>
             } @else {
               <div class="lesson-tip-preview-list">
-                @for (lessonTip of lessonTipPreview()!.lessonTips; track lessonTip.id) {
-                  <article class="lesson-tip-preview-card" (click)="openLessonTipDetail(lessonTip.id)">
+                @for (
+                  lessonTip of lessonTipPreview()!.lessonTips;
+                  track lessonTip.id
+                ) {
+                  <article
+                    class="lesson-tip-preview-card"
+                    (click)="openLessonTipDetail(lessonTip.id)"
+                  >
                     <div class="lesson-tip-preview-card__content">
-                      <h3 class="lesson-tip-preview-card__title">{{ lessonTip.title }}</h3>
-                      <p class="lesson-tip-preview-card__description">{{ lessonTip.description }}</p>
+                      <h3 class="lesson-tip-preview-card__title">
+                        {{ lessonTip.title }}
+                      </h3>
+
+                      <p class="lesson-tip-preview-card__description">
+                        {{ lessonTip.description }}
+                      </p>
+
                       <span class="lesson-tip-preview-card__meta">
-                        Laatst bijgewerkt op {{ lessonTip.updatedAt | date: "dd/MM/yyyy" }}
+                        Laatst bijgewerkt op
+                        {{ lessonTip.updatedAt | date: "dd/MM/yyyy" }}
                       </span>
                     </div>
 
@@ -173,7 +261,8 @@
 
               <div class="lesson-tip-preview-footer">
                 <p class="lesson-tip-preview-count">
-                  {{ lessonTipPreview()!.totalCount }} lestips gekoppeld aan dit boek.
+                  {{ lessonTipPreview()!.totalCount }} lestip(s) gekoppeld aan
+                  dit boek.
                 </p>
 
                 @if (lessonTipPreview()!.hasMore) {
@@ -192,6 +281,7 @@
 
         <section class="meta-section">
           <h2 class="section-title">Details</h2>
+
           <div class="meta-grid">
             <div class="meta-row">
               <span class="meta-label">Pagina's</span>
@@ -205,28 +295,44 @@
 
             <div class="meta-row">
               <span class="meta-label">Rating</span>
+
               @if (reviews.length > 0) {
                 <div style="display: flex; align-items: center; gap: 8px">
-                  <div class="stars-display" style="display: flex; gap: 2px; font-size: 1.1rem">
+                  <div
+                    class="stars-display"
+                    style="display: flex; gap: 2px; font-size: 1.1rem"
+                  >
                     @for (star of starsArray; track $index) {
-                      <span [style.color]="star <= getRoundedAverage() ? '#fbbf24' : '#e2e8f0'">★</span>
+                      <span
+                        [style.color]="
+                          star <= getRoundedAverage() ? '#fbbf24' : '#e2e8f0'
+                        "
+                      >
+                        ★
+                      </span>
                     }
                   </div>
+
                   <span class="meta-value" style="font-size: 0.9rem">
                     ({{ averageRating | number: "1.1-1" }})
                   </span>
                 </div>
               } @else {
-                <span class="meta-value meta-placeholder">Nog geen beoordelingen</span>
+                <span class="meta-value meta-placeholder">
+                  Nog geen beoordelingen
+                </span>
               }
             </div>
 
             <div class="meta-row">
               <span class="meta-label">Reviews</span>
+
               @if (reviews.length > 0) {
                 <span class="meta-value">{{ reviews.length }} reviews</span>
               } @else {
-                <span class="meta-value meta-placeholder">Nog geen reviews</span>
+                <span class="meta-value meta-placeholder">
+                  Nog geen reviews
+                </span>
               }
             </div>
           </div>
@@ -234,9 +340,7 @@
 
         @if (hasLocationInfo) {
           <section class="summary-section campus-section">
-            <h2 class="section-title">
-              Locatie
-            </h2>
+            <h2 class="section-title">Locatie</h2>
 
             @if (copyLocationGroups.length > 0) {
               <div class="campus-location-list">
@@ -249,19 +353,36 @@
                     <div class="campus-info-content campus-info-content--wide">
                       <div class="campus-info-heading">
                         <p class="campus-info-name">{{ group.campusName }}</p>
+
                         @if (getCampusAddress(group)) {
-                          <p class="campus-info-address">{{ getCampusAddress(group) }}</p>
+                          <p class="campus-info-address">
+                            {{ getCampusAddress(group) }}
+                          </p>
                         }
                       </div>
 
                       <div class="copy-status-list">
-                        @for (summary of getCampusStatusSummaries(group); track summary.trackKey) {
-                          <div class="copy-status-pill" [ngClass]="getStatusClass(summary.status)">
+                        @for (
+                          summary of getCampusStatusSummaries(group);
+                          track summary.trackKey
+                        ) {
+                          <div
+                            class="copy-status-pill"
+                            [ngClass]="getStatusClass(summary.status)"
+                          >
                             <span class="copy-status-dot"></span>
                             <span>{{ getCopyStatusText(summary) }}</span>
-                            @if (summary.status === "borrowed" && summary.expectedReturnDate) {
+
+                            @if (
+                              summary.status === "borrowed" &&
+                              summary.expectedReturnDate
+                            ) {
                               <span class="copy-return-date">
-                                Verwacht terug {{ summary.expectedReturnDate | date: "dd/MM/yyyy" }}
+                                Verwacht terug
+                                {{
+                                  summary.expectedReturnDate
+                                    | date: "dd/MM/yyyy"
+                                }}
                               </span>
                             }
                           </div>
@@ -270,27 +391,43 @@
 
                       <div class="copy-condition-list">
                         @for (copy of group.copies; track copy.id) {
-                          <div class="copy-condition-row" [class.copy-condition-row--lost]="isLostCopy(copy)">
+                          <div
+                            class="copy-condition-row"
+                            [class.copy-condition-row--lost]="isLostCopy(copy)"
+                          >
                             <div>
                               <strong>Exemplaar #{{ copy.id }}</strong>
+
                               @if (isLostCopy(copy)) {
                                 <span class="copy-lost-badge">Verloren</span>
                               } @else {
-                                <span>{{ getCopyAvailabilityLabel(copy) }} · {{ getConditionLabel(copy.condition) }}</span>
+                                <span>
+                                  {{ getCopyAvailabilityLabel(copy) }} ·
+                                  {{ getConditionLabel(copy.condition) }}
+                                </span>
                               }
+
                             </div>
 
                             @if (roleService.canAccessAdminOnlyFeatures()) {
                               <label>
                                 <span>Wijzig staat</span>
-                                 <select
+
+                                <select
                                   [ngModel]="getCopyConditionValue(copy)"
-                                  (ngModelChange)="updateCopyCondition(copy, $event)"
-                                 >
-                                   @for (option of conditionOptions; track option.value) {
-                                    <option [ngValue]="option.value">{{ option.label }}</option>
-                                   }
-                                 </select>
+                                  (ngModelChange)="
+                                    updateCopyCondition(copy, $event)
+                                  "
+                                >
+                                  @for (
+                                    option of conditionOptions;
+                                    track option.value
+                                  ) {
+                                    <option [ngValue]="option.value">
+                                      {{ option.label }}
+                                    </option>
+                                  }
+                                </select>
                               </label>
                             }
                           </div>
@@ -308,6 +445,7 @@
 
                 <div class="campus-info-content">
                   <p class="campus-info-name">{{ campusName }}</p>
+
                   @if (campusAddress) {
                     <p class="campus-info-address">{{ campusAddress }}</p>
                   }
@@ -322,8 +460,11 @@
           <p class="summary-text">{{ selectedBook.description }}</p>
         </section>
 
+
+
         <section class="genres-section">
           <h2 class="section-title">Genres</h2>
+
           @if ((selectedBook.genres?.length ?? 0) > 0) {
             <div class="genres-tags">
               @for (genre of selectedBook.genres; track genre.name) {
@@ -333,7 +474,27 @@
               }
             </div>
           } @else {
-            <span class="meta-value meta-placeholder">Geen genres beschikbaar</span>
+            <span class="meta-value meta-placeholder">
+              Geen genres beschikbaar
+            </span>
+          }
+        </section>
+
+        <section class="genres-section">
+          <h2 class="section-title">Tags</h2>
+
+          @if ((selectedBook.tags?.length ?? 0) > 0) {
+            <div class="genres-tags">
+              @for (tag of selectedBook.tags; track tag.id) {
+                <span class="genre-tag tag-chip">
+                  {{ tag.name }}
+                </span>
+              }
+            </div>
+          } @else {
+            <span class="meta-value meta-placeholder">
+              Geen tags beschikbaar
+            </span>
           }
         </section>
 
@@ -343,14 +504,28 @@
 
             @if (relatedBooksCarousel.length > 0) {
               <div class="carousel-controls">
-                <app-button-hover-help text="Bekijk vorige gerelateerde boeken.">
-                  <button class="carousel-btn prev" (click)="scrollCarousel('left')" type="button" title="Vorige">
+                <app-button-hover-help
+                  text="Bekijk vorige gerelateerde boeken."
+                >
+                  <button
+                    class="carousel-btn prev"
+                    (click)="scrollCarousel('left')"
+                    type="button"
+                    title="Vorige"
+                  >
                     ‹
                   </button>
                 </app-button-hover-help>
 
-                <app-button-hover-help text="Bekijk volgende gerelateerde boeken.">
-                  <button class="carousel-btn next" (click)="scrollCarousel('right')" type="button" title="Volgende">
+                <app-button-hover-help
+                  text="Bekijk volgende gerelateerde boeken."
+                >
+                  <button
+                    class="carousel-btn next"
+                    (click)="scrollCarousel('right')"
+                    type="button"
+                    title="Volgende"
+                  >
                     ›
                   </button>
                 </app-button-hover-help>
@@ -362,8 +537,16 @@
             <div class="related-books-carousel-wrapper">
               <div class="related-books-carousel-container">
                 @for (book of relatedBooksCarousel; track book.id) {
-                  <button class="carousel-book-card" type="button" (click)="openRelatedBook(book.id)">
-                    <img class="carousel-book-cover" [src]="book.imageUrl" [alt]="book.title" />
+                  <button
+                    class="carousel-book-card"
+                    type="button"
+                    (click)="openRelatedBook(book.id)"
+                  >
+                    <img
+                      class="carousel-book-cover"
+                      [src]="book.imageUrl"
+                      [alt]="book.title"
+                    />
                     <span class="carousel-book-title">{{ book.title }}</span>
                     <span class="carousel-book-author">{{ book.author }}</span>
                   </button>
@@ -391,33 +574,56 @@
                   <div class="review-header">
                     <div style="display: flex; align-items: center; gap: 12px">
                       <strong>Anonieme lezer</strong>
-                      <div class="stars-display" style="display: flex; gap: 2px">
+
+                      <div
+                        class="stars-display"
+                        style="display: flex; gap: 2px"
+                      >
                         @for (star of starsArray; track $index) {
-                          <span class="star" [class.filled]="star <= review.rating">★</span>
+                          <span
+                            class="star"
+                            [class.filled]="star <= review.rating"
+                          >
+                            ★
+                          </span>
                         }
                       </div>
                     </div>
 
                     <div class="review-actions" style="display: flex; gap: 8px">
                       <app-button-hover-help
-                        [text]="review.reportedByCurrentUser
-                          ? 'Je hebt deze review al gerapporteerd.'
-                          : 'Rapporteer deze review als de inhoud ongepast is.'"
+                        [text]="
+                          review.reportedByCurrentUser
+                            ? 'Je hebt deze review al gerapporteerd.'
+                            : 'Rapporteer deze review als de inhoud ongepast is.'
+                        "
                       >
                         <button
                           class="delete-review-btn"
                           [disabled]="review.reportedByCurrentUser"
                           (click)="reportReview(review)"
-                          [style.opacity]="review.reportedByCurrentUser ? '0.5' : '1'"
+                          [style.opacity]="
+                            review.reportedByCurrentUser ? '0.5' : '1'
+                          "
                         >
                           <lucide-angular
                             [img]="Flag"
                             size="18"
-                            [style.color]="review.reportedByCurrentUser ? '#f87171' : 'inherit'"
+                            [style.color]="
+                              review.reportedByCurrentUser
+                                ? '#f87171'
+                                : 'inherit'
+                            "
                           ></lucide-angular>
 
                           @if (review.reportedByCurrentUser) {
-                            <span style="font-size: 0.8rem; color: #f87171; margin-left: 4px">
+                            <span
+                              style="
+                                font-size: 0.8rem;
+                                color: #f87171;
+                                margin-left: 4px;
+                              "
+                            >
                               Gerapporteerd
                             </span>
                           }
@@ -425,8 +631,14 @@
                       </app-button-hover-help>
 
                       <app-button-hover-help text="Verwijder deze review.">
-                        <button class="delete-review-btn" (click)="deleteReview(review.id)">
-                          <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                        <button
+                          class="delete-review-btn"
+                          (click)="deleteReview(review.id)"
+                        >
+                          <lucide-angular
+                            [img]="Trash2"
+                            size="18"
+                          ></lucide-angular>
                         </button>
                       </app-button-hover-help>
                     </div>
@@ -444,17 +656,29 @@
             @if (authService.currentUser()?.reviewBlocked) {
               <div
                 class="review-blocked-message"
-                style="color: #ef4444; background: #fee2e2; padding: 12px; border-radius: 8px; margin-bottom: 16px"
+                style="
+                  color: #ef4444;
+                  background: #fee2e2;
+                  padding: 12px;
+                  border-radius: 8px;
+                  margin-bottom: 16px;
+                "
               >
-                Je kunt momenteel geen reviews plaatsen omdat deze functionaliteit voor jou is geblokkeerd.
-                Neem contact op met een bibliotheekbeheerder voor meer informatie.
+                Je kunt momenteel geen reviews plaatsen omdat deze
+                functionaliteit voor jou is geblokkeerd. Neem contact op met een
+                bibliotheekbeheerder voor meer informatie.
               </div>
             } @else {
               <div class="rating-input-group">
                 <span class="rating-label">Jouw beoordeling:</span>
+
                 <div class="stars-clickable">
                   @for (star of starsArray; track $index) {
-                    <span class="star clickable" [class.filled]="star <= newReviewRating" (click)="setRating(star)">
+                    <span
+                      class="star clickable"
+                      [class.filled]="star <= newReviewRating"
+                      (click)="setRating(star)"
+                    >
                       ★
                     </span>
                   }
@@ -464,14 +688,45 @@
               <details class="review-help-box">
                 <summary>
                   <span>Hoe schrijf ik een goede review?</span>
-                  <lucide-angular class="review-help-icon" [img]="ChevronDown" size="18"></lucide-angular>
+                  <lucide-angular
+                    class="review-help-icon"
+                    [img]="ChevronDown"
+                    size="18"
+                  ></lucide-angular>
                 </summary>
 
                 <div class="review-help-content">
-                  <p><span class="review-step-number">1</span><span><strong>Korte samenvatting</strong><br />Dit boek gaat over ...</span></p>
-                  <p><span class="review-step-number">2</span><span><strong>Mijn mening</strong><br />Ik vond het boek ... omdat ...</span></p>
-                  <p><span class="review-step-number">3</span><span><strong>Personage</strong><br />Mijn favoriete personage was ... omdat ...</span></p>
-                  <p><span class="review-step-number">4</span><span><strong>Aanrader</strong><br />Ik zou dit boek wel/niet aanraden, want ...</span></p>
+                  <p>
+                    <span class="review-step-number">1</span>
+                    <span>
+                      <strong>Korte samenvatting</strong><br />
+                      Dit boek gaat over ...
+                    </span>
+                  </p>
+
+                  <p>
+                    <span class="review-step-number">2</span>
+                    <span>
+                      <strong>Mijn mening</strong><br />
+                      Ik vond het boek ... omdat ...
+                    </span>
+                  </p>
+
+                  <p>
+                    <span class="review-step-number">3</span>
+                    <span>
+                      <strong>Personage</strong><br />
+                      Mijn favoriete personage was ... omdat ...
+                    </span>
+                  </p>
+
+                  <p>
+                    <span class="review-step-number">4</span>
+                    <span>
+                      <strong>Aanrader</strong><br />
+                      Ik zou dit boek wel/niet aanraden, want ...
+                    </span>
+                  </p>
                 </div>
               </details>
 
@@ -484,9 +739,11 @@
 
               <app-button-hover-help
                 class="full-button-help"
-                [text]="!newReviewText.trim()
-                  ? 'Schrijf eerst een review voordat je deze kunt plaatsen.'
-                  : 'Plaats je review bij dit boek.'"
+                [text]="
+                  !newReviewText.trim()
+                    ? 'Schrijf eerst een review voordat je deze kunt plaatsen.'
+                    : 'Plaats je review bij dit boek.'
+                "
               >
                 <button
                   (click)="submitReview()"
@@ -507,7 +764,11 @@
                 <h3>Boek preview</h3>
 
                 <app-button-hover-help text="Sluit de preview van dit boek.">
-                  <button class="action-btn secondary" type="button" (click)="closePreviewModal()">
+                  <button
+                    class="action-btn secondary"
+                    type="button"
+                    (click)="closePreviewModal()"
+                  >
                     Sluiten
                   </button>
                 </app-button-hover-help>

@@ -1,21 +1,37 @@
-<div class="sidebar-section">
+<div class="sidebar-section" @fadeInUp>
   <h3 class="sidebar-title">{{ title }}</h3>
-  
+
   @if (loading) {
-    <div class="loading-state">
-      <span>Laden...</span>
+    <div class="book-list">
+      @for (_ of [1, 2, 3]; track $index) {
+        <div class="book-item skeleton-book-item" @fadeInUp>
+          <div class="book-cover skeleton-cover"></div>
+
+          <div class="book-details">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-author"></div>
+          </div>
+        </div>
+      }
     </div>
   } @else if (books.length === 0) {
-    <div class="empty-state">
+    <div class="empty-state" @fadeInUp>
       <p>Geen boeken beschikbaar</p>
     </div>
   } @else {
     <div class="book-list">
-      @for (book of books; track book.id || $index) {
-        <div class="book-item" (click)="navigateToBook(book)">
+      @for (book of books.slice(0, 3); track book.id || $index) {
+        <div class="book-item" (click)="navigateToBook(book)" @fadeInUp>
           <div class="book-cover">
-            <img [src]="book.imageUrl" [alt]="book.title" />
+            @if (book.imageUrl) {
+              <img [src]="book.imageUrl" [alt]="book.title" />
+            } @else {
+              <div class="book-cover-placeholder">
+                <lucide-angular [img]="BookOpen" size="24"></lucide-angular>
+              </div>
+            }
           </div>
+
           <div class="book-details">
             <h4 class="book-title">{{ book.title }}</h4>
             <p class="book-author">{{ book.author }}</p>
@@ -25,4 +41,3 @@
     </div>
   }
 </div>
-

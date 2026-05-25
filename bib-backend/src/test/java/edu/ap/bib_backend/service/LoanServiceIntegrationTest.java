@@ -23,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,6 +54,9 @@ class LoanServiceIntegrationTest {
 
     @Autowired
     private RoleEntityRepository roleEntityRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @MockitoBean
     private CurrentUserService currentUserService;
@@ -92,14 +96,17 @@ class LoanServiceIntegrationTest {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
         copy.setCampus(campus);
-        bookCopyRepository.save(copy);
+        copy = bookCopyRepository.save(copy);
+        Long copyId = copy.getId();
+        entityManager.flush();
+        entityManager.clear();
 
         Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
         when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
 
         LoanDTO loanDto = LoanDTO.builder()
                 .userId("loan-user-1")
-                .bookCopyIds(List.of(copy.getId()))
+                .bookCopyIds(List.of(copyId))
                 .build();
 
         // Act
@@ -108,6 +115,6 @@ class LoanServiceIntegrationTest {
         assertNotNull(result);
         assertNotNull(result.id());
         assertEquals("loan-user-1", result.userId());
-        assertEquals(List.of(copy.getId()), result.bookCopyIds());
+        assertEquals(List.of(copyId), result.bookCopyIds());
     }
 }

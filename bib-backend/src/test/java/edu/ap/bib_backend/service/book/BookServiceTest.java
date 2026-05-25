@@ -33,6 +33,7 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
+import edu.ap.bib_backend.jpa.repository.TagRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
@@ -79,6 +80,9 @@ class BookServiceTest {
     private CampusRepository campusRepository;
 
     @Mock
+    private TagRepository tagRepository;
+
+    @Mock
     private BookMapper bookMapper1;
 
     @Mock
@@ -109,6 +113,7 @@ class BookServiceTest {
                 bookLoanRepository,
                 rlr,
                 campusRepository,
+                tagRepository,
                 bookMapper1,
                 bookCandidateMapper,
                 openLibraryClient,
@@ -742,7 +747,7 @@ class BookServiceTest {
         BookDTO updateDto = new BookDTO();
         updateDto.setTitle("Ghost Book");
 
-        given(br.findByIdAndCampusId(invalidId, 1L)).willReturn(Optional.empty());
+        given(br.findByIdAndCampusSchoolId(invalidId, 1L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> bs.updateBook(invalidId, updateDto, authentication))
                 .isInstanceOf(ResourceNotFoundException.class)

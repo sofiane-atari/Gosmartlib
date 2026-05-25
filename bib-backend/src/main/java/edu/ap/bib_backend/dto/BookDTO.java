@@ -29,6 +29,8 @@ public class BookDTO {
 
     private List<GenreDTO> genres = new ArrayList<>();
 
+    private List<TagDTO> tags = new ArrayList<>();
+
     private ReadingLevelDTO readingLevel;
 
     private Long campusId;

@@ -76,7 +76,7 @@ public class GamificationNotificationService {
     );
 }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<GamificationNotificationDTO> getUnreadNotifications(
             Authentication authentication
     ) {
@@ -122,7 +122,6 @@ public class GamificationNotificationService {
         return gamificationProfileService.getOrCreateProfile(user);
     }
 
-    @Transactional(readOnly = true)
     public String getCurrentUserId(Authentication authentication) {
         return currentUserService.extractCurrentUserId(authentication);
     }

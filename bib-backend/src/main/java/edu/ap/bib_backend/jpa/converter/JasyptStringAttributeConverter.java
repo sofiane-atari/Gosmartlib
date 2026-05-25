@@ -35,6 +35,9 @@ public class JasyptStringAttributeConverter implements AttributeConverter<String
     private static StringEncryptor buildEncryptor() {
         String password = System.getenv("JASYPT_ENCRYPTOR_PASSWORD");
         if (password == null || password.isBlank()) {
+            password = System.getProperty("JASYPT_ENCRYPTOR_PASSWORD");
+        }
+        if (password == null || password.isBlank()) {
             throw new IllegalStateException("JASYPT_ENCRYPTOR_PASSWORD is required for encryption at rest");
         }
 

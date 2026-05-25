@@ -1,16 +1,18 @@
 <section class="attachments-panel">
-  <div class="attachments-panel__header">
-    <div>
-      <p class="attachments-panel__eyebrow">Bijlagen</p>
-      <h2 class="attachments-panel__title">Bestanden</h2>
-      <p class="attachments-panel__description">
-        Upload lesfiches, presentaties, evaluaties of andere ondersteunende
-        bestanden.
-      </p>
+  @if (!compactMode()) {
+    <div class="attachments-panel__header">
+      <div>
+        <p class="attachments-panel__eyebrow">Bijlagen</p>
+        <h2 class="attachments-panel__title">Bestanden</h2>
+        <p class="attachments-panel__description">
+          Upload lesfiches, presentaties, evaluaties of andere ondersteunende
+          bestanden.
+        </p>
+      </div>
     </div>
-  </div>
+  }
 
-  @if (canManageAttachments()) {
+  @if (canManageAttachments() && !compactMode()) {
     <div class="attachments-panel__upload">
       <app-file-upload
         [selectedFile]="selectedFile()"
@@ -53,39 +55,43 @@
               {{ attachment.originalFileName }}
             </h3>
 
-            <div class="attachment-card__meta">
-              <span>{{ formatFileSize(attachment.fileSize) }}</span>
-              <span>•</span>
-              <span>{{
-                attachment.uploadedAt | date: "dd/MM/yyyy HH:mm"
-              }}</span>
-            </div>
-          </div>
-
-          <div class="attachment-card__actions">
-            <button
-              type="button"
-              class="btn-secondary"
-              (click)="downloadAttachment(attachment)"
-            >
-              Downloaden
-            </button>
-
-            @if (canManageAttachments()) {
-              <button
-                type="button"
-                class="btn-danger"
-                [disabled]="isDeletingAttachment(attachment.id)"
-                (click)="deleteAttachment(attachment)"
-              >
-                {{
-                  isDeletingAttachment(attachment.id)
-                    ? "Verwijderen..."
-                    : "Verwijderen"
-                }}
-              </button>
+            @if (!compactMode()) {
+              <div class="attachment-card__meta">
+                <span>{{ formatFileSize(attachment.fileSize) }}</span>
+                <span>•</span>
+                <span>
+                  {{ attachment.uploadedAt | date: "dd/MM/yyyy HH:mm" }}
+                </span>
+              </div>
             }
           </div>
+
+          @if (!compactMode()) {
+            <div class="attachment-card__actions">
+              <button
+                type="button"
+                class="btn-secondary"
+                (click)="downloadAttachment(attachment)"
+              >
+                Downloaden
+              </button>
+
+              @if (canManageAttachments()) {
+                <button
+                  type="button"
+                  class="btn-danger"
+                  [disabled]="isDeletingAttachment(attachment.id)"
+                  (click)="deleteAttachment(attachment)"
+                >
+                  {{
+                    isDeletingAttachment(attachment.id)
+                      ? "Verwijderen..."
+                      : "Verwijderen"
+                  }}
+                </button>
+              }
+            </div>
+          }
         </article>
       }
     </div>
