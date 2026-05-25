@@ -78,99 +78,67 @@
     />
   </section>
 
-  @if (tags().length === 0) {
-    <section class="state-panel state-panel--empty">
-      <p>Geen labels gevonden.</p>
-    </section>
-  } @else {
-    <section class="table-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Label</th>
-            <th>Beschrijving</th>
-            <th>Boeken</th>
-            <th class="actions-heading">Acties</th>
-          </tr>
-        </thead>
+  <app-data-table
+    [data]="tags()"
+    [columns]="columns"
+    [emptyMessage]="'Geen labels gevonden.'"
+    [pagingMeta]="pagingMeta()"
+    (pageChange)="onPageChange($event)"
+  >
+    <ng-template cellTemplate="name" let-tag>
+      <div class="tag-cell">
+        <div class="tag-cell__icon">
+          <lucide-icon [name]="TagIcon"></lucide-icon>
+        </div>
 
-        <tbody>
-          @for (tag of tags(); track tag.id) {
-            <tr>
-              <td>
-                <div class="tag-cell">
-                  <div class="tag-cell__icon">
-                    <lucide-icon [name]="TagIcon"></lucide-icon>
-                  </div>
+        <div>
+          <strong>{{ tag.name }}</strong>
+        </div>
+      </div>
+    </ng-template>
 
-                  <div>
-                    <strong>{{ tag.name }}</strong>
-                  </div>
-                </div>
-              </td>
+    <ng-template cellTemplate="description" let-tag>
+      @if (tag.description) {
+        <div class="muted-block">
+          <span>{{ tag.description }}</span>
+        </div>
+      } @else {
+        <span class="table-placeholder">Geen beschrijving</span>
+      }
+    </ng-template>
 
-              <td>
-                @if (tag.description) {
-                  <div class="muted-block">
-                    <span>{{ tag.description }}</span>
-                  </div>
-                } @else {
-                  <span class="table-placeholder">Geen beschrijving</span>
-                }
-              </td>
+    <ng-template cellTemplate="bookCount" let-tag>
+      <span class="count-badge">
+        {{ tag.bookCount ?? 0 }} boeken
+      </span>
+    </ng-template>
 
-              <td>
-                <span class="count-badge">
-                  {{ tag.bookCount ?? 0 }} boeken
-                </span>
-              </td>
+    <ng-template cellTemplate="actions" let-tag>
+      <div class="table-actions">
+        <app-button-hover-help text="Wijzig de gegevens van deze tag.">
+          <button
+            type="button"
+            class="icon-button icon-button--edit"
+            aria-label="Tag wijzigen"
+            (click)="openEditPopup(tag)"
+          >
+            <lucide-icon [name]="Pencil"></lucide-icon>
+          </button>
+        </app-button-hover-help>
 
-              <td>
-                <div class="table-actions">
-                  <app-button-hover-help text="Wijzig de gegevens van deze tag.">
-                    <button
-                      type="button"
-                      class="icon-button icon-button--edit"
-                      aria-label="Tag wijzigen"
-                      (click)="openEditPopup(tag)"
-                    >
-                      <lucide-icon [name]="Pencil"></lucide-icon>
-                    </button>
-                  </app-button-hover-help>
-
-                  <app-button-hover-help text="Verwijder deze tag uit de boekencatalogus.">
-                    <button
-                      type="button"
-                      class="icon-button icon-button--delete"
-                      aria-label="Tag verwijderen"
-                      (click)="deleteTag(tag)"
-                    >
-                      <lucide-icon [name]="Trash2"></lucide-icon>
-                    </button>
-                  </app-button-hover-help>
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="4">
-                <div class="empty-table-state">
-                  Geen labels gevonden voor deze zoekopdracht.
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </section>
-  }
-
-  @if (pagingMeta()) {
-    <app-paging
-      [meta]="pagingMeta()!"
-      (pageChange)="onPageChange($event)"
-    />
-  }
+        <app-button-hover-help text="Verwijder deze tag uit de boekencatalogus.">
+          <button
+            type="button"
+            class="icon-button icon-button--delete"
+            aria-label="Tag verwijderen"
+            (click)="deleteTag(tag)"
+          >
+            <lucide-icon [name]="Trash2"></lucide-icon>
+          </button>
+        </app-button-hover-help>
+      </div>
+    </ng-template>
+  </app-data-table>
 <app-name-description-modal
   [isOpen]="popUp() === 'create'"
   mode="create"

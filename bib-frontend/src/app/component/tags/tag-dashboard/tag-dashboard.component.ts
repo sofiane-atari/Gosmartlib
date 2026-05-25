@@ -34,6 +34,9 @@ import { ToastComponent } from '../../shared/toast/toast.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
 import { AddSubmitEvent, AddComponent } from '../../shared/add/add.component';
+import { DataTableComponent } from '../../shared/data-table/data-table.component';
+import { CellTemplateDirective } from '../../shared/data-table/cell-template.directive';
+import { DataTableColumn } from '../../shared/data-table/data-table.types';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -47,7 +50,9 @@ type PopupState = 'create' | 'edit' | null;
     PagingComponent,
     SearchBarComponent,
     ButtonHoverHelpComponent,
-    AddComponent
+    AddComponent,
+    DataTableComponent,
+    CellTemplateDirective,
 ],
   templateUrl: './tag-dashboard.component.html',
   styleUrls: ['./tag-dashboard.component.css'],
@@ -73,6 +78,13 @@ export class TagDashboardComponent {
   private readonly tagService = inject(TagService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  protected readonly columns: DataTableColumn[] = [
+    { id: 'name', header: 'Label', dataLabel: 'Label' },
+    { id: 'description', header: 'Beschrijving', dataLabel: 'Beschrijving' },
+    { id: 'bookCount', header: 'Boeken', dataLabel: 'Boeken' },
+    { id: 'actions', header: 'Acties', dataLabel: 'Acties', align: 'right' },
+  ];
 
   constructor(private readonly toastService: ToastService) {
     this.searchSubject
@@ -141,7 +153,7 @@ export class TagDashboardComponent {
   );
 
   protected tags = computed(() => this.response()?.data ?? []);
-  protected pagingMeta = computed(() => this.response()?.meta);
+  protected pagingMeta = computed(() => this.response()?.meta ?? null);
 
   protected totalActive = computed(
     () => (this.stats()?.totalItems ?? 0) - (this.stats()?.unActiveTags ?? 0),
