@@ -49,72 +49,95 @@
       Wijs minstens één bibliothecaris toe. Je kan leerkrachten ook promoveren tot platformbeheerder.
     </p>
 
-    <div class="promotion-list">
-      @for (user of users(); track user.id) {
-        <article class="promotion-row">
-          <div class="promotion-row__info">
-            <strong class="promotion-row__name">{{ getDisplayName(user) }}</strong>
-            @if (user.email) {
-              <span class="promotion-row__email">{{ user.email }}</span>
+    <app-data-table
+      [data]="users()"
+      [columns]="columns"
+      [emptyMessage]="'Geen gebruikers gevonden.'"
+    >
+      <ng-template cellTemplate="name" let-user>
+        <div class="user-cell">
+          <div class="user-cell__icon">
+            @if (user.role === 'LIBRARIAN') {
+              <lucide-icon [name]="BookOpen"></lucide-icon>
+            } @else if (user.role === 'ADMIN') {
+              <lucide-icon [name]="UserRound"></lucide-icon>
+            } @else {
+              <lucide-icon [name]="GraduationCap"></lucide-icon>
             }
           </div>
 
-          <div class="promotion-row__actions">
-            <span [class]="getRoleClass(user.role)">
-              {{ getRoleLabel(user.role) }}
-            </span>
+          <div>
+            <strong>{{ getDisplayName(user) }}</strong>
+          </div>
+        </div>
+      </ng-template>
 
-            @if (canPromote(user)) {
+      <ng-template cellTemplate="email" let-user>
+        @if (user.email) {
+          <span>{{ user.email }}</span>
+        } @else {
+          <span class="table-placeholder">Geen e-mail</span>
+        }
+      </ng-template>
+
+      <ng-template cellTemplate="role" let-user>
+        <span [class]="roleBadgeClass(user.role)">
+          {{ getRoleLabel(user.role) }}
+        </span>
+      </ng-template>
+
+      <ng-template cellTemplate="actions" let-user>
+        <div class="table-actions">
+          @if (canPromote(user)) {
+            <button
+              type="button"
+              class="promotion-btn promotion-btn--promote"
+              [disabled]="isPromoting() === user.id"
+              (click)="promoteToLibrarian(user)"
+            >
+              <lucide-icon [name]="ShieldPlus" class="icon-sm"></lucide-icon>
+              @if (isPromoting() === user.id) {
+                Toewijzen...
+              } @else {
+                Bibliothecaris
+              }
+            </button>
+
+            @if (canPromoteToAdmin()) {
               <button
                 type="button"
-                class="promotion-btn promotion-btn--promote"
+                class="promotion-btn promotion-btn--admin"
                 [disabled]="isPromoting() === user.id"
-                (click)="promoteToLibrarian(user)"
+                (click)="promoteToAdmin(user)"
               >
-                <lucide-icon [name]="ShieldPlus" class="icon-sm"></lucide-icon>
+                <lucide-icon [name]="ShieldCheck" class="icon-sm"></lucide-icon>
                 @if (isPromoting() === user.id) {
                   Toewijzen...
                 } @else {
-                  Bibliothecaris
+                  Beheerder
                 }
               </button>
+            }
+          }
 
-              @if (canPromoteToAdmin()) {
-                <button
-                  type="button"
-                  class="promotion-btn promotion-btn--admin"
-                  [disabled]="isPromoting() === user.id"
-                  (click)="promoteToAdmin(user)"
-                >
-                  <lucide-icon [name]="ShieldCheck" class="icon-sm"></lucide-icon>
-                  @if (isPromoting() === user.id) {
-                    Toewijzen...
-                  } @else {
-                    Beheerder
-                  }
-                </button>
+          @if (canDemote(user)) {
+            <button
+              type="button"
+              class="promotion-btn promotion-btn--demote"
+              [disabled]="isPromoting() === user.id"
+              (click)="demoteToTeacher(user)"
+            >
+              <lucide-icon [name]="ShieldOff" class="icon-sm"></lucide-icon>
+              @if (isPromoting() === user.id) {
+                Wijzigen...
+              } @else {
+                Leerkracht
               }
-            }
-
-            @if (canDemote(user)) {
-              <button
-                type="button"
-                class="promotion-btn promotion-btn--demote"
-                [disabled]="isPromoting() === user.id"
-                (click)="demoteToTeacher(user)"
-              >
-                <lucide-icon [name]="ShieldOff" class="icon-sm"></lucide-icon>
-                @if (isPromoting() === user.id) {
-                  Wijzigen...
-                } @else {
-                  Leerkracht
-                }
-              </button>
-            }
-          </div>
-        </article>
-      }
-    </div>
+            </button>
+          }
+        </div>
+      </ng-template>
+    </app-data-table>
 
     <div class="promotion-summary">
       @if (librariansCount() > 0) {

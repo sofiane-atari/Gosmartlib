@@ -2,12 +2,23 @@ import { Component, DestroyRef, computed, inject, input, OnDestroy, OnInit, outp
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LucideAngularModule, ShieldCheck, ShieldOff, ShieldPlus } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  ShieldCheck,
+  ShieldOff,
+  ShieldPlus,
+  BookOpen,
+  GraduationCap,
+  UserRound,
+} from 'lucide-angular';
 
 import { AuthUserDto, Role } from '../../../model/auth.model';
 import { UserService } from '../../../services/user/user.service';
 import { RoleService } from '../../../services/role/role.service';
 import { ToastService } from '../../../services/toast/toast.service';
+import { DataTableComponent } from '../../shared/data-table/data-table.component';
+import { CellTemplateDirective } from '../../shared/data-table/cell-template.directive';
+import { DataTableColumn } from '../../shared/data-table/data-table.types';
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_ATTEMPTS = 5;
@@ -15,7 +26,7 @@ const MAX_POLL_ATTEMPTS = 5;
 @Component({
   selector: 'app-user-role-promotion',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, DataTableComponent, CellTemplateDirective],
   templateUrl: './user-role-promotion.component.html',
   styleUrl: './user-role-promotion.component.css',
 })
@@ -41,12 +52,22 @@ export class UserRolePromotionComponent implements OnInit, OnDestroy {
   protected readonly ShieldCheck = ShieldCheck;
   protected readonly ShieldOff = ShieldOff;
   protected readonly ShieldPlus = ShieldPlus;
+  protected readonly BookOpen = BookOpen;
+  protected readonly GraduationCap = GraduationCap;
+  protected readonly UserRound = UserRound;
 
   protected readonly librariansCount = computed(() =>
     this.users().filter((u) => u.role === 'LIBRARIAN').length,
   );
 
   protected readonly maxPollAttempts = MAX_POLL_ATTEMPTS;
+
+  protected readonly columns: DataTableColumn[] = [
+    { id: 'name', header: 'Naam', dataLabel: 'Naam' },
+    { id: 'email', header: 'E-mail', dataLabel: 'E-mail' },
+    { id: 'role', header: 'Huidige rol', dataLabel: 'Huidige rol' },
+    { id: 'actions', header: 'Acties', dataLabel: 'Acties', align: 'right' },
+  ];
 
   private pollTimerId: ReturnType<typeof setInterval> | null = null;
 
@@ -175,14 +196,16 @@ export class UserRolePromotionComponent implements OnInit, OnDestroy {
     return this.userService.getRoleLabel(role);
   }
 
-  protected getRoleClass(role: Role): string {
+  protected roleBadgeClass(role: Role): string {
     switch (role) {
       case 'ADMIN':
-        return 'role-tag role-tag--admin';
+        return 'role-badge role-badge--admin';
       case 'LIBRARIAN':
-        return 'role-tag role-tag--librarian';
+        return 'role-badge role-badge--librarian';
+      case 'TEACHER':
+        return 'role-badge role-badge--teacher';
       default:
-        return 'role-tag role-tag--teacher';
+        return 'role-badge';
     }
   }
 
