@@ -1,7 +1,8 @@
-import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 import { ToastService } from '../../../services/toast/toast.service';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 
@@ -9,9 +10,13 @@ import {
   reviewCardAnimation,
   fadeInUpAnimation,
 } from '../../shared/animations/my-reviews.animations';
+
 import { LessonTipService } from '../../../services/lesson-tip/lesson-tip.service';
 import { LessonTip } from '../../../model/lesson-tip/lesson-tip.model';
 import { LessonTipCardComponent } from '../lesson-tip-card/lesson-tip-card.component';
+
+import { BookService } from '../../../services/bookService/book.service';
+import { Book } from '../../../model/book/book.model';
 
 @Component({
   selector: 'app-lesson-tip-overview',
@@ -23,6 +28,7 @@ import { LessonTipCardComponent } from '../lesson-tip-card/lesson-tip-card.compo
 })
 export class LessonTipOverviewComponent implements OnInit {
   private readonly lessonTipService = inject(LessonTipService);
+  private readonly bookService = inject(BookService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -30,27 +36,25 @@ export class LessonTipOverviewComponent implements OnInit {
 
   protected readonly lessonTips = signal<LessonTip[]>([]);
   protected readonly isLoading = signal(false);
+
   protected readonly filteredBookId = signal<number | null>(null);
+  protected readonly filteredBook = signal<Book | null>(null);
+  protected readonly isLoadingBookContext = signal(false);
 
   public ngOnInit(): void {
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
-        const bookIdParam = params.get('bookId');
-        const parsedBookId = bookIdParam ? Number(bookIdParam) : null;
+        const bookId = this.parseBookId(params.get('bookId'));
 
-        if (
-          parsedBookId !== null &&
-          (!Number.isInteger(parsedBookId) || parsedBookId <= 0)
-        ) {
-          this.filteredBookId.set(null);
-          this.toastService.show('Ongeldig boekfilter.', 'error');
-          this.loadLessonTips();
+        if (bookId === null && params.has('bookId')) {
+          this.handleInvalidBookFilter();
           return;
         }
 
-        this.filteredBookId.set(parsedBookId);
-        this.loadLessonTips(parsedBookId ?? undefined);
+        this.filteredBookId.set(bookId);
+        this.loadBookContext(bookId);
+        this.loadLessonTips(bookId ?? undefined);
       });
   }
 
@@ -68,6 +72,59 @@ export class LessonTipOverviewComponent implements OnInit {
     void this.router.navigate([`/${LESSON_TIP_PATHS.root}`]);
   }
 
+  private parseBookId(bookIdParam: string | null): number | null {
+    if (!bookIdParam) {
+      return null;
+    }
+
+    const parsedBookId = Number(bookIdParam);
+
+    if (!Number.isInteger(parsedBookId) || parsedBookId <= 0) {
+      return null;
+    }
+
+    return parsedBookId;
+  }
+
+  private handleInvalidBookFilter(): void {
+    this.filteredBookId.set(null);
+    this.filteredBook.set(null);
+    this.toastService.show('Ongeldig boekfilter.', 'error');
+
+    void this.router.navigate([`/${LESSON_TIP_PATHS.root}`], {
+      replaceUrl: true,
+    });
+  }
+
+  private loadBookContext(bookId: number | null): void {
+    this.filteredBook.set(null);
+
+    if (!bookId) {
+      return;
+    }
+
+    this.isLoadingBookContext.set(true);
+
+    this.bookService
+      .getBookById(bookId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (book) => {
+          this.filteredBook.set(book);
+          this.isLoadingBookContext.set(false);
+        },
+        error: () => {
+          this.filteredBook.set(null);
+          this.isLoadingBookContext.set(false);
+
+          this.toastService.show(
+            'De boekgegevens konden niet worden geladen.',
+            'error',
+          );
+        },
+      });
+  }
+
   private loadLessonTips(bookId?: number): void {
     this.isLoading.set(true);
 
@@ -80,7 +137,9 @@ export class LessonTipOverviewComponent implements OnInit {
           this.isLoading.set(false);
         },
         error: () => {
+          this.lessonTips.set([]);
           this.isLoading.set(false);
+
           this.toastService.show(
             'Lestips konden niet worden geladen.',
             'error',
