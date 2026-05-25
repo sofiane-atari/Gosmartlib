@@ -506,7 +506,7 @@ public class MockOAuthController {
             }
             .role-leerling { background: #e3f2fd; color: #1565c0; }
             .role-leerkracht { background: #e8f5e9; color: #2e7d32; }
-            .role-beheerder { background: #fff3e0; color: #e65100; }
+            .role-admin { background: #fce4ec; color: #c62828; }
             .user-card__action {
                 display: inline-flex;
                 align-items: center;
@@ -1200,7 +1200,7 @@ public class MockOAuthController {
         String role = switch (user.basisrol) {
             case "Leerling" -> "ROLE_STUDENT";
             case "Leerkracht" -> "ROLE_TEACHER";
-            case "Beheerder" -> "ROLE_ADMIN";
+            case "Admin", "Beheerder" -> "ROLE_LIBRARIAN";
             default -> "ROLE_STUDENT";
         };
 

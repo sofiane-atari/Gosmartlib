@@ -30,8 +30,7 @@ public class MockSchoolData {
             List<Map<String, Object>> classes,
             List<Map<String, Object>> enrollments,
             List<Map<String, Object>> academicSessions,
-            List<Map<String, Object>> orgs
-    ) {
+            List<Map<String, Object>> orgs) {
         this.schoolCode = schoolCode;
         this.domainName = domainName;
         this.platformUrl = platformUrl;
@@ -46,18 +45,53 @@ public class MockSchoolData {
         this.orgs = orgs;
     }
 
-    public String getSchoolCode() { return schoolCode; }
-    public String getDomainName() { return domainName; }
-    public String getPlatformUrl() { return platformUrl; }
-    public String getSchoolName() { return schoolName; }
-    public String getPlatformId() { return platformId; }
-    public String getOnRosterClientId() { return onerosterClientId; }
-    public String getOnRosterClientSecret() { return onerosterClientSecret; }
-    public List<MockUser> getUsers() { return users; }
-    public List<Map<String, Object>> getClasses() { return classes; }
-    public List<Map<String, Object>> getEnrollments() { return enrollments; }
-    public List<Map<String, Object>> getAcademicSessions() { return academicSessions; }
-    public List<Map<String, Object>> getOrgs() { return orgs; }
+    public String getSchoolCode() {
+        return schoolCode;
+    }
+
+    public String getDomainName() {
+        return domainName;
+    }
+
+    public String getPlatformUrl() {
+        return platformUrl;
+    }
+
+    public String getSchoolName() {
+        return schoolName;
+    }
+
+    public String getPlatformId() {
+        return platformId;
+    }
+
+    public String getOnRosterClientId() {
+        return onerosterClientId;
+    }
+
+    public String getOnRosterClientSecret() {
+        return onerosterClientSecret;
+    }
+
+    public List<MockUser> getUsers() {
+        return users;
+    }
+
+    public List<Map<String, Object>> getClasses() {
+        return classes;
+    }
+
+    public List<Map<String, Object>> getEnrollments() {
+        return enrollments;
+    }
+
+    public List<Map<String, Object>> getAcademicSessions() {
+        return academicSessions;
+    }
+
+    public List<Map<String, Object>> getOrgs() {
+        return orgs;
+    }
 
     public MockUser getUserByUsername(String username) {
         return users.stream()
@@ -91,9 +125,9 @@ public class MockSchoolData {
         public final List<String> parentGroupNames;
 
         public MockUser(String username, String password, String legacyIdentifier, String onerosterSourcedId,
-                        String givenName, String familyName, String email, String basisrol, String sex,
-                        String groupName, String groupDescription, String classCode, String classTitle,
-                        String classSourcedId, List<String> parentGroupNames) {
+                String givenName, String familyName, String email, String basisrol, String sex,
+                String groupName, String groupDescription, String classCode, String classTitle,
+                String classSourcedId, List<String> parentGroupNames) {
             this.username = username;
             this.password = password;
             this.legacyIdentifier = legacyIdentifier;
@@ -115,7 +149,7 @@ public class MockSchoolData {
             return switch (basisrol) {
                 case "Leerling" -> "student";
                 case "Leerkracht" -> "teacher";
-                case "Beheerder" -> "teacher";
+                case "Beheerder", "Admin" -> "administrator";
                 default -> "student";
             };
         }
@@ -139,8 +173,7 @@ public class MockSchoolData {
                 "Leerling", "male",
                 "3ITSOF1", "Bachelor IT Software - 1",
                 "3ITSOF1", "3ITSOF1", classSourcedId,
-                List.of("Leerlingen", "3de jaar")
-        );
+                List.of("Leerlingen", "3de jaar"));
 
         MockUser student2 = new MockUser(
                 "sof3.lisa.peeters", "lisapeeters",
@@ -150,8 +183,7 @@ public class MockSchoolData {
                 "Leerling", "female",
                 "3ITSOF1", "Bachelor IT Software - 1",
                 "3ITSOF1", "3ITSOF1", classSourcedId,
-                List.of("Leerlingen", "3de jaar")
-        );
+                List.of("Leerlingen", "3de jaar"));
 
         MockUser teacher1 = new MockUser(
                 "it02_1.marc.devries", "marcdevries",
@@ -161,8 +193,7 @@ public class MockSchoolData {
                 "Leerkracht", "male",
                 "IT-Team", "IT Department",
                 "IT-TEAM", "IT-TEAM", platformId + "_usermanagement_101",
-                List.of("Leerkrachten", "Technisch")
-        );
+                List.of("Leerkrachten", "Technisch"));
 
         MockUser teacher2 = new MockUser(
                 "it02_2.sara.bakker", "sarabakker",
@@ -172,19 +203,17 @@ public class MockSchoolData {
                 "Leerkracht", "female",
                 "IT-Team", "IT Department",
                 "IT-TEAM", "IT-TEAM", platformId + "_usermanagement_101",
-                List.of("Leerkrachten", "Technisch")
-        );
+                List.of("Leerkrachten", "Technisch"));
 
         MockUser admin1 = new MockUser(
                 "beheer.koen.admin", "koenadmin",
                 "T1a1LegacyId0000000000000000000000==",
                 platformId + "_8201_0",
                 "Koen", "Admin", "koen.admin@goatheneum.be",
-                "Beheerder", "male",
+                "Admin", "male",
                 "Beheer", "Administratie",
                 "BEHEER", "BEHEER", platformId + "_usermanagement_102",
-                List.of("Beheer")
-        );
+                List.of("Beheer"));
 
         List<MockUser> users = List.of(student1, student2, teacher1, teacher2, admin1);
 
@@ -199,21 +228,17 @@ public class MockSchoolData {
                         "status", "active",
                         "name", schoolName,
                         "type", "school",
-                        "identifier", "platform_" + platformId
-                ),
+                        "identifier", "platform_" + platformId),
                 "terms", List.of(Map.of(
                         "sourcedId", termSourcedId,
                         "status", "active",
                         "title", "2025-2026",
                         "startDate", "2025-09-01",
                         "endDate", "2026-08-31",
-                        "type", "schoolYear"
-                )),
+                        "type", "schoolYear")),
                 "metadata", Map.of(
                         "smsc.classType", "class",
-                        "smsc.legacyIdentifier", "T1classLegacy00000000=="
-                )
-        );
+                        "smsc.legacyIdentifier", "T1classLegacy00000000=="));
 
         Map<String, Object> class2 = Map.of(
                 "sourcedId", platformId + "_usermanagement_101",
@@ -226,21 +251,17 @@ public class MockSchoolData {
                         "status", "active",
                         "name", schoolName,
                         "type", "school",
-                        "identifier", "platform_" + platformId
-                ),
+                        "identifier", "platform_" + platformId),
                 "terms", List.of(Map.of(
                         "sourcedId", termSourcedId,
                         "status", "active",
                         "title", "2025-2026",
                         "startDate", "2025-09-01",
                         "endDate", "2026-08-31",
-                        "type", "schoolYear"
-                )),
+                        "type", "schoolYear")),
                 "metadata", Map.of(
                         "smsc.classType", "class",
-                        "smsc.legacyIdentifier", "T1classLegacy00000001=="
-                )
-        );
+                        "smsc.legacyIdentifier", "T1classLegacy00000001=="));
 
         List<Map<String, Object>> classes = List.of(class1, class2);
 
@@ -260,22 +281,18 @@ public class MockSchoolData {
                                 "status", "active",
                                 "name", schoolName,
                                 "type", "school",
-                                "identifier", "platform_" + platformId
-                        ),
+                                "identifier", "platform_" + platformId),
                         "terms", List.of(Map.of(
                                 "sourcedId", termSourcedId,
                                 "status", "active",
                                 "title", "2025-2026",
                                 "startDate", "2025-09-01",
                                 "endDate", "2026-08-31",
-                                "type", "schoolYear"
-                        )),
+                                "type", "schoolYear")),
                         "metadata", Map.of(
                                 "smsc.classType", "class",
-                                "smsc.legacyIdentifier", "T1classLegacy00000002=="
-                        )
-                ), platformId, orgSourcedId, schoolName, termSourcedId)
-        );
+                                "smsc.legacyIdentifier", "T1classLegacy00000002==")),
+                        platformId, orgSourcedId, schoolName, termSourcedId));
 
         List<Map<String, Object>> academicSessions = List.of(Map.of(
                 "sourcedId", termSourcedId,
@@ -284,22 +301,19 @@ public class MockSchoolData {
                 "startDate", "2025-09-01",
                 "endDate", "2026-08-31",
                 "type", "schoolYear",
-                "schoolYear", "2026"
-        ));
+                "schoolYear", "2026"));
 
         List<Map<String, Object>> orgs = List.of(Map.of(
                 "sourcedId", orgSourcedId,
                 "status", "active",
                 "name", schoolName,
                 "type", "school",
-                "identifier", "platform_" + platformId
-        ));
+                "identifier", "platform_" + platformId));
 
         return new MockSchoolData(
                 schoolCode, domainName, platformUrl, schoolName, platformId,
                 "ts1-client", "ts1-secret",
-                users, classes, enrollments, academicSessions, orgs
-        );
+                users, classes, enrollments, academicSessions, orgs);
     }
 
     public static MockSchoolData createTestSchool2() {
@@ -320,8 +334,7 @@ public class MockSchoolData {
                 "Leerling", "female",
                 "2GRADLOK2", "2de Graad Lokale Dienstverlening - 2",
                 "2GRADLOK2", "2GRADLOK2", classSourcedId,
-                List.of("Leerlingen", "2de graad")
-        );
+                List.of("Leerlingen", "2de graad"));
 
         MockUser student2 = new MockUser(
                 "lok2.thomas.willems", "thomaswillems",
@@ -331,8 +344,7 @@ public class MockSchoolData {
                 "Leerling", "male",
                 "2GRADLOK2", "2de Graad Lokale Dienstverlening - 2",
                 "2GRADLOK2", "2GRADLOK2", classSourcedId,
-                List.of("Leerlingen", "2de graad")
-        );
+                List.of("Leerlingen", "2de graad"));
 
         MockUser teacher1 = new MockUser(
                 "lok02_1.an.verhoeven", "anverhoeven",
@@ -342,8 +354,7 @@ public class MockSchoolData {
                 "Leerkracht", "female",
                 "LOK-Team", "Lokale Dienstverlening Department",
                 "LOK-TEAM", "LOK-TEAM", platformId + "_usermanagement_201",
-                List.of("Leerkrachten", "Zorg")
-        );
+                List.of("Leerkrachten", "Zorg"));
 
         MockUser teacher2 = new MockUser(
                 "lok02_2.pieter.maes", "pietermaes",
@@ -353,19 +364,17 @@ public class MockSchoolData {
                 "Leerkracht", "male",
                 "LOK-Team", "Lokale Dienstverlening Department",
                 "LOK-TEAM", "LOK-TEAM", platformId + "_usermanagement_201",
-                List.of("Leerkrachten", "Zorg")
-        );
+                List.of("Leerkrachten", "Zorg"));
 
         MockUser admin1 = new MockUser(
                 "directie.inge.directeur", "ingedirecteur",
                 "T2a1LegacyId0000000000000000000000==",
                 platformId + "_9201_0",
                 "Inge", "Directeur", "inge.directeur@kuleuven.be",
-                "Beheerder", "female",
+                "Admin", "female",
                 "Directie", "School Management",
                 "DIRECTIE", "DIRECTIE", platformId + "_usermanagement_202",
-                List.of("Beheer", "Directie")
-        );
+                List.of("Beheer", "Directie"));
 
         List<MockUser> users = List.of(student1, student2, teacher1, teacher2, admin1);
 
@@ -380,21 +389,17 @@ public class MockSchoolData {
                         "status", "active",
                         "name", schoolName,
                         "type", "school",
-                        "identifier", "platform_" + platformId
-                ),
+                        "identifier", "platform_" + platformId),
                 "terms", List.of(Map.of(
                         "sourcedId", termSourcedId,
                         "status", "active",
                         "title", "2025-2026",
                         "startDate", "2025-09-01",
                         "endDate", "2026-08-31",
-                        "type", "schoolYear"
-                )),
+                        "type", "schoolYear")),
                 "metadata", Map.of(
                         "smsc.classType", "class",
-                        "smsc.legacyIdentifier", "T2classLegacy00000000=="
-                )
-        );
+                        "smsc.legacyIdentifier", "T2classLegacy00000000=="));
 
         Map<String, Object> class2 = Map.of(
                 "sourcedId", platformId + "_usermanagement_201",
@@ -407,21 +412,17 @@ public class MockSchoolData {
                         "status", "active",
                         "name", schoolName,
                         "type", "school",
-                        "identifier", "platform_" + platformId
-                ),
+                        "identifier", "platform_" + platformId),
                 "terms", List.of(Map.of(
                         "sourcedId", termSourcedId,
                         "status", "active",
                         "title", "2025-2026",
                         "startDate", "2025-09-01",
                         "endDate", "2026-08-31",
-                        "type", "schoolYear"
-                )),
+                        "type", "schoolYear")),
                 "metadata", Map.of(
                         "smsc.classType", "class",
-                        "smsc.legacyIdentifier", "T2classLegacy00000001=="
-                )
-        );
+                        "smsc.legacyIdentifier", "T2classLegacy00000001=="));
 
         List<Map<String, Object>> classes = List.of(class1, class2);
 
@@ -441,22 +442,18 @@ public class MockSchoolData {
                                 "status", "active",
                                 "name", schoolName,
                                 "type", "school",
-                                "identifier", "platform_" + platformId
-                        ),
+                                "identifier", "platform_" + platformId),
                         "terms", List.of(Map.of(
                                 "sourcedId", termSourcedId,
                                 "status", "active",
                                 "title", "2025-2026",
                                 "startDate", "2025-09-01",
                                 "endDate", "2026-08-31",
-                                "type", "schoolYear"
-                        )),
+                                "type", "schoolYear")),
                         "metadata", Map.of(
                                 "smsc.classType", "class",
-                                "smsc.legacyIdentifier", "T2classLegacy00000002=="
-                        )
-                ), platformId, orgSourcedId, schoolName, termSourcedId)
-        );
+                                "smsc.legacyIdentifier", "T2classLegacy00000002==")),
+                        platformId, orgSourcedId, schoolName, termSourcedId));
 
         List<Map<String, Object>> academicSessions = List.of(Map.of(
                 "sourcedId", termSourcedId,
@@ -465,22 +462,19 @@ public class MockSchoolData {
                 "startDate", "2025-09-01",
                 "endDate", "2026-08-31",
                 "type", "schoolYear",
-                "schoolYear", "2026"
-        ));
+                "schoolYear", "2026"));
 
         List<Map<String, Object>> orgs = List.of(Map.of(
                 "sourcedId", orgSourcedId,
                 "status", "active",
                 "name", schoolName,
                 "type", "school",
-                "identifier", "platform_" + platformId
-        ));
+                "identifier", "platform_" + platformId));
 
         return new MockSchoolData(
                 schoolCode, domainName, platformUrl, schoolName, platformId,
                 "ts2-client", "ts2-secret",
-                users, classes, enrollments, academicSessions, orgs
-        );
+                users, classes, enrollments, academicSessions, orgs);
     }
 
     @SuppressWarnings("unchecked")
@@ -488,7 +482,8 @@ public class MockSchoolData {
             MockUser user, Map<String, Object> classData,
             String platformId, String orgSourcedId, String schoolName, String termSourcedId) {
 
-        Map<String, Object> userWithType = new java.util.HashMap<>((Map<String, Object>) buildOnRosterUser(user, platformId, orgSourcedId, schoolName));
+        Map<String, Object> userWithType = new java.util.HashMap<>(
+                (Map<String, Object>) buildOnRosterUser(user, platformId, orgSourcedId, schoolName));
         userWithType.put("type", "user");
 
         Map<String, Object> classWithType = new java.util.HashMap<>(classData);
@@ -506,12 +501,11 @@ public class MockSchoolData {
                         "status", "active",
                         "name", schoolName,
                         "type", "school",
-                        "identifier", "platform_" + platformId
-                )
-        );
+                        "identifier", "platform_" + platformId));
     }
 
-    private static Map<String, Object> buildOnRosterUser(MockUser user, String platformId, String orgSourcedId, String schoolName) {
+    private static Map<String, Object> buildOnRosterUser(MockUser user, String platformId, String orgSourcedId,
+            String schoolName) {
         Map<String, Object> result = new java.util.LinkedHashMap<>();
         result.put("sourcedId", user.onerosterSourcedId);
         result.put("identifier", user.username);
@@ -527,15 +521,13 @@ public class MockSchoolData {
                 "status", "active",
                 "name", schoolName,
                 "type", "school",
-                "identifier", "platform_" + platformId
-        )));
+                "identifier", "platform_" + platformId)));
         result.put("metadata", Map.of(
                 "smsc.legacyIdentifier", user.legacyIdentifier,
                 "smsc.classInfo", user.classCode,
                 "smsc.classYear", user.classCode.substring(0, 1),
                 "smsc.classLevel", "ASO",
-                "smsc.classNumber", "1"
-        ));
+                "smsc.classNumber", "1"));
         return result;
     }
 
@@ -607,8 +599,7 @@ public class MockSchoolData {
                 "description", user.groupDescription,
                 "code", "",
                 "platform", platformUrl,
-                "oneRosterSourcedId", user.classSourcedId
-        ));
+                "oneRosterSourcedId", user.classSourcedId));
 
         List<Map<String, Object>> parentGroups = user.parentGroupNames.stream()
                 .map(name -> Map.<String, Object>of(
@@ -617,8 +608,7 @@ public class MockSchoolData {
                         "description", name,
                         "code", "",
                         "platform", platformUrl,
-                        "oneRosterSourcedId", user.classSourcedId
-                ))
+                        "oneRosterSourcedId", user.classSourcedId))
                 .toList();
 
         Map<String, Object> result = new java.util.LinkedHashMap<>();
