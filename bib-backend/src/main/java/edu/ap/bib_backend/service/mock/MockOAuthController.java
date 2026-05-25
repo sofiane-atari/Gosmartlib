@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,15 @@ public class MockOAuthController {
     private final MockSchoolRegistry registry;
     private final JwtService jwtService;
     private final TokenStorageService tokenStorageService;
+
+    @Value("${app.real-school-domains:}")
+    private String realSchoolDomains;
+
+    @Value("${spring.security.oauth2.client.registration.smartschool.client-id}")
+    private String realClientId;
+
+    @Value("${spring.security.oauth2.client.registration.smartschool.redirect-uri}")
+    private String realRedirectUri;
 
     public MockOAuthController(MockSchoolRegistry registry, JwtService jwtService, TokenStorageService tokenStorageService) {
         this.registry = registry;
@@ -687,6 +698,13 @@ public class MockOAuthController {
             @RequestParam(required = false) String scope,
             HttpServletResponse response
     ) throws IOException {
+        String normalized = school.trim().toLowerCase();
+        if (isRealSchool(normalized)) {
+            response.sendRedirect("/oauth2/authorization/smartschool?school="
+                    + URLEncoder.encode(normalized, StandardCharsets.UTF_8));
+            return;
+        }
+
         registry.setActiveSchool(school);
 
         String query = new StringBuilder()
@@ -1005,6 +1023,16 @@ public class MockOAuthController {
             return authorization.substring(7);
         }
         return queryToken;
+    }
+
+    private boolean isRealSchool(String domain) {
+        if (domain == null || domain.isBlank() || realSchoolDomains == null || realSchoolDomains.isBlank()) {
+            return false;
+        }
+        return Arrays.stream(realSchoolDomains.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .anyMatch(d -> d.equals(domain));
     }
 
     private record TokenPair(String accessToken, String refreshToken) {}
