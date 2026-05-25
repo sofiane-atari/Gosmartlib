@@ -912,6 +912,21 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     }
   }
 
+  public createLessonTipForCurrentBook(): void {
+    const bookId = this.selectedBook?.id;
+
+    if (!bookId) {
+      return;
+    }
+
+    void this.router.navigate(
+      [`/${LESSON_TIP_PATHS.root}/${LESSON_TIP_PATHS.create}`],
+      {
+        queryParams: { bookId },
+      },
+    );
+  }
+
   ngOnDestroy(): void {
     this.saveReviewDraft();
 

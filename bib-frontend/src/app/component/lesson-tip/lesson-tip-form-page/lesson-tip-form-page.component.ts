@@ -27,6 +27,7 @@ import {
 } from '../../../model/lesson-tip/lesson-tip-wizard.model';
 import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
+import { BookService } from '../../../services/bookService/book.service';
 
 @Component({
   selector: 'app-lesson-tip-form-page',
@@ -54,6 +55,7 @@ export class LessonTipFormPageComponent {
     LessonTipBookSelectionService,
   );
   private readonly toastService = inject(ToastService);
+  private readonly bookService = inject(BookService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -167,6 +169,7 @@ export class LessonTipFormPageComponent {
 
     if (!idParam) {
       this.isCreateWizardFlow.set(true);
+      this.prefillLinkedBookFromQueryParam();
       return;
     }
 
@@ -468,4 +471,53 @@ export class LessonTipFormPageComponent {
 
     return this.wizardSteps().length;
   });
+
+  private prefillLinkedBookFromQueryParam(): void {
+    const bookIdParam = this.route.snapshot.queryParamMap.get('bookId');
+
+    if (!bookIdParam) {
+      return;
+    }
+
+    const bookId = Number(bookIdParam);
+
+    if (!Number.isInteger(bookId) || bookId <= 0) {
+      this.toastService.show('Ongeldig boek om te koppelen.', 'error');
+      return;
+    }
+
+    this.loadLinkedBookFromBookId(bookId);
+  }
+
+  private loadLinkedBookFromBookId(bookId: number): void {
+    this.bookService
+      .getBookById(bookId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (book) => {
+          if (book.id === undefined) {
+            this.toastService.show(
+              'Het gekoppelde boek heeft geen geldig ID.',
+              'error',
+            );
+            return;
+          }
+
+          this.lessonTipBookSelectionService.hydrateSelectedBooks([
+            {
+              id: book.id,
+              title: book.title,
+              author: book.author,
+              imageUrl: book.imageUrl ?? null,
+            },
+          ]);
+        },
+        error: () => {
+          this.toastService.show(
+            'Het gekoppelde boek kon niet worden geladen.',
+            'error',
+          );
+        },
+      });
+  }
 }

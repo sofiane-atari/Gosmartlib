@@ -1146,6 +1146,99 @@
   font-weight: 600;
 }
 
+.detail-section__header--with-action {
+  display: flex;
+  align-items: center; /* Center is mooier hier zodat de knop mooi in het midden van de teksthoogte staat */
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.detail-section__heading-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-section__eyebrow {
+  margin: 0;
+  color: var(--main-color);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detail-section__title {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.add-lesson-tip-help {
+  flex-shrink: 0;
+}
+
+/* Krijgt nu exact de look & feel van je '.action-button--primary' */
+.add-lesson-tip-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px; /* Standaard hoogte van je primaire knoppen */
+  padding: 10px 20px;
+  border: 1px solid var(--main-color);
+  border-radius: 8px; /* Aangepast van 999px naar 8px */
+  background-color: var(--main-color);
+  color: var(--bg-surface, #ffffff);
+  font-family: var(--main-font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-lesson-tip-button lucide-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.add-lesson-tip-button:hover {
+  background-color: var(
+    --hover-color,
+    var(--main-color-hover)
+  ); /* Fallback voor de variabele naam */
+  border-color: var(--hover-color, var(--main-color-hover));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(138, 30, 65, 0.15); /* Subtielere, professionele schaduw */
+}
+
+.add-lesson-tip-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(138, 30, 65, 0.1);
+}
+
+.add-lesson-tip-button:focus-visible {
+  outline: 2px solid var(--main-color);
+  outline-offset: 2px;
+}
+
+/* Responsiviteit voor mobiel */
+@media (max-width: 640px) {
+  .detail-section__header--with-action {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .add-lesson-tip-help,
+  .add-lesson-tip-button {
+    width: 100%;
+  }
+}
+
 /* =========================================================
    10. RESPONSIVE
    ========================================================= */
