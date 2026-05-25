@@ -16,6 +16,7 @@ import {
   Loader,
   UserRound,
   Users,
+  ShieldPlus,
 } from 'lucide-angular';
 
 import { UserService } from '../../services/user/user.service';
@@ -32,6 +33,9 @@ import { SearchBarComponent } from '../shared/search-bar/search-bar.component';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
 import { LoadingOverlayComponent } from '../shared/loading-overlay/loading-overlay.component';
 import { ButtonHoverHelpComponent } from '../shared/button-hover-help/button-hover-help.component';
+import { DataTableComponent } from '../shared/data-table/data-table.component';
+import { CellTemplateDirective } from '../shared/data-table/cell-template.directive';
+import { DataTableColumn } from '../shared/data-table/data-table.types';
 
 @Component({
   selector: 'app-user-management',
@@ -45,6 +49,8 @@ import { ButtonHoverHelpComponent } from '../shared/button-hover-help/button-hov
     ConfirmationModalComponent,
     LoadingOverlayComponent,
     ButtonHoverHelpComponent,
+    DataTableComponent,
+    CellTemplateDirective,
   ],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css'],
@@ -56,6 +62,7 @@ export class UserManagementComponent {
   protected readonly ShieldCheck = ShieldCheck;
   protected readonly BookOpen = BookOpen;
   protected readonly ShieldOff = ShieldOff;
+  protected readonly ShieldPlus = ShieldPlus;
   protected readonly Loader = Loader;
   protected readonly UserRound = UserRound;
   protected readonly Users = Users;
@@ -77,8 +84,13 @@ export class UserManagementComponent {
   protected readonly isConfirmModalOpen = signal(false);
   protected readonly isPromoting = signal(false);
   protected readonly isRevokeAction = signal(false);
+  protected readonly actionTarget = signal<'librarian' | 'admin'>('librarian');
 
   protected readonly currentUser = this.authService.currentUser;
+
+  protected readonly canManageAdmins = computed(() =>
+    this.currentUser()?.role === 'ADMIN',
+  );
 
   protected readonly canSelfRevoke = computed(() =>
     this.currentUser()?.role === 'LIBRARIAN',
@@ -123,6 +135,13 @@ export class UserManagementComponent {
     totalPages: this.totalPages(),
   }));
 
+  protected readonly columns: DataTableColumn[] = [
+    { id: 'name', header: 'Naam', dataLabel: 'Naam' },
+    { id: 'email', header: 'E-mail', dataLabel: 'E-mail' },
+    { id: 'role', header: 'Huidige rol', dataLabel: 'Huidige rol' },
+    { id: 'actions', header: 'Acties', dataLabel: 'Acties', align: 'right' },
+  ];
+
   private readonly stats$ = toObservable(this.refreshTrigger).pipe(
     switchMap(() => this.userService.getTeacherStats()),
     tap({ next: () => this.loading.set(false) }),
@@ -132,13 +151,19 @@ export class UserManagementComponent {
     initialValue: { totalTeachers: 0, activeTeachers: 0, librarians: 0 },
   });
 
-  protected readonly actionLabel = computed(() =>
-    this.isRevokeAction() ? 'wordt teruggezet' : 'wordt gepromoveerd',
-  );
+  protected readonly actionLabel = computed(() => {
+    if (this.isRevokeAction()) {
+      return this.actionTarget() === 'admin' ? 'wordt teruggezet als beheerder' : 'wordt teruggezet';
+    }
+    return this.actionTarget() === 'admin' ? 'wordt gepromoveerd tot beheerder' : 'wordt gepromoveerd';
+  });
 
-  protected readonly confirmTitle = computed(() =>
-    this.isRevokeAction() ? 'Bibliothecarisrol intrekken' : 'Leerkracht promoveren',
-  );
+  protected readonly confirmTitle = computed(() => {
+    if (this.isRevokeAction()) {
+      return this.actionTarget() === 'admin' ? 'Beheerdersrol intrekken' : 'Bibliothecarisrol intrekken';
+    }
+    return this.actionTarget() === 'admin' ? 'Leerkracht promoveren tot beheerder' : 'Leerkracht promoveren tot bibliothecaris';
+  });
 
   protected readonly confirmDescription = computed(() => {
     const user = this.selectedUser();
@@ -150,19 +175,31 @@ export class UserManagementComponent {
     const name = this.userService.getDisplayName(user);
 
     if (this.isRevokeAction()) {
+      if (this.actionTarget() === 'admin') {
+        return `Weet je zeker dat je de beheerdersrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
+      }
       return `Weet je zeker dat je de bibliothecarisrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
     }
 
+    if (this.actionTarget() === 'admin') {
+      return `Weet je zeker dat je "${name}" wilt promoveren tot platformbeheerder? Deze gebruiker krijgt dan volledige beheerdersrechten.`;
+    }
     return `Weet je zeker dat je "${name}" wilt promoveren tot bibliothecaris? Deze gebruiker krijgt dan beheerdersrechten binnen de bibliotheekmodule.`;
   });
 
-  protected readonly confirmButtonLabel = computed(() =>
-    this.isRevokeAction() ? 'Intrekken' : 'Promoveren',
-  );
+  protected readonly confirmButtonLabel = computed(() => {
+    if (this.isRevokeAction()) {
+      return this.actionTarget() === 'admin' ? 'Beheerdersrol intrekken' : 'Intrekken';
+    }
+    return this.actionTarget() === 'admin' ? 'Promoveren tot beheerder' : 'Promoveren';
+  });
 
-  protected readonly confirmLoadingLabel = computed(() =>
-    this.isRevokeAction() ? 'Bezig met intrekken...' : 'Bezig met promoveren...',
-  );
+  protected readonly confirmLoadingLabel = computed(() => {
+    if (this.isRevokeAction()) {
+      return this.actionTarget() === 'admin' ? 'Bezig met intrekken...' : 'Bezig met intrekken...';
+    }
+    return this.actionTarget() === 'admin' ? 'Bezig met promoveren...' : 'Bezig met promoveren...';
+  });
 
   protected roleBadgeClass(role: Role): string {
     switch (role) {
@@ -191,18 +228,35 @@ export class UserManagementComponent {
       return;
     }
     this.isRevokeAction.set(true);
+    this.actionTarget.set('librarian');
     this.selectedUser.set(user);
     this.isConfirmModalOpen.set(true);
   }
 
   protected openConfirmPromote(user: AuthUserDto): void {
     this.isRevokeAction.set(false);
+    this.actionTarget.set('librarian');
     this.selectedUser.set(user);
     this.isConfirmModalOpen.set(true);
   }
 
   protected openConfirmRevoke(user: AuthUserDto): void {
     this.isRevokeAction.set(true);
+    this.actionTarget.set('librarian');
+    this.selectedUser.set(user);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  protected openConfirmPromoteToAdmin(user: AuthUserDto): void {
+    this.isRevokeAction.set(false);
+    this.actionTarget.set('admin');
+    this.selectedUser.set(user);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  protected openConfirmRevokeAdmin(user: AuthUserDto): void {
+    this.isRevokeAction.set(true);
+    this.actionTarget.set('admin');
     this.selectedUser.set(user);
     this.isConfirmModalOpen.set(true);
   }
@@ -221,15 +275,33 @@ export class UserManagementComponent {
 
     this.isPromoting.set(true);
 
-    const action$ = this.isRevokeAction()
-      ? this.roleService.revokeLibrarian(user.id)
-      : this.roleService.assignLibrarian(user.id);
+    let action$;
+    if (this.actionTarget() === 'admin') {
+      action$ = this.isRevokeAction()
+        ? this.roleService.revokeAdmin(user.id)
+        : this.roleService.assignAdmin(user.id);
+    } else {
+      action$ = this.isRevokeAction()
+        ? this.roleService.revokeLibrarian(user.id)
+        : this.roleService.assignLibrarian(user.id);
+    }
 
     action$.subscribe({
       next: () => {
-        const message = this.isRevokeAction()
-          ? `De bibliothecarisrol van ${this.userService.getDisplayName(user)} is succesvol ingetrokken.`
-          : `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot bibliothecaris.`;
+        let message: string;
+        if (this.isRevokeAction()) {
+          if (this.actionTarget() === 'admin') {
+            message = `De beheerdersrol van ${this.userService.getDisplayName(user)} is succesvol ingetrokken.`;
+          } else {
+            message = `De bibliothecarisrol van ${this.userService.getDisplayName(user)} is succesvol ingetrokken.`;
+          }
+        } else {
+          if (this.actionTarget() === 'admin') {
+            message = `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot platformbeheerder.`;
+          } else {
+            message = `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot bibliothecaris.`;
+          }
+        }
 
         this.toastService.show(message, 'success');
         this.closeConfirmModal();
