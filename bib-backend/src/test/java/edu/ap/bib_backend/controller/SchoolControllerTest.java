@@ -21,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import edu.ap.bib_backend.TestSecurityConfig;
@@ -32,6 +33,7 @@ import edu.ap.bib_backend.service.TokenStorageService;
 
 @WebMvcTest(SchoolController.class)
 @Import(TestSecurityConfig.class)
+@TestPropertySource(properties = "app.dev-mode-enabled=true")
 class SchoolControllerTest {
 
     @Autowired
@@ -129,6 +131,23 @@ class SchoolControllerTest {
         mockMvc.perform(get("/schools/{id}/books/count", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(50));
+    }
+
+    @Test
+    void GivenDevModeEnabled_WhenPurgeSchool_ThenReturn204() throws Exception {
+        // Act & Assert
+        mockMvc.perform(delete("/schools/{id}/purge", 1L))
+                .andExpect(status().isNoContent());
+
+        verify(schoolService, times(1)).purge(1L);
+    }
+
+    @Test
+    void GivenDevModeEnabled_WhenGetDevModeEnabled_ThenReturnTrue() throws Exception {
+        // Act & Assert
+        mockMvc.perform(get("/schools/dev-mode-enabled"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(true));
     }
 
     @Test

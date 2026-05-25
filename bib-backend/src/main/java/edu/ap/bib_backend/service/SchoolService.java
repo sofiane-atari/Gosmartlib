@@ -13,6 +13,8 @@ import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,9 @@ public class SchoolService {
     private final UserRepository userRepository;
     private final OneRosterClient oneRosterClient;
     private final OneRosterUserSyncService oneRosterUserSyncService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public SchoolService(
             SchoolRepository schoolRepository,
@@ -138,6 +143,101 @@ public class SchoolService {
         }
 
         schoolRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void purge(Long schoolId) {
+        if (!schoolRepository.existsById(schoolId)) {
+            throw new IllegalArgumentException("School niet gevonden.");
+        }
+
+        String schoolUsers =
+                "SELECT u.id FROM users u WHERE u.school_id = :schoolId";
+        String schoolCampuses =
+                "SELECT c.id FROM campuses c WHERE c.school_id = :schoolId";
+        String schoolBooks =
+                "SELECT b.id FROM books b WHERE b.campus_id IN (" + schoolCampuses + ")";
+        String schoolProfiles =
+                "SELECT gp.id FROM gamification_profiles gp WHERE gp.user_id IN (" + schoolUsers + ")";
+        String schoolLoans =
+                "SELECT l.id FROM loans l WHERE l.campus_id IN (" + schoolCampuses + ")";
+        String schoolReadingLists =
+                "SELECT rl.id FROM reading_lists rl WHERE rl.user_id IN (" + schoolUsers
+                        + ") OR rl.campus_id IN (" + schoolCampuses + ")";
+        String schoolReviews =
+                "SELECT r.id FROM reviews r WHERE r.user_id IN (" + schoolUsers
+                        + ") OR r.book_id IN (" + schoolBooks + ")";
+
+        executePurgeDelete("DELETE FROM gamification_notifications WHERE profile_id IN ("
+                + schoolProfiles + ")", schoolId);
+        executePurgeDelete("DELETE FROM gamification_badge_progress WHERE profile_id IN ("
+                + schoolProfiles + ")", schoolId);
+        executePurgeDelete("DELETE FROM gamification_user_badges WHERE profile_id IN ("
+                + schoolProfiles + ")", schoolId);
+        executePurgeDelete("DELETE FROM gamification_point_transactions WHERE profile_id IN ("
+                + schoolProfiles + ")", schoolId);
+        executePurgeDelete("DELETE FROM gamification_profiles WHERE user_id IN ("
+                + schoolUsers + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM review_reports WHERE review_id IN ("
+                + schoolReviews + ")", schoolId);
+        executePurgeDelete("DELETE FROM review_reports WHERE reported_by_user_id IN ("
+                + schoolUsers + ")", schoolId);
+        executePurgeDelete("DELETE FROM reviews WHERE user_id IN (" + schoolUsers
+                + ") OR book_id IN (" + schoolBooks + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM mail_subscriptions WHERE user_id IN ("
+                + schoolUsers + ") OR book_id IN (" + schoolBooks + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM reading_list_books WHERE reading_list_id IN ("
+                + schoolReadingLists + ")", schoolId);
+        executePurgeDelete("DELETE FROM reading_lists WHERE user_id IN (" + schoolUsers
+                + ") OR campus_id IN (" + schoolCampuses + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM lesson_tip_book_links WHERE book_id IN ("
+                + schoolBooks + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM loan_copies WHERE loan_id IN ("
+                + schoolLoans + ")", schoolId);
+        executePurgeDelete("DELETE FROM loan_extensions WHERE loan_id IN ("
+                + schoolLoans + ")", schoolId);
+        executePurgeDelete("DELETE FROM loans WHERE campus_id IN ("
+                + schoolCampuses + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM book_copies WHERE campus_id IN ("
+                + schoolCampuses + ")", schoolId);
+        executePurgeDelete("DELETE FROM book_genres WHERE book_id IN ("
+                + schoolBooks + ")", schoolId);
+        executePurgeDelete("DELETE FROM book_tags WHERE book_id IN ("
+                + schoolBooks + ")", schoolId);
+        executePurgeDelete("DELETE FROM books WHERE campus_id IN ("
+                + schoolCampuses + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM auth_sessions WHERE user_id IN ("
+                + schoolUsers + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM student_class_statistics WHERE student_sourced_id IN ("
+                + "SELECT u.oneroster_sourced_id FROM users u WHERE u.school_id = :schoolId)",
+                schoolId);
+
+        executePurgeDelete("DELETE FROM user_groups WHERE user_id IN ("
+                + schoolUsers + ")", schoolId);
+
+        executePurgeDelete("DELETE FROM users WHERE school_id = :schoolId", schoolId);
+
+        executePurgeDelete("DELETE FROM classes WHERE school_id = :schoolId", schoolId);
+        executePurgeDelete("DELETE FROM tags WHERE school_id = :schoolId", schoolId);
+        executePurgeDelete("DELETE FROM oneroster_tokens WHERE school_id = :schoolId", schoolId);
+        executePurgeDelete("DELETE FROM oneroster_credentials WHERE school_id = :schoolId", schoolId);
+        executePurgeDelete("DELETE FROM campuses WHERE school_id = :schoolId", schoolId);
+
+        schoolRepository.deleteById(schoolId);
+    }
+
+    private void executePurgeDelete(String sql, Long schoolId) {
+        entityManager.createNativeQuery(sql)
+                .setParameter("schoolId", schoolId)
+                .executeUpdate();
     }
 
     public void checkDomain(String domainName) {

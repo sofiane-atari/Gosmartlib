@@ -7,7 +7,9 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
+import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +42,12 @@ class SchoolServiceTest {
 
     @Mock
     private OneRosterClient oneRosterClient;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private OneRosterUserSyncService oneRosterUserSyncService;
 
     @InjectMocks
     private SchoolService schoolService;
@@ -149,6 +157,17 @@ class SchoolServiceTest {
         when(schoolRepository.existsById(schoolId)).thenReturn(false);
 
         assertThrows(IllegalArgumentException.class, () -> schoolService.delete(schoolId));
+
+        verify(schoolRepository, never()).deleteById(schoolId);
+    }
+
+    @Test
+    void givenUnknownSchoolId_whenPurge_thenThrowException() {
+        Long schoolId = 999L;
+
+        when(schoolRepository.existsById(schoolId)).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () -> schoolService.purge(schoolId));
 
         verify(schoolRepository, never()).deleteById(schoolId);
     }
