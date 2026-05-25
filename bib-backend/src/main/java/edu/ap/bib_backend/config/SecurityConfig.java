@@ -7,6 +7,9 @@ import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,24 +45,28 @@ public class SecurityConfig {
         private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
         private final RestAccessDeniedHandler restAccessDeniedHandler;
         private final boolean mockModeEnabled;
+        private final String realSchoolDomains;
 
         public SecurityConfig(
                         JwtAuthenticationFilter jwtAuthenticationFilter,
                         SmartschoolOAuth2UserService smartschoolOAuth2UserService,
                         RestAuthenticationEntryPoint restAuthenticationEntryPoint,
                         RestAccessDeniedHandler restAccessDeniedHandler,
-                        @Value("${app.mock-mode-enabled}") boolean mockModeEnabled) {
+                        @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
+                        @Value("${app.real-school-domains:}") String realSchoolDomains) {
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
                 this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
                 this.restAccessDeniedHandler = restAccessDeniedHandler;
                 this.mockModeEnabled = mockModeEnabled;
+                this.realSchoolDomains = realSchoolDomains;
         }
 
         @Bean
         public SecurityFilterChain filterChain(
                         HttpSecurity http,
-                        OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient)
+                        OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient,
+                        ClientRegistrationRepository clientRegistrationRepository)
                         throws Exception {
                 http
                                 .csrf(AbstractHttpConfigurer::disable)
@@ -78,6 +85,8 @@ public class SecurityConfig {
                                         auth.requestMatchers(
                                                         "/auth/error",
                                                         "/auth/callback",
+                                                        "/auth/initiate",
+                                                        "/auth/initiate-login",
                                                         "/oauth2/**",
                                                         "/login/**")
                                         .permitAll();
@@ -146,6 +155,11 @@ public class SecurityConfig {
 
                                 // OAuth2 login (Smartschool)
                                 .oauth2Login(oauth2 -> oauth2
+                                                .authorizationEndpoint(auth -> auth
+                                                                .authorizationRequestResolver(
+                                                                                new SchoolAwareAuthorizationRequestResolver(
+                                                                                                clientRegistrationRepository,
+                                                                                                realSchoolDomains)))
                                                 .tokenEndpoint(token -> token
                                                                 .accessTokenResponseClient(accessTokenResponseClient))
                                                 .userInfoEndpoint(userInfo -> userInfo
