@@ -1,0 +1,68 @@
+<div class="dt-wrapper">
+  @if (loading()) {
+    <div class="dt-card">
+      <div class="dt-skeleton-table">
+        @for (_ of [].constructor(skeletonRows()); track $index) {
+          <div class="dt-skeleton-row">
+            @for (col of columns(); track col.id) {
+              <div class="dt-skeleton-cell" [class.dt-skeleton-cell--sm]="col.align === 'center'"></div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  } @else if (data().length === 0) {
+    <div class="dt-card">
+      <div class="dt-empty">
+        <p>{{ emptyMessage() }}</p>
+      </div>
+    </div>
+  } @else {
+    <div class="dt-card">
+      <table class="dt-table">
+        <thead>
+          <tr>
+            @for (col of columns(); track col.id) {
+              <th
+                [class]="col.headerClass ?? ''"
+                [class.dt-th--center]="col.align === 'center'"
+                [class.dt-th--right]="col.align === 'right'"
+              >{{ col.header }}</th>
+            }
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (row of data(); track trackBy() ? trackBy()!(row) : $index) {
+            <tr>
+              @for (col of columns(); track col.id) {
+                <td
+                  [attr.data-label]="col.dataLabel ?? col.header"
+                  [class]="col.cellClass ?? ''"
+                  [class.dt-td--center]="col.align === 'center'"
+                  [class.dt-td--right]="col.align === 'right'"
+                >
+                  <ng-container
+                    *ngTemplateOutlet="
+                      getTemplateRef(col.id);
+                      context: { $implicit: row, column: col }
+                    "
+                  />
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (pagingMeta(); as meta) {
+      <div class="dt-paging">
+        <app-paging
+          [meta]="meta"
+          (pageChange)="pageChange.emit($event)"
+        />
+      </div>
+    }
+  }
+</div>
