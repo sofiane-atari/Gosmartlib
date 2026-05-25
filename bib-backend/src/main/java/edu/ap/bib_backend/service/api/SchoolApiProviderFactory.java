@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.api;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import edu.ap.bib_backend.jpa.entity.School;
@@ -14,12 +15,15 @@ public class SchoolApiProviderFactory {
     private final SchoolRepository schoolRepository;
     private final MockSchoolApiProvider mockProvider;
     private final MockSchoolRegistry mockSchoolRegistry;
+    private final boolean mockModeEnabled;
 
     public SchoolApiProviderFactory(SchoolRepository schoolRepository, MockSchoolApiProvider mockProvider,
-                                    MockSchoolRegistry mockSchoolRegistry) {
+                                    MockSchoolRegistry mockSchoolRegistry,
+                                    @Value("${app.mock-mode-enabled}") boolean mockModeEnabled) {
         this.schoolRepository = schoolRepository;
         this.mockProvider = mockProvider;
         this.mockSchoolRegistry = mockSchoolRegistry;
+        this.mockModeEnabled = mockModeEnabled;
     }
 
     public Optional<SchoolApiProvider> getProvider(String schoolCode) {
@@ -30,6 +34,9 @@ public class SchoolApiProviderFactory {
     }
 
     public boolean isMockSchool(String schoolCode) {
+        if (!mockModeEnabled) {
+            return false;
+        }
         if (mockSchoolRegistry.getSchoolByCode(schoolCode) != null) {
             return true;
         }
