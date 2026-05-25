@@ -407,77 +407,143 @@ public class MockOAuthController {
                 border-top: 1px solid var(--border-color);
                 padding-top: 16px;
             }
-            .credentials-panel details {
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                background: #fafafa;
-                overflow: hidden;
-            }
-            .credentials-panel summary {
-                padding: 10px 14px;
-                cursor: pointer;
-                font-size: 0.85rem;
-                font-weight: 600;
-                color: var(--text-muted);
-                user-select: none;
-                transition: background 0.15s;
-            }
-            .credentials-panel summary:hover { background: var(--border-color); }
             .credentials-header {
                 padding: 10px 14px;
-                font-size: 0.85rem;
+                font-size: 0.9rem;
                 font-weight: 600;
                 color: var(--text-muted);
+                margin-bottom: 10px;
+            }
+            .credentials-list {
+                max-height: 390px;
+                overflow-y: auto;
+                padding-right: 4px;
+            }
+            .credentials-list::-webkit-scrollbar { width: 6px; }
+            .credentials-list::-webkit-scrollbar-track { background: transparent; }
+            .credentials-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+            .credentials-list::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+            .user-card {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding: 14px 16px;
+                border: 2px solid var(--border-color);
+                border-radius: 10px;
+                margin-bottom: 10px;
                 background: #fafafa;
-                border: 1px solid var(--border-color);
-                border-bottom: none;
-                border-radius: 8px 8px 0 0;
-            }
-            .btn-quick-login {
-                padding: 3px 12px;
-                background: var(--main-color);
-                color: #fff;
-                border: none;
-                border-radius: 4px;
-                font-size: 0.75rem;
-                font-weight: 600;
                 cursor: pointer;
-                transition: background 0.2s;
+                transition: all 0.2s ease;
+                position: relative;
+            }
+            .user-card:hover {
+                border-color: var(--main-color);
+                background: var(--main-light);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(138,30,65,0.12);
+            }
+            .user-card:active {
+                transform: translateY(0);
+                box-shadow: none;
+            }
+            .user-card__fields {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .user-card__field {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                background: #fff;
+                border: 1.5px solid var(--border-color);
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 0.88rem;
                 font-family: var(--font);
+                cursor: pointer;
+                transition: all 0.15s ease;
+                position: relative;
+                user-select: none;
             }
-            .btn-quick-login:hover { background: var(--main-color-hover); }
-            .credentials-table { padding: 0 14px 14px; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; }
-            .credentials-table table {
-                width: 100%%;
-                border-collapse: collapse;
-                font-size: 0.78rem;
+            .user-card__field:hover {
+                border-color: var(--main-color);
+                background: var(--main-light);
             }
-            .credentials-table th {
-                text-align: left;
-                padding: 6px 8px;
+            .user-card__field:active {
+                transform: scale(0.97);
+            }
+            .user-card__field code {
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-dark);
+            }
+            .user-card__field-label {
+                font-size: 0.7rem;
                 color: var(--text-muted);
                 font-weight: 600;
-                border-bottom: 1px solid var(--border-color);
+                white-space: nowrap;
             }
-            .credentials-table td {
-                padding: 6px 8px;
-                border-bottom: 1px solid var(--border-color);
+            .user-card__field .copy-icon {
+                width: 14px;
+                height: 14px;
+                opacity: 0.4;
+                transition: opacity 0.2s;
             }
-            .credentials-table code {
-                background: var(--border-color);
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-size: 0.75rem;
+            .user-card__field:hover .copy-icon { opacity: 0.8; }
+            .user-card__footer {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
             }
-            .role-badge {
-                padding: 2px 8px;
-                border-radius: 3px;
-                font-size: 0.72rem;
+            .user-card__role {
+                padding: 4px 10px;
+                border-radius: 5px;
+                font-size: 0.78rem;
                 font-weight: 600;
             }
             .role-leerling { background: #e3f2fd; color: #1565c0; }
             .role-leerkracht { background: #e8f5e9; color: #2e7d32; }
             .role-beheerder { background: #fff3e0; color: #e65100; }
+            .user-card__action {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 18px;
+                background: var(--main-color);
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                font-family: var(--font);
+                cursor: pointer;
+                transition: all 0.2s;
+                white-space: nowrap;
+            }
+            .user-card:hover .user-card__action { background: var(--main-color-hover); }
+            .copy-toast {
+                position: fixed;
+                bottom: 24px;
+                left: 50%%;
+                transform: translateX(-50%%) translateY(80px);
+                background: var(--text-dark);
+                color: #fff;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-size: 0.85rem;
+                font-family: var(--font);
+                opacity: 0;
+                transition: all 0.3s ease;
+                z-index: 1000;
+                pointer-events: none;
+            }
+            .copy-toast.show {
+                opacity: 1;
+                transform: translateX(-50%%) translateY(0);
+            }
 
             .login-footer {
                 text-align: center;
@@ -491,11 +557,33 @@ public class MockOAuthController {
             }
 
             @media (max-width: 600px) {
-                body { padding: 1rem; }
-                .login-card { padding: 1.5rem 1.25rem; border-radius: 14px; }
-                .login-title { font-size: 1.4rem; }
-                .login-school-header { flex-wrap: wrap; }
+                body { padding: 0.75rem; }
+                .login-card { padding: 1.25rem 1rem; border-radius: 14px; }
+                .login-title { font-size: 1.3rem; }
+                .login-school-header { flex-wrap: wrap; gap: 8px; }
                 .login-school-change { position: static; margin-top: 4px; }
+                .user-card { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; }
+                .user-card__fields { flex-direction: column; }
+                .user-card__field { justify-content: center; }
+                .user-card__footer { flex-direction: column; gap: 6px; align-items: stretch; }
+                .user-card__action { width: 100%%; justify-content: center; }
+                .float-label__input { font-size: 1rem; padding: 16px 12px 6px; }
+                .btn-primary { padding: 12px; }
+            }
+            @media (max-width: 400px) {
+                body { padding: 0.5rem; }
+                .login-card { padding: 1rem 0.75rem; border-radius: 12px; }
+                .login-title { font-size: 1.15rem; }
+                .login-eyebrow { font-size: 0.75rem; }
+                .user-card { padding: 10px; gap: 6px; }
+                .user-card__field { padding: 5px 8px; font-size: 0.82rem; }
+                .user-card__field code { font-size: 0.84rem; }
+                .user-card__action { padding: 7px 12px; font-size: 0.8rem; }
+                .credentials-header { font-size: 0.82rem; }
+                .float-label__input { padding: 14px 10px 5px; }
+                .float-label label { font-size: 0.9rem; }
+                .float-label__input:not(:placeholder-shown) + label,
+                .float-label__input:focus + label { font-size: 0.65rem; }
             }
             """;
 
@@ -795,13 +883,28 @@ public class MockOAuthController {
 
         String credentialsHtml = active.getUsers().stream()
                 .map(u -> """
-                        <tr>
-                            <td><code>%s</code></td>
-                            <td><code>%s</code></td>
-                            <td><span class="role-badge role-%s">%s</span></td>
-                            <td><button type="button" class="btn-quick-login" onclick="quickLogin('%s','%s')">Login</button></td>
-                        </tr>
-                        """.formatted(u.username, u.password, u.basisrol.toLowerCase(), u.basisrol, escapeAttr(u.username), escapeAttr(u.password)))
+                        <div class="user-card" onclick="quickLogin('%s','%s')">
+                            <div class="user-card__fields">
+                                <button type="button" class="user-card__field" onclick="event.stopPropagation();copyToClipboard('%s','Gebruikersnaam')" title="Klik om te kopiëren">
+                                    <span class="user-card__field-label">Gebruikersnaam</span>
+                                    <code>%s</code>
+                                    <svg class="copy-icon" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                                <button type="button" class="user-card__field" onclick="event.stopPropagation();copyToClipboard('%s','Wachtwoord')" title="Klik om te kopiëren">
+                                    <span class="user-card__field-label">Wachtwoord</span>
+                                    <code>%s</code>
+                                    <svg class="copy-icon" viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </button>
+                            </div>
+                            <div class="user-card__footer">
+                                <span class="user-card__role role-%s">%s</span>
+                                <span class="user-card__action">Aanmelden</span>
+                            </div>
+                        </div>
+                        """.formatted(escapeAttr(u.username), escapeAttr(u.password),
+                                escapeAttr(u.username), u.username,
+                                escapeAttr(u.password), u.password,
+                                u.basisrol.toLowerCase(), u.basisrol))
                 .collect(Collectors.joining());
 
         String initials = active.getSchoolName().replaceAll("\\s+", "").substring(0, Math.min(2, active.getSchoolName().replaceAll("\\s+", "").length()));
@@ -849,14 +952,11 @@ public class MockOAuthController {
                 </form>
 
                 <div class="credentials-panel">
-                    <div class="credentials-header">Geldige referentiegegevens</div>
-                    <div class="credentials-table">
-                        <table>
-                            <thead><tr><th>Gebruikersnaam</th><th>Wachtwoord</th><th>Rol</th><th></th></tr></thead>
-                            <tbody>%s</tbody>
-                        </table>
-                    </div>
+                    <div class="credentials-header">Geldige referentiegegevens — klik op een rij om aan te melden, klik op een veld om te kopiëren</div>
+                    <div class="credentials-list">%s</div>
                 </div>
+
+                <div class="copy-toast" id="copyToast"></div>
 
                 <script>
                 function togglePwd() {
@@ -867,6 +967,26 @@ public class MockOAuthController {
                     document.getElementById('username').value = username;
                     document.getElementById('password').value = password;
                     document.forms[0].submit();
+                }
+                function copyToClipboard(text, label) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        showToast(label + ' gekopieerd');
+                    }).catch(function() {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        showToast(label + ' gekopieerd');
+                    });
+                }
+                function showToast(msg) {
+                    var t = document.getElementById('copyToast');
+                    t.textContent = msg;
+                    t.classList.add('show');
+                    clearTimeout(t._timer);
+                    t._timer = setTimeout(function() { t.classList.remove('show'); }, 1800);
                 }
                 </script>
                 """.formatted(
