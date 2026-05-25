@@ -66,7 +66,7 @@ public class RoleService {
             throw new IllegalArgumentException("Alleen leerkrachten kunnen gepromoveerd worden tot bibliothecaris.");
         }
 
-        if (!currentUser.getSchool().getId().equals(targetUser.getSchool().getId())) {
+        if (!isAdmin && !currentUser.getSchool().getId().equals(targetUser.getSchool().getId())) {
             throw new IllegalStateException("Je kunt alleen leerkrachten van je eigen school promoten tot bibliothecaris.");
         }
 
@@ -99,8 +99,62 @@ public class RoleService {
             throw new IllegalArgumentException("Alleen bibliothecarissen kunnen teruggezet worden naar leerkracht.");
         }
 
-        if (!currentUser.getSchool().getId().equals(targetUser.getSchool().getId())) {
+        if (!isAdmin && !currentUser.getSchool().getId().equals(targetUser.getSchool().getId())) {
             throw new IllegalStateException("Je kunt alleen bibliothecarissen van je eigen school beheren.");
+        }
+
+        RoleEntity teacherRole = getRoleEntity(Role.TEACHER.name());
+        targetUser.setRole(teacherRole);
+        userRepository.save(targetUser);
+
+        replaceTargetToken(targetUserId, "ROLE_TEACHER");
+
+        return userMapper.toDto(targetUser);
+    }
+
+    @Transactional
+    public AuthUserDto assignAdmin(Authentication authentication, String targetUserId) {
+        User currentUser = currentUserService.getCurrentUser(authentication);
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            throw new IllegalStateException("Alleen platformbeheerders kunnen deze actie uitvoeren.");
+        }
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden met id: " + targetUserId));
+
+        if (targetUser.getRole().getRole() != Role.TEACHER) {
+            throw new IllegalArgumentException("Alleen leerkrachten kunnen gepromoveerd worden tot platformbeheerder.");
+        }
+
+        RoleEntity adminRole = getRoleEntity(Role.ADMIN.name());
+        targetUser.setRole(adminRole);
+        userRepository.save(targetUser);
+
+        replaceTargetToken(targetUserId, "ROLE_ADMIN");
+
+        return userMapper.toDto(targetUser);
+    }
+
+    @Transactional
+    public AuthUserDto revokeAdmin(Authentication authentication, String targetUserId) {
+        User currentUser = currentUserService.getCurrentUser(authentication);
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            throw new IllegalStateException("Alleen platformbeheerders kunnen deze actie uitvoeren.");
+        }
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden met id: " + targetUserId));
+
+        if (targetUser.getRole().getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("Alleen platformbeheerders kunnen teruggezet worden naar leerkracht.");
         }
 
         RoleEntity teacherRole = getRoleEntity(Role.TEACHER.name());

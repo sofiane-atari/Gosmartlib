@@ -37,4 +37,20 @@ public class RoleController {
         AuthUserDto result = roleService.revokeLibrarian(authentication, request.userId());
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/assign-admin")
+    public ResponseEntity<AuthUserDto> assignAdmin(
+            @Valid @RequestBody AssignLibrarianRequestDto request,
+            Authentication authentication) {
+        AuthUserDto result = roleService.assignAdmin(authentication, request.userId());
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/revoke-admin")
+    public ResponseEntity<AuthUserDto> revokeAdmin(
+            @Valid @RequestBody AssignLibrarianRequestDto request,
+            Authentication authentication) {
+        AuthUserDto result = roleService.revokeAdmin(authentication, request.userId());
+        return ResponseEntity.ok(result);
+    }
 }

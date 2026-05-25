@@ -43,6 +43,7 @@ public class UserService {
     private final TokenStorageService tokenStorageService;
     private final CampusRepository campusRepository;
     private final CurrentUserService currentUserService;
+    private final SchoolRepository schoolRepository;
 
     public UserService(UserRepository userRepository, ProfanityFilterService profanityFilterService,
             UserMapper userMapper, GroupService groupService, SchoolRepository schoolRepository,
@@ -55,6 +56,7 @@ public class UserService {
         this.tokenStorageService = tokenStorageService;
         this.campusRepository = campusRepository;
         this.currentUserService = currentUserService;
+        this.schoolRepository = schoolRepository;
     }
 
     public Optional<User> getUser(String userId) {
@@ -184,6 +186,26 @@ public class UserService {
         List<AuthUserDto> pageData = fromIndex >= totalItems ? List.of() : filtered.subList(fromIndex, toIndex);
 
         return new PageDTO<>(pageData, new PaginatedMeta(page, pageSize, totalItems, totalPages));
+    }
+
+    public List<AuthUserDto> getUsersBySchoolId(Authentication authentication, Long schoolId) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            throw new IllegalStateException("Alleen platformbeheerders kunnen gebruikers van een school opvragen.");
+        }
+
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("schoolId", "School niet gevonden met id: " + schoolId));
+
+        return userRepository.findBySchoolId(schoolId).stream()
+                .filter(u -> {
+                    Role role = u.getRole().getRole();
+                    return role == Role.TEACHER || role == Role.LIBRARIAN || role == Role.ADMIN;
+                })
+                .map(userMapper::toDto)
+                .toList();
     }
 
     public User createUser(String userId, RoleEntity role, School school, Campus campus) {
