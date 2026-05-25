@@ -180,6 +180,10 @@ public class MockOAuthController {
             .platform-input.invalid {
                 border-color: var(--error-color);
             }
+            .platform-input.warning {
+                border-color: #ff9800;
+                background: #fff8e1;
+            }
 
             .platform-check {
                 position: absolute;
@@ -207,6 +211,7 @@ public class MockOAuthController {
             }
             .platform-hint.error { color: var(--error-color); }
             .platform-hint.success { color: var(--success-color); }
+            .platform-hint.warning { color: #e65100; }
 
             /* Autocomplete dropdown */
             .autocomplete-dropdown {
@@ -418,7 +423,30 @@ public class MockOAuthController {
                 transition: background 0.15s;
             }
             .credentials-panel summary:hover { background: var(--border-color); }
-            .credentials-table { padding: 0 14px 14px; }
+            .credentials-header {
+                padding: 10px 14px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: var(--text-muted);
+                background: #fafafa;
+                border: 1px solid var(--border-color);
+                border-bottom: none;
+                border-radius: 8px 8px 0 0;
+            }
+            .btn-quick-login {
+                padding: 3px 12px;
+                background: var(--main-color);
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+                font-family: var(--font);
+            }
+            .btn-quick-login:hover { background: var(--main-color-hover); }
+            .credentials-table { padding: 0 14px 14px; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; }
             .credentials-table table {
                 width: 100%%;
                 border-collapse: collapse;
@@ -515,9 +543,10 @@ public class MockOAuthController {
         }
 
         var schools = registry.getAllSchools();
-        String schoolsJson = schools.stream()
+        String mockSchoolsJson = schools.stream()
                 .map(s -> "{\"name\":\"" + escapeJson(s.getSchoolName()) + "\",\"domain\":\"" + escapeJson(s.getDomainName()) + "\",\"code\":\"" + escapeJson(s.getSchoolCode()) + "\"}")
                 .collect(Collectors.joining(",", "[", "]"));
+        String realSchoolsJson = getRealSchoolsJson();
 
         String body = """
                 <div class="step-indicator">
@@ -552,6 +581,8 @@ public class MockOAuthController {
                 <script>
                 (function() {
                     var schools = %s;
+                    var realSchools = %s;
+                    var allSchools = schools.concat(realSchools);
                     var input = document.getElementById('platformInput');
                     var dropdown = document.getElementById('autocompleteDropdown');
                     var hint = document.getElementById('platformHint');
@@ -574,7 +605,7 @@ public class MockOAuthController {
 
                     function renderDropdown(query) {
                         if (!query) { dropdown.classList.remove('open'); return; }
-                        filteredSchools = schools.filter(function(s) {
+                        filteredSchools = allSchools.filter(function(s) {
                             return s.name.toLowerCase().indexOf(query.toLowerCase()) !== -1 ||
                                    s.domain.toLowerCase().indexOf(query.toLowerCase()) !== -1;
                         });
@@ -598,9 +629,9 @@ public class MockOAuthController {
                     function selectSchool(school) {
                         input.value = school.domain;
                         input.classList.add('valid');
-                        input.classList.remove('invalid');
+                        input.classList.remove('invalid', 'warning');
                         check.classList.add('visible', 'valid');
-                        check.classList.remove('invalid');
+                        check.classList.remove('invalid', 'warning');
                         check.querySelector('.check-valid').style.display = '';
                         check.querySelector('.check-invalid').style.display = 'none';
                         hint.textContent = school.name;
@@ -608,26 +639,40 @@ public class MockOAuthController {
                         submit.disabled = false;
                         schoolCodeInput.value = school.code;
                         dropdown.classList.remove('open');
+                        document.getElementById('platformForm').submit();
                     }
 
                     function validateInput() {
                         var val = input.value.trim().toLowerCase();
-                        var match = schools.find(function(s) { return s.domain.toLowerCase() === val; });
+                        var match = allSchools.find(function(s) { return s.domain.toLowerCase() === val; });
                         if (match) {
                             selectSchool(match);
                         } else if (val.length > 0) {
-                            input.classList.remove('valid');
-                            input.classList.add('invalid');
-                            check.classList.add('visible', 'invalid');
-                            check.classList.remove('valid');
-                            check.querySelector('.check-valid').style.display = 'none';
-                            check.querySelector('.check-invalid').style.display = '';
-                            hint.textContent = 'School niet gevonden';
-                            hint.className = 'platform-hint error';
-                            submit.disabled = true;
-                            schoolCodeInput.value = '';
+                            if (val.endsWith('.smartschool.be')) {
+                                input.classList.remove('valid', 'invalid');
+                                input.classList.add('warning');
+                                check.classList.add('visible');
+                                check.classList.remove('valid', 'invalid');
+                                check.querySelector('.check-valid').style.display = 'none';
+                                check.querySelector('.check-invalid').style.display = 'none';
+                                hint.textContent = 'Smartschool-domein, maar niet geregistreerd — je kunt toch proberen';
+                                hint.className = 'platform-hint warning';
+                                submit.disabled = false;
+                                schoolCodeInput.value = val;
+                            } else {
+                                input.classList.remove('valid', 'warning');
+                                input.classList.add('invalid');
+                                check.classList.add('visible', 'invalid');
+                                check.classList.remove('valid');
+                                check.querySelector('.check-valid').style.display = 'none';
+                                check.querySelector('.check-invalid').style.display = '';
+                                hint.textContent = 'Ongeldig Smartschool-adres';
+                                hint.className = 'platform-hint error';
+                                submit.disabled = true;
+                                schoolCodeInput.value = '';
+                            }
                         } else {
-                            input.classList.remove('valid', 'invalid');
+                            input.classList.remove('valid', 'invalid', 'warning');
                             check.classList.remove('visible', 'valid', 'invalid');
                             check.querySelector('.check-valid').style.display = 'none';
                             check.querySelector('.check-invalid').style.display = 'none';
@@ -680,7 +725,8 @@ public class MockOAuthController {
                 response_type != null ? response_type : "",
                 client_id != null ? client_id : "",
                 scope != null ? scope : "",
-                schoolsJson
+                mockSchoolsJson,
+                realSchoolsJson
         );
 
         String html = buildHtml("Meld je aan in GoSmartLib", "Vul het schooladres van je school in", body);
@@ -696,16 +742,21 @@ public class MockOAuthController {
             @RequestParam(required = false) String response_type,
             @RequestParam(required = false) String client_id,
             @RequestParam(required = false) String scope,
+            HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
         String normalized = school.trim().toLowerCase();
-        if (isRealSchool(normalized)) {
-            response.sendRedirect("/oauth2/authorization/smartschool?school="
-                    + URLEncoder.encode(normalized, StandardCharsets.UTF_8));
+        MockSchoolData mockSchool = registry.getSchoolByDomain(normalized);
+        if (mockSchool == null) {
+            mockSchool = registry.getSchoolByCode(normalized);
+        }
+        if (mockSchool == null) {
+            response.sendRedirect(request.getContextPath() + "/oauth2/authorization/smartschool?school="
+                    + URLEncoder.encode(school, StandardCharsets.UTF_8));
             return;
         }
 
-        registry.setActiveSchool(school);
+        registry.setActiveSchool(mockSchool.getSchoolCode());
 
         String query = new StringBuilder()
                 .append("redirect_uri=").append(URLEncoder.encode(redirect_uri != null ? redirect_uri : "", StandardCharsets.UTF_8))
@@ -716,7 +767,7 @@ public class MockOAuthController {
                 .append("&school=").append(URLEncoder.encode(school, StandardCharsets.UTF_8))
                 .toString();
 
-        response.sendRedirect("/api/OAuth/index/login?" + query);
+        response.sendRedirect(request.getContextPath() + "/OAuth/index/login?" + query);
     }
 
     // ===== STEP 2: Login Page =====
@@ -729,11 +780,12 @@ public class MockOAuthController {
             @RequestParam(required = false) String scope,
             @RequestParam(required = false) String school,
             @RequestParam(required = false) String error,
+            HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
         MockSchoolData active = registry.getActiveSchool();
         if (active == null) {
-            response.sendRedirect("/api/OAuth/index/authorize");
+            response.sendRedirect(request.getContextPath() + "/OAuth/index/authorize");
             return;
         }
 
@@ -747,8 +799,9 @@ public class MockOAuthController {
                             <td><code>%s</code></td>
                             <td><code>%s</code></td>
                             <td><span class="role-badge role-%s">%s</span></td>
+                            <td><button type="button" class="btn-quick-login" onclick="quickLogin('%s','%s')">Login</button></td>
                         </tr>
-                        """.formatted(u.username, u.password, u.basisrol.toLowerCase(), u.basisrol))
+                        """.formatted(u.username, u.password, u.basisrol.toLowerCase(), u.basisrol, escapeAttr(u.username), escapeAttr(u.password)))
                 .collect(Collectors.joining());
 
         String initials = active.getSchoolName().replaceAll("\\s+", "").substring(0, Math.min(2, active.getSchoolName().replaceAll("\\s+", "").length()));
@@ -796,21 +849,24 @@ public class MockOAuthController {
                 </form>
 
                 <div class="credentials-panel">
-                    <details>
-                        <summary>Geldige referentiegegevens</summary>
-                        <div class="credentials-table">
-                            <table>
-                                <thead><tr><th>Gebruikersnaam</th><th>Wachtwoord</th><th>Rol</th></tr></thead>
-                                <tbody>%s</tbody>
-                            </table>
-                        </div>
-                    </details>
+                    <div class="credentials-header">Geldige referentiegegevens</div>
+                    <div class="credentials-table">
+                        <table>
+                            <thead><tr><th>Gebruikersnaam</th><th>Wachtwoord</th><th>Rol</th><th></th></tr></thead>
+                            <tbody>%s</tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <script>
                 function togglePwd() {
                     var p = document.getElementById('password');
                     p.type = p.type === 'password' ? 'text' : 'password';
+                }
+                function quickLogin(username, password) {
+                    document.getElementById('username').value = username;
+                    document.getElementById('password').value = password;
+                    document.forms[0].submit();
                 }
                 </script>
                 """.formatted(
@@ -836,12 +892,13 @@ public class MockOAuthController {
             @RequestParam String password,
             @RequestParam(required = false) String redirect_uri,
             @RequestParam(required = false) String state,
+            HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
         MockSchoolRegistry.AuthResult result = registry.authenticateUserAnySchool(username, password);
         if (result == null) {
             String encodedError = URLEncoder.encode("Ongeldige gebruikersnaam of wachtwoord", StandardCharsets.UTF_8);
-            String location = "/api/OAuth/index/login?error=" + encodedError +
+            String location = request.getContextPath() + "/OAuth/index/login?error=" + encodedError +
                     "&redirect_uri=" + URLEncoder.encode(redirect_uri != null ? redirect_uri : "", StandardCharsets.UTF_8) +
                     "&state=" + URLEncoder.encode(state != null ? state : "", StandardCharsets.UTF_8);
             response.sendRedirect(location);
@@ -853,7 +910,7 @@ public class MockOAuthController {
         String code = registry.generateAuthCode(user, school);
         String location = (redirect_uri != null && !redirect_uri.isEmpty()
                 ? redirect_uri
-                : "http://localhost:8080/api/login/oauth2/code/smartschool-mock")
+                : request.getContextPath() + "/login/oauth2/code/smartschool-mock")
                 + "?code=" + code + (state != null ? "&state=" + state : "");
 
         response.sendRedirect(location);
@@ -868,6 +925,39 @@ public class MockOAuthController {
     private String escapeJson(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+    }
+
+    private String escapeAttr(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("'", "\\'");
+    }
+
+    private String getRealSchoolsJson() {
+        if (realSchoolDomains == null || realSchoolDomains.isBlank()) {
+            return "[]";
+        }
+        return Arrays.stream(realSchoolDomains.split(","))
+                .map(String::trim)
+                .filter(d -> !d.isBlank())
+                .map(d -> {
+                    String subdomain = d.contains(".") ? d.substring(0, d.indexOf('.')) : d;
+                    String name = capitalizeWords(subdomain.replace("-", " ").replace("_", " "));
+                    return "{\"name\":\"" + escapeJson(name) + "\",\"domain\":\"" + escapeJson(d) + "\",\"code\":\"" + escapeJson(d) + "\",\"real\":true}";
+                })
+                .collect(Collectors.joining(",", "[", "]"));
+    }
+
+    private String capitalizeWords(String s) {
+        if (s == null || s.isBlank()) return s;
+        StringBuilder result = new StringBuilder();
+        for (String word : s.split("\\s+")) {
+            if (!word.isEmpty()) {
+                result.append(Character.toUpperCase(word.charAt(0)))
+                      .append(word.substring(1).toLowerCase())
+                      .append(" ");
+            }
+        }
+        return result.toString().trim();
     }
 
     @PostMapping(value = {"/OAuth/index/token", "/OAuth/token"})
@@ -1023,16 +1113,6 @@ public class MockOAuthController {
             return authorization.substring(7);
         }
         return queryToken;
-    }
-
-    private boolean isRealSchool(String domain) {
-        if (domain == null || domain.isBlank() || realSchoolDomains == null || realSchoolDomains.isBlank()) {
-            return false;
-        }
-        return Arrays.stream(realSchoolDomains.split(","))
-                .map(String::trim)
-                .map(String::toLowerCase)
-                .anyMatch(d -> d.equals(domain));
     }
 
     private record TokenPair(String accessToken, String refreshToken) {}
