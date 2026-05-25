@@ -21,5 +21,7 @@ public record SchoolDTO(
 
                 @JsonProperty("createdAt") LocalDateTime createdAt,
 
+                @JsonProperty("hasLibrarian") Boolean hasLibrarian,
+
                 @JsonProperty("onerosterCredential") @Valid OneRosterCredentialDTO onerosterCredential) {
 }

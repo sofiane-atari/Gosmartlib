@@ -197,6 +197,7 @@ class SchoolServiceTest {
                 15,
                 List.of(campusDto()),
                 LocalDateTime.of(2026, 4, 28, 12, 0),
+                false,
                 null);
     }
 
@@ -213,6 +214,7 @@ class SchoolServiceTest {
                 15,
                 List.of(campusDto()),
                 LocalDateTime.of(2026, 4, 28, 12, 0),
+                false,
                 new OneRosterCredentialDTO(clientId, clientSecret));
     }
 

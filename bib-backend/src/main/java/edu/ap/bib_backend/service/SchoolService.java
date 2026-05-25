@@ -9,6 +9,8 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,7 @@ public class SchoolService {
     private final SchoolRepository schoolRepository;
     private final BookCopyRepository bookCopyRepository;
     private final OneRosterCredentialRepository credentialRepository;
+    private final UserRepository userRepository;
     private final OneRosterClient oneRosterClient;
     private final OneRosterUserSyncService oneRosterUserSyncService;
 
@@ -34,12 +37,14 @@ public class SchoolService {
             SchoolRepository schoolRepository,
             BookCopyRepository bookCopyRepository,
             OneRosterCredentialRepository credentialRepository,
+            UserRepository userRepository,
             OneRosterClient oneRosterClient,
             OneRosterUserSyncService oneRosterUserSyncService
     ) {
         this.schoolRepository = schoolRepository;
         this.bookCopyRepository = bookCopyRepository;
         this.credentialRepository = credentialRepository;
+        this.userRepository = userRepository;
         this.oneRosterClient = oneRosterClient;
         this.oneRosterUserSyncService = oneRosterUserSyncService;
     }
@@ -159,6 +164,8 @@ public class SchoolService {
     }
 
     private SchoolDTO toDto(School school) {
+        boolean hasLibrarian = !userRepository.findBySchoolIdAndRoleRole(school.getId(), Role.LIBRARIAN).isEmpty();
+
         return new SchoolDTO(
                 school.getId(),
                 school.getDomainName(),
@@ -168,6 +175,7 @@ public class SchoolService {
                         .map(this::toCampusDto)
                         .toList(),
                 school.getCreatedAt(),
+                hasLibrarian,
                 null);
     }
 
