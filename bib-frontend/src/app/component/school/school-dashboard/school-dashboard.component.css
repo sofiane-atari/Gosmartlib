@@ -327,6 +327,10 @@
   color: #ef4444;
 }
 
+.icon-button--purge {
+  color: #ff6b00;
+}
+
 .icon-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -346,6 +350,92 @@
   padding: 20px;
   text-align: center;
   color: #7a5560;
+}
+
+/* Purge modal */
+.purge-modal {
+  max-width: 520px;
+}
+
+.purge-title {
+  color: #ef4444 !important;
+}
+
+.purge-warning-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #7f1d1d;
+}
+
+.purge-warning-box strong {
+  color: #ef4444;
+}
+
+.purge-warning-box ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.purge-confirm-label {
+  font-size: 14px;
+  color: #1a0a10;
+  margin: 0 0 10px;
+}
+
+.purge-confirm-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #fecaca;
+  border-radius: 8px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  color: #1a0a10;
+  background: #fef2f2;
+  outline: none;
+  transition: border-color 0.18s;
+  box-sizing: border-box;
+}
+
+.purge-confirm-input:focus {
+  border-color: #ef4444;
+}
+
+.purge-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.purge-loading p {
+  font-size: 15px;
+  color: #1a0a10;
+  margin: 0;
+}
+
+.purge-loading-hint {
+  font-size: 13px;
+  color: #9b7a84;
+}
+
+.purge-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #fecaca;
+  border-top-color: #ef4444;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @keyframes successNotification {

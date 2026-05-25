@@ -11,6 +11,7 @@ import {
   Users,
   BookOpen,
   Landmark,
+  Flame,
 } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -55,6 +56,9 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly Users = Users;
   protected readonly BookOpen = BookOpen;
   protected readonly Landmark = Landmark;
+  protected readonly Flame = Flame;
+
+  protected readonly devModeEnabled = signal(false);
 
   protected readonly schools = signal<School[]>([]);
   protected readonly campusesBySchoolId = signal<Record<number, Campus[]>>({});
@@ -68,6 +72,16 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly isCampusEditModalOpen = signal(false);
   protected readonly isEditModalOpen = signal(false);
   protected readonly selectedSchoolForEdit = signal<School | null>(null);
+
+  protected readonly isPurgeModalOpen = signal(false);
+  protected readonly purgeTarget = signal<School | null>(null);
+  protected readonly purgeConfirmInput = signal('');
+  protected readonly isPurging = signal(false);
+  protected readonly canConfirmPurge = computed(() => {
+    const target = this.purgeTarget();
+    const input = this.purgeConfirmInput().trim().toLowerCase();
+    return target !== null && input === target.domainName.toLowerCase();
+  });
 
   protected readonly searchTerm = signal('');
   protected readonly schoolBookCounts = signal<Record<number, number>>({});
@@ -114,6 +128,7 @@ export class SchoolDashboardComponent implements OnInit {
 
   public ngOnInit(): void {
     this.loadSchools();
+    this.loadDevMode();
   }
 
   protected getBookCount(id: number): number {
@@ -340,6 +355,46 @@ export class SchoolDashboardComponent implements OnInit {
     );
   }
 
+  protected openPurgeModal(school: School): void {
+    this.purgeTarget.set(school);
+    this.purgeConfirmInput.set('');
+    this.isPurgeModalOpen.set(true);
+  }
+
+  protected closePurgeModal(): void {
+    this.isPurgeModalOpen.set(false);
+    this.purgeTarget.set(null);
+    this.purgeConfirmInput.set('');
+    this.isPurging.set(false);
+  }
+
+  protected executePurge(): void {
+    const target = this.purgeTarget();
+    if (!target || !this.canConfirmPurge()) {
+      return;
+    }
+
+    this.isPurging.set(true);
+
+    this.schoolService
+      .purgeSchool(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isPurging.set(false);
+          this.closePurgeModal();
+          this.schools.set(this.schools().filter((s) => s.id !== target.id));
+          this.loadSchools();
+          this.showSuccess('School en alle gerelateerde gegevens succesvol verwijderd.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isPurging.set(false);
+          this.closePurgeModal();
+          this.handleError(error, 'School kon niet volledig verwijderd worden. Probeer opnieuw.');
+        },
+      });
+  }
+
   protected onOverlayPointerDown(event: PointerEvent): void {
     this.backdropPointerStartedOnOverlay = event.target === event.currentTarget;
   }
@@ -447,6 +502,16 @@ export class SchoolDashboardComponent implements OnInit {
             ),
           }));
         },
+      });
+  }
+
+  private loadDevMode(): void {
+    this.schoolService
+      .isDevModeEnabled()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (enabled) => this.devModeEnabled.set(enabled),
+        error: () => this.devModeEnabled.set(false),
       });
   }
 

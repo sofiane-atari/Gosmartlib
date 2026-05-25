@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { CreateSchoolRequest, OneRosterCredentialValidationRequest, School } from '../../model/school.model';
 
@@ -25,6 +26,15 @@ export class SchoolService {
 
   public delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`);
+  }
+
+  public purgeSchool(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${id}/purge`);
+  }
+
+  public isDevModeEnabled(): Observable<boolean> {
+    return this.http.get<{ enabled: boolean }>(`${this.url}/dev-mode-enabled`)
+      .pipe(map((response) => response.enabled));
   }
 
   public getBookCount(id: number): Observable<number> {

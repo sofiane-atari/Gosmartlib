@@ -178,11 +178,26 @@
                       <lucide-icon [name]="Trash2"></lucide-icon>
                     </button>
                   </app-button-hover-help>
-                </div>
-              </td>
-            </tr>
+@if (devModeEnabled()) {
+                      <app-button-hover-help
+                        text="Verwijder deze school en alle gerelateerde gegevens definitief."
+                      >
+                        <button
+                          type="button"
+                          class="icon-button icon-button--purge"
+                          aria-label="School volledig verwijderen"
+                          (click)="openPurgeModal(school)"
+                          [disabled]="isPurging()"
+                        >
+                          <lucide-icon [name]="Flame"></lucide-icon>
+                        </button>
+                      </app-button-hover-help>
+                    }
+                  </div>
+                </td>
+              </tr>
 
-            @if (school.hasLibrarian === false) {
+              @if (school.hasLibrarian === false) {
               <tr class="warning-row">
                 <td colspan="5">
                   <div class="librarian-warning">
@@ -505,6 +520,75 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  }
+
+  @if (isPurgeModalOpen() && purgeTarget() !== null) {
+    <div
+      class="modal-overlay open purge-modal-overlay"
+      (pointerdown)="onOverlayPointerDown($event)"
+      (click)="onOverlayClick($event, 'edit')"
+    >
+      <div class="modal purge-modal" (click)="$event.stopPropagation()">
+        @if (isPurging()) {
+          <div class="purge-loading">
+            <div class="purge-spinner"></div>
+            <p>School en alle gerelateerde gegevens worden verwijderd...</p>
+            <p class="purge-loading-hint">Dit kan enkele ogenblikken duren.</p>
+          </div>
+        } @else {
+          <h2 class="purge-title">School volledig verwijderen</h2>
+
+          <div class="purge-warning-box">
+            <strong>Let op:</strong> Deze actie kan niet ongedaan worden gemaakt.
+            De volgende gegevens worden permanent verwijderd:
+            <ul>
+              <li>Gebruikers en hun rollen</li>
+              <li>Klassen en groepen</li>
+              <li>Boeken en boekexemplaren</li>
+              <li>Leningen en leningverlengingen</li>
+              <li>Leeslijsten en favorieten</li>
+              <li>Beoordelingen en rapporten</li>
+              <li>OneRoster-gegevens</li>
+              <li>Campussen</li>
+            </ul>
+          </div>
+
+          <p class="purge-confirm-label">
+            Typ <strong>{{ purgeTarget()?.domainName }}</strong> ter bevestiging:
+          </p>
+
+          <input
+            #purgeInput
+            type="text"
+            class="purge-confirm-input"
+            [value]="purgeConfirmInput()"
+            (input)="purgeConfirmInput.set(purgeInput.value)"
+            [placeholder]="purgeTarget()?.domainName ?? ''"
+            autocomplete="off"
+            spellcheck="false"
+          />
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="closePurgeModal()"
+            >
+              Annuleren
+            </button>
+
+            <button
+              type="button"
+              class="btn-danger"
+              [disabled]="!canConfirmPurge()"
+              (click)="executePurge()"
+            >
+              Deze school volledig verwijderen
+            </button>
+          </div>
+        }
       </div>
     </div>
   }
