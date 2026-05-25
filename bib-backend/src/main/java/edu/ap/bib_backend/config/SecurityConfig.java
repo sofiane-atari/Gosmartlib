@@ -45,21 +45,18 @@ public class SecurityConfig {
         private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
         private final RestAccessDeniedHandler restAccessDeniedHandler;
         private final boolean mockModeEnabled;
-        private final String realSchoolDomains;
 
         public SecurityConfig(
                         JwtAuthenticationFilter jwtAuthenticationFilter,
                         SmartschoolOAuth2UserService smartschoolOAuth2UserService,
                         RestAuthenticationEntryPoint restAuthenticationEntryPoint,
                         RestAccessDeniedHandler restAccessDeniedHandler,
-                        @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
-                        @Value("${app.real-school-domains:}") String realSchoolDomains) {
+                        @Value("${app.mock-mode-enabled}") boolean mockModeEnabled) {
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
                 this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
                 this.restAccessDeniedHandler = restAccessDeniedHandler;
                 this.mockModeEnabled = mockModeEnabled;
-                this.realSchoolDomains = realSchoolDomains;
         }
 
         @Bean
@@ -158,8 +155,7 @@ public class SecurityConfig {
                                                 .authorizationEndpoint(auth -> auth
                                                                 .authorizationRequestResolver(
                                                                                 new SchoolAwareAuthorizationRequestResolver(
-                                                                                                clientRegistrationRepository,
-                                                                                                realSchoolDomains)))
+                                                                                                clientRegistrationRepository)))
                                                 .tokenEndpoint(token -> token
                                                                 .accessTokenResponseClient(accessTokenResponseClient))
                                                 .userInfoEndpoint(userInfo -> userInfo
