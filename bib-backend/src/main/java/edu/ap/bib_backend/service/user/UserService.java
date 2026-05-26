@@ -119,9 +119,16 @@ public class UserService {
                 })
                 .count();
 
-        int activeTeachers = totalTeachers - librarians;
+        int admins = (int) allUsers.stream()
+                .filter(dto -> {
+                    Role localRole = localRolesByUserId.get(dto.id());
+                    return localRole == Role.ADMIN;
+                })
+                .count();
 
-        return new TeacherStatsDTO(totalTeachers, activeTeachers, librarians);
+        int activeTeachers = totalTeachers - librarians - admins;
+
+        return new TeacherStatsDTO(totalTeachers, activeTeachers, librarians, admins);
     }
 
     public PageDTO<AuthUserDto> getTeachers(Authentication authentication,
