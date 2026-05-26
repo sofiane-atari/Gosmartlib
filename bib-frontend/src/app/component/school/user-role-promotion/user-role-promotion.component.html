@@ -140,3 +140,14 @@
     </div>
   }
 </div>
+
+<app-confirmation-modal
+  [isVisible]="!!adminConfirmUser()"
+  [title]="adminConfirmTitle()"
+  [description]="adminConfirmDescription()"
+  confirmLabel="Bevestigen"
+  cancelLabel="Annuleren"
+  [isConfirmLoading]="isPromoting() !== null"
+  (confirmRequested)="confirmAdminAction()"
+  (cancelRequested)="cancelAdminAction()"
+></app-confirmation-modal>

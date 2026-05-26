@@ -19,6 +19,7 @@ import { RoleService } from '../../../services/role/role.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { DataTableComponent } from '../../shared/data-table/data-table.component';
 import { CellTemplateDirective } from '../../shared/data-table/cell-template.directive';
+import { ConfirmationModalComponent } from '../../shared/confirmation-modal/confirmation-modal.component';
 import { DataTableColumn } from '../../shared/data-table/data-table.types';
 
 const POLL_DELAY_MS = 3000;
@@ -27,7 +28,7 @@ const MAX_RETRIES = 5;
 @Component({
   selector: 'app-user-role-promotion',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, DataTableComponent, CellTemplateDirective],
+  imports: [CommonModule, LucideAngularModule, DataTableComponent, CellTemplateDirective, ConfirmationModalComponent],
   templateUrl: './user-role-promotion.component.html',
   styleUrl: './user-role-promotion.component.css',
 })
@@ -46,6 +47,8 @@ export class UserRolePromotionComponent implements OnInit, OnDestroy {
   protected readonly isLoading = signal(true);
   protected readonly users = signal<AuthUserDto[]>([]);
   protected readonly isPromoting = signal<string | null>(null);
+  protected readonly adminConfirmUser = signal<AuthUserDto | null>(null);
+  protected readonly adminConfirmAction = signal<'promote' | 'demote'>('promote');
 
   protected readonly ShieldCheck = ShieldCheck;
   protected readonly ShieldOff = ShieldOff;
@@ -124,19 +127,50 @@ export class UserRolePromotionComponent implements OnInit, OnDestroy {
   }
 
   protected promoteToAdmin(user: AuthUserDto): void {
-    this.changeRole(user.id, () => this.roleService.assignAdmin(user.id, user.school?.domainName), 'ADMIN');
+    this.adminConfirmUser.set(user);
+    this.adminConfirmAction.set('promote');
   }
 
   protected demoteToTeacher(user: AuthUserDto): void {
-    const role = user.role;
+    if (user.role === 'ADMIN') {
+      this.adminConfirmUser.set(user);
+      this.adminConfirmAction.set('demote');
+      return;
+    }
     const schoolCode = user.school?.domainName;
-    const action$ =
-      role === 'LIBRARIAN'
-        ? this.roleService.revokeLibrarian(user.id, schoolCode)
-        : this.roleService.revokeAdmin(user.id, schoolCode);
-
-    this.changeRole(user.id, () => action$, 'TEACHER');
+    this.changeRole(user.id, () => this.roleService.revokeLibrarian(user.id, schoolCode), 'TEACHER');
   }
+
+  protected confirmAdminAction(): void {
+    const user = this.adminConfirmUser();
+    if (!user) return;
+    const schoolCode = user.school?.domainName;
+    if (this.adminConfirmAction() === 'promote') {
+      this.changeRole(user.id, () => this.roleService.assignAdmin(user.id, schoolCode), 'ADMIN');
+    } else {
+      this.changeRole(user.id, () => this.roleService.revokeAdmin(user.id, schoolCode), 'TEACHER');
+    }
+    this.adminConfirmUser.set(null);
+  }
+
+  protected cancelAdminAction(): void {
+    this.adminConfirmUser.set(null);
+  }
+
+  protected readonly adminConfirmTitle = computed(() =>
+    this.adminConfirmAction() === 'promote' ? 'Leerkracht promoveren tot admin' : 'Adminrol intrekken',
+  );
+
+  protected readonly adminConfirmDescription = computed(() => {
+    const user = this.adminConfirmUser();
+    if (!user) return '';
+    const name = this.getDisplayName(user);
+    const warning = 'Let op: deze operatie moet met voorzichtigheid uitgevoerd worden.';
+    if (this.adminConfirmAction() === 'promote') {
+      return `${warning} Weet je zeker dat je "${name}" wilt promoveren tot admin? Deze gebruiker krijgt dan volledige beheerdersrechten.`;
+    }
+    return `${warning} Weet je zeker dat je de adminrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
+  });
 
   protected getRoleLabel(role: Role): string {
     return this.userService.getRoleLabel(role);
