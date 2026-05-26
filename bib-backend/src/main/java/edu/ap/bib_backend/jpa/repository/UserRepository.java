@@ -16,6 +16,9 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Optional<User> findByOneRosterSourcedId(String oneRosterSourcedId);
 
+    @Query("select u from User u where u.id = :userId and u.school.id = :schoolId")
+    Optional<User> findByIdAndSchoolId(@Param("userId") String userId, @Param("schoolId") Long schoolId);
+
     long countBySchoolIdAndRole(Long schoolId, Role role);
 
     long countByRole(Role role);

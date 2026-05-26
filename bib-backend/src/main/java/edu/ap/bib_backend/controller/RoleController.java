@@ -26,7 +26,7 @@ public class RoleController {
     public ResponseEntity<AuthUserDto> assignLibrarian(
             @Valid @RequestBody AssignLibrarianRequestDto request,
             Authentication authentication) {
-        AuthUserDto result = roleService.assignLibrarian(authentication, request.userId());
+        AuthUserDto result = roleService.assignLibrarian(authentication, request.userId(), request.schoolCode());
         return ResponseEntity.ok(result);
     }
 
@@ -34,7 +34,7 @@ public class RoleController {
     public ResponseEntity<AuthUserDto> revokeLibrarian(
             @Valid @RequestBody AssignLibrarianRequestDto request,
             Authentication authentication) {
-        AuthUserDto result = roleService.revokeLibrarian(authentication, request.userId());
+        AuthUserDto result = roleService.revokeLibrarian(authentication, request.userId(), request.schoolCode());
         return ResponseEntity.ok(result);
     }
 
@@ -42,7 +42,7 @@ public class RoleController {
     public ResponseEntity<AuthUserDto> assignAdmin(
             @Valid @RequestBody AssignLibrarianRequestDto request,
             Authentication authentication) {
-        AuthUserDto result = roleService.assignAdmin(authentication, request.userId());
+        AuthUserDto result = roleService.assignAdmin(authentication, request.userId(), request.schoolCode());
         return ResponseEntity.ok(result);
     }
 
@@ -50,7 +50,7 @@ public class RoleController {
     public ResponseEntity<AuthUserDto> revokeAdmin(
             @Valid @RequestBody AssignLibrarianRequestDto request,
             Authentication authentication) {
-        AuthUserDto result = roleService.revokeAdmin(authentication, request.userId());
+        AuthUserDto result = roleService.revokeAdmin(authentication, request.userId(), request.schoolCode());
         return ResponseEntity.ok(result);
     }
 }
