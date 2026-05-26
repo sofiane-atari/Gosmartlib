@@ -3,12 +3,11 @@ import {
   computed,
   inject,
   signal,
-  DestroyRef,
+  DestroyRef
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { GenreService } from '../../../services/genre/genre.service';
-import { StatCardComponent } from '../stat-card/stat-card.component';
 import { GenresListComponent } from '../genres-list/genres-list.component';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
@@ -21,7 +20,13 @@ import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { Genre } from '../../../model/genre/genre.model';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { AddSubmitEvent, AddComponent } from '../../shared/add/add.component';
-import { Plus, LucideAngularModule } from "lucide-angular";
+import {LucideAngularModule,
+  BookOpen,
+  CircleOff,
+  Plus,
+  Tag 
+} from "lucide-angular";
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -35,12 +40,11 @@ interface ErrorItem {
   standalone: true,
   imports: [
     FormsModule,
-    StatCardComponent,
     SearchBarComponent,
     PagingComponent,
     GenresListComponent,
-    ButtonHoverHelpComponent,
     AddComponent,
+    StatCardComponent,
     LucideAngularModule
 ],
   templateUrl: './dashboard-genres.component.html',
@@ -68,6 +72,10 @@ export class DashboardGenresComponent {
   private readonly defaultGenreColor = '#3b82f6';
 
   protected readonly Plus = Plus;
+  protected readonly Tag = Tag;
+  protected readonly BookOpen = BookOpen;
+  protected readonly CircleOff = CircleOff;
+  
 
   constructor() {
     // Set up debounced search - waits 300ms after user stops typing

@@ -17,6 +17,7 @@ import { ToastService } from '../../../services/toast/toast.service';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 @Component({
   selector: 'app-system-report',
@@ -28,7 +29,8 @@ import { SearchBarComponent } from '../../shared/search-bar/search-bar.component
     SearchBarComponent,
     PagingComponent,
     ButtonHoverHelpComponent,
-  ],
+    StatCardComponent
+],
   styleUrls: [
     '../campus-report/campus-report.component.css',
     './system-report.component.css',

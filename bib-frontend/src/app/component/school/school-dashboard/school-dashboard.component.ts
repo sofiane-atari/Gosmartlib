@@ -24,6 +24,7 @@ import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { ToastService } from '../../../services/toast/toast.service';
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 @Component({
   selector: 'app-school-dashboard',
@@ -34,7 +35,8 @@ import { ToastService } from '../../../services/toast/toast.service';
     ReactiveFormsModule,
     SearchBarComponent,
     ButtonHoverHelpComponent,
-  ],
+    StatCardComponent
+],
   templateUrl: './school-dashboard.component.html',
   styleUrl: './school-dashboard.component.css',
 })

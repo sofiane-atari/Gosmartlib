@@ -1,61 +1,40 @@
 <div class="tag-dashboard">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>Label Beheer</h1>
-      <p>Beheer tags voor de boekencatalogus</p>
+      <h1>Labelbeheer</h1>
+      <p>Beheer tags voor de boekencatalogus.</p>
     </div>
 
     <button type="button" class="btn-new" (click)="openCreatePopup()">
       <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
-      Nieuwe label <label for=""></label>
+      Nieuw label
     </button>
   </div>
 
   <section class="stat-cards">
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal tags in de boekencatalogus.">
-      <article class="stat-card stat-card--purple">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="TagIcon"></lucide-icon>
-        </div>
+    <app-stat-card
+      label="Totaal labels"
+      [value]="stats().totalItems"
+      [icon]="TagIcon"
+      variant="purple"
+      helpText="Dit is het totaal aantal tags in de boekencatalogus."
+    ></app-stat-card>
 
-        <div>
-          <p>Totaal labels</p>
-          <strong>{{ stats().totalItems }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Gebruikte labels"
+      [value]="totalActive()"
+      [icon]="CheckCircle"
+      variant="green"
+      helpText="Dit is het aantal tags dat gekoppeld is aan één of meerdere boeken."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het aantal tags dat gekoppeld is aan één of meerdere boeken.">
-      <article class="stat-card stat-card--green">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="CheckCircle"></lucide-icon>
-        </div>
-
-        <div>
-          <p>Gebruikte labels</p>
-          <strong>{{ totalActive() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
-
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het aantal tags dat nog niet gekoppeld is aan boeken.">
-      <article class="stat-card stat-card--orange">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="CircleOff"></lucide-icon>
-        </div>
-
-        <div>
-          <p>Ongebruikte labels</p>
-          <strong>{{ stats().unActiveTags }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Ongebruikte labels"
+      [value]="stats().unActiveTags"
+      [icon]="CircleOff"
+      variant="orange"
+      helpText="Dit is het aantal tags dat nog niet gekoppeld is aan boeken."
+    ></app-stat-card>
   </section>
 
   <section class="search-panel">
@@ -171,33 +150,34 @@
       (pageChange)="onPageChange($event)"
     />
   }
-<app-name-description-modal
-  [isOpen]="popUp() === 'create'"
-  mode="create"
-  title="Tag toevoegen"
-  subtitle="Maak een nieuwe tag aan om boeken beter te organiseren."
-  nameLabel="Naam"
-  descriptionLabel="Beschrijving"
-  namePlaceholder="Bijvoorbeeld: Fantasy"
-  descriptionPlaceholder="Korte beschrijving van de tag"
-  submitLabel="Tag toevoegen"
-  (closed)="closePopup()"
-  (submitted)="onSubmitCreateTag($event)"
-></app-name-description-modal>
 
-<app-name-description-modal
-  [isOpen]="popUp() === 'edit'"
-  mode="edit"
-  title="Tag bewerken"
-  subtitle="Pas de naam of beschrijving van deze tag aan."
-  nameLabel="Naam"
-  descriptionLabel="Beschrijving"
-  namePlaceholder="Bijvoorbeeld: Fantasy"
-  descriptionPlaceholder="Korte beschrijving van de tag"
-  [initialName]="editingTag()?.name ?? ''"
-  [initialDescription]="editingTag()?.description ?? ''"
-  submitLabel="Tag opslaan"
-  (closed)="closePopup()"
-  (submitted)="onSubmitUpdateTag($event)"
-></app-name-description-modal>
+  <app-name-description-modal
+    [isOpen]="popUp() === 'create'"
+    mode="create"
+    title="Tag toevoegen"
+    subtitle="Maak een nieuwe tag aan om boeken beter te organiseren."
+    nameLabel="Naam"
+    descriptionLabel="Beschrijving"
+    namePlaceholder="Bijvoorbeeld: Fantasy"
+    descriptionPlaceholder="Korte beschrijving van de tag"
+    submitLabel="Tag toevoegen"
+    (closed)="closePopup()"
+    (submitted)="onSubmitCreateTag($event)"
+  ></app-name-description-modal>
+
+  <app-name-description-modal
+    [isOpen]="popUp() === 'edit'"
+    mode="edit"
+    title="Tag bewerken"
+    subtitle="Pas de naam of beschrijving van deze tag aan."
+    nameLabel="Naam"
+    descriptionLabel="Beschrijving"
+    namePlaceholder="Bijvoorbeeld: Fantasy"
+    descriptionPlaceholder="Korte beschrijving van de tag"
+    [initialName]="editingTag()?.name ?? ''"
+    [initialDescription]="editingTag()?.description ?? ''"
+    submitLabel="Tag opslaan"
+    (closed)="closePopup()"
+    (submitted)="onSubmitUpdateTag($event)"
+  ></app-name-description-modal>
 </div>

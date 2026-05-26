@@ -745,7 +745,13 @@
 .main-content--no-sidebar .books-grid {
   grid-template-columns: repeat(6, 1fr);
 }
-
+.search-panel {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 15px;
+}
 @keyframes catalogSkeletonShimmer {
   from {
     background-position: 200% 0;

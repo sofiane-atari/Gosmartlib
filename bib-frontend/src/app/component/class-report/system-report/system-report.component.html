@@ -1,14 +1,18 @@
 <section class="campus-report-dashboard school-report-dashboard system-report-dashboard">
-  <div class="page-header">
-    <button class="back-button" (click)="goBackToReports()" title="Terug naar rapportage menu">
-      <lucide-icon [name]="icons.arrowLeft" width="20" height="20"></lucide-icon>
-      <span>Terug</span>
-    </button>
+  <div class="page-header page-header--centered">
+    <div class="page-header__left">
+      <button class="back-button" (click)="goBackToReports()" title="Terug naar rapportage menu">
+        <lucide-icon [name]="icons.arrowLeft" width="20" height="20"></lucide-icon>
+        <span>Terug</span>
+      </button>
+    </div>
 
     <div class="page-header__text">
       <h1>Systeemrapportage</h1>
       <p>Overzicht van uitleenactiviteit, scholen en systeemstatus over alle scholen heen.</p>
     </div>
+
+    <div class="page-header__right"></div>
   </div>
 
   @if (loading) {
@@ -39,45 +43,37 @@
       </div>
 
       <section class="stat-cards">
-        <article class="stat-card stat-card--purple">
-          <div class="stat-card__icon">
-            <lucide-icon [img]="icons.library"></lucide-icon>
-          </div>
-          <div>
-            <p>Totaal uitgeleend</p>
-            <strong>{{ report.totalLoans }}</strong>
-          </div>
-        </article>
+        <app-stat-card
+          label="Totaal uitgeleend"
+          [value]="report.totalLoans"
+          [icon]="icons.library"
+          variant="purple"
+          helpText="Het totaal aantal boekexemplaren dat over alle scholen heen werd uitgeleend."
+        ></app-stat-card>
 
-        <article class="stat-card stat-card--orange">
-          <div class="stat-card__icon">
-            <lucide-icon [img]="icons.clock"></lucide-icon>
-          </div>
-          <div>
-            <p>Momenteel uitgeleend</p>
-            <strong>{{ report.activeLoans }}</strong>
-          </div>
-        </article>
+        <app-stat-card
+          label="Momenteel uitgeleend"
+          [value]="report.activeLoans"
+          [icon]="icons.clock"
+          variant="orange"
+          helpText="Aantal boeken dat momenteel nog niet werd teruggebracht over alle scholen heen."
+        ></app-stat-card>
 
-        <article class="stat-card stat-card--blue">
-          <div class="stat-card__icon">
-            <lucide-icon [img]="icons.users"></lucide-icon>
-          </div>
-          <div>
-            <p>Totaal scholen</p>
-            <strong>{{ report.totalSchools }}</strong>
-          </div>
-        </article>
+        <app-stat-card
+          label="Totaal scholen"
+          [value]="report.totalSchools"
+          [icon]="icons.users"
+          variant="blue"
+          helpText="Het totaal aantal scholen dat in het systeem aanwezig is."
+        ></app-stat-card>
 
-        <article class="stat-card stat-card--green">
-          <div class="stat-card__icon">
-            <lucide-icon [img]="icons.trending"></lucide-icon>
-          </div>
-          <div>
-            <p>Actieve gebruikers</p>
-            <strong>{{ report.activeUsers }}</strong>
-          </div>
-        </article>
+        <app-stat-card
+          label="Actieve gebruikers"
+          [value]="report.activeUsers"
+          [icon]="icons.trending"
+          variant="green"
+          helpText="Aantal gebruikers dat actief is binnen het volledige systeem."
+        ></app-stat-card>
       </section>
 
       <section class="insight-grid school-insight-grid">
@@ -120,25 +116,21 @@
           </div>
 
           <section class="catalog-stat-grid">
-            <article class="stat-card stat-card--purple catalog-stat-card">
-              <div class="stat-card__icon">
-                <lucide-icon [img]="icons.bookOpen"></lucide-icon>
-              </div>
-              <div>
-                <p>Unieke titels in catalogus</p>
-                <strong>{{ report.totalBooks }}</strong>
-              </div>
-            </article>
+            <app-stat-card
+              label="Unieke titels in catalogus"
+              [value]="report.totalBooks"
+              [icon]="icons.bookOpen"
+              variant="purple"
+              helpText="Aantal unieke boektitels dat beschikbaar is in de catalogus."
+            ></app-stat-card>
 
-            <article class="stat-card stat-card--blue catalog-stat-card">
-              <div class="stat-card__icon">
-                <lucide-icon [img]="icons.library"></lucide-icon>
-              </div>
-              <div>
-                <p>Fysieke exemplaren</p>
-                <strong>{{ report.totalCopies }}</strong>
-              </div>
-            </article>
+            <app-stat-card
+              label="Fysieke exemplaren"
+              [value]="report.totalCopies"
+              [icon]="icons.library"
+              variant="blue"
+              helpText="Aantal fysieke boekexemplaren dat in het systeem geregistreerd is."
+            ></app-stat-card>
           </section>
         </section>
 
@@ -297,7 +289,9 @@
                   <td class="center-col">
                     <span class="count-badge">{{ school.linkedStudents }}/{{ school.totalStudents }}</span>
                   </td>
-                  <td class="center-col"><span class="count-badge">{{ school.totalLoans }}</span></td>
+                  <td class="center-col">
+                    <span class="count-badge">{{ school.totalLoans }}</span>
+                  </td>
                   <td class="center-col">
                     @if (school.activeLoans > 0) {
                       <span class="open-loans-badge">{{ school.activeLoans }}</span>

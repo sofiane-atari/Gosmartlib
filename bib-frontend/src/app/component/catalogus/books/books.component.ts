@@ -38,6 +38,7 @@ import { ReadingList } from '../../../model/readingList.model';
 import { FeaturedReadingListsSidebarComponent } from "../featured-reading-lists-sidebar/featured-reading-lists-sidebar.component";
 import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 import { UserSettingsService } from '../../../services/user-settings/user-settings.service';
+import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
 
 @Component({
   selector: 'app-books',
@@ -49,7 +50,8 @@ import { UserSettingsService } from '../../../services/user-settings/user-settin
     BookListSidebarComponent,
     PagingComponent,
     GenrePickerComponent,
-    FeaturedReadingListsSidebarComponent
+    FeaturedReadingListsSidebarComponent,
+    SearchBarComponent
 ],
   templateUrl: './books.component.html',
   styleUrl: './books.component.css',

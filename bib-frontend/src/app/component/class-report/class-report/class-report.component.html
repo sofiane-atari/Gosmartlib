@@ -1,125 +1,126 @@
 <section class="class-report-dashboard">
-<div class="page-header page-header--centered">
-  <div class="page-header__left">
-    <button class="back-button" (click)="goBackToReports()" title="Terug naar rapportage menu">
-      <lucide-icon [name]="icons.arrowLeft" width="20" height="20"></lucide-icon>
-      <span>Terug</span>
-    </button>
-  </div>
-
-  <div class="page-header__text">
-    <h1>Klasrapportage</h1>
-    <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
-  </div>
-
-  <section class="class-picker">
-    <div class="class-dropdown">
-      <span class="class-dropdown__label">Klas</span>
-
-      <button
-        type="button"
-        class="class-dropdown__trigger"
-        [class.class-dropdown__trigger--open]="isClassDropdownOpen"
-        [disabled]="loadingClasses || classOptions.length === 0"
-        (click)="toggleClassDropdown()"
-      >
-        <span>
-          {{ getSelectedClassTitle() }}
-        </span>
-
-        <span class="class-dropdown__chevron">
-          <lucide-icon [img]="icons.chevronDown"></lucide-icon>
-        </span>
+  <div class="page-header page-header--centered">
+    <div class="page-header__left">
+      <button class="back-button" (click)="goBackToReports()" title="Terug naar rapportage menu">
+        <lucide-icon [name]="icons.arrowLeft" width="20" height="20"></lucide-icon>
+        <span>Terug</span>
       </button>
-
-      @if (isClassDropdownOpen) {
-        <div class="class-dropdown__menu">
-          @for (classOption of classOptions; track classOption.sourcedId) {
-            <button
-              type="button"
-              class="class-dropdown__option"
-              [class.class-dropdown__option--selected]="classOption.sourcedId === selectedClassSourcedId"
-              (click)="selectClass(classOption.sourcedId)"
-            >
-              <span class="class-dropdown__option-main">
-                {{ classOption.title }}
-              </span>
-            </button> 
-          }
-        </div>
-      }
     </div>
-  </section>
-</div>
-    @if (loading) {
-    <article class="report-card report-card--skeleton"> 
-        <div class="report-card__header">
+
+    <div class="page-header__text">
+      <h1>Klasrapportage</h1>
+      <p>Bekijk uitleengedrag, reviews, populaire genres en leerlingactiviteit per klas.</p>
+    </div>
+
+    <section class="class-picker">
+      <div class="class-dropdown">
+        <span class="class-dropdown__label">Klas</span>
+
+        <button
+          type="button"
+          class="class-dropdown__trigger"
+          [class.class-dropdown__trigger--open]="isClassDropdownOpen"
+          [disabled]="loadingClasses || classOptions.length === 0"
+          (click)="toggleClassDropdown()"
+        >
+          <span>
+            {{ getSelectedClassTitle() }}
+          </span>
+
+          <span class="class-dropdown__chevron">
+            <lucide-icon [img]="icons.chevronDown"></lucide-icon>
+          </span>
+        </button>
+
+        @if (isClassDropdownOpen) {
+          <div class="class-dropdown__menu">
+            @for (classOption of classOptions; track classOption.sourcedId) {
+              <button
+                type="button"
+                class="class-dropdown__option"
+                [class.class-dropdown__option--selected]="classOption.sourcedId === selectedClassSourcedId"
+                (click)="selectClass(classOption.sourcedId)"
+              >
+                <span class="class-dropdown__option-main">
+                  {{ classOption.title }}
+                </span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+
+  @if (loading) {
+    <article class="report-card report-card--skeleton">
+      <div class="report-card__header">
         <div>
-            <span class="skeleton-block skeleton-label"></span>
-            <span class="skeleton-block skeleton-title"></span>
-            <span class="skeleton-block skeleton-text skeleton-text--wide"></span>
+          <span class="skeleton-block skeleton-label"></span>
+          <span class="skeleton-block skeleton-title"></span>
+          <span class="skeleton-block skeleton-text skeleton-text--wide"></span>
         </div>
         <span class="skeleton-block skeleton-count-badge"></span>
-        </div>
+      </div>
 
-        <section class="stat-cards">
+      <section class="stat-cards">
         @for (item of [1, 2, 3, 4]; track item) {
-            <article class="stat-card skeleton-stat-card">
+          <article class="stat-card skeleton-stat-card">
             <div class="stat-card__icon skeleton-icon"></div>
 
             <div>
-                <span class="skeleton-block skeleton-stat-label"></span>
-                <span class="skeleton-block skeleton-stat-number"></span>
+              <span class="skeleton-block skeleton-stat-label"></span>
+              <span class="skeleton-block skeleton-stat-number"></span>
             </div>
-            </article>
+          </article>
         }
-        </section>
+      </section>
 
-        <section class="insight-grid">
+      <section class="insight-grid">
         @for (panel of [1, 2]; track panel) {
-            <section class="insight-card skeleton-insight-card">
+          <section class="insight-card skeleton-insight-card">
             <div class="insight-card__header">
-                <div>
+              <div>
                 <span class="skeleton-block skeleton-panel-title"></span>
                 <span class="skeleton-block skeleton-panel-subtitle"></span>
-                </div>
+              </div>
             </div>
 
             <div class="ranking-list">
-                @for (row of [1, 2, 3, 4]; track row) {
+              @for (row of [1, 2, 3, 4]; track row) {
                 <div class="ranking-row skeleton-ranking-row">
-                    <span class="skeleton-block skeleton-rank"></span>
-                    <span class="skeleton-block skeleton-dot"></span>
+                  <span class="skeleton-block skeleton-rank"></span>
+                  <span class="skeleton-block skeleton-dot"></span>
 
-                    <div class="ranking-main">
+                  <div class="ranking-main">
                     <span class="skeleton-block skeleton-row-title"></span>
                     <span class="skeleton-block skeleton-row-subtitle"></span>
-                    </div>
+                  </div>
 
-                    <span class="skeleton-block skeleton-row-badge"></span>
+                  <span class="skeleton-block skeleton-row-badge"></span>
                 </div>
-                }
+              }
             </div>
-            </section>
+          </section>
         }
-        </section>
+      </section>
 
-        <section class="search-panel">
+      <section class="search-panel">
         <div class="skeleton-block skeleton-search"></div>
-        </section>
+      </section>
 
-        <section class="table-card">
+      <section class="table-card">
         <div class="table-card__header">
-            <div>
+          <div>
             <span class="skeleton-block skeleton-panel-title"></span>
             <span class="skeleton-block skeleton-panel-subtitle"></span>
-            </div>
+          </div>
         </div>
 
         <div class="table-scroll">
-            <table>
+          <table>
             <thead>
-                <tr>
+              <tr>
                 <th>Leerling</th>
                 <th class="center-col">Totaal</th>
                 <th class="center-col">Teruggebracht</th>
@@ -127,64 +128,64 @@
                 <th class="center-col">Reviews</th>
                 <th class="center-col">Leesactiviteit</th>
                 <th class="center-col">Status</th>
-                </tr>
+              </tr>
             </thead>
 
             <tbody>
-                @for (row of [1, 2, 3, 4, 5]; track row) {
+              @for (row of [1, 2, 3, 4, 5]; track row) {
                 <tr>
-                    <td>
+                  <td>
                     <div class="student-cell">
-                        <div class="student-cell__icon skeleton-avatar"></div>
+                      <div class="student-cell__icon skeleton-avatar"></div>
 
-                        <div>
+                      <div>
                         <span class="skeleton-block skeleton-student-name"></span>
                         <span class="skeleton-block skeleton-student-badge"></span>
-                        </div>
+                      </div>
                     </div>
-                    </td>
+                  </td>
 
-                    <td class="center-col">
+                  <td class="center-col">
                     <span class="skeleton-block skeleton-table-badge"></span>
-                    </td>
+                  </td>
 
-                    <td class="center-col">
+                  <td class="center-col">
                     <span class="skeleton-block skeleton-table-value"></span>
-                    </td>
+                  </td>
 
-                    <td class="center-col">
+                  <td class="center-col">
                     <span class="skeleton-block skeleton-table-value"></span>
-                    </td>
+                  </td>
 
-                    <td class="center-col">
+                  <td class="center-col">
                     <span class="skeleton-block skeleton-table-value"></span>
-                    </td>
+                  </td>
 
-                    <td class="center-col">
+                  <td class="center-col">
                     <span class="skeleton-block skeleton-table-wide-badge"></span>
-                    </td>
+                  </td>
 
-                    <td class="center-col">
+                  <td class="center-col">
                     <span class="skeleton-block skeleton-table-wide-badge"></span>
-                    </td>
+                  </td>
                 </tr>
-                }
+              }
             </tbody>
-            </table>
+          </table>
         </div>
 
         <div class="table-paging skeleton-paging-wrapper">
-            <span class="skeleton-block skeleton-page-button"></span>
-            <span class="skeleton-block skeleton-page-number"></span>
-            <span class="skeleton-block skeleton-page-number"></span>
-            <span class="skeleton-block skeleton-page-number"></span>
-            <span class="skeleton-block skeleton-page-button"></span>
+          <span class="skeleton-block skeleton-page-button"></span>
+          <span class="skeleton-block skeleton-page-number"></span>
+          <span class="skeleton-block skeleton-page-number"></span>
+          <span class="skeleton-block skeleton-page-number"></span>
+          <span class="skeleton-block skeleton-page-button"></span>
         </div>
-        </section>
+      </section>
     </article>
-    }
+  }
 
-@if (!loading && selectedReport; as report) {
+  @if (!loading && selectedReport; as report) {
     <article class="report-card">
       <div class="report-card__header">
         <div>
@@ -202,65 +203,37 @@
       </div>
 
       <section class="stat-cards">
-        <app-button-hover-help
-          class="stat-card-hover"
-          text="Het totaal aantal boekexemplaren dat door gekoppelde leerlingen van deze klas ooit werd uitgeleend.">
-          <article class="stat-card stat-card--purple">
-            <div class="stat-card__icon">
-              <lucide-icon [img]="icons.library"></lucide-icon>
-            </div>
+        <app-stat-card
+          label="Totaal uitgeleend"
+          [value]="report.totalLoans"
+          [icon]="icons.library"
+          variant="purple"
+          helpText="Het totaal aantal boekexemplaren dat door gekoppelde leerlingen van deze klas ooit werd uitgeleend."
+        ></app-stat-card>
 
-            <div>
-              <p>Totaal uitgeleend</p>
-              <strong>{{ report.totalLoans }}</strong>
-            </div>
-          </article>
-        </app-button-hover-help>
+        <app-stat-card
+          label="Gekoppelde leerlingen"
+          [value]="report.linkedStudentCount"
+          [icon]="icons.users"
+          variant="blue"
+          helpText="Aantal leerlingen waarvan de Smartschool/OneRoster identiteit gekoppeld is aan een gebruiker in deze applicatie. Alleen gekoppelde leerlingen hebben uitleen- en reviewstatistieken."
+        ></app-stat-card>
 
-        <app-button-hover-help
-          class="stat-card-hover"
-          text="Aantal leerlingen waarvan de Smartschool/OneRoster identiteit gekoppeld is aan een gebruiker in deze applicatie. Alleen gekoppelde leerlingen hebben uitleen- en reviewstatistieken.">
-          <article class="stat-card stat-card--blue">
-            <div class="stat-card__icon">
-              <lucide-icon [img]="icons.users"></lucide-icon>
-            </div>
+        <app-stat-card
+          label="Gemiddeld gelezen"
+          [value]="report.averageLoansPerLinkedStudent"
+          [icon]="icons.bookOpen"
+          variant="green"
+          helpText="Het gemiddeld aantal uitgeleende boeken per gekoppelde leerling. Niet-gekoppelde leerlingen tellen hier niet mee."
+        ></app-stat-card>
 
-            <div>
-              <p>Gekoppelde leerlingen</p>
-              <strong>{{ report.linkedStudentCount }}/{{ report.studentCount }}</strong>
-            </div>
-          </article>
-        </app-button-hover-help>
-
-        <app-button-hover-help
-          class="stat-card-hover"
-          text="Het gemiddeld aantal uitgeleende boeken per gekoppelde leerling. Niet-gekoppelde leerlingen tellen hier niet mee.">
-          <article class="stat-card stat-card--green">
-            <div class="stat-card__icon">
-              <lucide-icon [img]="icons.bookOpen"></lucide-icon>
-            </div>
-
-            <div>
-              <p>Gemiddeld gelezen</p>
-              <strong>{{ report.averageLoansPerLinkedStudent }}</strong>
-            </div>
-          </article>
-        </app-button-hover-help>
-
-        <app-button-hover-help
-          class="stat-card-hover"
-          text="Aantal boeken dat op dit moment nog niet werd teruggebracht door leerlingen uit deze klas.">
-          <article class="stat-card stat-card--orange">
-            <div class="stat-card__icon">
-              <lucide-icon [img]="icons.clock"></lucide-icon>
-            </div>
-
-            <div>
-              <p>Momenteel uitgeleend</p>
-              <strong>{{ report.activeLoans }}</strong>
-            </div>
-          </article>
-        </app-button-hover-help>
+        <app-stat-card
+          label="Momenteel uitgeleend"
+          [value]="report.activeLoans"
+          [icon]="icons.clock"
+          variant="orange"
+          helpText="Aantal boeken dat op dit moment nog niet werd teruggebracht door leerlingen uit deze klas."
+        ></app-stat-card>
       </section>
 
       <section class="insight-grid">
@@ -490,5 +463,5 @@
         }
       </section>
     </article>
-    }
+  }
 </section>
