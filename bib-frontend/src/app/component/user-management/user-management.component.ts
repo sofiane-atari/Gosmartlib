@@ -153,16 +153,16 @@ export class UserManagementComponent {
 
   protected readonly actionLabel = computed(() => {
     if (this.isRevokeAction()) {
-      return this.actionTarget() === 'admin' ? 'wordt teruggezet als beheerder' : 'wordt teruggezet';
+      return this.actionTarget() === 'admin' ? 'wordt teruggezet als admin' : 'wordt teruggezet';
     }
-    return this.actionTarget() === 'admin' ? 'wordt gepromoveerd tot beheerder' : 'wordt gepromoveerd';
+    return this.actionTarget() === 'admin' ? 'wordt gepromoveerd tot admin' : 'wordt gepromoveerd';
   });
 
   protected readonly confirmTitle = computed(() => {
     if (this.isRevokeAction()) {
-      return this.actionTarget() === 'admin' ? 'Beheerdersrol intrekken' : 'Bibliothecarisrol intrekken';
+      return this.actionTarget() === 'admin' ? 'Adminrol intrekken' : 'Beheerdersrol intrekken';
     }
-    return this.actionTarget() === 'admin' ? 'Leerkracht promoveren tot beheerder' : 'Leerkracht promoveren tot bibliothecaris';
+    return this.actionTarget() === 'admin' ? 'Leerkracht promoveren tot admin' : 'Leerkracht promoveren tot beheerder';
   });
 
   protected readonly confirmDescription = computed(() => {
@@ -176,22 +176,22 @@ export class UserManagementComponent {
 
     if (this.isRevokeAction()) {
       if (this.actionTarget() === 'admin') {
-        return `Weet je zeker dat je de beheerdersrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
+        return `Weet je zeker dat je de adminrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
       }
-      return `Weet je zeker dat je de bibliothecarisrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
+      return `Weet je zeker dat je de beheerdersrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
     }
 
     if (this.actionTarget() === 'admin') {
-      return `Weet je zeker dat je "${name}" wilt promoveren tot platformbeheerder? Deze gebruiker krijgt dan volledige beheerdersrechten.`;
+      return `Weet je zeker dat je "${name}" wilt promoveren tot admin? Deze gebruiker krijgt dan volledige beheerdersrechten.`;
     }
-    return `Weet je zeker dat je "${name}" wilt promoveren tot bibliothecaris? Deze gebruiker krijgt dan beheerdersrechten binnen de bibliotheekmodule.`;
+    return `Weet je zeker dat je "${name}" wilt promoveren tot beheerder? Deze gebruiker krijgt dan beheerdersrechten binnen de bibliotheekmodule.`;
   });
 
   protected readonly confirmButtonLabel = computed(() => {
     if (this.isRevokeAction()) {
-      return this.actionTarget() === 'admin' ? 'Beheerdersrol intrekken' : 'Intrekken';
+      return this.actionTarget() === 'admin' ? 'Adminrol intrekken' : 'Intrekken';
     }
-    return this.actionTarget() === 'admin' ? 'Promoveren tot beheerder' : 'Promoveren';
+    return this.actionTarget() === 'admin' ? 'Promoveren tot admin' : 'Promoveren';
   });
 
   protected readonly confirmLoadingLabel = computed(() => {
@@ -291,15 +291,15 @@ export class UserManagementComponent {
         let message: string;
         if (this.isRevokeAction()) {
           if (this.actionTarget() === 'admin') {
-            message = `De beheerdersrol van ${this.userService.getDisplayName(user)} is succesvol ingetrokken.`;
+            message = `De adminrol van ${this.userService.getDisplayName(user)} is succesvol ingetrokken.`;
           } else {
-            message = `De bibliothecarisrol van ${this.userService.getDisplayName(user)} is succesvol ingetrokken.`;
+            message = `De beheerdersrol van ${this.userService.getDisplayName(user)} is succesvol ingetrokken.`;
           }
         } else {
           if (this.actionTarget() === 'admin') {
-            message = `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot platformbeheerder.`;
+            message = `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot admin.`;
           } else {
-            message = `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot bibliothecaris.`;
+            message = `${this.userService.getDisplayName(user)} is succesvol gepromoveerd tot beheerder.`;
           }
         }
 

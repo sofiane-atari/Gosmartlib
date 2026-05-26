@@ -14,7 +14,7 @@
   @if (canSelfRevoke()) {
     <app-button-hover-help
       class="block-hover"
-      text="Jouw profielkaart. Hier zie je je gegevens en kan je jouw bibliothecarisrol intrekken."
+      text="Jouw profielkaart. Hier zie je je gegevens en kan je jouw beheerdersrol intrekken."
     >
       <section class="self-profile-card custom-scrollbar">
           <div class="self-profile-card__body">
@@ -36,8 +36,8 @@
                   </app-button-hover-help>
                 </span>
                 <small>
-                  <app-button-hover-help text="Dit account is gekoppeld aan Smartschool. Je kan hier je eigen bibliothecarisrol intrekken.">
-                    Dit is jouw account. Je kan je eigen bibliothecarisrol intrekken.
+                  <app-button-hover-help text="Dit account is gekoppeld aan Smartschool. Je kan hier je eigen beheerdersrol intrekken.">
+                    Dit is jouw account. Je kan je eigen beheerdersrol intrekken.
                   </app-button-hover-help>
                 </small>
             </div>
@@ -45,7 +45,7 @@
             <div class="self-profile-card__action">
               <app-button-hover-help
                 class="full-button-help"
-                text="Trek je eigen bibliothecarisrol in. Je verliest hierna beheerdersrechten."
+                text="Trek je eigen beheerdersrol in. Je verliest hierna beheerdersrechten."
               >
                 <button
                   type="button"
@@ -54,7 +54,7 @@
                   (click)="openSelfRevoke()"
                 >
                   <lucide-icon [name]="ShieldOff"></lucide-icon>
-                  Intrekken bibliothecarisrol
+                  Intrekken beheerdersrol
                 </button>
               </app-button-hover-help>
             </div>
@@ -95,6 +95,7 @@
       [columns]="columns"
       [loading]="true"
       [skeletonRows]="5"
+      [breakpointPx]="1450"
     >
       <ng-template cellTemplate="name" let-teacher>
         <div></div>
@@ -116,7 +117,7 @@
         [value]="stats().totalTeachers"
         [icon]="Users"
         variant="purple"
-        helpText="Het totaal aantal leerkrachten uit Smartschool, inclusief gebruikers die tot bibliothecaris zijn gepromoveerd."
+        helpText="Het totaal aantal leerkrachten uit Smartschool, inclusief gebruikers die tot beheerder zijn gepromoveerd."
       />
       <app-stat-card
         label="Leerkrachten"
@@ -126,11 +127,11 @@
         helpText="Aantal gebruikers die nog steeds de rol leerkracht hebben."
       />
       <app-stat-card
-        label="Bibliothecarissen"
+        label="Beheerders"
         [value]="stats().librarians"
         [icon]="BookOpen"
         variant="green"
-        helpText="Aantal leerkrachten die zijn gepromoveerd tot bibliothecaris."
+        helpText="Aantal leerkrachten die zijn gepromoveerd tot beheerder."
       />
     </section>
 
@@ -147,6 +148,7 @@
       [data]="teachers()"
       [columns]="columns"
       [loading]="false"
+      [breakpointPx]="1450"
       [emptyMessage]="searchQuery() ? 'Geen leerkrachten gevonden voor deze zoekopdracht.' : 'Er zijn nog geen leerkrachten gevonden in jouw school.'"
       [pagingMeta]="totalPages() > 1 ? pagingMeta() : null"
       (pageChange)="onPageChange($event)"
@@ -169,6 +171,9 @@
             <app-button-hover-help text="Naam van de leerkracht.">
               <strong>{{ userService.getDisplayName(teacher) }}</strong>
             </app-button-hover-help>
+            @if (teacher.username) {
+              <span class="user-cell__username">&#64;{{ teacher.username }}</span>
+            }
           </div>
         </div>
       </ng-template>
@@ -197,7 +202,7 @@
           @if (canManageAdmins()) {
             <app-button-hover-help
               class="full-button-help"
-              text="Trek de beheerdersrol van deze gebruiker in."
+              text="Trek de adminrol van deze gebruiker in."
             >
               <button
                 type="button"
@@ -206,30 +211,30 @@
                 (click)="openConfirmRevokeAdmin(teacher)"
               >
                 <lucide-icon [name]="ShieldOff"></lucide-icon>
-                <span class="btn-label">Intrekken beheerdersrol</span>
+                <span class="btn-label">Intrekken adminrol</span>
               </button>
             </app-button-hover-help>
           }
         } @else if (teacher.role === 'LIBRARIAN') {
           <app-button-hover-help
             class="full-button-help"
-            text="Haal de beheerdersrechten van deze bibliothecaris terug."
-          >
-            <button
-              type="button"
-              class="btn-revoke"
-              [disabled]="isPromoting()"
-              (click)="openConfirmRevoke(teacher)"
+text="Haal de beheerdersrechten van deze beheerder terug."
             >
-              <lucide-icon [name]="ShieldOff"></lucide-icon>
-              <span class="btn-label">Intrekken bibliothecarisrol</span>
+              <button
+                type="button"
+                class="btn-revoke"
+                [disabled]="isPromoting()"
+                (click)="openConfirmRevoke(teacher)"
+              >
+                <lucide-icon [name]="ShieldOff"></lucide-icon>
+                <span class="btn-label">Intrekken beheerdersrol</span>
             </button>
           </app-button-hover-help>
 
           @if (canManageAdmins()) {
             <app-button-hover-help
               class="full-button-help"
-              text="Promoveer deze bibliothecaris tot platformbeheerder."
+              text="Promoveer deze beheerder tot admin."
             >
               <button
                 type="button"
@@ -238,30 +243,30 @@
                 (click)="openConfirmPromoteToAdmin(teacher)"
               >
                 <lucide-icon [name]="ShieldPlus"></lucide-icon>
-                <span class="btn-label">Promoveren tot beheerder</span>
+                <span class="btn-label">Promoveren tot admin</span>
               </button>
             </app-button-hover-help>
           }
         } @else {
           <app-button-hover-help
             class="full-button-help"
-            text="Geef deze leerkracht beheerdersrechten binnen de bibliotheekmodule."
-          >
-            <button
-              type="button"
-              class="btn-promote"
-              [disabled]="isPromoting()"
-              (click)="openConfirmPromote(teacher)"
+text="Geef deze leerkracht beheerdersrechten binnen de bibliotheekmodule."
             >
-              <lucide-icon [name]="ShieldCheck"></lucide-icon>
-              <span class="btn-label">Promoveren tot bibliothecaris</span>
+              <button
+                type="button"
+                class="btn-promote"
+                [disabled]="isPromoting()"
+                (click)="openConfirmPromote(teacher)"
+              >
+                <lucide-icon [name]="ShieldCheck"></lucide-icon>
+                <span class="btn-label">Promoveren tot beheerder</span>
             </button>
           </app-button-hover-help>
 
           @if (canManageAdmins()) {
             <app-button-hover-help
               class="full-button-help"
-              text="Promoveer deze leerkracht tot platformbeheerder."
+              text="Promoveer deze leerkracht tot admin."
             >
               <button
                 type="button"
@@ -270,7 +275,7 @@
                 (click)="openConfirmPromoteToAdmin(teacher)"
               >
                 <lucide-icon [name]="ShieldPlus"></lucide-icon>
-                <span class="btn-label">Promoveren tot beheerder</span>
+                <span class="btn-label">Promoveren tot admin</span>
               </button>
             </app-button-hover-help>
           }

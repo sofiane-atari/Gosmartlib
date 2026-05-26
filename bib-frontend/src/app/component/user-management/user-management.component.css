@@ -165,6 +165,13 @@ lucide-icon svg {
   font-weight: 600;
 }
 
+.user-cell__username {
+  display: block;
+  color: #7a5560;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
 .role-badge {
   display: inline-flex;
   align-items: center;
@@ -253,6 +260,14 @@ lucide-icon svg {
   transition: background 0.18s, transform 0.12s;
   white-space: nowrap;
   line-height: 1;
+}
+
+.btn-revoke lucide-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-revoke:hover {
@@ -419,7 +434,7 @@ lucide-icon svg {
   border: 1px solid #f0e4e8;
 }
 
-@media (min-width: 1241px) {
+@media (min-width: 1451px) {
   .table-actions app-button-hover-help.full-button-help {
     display: inline-flex;
     width: auto;
@@ -430,7 +445,7 @@ lucide-icon svg {
   }
 }
 
-@media (max-width: 1240px) {
+@media (max-width: 1450px) {
   .user-management {
     gap: 20px;
   }
