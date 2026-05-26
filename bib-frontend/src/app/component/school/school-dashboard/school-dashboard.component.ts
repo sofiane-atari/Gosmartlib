@@ -14,13 +14,15 @@ import {
   Flame,
   Ban,
   CheckCircle,
+  HelpCircle,
+  ChevronDown,
 } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
-import { School, SchoolStatus } from '../../../model/school.model';
+import { School, SchoolStatus, OneRosterCredentialRequest, OneRosterCredentialValidationRequest } from '../../../model/school.model';
 import { Campus, CreateCampusRequest } from '../../../model/campus.model';
 import { SchoolService } from '../../../services/school/school.service';
 import { CampusService } from '../../../services/campus/campus.service';
@@ -61,6 +63,8 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly Flame = Flame;
   protected readonly Ban = Ban;
   protected readonly CheckCircle = CheckCircle;
+  protected readonly HelpCircle = HelpCircle;
+  protected readonly ChevronDown = ChevronDown;
 
   protected readonly SchoolStatus = SchoolStatus;
 
@@ -73,10 +77,13 @@ export class SchoolDashboardComponent implements OnInit {
 
   protected readonly isLoading = signal(false);
   protected readonly isUpdating = signal(false);
+  protected readonly isValidatingEditCredentials = signal(false);
+  protected readonly editStepError = signal<string | null>(null);
   protected readonly isCampusSubmitting = signal(false);
   protected readonly isCampusModalOpen = signal(false);
   protected readonly isCampusEditModalOpen = signal(false);
   protected readonly isEditModalOpen = signal(false);
+  protected readonly showCredHelp = signal(false);
   protected readonly selectedSchoolForEdit = signal<School | null>(null);
 
   protected readonly isPurgeModalOpen = signal(false);
@@ -122,6 +129,8 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly schoolForm = this.formBuilder.group({
     domainName: ['', [Validators.required]],
     name: ['', [Validators.required]],
+    clientId: [''],
+    clientSecret: [''],
   });
 
   protected readonly campusForm = this.formBuilder.group({
@@ -152,18 +161,27 @@ export class SchoolDashboardComponent implements OnInit {
   protected openEditModal(school: School): void {
     this.selectedSchoolForEdit.set(school);
     this.isEditModalOpen.set(true);
+    this.editStepError.set(null);
 
     this.schoolForm.reset({
       domainName: school.domainName,
       name: school.name,
+      clientId: '',
+      clientSecret: '',
     });
   }
 
   protected closeEditModal(): void {
     this.isEditModalOpen.set(false);
     this.selectedSchoolForEdit.set(null);
+    this.editStepError.set(null);
+    this.showCredHelp.set(false);
     this.schoolForm.markAsPristine();
     this.schoolForm.markAsUntouched();
+  }
+
+  protected toggleCredHelp(): void {
+    this.showCredHelp.update((v) => !v);
   }
 
   protected openCampusModal(school: School): void {
@@ -222,12 +240,99 @@ export class SchoolDashboardComponent implements OnInit {
     }
 
     const formValue = this.schoolForm.getRawValue();
+    const newDomain = (formValue.domainName ?? '').trim();
+    const clientId = (formValue.clientId ?? '').trim();
+    const clientSecret = (formValue.clientSecret ?? '').trim();
+
+    const credPartiallyFilled = (clientId && !clientSecret) || (!clientId && clientSecret);
+    if (credPartiallyFilled) {
+      this.schoolForm.controls.clientId.markAsTouched();
+      this.schoolForm.controls.clientSecret.markAsTouched();
+      return;
+    }
+
+    const credExplicitlyFilled = !!(clientId && clientSecret);
+    const domainChanged = newDomain !== schoolToUpdate.domainName;
+
+    if (domainChanged || credExplicitlyFilled) {
+      this.editStepError.set(null);
+      this.isValidatingEditCredentials.set(true);
+
+      if (credExplicitlyFilled) {
+        const dto: OneRosterCredentialValidationRequest = {
+          domainName: newDomain,
+          clientId,
+          clientSecret,
+        };
+
+        this.schoolService
+          .validateCredentials(dto)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.isValidatingEditCredentials.set(false);
+              this.submitUpdate(schoolToUpdate, formValue);
+            },
+            error: (error: HttpErrorResponse) => {
+              this.isValidatingEditCredentials.set(false);
+              this.setEditValidationError(error);
+            },
+          });
+      } else {
+        this.schoolService
+          .validateDomainChange(schoolToUpdate.id, newDomain)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.isValidatingEditCredentials.set(false);
+              this.submitUpdate(schoolToUpdate, formValue);
+            },
+            error: (error: HttpErrorResponse) => {
+              this.isValidatingEditCredentials.set(false);
+              this.setEditValidationError(error);
+            },
+          });
+      }
+      return;
+    }
+
+    this.submitUpdate(schoolToUpdate, formValue);
+  }
+
+  private setEditValidationError(error: HttpErrorResponse): void {
+    if (error.status === 502) {
+      this.editStepError.set('De ingevulde combinatie van domein en OneRoster-credentials is ongeldig.');
+      return;
+    }
+    const backendError = error.error as HttpErrorResponseError | undefined;
+    if (typeof backendError?.error?.message === 'string') {
+      this.editStepError.set(backendError.error.message);
+      return;
+    }
+    this.editStepError.set('Credentials konden niet gevalideerd worden. Probeer opnieuw.');
+  }
+
+  private submitUpdate(schoolToUpdate: School, formValue: Partial<{
+    domainName: string | null;
+    name: string | null;
+    clientId: string | null;
+    clientSecret: string | null;
+  }>): void {
+    const clientIdVal = (formValue.clientId ?? '').trim();
+    const clientSecretVal = (formValue.clientSecret ?? '').trim();
+    const credExplicitlyFilled = !!(clientIdVal && clientSecretVal);
 
     const updatedSchool = {
-      domainName: formValue.domainName?.trim() ?? '',
-      name: formValue.name?.trim() ?? '',
+      domainName: (formValue.domainName ?? '').trim(),
+      name: (formValue.name ?? '').trim(),
       campuses: schoolToUpdate.campuses ?? [],
       createdAt: schoolToUpdate.createdAt,
+      onerosterCredential: credExplicitlyFilled
+        ? {
+            clientId: clientIdVal,
+            clientSecret: clientSecretVal,
+          }
+        : undefined,
     };
 
     this.isUpdating.set(true);

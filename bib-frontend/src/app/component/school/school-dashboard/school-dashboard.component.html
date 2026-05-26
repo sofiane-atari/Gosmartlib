@@ -66,8 +66,54 @@
   </section>
 
   @if (isLoading()) {
-    <section class="state-panel">
-      <p>Scholen laden...</p>
+    <section class="table-card">
+      <table class="skeleton-table">
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Domein</th>
+            <th>Status</th>
+            <th>Boeken</th>
+            <th>Campussen</th>
+            <th class="actions-heading">Acties</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (_ of [1, 2, 3, 4, 5]; track $index) {
+            <tr class="skeleton-row">
+              <td>
+                <div class="skeleton-cell">
+                  <div class="skeleton skeleton--icon"></div>
+                  <div class="skeleton-cell__text">
+                    <div class="skeleton skeleton--name"></div>
+                    <div class="skeleton skeleton--date"></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="skeleton skeleton--domain"></div>
+              </td>
+              <td>
+                <div class="skeleton skeleton--badge"></div>
+              </td>
+              <td>
+                <div class="skeleton skeleton--count"></div>
+              </td>
+              <td>
+                <div class="skeleton skeleton--count"></div>
+              </td>
+              <td>
+                <div class="skeleton-actions">
+                  <div class="skeleton skeleton--action"></div>
+                  <div class="skeleton skeleton--action"></div>
+                  <div class="skeleton skeleton--action"></div>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </section>
   } @else if (schools().length === 0) {
     <section class="state-panel state-panel--empty">
@@ -325,18 +371,72 @@
             }
           </div>
 
+          <hr />
+
+          <p class="modal-section-description">
+            Pas de OneRoster-credentials alleen aan als deze gewijzigd zijn in Smartschool.
+          </p>
+
+          <div class="modal-field">
+            <label for="editClientId">OneRoster Client-ID</label>
+            <input
+              id="editClientId"
+              type="text"
+              formControlName="clientId"
+              placeholder="OneRoster client-ID"
+            />
+          </div>
+
+          <div class="modal-field">
+            <label for="editClientSecret">OneRoster Client-geheim</label>
+            <input
+              id="editClientSecret"
+              type="password"
+              formControlName="clientSecret"
+              placeholder="OneRoster client-geheim"
+            />
+          </div>
+
+          <button type="button" class="cred-help-toggle" (click)="toggleCredHelp()">
+            <lucide-icon [name]="HelpCircle" class="cred-help-toggle__icon"></lucide-icon>
+            {{ showCredHelp() ? 'Verberg uitleg' : 'Hulp bij credentials' }}
+            <lucide-icon [name]="ChevronDown" class="cred-help-toggle__chevron" [class.cred-help-toggle__chevron--open]="showCredHelp()"></lucide-icon>
+          </button>
+
+          @if (showCredHelp()) {
+            <div class="cred-help-content">
+              <p>Als je de OneRoster-credentials <strong>niet</strong> wilt wijzigen, laat deze velden dan leeg. De bestaande koppeling blijft behouden.</p>
+              <p>Vul beide velden alleen in als de OneRoster-koppeling in Smartschool is aangepast (bijvoorbeeld een nieuw client-ID of client-geheim).</p>
+              <p>Als je het domein wijzigt zonder nieuwe credentials in te vullen, worden de bestaande credentials gevalideerd tegen het nieuwe domein.</p>
+            </div>
+          }
+
+          @if (editStepError()) {
+            <div class="step-error">{{ editStepError() }}</div>
+          }
+
           <div class="modal-actions">
             <button
               type="button"
               class="btn-cancel"
               (click)="closeEditModal()"
-              [disabled]="isUpdating()"
+              [disabled]="isUpdating() || isValidatingEditCredentials()"
             >
               Annuleren
             </button>
 
-            <button type="submit" class="btn-save" [disabled]="isUpdating()">
-              {{ isUpdating() ? "Wijzigen..." : "Opslaan" }}
+            <button
+              type="submit"
+              class="btn-save"
+              [disabled]="isUpdating() || isValidatingEditCredentials()"
+            >
+              @if (isValidatingEditCredentials()) {
+                Controleren...
+              } @else if (isUpdating()) {
+                Wijzigen...
+              } @else {
+                Opslaan
+              }
             </button>
           </div>
         </form>

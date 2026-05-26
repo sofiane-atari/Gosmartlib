@@ -180,6 +180,7 @@
   border: 1px solid #f0e4e8;
   border-radius: 14px;
   overflow: hidden;
+  animation: fadeIn 0.35s ease;
 }
 
 .table-card table {
@@ -350,6 +351,124 @@
   padding: 20px;
   text-align: center;
   color: #7a5560;
+}
+
+.skeleton-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.skeleton-table thead th {
+  padding: 14px 18px;
+  text-align: left;
+  color: #1a0a10;
+  font-size: 13px;
+  font-weight: 700;
+  background: #faf7f8;
+  border-bottom: 1px solid #f0e4e8;
+}
+
+.skeleton-row td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #f0e4e8;
+}
+
+.skeleton-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-cell__text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.skeleton-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1e8eb 20%, #e6d6dc 50%, #f1e8eb 80%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton--icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.skeleton--name {
+  height: 14px;
+  width: 140px;
+}
+
+.skeleton--date {
+  height: 12px;
+  width: 100px;
+}
+
+.skeleton--domain {
+  height: 14px;
+  width: 180px;
+}
+
+.skeleton--badge {
+  height: 22px;
+  width: 70px;
+  border-radius: 999px;
+}
+
+.skeleton--count {
+  height: 14px;
+  width: 40px;
+}
+
+.skeleton--action {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+/* Loading overlay spinner */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.loading-spinner__icon {
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Purge modal */
@@ -871,6 +990,77 @@ lucide-icon svg {
   font-size: 13px;
   color: #7a5560;
   margin: 0 0 14px;
+}
+
+.modal form hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 20px 0;
+}
+
+.step-error {
+  padding: 12px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.cred-help-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: color 0.18s ease;
+  margin-bottom: 8px;
+}
+
+.cred-help-toggle:hover {
+  color: var(--main-color);
+}
+
+.cred-help-toggle__icon {
+  width: 14px;
+  height: 14px;
+}
+
+.cred-help-toggle__chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.cred-help-toggle__chevron--open {
+  transform: rotate(180deg);
+}
+
+.cred-help-content {
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: rgba(138, 30, 65, 0.03);
+  margin-bottom: 16px;
+}
+
+.cred-help-content p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.cred-help-content p:last-child {
+  margin-bottom: 0;
 }
 
 .campus-form-header {

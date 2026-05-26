@@ -61,4 +61,8 @@ export class SchoolService {
   public validateCredentials(dto: OneRosterCredentialValidationRequest): Observable<void> {
     return this.http.post<void>(`${this.url}/validate-credentials`, dto);
   }
+
+  public validateDomainChange(id: number, domainName: string): Observable<void> {
+    return this.http.post<void>(`${this.url}/${id}/validate-domain`, { domainName });
+  }
 }
