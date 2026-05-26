@@ -93,7 +93,23 @@ export class UserManagementComponent {
   );
 
   protected readonly canSelfRevoke = computed(() =>
-    this.currentUser()?.role === 'LIBRARIAN',
+    this.currentUser()?.role === 'LIBRARIAN' || this.currentUser()?.role === 'ADMIN',
+  );
+
+  protected readonly selfRevokeLabel = computed(() =>
+    this.currentUser()?.role === 'ADMIN' ? 'Intrekken adminrol' : 'Intrekken beheerdersrol',
+  );
+
+  protected readonly selfRevokeHelpText = computed(() =>
+    this.currentUser()?.role === 'ADMIN'
+      ? 'Trek je eigen adminrol in. Je verliest hierna beheerdersrechten.'
+      : 'Trek je eigen beheerdersrol in. Je verliest hierna beheerdersrechten.',
+  );
+
+  protected readonly selfProfileDescription = computed(() =>
+    this.currentUser()?.role === 'ADMIN'
+      ? 'Dit is jouw account. Je kan je eigen adminrol intrekken.'
+      : 'Dit is jouw account. Je kan je eigen beheerdersrol intrekken.',
   );
 
   constructor() {
@@ -109,12 +125,13 @@ export class UserManagementComponent {
     page: this.page(),
     pageSize: this.pageSize(),
     search: this.searchQuery(),
+    excludeAdmins: this.currentUser()?.role !== 'ADMIN',
     trigger: this.refreshTrigger(),
   }));
 
   private readonly teachers$ = toObservable(this.loadParams).pipe(
-    switchMap(({ page, pageSize, search }) =>
-      this.userService.getTeachers(true, page, pageSize, search || undefined),
+    switchMap(({ page, pageSize, search, excludeAdmins }) =>
+      this.userService.getTeachers(excludeAdmins, page, pageSize, search || undefined),
     ),
     tap({ next: () => this.loading.set(false) }),
   );
@@ -228,7 +245,7 @@ export class UserManagementComponent {
       return;
     }
     this.isRevokeAction.set(true);
-    this.actionTarget.set('librarian');
+    this.actionTarget.set(user.role === 'ADMIN' ? 'admin' : 'librarian');
     this.selectedUser.set(user);
     this.isConfirmModalOpen.set(true);
   }
@@ -275,7 +292,7 @@ export class UserManagementComponent {
 
     this.isPromoting.set(true);
 
-    const schoolCode = this.currentUser()?.school?.domainName;
+    const schoolCode = this.currentUser()?.role === 'ADMIN' ? this.currentUser()?.school?.domainName : undefined;
 
     let action$;
     if (this.actionTarget() === 'admin') {

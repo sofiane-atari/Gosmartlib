@@ -152,8 +152,8 @@ public class RoleService {
             targetUser = userService.createUser(targetUserId, teacherRole, school);
         }
 
-        if (targetUser.getRole().getRole() != Role.TEACHER) {
-            throw new IllegalArgumentException("Alleen leerkrachten kunnen gepromoveerd worden tot platformbeheerder.");
+        if (targetUser.getRole().getRole() != Role.TEACHER && targetUser.getRole().getRole() != Role.LIBRARIAN) {
+            throw new IllegalArgumentException("Alleen leerkrachten en bibliothecarissen kunnen gepromoveerd worden tot platformbeheerder.");
         }
 
         RoleEntity adminRole = getRoleEntity(Role.ADMIN.name());

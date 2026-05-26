@@ -35,17 +35,17 @@
                       {{ userService.getRoleLabel(currentUser()!.role) }}
                   </app-button-hover-help>
                 </span>
-                <small>
-                  <app-button-hover-help text="Dit account is gekoppeld aan Smartschool. Je kan hier je eigen beheerdersrol intrekken.">
-                    Dit is jouw account. Je kan je eigen beheerdersrol intrekken.
-                  </app-button-hover-help>
-                </small>
+                  <small>
+                    <app-button-hover-help text="Dit account is gekoppeld aan Smartschool. Je kan hier je eigen beheerdersrol intrekken.">
+                      {{ selfProfileDescription() }}
+                    </app-button-hover-help>
+                  </small>
             </div>
 
             <div class="self-profile-card__action">
               <app-button-hover-help
                 class="full-button-help"
-                text="Trek je eigen beheerdersrol in. Je verliest hierna beheerdersrechten."
+                [text]="selfRevokeHelpText()"
               >
                 <button
                   type="button"
@@ -54,7 +54,7 @@
                   (click)="openSelfRevoke()"
                 >
                   <lucide-icon [name]="ShieldOff"></lucide-icon>
-                  Intrekken beheerdersrol
+                  {{ selfRevokeLabel() }}
                 </button>
               </app-button-hover-help>
             </div>
