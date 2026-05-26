@@ -3,6 +3,10 @@ package edu.ap.bib_backend.dto;
 import org.junit.jupiter.api.Test;
 
 import edu.ap.bib_backend.dto.loan.LoanBookDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialValidationDTO;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
+import edu.ap.bib_backend.service.api.ProviderType;
 
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
@@ -52,5 +56,44 @@ class DtoTest {
         assertEquals("John", dto.firstName());
         assertEquals("Doe", dto.lastName());
         assertEquals("john@test.be", dto.email());
+    }
+
+    @Test
+    void Given_SyncConfigDto_When_Instantiated_Then_ValuesAreSet() {
+        SyncConfigDto dto = new SyncConfigDto("03:00", "Europe/Brussels", 1, "0 0 3 * * *");
+        assertEquals("03:00", dto.syncTime());
+        assertEquals("Europe/Brussels", dto.syncZone());
+        assertEquals(1, dto.syncIntervalDays());
+        assertEquals("0 0 3 * * *", dto.syncCron());
+    }
+
+    @Test
+    void Given_OneRosterCredentialDTO_When_Instantiated_Then_ValuesAreSet() {
+        OneRosterCredentialDTO dto = new OneRosterCredentialDTO("client-123", "secret-456");
+        assertEquals("client-123", dto.clientId());
+        assertEquals("secret-456", dto.clientSecret());
+    }
+
+    @Test
+    void Given_OneRosterCredentialValidationDTO_When_Instantiated_Then_ValuesAreSet() {
+        OneRosterCredentialValidationDTO dto = new OneRosterCredentialValidationDTO("school.be", "client-1", "secret-1");
+        assertEquals("school.be", dto.domainName());
+        assertEquals("client-1", dto.clientId());
+        assertEquals("secret-1", dto.clientSecret());
+    }
+
+    @Test
+    void Given_SchoolStatusEnum_When_ValuesRetrieved_Then_HasExpectedConstants() {
+        assertEquals(3, SchoolStatus.values().length);
+        assertEquals(SchoolStatus.ACTIVE, SchoolStatus.valueOf("ACTIVE"));
+        assertEquals(SchoolStatus.DISABLED, SchoolStatus.valueOf("DISABLED"));
+        assertEquals(SchoolStatus.MARKED_FOR_DELETION, SchoolStatus.valueOf("MARKED_FOR_DELETION"));
+    }
+
+    @Test
+    void Given_ProviderTypeEnum_When_ValuesRetrieved_Then_HasExpectedConstants() {
+        assertEquals(2, ProviderType.values().length);
+        assertEquals(ProviderType.MOCK, ProviderType.valueOf("MOCK"));
+        assertEquals(ProviderType.REAL, ProviderType.valueOf("REAL"));
     }
 }
