@@ -13,6 +13,7 @@ import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -49,8 +50,20 @@ class SchoolServiceTest {
     @Mock
     private OneRosterUserSyncService oneRosterUserSyncService;
 
-    @InjectMocks
     private SchoolService schoolService;
+
+    @BeforeEach
+    void setUp() {
+        schoolService = new SchoolService(
+                schoolRepository,
+                bookCopyRepository,
+                credentialRepository,
+                userRepository,
+                oneRosterClient,
+                oneRosterUserSyncService,
+                30L
+        );
+    }
 
     @Test
     void givenValidSchoolWithCredentials_whenCreate_thenSaveAndReturnDto() {
@@ -140,25 +153,27 @@ class SchoolServiceTest {
     }
 
     @Test
-    void givenExistingSchoolId_whenDelete_thenDeleteById() {
+    void givenExistingSchoolId_whenDelete_thenMarkForDeletion() {
         Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
 
-        when(schoolRepository.existsById(schoolId)).thenReturn(true);
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
 
         schoolService.delete(schoolId);
 
-        verify(schoolRepository).deleteById(schoolId);
+        verify(schoolRepository).findById(schoolId);
+        verify(schoolRepository).save(school);
     }
 
     @Test
     void givenUnknownSchoolId_whenDelete_thenThrowException() {
         Long schoolId = 999L;
 
-        when(schoolRepository.existsById(schoolId)).thenReturn(false);
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> schoolService.delete(schoolId));
 
-        verify(schoolRepository, never()).deleteById(schoolId);
+        verify(schoolRepository, never()).save(any(School.class));
     }
 
     @Test
@@ -217,6 +232,9 @@ class SchoolServiceTest {
                 List.of(campusDto()),
                 LocalDateTime.of(2026, 4, 28, 12, 0),
                 false,
+                null,
+                null,
+                null,
                 null);
     }
 
@@ -234,7 +252,10 @@ class SchoolServiceTest {
                 List.of(campusDto()),
                 LocalDateTime.of(2026, 4, 28, 12, 0),
                 false,
-                new OneRosterCredentialDTO(clientId, clientSecret));
+                new OneRosterCredentialDTO(clientId, clientSecret),
+                null,
+                null,
+                null);
     }
 
     private edu.ap.bib_backend.dto.CampusDTO campusDto() {

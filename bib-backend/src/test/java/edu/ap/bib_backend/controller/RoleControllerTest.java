@@ -43,7 +43,7 @@ class RoleControllerTest {
     void Given_AssignLibrarianRequest_When_AssignLibrarian_Then_ReturnsUser() throws Exception {
         // Arrange
         AuthUserDto response = AuthUserDto.builder().id("user-1").build();
-        when(roleService.assignLibrarian(any(), any())).thenReturn(response);
+        when(roleService.assignLibrarian(any(), any(), any())).thenReturn(response);
 
         // Act
         mockMvc.perform(post("/roles/assign-librarian")
@@ -58,7 +58,7 @@ class RoleControllerTest {
     void Given_RevokeLibrarianRequest_When_RevokeLibrarian_Then_ReturnsUser() throws Exception {
         // Arrange
         AuthUserDto response = AuthUserDto.builder().id("user-2").build();
-        when(roleService.revokeLibrarian(any(), any())).thenReturn(response);
+        when(roleService.revokeLibrarian(any(), any(), any())).thenReturn(response);
 
         // Act
         mockMvc.perform(post("/roles/revoke-librarian")
