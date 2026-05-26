@@ -1,4 +1,4 @@
-<div class="dt-wrapper">
+<div class="dt-wrapper" [class.dt-wrapper--compact]="isCompact()">
   @if (loading()) {
     <div class="dt-card">
       <div class="dt-skeleton-table">
