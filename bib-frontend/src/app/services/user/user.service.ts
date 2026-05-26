@@ -62,8 +62,8 @@ export class UserService {
     }
 
     return (
-      user.fullName?.trim() ||
       `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
+      user.fullName?.trim() ||
       user.firstName?.trim() ||
       user.username?.trim() ||
       user.id ||

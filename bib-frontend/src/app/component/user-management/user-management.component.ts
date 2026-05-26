@@ -165,7 +165,7 @@ export class UserManagementComponent {
   );
 
   protected readonly stats = toSignal(this.stats$, {
-    initialValue: { totalTeachers: 0, activeTeachers: 0, librarians: 0 },
+    initialValue: { totalTeachers: 0, activeTeachers: 0, librarians: 0, admins: 0 },
   });
 
   protected readonly actionLabel = computed(() => {
@@ -190,16 +190,17 @@ export class UserManagementComponent {
     }
 
     const name = this.userService.getDisplayName(user);
+    const adminWarning = 'Let op: deze operatie moet met voorzichtigheid uitgevoerd worden.';
 
     if (this.isRevokeAction()) {
       if (this.actionTarget() === 'admin') {
-        return `Weet je zeker dat je de adminrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
+        return `${adminWarning} Weet je zeker dat je de adminrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
       }
       return `Weet je zeker dat je de beheerdersrol van "${name}" wilt intrekken? Deze gebruiker wordt teruggezet naar leerkracht.`;
     }
 
     if (this.actionTarget() === 'admin') {
-      return `Weet je zeker dat je "${name}" wilt promoveren tot admin? Deze gebruiker krijgt dan volledige beheerdersrechten.`;
+      return `${adminWarning} Weet je zeker dat je "${name}" wilt promoveren tot admin? Deze gebruiker krijgt dan volledige beheerdersrechten.`;
     }
     return `Weet je zeker dat je "${name}" wilt promoveren tot beheerder? Deze gebruiker krijgt dan beheerdersrechten binnen de bibliotheekmodule.`;
   });

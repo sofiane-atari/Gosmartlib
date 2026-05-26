@@ -30,6 +30,9 @@
                   {{ userService.getDisplayName(currentUser()) }}
                 </app-button-hover-help>
               </strong>
+              @if (currentUser()?.username) {
+                <span class="user-cell__username">&#64;{{ currentUser()!.username }}</span>
+              }
                 <span [class]="roleBadgeClass(currentUser()!.role)">
                   <app-button-hover-help text="Jouw huidige rol binnen de bibliotheekmodule.">
                       {{ userService.getRoleLabel(currentUser()!.role) }}
@@ -133,6 +136,15 @@
         variant="green"
         helpText="Aantal leerkrachten die zijn gepromoveerd tot beheerder."
       />
+      @if (canManageAdmins()) {
+        <app-stat-card
+          label="Admins"
+          [value]="stats().admins"
+          [icon]="ShieldCheck"
+          variant="orange"
+          helpText="Aantal gebruikers met de adminrol."
+        />
+      }
     </section>
 
     <app-button-hover-help class="stat-card-hover" text="Zoek leerkrachten op naam of e-mailadres om hun gegevens te vinden.">
