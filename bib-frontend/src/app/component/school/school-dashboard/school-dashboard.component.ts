@@ -1,6 +1,6 @@
 import { DestroyRef, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import {
   LucideAngularModule,
   School as SchoolIcon,
@@ -49,6 +49,7 @@ export class SchoolDashboardComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
 
   protected readonly SchoolIcon = SchoolIcon;
   protected readonly Building = Building;

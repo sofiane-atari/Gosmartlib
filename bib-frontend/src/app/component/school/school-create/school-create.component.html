@@ -1,4 +1,9 @@
 <div class="layout">
+  <button type="button" class="back-link" (click)="goBackToSchools()">
+    <lucide-icon [name]="ArrowLeft" class="back-link__icon"></lucide-icon>
+    Terug naar scholen
+  </button>
+
   <div class="info-banner">
     <lucide-icon [name]="Info" class="info-icon"></lucide-icon>
 
@@ -96,6 +101,8 @@
             <p class="wizard-step-hint">
               Deze gegevens zijn nodig om leerlingen en leerkrachten te synchroniseren.
             </p>
+
+            <app-oneroster-help></app-oneroster-help>
 
             <div class="modal-field">
               <label for="clientId">Client-ID <span class="required-indicator">*</span></label>

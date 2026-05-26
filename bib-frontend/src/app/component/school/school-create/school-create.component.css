@@ -11,6 +11,32 @@
   font-family: var(--main-font);
 }
 
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.18s ease;
+  width: fit-content;
+}
+
+.back-link:hover {
+  color: var(--main-color);
+}
+
+.back-link__icon {
+  width: 16px;
+  height: 16px;
+}
+
 .info-banner {
   display: flex;
   align-items: flex-start;
