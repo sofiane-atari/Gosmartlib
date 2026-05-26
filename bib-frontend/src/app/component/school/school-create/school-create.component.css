@@ -37,6 +37,38 @@
   height: 16px;
 }
 
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
+  background: transparent;
+  color: #dc2626;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.clear-btn:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.clear-btn__icon {
+  width: 14px;
+  height: 14px;
+}
+
 .info-banner {
   display: flex;
   align-items: flex-start;

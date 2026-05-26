@@ -1,8 +1,15 @@
 <div class="layout">
-  <button type="button" class="back-link" (click)="goBackToSchools()">
-    <lucide-icon [name]="ArrowLeft" class="back-link__icon"></lucide-icon>
-    Terug naar scholen
-  </button>
+  <div class="top-bar">
+    <button type="button" class="back-link" (click)="goBackToSchools()">
+      <lucide-icon [name]="ArrowLeft" class="back-link__icon"></lucide-icon>
+      Terug
+    </button>
+
+    <button type="button" class="clear-btn" (click)="requestClearProgress()">
+      <lucide-icon [name]="Trash2" class="clear-btn__icon"></lucide-icon>
+      Voortgang wissen
+    </button>
+  </div>
 
   <div class="info-banner">
     <lucide-icon [name]="Info" class="info-icon"></lucide-icon>
@@ -488,3 +495,14 @@
     }
   </div>
 </div>
+
+<app-confirmation-modal
+  [isVisible]="showClearProgressModal()"
+  title="Voortgang wissen?"
+  description="Weet je zeker dat je alle huidige voortgang wilt wissen? Dit kan niet ongedaan worden gemaakt."
+  confirmLabel="Ja, wis voortgang"
+  cancelLabel="Annuleren"
+  [isConfirmLoading]="false"
+  (confirmRequested)="confirmClearProgress()"
+  (cancelRequested)="cancelClearProgress()"
+/>

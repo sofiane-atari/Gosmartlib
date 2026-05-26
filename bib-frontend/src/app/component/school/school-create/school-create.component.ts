@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Landmark,
   Info,
+  Trash2,
 } from 'lucide-angular';
 
 import { SchoolService } from '../../../services/school/school.service';
@@ -17,6 +18,7 @@ import { ToastService } from '../../../services/toast/toast.service';
 import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
 import { UserRolePromotionComponent } from '../user-role-promotion/user-role-promotion.component';
 import { OnerosterHelpComponent } from '../oneroster-help/oneroster-help.component';
+import { ConfirmationModalComponent } from '../../shared/confirmation-modal/confirmation-modal.component';
 import {
   CREATE_SCHOOL_STEPS_1_4,
   CREATE_SCHOOL_ALL_STEPS,
@@ -35,6 +37,7 @@ import { CreateSchoolRequest, OneRosterCredentialRequest, OneRosterCredentialVal
     StepWizardComponent,
     UserRolePromotionComponent,
     OnerosterHelpComponent,
+    ConfirmationModalComponent,
   ],
   templateUrl: './school-create.component.html',
   styleUrl: './school-create.component.css',
@@ -47,11 +50,12 @@ export class SchoolCreateComponent {
   private readonly router = inject(Router);
 
   private static readonly STORAGE_KEY = 'school-create-progress';
-  private shouldSaveProgress = true;
+  private schoolWasCreated = false;
 
   protected readonly ArrowLeft = ArrowLeft;
   protected readonly Landmark = Landmark;
   protected readonly Info = Info;
+  protected readonly Trash2 = Trash2;
 
   protected readonly isSubmitting = signal(false);
   protected readonly isCheckingDomain = signal(false);
@@ -62,6 +66,7 @@ export class SchoolCreateComponent {
   protected readonly validatedUpToStep = signal<CreateSchoolWizardStep>(1);
   protected readonly createdSchoolId = signal<number | null>(null);
   protected readonly step5LibrariansCount = signal(0);
+  protected readonly showClearProgressModal = signal(false);
 
   protected readonly maxReachableStep = computed(() =>
     this.validatedUpToStep(),
@@ -116,7 +121,7 @@ export class SchoolCreateComponent {
     this.restoreProgress();
 
     this.destroyRef.onDestroy(() => {
-      if (this.shouldSaveProgress) {
+      if (!this.schoolWasCreated) {
         this.saveProgress();
       }
     });
@@ -124,14 +129,21 @@ export class SchoolCreateComponent {
 
   @HostListener('window:beforeunload')
   private onBeforeUnload(): void {
-    if (this.shouldSaveProgress) {
+    if (!this.schoolWasCreated) {
       this.saveProgress();
     }
   }
 
   private saveProgress(): void {
+    const rawValue = this.schoolForm.getRawValue();
+    const hasData = rawValue.domainName || rawValue.name || rawValue.clientId;
+    if (!hasData) {
+      sessionStorage.removeItem(SchoolCreateComponent.STORAGE_KEY);
+      return;
+    }
+
     const state = {
-      formValues: this.schoolForm.getRawValue(),
+      formValues: rawValue,
       currentStep: this.currentStep(),
       validatedUpToStep: this.validatedUpToStep(),
     };
@@ -400,7 +412,7 @@ export class SchoolCreateComponent {
         next: (createdSchool: School) => {
           this.isSubmitting.set(false);
           this.createdSchoolId.set(createdSchool.id);
-          this.shouldSaveProgress = false;
+          this.schoolWasCreated = true;
           sessionStorage.removeItem(SchoolCreateComponent.STORAGE_KEY);
 
           this.wizardSteps.set(CREATE_SCHOOL_ALL_STEPS);
@@ -438,9 +450,44 @@ export class SchoolCreateComponent {
   }
 
   protected goBackToSchools(): void {
-    this.shouldSaveProgress = false;
-    sessionStorage.removeItem(SchoolCreateComponent.STORAGE_KEY);
     void this.router.navigate(['/schools']);
+  }
+
+  protected requestClearProgress(): void {
+    this.showClearProgressModal.set(true);
+  }
+
+  protected confirmClearProgress(): void {
+    this.showClearProgressModal.set(false);
+    this.clearAllProgress();
+  }
+
+  protected cancelClearProgress(): void {
+    this.showClearProgressModal.set(false);
+  }
+
+  private clearAllProgress(): void {
+    sessionStorage.removeItem(SchoolCreateComponent.STORAGE_KEY);
+
+    this.schoolForm.reset({
+      domainName: '',
+      name: '',
+      clientId: '',
+      clientSecret: '',
+      hasMultipleCampuses: false,
+    });
+
+    this.campusControls.clear();
+    this.campusControls.push(this.createCampusFormGroup());
+    this.syncSingleCampusName();
+
+    this.currentStep.set(1);
+    this.validatedUpToStep.set(1);
+    this.wizardSteps.set(CREATE_SCHOOL_STEPS_1_4);
+    this.createdSchoolId.set(null);
+    this.step5LibrariansCount.set(0);
+    this.stepError.set(null);
+    this.schoolWasCreated = false;
   }
 
   private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
