@@ -161,6 +161,48 @@ class SchoolControllerTest {
                 .andExpect(jsonPath("$").value(100));
     }
 
+    @Test
+    void GivenExistingSchool_WhenDisableSchool_ThenReturn200() throws Exception {
+        // Arrange
+        SchoolDTO disabledSchool = schoolDto(1L, "apsmartschool.be", "AP Hogeschool", "Noorderplaats 2", 2000);
+        given(schoolService.disable(1L)).willReturn(disabledSchool);
+
+        // Act & Assert
+        mockMvc.perform(put("/schools/{id}/disable", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("AP Hogeschool"));
+
+        verify(schoolService, times(1)).disable(1L);
+    }
+
+    @Test
+    void GivenExistingSchool_WhenEnableSchool_ThenReturn200() throws Exception {
+        // Arrange
+        SchoolDTO enabledSchool = schoolDto(1L, "apsmartschool.be", "AP Hogeschool", "Noorderplaats 2", 2000);
+        given(schoolService.enable(1L)).willReturn(enabledSchool);
+
+        // Act & Assert
+        mockMvc.perform(put("/schools/{id}/enable", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("AP Hogeschool"));
+
+        verify(schoolService, times(1)).enable(1L);
+    }
+
+    @Test
+    void GivenAvailableDomain_WhenCheckDomain_ThenReturn200() throws Exception {
+        // Arrange - void method, no setup needed for mock
+
+        // Act & Assert
+        mockMvc.perform(get("/schools/check-domain")
+                        .param("domainName", "new.school.be"))
+                .andExpect(status().isOk());
+
+        verify(schoolService, times(1)).checkDomain("new.school.be");
+    }
+
     private SchoolDTO schoolDto(
             Long id,
             String domainName,

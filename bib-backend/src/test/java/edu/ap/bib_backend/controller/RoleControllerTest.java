@@ -68,4 +68,34 @@ class RoleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("user-2"));
     }
+
+    @Test
+    void Given_AssignAdminRequest_When_AssignAdmin_Then_ReturnsUser() throws Exception {
+        // Arrange
+        AuthUserDto response = AuthUserDto.builder().id("user-3").build();
+        when(roleService.assignAdmin(any(), any(), any())).thenReturn(response);
+
+        // Act
+        mockMvc.perform(post("/roles/assign-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":\"user-3\",\"schoolCode\":\"test.smartschool.be\"}"))
+                // Assert
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("user-3"));
+    }
+
+    @Test
+    void Given_RevokeAdminRequest_When_RevokeAdmin_Then_ReturnsUser() throws Exception {
+        // Arrange
+        AuthUserDto response = AuthUserDto.builder().id("user-4").build();
+        when(roleService.revokeAdmin(any(), any(), any())).thenReturn(response);
+
+        // Act
+        mockMvc.perform(post("/roles/revoke-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":\"user-4\",\"schoolCode\":\"test.smartschool.be\"}"))
+                // Assert
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("user-4"));
+    }
 }
