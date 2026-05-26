@@ -12,13 +12,15 @@ import {
   BookOpen,
   Landmark,
   Flame,
+  Ban,
+  CheckCircle,
 } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
-import { School } from '../../../model/school.model';
+import { School, SchoolStatus } from '../../../model/school.model';
 import { Campus, CreateCampusRequest } from '../../../model/campus.model';
 import { SchoolService } from '../../../services/school/school.service';
 import { CampusService } from '../../../services/campus/campus.service';
@@ -57,6 +59,10 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly BookOpen = BookOpen;
   protected readonly Landmark = Landmark;
   protected readonly Flame = Flame;
+  protected readonly Ban = Ban;
+  protected readonly CheckCircle = CheckCircle;
+
+  protected readonly SchoolStatus = SchoolStatus;
 
   protected readonly devModeEnabled = signal(false);
 
@@ -137,6 +143,10 @@ export class SchoolDashboardComponent implements OnInit {
 
   protected getCampusesForSchool(schoolId: number): Campus[] {
     return this.campusesBySchoolId()[schoolId] ?? [];
+  }
+
+  protected isRowGrayed(school: School): boolean {
+    return school.status !== SchoolStatus.ACTIVE;
   }
 
   protected openEditModal(school: School): void {
@@ -331,20 +341,17 @@ export class SchoolDashboardComponent implements OnInit {
   }
 
   protected deleteSchool(school: School): void {
+    const graceDays = school.daysUntilDeletion ?? 30;
     this.toastService.showConfirm(
-      `Weet je zeker dat je de school "${school.name}" wilt verwijderen?`,
+      `Weet je zeker dat je de school "${school.name}" wilt verwijderen? De school wordt ${graceDays} dagen bewaard en daarna permanent verwijderd.`,
       () => {
         this.schoolService
           .delete(school.id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {
-              this.schools.set(
-                this.schools().filter((s) => s.id !== school.id),
-              );
-
               this.loadSchools();
-              this.showSuccess('School succesvol verwijderd.');
+              this.showSuccess('School is gemarkeerd voor verwijdering.');
             },
             error: (error: HttpErrorResponse) => {
               this.handleError(error, 'School kon niet verwijderd worden. Probeer opnieuw.');
@@ -353,6 +360,42 @@ export class SchoolDashboardComponent implements OnInit {
       },
       () => {},
     );
+  }
+
+  protected disableSchool(school: School): void {
+    this.toastService.showConfirm(
+      `Weet je zeker dat je de school "${school.name}" wilt uitschakelen? Gebruikers kunnen niet meer inloggen.`,
+      () => {
+        this.schoolService
+          .disableSchool(school.id)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.loadSchools();
+              this.showSuccess('School is uitgeschakeld.');
+            },
+            error: (error: HttpErrorResponse) => {
+              this.handleError(error, 'School kon niet uitgeschakeld worden.');
+            },
+          });
+      },
+      () => {},
+    );
+  }
+
+  protected enableSchool(school: School): void {
+    this.schoolService
+      .enableSchool(school.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadSchools();
+          this.showSuccess('School is weer actief.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.handleError(error, 'School kon niet geactiveerd worden.');
+        },
+      });
   }
 
   protected openPurgeModal(school: School): void {

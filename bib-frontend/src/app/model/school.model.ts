@@ -1,5 +1,11 @@
 import { Campus, CreateCampusRequest } from './campus.model';
 
+export enum SchoolStatus {
+  ACTIVE = 'ACTIVE',
+  DISABLED = 'DISABLED',
+  MARKED_FOR_DELETION = 'MARKED_FOR_DELETION',
+}
+
 export interface School {
   id: number;
   domainName: string;
@@ -8,6 +14,9 @@ export interface School {
   campuses?: Campus[];
   createdAt?: string;
   hasLibrarian?: boolean;
+  status?: SchoolStatus;
+  markedForDeletionAt?: string;
+  daysUntilDeletion?: number;
 }
 
 export interface OneRosterCredentialRequest {

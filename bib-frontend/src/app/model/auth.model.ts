@@ -3,7 +3,9 @@ export type Role = 'STUDENT' | 'TEACHER' | 'LIBRARIAN' | 'ADMIN';
 export interface SchoolSummaryDto {
   id: number;
   name: string;
+  domainName: string;
   defaultLoanDurationDays?: number;
+  status?: string;
 }
 
 export interface AuthUserDto {

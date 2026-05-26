@@ -1064,3 +1064,54 @@ lucide-icon svg {
   background: var(--main-color);
   color: #fff;
 }
+
+/* Grayed row for non-active schools */
+.grayed-row td {
+  opacity: 0.5;
+  background: #faf8f9;
+}
+
+/* Status badge variants */
+.status-badge--active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge--disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-badge--deletion {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.days-remaining {
+  font-size: 11px;
+  color: #b45309;
+  font-weight: 500;
+}
+
+/* Enable/disable icon button colors */
+.icon-button--disable {
+  color: #9ca3af;
+}
+
+.icon-button--disable:hover {
+  color: #6b7280;
+}
+
+.icon-button--enable {
+  color: #16a34a;
+}
+
+.icon-button--enable:hover {
+  color: #15803d;
+}

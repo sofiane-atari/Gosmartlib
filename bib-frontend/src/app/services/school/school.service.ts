@@ -28,6 +28,14 @@ export class SchoolService {
     return this.http.delete<void>(`${this.url}/${id}`);
   }
 
+  public disableSchool(id: number): Observable<School> {
+    return this.http.put<School>(`${this.url}/${id}/disable`, {});
+  }
+
+  public enableSchool(id: number): Observable<School> {
+    return this.http.put<School>(`${this.url}/${id}/enable`, {});
+  }
+
   public purgeSchool(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}/purge`);
   }

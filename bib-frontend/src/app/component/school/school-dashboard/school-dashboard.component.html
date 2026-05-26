@@ -80,6 +80,7 @@
           <tr>
             <th>School</th>
             <th>Domein</th>
+            <th>Status</th>
             <th>Boeken</th>
             <th>Campussen</th>
             <th class="actions-heading">Acties</th>
@@ -88,7 +89,7 @@
 
         <tbody>
           @for (school of filteredSchools(); track school.id) {
-            <tr>
+            <tr [class.grayed-row]="isRowGrayed(school)">
               <td>
                 <div class="school-cell">
                   <div class="school-cell__icon">
@@ -113,6 +114,23 @@
                 <div class="muted-block">
                   <span>{{ school.domainName }}</span>
                 </div>
+              </td>
+
+              <td>
+                @if (school.status === SchoolStatus.ACTIVE) {
+                  <span class="status-badge status-badge--active">Actief</span>
+                } @else if (school.status === SchoolStatus.DISABLED) {
+                  <span class="status-badge status-badge--disabled">Uitgeschakeld</span>
+                } @else if (school.status === SchoolStatus.MARKED_FOR_DELETION) {
+                  <div class="status-badge-wrapper">
+                    <span class="status-badge status-badge--deletion">Wordt verwijderd</span>
+                    @if (school.daysUntilDeletion !== undefined && school.daysUntilDeletion !== null) {
+                      <span class="days-remaining">
+                        nog {{ school.daysUntilDeletion }} {{ school.daysUntilDeletion === 1 ? 'dag' : 'dagen' }}
+                      </span>
+                    }
+                  </div>
+                }
               </td>
 
               <td>
@@ -165,19 +183,52 @@
                     </button>
                   </app-button-hover-help>
 
-                  <app-button-hover-help
-                    text="Verwijder deze school uit het netwerk."
-                  >
-                    <button
-                      type="button"
-                      class="icon-button icon-button--delete"
-                      aria-label="School verwijderen"
-                      (click)="deleteSchool(school)"
-                      [disabled]="isUpdating()"
+                  @if (school.status === SchoolStatus.ACTIVE) {
+                    <app-button-hover-help
+                      text="Schakel deze school uit. Gebruikers kunnen niet meer inloggen."
                     >
-                      <lucide-icon [name]="Trash2"></lucide-icon>
-                    </button>
-                  </app-button-hover-help>
+                      <button
+                        type="button"
+                        class="icon-button icon-button--disable"
+                        aria-label="School uitschakelen"
+                        (click)="disableSchool(school)"
+                        [disabled]="isUpdating()"
+                      >
+                        <lucide-icon [name]="Ban"></lucide-icon>
+                      </button>
+                    </app-button-hover-help>
+                  } @else {
+                    <app-button-hover-help
+                      text="Activeer deze school opnieuw."
+                    >
+                      <button
+                        type="button"
+                        class="icon-button icon-button--enable"
+                        aria-label="School activeren"
+                        (click)="enableSchool(school)"
+                        [disabled]="isUpdating()"
+                      >
+                        <lucide-icon [name]="CheckCircle"></lucide-icon>
+                      </button>
+                    </app-button-hover-help>
+                  }
+
+                  @if (school.status === SchoolStatus.ACTIVE) {
+                    <app-button-hover-help
+                      text="Markeer deze school voor verwijdering. Na de bewaarperiode wordt de school permanent verwijderd."
+                    >
+                      <button
+                        type="button"
+                        class="icon-button icon-button--delete"
+                        aria-label="School verwijderen"
+                        (click)="deleteSchool(school)"
+                        [disabled]="isUpdating()"
+                      >
+                        <lucide-icon [name]="Trash2"></lucide-icon>
+                      </button>
+                    </app-button-hover-help>
+                  }
+
 @if (devModeEnabled()) {
                       <app-button-hover-help
                         text="Verwijder deze school en alle gerelateerde gegevens definitief."
@@ -198,8 +249,8 @@
               </tr>
 
               @if (school.hasLibrarian === false) {
-              <tr class="warning-row">
-                <td colspan="5">
+              <tr [class.grayed-row]="isRowGrayed(school)">
+                <td colspan="6">
                   <div class="librarian-warning">
                     <span class="librarian-warning__icon">&#9888;</span>
                     <span>
@@ -217,7 +268,7 @@
             }
           } @empty {
             <tr>
-              <td colspan="5">
+              <td colspan="6">
                 <div class="empty-table-state">
                   Geen scholen gevonden voor deze zoekopdracht.
                 </div>
