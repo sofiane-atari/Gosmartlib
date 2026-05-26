@@ -36,7 +36,8 @@ public class MockSchoolApiProvider implements SchoolApiProvider {
                 user.familyName,
                 user.familyName + " " + user.givenName,
                 user.email,
-                null
+                null,
+                user.username
         );
     }
 

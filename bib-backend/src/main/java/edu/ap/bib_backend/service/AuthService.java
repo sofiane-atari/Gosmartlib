@@ -113,7 +113,7 @@ public class AuthService {
                         profile.fullName(),
                         role,
                         profile.email(),
-                        null,
+                        profile.username(),
                         profile.userId(),
                         profile.platform(),
                         groups.primaryGroupName(),

@@ -95,7 +95,8 @@ public class SmartschoolProfileService {
                     lastName,
                     fullName,
                     email,
-                    platform);
+                    platform,
+                    readString(body, "username"));
         } catch (RestClientException exception) {
             throw new IllegalStateException("Failed to fetch Smartschool profile", exception);
         }
