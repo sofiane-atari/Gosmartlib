@@ -40,6 +40,6 @@ export const CREATE_SCHOOL_ALL_STEPS: readonly CreateSchoolWizardStepDefinition[
       step: 5,
       title: 'Gebruikers toewijzen',
       description:
-        'Promoveer leerkrachten tot bibliothecaris of platformbeheerder.',
+        'Promoveer leerkrachten tot beheerder of admin.',
     },
   ];

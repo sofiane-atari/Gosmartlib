@@ -65,6 +65,7 @@ export class UserService {
       user.fullName?.trim() ||
       `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
       user.firstName?.trim() ||
+      user.username?.trim() ||
       user.id ||
       'Gebruiker'
     );
@@ -77,9 +78,9 @@ export class UserService {
       case 'TEACHER':
         return 'Leerkracht';
       case 'LIBRARIAN':
-        return 'Bibliotheekbeheerder';
+        return 'Beheerder';
       case 'ADMIN':
-        return 'Platformbeheerder';
+        return 'Admin';
       default:
         return 'Gebruiker';
     }

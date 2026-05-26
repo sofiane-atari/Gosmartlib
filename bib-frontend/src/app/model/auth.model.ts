@@ -13,6 +13,7 @@ export interface AuthUserDto {
   fullName?: string | null;
   role: Role;
   email?: string | null;
+  username?: string | null;
   smartschoolId?: string | null;
   platform?: string | null;
   primaryGroupName?: string | null;
