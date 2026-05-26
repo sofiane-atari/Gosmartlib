@@ -17,11 +17,15 @@ import { LessonTipCardComponent } from '../lesson-tip-card/lesson-tip-card.compo
 
 import { BookService } from '../../../services/bookService/book.service';
 import { Book } from '../../../model/book/book.model';
+import {
+  PagingComponent,
+  PagingMeta,
+} from '../../shared/paging/paging.component';
 
 @Component({
   selector: 'app-lesson-tip-overview',
   standalone: true,
-  imports: [CommonModule, LessonTipCardComponent],
+  imports: [CommonModule, LessonTipCardComponent, PagingComponent],
   animations: [reviewCardAnimation, fadeInUpAnimation],
   templateUrl: './lesson-tip-overview.component.html',
   styleUrl: './lesson-tip-overview.component.css',
@@ -40,6 +44,13 @@ export class LessonTipOverviewComponent implements OnInit {
   protected readonly filteredBookId = signal<number | null>(null);
   protected readonly filteredBook = signal<Book | null>(null);
   protected readonly isLoadingBookContext = signal(false);
+
+  protected readonly pagingMeta = signal<PagingMeta>({
+    currentPage: 0,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 0,
+  });
 
   public ngOnInit(): void {
     this.route.queryParamMap
@@ -125,15 +136,19 @@ export class LessonTipOverviewComponent implements OnInit {
       });
   }
 
-  private loadLessonTips(bookId?: number): void {
+  private loadLessonTips(bookId?: number, page = 0): void {
     this.isLoading.set(true);
 
     this.lessonTipService
-      .getAll(bookId)
+      .getAll(bookId, {
+        page: page,
+        pageSize: this.pagingMeta().pageSize,
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (lessonTips) => {
-          this.lessonTips.set(lessonTips);
+        next: (response) => {
+          this.lessonTips.set(response.data);
+          this.pagingMeta.set(response.meta);
           this.isLoading.set(false);
         },
         error: () => {
@@ -146,5 +161,9 @@ export class LessonTipOverviewComponent implements OnInit {
           );
         },
       });
+  }
+
+  public handlePageChange(page: number): void {
+    this.loadLessonTips(this.filteredBookId() ?? undefined, page);
   }
 }

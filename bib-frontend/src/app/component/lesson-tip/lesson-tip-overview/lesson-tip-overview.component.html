@@ -14,7 +14,7 @@
           class="action-button action-button--primary"
           (click)="navigateToCreatePage()"
         >
-          Lestip toevoegen
+          + Lestip toevoegen
         </button>
       </div>
     </div>
@@ -89,6 +89,12 @@
           />
         }
       </section>
+    }
+    @if (pagingMeta().totalPages > 1) {
+      <app-paging
+        [meta]="pagingMeta()"
+        (pageChange)="handlePageChange($event)"
+      />
     }
   </div>
 </div>

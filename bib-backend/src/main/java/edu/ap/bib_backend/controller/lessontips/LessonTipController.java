@@ -16,7 +16,6 @@ import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.service.lessontips.LessonTipService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/lesson-tips")

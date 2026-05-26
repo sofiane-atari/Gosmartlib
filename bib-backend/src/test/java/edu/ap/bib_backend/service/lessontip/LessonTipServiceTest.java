@@ -20,6 +20,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
@@ -63,7 +67,7 @@ class LessonTipServiceTest {
     private LessonTipService didacticMaterialService;
 
     @Test
-    void givenExistingMaterials_whenGetAllMaterials_thenReturnMappedResponses() {
+        void givenExistingMaterials_whenGetAllMaterials_thenReturnMappedResponses() {
         // Arrange
         LessonTip firstMaterial = createMaterial(1L, "teacher-1");
         LessonTip secondMaterial = createMaterial(2L, "teacher-2");
@@ -71,8 +75,14 @@ class LessonTipServiceTest {
         LessonTipResponseDto firstResponse = createResponseDto(1L, "Materiaal 1");
         LessonTipResponseDto secondResponse = createResponseDto(2L, "Materiaal 2");
 
-        given(didacticMaterialRepository.findAllByOrderByUpdatedAtDesc())
-                .willReturn(List.of(firstMaterial, secondMaterial));
+        Page<LessonTip> materialPage = new PageImpl<>(
+                List.of(firstMaterial, secondMaterial),
+                PageRequest.of(0, 10),
+                2
+        );
+
+        given(didacticMaterialRepository.findAllByOrderByUpdatedAtDesc(any(Pageable.class)))
+                .willReturn(materialPage);
         given(didacticMaterialCreatorRoleService.getCreatorRole("teacher-1"))
                 .willReturn(Role.TEACHER);
         given(didacticMaterialCreatorRoleService.getCreatorRole("teacher-2"))
@@ -83,17 +93,20 @@ class LessonTipServiceTest {
                 .willReturn(secondResponse);
 
         // Act
-        List<LessonTipResponseDto> result = didacticMaterialService.getAllLessonTips(null);
+        Page<LessonTipResponseDto> result = didacticMaterialService.getAllLessonTips(null, 0, 10);
 
         // Assert
-        assertThat(result).containsExactly(firstResponse, secondResponse);
+        assertThat(result.getContent()).containsExactly(firstResponse, secondResponse);
+        assertThat(result.getNumber()).isZero();
+        assertThat(result.getSize()).isEqualTo(10);
+        assertThat(result.getTotalElements()).isEqualTo(2);
 
-        then(didacticMaterialRepository).should().findAllByOrderByUpdatedAtDesc();
+        then(didacticMaterialRepository).should().findAllByOrderByUpdatedAtDesc(any(Pageable.class));
         then(didacticMaterialCreatorRoleService).should().getCreatorRole("teacher-1");
         then(didacticMaterialCreatorRoleService).should().getCreatorRole("teacher-2");
         then(didacticMaterialMapper).should().toResponse(firstMaterial, Role.TEACHER);
         then(didacticMaterialMapper).should().toResponse(secondMaterial, Role.LIBRARIAN);
-    }
+        }
 
     @Test
     void givenExistingMaterialId_whenGetMaterialById_thenReturnMappedResponse() {

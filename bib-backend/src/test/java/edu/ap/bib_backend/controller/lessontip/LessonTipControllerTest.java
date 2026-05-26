@@ -20,6 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -71,28 +74,40 @@ class LessonTipControllerTest {
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
 
     @Test
-    void givenExistingMaterials_whenGetAllMaterials_thenReturnOkWithResponseBody() throws Exception {
+        void givenExistingMaterials_whenGetAllMaterials_thenReturnOkWithResponseBody() throws Exception {
         // Arrange
         LessonTipResponseDto firstMaterial = createResponseDto(1L, "Werkblad 1");
         LessonTipResponseDto secondMaterial = createResponseDto(2L, "Werkblad 2");
 
-        given(didacticMaterialService.getAllLessonTips(null))
-                .willReturn(List.of(firstMaterial, secondMaterial));
+        Page<LessonTipResponseDto> lessonTipPage = new PageImpl<>(
+                List.of(firstMaterial, secondMaterial),
+                PageRequest.of(0, 10),
+                2
+        );
+
+        given(didacticMaterialService.getAllLessonTips(null, 0, 10))
+                .willReturn(lessonTipPage);
 
         // Act
-        var result = mockMvc.perform(get(BASE_URL));
+        var result = mockMvc.perform(get(BASE_URL)
+                .param("page", "0")
+                .param("size", "10"));
 
         // Assert
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].title").value("Werkblad 1"))
-                .andExpect(jsonPath("$[0].lessonTipType").value("WORKSHEET"))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].title").value("Werkblad 2"));
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].id").value(1L))
+                .andExpect(jsonPath("$.data[0].title").value("Werkblad 1"))
+                .andExpect(jsonPath("$.data[0].lessonTipType").value("WORKSHEET"))
+                .andExpect(jsonPath("$.data[1].id").value(2L))
+                .andExpect(jsonPath("$.data[1].title").value("Werkblad 2"))
+                .andExpect(jsonPath("$.meta.currentPage").value(0))
+                .andExpect(jsonPath("$.meta.pageSize").value(10))
+                .andExpect(jsonPath("$.meta.totalItems").value(2))
+                .andExpect(jsonPath("$.meta.totalPages").value(1));
 
-        then(didacticMaterialService).should().getAllLessonTips(null);
-    }
+        then(didacticMaterialService).should().getAllLessonTips(null, 0, 10);
+        }
 
     @Test
     void givenExistingMaterialId_whenGetMaterialById_thenReturnOkWithResponseBody() throws Exception {
