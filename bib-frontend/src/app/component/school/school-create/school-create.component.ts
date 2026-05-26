@@ -19,6 +19,7 @@ import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.compon
 import { UserRolePromotionComponent } from '../user-role-promotion/user-role-promotion.component';
 import { OnerosterHelpComponent } from '../oneroster-help/oneroster-help.component';
 import { ConfirmationModalComponent } from '../../shared/confirmation-modal/confirmation-modal.component';
+import { LoadingOverlayComponent } from '../../shared/loading-overlay/loading-overlay.component';
 import {
   CREATE_SCHOOL_STEPS_1_4,
   CREATE_SCHOOL_ALL_STEPS,
@@ -38,6 +39,7 @@ import { CreateSchoolRequest, OneRosterCredentialRequest, OneRosterCredentialVal
     UserRolePromotionComponent,
     OnerosterHelpComponent,
     ConfirmationModalComponent,
+    LoadingOverlayComponent,
   ],
   templateUrl: './school-create.component.html',
   styleUrl: './school-create.component.css',

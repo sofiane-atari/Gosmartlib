@@ -20,6 +20,17 @@
   border-left: 5px solid var(--main-color);
   border-radius: 12px;
   background: linear-gradient(135deg, #faf7f8, #f3f5f8);
+  animation: fadeIn 0.35s ease;
+}
+
+.form-section {
+  max-width: 100%;
+  padding: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: var(--bg-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  animation: fadeIn 0.4s ease;
 }
 
 .info-icon {
@@ -123,5 +134,16 @@ lucide-icon {
 
   .form-section {
     padding: 16px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

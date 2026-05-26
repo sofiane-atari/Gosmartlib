@@ -1,11 +1,5 @@
 <div class="promotion-panel">
-  @if (isLoading()) {
-    <div class="promotion-loading">
-      <div class="promotion-spinner"></div>
-      <p>Gebruikers worden gesynchroniseerd via OneRoster...</p>
-      <p class="poll-hint">Dit kan enkele ogenblikken duren.</p>
-    </div>
-  } @else if (users().length === 0) {
+  @if (!isLoading() && users().length === 0) {
     <div class="promotion-empty">
       <p>
         Er zijn nog geen leerkrachten gevonden voor deze school. De synchronisatie
@@ -29,13 +23,22 @@
       </div>
     </div>
   } @else {
-    <p class="promotion-hint">
-      Wijs minstens één beheerder toe. Je kan leerkrachten ook promoveren tot admin.
-    </p>
+    @if (isLoading()) {
+      <div class="promotion-loading-hint">
+        <p>Gebruikers worden gesynchroniseerd via OneRoster...</p>
+        <p class="poll-hint">Dit kan enkele ogenblikken duren.</p>
+      </div>
+    } @else {
+      <p class="promotion-hint">
+        Wijs minstens één beheerder toe. Je kan leerkrachten ook promoveren tot admin.
+      </p>
+    }
 
     <app-data-table
-      [data]="users()"
+      [loading]="isLoading()"
+      [skeletonRows]="5"
       [columns]="columns"
+      [data]="users()"
       [emptyMessage]="'Geen gebruikers gevonden.'"
     >
       <ng-template cellTemplate="name" let-user>

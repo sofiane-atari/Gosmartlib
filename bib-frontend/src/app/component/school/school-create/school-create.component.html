@@ -506,3 +506,7 @@
   (confirmRequested)="confirmClearProgress()"
   (cancelRequested)="cancelClearProgress()"
 />
+
+@if (isSubmitting()) {
+  <app-loading-overlay></app-loading-overlay>
+}
