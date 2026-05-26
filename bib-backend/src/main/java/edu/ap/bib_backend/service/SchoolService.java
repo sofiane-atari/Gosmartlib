@@ -302,6 +302,8 @@ public class SchoolService {
             daysUntilDeletion = Math.max(0, daysLeft);
         }
 
+        OneRosterCredentialDTO credentialDto = null;
+
         return new SchoolDTO(
                 school.getId(),
                 school.getDomainName(),
@@ -312,7 +314,7 @@ public class SchoolService {
                         .toList(),
                 school.getCreatedAt(),
                 hasLibrarian,
-                null,
+                credentialDto,
                 school.getStatus(),
                 school.getMarkedForDeletionAt(),
                 daysUntilDeletion);
