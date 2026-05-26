@@ -275,15 +275,17 @@ export class UserManagementComponent {
 
     this.isPromoting.set(true);
 
+    const schoolCode = this.currentUser()?.school?.domainName;
+
     let action$;
     if (this.actionTarget() === 'admin') {
       action$ = this.isRevokeAction()
-        ? this.roleService.revokeAdmin(user.id)
-        : this.roleService.assignAdmin(user.id);
+        ? this.roleService.revokeAdmin(user.id, schoolCode)
+        : this.roleService.assignAdmin(user.id, schoolCode);
     } else {
       action$ = this.isRevokeAction()
-        ? this.roleService.revokeLibrarian(user.id)
-        : this.roleService.assignLibrarian(user.id);
+        ? this.roleService.revokeLibrarian(user.id, schoolCode)
+        : this.roleService.assignLibrarian(user.id, schoolCode);
     }
 
     action$.subscribe({

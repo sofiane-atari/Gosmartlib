@@ -120,19 +120,20 @@ export class UserRolePromotionComponent implements OnInit, OnDestroy {
   }
 
   protected promoteToLibrarian(user: AuthUserDto): void {
-    this.changeRole(user.id, () => this.roleService.assignLibrarian(user.id), 'LIBRARIAN');
+    this.changeRole(user.id, () => this.roleService.assignLibrarian(user.id, user.school?.domainName), 'LIBRARIAN');
   }
 
   protected promoteToAdmin(user: AuthUserDto): void {
-    this.changeRole(user.id, () => this.roleService.assignAdmin(user.id), 'ADMIN');
+    this.changeRole(user.id, () => this.roleService.assignAdmin(user.id, user.school?.domainName), 'ADMIN');
   }
 
   protected demoteToTeacher(user: AuthUserDto): void {
     const role = user.role;
+    const schoolCode = user.school?.domainName;
     const action$ =
       role === 'LIBRARIAN'
-        ? this.roleService.revokeLibrarian(user.id)
-        : this.roleService.revokeAdmin(user.id);
+        ? this.roleService.revokeLibrarian(user.id, schoolCode)
+        : this.roleService.revokeAdmin(user.id, schoolCode);
 
     this.changeRole(user.id, () => action$, 'TEACHER');
   }

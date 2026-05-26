@@ -6,6 +6,7 @@ import { AuthUserDto } from '../../model/auth.model';
 
 export interface AssignLibrarianRequest {
   userId: string;
+  schoolCode?: string;
 }
 
 @Injectable({
@@ -15,19 +16,19 @@ export class RoleService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  public assignLibrarian(userId: string): Observable<AuthUserDto> {
-    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/assign-librarian`, { userId });
+  public assignLibrarian(userId: string, schoolCode?: string): Observable<AuthUserDto> {
+    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/assign-librarian`, { userId, schoolCode });
   }
 
-  public revokeLibrarian(userId: string): Observable<AuthUserDto> {
-    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/revoke-librarian`, { userId });
+  public revokeLibrarian(userId: string, schoolCode?: string): Observable<AuthUserDto> {
+    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/revoke-librarian`, { userId, schoolCode });
   }
 
-  public assignAdmin(userId: string): Observable<AuthUserDto> {
-    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/assign-admin`, { userId });
+  public assignAdmin(userId: string, schoolCode?: string): Observable<AuthUserDto> {
+    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/assign-admin`, { userId, schoolCode });
   }
 
-  public revokeAdmin(userId: string): Observable<AuthUserDto> {
-    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/revoke-admin`, { userId });
+  public revokeAdmin(userId: string, schoolCode?: string): Observable<AuthUserDto> {
+    return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/revoke-admin`, { userId, schoolCode });
   }
 }
