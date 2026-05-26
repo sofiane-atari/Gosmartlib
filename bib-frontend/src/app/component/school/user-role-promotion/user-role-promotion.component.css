@@ -32,11 +32,6 @@
   to { transform: rotate(360deg); }
 }
 
-.poll-progress {
-  font-weight: 600;
-  color: var(--main-color);
-}
-
 .poll-hint {
   font-size: 12px;
   color: #9b7a84;
@@ -124,6 +119,13 @@
   font-weight: 600;
 }
 
+.user-cell__username {
+  display: block;
+  color: #7a5560;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
 .role-badge {
   display: inline-flex;
   align-items: center;
@@ -168,59 +170,129 @@
   font-size: 13px;
 }
 
-.promotion-btn {
+.btn-promote {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 8px;
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
   font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s;
+  transition: background 0.18s, transform 0.12s;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(138, 30, 65, 0.25);
+  line-height: 1;
 }
 
-.promotion-btn:disabled {
+.btn-promote:hover {
+  background: var(--main-color-hover);
+  transform: translateY(-1px);
+}
+
+.btn-promote:active {
+  transform: translateY(0);
+}
+
+.btn-promote:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-.promotion-btn--promote {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-  color: #16a34a;
+.btn-promote lucide-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.promotion-btn--promote:hover:not(:disabled) {
-  background: #dcfce7;
-}
-
-.promotion-btn--admin {
+.btn-promote-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: #fdf4ff;
-  border-color: #e9d5ff;
   color: #9333ea;
+  border: 1px solid #e9d5ff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s;
+  white-space: nowrap;
+  line-height: 1;
 }
 
-.promotion-btn--admin:hover:not(:disabled) {
+.btn-promote-admin:hover {
   background: #f3e8ff;
+  transform: translateY(-1px);
 }
 
-.promotion-btn--demote {
+.btn-promote-admin:active {
+  transform: translateY(0);
+}
+
+.btn-promote-admin:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-promote-admin lucide-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-revoke {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.btn-revoke lucide-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-revoke:hover {
   background: #fef2f2;
-  border-color: #fecaca;
-  color: #dc2626;
+  transform: translateY(-1px);
 }
 
-.promotion-btn--demote:hover:not(:disabled) {
-  background: #fee2e2;
+.btn-revoke:active {
+  transform: translateY(0);
 }
 
-.icon-sm {
-  width: 14px;
-  height: 14px;
+.btn-revoke:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .promotion-summary {
