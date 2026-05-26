@@ -32,7 +32,7 @@ class AuthInitiateControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new AuthInitiateController(providerFactory, false, clientRegistrationRepository);
+        controller = new AuthInitiateController(providerFactory, false, clientRegistrationRepository, false);
     }
 
     @Test
@@ -42,11 +42,26 @@ class AuthInitiateControllerTest {
         when(request.getContextPath()).thenReturn("");
 
         AuthInitiateController mockController = new AuthInitiateController(
-                providerFactory, true, clientRegistrationRepository);
+                providerFactory, true, clientRegistrationRepository, true);
 
         mockController.initiateLogin(request, response);
 
         verify(response).sendRedirect("/oauth2/authorization/smartschool-mock");
+    }
+
+    @Test
+    void Given_MockModeEnabledButDevModeDisabled_When_InitiateLogin_Then_DoesNotRedirectToMock() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        when(clientRegistrationRepository.findByRegistrationId("smartschool")).thenReturn(null);
+
+        AuthInitiateController mockController = new AuthInitiateController(
+                providerFactory, true, clientRegistrationRepository, false);
+
+        mockController.initiateLogin(request, response);
+
+        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                "Smartschool OAuth2 client not configured");
     }
 
     @Test

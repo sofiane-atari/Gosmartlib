@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthUserDto } from '../../model/auth.model';
 
@@ -30,5 +30,10 @@ export class RoleService {
 
   public revokeAdmin(userId: string, schoolCode?: string): Observable<AuthUserDto> {
     return this.http.post<AuthUserDto>(`${this.apiUrl}/roles/revoke-admin`, { userId, schoolCode });
+  }
+
+  public isAdminPromotionEnabled(): Observable<{ enabled: boolean }> {
+    return this.http.get<{ enabled: boolean }>(`${this.apiUrl}/roles/admin-promotion-enabled`)
+      .pipe(shareReplay(1));
   }
 }

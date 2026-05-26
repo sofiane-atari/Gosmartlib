@@ -75,7 +75,7 @@ export const routes: Routes = [
   {
     path: 'books/:id/edit',
     component: BookEditPageComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
     path: 'genre',
@@ -111,7 +111,7 @@ export const routes: Routes = [
   {
     path: 'add-book',
     component: AddBookPageComponent,
-    canActivate: [authGuard, staffOnlyGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   { path: 'reviews', component: MyReviewsComponent, canActivate: [authGuard] },
   {
@@ -139,7 +139,7 @@ export const routes: Routes = [
   {
     path: 'loans/create',
     component: CreateLoanComponent,
-    canActivate: [authGuard, staffOnlyGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
     path: 'schools',
@@ -169,7 +169,7 @@ export const routes: Routes = [
   {
     path: 'loans/return',
     component: ReturnLoanComponent,
-    canActivate: [authGuard, staffOnlyGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
     path: 'settings',
@@ -192,7 +192,7 @@ export const routes: Routes = [
       {
         path: 'school',
         component: CampusReportComponent,
-        canActivate: [authGuard, staffOnlyGuard]
+        canActivate: [authGuard, librarianOrAdminGuard]
       },
       {
         path: 'system',

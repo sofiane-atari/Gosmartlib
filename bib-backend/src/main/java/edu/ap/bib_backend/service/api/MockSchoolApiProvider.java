@@ -30,13 +30,15 @@ public class MockSchoolApiProvider implements SchoolApiProvider {
         if (user == null) {
             throw new IllegalStateException("Mock user not found for token");
         }
+        MockSchoolData school = registry.getSchoolByLegacyId(user.legacyIdentifier);
+        String platformUrl = school != null ? school.getPlatformUrl() : null;
         return new SmartschoolProfileDto(
                 user.legacyIdentifier,
                 user.givenName,
                 user.familyName,
                 user.familyName + " " + user.givenName,
                 user.email,
-                null,
+                platformUrl,
                 user.username
         );
     }

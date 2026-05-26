@@ -45,18 +45,21 @@ public class SecurityConfig {
         private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
         private final RestAccessDeniedHandler restAccessDeniedHandler;
         private final boolean mockModeEnabled;
+        private final boolean devModeEnabled;
 
         public SecurityConfig(
                         JwtAuthenticationFilter jwtAuthenticationFilter,
                         SmartschoolOAuth2UserService smartschoolOAuth2UserService,
                         RestAuthenticationEntryPoint restAuthenticationEntryPoint,
                         RestAccessDeniedHandler restAccessDeniedHandler,
-                        @Value("${app.mock-mode-enabled}") boolean mockModeEnabled) {
+                        @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
+                        @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
                 this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
                 this.restAccessDeniedHandler = restAccessDeniedHandler;
                 this.mockModeEnabled = mockModeEnabled;
+                this.devModeEnabled = devModeEnabled;
         }
 
         @Bean
@@ -88,7 +91,7 @@ public class SecurityConfig {
                                                         "/login/**")
                                         .permitAll();
 
-                                        if (mockModeEnabled) {
+                                        if (mockModeEnabled && devModeEnabled) {
                                                 auth.requestMatchers(
                                                                 "/OAuth/**",
                                                                 "/Api/V1/**",
@@ -126,8 +129,11 @@ public class SecurityConfig {
                                                         Role.LIBRARIAN.name(), Role.TEACHER.name());
 
                                         auth.requestMatchers("/loans/**")
-                                        .hasAnyRole(Role.STUDENT.name(), Role.LIBRARIAN.name(),
-                                                        Role.ADMIN.name());
+                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers("/schools/dev-mode-enabled")
+                                        .permitAll();
 
                                         auth.requestMatchers("/schools/**")
                                         .hasRole(Role.ADMIN.name());
@@ -135,6 +141,9 @@ public class SecurityConfig {
                                         auth.requestMatchers("/reports/**")
                                         .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                         Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers("/roles/admin-promotion-enabled")
+                                        .authenticated();
 
                                         auth.requestMatchers("/roles/**")
                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());

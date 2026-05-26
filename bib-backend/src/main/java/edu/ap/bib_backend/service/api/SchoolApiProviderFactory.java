@@ -16,14 +16,17 @@ public class SchoolApiProviderFactory {
     private final MockSchoolApiProvider mockProvider;
     private final MockSchoolRegistry mockSchoolRegistry;
     private final boolean mockModeEnabled;
+    private final boolean devModeEnabled;
 
     public SchoolApiProviderFactory(SchoolRepository schoolRepository, MockSchoolApiProvider mockProvider,
                                     MockSchoolRegistry mockSchoolRegistry,
-                                    @Value("${app.mock-mode-enabled}") boolean mockModeEnabled) {
+                                    @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
+                                    @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
         this.schoolRepository = schoolRepository;
         this.mockProvider = mockProvider;
         this.mockSchoolRegistry = mockSchoolRegistry;
         this.mockModeEnabled = mockModeEnabled;
+        this.devModeEnabled = devModeEnabled;
     }
 
     public Optional<SchoolApiProvider> getProvider(String schoolCode) {
@@ -34,7 +37,7 @@ public class SchoolApiProviderFactory {
     }
 
     public boolean isMockSchool(String schoolCode) {
-        if (!mockModeEnabled) {
+        if (!mockModeEnabled || !devModeEnabled) {
             return false;
         }
         if (mockSchoolRegistry.getSchoolByCode(schoolCode) != null) {

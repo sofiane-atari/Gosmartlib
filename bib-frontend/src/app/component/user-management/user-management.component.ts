@@ -37,6 +37,10 @@ import { DataTableComponent } from '../shared/data-table/data-table.component';
 import { CellTemplateDirective } from '../shared/data-table/cell-template.directive';
 import { DataTableColumn } from '../shared/data-table/data-table.types';
 
+interface AdminPromotionConfig {
+  enabled: boolean;
+}
+
 @Component({
   selector: 'app-user-management',
   standalone: true,
@@ -88,13 +92,19 @@ export class UserManagementComponent {
 
   protected readonly currentUser = this.authService.currentUser;
 
+  protected readonly adminPromotionEnabled = signal(false);
+
   protected readonly canManageAdmins = computed(() =>
-    this.currentUser()?.role === 'ADMIN',
+    this.currentUser()?.role === 'ADMIN' && this.adminPromotionEnabled(),
   );
 
-  protected readonly canSelfRevoke = computed(() =>
-    this.currentUser()?.role === 'LIBRARIAN' || this.currentUser()?.role === 'ADMIN',
-  );
+  protected readonly canSelfRevoke = computed(() => {
+    const role = this.currentUser()?.role;
+    if (role === 'ADMIN') {
+      return this.adminPromotionEnabled();
+    }
+    return role === 'LIBRARIAN';
+  });
 
   protected readonly selfRevokeLabel = computed(() =>
     this.currentUser()?.role === 'ADMIN' ? 'Intrekken adminrol' : 'Intrekken beheerdersrol',
@@ -113,6 +123,11 @@ export class UserManagementComponent {
   );
 
   constructor() {
+    this.roleService.isAdminPromotionEnabled().subscribe({
+      next: (config) => this.adminPromotionEnabled.set(config.enabled),
+      error: () => this.adminPromotionEnabled.set(false),
+    });
+
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((query) => {

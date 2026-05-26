@@ -49,6 +49,7 @@ export class UserRolePromotionComponent implements OnInit, OnDestroy {
   protected readonly isPromoting = signal<string | null>(null);
   protected readonly adminConfirmUser = signal<AuthUserDto | null>(null);
   protected readonly adminConfirmAction = signal<'promote' | 'demote'>('promote');
+  protected readonly adminPromotionEnabled = signal(false);
 
   protected readonly ShieldCheck = ShieldCheck;
   protected readonly ShieldOff = ShieldOff;
@@ -157,6 +158,17 @@ export class UserRolePromotionComponent implements OnInit, OnDestroy {
     this.adminConfirmUser.set(null);
   }
 
+  protected readonly canShowAdminActions = computed(
+    () => this.canPromoteToAdmin() && this.adminPromotionEnabled(),
+  );
+
+  constructor() {
+    this.roleService.isAdminPromotionEnabled().subscribe({
+      next: (config) => this.adminPromotionEnabled.set(config.enabled),
+      error: () => this.adminPromotionEnabled.set(false),
+    });
+  }
+
   protected readonly adminConfirmTitle = computed(() =>
     this.adminConfirmAction() === 'promote' ? 'Leerkracht promoveren tot admin' : 'Adminrol intrekken',
   );
@@ -198,7 +210,9 @@ export class UserRolePromotionComponent implements OnInit, OnDestroy {
   }
 
   protected canDemote(user: AuthUserDto): boolean {
-    return user.role === 'LIBRARIAN' || user.role === 'ADMIN';
+    if (user.role === 'LIBRARIAN') return true;
+    if (user.role === 'ADMIN') return this.canShowAdminActions();
+    return false;
   }
 
   private changeRole(

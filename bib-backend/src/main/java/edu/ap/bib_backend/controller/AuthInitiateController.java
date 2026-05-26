@@ -26,21 +26,24 @@ public class AuthInitiateController {
 
     private final SchoolApiProviderFactory providerFactory;
     private final boolean mockModeEnabled;
+    private final boolean devModeEnabled;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final HttpSessionOAuth2AuthorizationRequestRepository authRequestRepository;
 
     public AuthInitiateController(SchoolApiProviderFactory providerFactory,
                                   @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
-                                  ClientRegistrationRepository clientRegistrationRepository) {
+                                  ClientRegistrationRepository clientRegistrationRepository,
+                                  @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
         this.providerFactory = providerFactory;
         this.mockModeEnabled = mockModeEnabled;
+        this.devModeEnabled = devModeEnabled;
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.authRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
     }
 
     @GetMapping("/initiate-login")
     public void initiateLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (mockModeEnabled) {
+        if (mockModeEnabled && devModeEnabled) {
             response.sendRedirect(request.getContextPath() + "/oauth2/authorization/smartschool-mock");
             return;
         }

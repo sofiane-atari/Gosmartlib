@@ -76,4 +76,16 @@ class OneRosterSyncControllerTest {
         assertNotNull(result);
         assertNull(result.syncTime());
     }
+
+    @Test
+    void Given_MalformedCronParts_When_GetSyncConfig_Then_SyncTimeIsNull() {
+        OneRosterSyncController malformedCronController = new OneRosterSyncController(
+                syncService, "0 x 3 * * *", "UTC", 1);
+
+        ResponseEntity<SyncConfigDto> response = malformedCronController.getSyncConfig();
+        SyncConfigDto result = response.getBody();
+
+        assertNotNull(result);
+        assertNull(result.syncTime());
+    }
 }

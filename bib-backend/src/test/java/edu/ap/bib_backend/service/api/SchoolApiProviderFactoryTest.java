@@ -31,15 +31,23 @@ class SchoolApiProviderFactoryTest {
 
     @BeforeEach
     void setUp() {
-        factory = new SchoolApiProviderFactory(schoolRepository, mockProvider, mockSchoolRegistry, true);
+        factory = new SchoolApiProviderFactory(schoolRepository, mockProvider, mockSchoolRegistry, true, true);
     }
 
     @Test
     void Given_MockModeDisabled_When_IsMockSchool_Then_ReturnsFalse() {
         SchoolApiProviderFactory factoryDisabled = new SchoolApiProviderFactory(
-                schoolRepository, mockProvider, mockSchoolRegistry, false);
+                schoolRepository, mockProvider, mockSchoolRegistry, false, false);
 
         assertFalse(factoryDisabled.isMockSchool("any-school"));
+    }
+
+    @Test
+    void Given_MockModeEnabledButDevModeDisabled_When_IsMockSchool_Then_ReturnsFalse() {
+        SchoolApiProviderFactory factoryNoDev = new SchoolApiProviderFactory(
+                schoolRepository, mockProvider, mockSchoolRegistry, true, false);
+
+        assertFalse(factoryNoDev.isMockSchool("any-school"));
     }
 
     @Test

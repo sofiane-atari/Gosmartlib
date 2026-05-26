@@ -3,10 +3,10 @@ package edu.ap.bib_backend.service.oneroster;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.repository.GroupRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.GroupService;
 import edu.ap.bib_backend.service.RoleService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +33,7 @@ class OneRosterUserSyncServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private GroupRepository groupRepository;
+    private GroupService groupService;
     @Mock
     private RoleService roleService;
 
@@ -60,7 +60,6 @@ class OneRosterUserSyncServiceTest {
         when(oneRosterClient.fetchUsers("test.smartschool.be")).thenReturn(List.of(rosterUser));
         when(userRepository.findById("user1")).thenReturn(Optional.empty());
         when(roleService.getRoleEntity("teacher")).thenReturn(null);
-        when(groupRepository.findAll()).thenReturn(List.of());
 
         syncService.syncAllSchools();
 
@@ -82,7 +81,6 @@ class OneRosterUserSyncServiceTest {
         cred.setSchool(school);
         when(credentialRepository.findAll()).thenReturn(List.of(cred));
         when(schoolRepository.findByDomainName("test.smartschool.be")).thenReturn(Optional.of(school));
-        when(groupRepository.findAll()).thenReturn(List.of());
 
         syncService.syncAllSchools();
 

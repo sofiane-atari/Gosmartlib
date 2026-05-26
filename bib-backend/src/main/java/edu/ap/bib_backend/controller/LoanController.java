@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +38,7 @@ public class LoanController {
         this.loanExtensionService = loanExtensionService;
     }
 
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     @PostMapping
     public ResponseEntity<LoanDTO> createLoan(
             @Valid @RequestBody LoanDTO loanDTO,
@@ -53,6 +55,7 @@ public class LoanController {
         return ResponseEntity.ok(loanService.findAll(page, pageSize, campusId, authentication));
     }
 
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     @PatchMapping("/{loanId}/return")
     public ResponseEntity<LoanDTO> returnLoan(
             @PathVariable("loanId") Long loanId,
