@@ -23,6 +23,7 @@ import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.SmartschoolRefreshResult;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
@@ -72,6 +73,12 @@ public class AuthService {
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
 
         User dbUser = userRepository.findById(userId).orElse(null);
+
+        if (dbUser != null && dbUser.getSchool() != null
+                && dbUser.getSchool().getStatus() != SchoolStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Je school is momenteel niet beschikbaar.");
+        }
 
         boolean reviewBlocked = dbUser != null && dbUser.isReviewBlocked();
 

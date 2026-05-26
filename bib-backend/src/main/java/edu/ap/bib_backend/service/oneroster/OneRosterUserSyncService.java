@@ -15,6 +15,7 @@ import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -89,12 +90,19 @@ public class OneRosterUserSyncService {
 
         for (OneRosterCredential credential : credentials) {
             School school = resolveSchool(credential);
-            if (school == null) {
-                skippedCount++;
-                logger.warn("Skipping OneRoster user sync because credential {} does not resolve to a school",
-                        credential == null ? null : credential.getId());
-                continue;
-            }
+                if (school == null) {
+                    skippedCount++;
+                    logger.warn("Skipping OneRoster user sync because credential {} does not resolve to a school",
+                            credential == null ? null : credential.getId());
+                    continue;
+                }
+
+                if (school.getStatus() != SchoolStatus.ACTIVE) {
+                    skippedCount++;
+                    logger.info("Skipping OneRoster user sync for non-active school id={} name='{}'",
+                            school.getId(), school.getName());
+                    continue;
+                }
 
             try {
                 SyncResult result = syncSchoolUsers(school);

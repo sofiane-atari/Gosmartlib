@@ -6,6 +6,7 @@ import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
@@ -15,11 +16,14 @@ import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +38,7 @@ public class SchoolService {
     private final UserRepository userRepository;
     private final OneRosterClient oneRosterClient;
     private final OneRosterUserSyncService oneRosterUserSyncService;
+    private final long gracePeriodDays;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -44,7 +49,8 @@ public class SchoolService {
             OneRosterCredentialRepository credentialRepository,
             UserRepository userRepository,
             OneRosterClient oneRosterClient,
-            OneRosterUserSyncService oneRosterUserSyncService
+            OneRosterUserSyncService oneRosterUserSyncService,
+            @Value("${school.deletion.grace-period-days:30}") long gracePeriodDays
     ) {
         this.schoolRepository = schoolRepository;
         this.bookCopyRepository = bookCopyRepository;
@@ -52,6 +58,7 @@ public class SchoolService {
         this.userRepository = userRepository;
         this.oneRosterClient = oneRosterClient;
         this.oneRosterUserSyncService = oneRosterUserSyncService;
+        this.gracePeriodDays = gracePeriodDays;
     }
 
     public List<SchoolDTO> getAll() {
@@ -137,12 +144,34 @@ public class SchoolService {
         return toDto(schoolRepository.save(school));
     }
 
+    @Transactional
     public void delete(Long id) {
-        if (!schoolRepository.existsById(id)) {
-            throw new IllegalArgumentException("School niet gevonden.");
-        }
+        School school = schoolRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
 
-        schoolRepository.deleteById(id);
+        school.setStatus(SchoolStatus.MARKED_FOR_DELETION);
+        school.setMarkedForDeletionAt(LocalDateTime.now());
+        schoolRepository.save(school);
+    }
+
+    @Transactional
+    public SchoolDTO disable(Long id) {
+        School school = schoolRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
+
+        school.setStatus(SchoolStatus.DISABLED);
+        school.setMarkedForDeletionAt(null);
+        return toDto(schoolRepository.save(school));
+    }
+
+    @Transactional
+    public SchoolDTO enable(Long id) {
+        School school = schoolRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
+
+        school.setStatus(SchoolStatus.ACTIVE);
+        school.setMarkedForDeletionAt(null);
+        return toDto(schoolRepository.save(school));
     }
 
     @Transactional
@@ -266,6 +295,13 @@ public class SchoolService {
     private SchoolDTO toDto(School school) {
         boolean hasLibrarian = !userRepository.findBySchoolIdAndRoleRole(school.getId(), Role.LIBRARIAN).isEmpty();
 
+        Long daysUntilDeletion = null;
+        if (school.getStatus() == SchoolStatus.MARKED_FOR_DELETION && school.getMarkedForDeletionAt() != null) {
+            LocalDateTime deletionDate = school.getMarkedForDeletionAt().plusDays(gracePeriodDays);
+            long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), deletionDate);
+            daysUntilDeletion = Math.max(0, daysLeft);
+        }
+
         return new SchoolDTO(
                 school.getId(),
                 school.getDomainName(),
@@ -276,7 +312,10 @@ public class SchoolService {
                         .toList(),
                 school.getCreatedAt(),
                 hasLibrarian,
-                null);
+                null,
+                school.getStatus(),
+                school.getMarkedForDeletionAt(),
+                daysUntilDeletion);
     }
 
     private List<Campus> createCampuses(List<CampusDTO> campusDtos, School school) {

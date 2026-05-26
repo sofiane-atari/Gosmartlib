@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import edu.ap.bib_backend.dto.SchoolSummaryDto;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.service.api.ProviderType;
 
 @Getter
@@ -68,10 +69,17 @@ public class School {
     @Column(name = "last_sync_at")
     private LocalDateTime lastSyncAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private SchoolStatus status = SchoolStatus.ACTIVE;
+
+    @Column(name = "marked_for_deletion_at")
+    private LocalDateTime markedForDeletionAt;
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
 
     public SchoolSummaryDto getSchoolSummaryDto() {
-        return new SchoolSummaryDto(id, name, defaultLoanDurationDays);
+        return new SchoolSummaryDto(id, name, getDomainName(), defaultLoanDurationDays, status);
     }
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
@@ -23,5 +24,11 @@ public record SchoolDTO(
 
                 @JsonProperty("hasLibrarian") Boolean hasLibrarian,
 
-                @JsonProperty("onerosterCredential") @Valid OneRosterCredentialDTO onerosterCredential) {
+                @JsonProperty("onerosterCredential") @Valid OneRosterCredentialDTO onerosterCredential,
+
+                @JsonProperty("status") SchoolStatus status,
+
+                @JsonProperty("markedForDeletionAt") LocalDateTime markedForDeletionAt,
+
+                @JsonProperty("daysUntilDeletion") Long daysUntilDeletion) {
 }

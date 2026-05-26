@@ -5,6 +5,7 @@ import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.GroupService;
@@ -183,11 +184,20 @@ public class SmartschoolOAuth2UserService
     private School resolveSchool(String schoolCode) {
         String domainName = mapSchoolCodeToDomainName(schoolCode);
 
-        return schoolRepository.findByDomainName(domainName)
+        School school = schoolRepository.findByDomainName(domainName)
                 .orElseThrow(() -> new OAuth2AuthenticationException(
                         new OAuth2Error("school_not_authorized"),
                         "Je school is niet gemachtigd voor deze website. Neem contact op met GO! Antwerpen voor hulp: https://go-antwerpen.be/contact/"
                 ));
+
+        if (school.getStatus() != SchoolStatus.ACTIVE) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("school_not_authorized"),
+                    "Je school is momenteel niet beschikbaar. Neem contact op met GO! Antwerpen voor hulp: https://go-antwerpen.be/contact/"
+            );
+        }
+
+        return school;
     }
 
     private String mapSchoolCodeToDomainName(String schoolCode) {

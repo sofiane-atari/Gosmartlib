@@ -63,6 +63,20 @@ public class SchoolController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/disable")
+    public ResponseEntity<SchoolDTO> disable(@PathVariable Long id) {
+        SchoolDTO school = schoolService.disable(id);
+
+        return ResponseEntity.ok(school);
+    }
+
+    @PutMapping("/{id}/enable")
+    public ResponseEntity<SchoolDTO> enable(@PathVariable Long id) {
+        SchoolDTO school = schoolService.enable(id);
+
+        return ResponseEntity.ok(school);
+    }
+
     @DeleteMapping("/{id}/purge")
     public ResponseEntity<Void> purge(@PathVariable Long id) {
         if (!devModeEnabled) {
