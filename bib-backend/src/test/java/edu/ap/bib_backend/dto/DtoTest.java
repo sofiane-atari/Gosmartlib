@@ -48,7 +48,7 @@ class DtoTest {
 
     @Test
     void Given_SmartschoolProfileDto_When_Instantiated_Then_ValuesAreSet() {
-        SmartschoolProfileDto dto = new SmartschoolProfileDto("id123", "John", "Doe", "John Doe", "john@test.be", "platform");
+        SmartschoolProfileDto dto = new SmartschoolProfileDto("id123", "John", "Doe", "John Doe", "john@test.be", "platform", "johndoe");
         assertEquals("John", dto.firstName());
         assertEquals("Doe", dto.lastName());
         assertEquals("john@test.be", dto.email());
