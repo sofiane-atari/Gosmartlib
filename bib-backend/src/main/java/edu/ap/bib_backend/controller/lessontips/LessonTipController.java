@@ -1,14 +1,18 @@
 package edu.ap.bib_backend.controller.lessontips;
 
 import jakarta.validation.Valid;
+
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.lessontips.CreateLessonTipRequestDto;
 import edu.ap.bib_backend.dto.lessontips.LessonTipResponseDto;
+import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.service.lessontips.LessonTipService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
@@ -28,8 +32,20 @@ public class LessonTipController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LessonTipResponseDto>> getAllLessonTips(@RequestParam(required = false) Long bookId) {
-        return ResponseEntity.ok(lessonTipService.getAllLessonTips(bookId));
+    public ResponseEntity<PageDTO<LessonTipResponseDto>> getAllLessonTips(
+            @RequestParam(required = false) Long bookId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<LessonTipResponseDto> lessonTipPage =
+                lessonTipService.getAllLessonTips(bookId, page, size);
+
+        return ResponseEntity.ok(
+                new PageDTO<>(
+                        lessonTipPage.getContent(),
+                        PageMapper.toPaginatedMeta(lessonTipPage)
+                )
+        );
     }
 
     @GetMapping("/{id}")
