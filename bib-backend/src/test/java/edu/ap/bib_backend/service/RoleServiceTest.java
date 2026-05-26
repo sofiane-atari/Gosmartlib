@@ -427,4 +427,252 @@ class RoleServiceTest {
         verify(userRepository).findByIdAndSchoolId("target-user", 1L);
         verify(tokenStorageService).revokeToken("target-user");
     }
+
+    @Test
+    void Given_AdminAuthentication_When_AssignAdmin_Then_PromotesTeacherAndRevokesToken() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setSchool(school);
+
+        User targetUser = new User();
+        targetUser.setId("target-user");
+        targetUser.setSchool(school);
+
+        RoleEntity teacherRole = new RoleEntity();
+        teacherRole.setRole(Role.TEACHER);
+        targetUser.setRole(teacherRole);
+
+        RoleEntity adminRole = new RoleEntity();
+        adminRole.setRole(Role.ADMIN);
+
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+        when(schoolRepository.findByDomainName("test.smartschool.be")).thenReturn(Optional.of(school));
+        when(userRepository.findByIdAndSchoolId("target-user", 1L)).thenReturn(Optional.of(targetUser));
+        when(roleEntityRepository.findByRole(Role.ADMIN)).thenReturn(Optional.of(adminRole));
+        when(userRepository.save(targetUser)).thenReturn(targetUser);
+        when(userMapper.toDto(targetUser)).thenReturn(AuthUserDto.builder().id("target-user").build());
+
+        AuthUserDto result = roleService.assignAdmin(authentication, "target-user", "test.smartschool.be");
+
+        assertEquals("target-user", result.id());
+        assertEquals(Role.ADMIN, targetUser.getRole().getRole());
+        verify(tokenStorageService).revokeToken("target-user");
+    }
+
+    @Test
+    void Given_AdminAuthentication_When_AssignAdmin_Then_PromotesLibrarianAndRevokesToken() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setSchool(school);
+
+        User targetUser = new User();
+        targetUser.setId("target-user");
+        targetUser.setSchool(school);
+
+        RoleEntity librarianRole = new RoleEntity();
+        librarianRole.setRole(Role.LIBRARIAN);
+        targetUser.setRole(librarianRole);
+
+        RoleEntity adminRole = new RoleEntity();
+        adminRole.setRole(Role.ADMIN);
+
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+        when(schoolRepository.findByDomainName("test.smartschool.be")).thenReturn(Optional.of(school));
+        when(userRepository.findByIdAndSchoolId("target-user", 1L)).thenReturn(Optional.of(targetUser));
+        when(roleEntityRepository.findByRole(Role.ADMIN)).thenReturn(Optional.of(adminRole));
+        when(userRepository.save(targetUser)).thenReturn(targetUser);
+        when(userMapper.toDto(targetUser)).thenReturn(AuthUserDto.builder().id("target-user").build());
+
+        AuthUserDto result = roleService.assignAdmin(authentication, "target-user", "test.smartschool.be");
+
+        assertEquals("target-user", result.id());
+        assertEquals(Role.ADMIN, targetUser.getRole().getRole());
+        verify(tokenStorageService).revokeToken("target-user");
+    }
+
+    @Test
+    void Given_NonAdminAuthentication_When_AssignAdmin_Then_ThrowsIllegalStateException() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> roleService.assignAdmin(authentication, "target-user", "test.smartschool.be"));
+
+        assertEquals("Alleen platformbeheerders kunnen deze actie uitvoeren.", exception.getMessage());
+    }
+
+    @Test
+    void Given_AdminWithBlankSchoolCode_When_AssignAdmin_Then_ThrowsIllegalArgumentException() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        User currentUser = new User();
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> roleService.assignAdmin(authentication, "target-user", "  "));
+
+        assertEquals("Schoolcode is verplicht voor beheerders.", exception.getMessage());
+    }
+
+    @Test
+    void Given_TargetIsNotTeacherOrLibrarian_When_AssignAdmin_Then_ThrowsIllegalArgumentException() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setSchool(school);
+
+        User targetUser = new User();
+        targetUser.setId("target-user");
+        targetUser.setSchool(school);
+
+        RoleEntity studentRole = new RoleEntity();
+        studentRole.setRole(Role.STUDENT);
+        targetUser.setRole(studentRole);
+
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+        when(schoolRepository.findByDomainName("test.smartschool.be")).thenReturn(Optional.of(school));
+        when(userRepository.findByIdAndSchoolId("target-user", 1L)).thenReturn(Optional.of(targetUser));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> roleService.assignAdmin(authentication, "target-user", "test.smartschool.be"));
+
+        assertEquals("Alleen leerkrachten en bibliothecarissen kunnen gepromoveerd worden tot platformbeheerder.", exception.getMessage());
+    }
+
+    @Test
+    void Given_AdminAuthentication_When_RevokeAdmin_Then_DemotesAndRevokesToken() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setSchool(school);
+
+        User targetUser = new User();
+        targetUser.setId("target-user");
+        targetUser.setSchool(school);
+
+        RoleEntity adminRole = new RoleEntity();
+        adminRole.setRole(Role.ADMIN);
+        targetUser.setRole(adminRole);
+
+        RoleEntity teacherRole = new RoleEntity();
+        teacherRole.setRole(Role.TEACHER);
+
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+        when(schoolRepository.findByDomainName("test.smartschool.be")).thenReturn(Optional.of(school));
+        when(userRepository.findByIdAndSchoolId("target-user", 1L)).thenReturn(Optional.of(targetUser));
+        when(roleEntityRepository.findByRole(Role.TEACHER)).thenReturn(Optional.of(teacherRole));
+        when(userRepository.save(targetUser)).thenReturn(targetUser);
+        when(userMapper.toDto(targetUser)).thenReturn(AuthUserDto.builder().id("target-user").build());
+
+        AuthUserDto result = roleService.revokeAdmin(authentication, "target-user", "test.smartschool.be");
+
+        assertEquals("target-user", result.id());
+        assertEquals(Role.TEACHER, targetUser.getRole().getRole());
+        verify(tokenStorageService).revokeToken("target-user");
+    }
+
+    @Test
+    void Given_NonAdmin_When_RevokeAdmin_Then_ThrowsIllegalStateException() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> roleService.revokeAdmin(authentication, "target-user", "test.smartschool.be"));
+
+        assertEquals("Alleen platformbeheerders kunnen deze actie uitvoeren.", exception.getMessage());
+    }
+
+    @Test
+    void Given_NonAdminTarget_When_RevokeAdmin_Then_ThrowsIllegalArgumentException() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setSchool(school);
+
+        User targetUser = new User();
+        targetUser.setId("target-user");
+        targetUser.setSchool(school);
+
+        RoleEntity teacherRole = new RoleEntity();
+        teacherRole.setRole(Role.TEACHER);
+        targetUser.setRole(teacherRole);
+
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+        when(schoolRepository.findByDomainName("test.smartschool.be")).thenReturn(Optional.of(school));
+        when(userRepository.findByIdAndSchoolId("target-user", 1L)).thenReturn(Optional.of(targetUser));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> roleService.revokeAdmin(authentication, "target-user", "test.smartschool.be"));
+
+        assertEquals("Alleen platformbeheerders kunnen teruggezet worden naar leerkracht.", exception.getMessage());
+    }
+
+    @Test
+    void Given_NotFoundTarget_When_AssignAdmin_Then_ThrowsResourceNotFoundException() {
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+
+        User currentUser = new User();
+        currentUser.setSchool(school);
+
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+        when(schoolRepository.findByDomainName("test.smartschool.be")).thenReturn(Optional.of(school));
+        when(userRepository.findByIdAndSchoolId("missing-user", 1L)).thenReturn(Optional.empty());
+        when(oneRosterClient.findSourcedIdByLegacyIdentifier(school.getDomainName(), "missing-user")).thenReturn(null);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> roleService.assignAdmin(authentication, "missing-user", "test.smartschool.be"));
+
+        assertTrue(exception.getMessage().contains("Gebruiker niet gevonden"));
+    }
 }

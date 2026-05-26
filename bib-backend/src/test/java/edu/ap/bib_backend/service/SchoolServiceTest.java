@@ -4,6 +4,7 @@ import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
@@ -20,8 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -218,6 +218,89 @@ class SchoolServiceTest {
         long result = schoolService.getTotalBookCount();
 
         assertEquals(50L, result);
+    }
+
+    @Test
+    void givenExistingSchool_whenDisable_thenSetsStatusDisabledAndReturnsDto() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SchoolDTO result = schoolService.disable(schoolId);
+
+        assertEquals(SchoolStatus.DISABLED, school.getStatus());
+        verify(schoolRepository).save(school);
+    }
+
+    @Test
+    void givenUnknownSchool_whenDisable_thenThrowsException() {
+        when(schoolRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> schoolService.disable(999L));
+    }
+
+    @Test
+    void givenDisabledSchool_whenEnable_thenSetsStatusActiveAndReturnsDto() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+        school.setStatus(SchoolStatus.DISABLED);
+
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SchoolDTO result = schoolService.enable(schoolId);
+
+        assertEquals(SchoolStatus.ACTIVE, school.getStatus());
+        verify(schoolRepository).save(school);
+    }
+
+    @Test
+    void givenUnknownSchool_whenEnable_thenThrowsException() {
+        when(schoolRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> schoolService.enable(999L));
+    }
+
+    @Test
+    void givenNonExistentDomain_whenCheckDomain_thenDoesNotThrow() {
+        when(schoolRepository.existsByDomainName("new.school.be")).thenReturn(false);
+
+        schoolService.checkDomain("new.school.be");
+
+        verify(schoolRepository).existsByDomainName("new.school.be");
+    }
+
+    @Test
+    void givenExistingDomain_whenCheckDomain_thenThrowsResponseStatusException() {
+        when(schoolRepository.existsByDomainName("existing.school.be")).thenReturn(true);
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> schoolService.checkDomain("existing.school.be"));
+    }
+
+    @Test
+    void givenDomainNameWithWhitespace_whenCheckDomain_thenNormalizesBeforeCheck() {
+        when(schoolRepository.existsByDomainName("  new.School.Be  ".trim().toLowerCase())).thenReturn(false);
+
+        schoolService.checkDomain("  new.School.Be  ");
+
+        verify(schoolRepository).existsByDomainName("new.school.be");
+    }
+
+    @Test
+    void givenExistingSchool_whenDelete_thenMarksForDeletionWithStatus() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+
+        schoolService.delete(schoolId);
+
+        assertEquals(SchoolStatus.MARKED_FOR_DELETION, school.getStatus());
+        assertNotNull(school.getMarkedForDeletionAt());
+        verify(schoolRepository).save(school);
     }
 
     private SchoolDTO schoolDto(
