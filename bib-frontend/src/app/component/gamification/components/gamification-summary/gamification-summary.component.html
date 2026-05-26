@@ -5,75 +5,48 @@
     </div>
   </header>
 
-  @if (gamificationStore.isLoading()) {
+    @if (gamificationStore.isLoading()) {
+      <div class="gamification-summary__stats">
+        @for (dummy of [1, 2, 3]; track dummy) {
+          <app-stat-card
+            label=""
+            [value]="0"
+            [icon]="Award"
+            variant="default"
+          ></app-stat-card>
+        }
+      </div>
+    } @else if (gamificationStore.errorMessage()) {
+      <div class="empty-state empty-state--error">
+        {{ gamificationStore.errorMessage() }}
+      </div>
+    } @else {
+      <!-- STATISTIEKEN -->
     <div class="gamification-summary__stats">
-      @for (dummy of [1, 2, 3]; track dummy) {
-        <article class="stat-card">
-          <!-- Nep Icoon -->
-          <div class="skeleton stat-card__icon stat-card__icon--skeleton"></div>
-          <div>
-            <!-- Nep label en waarde -->
-            <div class="skeleton skeleton-stat-label"></div>
-            <div class="skeleton skeleton-stat-value"></div>
-          </div>
-        </article>
-      }
-    </div>
-  } @else if (gamificationStore.errorMessage()) {
-    <div class="empty-state empty-state--error">
-      {{ gamificationStore.errorMessage() }}
-    </div>
-  } @else {
-    <!-- STATISTIEKEN -->
-    <div class="gamification-summary__stats">
-      <app-button-hover-help
-        text="Je level stijgt wanneer je genoeg punten verdient met lezen, recensies en badges."
-      >
-        <article class="stat-card stat-card--purple">
-          <div class="stat-card__icon">
-            <lucide-icon [name]="Award" [size]="24"></lucide-icon>
-          </div>
-          <div>
-            <span class="stat-card__label">Level</span>
-            <strong class="stat-card__value">
-              {{ gamificationStore.currentLevel() }}
-            </strong>
-          </div>
-        </article>
-      </app-button-hover-help>
+    <app-stat-card
+      label="Level"
+      [value]="gamificationStore.currentLevel()"
+      [icon]="Award"
+      variant="purple"
+      helpText="Je level stijgt wanneer je genoeg punten verdient met lezen, recensies en badges."
+    ></app-stat-card>
 
-      <app-button-hover-help
-        text="Je verdient punten door boeken terug te brengen, boeken op tijd terug te brengen en recensies te schrijven."
-      >
-        <article class="stat-card stat-card--blue">
-          <div class="stat-card__icon">
-            <lucide-icon [name]="Star" [size]="24"></lucide-icon>
-          </div>
-          <div>
-            <span class="stat-card__label">Punten</span>
-            <strong class="stat-card__value">
-              {{ gamificationStore.totalPoints() }}
-            </strong>
-          </div>
-        </article>
-      </app-button-hover-help>
+    <app-stat-card
+      label="Punten"
+      [value]="gamificationStore.totalPoints()"
+      [icon]="Star"
+      variant="blue"
+      helpText="Je verdient punten door boeken terug te brengen, boeken op tijd terug te brengen en recensies te schrijven."
+    ></app-stat-card>
 
-      <app-button-hover-help
-        text="Dit toont hoeveel punten je nog nodig hebt om het volgende level te bereiken."
-      >
-        <article class="stat-card stat-card--green">
-          <div class="stat-card__icon">
-            <lucide-icon [name]="Target" [size]="24"></lucide-icon>
-          </div>
-          <div>
-            <span class="stat-card__label">Tot volgend level</span>
-            <strong class="stat-card__value">
-              {{ gamificationStore.pointsUntilNextLevel() }}
-            </strong>
-          </div>
-        </article>
-      </app-button-hover-help>
-    </div>
+    <app-stat-card
+      label="Tot volgend level"
+      [value]="gamificationStore.pointsUntilNextLevel()"
+      [icon]="Target"
+      variant="green"
+      helpText="Dit toont hoeveel punten je nog nodig hebt om het volgende level te bereiken."
+    ></app-stat-card>
+  </div>
     <section class="level-progress-card">
       <div class="level-progress-card__header">
         <div>

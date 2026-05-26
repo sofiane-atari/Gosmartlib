@@ -5,10 +5,10 @@
       <p>Beheer alle genres die gebruikt worden om boeken te categoriseren.</p>
     </div>
 
-      <button type="button" class="btn-new" (click)="openCreatePopup()">
-        <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
-        Nieuwe Genre <label for=""></label>
-      </button>
+    <button type="button" class="btn-new" (click)="openCreatePopup()">
+      <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
+      Nieuw genre
+    </button>
   </header>
 
   @if (success()) {
@@ -26,29 +26,29 @@
   }
 
   <section class="stat-cards">
-    <app-button-hover-help text="Het totaal aantal genres dat in het systeem bestaat.">
-      <app-stat-card
-        genre="Totaal genres"
-        [value]="stats()?.totalItems ?? 0"
-        variant="total"
-      ></app-stat-card>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Totaal genres"
+      [value]="stats()?.totalItems ?? 0"
+      [icon]="Tag"
+      variant="purple"
+      helpText="Het totaal aantal genres dat in het systeem bestaat."
+    ></app-stat-card>
 
-    <app-button-hover-help text="Het aantal genres dat momenteel aan minstens één boek gekoppeld is.">
-      <app-stat-card
-        genre="Actieve genres"
-        [value]="totalActive()"
-        variant="active"
-      ></app-stat-card>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Gebruikte genres"
+      [value]="totalActive()"
+      [icon]="BookOpen"
+      variant="green"
+      helpText="Het aantal genres dat momenteel aan minstens één boek gekoppeld is."
+    ></app-stat-card>
 
-    <app-button-hover-help text="Het aantal genres dat nog niet aan boeken gekoppeld is.">
-      <app-stat-card
-        genre="Ongebruikte genres"
-        [value]="stats()?.unActiveGenres ?? 0"
-        variant="unused"
-      ></app-stat-card>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Ongebruikte genres"
+      [value]="stats()?.unActiveGenres ?? 0"
+      [icon]="CircleOff"
+      variant="orange"
+      helpText="Het aantal genres dat nog niet aan boeken gekoppeld is."
+    ></app-stat-card>
   </section>
 
   <section class="controls-row">
@@ -62,15 +62,15 @@
     <div class="filter-panel">
       <label class="filter-label" for="bookCountFilter">Aantal boeken</label>
 
-        <input
-          id="bookCountFilter"
-          class="filter-input"
-          type="number"
-          min="0"
-          [ngModel]="bookCountFilter()"
-          (ngModelChange)="onBookCountFilterChange($event)"
-          placeholder="Aantal boeken"
-        />
+      <input
+        id="bookCountFilter"
+        class="filter-input"
+        type="number"
+        min="0"
+        [ngModel]="bookCountFilter()"
+        (ngModelChange)="onBookCountFilterChange($event)"
+        placeholder="Aantal boeken"
+      />
     </div>
   </section>
 

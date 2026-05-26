@@ -23,6 +23,7 @@ import {
 } from 'lucide-angular';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { ToastService } from '../../../services/toast/toast.service';
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 @Component({
   selector: 'app-teacher-class-report',
@@ -34,7 +35,8 @@ import { ToastService } from '../../../services/toast/toast.service';
     SearchBarComponent,
     PagingComponent,
     ButtonHoverHelpComponent,
-  ],
+    StatCardComponent
+],
   styleUrls: ['./class-report.component.css'],
 })
 export class ClassReportComponent implements OnInit {

@@ -21,6 +21,7 @@ import {
 } from 'lucide-angular';
 import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
 import { ToastService } from '../../../services/toast/toast.service';
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 @Component({
   selector: 'app-campus-report',
@@ -31,7 +32,8 @@ import { ToastService } from '../../../services/toast/toast.service';
     LucideAngularModule,
     SearchBarComponent,
     PagingComponent,
-    ButtonHoverHelpComponent
+    ButtonHoverHelpComponent,
+    StatCardComponent
 ],
   styleUrls: ['./campus-report.component.css']
 })

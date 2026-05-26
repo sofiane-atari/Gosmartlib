@@ -34,6 +34,7 @@ import { ToastComponent } from '../../shared/toast/toast.component';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ButtonHoverHelpComponent } from "../../shared/button-hover-help/button-hover-help.component";
 import { AddSubmitEvent, AddComponent } from '../../shared/add/add.component';
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -47,7 +48,8 @@ type PopupState = 'create' | 'edit' | null;
     PagingComponent,
     SearchBarComponent,
     ButtonHoverHelpComponent,
-    AddComponent
+    AddComponent,
+    StatCardComponent
 ],
   templateUrl: './tag-dashboard.component.html',
   styleUrls: ['./tag-dashboard.component.css'],

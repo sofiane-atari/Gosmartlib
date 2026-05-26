@@ -8,23 +8,12 @@
     </div>
   </div>
 
-  <div class="hero-search-container">
-    <div class="hero-search-input-wrapper">
-      <lucide-icon
-        [img]="Search"
-        class="hero-search-icon"
-        [size]="20"
-      ></lucide-icon>
-      <input
-        type="text"
-        [ngModel]="searchInput()"
-        (ngModelChange)="updateSearchTerm($event)"
-        placeholder="Zoek op titel of auteur..."
-        class="hero-search-input"
-        [disabled]="catalogLoading()"
-      />
-    </div>
-  </div>
+  <section class="search-panel">
+    <app-search-bar
+      placeholder="Zoek op titel of auteur..."
+      (searchChange)="updateSearchTerm($event)"
+    ></app-search-bar>
+  </section>
 
   <div class="expandable-filter-panel">
     <div class="panel-header">

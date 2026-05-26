@@ -1,8 +1,8 @@
 <div class="school-dashboard">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>School beheer</h1>
-      <p>Beheer scholen en campussen in het netwerk</p>
+      <h1>Schoolbeheer</h1>
+      <p>Beheer scholen en campussen in het netwerk.</p>
     </div>
 
     <button type="button" class="btn-new" (click)="openCreateModal()">
@@ -12,50 +12,29 @@
   </div>
 
   <section class="stat-cards">
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal scholen dat momenteel in het netwerk staat."
-    >
-      <article class="stat-card stat-card--purple">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="SchoolIcon"></lucide-icon>
-        </div>
-        <div>
-          <p>Totaal scholen</p>
-          <strong>{{ totalSchools() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Totaal scholen"
+      [value]="totalSchools()"
+      [icon]="SchoolIcon"
+      variant="purple"
+      helpText="Dit is het totaal aantal scholen dat momenteel in het netwerk staat."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal campussen over alle scholen heen."
-    >
-      <article class="stat-card stat-card--blue">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="Landmark"></lucide-icon>
-        </div>
-        <div>
-          <p>Totaal campussen</p>
-          <strong>{{ totalCampuses() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Totaal campussen"
+      [value]="totalCampuses()"
+      [icon]="Landmark"
+      variant="blue"
+      helpText="Dit is het totaal aantal campussen over alle scholen heen."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal boeken dat gekoppeld is aan alle scholen samen."
-    >
-      <article class="stat-card stat-card--green">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="BookOpen"></lucide-icon>
-        </div>
-        <div>
-          <p>Totaal boeken</p>
-          <strong>{{ totalBooks() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Totaal boeken"
+      [value]="totalBooks()"
+      [icon]="BookOpen"
+      variant="green"
+      helpText="Dit is het totaal aantal boeken dat gekoppeld is aan alle scholen samen."
+    ></app-stat-card>
   </section>
 
   <section class="search-panel">
@@ -296,9 +275,9 @@
                     isCreateCampusControlInvalid(campusIndex, "name") ||
                     (campusIndex === 0 && isSingleCampusNameMissing)
                   ) {
-                    <small class="field-inline-error">{{
-                      getCreateCampusNameError(campusIndex)
-                    }}</small>
+                    <small class="field-inline-error">
+                      {{ getCreateCampusNameError(campusIndex) }}
+                    </small>
                   }
                 </div>
 
@@ -312,16 +291,14 @@
                   />
 
                   @if (isCreateCampusControlInvalid(campusIndex, "address")) {
-                    <small class="field-inline-error"
-                      >Adres is verplicht.</small
-                    >
+                    <small class="field-inline-error">Adres is verplicht.</small>
                   }
                 </div>
 
                 <div class="modal-field">
-                  <label [for]="'campusPostalCode' + campusIndex"
-                    >Postcode</label
-                  >
+                  <label [for]="'campusPostalCode' + campusIndex">
+                    Postcode
+                  </label>
                   <input
                     [id]="'campusPostalCode' + campusIndex"
                     type="number"
@@ -332,16 +309,16 @@
                   @if (
                     isCreateCampusControlInvalid(campusIndex, "postalCode")
                   ) {
-                    <small class="field-inline-error"
-                      >Postcode moet groter zijn dan 0.</small
-                    >
+                    <small class="field-inline-error">
+                      Postcode moet groter zijn dan 0.
+                    </small>
                   }
                 </div>
 
                 <div class="modal-field">
-                  <label [for]="'campusContactPhone' + campusIndex"
-                    >Telefoonnummer</label
-                  >
+                  <label [for]="'campusContactPhone' + campusIndex">
+                    Telefoonnummer
+                  </label>
                   <input
                     [id]="'campusContactPhone' + campusIndex"
                     type="text"
@@ -351,9 +328,9 @@
                 </div>
 
                 <div class="modal-field">
-                  <label [for]="'campusContactEmail' + campusIndex"
-                    >E-mailadres</label
-                  >
+                  <label [for]="'campusContactEmail' + campusIndex">
+                    E-mailadres
+                  </label>
                   <input
                     [id]="'campusContactEmail' + campusIndex"
                     type="email"
@@ -364,9 +341,9 @@
                   @if (
                     isCreateCampusControlInvalid(campusIndex, "contactEmail")
                   ) {
-                    <small class="field-inline-error"
-                      >Vul een geldig e-mailadres in.</small
-                    >
+                    <small class="field-inline-error">
+                      Vul een geldig e-mailadres in.
+                    </small>
                   }
                 </div>
               </section>
@@ -513,9 +490,9 @@
               campusForm.controls.postalCode.invalid &&
               campusForm.controls.postalCode.touched
             ) {
-              <small class="field-inline-error"
-                >Postcode moet groter zijn dan 0.</small
-              >
+              <small class="field-inline-error">
+                Postcode moet groter zijn dan 0.
+              </small>
             }
           </div>
 
@@ -542,9 +519,9 @@
               campusForm.controls.contactEmail.invalid &&
               campusForm.controls.contactEmail.touched
             ) {
-              <small class="field-inline-error"
-                >Vul een geldig e-mailadres in.</small
-              >
+              <small class="field-inline-error">
+                Vul een geldig e-mailadres in.
+              </small>
             }
           </div>
 
@@ -628,9 +605,9 @@
               campusForm.controls.postalCode.invalid &&
               campusForm.controls.postalCode.touched
             ) {
-              <small class="field-inline-error"
-                >Postcode moet groter zijn dan 0.</small
-              >
+              <small class="field-inline-error">
+                Postcode moet groter zijn dan 0.
+              </small>
             }
           </div>
 
@@ -657,9 +634,9 @@
               campusForm.controls.contactEmail.invalid &&
               campusForm.controls.contactEmail.touched
             ) {
-              <small class="field-inline-error"
-                >Vul een geldig e-mailadres in.</small
-              >
+              <small class="field-inline-error">
+                Vul een geldig e-mailadres in.
+              </small>
             }
           </div>
 

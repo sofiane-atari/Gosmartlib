@@ -70,35 +70,21 @@
 </div>
 
     <div class="review-dashboard__stats">
-      <article class="stat-card">
-        <app-button-hover-help text="Totaal aantal gerapporteerde reviews.">
-          <div class="stat-card__content">
-            <div class="stat-card__icon stat-card__icon--main">
-              <lucide-angular [img]="Flag" size="26"></lucide-angular>
-            </div>
+      <app-stat-card
+        label="Totaal gerapporteerd"
+        [value]="totalCount()"
+        [icon]="Flag"
+        variant="purple"
+        helpText="Totaal aantal gerapporteerde reviews."
+      ></app-stat-card>
 
-            <div>
-              <div class="stat-card__value">{{ totalCount() }}</div>
-              <div class="stat-card__label">Totaal gerapporteerd</div>
-            </div>
-          </div>
-        </app-button-hover-help>
-      </article>
-
-      <article class="stat-card">
-        <app-button-hover-help text="Reviews die meer dan 5 keer zijn gerapporteerd.">
-          <div class="stat-card__content">
-            <div class="stat-card__icon stat-card__icon--warning">
-              <lucide-angular [img]="CircleAlert" size="26"></lucide-angular>
-            </div>
-
-            <div>
-              <div class="stat-card__value">{{ criticalReviewsCount() }}</div>
-              <div class="stat-card__label">Dringende reviews</div>
-            </div>
-          </div>
-        </app-button-hover-help>
-      </article>
+      <app-stat-card
+        label="Dringende reviews"
+        [value]="criticalReviewsCount()"
+        [icon]="CircleAlert"
+        variant="orange"
+        helpText="Reviews die meer dan 5 keer zijn gerapporteerd."
+      ></app-stat-card>
     </div>
 
     @if (isLoading()) {

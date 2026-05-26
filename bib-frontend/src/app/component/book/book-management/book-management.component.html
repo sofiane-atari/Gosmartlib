@@ -31,47 +31,29 @@
   </section>
 
   <section class="stat-cards">
-    <app-button-hover-help
-      text="Aantal leningen die momenteel actief zijn en nog niet zijn teruggebracht."
-    >
-      <article class="stat-card stat-card--blue">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="Clock"></lucide-icon>
-        </div>
-        <div>
-          <p>Uitgeleend</p>
-          <strong>{{ activeLoans() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Uitgeleend"
+      [value]="activeLoans()"
+      [icon]="Clock"
+      variant="blue"
+      helpText="Aantal leningen die momenteel actief zijn en nog niet zijn teruggebracht."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      text="Aantal actieve leningen waarvan de retourdatum al verstreken is."
-    >
-      <article class="stat-card stat-card--orange">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="AlertTriangle"></lucide-icon>
-        </div>
-        <div>
-          <p>Te laat</p>
-          <strong>{{ overdueLoans() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Te laat"
+      [value]="overdueLoans()"
+      [icon]="AlertTriangle"
+      variant="orange"
+      helpText="Aantal actieve leningen waarvan de retourdatum al verstreken is."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      text="Aantal leningen die al teruggebracht en afgesloten zijn."
-    >
-      <article class="stat-card stat-card--green">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="CheckCircle2"></lucide-icon>
-        </div>
-        <div>
-          <p>Teruggebracht</p>
-          <strong>{{ returnedLoans() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Teruggebracht"
+      [value]="returnedLoans()"
+      [icon]="CheckCircle2"
+      variant="green"
+      helpText="Aantal leningen die al teruggebracht en afgesloten zijn."
+    ></app-stat-card>
   </section>
 
   <section class="table-card">

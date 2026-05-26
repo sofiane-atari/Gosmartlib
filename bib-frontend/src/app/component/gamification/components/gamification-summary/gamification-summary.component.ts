@@ -6,6 +6,7 @@ import { AlmostEarnedBadgesComponent } from '../almost-earned-badges/almost-earn
 import { RecentGamificationEventsComponent } from '../recent-gamification-events/recent-gamification-events.component';
 import { RouterLink } from '@angular/router';
 import { ButtonHoverHelpComponent } from '../../../shared/button-hover-help/button-hover-help.component';
+import { StatCardComponent } from "../../../shared/stat-card/stat-card.component";
 
 @Component({
   selector: 'app-gamification-summary',
@@ -17,7 +18,8 @@ import { ButtonHoverHelpComponent } from '../../../shared/button-hover-help/butt
     RecentGamificationEventsComponent,
     RouterLink,
     ButtonHoverHelpComponent,
-  ],
+    StatCardComponent
+],
   templateUrl: './gamification-summary.component.html',
   styleUrl: './gamification-summary.component.css',
 })

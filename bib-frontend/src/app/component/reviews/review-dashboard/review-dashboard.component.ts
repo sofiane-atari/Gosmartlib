@@ -29,11 +29,12 @@ import {
 import { UserService } from '../../../services/user/user.service';
 import { RoleService } from '../../../services/role-service/role.service';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 @Component({
   selector: 'app-review-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, PagingComponent, ButtonHoverHelpComponent],
+  imports: [CommonModule, LucideAngularModule, PagingComponent, ButtonHoverHelpComponent, StatCardComponent],
   templateUrl: './review-dashboard.component.html',
   styleUrl: './review-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
