@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -14,6 +15,7 @@ import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -47,6 +49,35 @@ public class OneRosterUserSyncService {
         this.groupService = groupService;
     }
 
+    @Async
+    public void syncSchoolAsync(School school) {
+        syncSchoolUsers(school);
+    }
+
+    @Transactional
+    public SyncResult syncSchoolUsers(School school) {
+        String schoolCode = school.getDomainName();
+        logger.info("Fetching OneRoster users for school id={} name='{}' domain='{}'",
+                school.getId(),
+                school.getName(),
+                schoolCode);
+
+        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsers(schoolCode);
+
+        int saved = 0;
+        int skipped = 0;
+
+        for (Map<String, Object> rosterUser : rosterUsers) {
+            if (upsertUserFromRoster(school, rosterUser)) {
+                saved++;
+            } else {
+                skipped++;
+            }
+        }
+
+        return new SyncResult(rosterUsers.size(), saved, skipped);
+    }
+
     @Transactional
     public void syncAllSchools() {
         List<OneRosterCredential> credentials = credentialRepository.findAll();
@@ -59,17 +90,23 @@ public class OneRosterUserSyncService {
 
         for (OneRosterCredential credential : credentials) {
             School school = resolveSchool(credential);
-            if (school == null) {
-                skippedCount++;
-                logger.warn("Skipping OneRoster user sync because credential {} does not resolve to a school",
-                        credential == null ? null : credential.getId());
-                continue;
-            }
+                if (school == null) {
+                    skippedCount++;
+                    logger.warn("Skipping OneRoster user sync because credential {} does not resolve to a school",
+                            credential == null ? null : credential.getId());
+                    continue;
+                }
+
+                if (school.getStatus() != SchoolStatus.ACTIVE) {
+                    skippedCount++;
+                    logger.info("Skipping OneRoster user sync for non-active school id={} name='{}'",
+                            school.getId(), school.getName());
+                    continue;
+                }
 
             try {
                 SyncResult result = syncSchoolUsers(school);
                 successCount++;
-                // Persist the last successful sync timestamp for the school
                 school.setLastSyncAt(LocalDateTime.now());
                 schoolRepository.save(school);
 
@@ -99,29 +136,6 @@ public class OneRosterUserSyncService {
                 skippedCount);
     }
 
-    private SyncResult syncSchoolUsers(School school) {
-        String schoolCode = school.getDomainName();
-        logger.info("Fetching OneRoster users for school id={} name='{}' domain='{}'",
-                school.getId(),
-                school.getName(),
-                schoolCode);
-
-        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsers(schoolCode);
-
-        int saved = 0;
-        int skipped = 0;
-
-        for (Map<String, Object> rosterUser : rosterUsers) {
-            if (upsertUserFromRoster(school, rosterUser)) {
-                saved++;
-            } else {
-                skipped++;
-            }
-        }
-
-        return new SyncResult(rosterUsers.size(), saved, skipped);
-    }
-
     private boolean upsertUserFromRoster(School school, Map<String, Object> rosterUser) {
         String legacyIdentifier = readMetadataString(rosterUser, "smsc.legacyIdentifier");
         String sourcedId = firstNonBlank(rosterUser, "sourcedId");
@@ -145,9 +159,9 @@ public class OneRosterUserSyncService {
         }
 
         if (StringUtils.hasText(groupName)) {
-            Group group = resolveGroup(groupName);
+            Group group = resolveGroup(school.getId(), groupName);
             if (group != null) {
-                user.setGroup(group);
+                user.getGroups().add(group);
                 logger.info("Assigned user {} to class {}", legacyIdentifier, groupName);
             } else {
                 logger.warn("Failed to resolve or create class {} for user {}", groupName, legacyIdentifier);
@@ -179,12 +193,12 @@ public class OneRosterUserSyncService {
         return roleName;
     }
 
-    private Group resolveGroup(String groupName) {
+    private Group resolveGroup(Long schoolId, String groupName) {
         try {
-            return groupService.getGroup(groupName);
+            return groupService.getGroup(schoolId, groupName);
         } catch (RuntimeException ex) {
             try {
-                return groupService.createGroup(groupName);
+                return groupService.createGroup(schoolId, groupName);
             } catch (RuntimeException ignored) {
                 return null;
             }
@@ -259,6 +273,6 @@ public class OneRosterUserSyncService {
         return null;
     }
 
-    private record SyncResult(int fetched, int saved, int skipped) {
+    public record SyncResult(int fetched, int saved, int skipped) {
     }
 }

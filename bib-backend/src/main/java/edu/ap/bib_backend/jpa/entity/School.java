@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,6 +22,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import edu.ap.bib_backend.dto.SchoolSummaryDto;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
+import edu.ap.bib_backend.service.api.ProviderType;
 
 @Getter
 @Setter
@@ -33,7 +37,7 @@ public class School {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "domain_name", nullable = false)
+    @Column(name = "domain_name", nullable = false, unique = true)
     private String domainName;
 
     @Column(nullable = false)
@@ -58,14 +62,24 @@ public class School {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // New: timestamp of the last successful OneRoster sync for this school
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider_type", nullable = false)
+    private ProviderType providerType = ProviderType.REAL;
+
     @Column(name = "last_sync_at")
     private LocalDateTime lastSyncAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private SchoolStatus status = SchoolStatus.ACTIVE;
+
+    @Column(name = "marked_for_deletion_at")
+    private LocalDateTime markedForDeletionAt;
 
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
 
     public SchoolSummaryDto getSchoolSummaryDto() {
-        return new SchoolSummaryDto(id, name, defaultLoanDurationDays);
+        return new SchoolSummaryDto(id, name, getDomainName(), defaultLoanDurationDays, status);
     }
 }

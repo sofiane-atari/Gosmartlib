@@ -50,6 +50,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getTeachers(authentication, excludeLibrarians, excludeAdmins, page, pageSize, search));
     }
 
+    @GetMapping("/by-school/{schoolId}")
+    public ResponseEntity<List<AuthUserDto>> getUsersBySchoolId(
+            @PathVariable Long schoolId,
+            Authentication authentication) {
+        return ResponseEntity.ok(userService.getUsersBySchoolId(authentication, schoolId));
+    }
+
     @PatchMapping("/me/campus")
     public ResponseEntity<AuthUserDto> switchCurrentUserCampus(
             @RequestBody SwitchCampusRequestDto payload,

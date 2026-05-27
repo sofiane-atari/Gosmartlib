@@ -1,0 +1,156 @@
+<div class="promotion-panel">
+  @if (!isLoading() && users().length === 0) {
+    <div class="promotion-empty">
+      <p>
+        Er zijn nog geen leerkrachten gevonden voor deze school. De synchronisatie
+        kon niet worden voltooid. Probeer opnieuw of kom later terug.
+      </p>
+      <div class="promotion-empty-actions">
+        <button
+          type="button"
+          class="action-button action-button--secondary"
+          (click)="skip()"
+        >
+          Overslaan en later toewijzen
+        </button>
+        <button
+          type="button"
+          class="action-button action-button--primary"
+          (click)="loadUsers()"
+        >
+          Opnieuw proberen
+        </button>
+      </div>
+    </div>
+  } @else {
+    @if (isLoading()) {
+      <div class="promotion-loading-hint">
+        <p>Gebruikers worden gesynchroniseerd via OneRoster...</p>
+        <p class="poll-hint">Dit kan enkele ogenblikken duren.</p>
+      </div>
+    } @else {
+      <p class="promotion-hint">
+        Wijs minstens één beheerder toe. Je kan leerkrachten ook promoveren tot admin.
+      </p>
+    }
+
+    <app-data-table
+      [loading]="isLoading()"
+      [skeletonRows]="5"
+      [columns]="columns"
+      [data]="users()"
+      [emptyMessage]="'Geen gebruikers gevonden.'"
+    >
+      <ng-template cellTemplate="name" let-user>
+        <div class="user-cell">
+          <div class="user-cell__icon">
+            @if (user.role === 'LIBRARIAN') {
+              <lucide-icon [name]="BookOpen"></lucide-icon>
+            } @else if (user.role === 'ADMIN') {
+              <lucide-icon [name]="UserRound"></lucide-icon>
+            } @else {
+              <lucide-icon [name]="GraduationCap"></lucide-icon>
+            }
+          </div>
+
+          <div>
+            <strong>{{ getDisplayName(user) }}</strong>
+            @if (user.username) {
+              <span class="user-cell__username">&#64;{{ user.username }}</span>
+            }
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template cellTemplate="email" let-user>
+        @if (user.email) {
+          <span>{{ user.email }}</span>
+        } @else {
+          <span class="table-placeholder">Geen e-mail</span>
+        }
+      </ng-template>
+
+      <ng-template cellTemplate="role" let-user>
+        <span [class]="roleBadgeClass(user.role)">
+          {{ getRoleLabel(user.role) }}
+        </span>
+      </ng-template>
+
+      <ng-template cellTemplate="actions" let-user>
+        <div class="table-actions">
+          @if (canPromote(user)) {
+            <button
+              type="button"
+              class="btn-promote"
+              [disabled]="isPromoting() === user.id"
+              (click)="promoteToLibrarian(user)"
+            >
+              <lucide-icon [name]="ShieldCheck"></lucide-icon>
+              @if (isPromoting() === user.id) {
+                Toewijzen...
+              } @else {
+                Beheerder
+              }
+            </button>
+
+            @if (canShowAdminActions()) {
+              <button
+                type="button"
+                class="btn-promote-admin"
+                [disabled]="isPromoting() === user.id"
+                (click)="promoteToAdmin(user)"
+              >
+                <lucide-icon [name]="ShieldPlus"></lucide-icon>
+                @if (isPromoting() === user.id) {
+                  Toewijzen...
+                } @else {
+                  Admin
+                }
+              </button>
+            }
+          }
+
+          @if (canDemote(user)) {
+            <button
+              type="button"
+              class="btn-revoke"
+              [disabled]="isPromoting() === user.id"
+              (click)="demoteToTeacher(user)"
+            >
+              <lucide-icon [name]="ShieldOff"></lucide-icon>
+              @if (isPromoting() === user.id) {
+                Wijzigen...
+              } @else {
+                Leerkracht
+              }
+            </button>
+          }
+        </div>
+      </ng-template>
+    </app-data-table>
+
+    <div class="promotion-summary">
+      @if (librariansCount() > 0) {
+        <p class="promotion-summary__ok">
+          {{ librariansCount() }} beheerder{{ librariansCount() !== 1 ? 's' : '' }}
+          toegewezen.
+        </p>
+      } @else {
+        <p class="promotion-summary__warn">
+          Je moet minstens één beheerder toewijzen voordat je verder kunt.
+        </p>
+      }
+    </div>
+  }
+</div>
+
+<app-confirmation-modal
+  [isVisible]="!!adminConfirmUser()"
+  [title]="adminConfirmTitle()"
+  [description]="adminConfirmDescription()"
+  confirmLabel="Bevestigen"
+  cancelLabel="Annuleren"
+  [isConfirmLoading]="isPromoting() !== null"
+  (confirmRequested)="confirmAdminAction()"
+  (cancelRequested)="cancelAdminAction()"
+></app-confirmation-modal>

@@ -4,5 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 
 public record AssignLibrarianRequestDto(
     @NotBlank(message = "userId is verplicht")
-    String userId
+    String userId,
+    String schoolCode
 ) {}

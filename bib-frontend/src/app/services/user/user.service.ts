@@ -62,9 +62,10 @@ export class UserService {
     }
 
     return (
-      user.fullName?.trim() ||
       `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
+      user.fullName?.trim() ||
       user.firstName?.trim() ||
+      user.username?.trim() ||
       user.id ||
       'Gebruiker'
     );
@@ -77,9 +78,9 @@ export class UserService {
       case 'TEACHER':
         return 'Leerkracht';
       case 'LIBRARIAN':
-        return 'Bibliotheekbeheerder';
+        return 'Beheerder';
       case 'ADMIN':
-        return 'Platformbeheerder';
+        return 'Admin';
       default:
         return 'Gebruiker';
     }
@@ -100,5 +101,9 @@ export class UserService {
   public hasValidRefreshToken(userId: string): Observable<boolean> {
     const params = new HttpParams().set('userId', userId);
     return this.http.get<boolean>(`${this.apiUrl}/users/has-refresh-token`, { params });
+  }
+
+  public getUsersBySchoolId(schoolId: number): Observable<AuthUserDto[]> {
+    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/by-school/${schoolId}`);
   }
 }

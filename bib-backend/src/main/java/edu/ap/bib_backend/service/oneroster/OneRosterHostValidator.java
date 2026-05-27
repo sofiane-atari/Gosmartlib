@@ -12,9 +12,11 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 class OneRosterHostValidator {
     private final List<String> allowedHostSuffixes;
+    private final boolean allowPrivateHosts;
 
-    OneRosterHostValidator(String allowedHostSuffixes) {
+    OneRosterHostValidator(String allowedHostSuffixes, boolean allowPrivateHosts) {
         this.allowedHostSuffixes = parseSuffixes(allowedHostSuffixes);
+        this.allowPrivateHosts = allowPrivateHosts;
     }
 
     String normalizeAndValidateSchoolHost(String schoolCode) {
@@ -61,7 +63,7 @@ class OneRosterHostValidator {
             throw new ResponseStatusException(BAD_REQUEST, "School host is ongeldig");
         }
 
-        if (host.equals("localhost") || host.endsWith(".localhost") || isIpLiteral(host)) {
+        if (!allowPrivateHosts && (host.equals("localhost") || host.endsWith(".localhost") || isIpLiteral(host))) {
             throw new ResponseStatusException(BAD_REQUEST, "School host is niet toegestaan");
         }
 
@@ -73,13 +75,15 @@ class OneRosterHostValidator {
 
         try {
             InetAddress[] resolved = InetAddress.getAllByName(host);
-            for (InetAddress address : resolved) {
-                if (address.isAnyLocalAddress()
-                        || address.isLoopbackAddress()
-                        || address.isLinkLocalAddress()
-                        || address.isSiteLocalAddress()
-                        || address.isMulticastAddress()) {
-                    throw new ResponseStatusException(BAD_REQUEST, "School host resolveert naar een privaat adres");
+            if (!allowPrivateHosts) {
+                for (InetAddress address : resolved) {
+                    if (address.isAnyLocalAddress()
+                            || address.isLoopbackAddress()
+                            || address.isLinkLocalAddress()
+                            || address.isSiteLocalAddress()
+                            || address.isMulticastAddress()) {
+                        throw new ResponseStatusException(BAD_REQUEST, "School host resolveert naar een privaat adres");
+                    }
                 }
             }
         } catch (UnknownHostException ex) {

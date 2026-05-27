@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
 })
 export class LoginService {
 
-    private readonly smartschoolOAuthUrl = `${environment.apiUrl}/oauth2/authorization/smartschool`;
+    private readonly smartschoolOAuthUrl = `${environment.apiUrl}/auth/initiate-login`;
 
     public initiateSmartschoolSSO(): void {
       window.location.href = this.smartschoolOAuthUrl;

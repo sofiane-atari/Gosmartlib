@@ -36,6 +36,8 @@ import { CreateReadingListComponent } from './component/reading-list/create-read
 import { CreateTeacherReadingListComponent } from './component/reading-list/create-teacher-reading-list/create-teacher-reading-list.component';
 import { ReadingListDetailComponent } from './component/reading-list/reading-list-detail/reading-list-detail.component';
 import { SchoolDashboardComponent } from './component/school/school-dashboard/school-dashboard.component';
+import { SchoolCreateComponent } from './component/school/school-create/school-create.component';
+import { SchoolAssignUsersComponent } from './component/school/school-assign-users/school-assign-users.component';
 import { SettingsComponent } from './component/settings/settings.component';
 import { staffOnlyGuard } from './guards/authentication/staff-only.guard';
 import { librarianOrAdminGuard } from './guards/authentication/librarian-or-admin.guard';
@@ -73,7 +75,7 @@ export const routes: Routes = [
   {
     path: 'books/:id/edit',
     component: BookEditPageComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
     path: 'genre',
@@ -109,7 +111,7 @@ export const routes: Routes = [
   {
     path: 'add-book',
     component: AddBookPageComponent,
-    canActivate: [authGuard, staffOnlyGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   { path: 'reviews', component: MyReviewsComponent, canActivate: [authGuard] },
   {
@@ -137,11 +139,21 @@ export const routes: Routes = [
   {
     path: 'loans/create',
     component: CreateLoanComponent,
-    canActivate: [authGuard, staffOnlyGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
-{
+  {
     path: 'schools',
     component: SchoolDashboardComponent,
+    canActivate: [authGuard, adminOnlyGuard],
+  },
+  {
+    path: 'schools/create',
+    component: SchoolCreateComponent,
+    canActivate: [authGuard, adminOnlyGuard],
+  },
+  {
+    path: 'schools/:id/assign-users',
+    component: SchoolAssignUsersComponent,
     canActivate: [authGuard, adminOnlyGuard],
   },
   {
@@ -157,7 +169,7 @@ export const routes: Routes = [
   {
     path: 'loans/return',
     component: ReturnLoanComponent,
-    canActivate: [authGuard, staffOnlyGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
     path: 'settings',
@@ -180,7 +192,7 @@ export const routes: Routes = [
       {
         path: 'school',
         component: CampusReportComponent,
-        canActivate: [authGuard, staffOnlyGuard]
+        canActivate: [authGuard, librarianOrAdminGuard]
       },
       {
         path: 'system',

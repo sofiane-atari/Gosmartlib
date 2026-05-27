@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OneRosterHostValidatorTest {
 
-    private final OneRosterHostValidator validator = new OneRosterHostValidator(".smartschool.be");
+    private final OneRosterHostValidator validator = new OneRosterHostValidator(".smartschool.be", false);
 
     @Test
     void Given_ValidHost_When_NormalizeAndValidate_Then_ReturnsHost() {

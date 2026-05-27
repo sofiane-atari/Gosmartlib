@@ -1,5 +1,6 @@
 import { DestroyRef, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   LucideAngularModule,
   School as SchoolIcon,
@@ -10,13 +11,18 @@ import {
   Users,
   BookOpen,
   Landmark,
+  Flame,
+  Ban,
+  CheckCircle,
+  HelpCircle,
+  ChevronDown,
 } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
-import { CreateSchoolRequest, School } from '../../../model/school.model';
+import { School, SchoolStatus, OneRosterCredentialRequest, OneRosterCredentialValidationRequest } from '../../../model/school.model';
 import { Campus, CreateCampusRequest } from '../../../model/campus.model';
 import { SchoolService } from '../../../services/school/school.service';
 import { CampusService } from '../../../services/campus/campus.service';
@@ -33,6 +39,7 @@ import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
     CommonModule,
     LucideAngularModule,
     ReactiveFormsModule,
+    RouterLink,
     SearchBarComponent,
     ButtonHoverHelpComponent,
     StatCardComponent
@@ -55,6 +62,15 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly Users = Users;
   protected readonly BookOpen = BookOpen;
   protected readonly Landmark = Landmark;
+  protected readonly Flame = Flame;
+  protected readonly Ban = Ban;
+  protected readonly CheckCircle = CheckCircle;
+  protected readonly HelpCircle = HelpCircle;
+  protected readonly ChevronDown = ChevronDown;
+
+  protected readonly SchoolStatus = SchoolStatus;
+
+  protected readonly devModeEnabled = signal(false);
 
   protected readonly schools = signal<School[]>([]);
   protected readonly campusesBySchoolId = signal<Record<number, Campus[]>>({});
@@ -62,14 +78,25 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly selectedCampusForEdit = signal<Campus | null>(null);
 
   protected readonly isLoading = signal(false);
-  protected readonly isSubmitting = signal(false);
   protected readonly isUpdating = signal(false);
+  protected readonly isValidatingEditCredentials = signal(false);
+  protected readonly editStepError = signal<string | null>(null);
   protected readonly isCampusSubmitting = signal(false);
   protected readonly isCampusModalOpen = signal(false);
   protected readonly isCampusEditModalOpen = signal(false);
-  protected readonly isCreateModalOpen = signal(false);
   protected readonly isEditModalOpen = signal(false);
+  protected readonly showCredHelp = signal(false);
   protected readonly selectedSchoolForEdit = signal<School | null>(null);
+
+  protected readonly isPurgeModalOpen = signal(false);
+  protected readonly purgeTarget = signal<School | null>(null);
+  protected readonly purgeConfirmInput = signal('');
+  protected readonly isPurging = signal(false);
+  protected readonly canConfirmPurge = computed(() => {
+    const target = this.purgeTarget();
+    const input = this.purgeConfirmInput().trim().toLowerCase();
+    return target !== null && input === target.domainName.toLowerCase();
+  });
 
   protected readonly searchTerm = signal('');
   protected readonly schoolBookCounts = signal<Record<number, number>>({});
@@ -104,8 +131,8 @@ export class SchoolDashboardComponent implements OnInit {
   protected readonly schoolForm = this.formBuilder.group({
     domainName: ['', [Validators.required]],
     name: ['', [Validators.required]],
-    hasMultipleCampuses: [false],
-    campuses: this.formBuilder.array([this.createCampusFormGroup()]),
+    clientId: [''],
+    clientSecret: [''],
   });
 
   protected readonly campusForm = this.formBuilder.group({
@@ -118,21 +145,7 @@ export class SchoolDashboardComponent implements OnInit {
 
   public ngOnInit(): void {
     this.loadSchools();
-    this.schoolForm.controls.name.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        if (this.isCreateModalOpen() && !this.schoolForm.controls.hasMultipleCampuses.value) {
-          this.syncSingleCampusName();
-        }
-      });
-
-    this.schoolForm.controls.hasMultipleCampuses.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((hasMultipleCampuses) => {
-        if (this.isCreateModalOpen()) {
-          this.applyCampusMode(!!hasMultipleCampuses);
-        }
-      });
+    this.loadDevMode();
   }
 
   protected getBookCount(id: number): number {
@@ -143,85 +156,34 @@ export class SchoolDashboardComponent implements OnInit {
     return this.campusesBySchoolId()[schoolId] ?? [];
   }
 
-  protected get campusControls() {
-    return this.schoolForm.controls.campuses.controls;
-  }
-
-  protected get hasMultipleCampuses(): boolean {
-    return !!this.schoolForm.controls.hasMultipleCampuses.value;
-  }
-
-  protected get isSingleCampusNameMissing(): boolean {
-    return !this.hasMultipleCampuses
-      && this.schoolForm.controls.name.touched
-      && !this.schoolForm.controls.name.value?.trim();
-  }
-
-  protected openCreateModal(): void {
-    this.isCreateModalOpen.set(true);
-    this.schoolForm.reset({
-      domainName: '',
-      name: '',
-      hasMultipleCampuses: false,
-    });
-    this.resetCreateCampuses();
-  }
-
-  protected closeCreateModal(): void {
-    this.isCreateModalOpen.set(false);
-    this.schoolForm.markAsPristine();
-    this.schoolForm.markAsUntouched();
+  protected isRowGrayed(school: School): boolean {
+    return school.status !== SchoolStatus.ACTIVE;
   }
 
   protected openEditModal(school: School): void {
     this.selectedSchoolForEdit.set(school);
     this.isEditModalOpen.set(true);
+    this.editStepError.set(null);
 
     this.schoolForm.reset({
       domainName: school.domainName,
       name: school.name,
-      hasMultipleCampuses: false,
+      clientId: '',
+      clientSecret: '',
     });
-  }
-
-  protected addCampusToCreateForm(): void {
-    if (!this.hasMultipleCampuses) {
-      return;
-    }
-
-    this.schoolForm.controls.campuses.push(this.createCampusFormGroup());
-  }
-
-  protected removeCampusFromCreateForm(index: number): void {
-    if (this.schoolForm.controls.campuses.length <= 1) {
-      return;
-    }
-
-    this.schoolForm.controls.campuses.removeAt(index);
-  }
-
-  protected isCreateCampusControlInvalid(
-    index: number,
-    controlName: 'name' | 'address' | 'postalCode' | 'contactEmail',
-  ): boolean {
-    const control = this.schoolForm.controls.campuses.at(index).controls[controlName];
-
-    return control.invalid && control.touched;
-  }
-
-  protected getCreateCampusNameError(index: number): string {
-    if (index === 0 && this.isSingleCampusNameMissing) {
-      return 'Vul eerst de schoolnaam in.';
-    }
-
-    return 'Campusnaam is verplicht.';
   }
 
   protected closeEditModal(): void {
     this.isEditModalOpen.set(false);
     this.selectedSchoolForEdit.set(null);
+    this.editStepError.set(null);
+    this.showCredHelp.set(false);
     this.schoolForm.markAsPristine();
     this.schoolForm.markAsUntouched();
+  }
+
+  protected toggleCredHelp(): void {
+    this.showCredHelp.update((v) => !v);
   }
 
   protected openCampusModal(school: School): void {
@@ -266,52 +228,6 @@ export class SchoolDashboardComponent implements OnInit {
     this.campusForm.markAsUntouched();
   }
 
-  protected createSchool(): void {
-    if (this.schoolForm.invalid) {
-      this.schoolForm.markAllAsTouched();
-      return;
-    }
-
-    this.isSubmitting.set(true);
-
-    const formValue = this.schoolForm.getRawValue();
-
-    const school: CreateSchoolRequest = {
-      domainName: formValue.domainName?.trim() ?? '',
-      name: formValue.name?.trim() ?? '',
-      campuses: (formValue.campuses ?? []).map((campus) => ({
-        name: campus.name?.trim() ?? '',
-        address: campus.address?.trim() ?? '',
-        postalCode: Number(campus.postalCode),
-        contactPhone: campus.contactPhone?.trim() ?? '',
-        contactEmail: campus.contactEmail?.trim() ?? '',
-      })),
-      createdAt: undefined,
-    };
-
-    this.schoolService
-      .create(school)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (createdSchool) => {
-          this.schools.set(
-            [...this.schools(), createdSchool].sort((a, b) =>
-              a.name.localeCompare(b.name),
-            ),
-          );
-
-          this.isSubmitting.set(false);
-          this.closeCreateModal();
-          this.loadSchools();
-          this.showSuccess('School en campus succesvol toegevoegd.');
-        },
-        error: (error: HttpErrorResponse) => {
-          this.isSubmitting.set(false);
-          this.handleError(error, 'School kon niet toegevoegd worden. Probeer opnieuw.');
-        },
-      });
-  }
-
   protected updateSchool(): void {
     const schoolToUpdate = this.selectedSchoolForEdit();
 
@@ -326,12 +242,99 @@ export class SchoolDashboardComponent implements OnInit {
     }
 
     const formValue = this.schoolForm.getRawValue();
+    const newDomain = (formValue.domainName ?? '').trim();
+    const clientId = (formValue.clientId ?? '').trim();
+    const clientSecret = (formValue.clientSecret ?? '').trim();
 
-    const updatedSchool: CreateSchoolRequest = {
-      domainName: formValue.domainName?.trim() ?? '',
-      name: formValue.name?.trim() ?? '',
+    const credPartiallyFilled = (clientId && !clientSecret) || (!clientId && clientSecret);
+    if (credPartiallyFilled) {
+      this.schoolForm.controls.clientId.markAsTouched();
+      this.schoolForm.controls.clientSecret.markAsTouched();
+      return;
+    }
+
+    const credExplicitlyFilled = !!(clientId && clientSecret);
+    const domainChanged = newDomain !== schoolToUpdate.domainName;
+
+    if (domainChanged || credExplicitlyFilled) {
+      this.editStepError.set(null);
+      this.isValidatingEditCredentials.set(true);
+
+      if (credExplicitlyFilled) {
+        const dto: OneRosterCredentialValidationRequest = {
+          domainName: newDomain,
+          clientId,
+          clientSecret,
+        };
+
+        this.schoolService
+          .validateCredentials(dto)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.isValidatingEditCredentials.set(false);
+              this.submitUpdate(schoolToUpdate, formValue);
+            },
+            error: (error: HttpErrorResponse) => {
+              this.isValidatingEditCredentials.set(false);
+              this.setEditValidationError(error);
+            },
+          });
+      } else {
+        this.schoolService
+          .validateDomainChange(schoolToUpdate.id, newDomain)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.isValidatingEditCredentials.set(false);
+              this.submitUpdate(schoolToUpdate, formValue);
+            },
+            error: (error: HttpErrorResponse) => {
+              this.isValidatingEditCredentials.set(false);
+              this.setEditValidationError(error);
+            },
+          });
+      }
+      return;
+    }
+
+    this.submitUpdate(schoolToUpdate, formValue);
+  }
+
+  private setEditValidationError(error: HttpErrorResponse): void {
+    if (error.status === 502) {
+      this.editStepError.set('De ingevulde combinatie van domein en OneRoster-credentials is ongeldig.');
+      return;
+    }
+    const backendError = error.error as HttpErrorResponseError | undefined;
+    if (typeof backendError?.error?.message === 'string') {
+      this.editStepError.set(backendError.error.message);
+      return;
+    }
+    this.editStepError.set('Credentials konden niet gevalideerd worden. Probeer opnieuw.');
+  }
+
+  private submitUpdate(schoolToUpdate: School, formValue: Partial<{
+    domainName: string | null;
+    name: string | null;
+    clientId: string | null;
+    clientSecret: string | null;
+  }>): void {
+    const clientIdVal = (formValue.clientId ?? '').trim();
+    const clientSecretVal = (formValue.clientSecret ?? '').trim();
+    const credExplicitlyFilled = !!(clientIdVal && clientSecretVal);
+
+    const updatedSchool = {
+      domainName: (formValue.domainName ?? '').trim(),
+      name: (formValue.name ?? '').trim(),
       campuses: schoolToUpdate.campuses ?? [],
       createdAt: schoolToUpdate.createdAt,
+      onerosterCredential: credExplicitlyFilled
+        ? {
+            clientId: clientIdVal,
+            clientSecret: clientSecretVal,
+          }
+        : undefined,
     };
 
     this.isUpdating.set(true);
@@ -445,20 +448,17 @@ export class SchoolDashboardComponent implements OnInit {
   }
 
   protected deleteSchool(school: School): void {
+    const graceDays = school.daysUntilDeletion ?? 30;
     this.toastService.showConfirm(
-      `Weet je zeker dat je de school "${school.name}" wilt verwijderen?`,
+      `Weet je zeker dat je de school "${school.name}" wilt verwijderen? De school wordt ${graceDays} dagen bewaard en daarna permanent verwijderd.`,
       () => {
         this.schoolService
           .delete(school.id)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {
-              this.schools.set(
-                this.schools().filter((s) => s.id !== school.id),
-              );
-
               this.loadSchools();
-              this.showSuccess('School succesvol verwijderd.');
+              this.showSuccess('School is gemarkeerd voor verwijdering.');
             },
             error: (error: HttpErrorResponse) => {
               this.handleError(error, 'School kon niet verwijderd worden. Probeer opnieuw.');
@@ -469,11 +469,87 @@ export class SchoolDashboardComponent implements OnInit {
     );
   }
 
+  protected disableSchool(school: School): void {
+    this.toastService.showConfirm(
+      `Weet je zeker dat je de school "${school.name}" wilt uitschakelen? Gebruikers kunnen niet meer inloggen.`,
+      () => {
+        this.schoolService
+          .disableSchool(school.id)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.loadSchools();
+              this.showSuccess('School is uitgeschakeld.');
+            },
+            error: (error: HttpErrorResponse) => {
+              this.handleError(error, 'School kon niet uitgeschakeld worden.');
+            },
+          });
+      },
+      () => {},
+    );
+  }
+
+  protected enableSchool(school: School): void {
+    this.schoolService
+      .enableSchool(school.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadSchools();
+          this.showSuccess('School is weer actief.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.handleError(error, 'School kon niet geactiveerd worden.');
+        },
+      });
+  }
+
+  protected openPurgeModal(school: School): void {
+    this.purgeTarget.set(school);
+    this.purgeConfirmInput.set('');
+    this.isPurgeModalOpen.set(true);
+  }
+
+  protected closePurgeModal(): void {
+    this.isPurgeModalOpen.set(false);
+    this.purgeTarget.set(null);
+    this.purgeConfirmInput.set('');
+    this.isPurging.set(false);
+  }
+
+  protected executePurge(): void {
+    const target = this.purgeTarget();
+    if (!target || !this.canConfirmPurge()) {
+      return;
+    }
+
+    this.isPurging.set(true);
+
+    this.schoolService
+      .purgeSchool(target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isPurging.set(false);
+          this.closePurgeModal();
+          this.schools.set(this.schools().filter((s) => s.id !== target.id));
+          this.loadSchools();
+          this.showSuccess('School en alle gerelateerde gegevens succesvol verwijderd.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isPurging.set(false);
+          this.closePurgeModal();
+          this.handleError(error, 'School kon niet volledig verwijderd worden. Probeer opnieuw.');
+        },
+      });
+  }
+
   protected onOverlayPointerDown(event: PointerEvent): void {
     this.backdropPointerStartedOnOverlay = event.target === event.currentTarget;
   }
 
-  protected onOverlayClick(event: MouseEvent, modalType: 'create' | 'edit' | 'campus' | 'campusEdit'): void {
+  protected onOverlayClick(event: MouseEvent, modalType: 'edit' | 'campus' | 'campusEdit'): void {
     const endedOnOverlay = event.target === event.currentTarget;
 
     if (!(this.backdropPointerStartedOnOverlay && endedOnOverlay)) {
@@ -482,11 +558,6 @@ export class SchoolDashboardComponent implements OnInit {
     }
 
     this.backdropPointerStartedOnOverlay = false;
-
-    if (modalType === 'create') {
-      this.closeCreateModal();
-      return;
-    }
 
     if (modalType === 'edit') {
       this.closeEditModal();
@@ -523,47 +594,6 @@ export class SchoolDashboardComponent implements OnInit {
           this.isLoading.set(false);
         },
       });
-  }
-
-  private createCampusFormGroup(name = '', disableName = false) {
-    return this.formBuilder.group({
-      name: [{ value: name, disabled: disableName }, [Validators.required]],
-      address: ['', [Validators.required]],
-      postalCode: [null as number | null, [Validators.required, Validators.min(1)]],
-      contactPhone: [''],
-      contactEmail: ['', [Validators.email]],
-    });
-  }
-
-  private resetCreateCampuses(): void {
-    this.schoolForm.controls.campuses.clear();
-    this.schoolForm.controls.campuses.push(
-      this.createCampusFormGroup(this.schoolForm.controls.name.value?.trim() ?? '', true),
-    );
-  }
-
-  private applyCampusMode(hasMultipleCampuses: boolean): void {
-    const campuses = this.schoolForm.controls.campuses;
-
-    if (hasMultipleCampuses) {
-      const firstCampus = campuses.at(0);
-      firstCampus.controls.name.enable();
-      firstCampus.controls.name.setValue('');
-      firstCampus.controls.name.markAsUntouched();
-      return;
-    }
-
-    while (campuses.length > 1) {
-      campuses.removeAt(campuses.length - 1);
-    }
-
-    this.syncSingleCampusName();
-    campuses.at(0).controls.name.disable();
-  }
-
-  private syncSingleCampusName(): void {
-    const firstCampus = this.schoolForm.controls.campuses.at(0);
-    firstCampus.controls.name.setValue(this.schoolForm.controls.name.value?.trim() ?? '');
   }
 
   private loadSchoolCounts(schools: School[]): void {
@@ -625,15 +655,21 @@ export class SchoolDashboardComponent implements OnInit {
       });
   }
 
+  private loadDevMode(): void {
+    this.schoolService
+      .isDevModeEnabled()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (enabled) => this.devModeEnabled.set(enabled),
+        error: () => this.devModeEnabled.set(false),
+      });
+  }
+
   private handleError(error: HttpErrorResponse, fallbackMessage: string): void {
     const backendError = error.error as HttpErrorResponseError | undefined;
 
-    if (backendError?.error?.details && backendError.error.details.length > 0) {
-      const message = backendError.error.details
-        .map((detail) => detail.message)
-        .join('\n');
-
-      this.showError(message);
+    if (backendError?.error?.code === 502) {
+      this.showError('OneRoster credentials zijn ongeldig.');
       return;
     }
 

@@ -202,10 +202,11 @@ class AuthControllerTest {
     }
 
     @Test
-    void givenOAuthErrorWithMessage_whenOauthErrorCalled_thenReturn401WithMessage() throws Exception {
-        mockMvc.perform(get("/auth/error")
-                .param("message", "Smartschool login failed"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Smartschool login failed"));
+    void givenOAuthError_whenOauthErrorCalled_thenRedirectToFrontendWithError() throws Exception {
+        mockMvc.perform(get("/auth/error"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string(
+                        "Location",
+                        containsString("error=authentication_failed")));
     }
 }

@@ -108,6 +108,7 @@ class JwtAuthenticationFilterTest {
 
         given(jwtService.isValid(validToken)).willReturn(true);
         given(jwtService.extractUsername(validToken)).willReturn(username);
+        given(jwtService.extractClaim(validToken, "type")).willReturn(null);
         given(tokenStorageService.isCurrentToken(username, validToken)).willReturn(true);
         given(jwtService.extractClaim(validToken, "roles")).willReturn(role);
         given(adminOverrideService.isAdminOverrideActive(username)).willReturn(false);
@@ -138,6 +139,7 @@ class JwtAuthenticationFilterTest {
 
         given(jwtService.isValid(validToken)).willReturn(true);
         given(jwtService.extractUsername(validToken)).willReturn(username);
+        given(jwtService.extractClaim(validToken, "type")).willReturn(null);
         given(tokenStorageService.isCurrentToken(username, validToken)).willReturn(true);
         given(jwtService.extractClaim(validToken, "roles")).willReturn("ROLE_STUDENT");
         given(adminOverrideService.isAdminOverrideActive(username)).willReturn(true);
@@ -170,6 +172,7 @@ class JwtAuthenticationFilterTest {
 
         given(jwtService.isValid(validToken)).willReturn(true);
         given(jwtService.extractUsername(validToken)).willReturn(username);
+        given(jwtService.extractClaim(validToken, "type")).willReturn(null);
         given(tokenStorageService.isCurrentToken(username, validToken)).willReturn(false);
 
         // Act

@@ -63,7 +63,7 @@ class AuthServiceTest {
         user.setSchool(school);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        SmartschoolProfileDto profile = new SmartschoolProfileDto("ssId", "First", "Last", "Full", "email@test.com", "platform");
+        SmartschoolProfileDto profile = new SmartschoolProfileDto("ssId", "First", "Last", "Full", "email@test.com", "platform", "testuser");
         when(smartschoolProfileService.fetchProfile("ss-token")).thenReturn(profile);
         
         SmartschoolGroupDto groups = new SmartschoolGroupDto("Primary", List.of("Parent"));

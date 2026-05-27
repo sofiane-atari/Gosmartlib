@@ -37,16 +37,10 @@ class SmartschoolOAuth2UserServiceUnitTest {
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
 
     @Test
-    void Given_SchoolCode_When_MapSchoolCodeToDomainName_Then_ReturnsCorrectDomain() {
-        // This is testing a private method via reflection or testing its side effects
-        // But since mapSchoolCodeToDomainName is private, I'll test it via resolveSchool if I could
-        // However, I can test extractSchoolNameFromDomain
-        
-        // Act
-        String result = (String) ReflectionTestUtils.invokeMethod(smartschoolOAuth2UserService, "extractSchoolNameFromDomain", "zemermin.smartschool.be");
-        
-        // Assert
-        assertEquals("Zemermin", result);
+    void Given_WwwDomain_When_NormalizeDomainName_Then_StripsPrefix() {
+        String result = (String) ReflectionTestUtils.invokeMethod(smartschoolOAuth2UserService, "normalizeDomainName", "www.school.smartschool.be");
+
+        assertEquals("school.smartschool.be", result);
     }
 
     @Test

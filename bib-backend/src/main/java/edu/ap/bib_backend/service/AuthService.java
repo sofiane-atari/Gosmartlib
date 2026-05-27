@@ -23,6 +23,7 @@ import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.SmartschoolRefreshResult;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
@@ -73,6 +74,12 @@ public class AuthService {
 
         User dbUser = userRepository.findById(userId).orElse(null);
 
+        if (dbUser != null && dbUser.getSchool() != null
+                && dbUser.getSchool().getStatus() != SchoolStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Je school is momenteel niet beschikbaar.");
+        }
+
         boolean reviewBlocked = dbUser != null && dbUser.isReviewBlocked();
 
         Long schoolId = dbUser != null && dbUser.getSchool() != null
@@ -106,6 +113,7 @@ public class AuthService {
                         profile.fullName(),
                         role,
                         profile.email(),
+                        profile.username(),
                         profile.userId(),
                         profile.platform(),
                         groups.primaryGroupName(),
@@ -118,10 +126,70 @@ public class AuthService {
                         schoolSummary
                 );
             } catch (Exception ignored) {
-                // Fallback hieronder
+                // Fallback to JWT claims below
             }
         }
 
+        String firstName = null;
+        String surname = null;
+        String email = null;
+        String platform = null;
+        String primaryGroupName = null;
+        List<String> parentGroupNames = List.of();
+
+        if (authentication.getDetails() instanceof Map<?, ?> details) {
+            firstName = asString(details.get("name"));
+            surname = asString(details.get("surname"));
+            email = asString(details.get("email"));
+            platform = asString(details.get("platform"));
+            primaryGroupName = asString(details.get("primaryGroupName"));
+            @SuppressWarnings("unchecked")
+            List<String> parents = (List<String>) details.get("parentGroupNames");
+            if (parents != null) {
+                parentGroupNames = parents;
+            }
+        }
+
+        if ((firstName == null || firstName.isBlank()) && jwtService != null) {
+            String jwtToken = tokenStorageService.getToken(userId);
+            if (jwtToken != null && jwtService.isValid(jwtToken)) {
+                firstName = asString(jwtService.extractClaim(jwtToken, "name"));
+                surname = asString(jwtService.extractClaim(jwtToken, "surname"));
+                email = asString(jwtService.extractClaim(jwtToken, "email"));
+                platform = asString(jwtService.extractClaim(jwtToken, "platform"));
+                primaryGroupName = asString(jwtService.extractClaim(jwtToken, "primaryGroupName"));
+                @SuppressWarnings("unchecked")
+                List<String> parents = (List<String>) jwtService.extractClaim(jwtToken, "parentGroupNames");
+                if (parents != null) {
+                    parentGroupNames = parents;
+                }
+            }
+        }
+
+        if (firstName != null && !firstName.isBlank()) {
+            String fullName = (surname != null && !surname.isBlank())
+                    ? firstName + " " + surname
+                    : firstName;
+            return new AuthUserDto(
+                    userId,
+                    firstName,
+                    surname,
+                    fullName,
+                    role,
+                    email,
+                    null,
+                    null,
+                    platform,
+                    primaryGroupName,
+                    parentGroupNames,
+                    reviewBlocked,
+                    schoolId,
+                    schoolName,
+                    campusId,
+                    campusName,
+                    schoolSummary
+            );
+        }
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             String name = oauthToken.getPrincipal().getAttribute("name");
 
@@ -131,6 +199,7 @@ public class AuthService {
                     null,
                     name,
                     role,
+                    null,
                     null,
                     null,
                     null,
@@ -155,6 +224,7 @@ public class AuthService {
                 null,
                 null,
                 null,
+                null,
                 List.of(),
                 reviewBlocked,
                 schoolId,
@@ -172,14 +242,32 @@ public class AuthService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No role found"));
 
-        Map<String, Object> claims = Map.of(
-                SmartschoolOAuth2UserService.CLAIM_CLASS_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, "GENERAL"),
-                SmartschoolOAuth2UserService.CLAIM_YEAR_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, "0"),
-                SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
-                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL")
-        );
+        Map<String, Object> claims = new java.util.HashMap<>();
+        claims.put(SmartschoolOAuth2UserService.CLAIM_CLASS_CODE,
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_CLASS_CODE, "GENERAL"));
+        claims.put(SmartschoolOAuth2UserService.CLAIM_YEAR_CODE,
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_YEAR_CODE, "0"));
+        claims.put(SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE,
+                getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL"));
+
+        Object name = oauthToken.getPrincipal().getAttribute("name");
+        if (name instanceof String n && !n.isBlank()) claims.put("name", n);
+
+        Object surname = oauthToken.getPrincipal().getAttribute("surname");
+        if (surname instanceof String s && !s.isBlank()) claims.put("surname", s);
+
+        Object email = oauthToken.getPrincipal().getAttribute("email");
+        if (email instanceof String e && !e.isBlank()) claims.put("email", e);
+
+        Object platform = oauthToken.getPrincipal().getAttribute("platform");
+        if (platform instanceof String p && !p.isBlank()) claims.put("platform", p);
+
+        Object primaryGroupName = oauthToken.getPrincipal().getAttribute("primaryGroupName");
+        if (primaryGroupName instanceof String g && !g.isBlank()) claims.put("primaryGroupName", g);
+
+        @SuppressWarnings("unchecked")
+        Object parentGroupNames = oauthToken.getPrincipal().getAttribute("parentGroupNames");
+        if (parentGroupNames instanceof List<?> list && !list.isEmpty()) claims.put("parentGroupNames", list);
 
         String jwt = jwtService.generateToken(userId, roleStr, claims);
 
@@ -229,6 +317,10 @@ public class AuthService {
     private String getAttributeOrDefault(OAuth2AuthenticationToken token, String attr, String defaultValue) {
         Object val = token.getPrincipal().getAttribute(attr);
         return val == null ? defaultValue : val.toString();
+    }
+
+    private String asString(Object value) {
+        return value instanceof String str ? str : null;
     }
 
     public JwtTokenDTO refreshJwtToken(String oldToken) {

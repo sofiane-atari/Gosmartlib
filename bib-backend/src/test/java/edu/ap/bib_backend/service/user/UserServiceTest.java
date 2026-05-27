@@ -222,8 +222,9 @@ class UserServiceTest {
 
         // Assert
         assertEquals(3, result.totalTeachers());
-        assertEquals(2, result.activeTeachers());
+        assertEquals(1, result.activeTeachers());
         assertEquals(1, result.librarians());
+        assertEquals(1, result.admins());
     }
 
     @Test

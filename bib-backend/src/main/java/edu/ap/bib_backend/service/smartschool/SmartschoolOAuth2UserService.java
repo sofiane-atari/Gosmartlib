@@ -5,6 +5,7 @@ import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.GroupService;
@@ -14,6 +15,7 @@ import edu.ap.bib_backend.service.user.UserService;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -147,17 +149,23 @@ public class SmartschoolOAuth2UserService
             String primaryGroupName = groupDto.primaryGroupName();
 
             if (primaryGroupName != null && !primaryGroupName.isBlank()) {
+                attributes.put("primaryGroupName", primaryGroupName);
+
                 Group group;
                 try {
-                    group = groupService.getGroup(primaryGroupName);
+                    group = groupService.getGroup(school.getId(), primaryGroupName);
                 } catch (RuntimeException e) {
-                    group = groupService.createGroup(primaryGroupName);
+                    group = groupService.createGroup(school.getId(), primaryGroupName);
                 }
 
                 if (group != null) {
-                    user.setGroup(group);
+                    user.setGroups(Set.of(group));
                     userService.save(user);
                 }
+            }
+
+            if (groupDto.parentGroupNames() != null && !groupDto.parentGroupNames().isEmpty()) {
+                attributes.put("parentGroupNames", groupDto.parentGroupNames());
             }
         }
 
@@ -176,25 +184,20 @@ public class SmartschoolOAuth2UserService
     private School resolveSchool(String schoolCode) {
         String domainName = mapSchoolCodeToDomainName(schoolCode);
 
-        return schoolRepository.findByDomainName(domainName)
-                .orElseGet(() -> createSchool(domainName));
-    }
+        School school = schoolRepository.findByDomainName(domainName)
+                .orElseThrow(() -> new OAuth2AuthenticationException(
+                        new OAuth2Error("school_not_authorized"),
+                        "Je school is niet gemachtigd voor deze website. Neem contact op met GO! Antwerpen voor hulp: https://go-antwerpen.be/contact/"
+                ));
 
-    private School createSchool(String domainName) {
-        School school = new School();
-        school.setDomainName(domainName);
-        school.setName(extractSchoolNameFromDomain(domainName));
-
-        return schoolRepository.save(school);
-    }
-
-    private String extractSchoolNameFromDomain(String domainName) {
-        if (domainName == null || !domainName.contains(".")) {
-            return "Unknown School";
+        if (school.getStatus() != SchoolStatus.ACTIVE) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("school_not_authorized"),
+                    "Je school is momenteel niet beschikbaar. Neem contact op met GO! Antwerpen voor hulp: https://go-antwerpen.be/contact/"
+            );
         }
 
-        String name = domainName.split("\\.")[0];
-        return name.substring(0, 1).toUpperCase() + name.substring(1);
+        return school;
     }
 
     private String mapSchoolCodeToDomainName(String schoolCode) {

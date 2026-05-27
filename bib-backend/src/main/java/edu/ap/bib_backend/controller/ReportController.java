@@ -8,6 +8,7 @@ import edu.ap.bib_backend.service.report.ReportService;
 import edu.ap.bib_backend.service.report.SchoolReportService;
 import edu.ap.bib_backend.service.report.SystemReportService;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,11 +31,13 @@ public class ReportController {
         this.systemReportService = systemReportService;
     }
 
+    @PreAuthorize("hasAnyRole('TEACHER','LIBRARIAN','ADMIN')")
     @GetMapping("/classes")
     public List<ReportClassOptionDTO> getAvailableClasses(Authentication authentication) {
         return reportService.getAvailableClasses(authentication);
     }
 
+    @PreAuthorize("hasAnyRole('TEACHER','LIBRARIAN','ADMIN')")
     @GetMapping("/class")
     public ClassReportDTO getClassReport(
             @RequestParam String classSourcedId,
@@ -42,6 +45,7 @@ public class ReportController {
         return reportService.getClassReport(classSourcedId, authentication);
     }
 
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     @GetMapping("/school")
     public SchoolReportDTO getSchoolReport(
             @RequestParam(required = false) Long schoolId,
@@ -51,6 +55,7 @@ public class ReportController {
         return schoolReportService.generateSchoolReport(authentication, schoolId, limit, offset);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/system")
     public SystemReportDTO getSystemReport(Authentication authentication) {
         return systemReportService.generateSystemReport(authentication);

@@ -28,6 +28,9 @@ import org.springframework.web.client.RestTemplate;
 
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
+import edu.ap.bib_backend.service.JwtService;
+import edu.ap.bib_backend.service.api.SchoolApiProviderFactory;
+import edu.ap.bib_backend.service.mock.MockSchoolRegistry;
 import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +38,15 @@ class SmartschoolProfileServiceTest {
 
     @Mock
     private RestTemplate restTemplate;
+
+    @Mock
+    private SchoolApiProviderFactory providerFactory;
+
+    @Mock
+    private MockSchoolRegistry mockSchoolRegistry;
+
+    @Mock
+    private JwtService jwtService;
 
     private SmartschoolProfileService smartschoolProfileService;
 
@@ -47,7 +59,10 @@ class SmartschoolProfileServiceTest {
         smartschoolProfileService = new SmartschoolProfileService(
                 restTemplate,
                 FULL_USER_INFO_URL,
-                GROUP_INFO_URL
+                GROUP_INFO_URL,
+                providerFactory,
+                mockSchoolRegistry,
+                jwtService
         );
     }
 

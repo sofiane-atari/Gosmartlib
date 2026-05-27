@@ -43,7 +43,7 @@ class RoleControllerTest {
     void Given_AssignLibrarianRequest_When_AssignLibrarian_Then_ReturnsUser() throws Exception {
         // Arrange
         AuthUserDto response = AuthUserDto.builder().id("user-1").build();
-        when(roleService.assignLibrarian(any(), any())).thenReturn(response);
+        when(roleService.assignLibrarian(any(), any(), any())).thenReturn(response);
 
         // Act
         mockMvc.perform(post("/roles/assign-librarian")
@@ -58,7 +58,7 @@ class RoleControllerTest {
     void Given_RevokeLibrarianRequest_When_RevokeLibrarian_Then_ReturnsUser() throws Exception {
         // Arrange
         AuthUserDto response = AuthUserDto.builder().id("user-2").build();
-        when(roleService.revokeLibrarian(any(), any())).thenReturn(response);
+        when(roleService.revokeLibrarian(any(), any(), any())).thenReturn(response);
 
         // Act
         mockMvc.perform(post("/roles/revoke-librarian")
@@ -67,5 +67,35 @@ class RoleControllerTest {
                 // Assert
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("user-2"));
+    }
+
+    @Test
+    void Given_AssignAdminRequest_When_AssignAdmin_Then_ReturnsUser() throws Exception {
+        // Arrange
+        AuthUserDto response = AuthUserDto.builder().id("user-3").build();
+        when(roleService.assignAdmin(any(), any(), any())).thenReturn(response);
+
+        // Act
+        mockMvc.perform(post("/roles/assign-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":\"user-3\",\"schoolCode\":\"test.smartschool.be\"}"))
+                // Assert
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("user-3"));
+    }
+
+    @Test
+    void Given_RevokeAdminRequest_When_RevokeAdmin_Then_ReturnsUser() throws Exception {
+        // Arrange
+        AuthUserDto response = AuthUserDto.builder().id("user-4").build();
+        when(roleService.revokeAdmin(any(), any(), any())).thenReturn(response);
+
+        // Act
+        mockMvc.perform(post("/roles/revoke-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":\"user-4\",\"schoolCode\":\"test.smartschool.be\"}"))
+                // Assert
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("user-4"));
     }
 }

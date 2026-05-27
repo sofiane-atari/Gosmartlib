@@ -180,6 +180,7 @@
   border: 1px solid #f0e4e8;
   border-radius: 14px;
   overflow: hidden;
+  animation: fadeIn 0.35s ease;
 }
 
 .table-card table {
@@ -327,6 +328,10 @@
   color: #ef4444;
 }
 
+.icon-button--purge {
+  color: #ff6b00;
+}
+
 .icon-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -348,16 +353,222 @@
   color: #7a5560;
 }
 
+.skeleton-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.skeleton-table thead th {
+  padding: 14px 18px;
+  text-align: left;
+  color: #1a0a10;
+  font-size: 13px;
+  font-weight: 700;
+  background: #faf7f8;
+  border-bottom: 1px solid #f0e4e8;
+}
+
+.skeleton-row td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #f0e4e8;
+}
+
+.skeleton-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-cell__text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.skeleton-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1e8eb 20%, #e6d6dc 50%, #f1e8eb 80%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton--icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.skeleton--name {
+  height: 14px;
+  width: 140px;
+}
+
+.skeleton--date {
+  height: 12px;
+  width: 100px;
+}
+
+.skeleton--domain {
+  height: 14px;
+  width: 180px;
+}
+
+.skeleton--badge {
+  height: 22px;
+  width: 70px;
+  border-radius: 999px;
+}
+
+.skeleton--count {
+  height: 14px;
+  width: 40px;
+}
+
+.skeleton--action {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+/* Loading overlay spinner */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.loading-spinner__icon {
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Purge modal */
+.purge-modal {
+  max-width: 520px;
+}
+
+.purge-title {
+  color: #ef4444 !important;
+}
+
+.purge-warning-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #7f1d1d;
+}
+
+.purge-warning-box strong {
+  color: #ef4444;
+}
+
+.purge-warning-box ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.purge-confirm-label {
+  font-size: 14px;
+  color: #1a0a10;
+  margin: 0 0 10px;
+}
+
+.purge-confirm-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #fecaca;
+  border-radius: 8px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  color: #1a0a10;
+  background: #fef2f2;
+  outline: none;
+  transition: border-color 0.18s;
+  box-sizing: border-box;
+}
+
+.purge-confirm-input:focus {
+  border-color: #ef4444;
+}
+
+.purge-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.purge-loading p {
+  font-size: 15px;
+  color: #1a0a10;
+  margin: 0;
+}
+
+.purge-loading-hint {
+  font-size: 13px;
+  color: #9b7a84;
+}
+
+.purge-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #fecaca;
+  border-top-color: #ef4444;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes successNotification {
   0% {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   10%,
   90% {
     opacity: 1;
     transform: translateY(0);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-10px);
@@ -370,11 +581,13 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   10%,
   90% {
     opacity: 1;
     transform: translateY(0);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-10px);
@@ -575,6 +788,7 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
 lucide-icon {
   display: inline-flex;
   align-items: center;
@@ -630,6 +844,7 @@ lucide-icon svg {
   width: 17px;
   height: 17px;
 }
+
 .count-badge {
   display: inline-flex;
   align-items: center;
@@ -642,6 +857,7 @@ lucide-icon svg {
   font-weight: 600;
   white-space: nowrap;
 }
+
 .contact-cell {
   display: flex;
   flex-direction: column;
@@ -662,6 +878,7 @@ lucide-icon svg {
   color: #9b7a84 !important;
   font-size: 13px;
 }
+
 .stat-cards app-button-hover-help {
   display: block;
   width: 100%;
@@ -751,11 +968,99 @@ lucide-icon svg {
   margin: 20px 0;
 }
 
+.modal-required-note {
+  font-size: 12px;
+  color: #7a5560;
+  margin: 0 0 8px;
+}
+
+.required-indicator {
+  color: #ef4444;
+  font-weight: 700;
+}
+
 .modal-section-title {
   font-size: 15px;
   font-weight: 700;
   color: #1a0a10;
+  margin: 0 0 6px;
+}
+
+.modal-section-description {
+  font-size: 13px;
+  color: #7a5560;
   margin: 0 0 14px;
+}
+
+.modal form hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 20px 0;
+}
+
+.step-error {
+  padding: 12px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.cred-help-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: color 0.18s ease;
+  margin-bottom: 8px;
+}
+
+.cred-help-toggle:hover {
+  color: var(--main-color);
+}
+
+.cred-help-toggle__icon {
+  width: 14px;
+  height: 14px;
+}
+
+.cred-help-toggle__chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.cred-help-toggle__chevron--open {
+  transform: rotate(180deg);
+}
+
+.cred-help-content {
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: rgba(138, 30, 65, 0.03);
+  margin-bottom: 16px;
+}
+
+.cred-help-content p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.cred-help-content p:last-child {
+  margin-bottom: 0;
 }
 
 .campus-form-header {
@@ -774,6 +1079,7 @@ lucide-icon svg {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-bottom: 10px;
 }
 
 .create-campus-card {
@@ -906,4 +1212,96 @@ lucide-icon svg {
   .btn-danger {
     width: 100%;
   }
+}
+
+/* Librarian warning */
+.warning-row td {
+  padding: 0;
+  border-bottom: none;
+}
+
+.librarian-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  margin: 4px 0;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.librarian-warning__icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.librarian-warning__link {
+  margin-left: auto;
+  color: var(--main-color);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 4px 12px;
+  border: 1px solid var(--main-color);
+  border-radius: 6px;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.librarian-warning__link:hover {
+  background: var(--main-color);
+  color: #fff;
+}
+
+/* Grayed row for non-active schools */
+.grayed-row td {
+  opacity: 0.5;
+  background: #faf8f9;
+}
+
+/* Status badge variants */
+.status-badge--active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge--disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-badge--deletion {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.days-remaining {
+  font-size: 11px;
+  color: #b45309;
+  font-weight: 500;
+}
+
+/* Enable/disable icon button colors */
+.icon-button--disable {
+  color: #9ca3af;
+}
+
+.icon-button--disable:hover {
+  color: #6b7280;
+}
+
+.icon-button--enable {
+  color: #16a34a;
+}
+
+.icon-button--enable:hover {
+  color: #15803d;
 }

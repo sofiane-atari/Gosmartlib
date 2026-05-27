@@ -1,8 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CreateSchoolRequest, School } from '../../model/school.model';
+import { CreateSchoolRequest, OneRosterCredentialValidationRequest, School } from '../../model/school.model';
 
 @Injectable({
   providedIn: 'root',
@@ -27,11 +28,41 @@ export class SchoolService {
     return this.http.delete<void>(`${this.url}/${id}`);
   }
 
+  public disableSchool(id: number): Observable<School> {
+    return this.http.put<School>(`${this.url}/${id}/disable`, {});
+  }
+
+  public enableSchool(id: number): Observable<School> {
+    return this.http.put<School>(`${this.url}/${id}/enable`, {});
+  }
+
+  public purgeSchool(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${id}/purge`);
+  }
+
+  public isDevModeEnabled(): Observable<boolean> {
+    return this.http.get<{ enabled: boolean }>(`${this.url}/dev-mode-enabled`)
+      .pipe(map((response) => response.enabled));
+  }
+
   public getBookCount(id: number): Observable<number> {
     return this.http.get<number>(`${this.url}/${id}/books/count`);
   }
 
   public getTotalBookCount(): Observable<number> {
     return this.http.get<number>(`${this.url}/books/count`);
+  }
+
+  public checkDomain(domainName: string): Observable<void> {
+    const params = new HttpParams().set('domainName', domainName);
+    return this.http.get<void>(`${this.url}/check-domain`, { params });
+  }
+
+  public validateCredentials(dto: OneRosterCredentialValidationRequest): Observable<void> {
+    return this.http.post<void>(`${this.url}/validate-credentials`, dto);
+  }
+
+  public validateDomainChange(id: number, domainName: string): Observable<void> {
+    return this.http.post<void>(`${this.url}/${id}/validate-domain`, { domainName });
   }
 }

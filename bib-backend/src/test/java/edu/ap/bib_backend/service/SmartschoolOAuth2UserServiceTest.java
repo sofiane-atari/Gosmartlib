@@ -122,7 +122,7 @@ class SmartschoolOAuth2UserServiceTest {
         when(userService.getUser("existing-user")).thenReturn(Optional.of(existingUser));
         when(smartschoolProfileService.fetchGroups(accessTokenValue))
                 .thenReturn(new SmartschoolGroupDto("2ITSOF1", List.of("Leerlingen")));
-        when(groupService.getGroup("2ITSOF1")).thenReturn(existingGroup);
+        when(groupService.getGroup(1L, "2ITSOF1")).thenReturn(existingGroup);
 
         expectUserInfoRequest(accessTokenValue, """
             {
@@ -167,8 +167,8 @@ class SmartschoolOAuth2UserServiceTest {
         verify(userService, never()).createUser(anyString(), any(), any(), any());
         verify(roleService, never()).getRoleEntity(anyString());
         verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
-        verify(groupService, times(1)).getGroup("2ITSOF1");
-        verify(groupService, never()).createGroup(anyString());
+        verify(groupService, times(1)).getGroup(eq(1L), eq("2ITSOF1"));
+        verify(groupService, never()).createGroup(any(), anyString());
 
         mockRestServiceServer.verify();
     }
@@ -189,7 +189,7 @@ class SmartschoolOAuth2UserServiceTest {
         when(userService.createUser(eq("new-user"), eq(studentRole), any(School.class), any())).thenReturn(createdUser);
         when(smartschoolProfileService.fetchGroups(accessTokenValue))
                 .thenReturn(new SmartschoolGroupDto("2ITSOF1", List.of("Leerlingen")));
-        when(groupService.getGroup("2ITSOF1")).thenReturn(existingGroup);
+        when(groupService.getGroup(1L, "2ITSOF1")).thenReturn(existingGroup);
 
         expectUserInfoRequest(accessTokenValue, """
             {
@@ -234,8 +234,8 @@ class SmartschoolOAuth2UserServiceTest {
         verify(roleService, times(1)).getRoleEntity("leerling");
         verify(userService, times(1)).createUser(eq("new-user"), eq(studentRole), any(School.class), any());
         verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
-        verify(groupService, times(1)).getGroup("2ITSOF1");
-        verify(groupService, never()).createGroup(anyString());
+        verify(groupService, times(1)).getGroup(eq(1L), eq("2ITSOF1"));
+        verify(groupService, never()).createGroup(any(), anyString());
 
         mockRestServiceServer.verify();
     }
@@ -253,8 +253,8 @@ class SmartschoolOAuth2UserServiceTest {
         when(userService.getUser("group-create-user")).thenReturn(Optional.of(existingUser));
         when(smartschoolProfileService.fetchGroups(accessTokenValue))
                 .thenReturn(new SmartschoolGroupDto("2ITSOF1", List.of("Leerlingen")));
-        when(groupService.getGroup("2ITSOF1")).thenThrow(new RuntimeException("Group not found"));
-        when(groupService.createGroup("2ITSOF1")).thenReturn(createdGroup);
+        when(groupService.getGroup(1L, "2ITSOF1")).thenThrow(new RuntimeException("Group not found"));
+        when(groupService.createGroup(1L, "2ITSOF1")).thenReturn(createdGroup);
 
         expectUserInfoRequest(accessTokenValue, """
             {
@@ -294,8 +294,8 @@ class SmartschoolOAuth2UserServiceTest {
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_STUDENT")));
 
         verify(userService, times(1)).getUser("group-create-user");
-        verify(groupService, times(1)).getGroup("2ITSOF1");
-        verify(groupService, times(1)).createGroup("2ITSOF1");
+        verify(groupService, times(1)).getGroup(eq(1L), eq("2ITSOF1"));
+        verify(groupService, times(1)).createGroup(eq(1L), eq("2ITSOF1"));
 
         mockRestServiceServer.verify();
     }
@@ -324,7 +324,7 @@ class SmartschoolOAuth2UserServiceTest {
 
         verify(userService, never()).getUser(anyString());
         verify(roleService, never()).getRoleEntity(anyString());
-        verify(groupService, never()).getGroup(anyString());
+        verify(groupService, never()).getGroup(any(), anyString());
 
         mockRestServiceServer.verify();
     }

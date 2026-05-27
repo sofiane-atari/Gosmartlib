@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.jpa.repository.UserRepository;
-import edu.ap.bib_backend.seed.CampusSeeder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,9 +28,6 @@ class AuthServiceIntegrationTest {
 
     @MockitoBean
     private TokenStorageService tokenStorageService;
-
-    @MockitoBean
-    private CampusSeeder campusSeeder;
 
     @Test
     void Given_NonExistentUser_When_GetUserDetails_Then_ReturnsNullOrIncomplete() {

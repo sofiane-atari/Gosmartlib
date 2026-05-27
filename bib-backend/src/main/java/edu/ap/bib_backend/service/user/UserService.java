@@ -43,6 +43,7 @@ public class UserService {
     private final TokenStorageService tokenStorageService;
     private final CampusRepository campusRepository;
     private final CurrentUserService currentUserService;
+    private final SchoolRepository schoolRepository;
 
     public UserService(UserRepository userRepository, ProfanityFilterService profanityFilterService,
             UserMapper userMapper, GroupService groupService, SchoolRepository schoolRepository,
@@ -55,6 +56,7 @@ public class UserService {
         this.tokenStorageService = tokenStorageService;
         this.campusRepository = campusRepository;
         this.currentUserService = currentUserService;
+        this.schoolRepository = schoolRepository;
     }
 
     public Optional<User> getUser(String userId) {
@@ -117,9 +119,16 @@ public class UserService {
                 })
                 .count();
 
-        int activeTeachers = totalTeachers - librarians;
+        int admins = (int) allUsers.stream()
+                .filter(dto -> {
+                    Role localRole = localRolesByUserId.get(dto.id());
+                    return localRole == Role.ADMIN;
+                })
+                .count();
 
-        return new TeacherStatsDTO(totalTeachers, activeTeachers, librarians);
+        int activeTeachers = totalTeachers - librarians - admins;
+
+        return new TeacherStatsDTO(totalTeachers, activeTeachers, librarians, admins);
     }
 
     public PageDTO<AuthUserDto> getTeachers(Authentication authentication,
@@ -153,7 +162,7 @@ public class UserService {
                     if (actualRole != null) {
                         return new AuthUserDto(
                                 dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
-                                actualRole, dto.email(),
+                                actualRole, dto.email(), dto.username(),
                                 dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
                                 dto.parentGroupNames(), dto.reviewBlocked(),
                                 dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
@@ -184,6 +193,50 @@ public class UserService {
         List<AuthUserDto> pageData = fromIndex >= totalItems ? List.of() : filtered.subList(fromIndex, toIndex);
 
         return new PageDTO<>(pageData, new PaginatedMeta(page, pageSize, totalItems, totalPages));
+    }
+
+    public List<AuthUserDto> getUsersBySchoolId(Authentication authentication, Long schoolId) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            throw new IllegalStateException("Alleen platformbeheerders kunnen gebruikers van een school opvragen.");
+        }
+
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("schoolId", "School niet gevonden met id: " + schoolId));
+
+        String userId = authentication.getName();
+        String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
+        String schoolCode = school.getDomainName();
+
+        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
+
+        Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(schoolId).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
+
+        return rosterUsers.stream()
+                .map(user -> toAuthUserDto(user, school))
+                .filter(Objects::nonNull)
+                .filter(dto -> dto.role() == Role.TEACHER)
+                .map(dto -> {
+                    Role actualRole = localRolesByUserId.get(dto.id());
+                    if (actualRole != null) {
+                        return new AuthUserDto(
+                                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                                actualRole, dto.email(), dto.username(),
+                                dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
+                                dto.parentGroupNames(), dto.reviewBlocked(),
+                                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                                dto.school());
+                    }
+                    return dto;
+                })
+                .filter(dto -> {
+                    Role role = dto.role();
+                    return role == Role.TEACHER || role == Role.LIBRARIAN || role == Role.ADMIN;
+                })
+                .toList();
     }
 
     public User createUser(String userId, RoleEntity role, School school, Campus campus) {
@@ -298,6 +351,7 @@ public class UserService {
         }
 
         String email = firstNonBlank(rosterUser, "email", "emailAddress", "mail");
+        String username = firstNonBlank(rosterUser, "username", "userName");
         Role role = mapOneRosterRole(firstNonBlank(rosterUser, "role"));
 
         SchoolSummaryDto schoolSummary = ctxSchool.getSchoolSummaryDto();
@@ -309,6 +363,7 @@ public class UserService {
                 fullName,
                 role,
                 email,
+                username,
                 null,
                 null,
                 null,

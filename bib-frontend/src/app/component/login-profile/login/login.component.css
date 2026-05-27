@@ -75,6 +75,56 @@
   line-height: 1.55;
 }
 
+/* Error Box */
+.error-box {
+  text-align: center;
+  width: 100%;
+  padding: 1.25rem;
+  background: #fff3f3;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.error-box h2 {
+  color: #b91c1c;
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.error-box p {
+  color: #7f1d1d;
+  font-size: 0.92rem;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.5;
+}
+
+.contact-link {
+  display: inline-block;
+  color: #fff;
+  background: var(--main-color);
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 82, 14, 0.2);
+  cursor: pointer;
+}
+
+.contact-link:hover {
+  background: var(--main-color-hover);
+  box-shadow: 0 6px 20px rgba(138, 30, 65, 0.3);
+  transform: translateY(-2px);
+}
+
+.contact-link:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 82, 14, 0.2);
+}
+
 .login-benefits {
   margin: 1rem 0 0 0;
   padding: 0;

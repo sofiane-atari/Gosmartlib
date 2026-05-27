@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/authorization/auth.service';
 import { FormsModule } from '@angular/forms';
@@ -30,6 +30,7 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
 import { UserService } from '../../services/user/user.service';
+import { SchoolService } from '../../services/school/school.service';
 import { SidebarActiveLoansComponent } from './sidebar-active-loans/sidebar-active-loans.component';
 
 @Component({
@@ -56,27 +57,34 @@ export class SidebarComponent {
   public readonly authService = inject(AuthService);
   public readonly roleService = inject(RoleService);
   private readonly userService = inject(UserService);
+  private readonly schoolService = inject(SchoolService);
 
   public mobileOpen = input<boolean>(false);
   public sidebarClosed = output<void>();
 
-  public constructor(private readonly router: Router) {}
+  protected readonly devModeEnabled = signal(false);
+
+  public constructor(private readonly router: Router) {
+    this.schoolService.isDevModeEnabled().subscribe({
+      next: (enabled) => this.devModeEnabled.set(enabled),
+      error: () => this.devModeEnabled.set(false),
+    });
+  }
 
   protected readonly currentUser = computed<AuthUserDto | null>(() =>
     this.authService.currentUser(),
   );
 
   protected readonly isAdminOverrideVisible = computed(
-    () => this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser(),
+    () => this.devModeEnabled() && !!this.currentUser(),
   );
 
   protected readonly isAdminOverrideEnabled = computed(
     () => this.authService.adminOverrideStatus()?.enabled ?? false,
   );
 
-  protected readonly isStaff = computed(() => {
-    const role = this.currentUser()?.role;
-    return role === 'TEACHER' || role === 'LIBRARIAN' || role === 'ADMIN';
+  protected readonly canManageBooksAndLoans = computed(() => {
+    return this.roleService.canManageBooks();
   });
 
   protected readonly adminOverrideLabel = computed(() =>

@@ -21,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import edu.ap.bib_backend.TestSecurityConfig;
@@ -32,6 +33,7 @@ import edu.ap.bib_backend.service.TokenStorageService;
 
 @WebMvcTest(SchoolController.class)
 @Import(TestSecurityConfig.class)
+@TestPropertySource(properties = "app.dev-mode-enabled=true")
 class SchoolControllerTest {
 
     @Autowired
@@ -132,6 +134,23 @@ class SchoolControllerTest {
     }
 
     @Test
+    void GivenDevModeEnabled_WhenPurgeSchool_ThenReturn204() throws Exception {
+        // Act & Assert
+        mockMvc.perform(delete("/schools/{id}/purge", 1L))
+                .andExpect(status().isNoContent());
+
+        verify(schoolService, times(1)).purge(1L);
+    }
+
+    @Test
+    void GivenDevModeEnabled_WhenGetDevModeEnabled_ThenReturnTrue() throws Exception {
+        // Act & Assert
+        mockMvc.perform(get("/schools/dev-mode-enabled"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(true));
+    }
+
+    @Test
     void WhenGetTotalBookCount_ThenReturnTotalBookCount() throws Exception {
         // Arrange
         given(schoolService.getTotalBookCount()).willReturn(100L);
@@ -140,6 +159,48 @@ class SchoolControllerTest {
         mockMvc.perform(get("/schools/books/count"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(100));
+    }
+
+    @Test
+    void GivenExistingSchool_WhenDisableSchool_ThenReturn200() throws Exception {
+        // Arrange
+        SchoolDTO disabledSchool = schoolDto(1L, "apsmartschool.be", "AP Hogeschool", "Noorderplaats 2", 2000);
+        given(schoolService.disable(1L)).willReturn(disabledSchool);
+
+        // Act & Assert
+        mockMvc.perform(put("/schools/{id}/disable", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("AP Hogeschool"));
+
+        verify(schoolService, times(1)).disable(1L);
+    }
+
+    @Test
+    void GivenExistingSchool_WhenEnableSchool_ThenReturn200() throws Exception {
+        // Arrange
+        SchoolDTO enabledSchool = schoolDto(1L, "apsmartschool.be", "AP Hogeschool", "Noorderplaats 2", 2000);
+        given(schoolService.enable(1L)).willReturn(enabledSchool);
+
+        // Act & Assert
+        mockMvc.perform(put("/schools/{id}/enable", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("AP Hogeschool"));
+
+        verify(schoolService, times(1)).enable(1L);
+    }
+
+    @Test
+    void GivenAvailableDomain_WhenCheckDomain_ThenReturn200() throws Exception {
+        // Arrange - void method, no setup needed for mock
+
+        // Act & Assert
+        mockMvc.perform(get("/schools/check-domain")
+                        .param("domainName", "new.school.be"))
+                .andExpect(status().isOk());
+
+        verify(schoolService, times(1)).checkDomain("new.school.be");
     }
 
     private SchoolDTO schoolDto(
@@ -154,6 +215,11 @@ class SchoolControllerTest {
                 name,
                 15,
                 java.util.List.of(),
-                LocalDateTime.of(2026, 4, 28, 12, 0));
+                LocalDateTime.of(2026, 4, 28, 12, 0),
+                false,
+                null,
+                null,
+                null,
+                null);
     }
 }

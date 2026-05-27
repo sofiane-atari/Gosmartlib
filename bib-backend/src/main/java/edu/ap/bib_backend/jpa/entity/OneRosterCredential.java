@@ -30,7 +30,7 @@ public class OneRosterCredential {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id", nullable = false)
+    @JoinColumn(name = "school_id", nullable = false, unique = true)
     private School school;
 
     @Column(name = "client_id", nullable = false)

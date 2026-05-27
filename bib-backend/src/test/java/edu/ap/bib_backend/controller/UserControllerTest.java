@@ -102,7 +102,7 @@ class UserControllerTest {
     void Given_Authentication_When_GetTeacherStats_Then_ReturnsStats() throws Exception {
         // Arrange
         when(userService.getTeacherStats(any(Authentication.class)))
-                .thenReturn(new TeacherStatsDTO(5, 4, 1));
+                .thenReturn(new TeacherStatsDTO(5, 4, 1, 0));
 
         // Act
         var result = mockMvc.perform(get("/users/teachers/stats")

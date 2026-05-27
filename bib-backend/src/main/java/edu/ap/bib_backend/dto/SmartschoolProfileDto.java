@@ -6,5 +6,6 @@ public record SmartschoolProfileDto(
     String lastName,
     String fullName,
     String email,
-    String platform
+    String platform,
+    String username
 ) {}
