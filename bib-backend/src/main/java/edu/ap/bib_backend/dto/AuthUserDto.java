@@ -13,6 +13,7 @@ public record AuthUserDto(
         String fullName,
         Role role,
         String email,
+        String username,
         String smartschoolId,
         String platform,
         String primaryGroupName,

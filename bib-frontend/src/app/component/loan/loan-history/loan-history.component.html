@@ -2,46 +2,35 @@
   <header class="page-header">
     <h1>Uitleengeschiedenis</h1>
     <p>
-      {{ history()?.activeLoanCount ?? 0 }} uitleningen •
+      {{ history()?.activeLoanCount ?? 0 }} uitlening(en) •
       {{ history()?.returnedLoanCount ?? 0 }} boek(en) teruggebracht
     </p>
   </header>
 
   <section class="stat-grid">
-    <app-button-hover-help
-      class="stat-help"
-      text="Totaal aantal boeken dat in deze historiek voorkomt."
-    >
-      <article class="stat-card stat-card--purple">
-        <lucide-icon [name]="BookOpen"></lucide-icon>
-        <div>
-          <strong>{{ history()?.totalLoanedBookCount ?? 0 }}</strong>
-          <span>Totaal uitgeleend</span>
-        </div>
-      </article>
-    </app-button-hover-help>
-    <app-button-hover-help class="stat-help" text="Aantal uitleningen.">
-      <article class="stat-card stat-card--blue">
-        <lucide-icon [name]="Clock"></lucide-icon>
-        <div>
-          <strong>{{ history()?.activeLoanCount ?? 0 }}</strong>
-          <span>Uitleningen</span>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Totaal uitgeleend"
+      [value]="history()?.totalLoanedBookCount ?? 0"
+      [icon]="BookOpen"
+      variant="purple"
+      helpText="Totaal aantal boeken dat in deze historiek voorkomt."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      class="stat-help"
-      text="Aantal boeken dat je al hebt teruggebracht."
-    >
-      <article class="stat-card stat-card--green">
-        <lucide-icon [name]="CheckCircle2"></lucide-icon>
-        <div>
-          <strong>{{ history()?.returnedLoanCount ?? 0 }}</strong>
-          <span>Teruggebracht</span>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Uitleningen"
+      [value]="history()?.activeLoanCount ?? 0"
+      [icon]="Clock"
+      variant="blue"
+      helpText="Aantal uitleningen."
+    ></app-stat-card>
+
+    <app-stat-card
+      label="Teruggebracht"
+      [value]="history()?.returnedLoanCount ?? 0"
+      [icon]="CheckCircle2"
+      variant="green"
+      helpText="Aantal boeken dat je al hebt teruggebracht."
+    ></app-stat-card>
   </section>
 
   @if (isLoading()) {

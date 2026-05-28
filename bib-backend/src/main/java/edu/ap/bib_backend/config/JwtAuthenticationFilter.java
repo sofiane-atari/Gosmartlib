@@ -62,6 +62,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String username = jwtService.extractUsername(token);
 
+        String tokenType = (String) jwtService.extractClaim(token, "type");
+        if ("oneroster".equals(tokenType)) {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    username,
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_ONEROSTER_CLIENT"))
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (!tokenStorageService.isCurrentToken(username, token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
@@ -97,6 +109,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         ));
         details.put("schoolId", jwtService.extractClaim(token, "schoolId"));
         details.put("campusId", jwtService.extractClaim(token, "campusId"));
+        details.put("name", jwtService.extractClaim(token, "name"));
+        details.put("surname", jwtService.extractClaim(token, "surname"));
+        details.put("email", jwtService.extractClaim(token, "email"));
+        details.put("platform", jwtService.extractClaim(token, "platform"));
+        details.put("primaryGroupName", jwtService.extractClaim(token, "primaryGroupName"));
+        details.put("parentGroupNames", jwtService.extractClaim(token, "parentGroupNames"));
 
         authentication.setDetails(details);
 

@@ -1,61 +1,40 @@
 <div class="tag-dashboard">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>Label Beheer</h1>
-      <p>Beheer tags voor de boekencatalogus</p>
+      <h1>Labelbeheer</h1>
+      <p>Beheer tags voor de boekencatalogus.</p>
     </div>
 
     <button type="button" class="btn-new" (click)="openCreatePopup()">
       <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
-      Nieuwe label <label for=""></label>
+      Nieuw label
     </button>
   </div>
 
   <section class="stat-cards">
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal tags in de boekencatalogus.">
-      <article class="stat-card stat-card--purple">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="TagIcon"></lucide-icon>
-        </div>
+    <app-stat-card
+      label="Totaal labels"
+      [value]="stats().totalItems"
+      [icon]="TagIcon"
+      variant="purple"
+      helpText="Dit is het totaal aantal tags in de boekencatalogus."
+    ></app-stat-card>
 
-        <div>
-          <p>Totaal labels</p>
-          <strong>{{ stats().totalItems }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Gebruikte labels"
+      [value]="totalActive()"
+      [icon]="CheckCircle"
+      variant="green"
+      helpText="Dit is het aantal tags dat gekoppeld is aan één of meerdere boeken."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het aantal tags dat gekoppeld is aan één of meerdere boeken.">
-      <article class="stat-card stat-card--green">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="CheckCircle"></lucide-icon>
-        </div>
-
-        <div>
-          <p>Gebruikte labels</p>
-          <strong>{{ totalActive() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
-
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het aantal tags dat nog niet gekoppeld is aan boeken.">
-      <article class="stat-card stat-card--orange">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="CircleOff"></lucide-icon>
-        </div>
-
-        <div>
-          <p>Ongebruikte labels</p>
-          <strong>{{ stats().unActiveTags }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Ongebruikte labels"
+      [value]="stats().unActiveTags"
+      [icon]="CircleOff"
+      variant="orange"
+      helpText="Dit is het aantal tags dat nog niet gekoppeld is aan boeken."
+    ></app-stat-card>
   </section>
 
   <section class="search-panel">
@@ -78,126 +57,95 @@
     />
   </section>
 
-  @if (tags().length === 0) {
-    <section class="state-panel state-panel--empty">
-      <p>Geen labels gevonden.</p>
-    </section>
-  } @else {
-    <section class="table-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Label</th>
-            <th>Beschrijving</th>
-            <th>Boeken</th>
-            <th class="actions-heading">Acties</th>
-          </tr>
-        </thead>
+  <app-data-table
+    [data]="tags()"
+    [columns]="columns"
+    [emptyMessage]="'Geen labels gevonden.'"
+    [pagingMeta]="pagingMeta()"
+    (pageChange)="onPageChange($event)"
+  >
+    <ng-template cellTemplate="name" let-tag>
+      <div class="tag-cell">
+        <div class="tag-cell__icon">
+          <lucide-icon [name]="TagIcon"></lucide-icon>
+        </div>
 
-        <tbody>
-          @for (tag of tags(); track tag.id) {
-            <tr>
-              <td>
-                <div class="tag-cell">
-                  <div class="tag-cell__icon">
-                    <lucide-icon [name]="TagIcon"></lucide-icon>
-                  </div>
+        <div>
+          <strong>{{ tag.name }}</strong>
+        </div>
+      </div>
+    </ng-template>
 
-                  <div>
-                    <strong>{{ tag.name }}</strong>
-                  </div>
-                </div>
-              </td>
+    <ng-template cellTemplate="description" let-tag>
+      @if (tag.description) {
+        <div class="muted-block">
+          <span>{{ tag.description }}</span>
+        </div>
+      } @else {
+        <span class="table-placeholder">Geen beschrijving</span>
+      }
+    </ng-template>
 
-              <td>
-                @if (tag.description) {
-                  <div class="muted-block">
-                    <span>{{ tag.description }}</span>
-                  </div>
-                } @else {
-                  <span class="table-placeholder">Geen beschrijving</span>
-                }
-              </td>
+    <ng-template cellTemplate="bookCount" let-tag>
+      <span class="count-badge">
+        {{ tag.bookCount ?? 0 }} boeken
+      </span>
+    </ng-template>
 
-              <td>
-                <span class="count-badge">
-                  {{ tag.bookCount ?? 0 }} boeken
-                </span>
-              </td>
+    <ng-template cellTemplate="actions" let-tag>
+      <div class="table-actions">
+        <app-button-hover-help text="Wijzig de gegevens van deze tag.">
+          <button
+            type="button"
+            class="icon-button icon-button--edit"
+            aria-label="Tag wijzigen"
+            (click)="openEditPopup(tag)"
+          >
+            <lucide-icon [name]="Pencil"></lucide-icon>
+          </button>
+        </app-button-hover-help>
 
-              <td>
-                <div class="table-actions">
-                  <app-button-hover-help text="Wijzig de gegevens van deze tag.">
-                    <button
-                      type="button"
-                      class="icon-button icon-button--edit"
-                      aria-label="Tag wijzigen"
-                      (click)="openEditPopup(tag)"
-                    >
-                      <lucide-icon [name]="Pencil"></lucide-icon>
-                    </button>
-                  </app-button-hover-help>
+        <app-button-hover-help text="Verwijder deze tag uit de boekencatalogus.">
+          <button
+            type="button"
+            class="icon-button icon-button--delete"
+            aria-label="Tag verwijderen"
+            (click)="deleteTag(tag)"
+          >
+            <lucide-icon [name]="Trash2"></lucide-icon>
+          </button>
+        </app-button-hover-help>
+      </div>
+    </ng-template>
+  </app-data-table>
 
-                  <app-button-hover-help text="Verwijder deze tag uit de boekencatalogus.">
-                    <button
-                      type="button"
-                      class="icon-button icon-button--delete"
-                      aria-label="Tag verwijderen"
-                      (click)="deleteTag(tag)"
-                    >
-                      <lucide-icon [name]="Trash2"></lucide-icon>
-                    </button>
-                  </app-button-hover-help>
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="4">
-                <div class="empty-table-state">
-                  Geen labels gevonden voor deze zoekopdracht.
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </section>
-  }
+  <app-name-description-modal
+    [isOpen]="popUp() === 'create'"
+    mode="create"
+    title="Tag toevoegen"
+    subtitle="Maak een nieuwe tag aan om boeken beter te organiseren."
+    nameLabel="Naam"
+    descriptionLabel="Beschrijving"
+    namePlaceholder="Bijvoorbeeld: Fantasy"
+    descriptionPlaceholder="Korte beschrijving van de tag"
+    submitLabel="Tag toevoegen"
+    (closed)="closePopup()"
+    (submitted)="onSubmitCreateTag($event)"
+  ></app-name-description-modal>
 
-  @if (pagingMeta()) {
-    <app-paging
-      [meta]="pagingMeta()!"
-      (pageChange)="onPageChange($event)"
-    />
-  }
-<app-name-description-modal
-  [isOpen]="popUp() === 'create'"
-  mode="create"
-  title="Tag toevoegen"
-  subtitle="Maak een nieuwe tag aan om boeken beter te organiseren."
-  nameLabel="Naam"
-  descriptionLabel="Beschrijving"
-  namePlaceholder="Bijvoorbeeld: Fantasy"
-  descriptionPlaceholder="Korte beschrijving van de tag"
-  submitLabel="Tag toevoegen"
-  (closed)="closePopup()"
-  (submitted)="onSubmitCreateTag($event)"
-></app-name-description-modal>
-
-<app-name-description-modal
-  [isOpen]="popUp() === 'edit'"
-  mode="edit"
-  title="Tag bewerken"
-  subtitle="Pas de naam of beschrijving van deze tag aan."
-  nameLabel="Naam"
-  descriptionLabel="Beschrijving"
-  namePlaceholder="Bijvoorbeeld: Fantasy"
-  descriptionPlaceholder="Korte beschrijving van de tag"
-  [initialName]="editingTag()?.name ?? ''"
-  [initialDescription]="editingTag()?.description ?? ''"
-  submitLabel="Tag opslaan"
-  (closed)="closePopup()"
-  (submitted)="onSubmitUpdateTag($event)"
-></app-name-description-modal>
+  <app-name-description-modal
+    [isOpen]="popUp() === 'edit'"
+    mode="edit"
+    title="Tag bewerken"
+    subtitle="Pas de naam of beschrijving van deze tag aan."
+    nameLabel="Naam"
+    descriptionLabel="Beschrijving"
+    namePlaceholder="Bijvoorbeeld: Fantasy"
+    descriptionPlaceholder="Korte beschrijving van de tag"
+    [initialName]="editingTag()?.name ?? ''"
+    [initialDescription]="editingTag()?.description ?? ''"
+    submitLabel="Tag opslaan"
+    (closed)="closePopup()"
+    (submitted)="onSubmitUpdateTag($event)"
+  ></app-name-description-modal>
 </div>

@@ -148,7 +148,7 @@
           </div>
         </section>
 
-        @if (roleService.canManageLessonTip()) {
+        @if (roleService.canManageBooks()) {
           <section class="management-section">
             <h2 class="section-title">Bibliotheekbeheer</h2>
 
@@ -192,7 +192,9 @@
               </app-button-hover-help>
             </div>
           </section>
+        }
 
+        @if (roleService.canManageLessonTip()) {
           <section class="detail-section">
             <div
               class="detail-section__header detail-section__header--with-action"

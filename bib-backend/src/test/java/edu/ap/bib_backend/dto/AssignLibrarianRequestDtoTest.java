@@ -22,7 +22,7 @@ class AssignLibrarianRequestDtoTest {
     @Test
     void Given_ValidUserId_When_Validated_Then_NoViolations() {
         // Arrange
-        AssignLibrarianRequestDto dto = new AssignLibrarianRequestDto("user-1");
+        AssignLibrarianRequestDto dto = new AssignLibrarianRequestDto("user-1", null);
 
         // Act
         var violations = validator.validate(dto);
@@ -34,7 +34,7 @@ class AssignLibrarianRequestDtoTest {
     @Test
     void Given_BlankUserId_When_Validated_Then_HasViolation() {
         // Arrange
-        AssignLibrarianRequestDto dto = new AssignLibrarianRequestDto(" ");
+        AssignLibrarianRequestDto dto = new AssignLibrarianRequestDto(" ", null);
 
         // Act
         var violations = validator.validate(dto);

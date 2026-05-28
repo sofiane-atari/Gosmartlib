@@ -21,6 +21,7 @@ import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-
 import { ExtendLoanComponent } from './extend-loan/extend-loan.component';
 import { ToastService } from '../../../services/toast/toast.service';
 import { LoanGroup } from '../../../model/loan/loanGroup.model';
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
 
@@ -35,7 +36,8 @@ type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
     PagingComponent,
     ButtonHoverHelpComponent,
     ExtendLoanComponent,
-  ],
+    StatCardComponent
+],
   templateUrl: './book-management.component.html',
   styleUrl: './book-management.component.css',
 })

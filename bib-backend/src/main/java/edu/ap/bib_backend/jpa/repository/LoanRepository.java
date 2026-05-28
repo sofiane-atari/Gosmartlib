@@ -220,17 +220,18 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
         List<LoanVolumePeriodProjection> findMonthlyLoanVolumeForSystem();
 
         @Query("""
-                        select coalesce(u.group.name, 'Geen klas') as classTitle,
+                        select coalesce(g.name, 'Geen klas') as classTitle,
                                count(distinct u.id) as studentCount,
                                count(bc.id) as totalLoans,
                                sum(case when l.returnedDate is null then 1 else 0 end) as activeLoans
                         from Loan l
                         join l.user u
+                        left join u.groups g
                         join l.copies bc
                         where l.campus.school.id = :schoolId
                         and (:campusId is null or l.campus.id = :campusId)
-                        group by coalesce(u.group.name, 'Geen klas')
-                        order by count(bc.id) desc, coalesce(u.group.name, 'Geen klas') asc
+                        group by coalesce(g.name, 'Geen klas')
+                        order by count(bc.id) desc, coalesce(g.name, 'Geen klas') asc
                         """)
         List<ClassLoanActivityProjection> findClassLoanActivityForSchool(
                 @Param("schoolId") Long schoolId,
@@ -241,18 +242,18 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         from User u
                         where u.school.id = :schoolId
                         and (:campusId is null or u.campus.id = :campusId)
-                        and u.group is not null
+                        and size(u.groups) > 0
                         """)
         long countStudentsWithClassForSchool(
                 @Param("schoolId") Long schoolId,
                 @Param("campusId") Long campusId);
 
         @Query("""
-                        select count(distinct u.group.name)
+                        select count(distinct g.name)
                         from User u
+                        join u.groups g
                         where u.school.id = :schoolId
                         and (:campusId is null or u.campus.id = :campusId)
-                        and u.group is not null
                         """)
         long countClassesForSchool(
                 @Param("schoolId") Long schoolId,

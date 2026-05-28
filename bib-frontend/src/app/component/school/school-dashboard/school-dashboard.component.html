@@ -1,61 +1,40 @@
 <div class="school-dashboard">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>School beheer</h1>
-      <p>Beheer scholen en campussen in het netwerk</p>
+      <h1>Schoolbeheer</h1>
+      <p>Beheer scholen en campussen in het netwerk.</p>
     </div>
 
-    <button type="button" class="btn-new" (click)="openCreateModal()">
+    <button type="button" class="btn-new" routerLink="/schools/create">
       <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
       Nieuwe school
     </button>
   </div>
 
   <section class="stat-cards">
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal scholen dat momenteel in het netwerk staat."
-    >
-      <article class="stat-card stat-card--purple">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="SchoolIcon"></lucide-icon>
-        </div>
-        <div>
-          <p>Totaal scholen</p>
-          <strong>{{ totalSchools() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Totaal scholen"
+      [value]="totalSchools()"
+      [icon]="SchoolIcon"
+      variant="purple"
+      helpText="Dit is het totaal aantal scholen dat momenteel in het netwerk staat."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal campussen over alle scholen heen."
-    >
-      <article class="stat-card stat-card--blue">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="Landmark"></lucide-icon>
-        </div>
-        <div>
-          <p>Totaal campussen</p>
-          <strong>{{ totalCampuses() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Totaal campussen"
+      [value]="totalCampuses()"
+      [icon]="Landmark"
+      variant="blue"
+      helpText="Dit is het totaal aantal campussen over alle scholen heen."
+    ></app-stat-card>
 
-    <app-button-hover-help
-      class="stat-card-hover"
-      text="Dit is het totaal aantal boeken dat gekoppeld is aan alle scholen samen."
-    >
-      <article class="stat-card stat-card--green">
-        <div class="stat-card__icon">
-          <lucide-icon [name]="BookOpen"></lucide-icon>
-        </div>
-        <div>
-          <p>Totaal boeken</p>
-          <strong>{{ totalBooks() }}</strong>
-        </div>
-      </article>
-    </app-button-hover-help>
+    <app-stat-card
+      label="Totaal boeken"
+      [value]="totalBooks()"
+      [icon]="BookOpen"
+      variant="green"
+      helpText="Dit is het totaal aantal boeken dat gekoppeld is aan alle scholen samen."
+    ></app-stat-card>
   </section>
 
   <section class="search-panel">
@@ -66,8 +45,54 @@
   </section>
 
   @if (isLoading()) {
-    <section class="state-panel">
-      <p>Scholen laden...</p>
+    <section class="table-card">
+      <table class="skeleton-table">
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Domein</th>
+            <th>Status</th>
+            <th>Boeken</th>
+            <th>Campussen</th>
+            <th class="actions-heading">Acties</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (_ of [1, 2, 3, 4, 5]; track $index) {
+            <tr class="skeleton-row">
+              <td>
+                <div class="skeleton-cell">
+                  <div class="skeleton skeleton--icon"></div>
+                  <div class="skeleton-cell__text">
+                    <div class="skeleton skeleton--name"></div>
+                    <div class="skeleton skeleton--date"></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="skeleton skeleton--domain"></div>
+              </td>
+              <td>
+                <div class="skeleton skeleton--badge"></div>
+              </td>
+              <td>
+                <div class="skeleton skeleton--count"></div>
+              </td>
+              <td>
+                <div class="skeleton skeleton--count"></div>
+              </td>
+              <td>
+                <div class="skeleton-actions">
+                  <div class="skeleton skeleton--action"></div>
+                  <div class="skeleton skeleton--action"></div>
+                  <div class="skeleton skeleton--action"></div>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </section>
   } @else if (schools().length === 0) {
     <section class="state-panel state-panel--empty">
@@ -80,6 +105,7 @@
           <tr>
             <th>School</th>
             <th>Domein</th>
+            <th>Status</th>
             <th>Boeken</th>
             <th>Campussen</th>
             <th class="actions-heading">Acties</th>
@@ -88,7 +114,7 @@
 
         <tbody>
           @for (school of filteredSchools(); track school.id) {
-            <tr>
+            <tr [class.grayed-row]="isRowGrayed(school)">
               <td>
                 <div class="school-cell">
                   <div class="school-cell__icon">
@@ -113,6 +139,23 @@
                 <div class="muted-block">
                   <span>{{ school.domainName }}</span>
                 </div>
+              </td>
+
+              <td>
+                @if (school.status === SchoolStatus.ACTIVE) {
+                  <span class="status-badge status-badge--active">Actief</span>
+                } @else if (school.status === SchoolStatus.DISABLED) {
+                  <span class="status-badge status-badge--disabled">Uitgeschakeld</span>
+                } @else if (school.status === SchoolStatus.MARKED_FOR_DELETION) {
+                  <div class="status-badge-wrapper">
+                    <span class="status-badge status-badge--deletion">Wordt verwijderd</span>
+                    @if (school.daysUntilDeletion !== undefined && school.daysUntilDeletion !== null) {
+                      <span class="days-remaining">
+                        nog {{ school.daysUntilDeletion }} {{ school.daysUntilDeletion === 1 ? 'dag' : 'dagen' }}
+                      </span>
+                    }
+                  </div>
+                }
               </td>
 
               <td>
@@ -165,25 +208,92 @@
                     </button>
                   </app-button-hover-help>
 
-                  <app-button-hover-help
-                    text="Verwijder deze school uit het netwerk."
-                  >
-                    <button
-                      type="button"
-                      class="icon-button icon-button--delete"
-                      aria-label="School verwijderen"
-                      (click)="deleteSchool(school)"
-                      [disabled]="isUpdating()"
+                  @if (school.status === SchoolStatus.ACTIVE) {
+                    <app-button-hover-help
+                      text="Schakel deze school uit. Gebruikers kunnen niet meer inloggen."
                     >
-                      <lucide-icon [name]="Trash2"></lucide-icon>
-                    </button>
-                  </app-button-hover-help>
-                </div>
-              </td>
-            </tr>
+                      <button
+                        type="button"
+                        class="icon-button icon-button--disable"
+                        aria-label="School uitschakelen"
+                        (click)="disableSchool(school)"
+                        [disabled]="isUpdating()"
+                      >
+                        <lucide-icon [name]="Ban"></lucide-icon>
+                      </button>
+                    </app-button-hover-help>
+                  } @else {
+                    <app-button-hover-help
+                      text="Activeer deze school opnieuw."
+                    >
+                      <button
+                        type="button"
+                        class="icon-button icon-button--enable"
+                        aria-label="School activeren"
+                        (click)="enableSchool(school)"
+                        [disabled]="isUpdating()"
+                      >
+                        <lucide-icon [name]="CheckCircle"></lucide-icon>
+                      </button>
+                    </app-button-hover-help>
+                  }
+
+                  @if (school.status === SchoolStatus.ACTIVE) {
+                    <app-button-hover-help
+                      text="Markeer deze school voor verwijdering. Na de bewaarperiode wordt de school permanent verwijderd."
+                    >
+                      <button
+                        type="button"
+                        class="icon-button icon-button--delete"
+                        aria-label="School verwijderen"
+                        (click)="deleteSchool(school)"
+                        [disabled]="isUpdating()"
+                      >
+                        <lucide-icon [name]="Trash2"></lucide-icon>
+                      </button>
+                    </app-button-hover-help>
+                  }
+
+@if (devModeEnabled()) {
+                      <app-button-hover-help
+                        text="Verwijder deze school en alle gerelateerde gegevens definitief."
+                      >
+                        <button
+                          type="button"
+                          class="icon-button icon-button--purge"
+                          aria-label="School volledig verwijderen"
+                          (click)="openPurgeModal(school)"
+                          [disabled]="isPurging()"
+                        >
+                          <lucide-icon [name]="Flame"></lucide-icon>
+                        </button>
+                      </app-button-hover-help>
+                    }
+                  </div>
+                </td>
+              </tr>
+
+              @if (school.hasLibrarian === false) {
+              <tr [class.grayed-row]="isRowGrayed(school)">
+                <td colspan="6">
+                  <div class="librarian-warning">
+                    <span class="librarian-warning__icon">&#9888;</span>
+                    <span>
+                      Geen beheerder toegewezen voor deze school.
+                    </span>
+                    <a
+                      class="librarian-warning__link"
+                      [routerLink]="['/schools', school.id, 'assign-users']"
+                    >
+                      Wijs gebruikers toe
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            }
           } @empty {
             <tr>
-              <td colspan="5">
+              <td colspan="6">
                 <div class="empty-table-state">
                   Geen scholen gevonden voor deze zoekopdracht.
                 </div>
@@ -195,201 +305,6 @@
     </section>
   }
 
-  @if (isCreateModalOpen()) {
-    <div
-      class="modal-overlay open"
-      (pointerdown)="onOverlayPointerDown($event)"
-      (click)="onOverlayClick($event, 'create')"
-    >
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h2>Nieuwe school toevoegen</h2>
-        <p>Vul de gegevens van de nieuwe school en haar campussen in.</p>
-
-        <form [formGroup]="schoolForm" (ngSubmit)="createSchool()">
-          <div class="modal-field">
-            <label for="name">Schoolnaam</label>
-            <input
-              id="name"
-              type="text"
-              formControlName="name"
-              placeholder="bijv. AP Hogeschool"
-            />
-
-            @if (
-              schoolForm.controls.name.invalid &&
-              schoolForm.controls.name.touched
-            ) {
-              <small class="field-inline-error">Schoolnaam is verplicht.</small>
-            }
-          </div>
-
-          <div class="modal-field">
-            <label for="domainName">Domeinnaam</label>
-            <input
-              id="domainName"
-              type="text"
-              formControlName="domainName"
-              placeholder="bijv. aphogeschool.smartschool.be"
-            />
-
-            @if (
-              schoolForm.controls.domainName.invalid &&
-              schoolForm.controls.domainName.touched
-            ) {
-              <small class="field-inline-error">Domeinnaam is verplicht.</small>
-            }
-          </div>
-
-          <div class="modal-divider"></div>
-
-          <label class="checkbox-row">
-            <input type="checkbox" formControlName="hasMultipleCampuses" />
-            Deze school heeft meerdere campussen
-          </label>
-
-          <div class="campus-form-header">
-            <h3 class="modal-section-title">Campussen</h3>
-
-            @if (hasMultipleCampuses) {
-              <button
-                type="button"
-                class="campus-add-button"
-                (click)="addCampusToCreateForm()"
-              >
-                + Campus
-              </button>
-            }
-          </div>
-
-          <div formArrayName="campuses" class="create-campus-list">
-            @for (
-              campusGroup of campusControls;
-              track $index;
-              let campusIndex = $index
-            ) {
-              <section class="create-campus-card" [formGroupName]="campusIndex">
-                <div class="create-campus-card__header">
-                  <strong>Campus {{ campusIndex + 1 }}</strong>
-
-                  @if (hasMultipleCampuses) {
-                    <button
-                      type="button"
-                      class="campus-remove-button"
-                      (click)="removeCampusFromCreateForm(campusIndex)"
-                      [disabled]="campusControls.length === 1"
-                    >
-                      Verwijderen
-                    </button>
-                  }
-                </div>
-
-                <div class="modal-field">
-                  <label [for]="'campusName' + campusIndex">Campusnaam</label>
-                  <input
-                    [id]="'campusName' + campusIndex"
-                    type="text"
-                    formControlName="name"
-                    placeholder="bijv. Campus Zuid"
-                  />
-
-                  @if (
-                    isCreateCampusControlInvalid(campusIndex, "name") ||
-                    (campusIndex === 0 && isSingleCampusNameMissing)
-                  ) {
-                    <small class="field-inline-error">{{
-                      getCreateCampusNameError(campusIndex)
-                    }}</small>
-                  }
-                </div>
-
-                <div class="modal-field">
-                  <label [for]="'campusAddress' + campusIndex">Adres</label>
-                  <input
-                    [id]="'campusAddress' + campusIndex"
-                    type="text"
-                    formControlName="address"
-                    placeholder="Straat en nummer"
-                  />
-
-                  @if (isCreateCampusControlInvalid(campusIndex, "address")) {
-                    <small class="field-inline-error"
-                      >Adres is verplicht.</small
-                    >
-                  }
-                </div>
-
-                <div class="modal-field">
-                  <label [for]="'campusPostalCode' + campusIndex"
-                    >Postcode</label
-                  >
-                  <input
-                    [id]="'campusPostalCode' + campusIndex"
-                    type="number"
-                    formControlName="postalCode"
-                    placeholder="bijv. 2000"
-                  />
-
-                  @if (
-                    isCreateCampusControlInvalid(campusIndex, "postalCode")
-                  ) {
-                    <small class="field-inline-error"
-                      >Postcode moet groter zijn dan 0.</small
-                    >
-                  }
-                </div>
-
-                <div class="modal-field">
-                  <label [for]="'campusContactPhone' + campusIndex"
-                    >Telefoonnummer</label
-                  >
-                  <input
-                    [id]="'campusContactPhone' + campusIndex"
-                    type="text"
-                    formControlName="contactPhone"
-                    placeholder="bijv. 03 123 45 67"
-                  />
-                </div>
-
-                <div class="modal-field">
-                  <label [for]="'campusContactEmail' + campusIndex"
-                    >E-mailadres</label
-                  >
-                  <input
-                    [id]="'campusContactEmail' + campusIndex"
-                    type="email"
-                    formControlName="contactEmail"
-                    placeholder="bijv. info@school.be"
-                  />
-
-                  @if (
-                    isCreateCampusControlInvalid(campusIndex, "contactEmail")
-                  ) {
-                    <small class="field-inline-error"
-                      >Vul een geldig e-mailadres in.</small
-                    >
-                  }
-                </div>
-              </section>
-            }
-          </div>
-
-          <div class="modal-actions">
-            <button
-              type="button"
-              class="btn-cancel"
-              (click)="closeCreateModal()"
-            >
-              Annuleren
-            </button>
-
-            <button type="submit" class="btn-save" [disabled]="isSubmitting()">
-              {{ isSubmitting() ? "Toevoegen..." : "Opslaan" }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  }
 
   @if (isEditModalOpen()) {
     <div
@@ -436,18 +351,72 @@
             }
           </div>
 
+          <hr />
+
+          <p class="modal-section-description">
+            Pas de OneRoster-credentials alleen aan als deze gewijzigd zijn in Smartschool.
+          </p>
+
+          <div class="modal-field">
+            <label for="editClientId">OneRoster Client-ID</label>
+            <input
+              id="editClientId"
+              type="text"
+              formControlName="clientId"
+              placeholder="OneRoster client-ID"
+            />
+          </div>
+
+          <div class="modal-field">
+            <label for="editClientSecret">OneRoster Client-geheim</label>
+            <input
+              id="editClientSecret"
+              type="password"
+              formControlName="clientSecret"
+              placeholder="OneRoster client-geheim"
+            />
+          </div>
+
+          <button type="button" class="cred-help-toggle" (click)="toggleCredHelp()">
+            <lucide-icon [name]="HelpCircle" class="cred-help-toggle__icon"></lucide-icon>
+            {{ showCredHelp() ? 'Verberg uitleg' : 'Hulp bij credentials' }}
+            <lucide-icon [name]="ChevronDown" class="cred-help-toggle__chevron" [class.cred-help-toggle__chevron--open]="showCredHelp()"></lucide-icon>
+          </button>
+
+          @if (showCredHelp()) {
+            <div class="cred-help-content">
+              <p>Als je de OneRoster-credentials <strong>niet</strong> wilt wijzigen, laat deze velden dan leeg. De bestaande koppeling blijft behouden.</p>
+              <p>Vul beide velden alleen in als de OneRoster-koppeling in Smartschool is aangepast (bijvoorbeeld een nieuw client-ID of client-geheim).</p>
+              <p>Als je het domein wijzigt zonder nieuwe credentials in te vullen, worden de bestaande credentials gevalideerd tegen het nieuwe domein.</p>
+            </div>
+          }
+
+          @if (editStepError()) {
+            <div class="step-error">{{ editStepError() }}</div>
+          }
+
           <div class="modal-actions">
             <button
               type="button"
               class="btn-cancel"
               (click)="closeEditModal()"
-              [disabled]="isUpdating()"
+              [disabled]="isUpdating() || isValidatingEditCredentials()"
             >
               Annuleren
             </button>
 
-            <button type="submit" class="btn-save" [disabled]="isUpdating()">
-              {{ isUpdating() ? "Wijzigen..." : "Opslaan" }}
+            <button
+              type="submit"
+              class="btn-save"
+              [disabled]="isUpdating() || isValidatingEditCredentials()"
+            >
+              @if (isValidatingEditCredentials()) {
+                Controleren...
+              } @else if (isUpdating()) {
+                Wijzigen...
+              } @else {
+                Opslaan
+              }
             </button>
           </div>
         </form>
@@ -513,9 +482,9 @@
               campusForm.controls.postalCode.invalid &&
               campusForm.controls.postalCode.touched
             ) {
-              <small class="field-inline-error"
-                >Postcode moet groter zijn dan 0.</small
-              >
+              <small class="field-inline-error">
+                Postcode moet groter zijn dan 0.
+              </small>
             }
           </div>
 
@@ -542,9 +511,9 @@
               campusForm.controls.contactEmail.invalid &&
               campusForm.controls.contactEmail.touched
             ) {
-              <small class="field-inline-error"
-                >Vul een geldig e-mailadres in.</small
-              >
+              <small class="field-inline-error">
+                Vul een geldig e-mailadres in.
+              </small>
             }
           </div>
 
@@ -628,9 +597,9 @@
               campusForm.controls.postalCode.invalid &&
               campusForm.controls.postalCode.touched
             ) {
-              <small class="field-inline-error"
-                >Postcode moet groter zijn dan 0.</small
-              >
+              <small class="field-inline-error">
+                Postcode moet groter zijn dan 0.
+              </small>
             }
           </div>
 
@@ -657,9 +626,9 @@
               campusForm.controls.contactEmail.invalid &&
               campusForm.controls.contactEmail.touched
             ) {
-              <small class="field-inline-error"
-                >Vul een geldig e-mailadres in.</small
-              >
+              <small class="field-inline-error">
+                Vul een geldig e-mailadres in.
+              </small>
             }
           </div>
 
@@ -682,6 +651,74 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  }
+  @if (isPurgeModalOpen() && purgeTarget() !== null) {
+    <div
+      class="modal-overlay open purge-modal-overlay"
+      (pointerdown)="onOverlayPointerDown($event)"
+      (click)="onOverlayClick($event, 'edit')"
+    >
+      <div class="modal purge-modal" (click)="$event.stopPropagation()">
+        @if (isPurging()) {
+          <div class="purge-loading">
+            <div class="purge-spinner"></div>
+            <p>School en alle gerelateerde gegevens worden verwijderd...</p>
+            <p class="purge-loading-hint">Dit kan enkele ogenblikken duren.</p>
+          </div>
+        } @else {
+          <h2 class="purge-title">School volledig verwijderen</h2>
+
+          <div class="purge-warning-box">
+            <strong>Let op:</strong> Deze actie kan niet ongedaan worden gemaakt.
+            De volgende gegevens worden permanent verwijderd:
+            <ul>
+              <li>Gebruikers en hun rollen</li>
+              <li>Klassen en groepen</li>
+              <li>Boeken en boekexemplaren</li>
+              <li>Leningen en leningverlengingen</li>
+              <li>Leeslijsten en favorieten</li>
+              <li>Beoordelingen en rapporten</li>
+              <li>OneRoster-gegevens</li>
+              <li>Campussen</li>
+            </ul>
+          </div>
+
+          <p class="purge-confirm-label">
+            Typ <strong>{{ purgeTarget()?.domainName }}</strong> ter bevestiging:
+          </p>
+
+          <input
+            #purgeInput
+            type="text"
+            class="purge-confirm-input"
+            [value]="purgeConfirmInput()"
+            (input)="purgeConfirmInput.set(purgeInput.value)"
+            [placeholder]="purgeTarget()?.domainName ?? ''"
+            autocomplete="off"
+            spellcheck="false"
+          />
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn-cancel"
+              (click)="closePurgeModal()"
+            >
+              Annuleren
+            </button>
+
+            <button
+              type="button"
+              class="btn-danger"
+              [disabled]="!canConfirmPurge()"
+              (click)="executePurge()"
+            >
+              Deze school volledig verwijderen
+            </button>
+          </div>
+        }
       </div>
     </div>
   }

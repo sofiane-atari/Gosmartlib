@@ -8,6 +8,17 @@
 
   <!-- Main Content -->
   <div class="login-content">
+    <!-- School Unauthorized Error -->
+    @if (isSchoolUnauthorized()) {
+      <div class="error-box">
+        <h2>School niet gemachtigd</h2>
+        <p>Je school is niet gemachtigd voor deze website. Neem contact op met GO! Antwerpen voor hulp.</p>
+        <a [href]="contactUrl" target="_blank" rel="noopener noreferrer" class="contact-link">
+          Contacteer GO! Antwerpen
+        </a>
+      </div>
+    }
+
     <!-- Info Box -->
     <div class="info-box">
       <h2>Meld je aan met je schoolaccount</h2>

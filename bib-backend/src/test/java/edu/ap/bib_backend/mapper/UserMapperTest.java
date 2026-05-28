@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -30,7 +31,7 @@ class UserMapperTest {
         User user = new User();
         user.setId("s100");
         user.setRole(roleEntity);
-        user.setGroup(group);
+        user.setGroups(Set.of(group));
 
         // Act
         AuthUserDto result = userMapper.toDto(user);

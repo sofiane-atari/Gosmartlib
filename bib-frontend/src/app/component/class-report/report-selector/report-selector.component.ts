@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Users, Building2, BarChart3 } from 'lucide-angular';
+import { RoleService } from '../../../services/role-service/role.service';
 
 @Component({
   selector: 'app-report-selector',
@@ -17,53 +18,28 @@ export class ReportSelectorComponent {
     system: BarChart3
   };
 
-  constructor(private router: Router) {
-    console.log('ReportSelectorComponent initialized');
-  }
+  private readonly roleService = inject(RoleService);
+
+  protected readonly canViewSchoolReport = computed(() =>
+    this.roleService.isLibrarian() || this.roleService.isAdmin()
+  );
+
+  protected readonly canViewSystemReport = computed(() =>
+    this.roleService.isAdmin()
+  );
+
+  constructor(private router: Router) {}
 
   navigateToClassReport(): void {
-    console.log(' navigateToClassReport() called');
-    try {
-      const result = this.router.navigate(['/reports/class']);
-      console.log('Navigate result:', result);
-      result.then(success => {
-        console.log('Navigation successful:', success);
-      }).catch(error => {
-        console.error('Navigation error:', error);
-      });
-    } catch (error) {
-      console.error('Exception during navigation:', error);
-    }
+    void this.router.navigate(['/reports/class']);
   }
 
   navigateToCampusReport(): void {
-    console.log('navigateToCampusReport() called');
-    try {
-      const result = this.router.navigate(['/reports/school']);
-      console.log('Navigate result:', result);
-      result.then(success => {
-        console.log('Navigation successful:', success);
-      }).catch(error => {
-        console.error('Navigation error:', error);
-      });
-    } catch (error) {
-      console.error('Exception during navigation:', error);
-    }
+    void this.router.navigate(['/reports/school']);
   }
 
   navigateToSystemReport(): void {
-    console.log('navigateToSystemReport() called');
-    try {
-      const result = this.router.navigate(['/reports/system']);
-      console.log('Navigate result:', result);
-      result.then(success => {
-        console.log('Navigation successful:', success);
-      }).catch(error => {
-        console.error('Navigation error:', error);
-      });
-    } catch (error) {
-      console.error('Exception during navigation:', error);
-    }
+    void this.router.navigate(['/reports/system']);
   }
 }
 

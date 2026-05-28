@@ -91,7 +91,7 @@ export class RoleService {
    * @returns `true` if the user is allowed to manage books, otherwise `false`.
    */
   public canManageBooks(): boolean {
-    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN']);
   }
 
   /**

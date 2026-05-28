@@ -58,52 +58,54 @@
       </label>
     </div>
 
-    <div class="setting-row">
-      <div>
-        <h3>Uitgelichte leeslijsten</h3>
-        <p>Toon de uitgelichte leeslijsten van jouw campus in de catalogus.</p>
+    @if (currentUser()?.role === 'LIBRARIAN' || currentUser()?.role === 'ADMIN') {
+      <div class="setting-row">
+        <div>
+          <h3>Uitgelichte leeslijsten</h3>
+          <p>Toon de uitgelichte leeslijsten van jouw campus in de catalogus.</p>
+        </div>
+
+        <label class="switch">
+          <input
+            type="checkbox"
+            [checked]="userSettingsService.catalogFeaturedListsEnabled$ | async"
+            (change)="toggleCatalogFeaturedLists($event)"
+          />
+          <span class="slider"></span>
+        </label>
       </div>
 
-      <label class="switch">
-        <input
-          type="checkbox"
-          [checked]="userSettingsService.catalogFeaturedListsEnabled$ | async"
-          (change)="toggleCatalogFeaturedLists($event)"
-        />
-        <span class="slider"></span>
-      </label>
-    </div>
+      <div class="setting-row">
+        <div>
+          <h3>Meest gelezen</h3>
+          <p>Toon de meest gelezen boeken in de rechterzijbalk van de catalogus.</p>
+        </div>
 
-    <div class="setting-row">
-      <div>
-        <h3>Meest gelezen</h3>
-        <p>Toon de meest gelezen boeken in de rechterzijbalk van de catalogus.</p>
+        <label class="switch">
+          <input
+            type="checkbox"
+            [checked]="userSettingsService.catalogMostReadEnabled$ | async"
+            (change)="toggleCatalogMostRead($event)"
+          />
+          <span class="slider"></span>
+        </label>
       </div>
 
-      <label class="switch">
-        <input
-          type="checkbox"
-          [checked]="userSettingsService.catalogMostReadEnabled$ | async"
-          (change)="toggleCatalogMostRead($event)"
-        />
-        <span class="slider"></span>
-      </label>
-    </div>
+      <div class="setting-row">
+        <div>
+          <h3>Nieuwste boeken</h3>
+          <p>Toon de nieuwste boeken in de rechterzijbalk van de catalogus.</p>
+        </div>
 
-    <div class="setting-row">
-      <div>
-        <h3>Nieuwste boeken</h3>
-        <p>Toon de nieuwste boeken in de rechterzijbalk van de catalogus.</p>
+        <label class="switch">
+          <input
+            type="checkbox"
+            [checked]="userSettingsService.catalogNewestEnabled$ | async"
+            (change)="toggleCatalogNewest($event)"
+          />
+          <span class="slider"></span>
+        </label>
       </div>
-
-      <label class="switch">
-        <input
-          type="checkbox"
-          [checked]="userSettingsService.catalogNewestEnabled$ | async"
-          (change)="toggleCatalogNewest($event)"
-        />
-        <span class="slider"></span>
-      </label>
-    </div>
+    }
   </section>
 </div>

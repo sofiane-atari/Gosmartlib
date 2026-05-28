@@ -1,0 +1,200 @@
+.dt-wrapper {
+  width: 100%;
+}
+
+.dt-card {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 14px;
+  overflow: visible;
+}
+
+.dt-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.dt-table th {
+  text-align: left;
+  color: #1a0a10;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 13px 10px;
+  border-bottom: 1px solid #f0e4e8;
+  white-space: nowrap;
+}
+
+.dt-table th:first-child {
+  padding-left: 18px;
+}
+
+.dt-table th:last-child {
+  padding-right: 18px;
+}
+
+.dt-table td {
+  padding: 14px 10px;
+  border-bottom: 1px solid #f0e4e8;
+  vertical-align: middle;
+}
+
+.dt-table td:first-child {
+  padding-left: 18px;
+}
+
+.dt-table td:last-child {
+  padding-right: 18px;
+}
+
+.dt-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dt-th--center,
+.dt-td--center {
+  text-align: center !important;
+}
+
+.dt-th--right,
+.dt-td--right {
+  text-align: right !important;
+}
+
+.dt-paging {
+  margin-top: 24px;
+}
+
+.dt-empty {
+  padding: 28px;
+  text-align: center;
+  color: #7a5560;
+}
+
+@keyframes dt-skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.dt-skeleton-table {
+  padding: 8px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dt-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0e4e8;
+}
+
+.dt-skeleton-row:last-child {
+  border-bottom: none;
+}
+
+.dt-skeleton-cell {
+  height: 16px;
+  border-radius: 8px;
+  flex: 1;
+  min-width: 0;
+  background: linear-gradient(
+    90deg,
+    #f1e8eb 20%,
+    #e6d6dc 50%,
+    #f1e8eb 80%
+  );
+  background-size: 200% 100%;
+  animation: dt-skeleton-loading 1.4s ease-in-out infinite;
+}
+
+.dt-skeleton-cell--sm {
+  flex: 0.4;
+}
+
+/* Responsive: card mode */
+.dt-wrapper--compact .dt-card {
+  overflow: visible;
+  background: transparent;
+  border: none;
+}
+
+.dt-wrapper--compact .dt-table,
+.dt-wrapper--compact .dt-table thead,
+.dt-wrapper--compact .dt-table tbody,
+.dt-wrapper--compact .dt-table tr,
+.dt-wrapper--compact .dt-table th,
+.dt-wrapper--compact .dt-table td {
+  display: block;
+}
+
+.dt-wrapper--compact .dt-table thead {
+  display: none;
+}
+
+.dt-wrapper--compact .dt-table tr {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.dt-wrapper--compact .dt-table td {
+  padding: 8px 0;
+  border: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dt-wrapper--compact .dt-table td:first-child {
+  padding-left: 0;
+}
+
+.dt-wrapper--compact .dt-table td:last-child {
+  padding-right: 0;
+  border-bottom: none;
+}
+
+.dt-wrapper--compact .dt-table td::before {
+  content: attr(data-label);
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a0a10;
+  flex: 0 0 110px;
+  padding-top: 2px;
+  text-align: left;
+}
+
+.dt-wrapper--compact .dt-table td.dt-td--right {
+  justify-content: flex-start;
+}
+
+.dt-wrapper--compact .dt-skeleton-table {
+  background: transparent;
+  border: none;
+  padding: 0;
+  gap: 12px;
+}
+
+.dt-wrapper--compact .dt-skeleton-row {
+  background: #fff;
+  border: 1px solid #f0e4e8;
+  border-radius: 14px;
+  padding: 16px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .dt-wrapper--compact .dt-table tr {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c0a0aa transparent;
+  }
+}

@@ -107,6 +107,10 @@
   border-left: 3px solid var(--main-color);
   padding-left: 9px;
 }
+.page-header__text {
+  text-align: center;
+  justify-self: center;
+}
 
 .page-header__text h1 {
   font-size: 28px;

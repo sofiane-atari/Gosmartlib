@@ -31,64 +31,56 @@ class GroupServiceTest {
 
     @Test
     void GivenExistingGroupName_WhenGetGroup_ThenReturnGroup() {
-        // Arrange
+        Long schoolId = 1L;
         String groupName = "1A";
         Group existingGroup = new Group();
         existingGroup.setName(groupName);
-        when(groupRepository.findById(groupName)).thenReturn(Optional.of(existingGroup));
+        when(groupRepository.findBySchoolIdAndName(schoolId, groupName)).thenReturn(Optional.of(existingGroup));
 
-        // Act
-        Group result = groupService.getGroup(groupName);
+        Group result = groupService.getGroup(schoolId, groupName);
 
-        // Assert
         assertNotNull(result);
         assertEquals(groupName, result.getName());
-        verify(groupRepository, times(1)).findById(groupName);
+        verify(groupRepository, times(1)).findBySchoolIdAndName(schoolId, groupName);
     }
 
     @Test
     void GivenNonExistingGroupName_WhenGetGroup_ThenThrowRuntimeException() {
-        // Arrange
+        Long schoolId = 1L;
         String groupName = "9Z";
-        when(groupRepository.findById(groupName)).thenReturn(Optional.empty());
+        when(groupRepository.findBySchoolIdAndName(schoolId, groupName)).thenReturn(Optional.empty());
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> groupService.getGroup(groupName));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> groupService.getGroup(schoolId, groupName));
 
-        // Assert
         assertEquals("Groep niet gevonden", exception.getMessage());
-        verify(groupRepository, times(1)).findById(groupName);
+        verify(groupRepository, times(1)).findBySchoolIdAndName(schoolId, groupName);
     }
 
     @Test
     void GivenGroupNameThatDoesNotExist_WhenCreateGroup_ThenSaveAndReturnGroup() {
-        // Arrange
+        Long schoolId = 1L;
         String groupName = "2B";
-        when(groupRepository.existsById(groupName)).thenReturn(false);
+        when(groupRepository.existsBySchoolIdAndName(schoolId, groupName)).thenReturn(false);
         when(groupRepository.save(any(Group.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Act
-        Group result = groupService.createGroup(groupName);
+        Group result = groupService.createGroup(schoolId, groupName);
 
-        // Assert
         assertNotNull(result);
         assertEquals(groupName, result.getName());
-        verify(groupRepository, times(1)).existsById(groupName);
+        verify(groupRepository, times(1)).existsBySchoolIdAndName(schoolId, groupName);
         verify(groupRepository, times(1)).save(any(Group.class));
     }
 
     @Test
     void GivenGroupNameThatAlreadyExists_WhenCreateGroup_ThenThrowRuntimeException() {
-        // Arrange
+        Long schoolId = 1L;
         String groupName = "2B";
-        when(groupRepository.existsById(groupName)).thenReturn(true);
+        when(groupRepository.existsBySchoolIdAndName(schoolId, groupName)).thenReturn(true);
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> groupService.createGroup(groupName));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> groupService.createGroup(schoolId, groupName));
 
-        // Assert
         assertEquals("Groep bestaat al", exception.getMessage());
-        verify(groupRepository, times(1)).existsById(groupName);
+        verify(groupRepository, times(1)).existsBySchoolIdAndName(schoolId, groupName);
         verify(groupRepository, never()).save(any(Group.class));
     }
 }

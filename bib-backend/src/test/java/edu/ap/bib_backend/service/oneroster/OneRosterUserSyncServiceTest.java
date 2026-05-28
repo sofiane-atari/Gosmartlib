@@ -3,7 +3,6 @@ package edu.ap.bib_backend.service.oneroster;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -34,59 +33,50 @@ class OneRosterUserSyncServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private RoleService roleService;
-    @Mock
     private GroupService groupService;
-
     @Mock
-    private CampusRepository campusRepository;
+    private RoleService roleService;
 
     @InjectMocks
     private OneRosterUserSyncService syncService;
 
     @Test
     void Given_Credentials_When_SyncAllSchools_Then_FetchesUsersAndUpserts() {
-        // Arrange
         School school = new School();
         school.setId(1L);
         school.setDomainName("test.smartschool.be");
-        
+
         OneRosterCredential credential = new OneRosterCredential();
         credential.setSchool(school);
-        
+
         when(credentialRepository.findAll()).thenReturn(List.of(credential));
         when(schoolRepository.findById(1L)).thenReturn(Optional.of(school));
-        
+
         Map<String, Object> rosterUser = Map.of(
-            "metadata", Map.of("smsc.legacyIdentifier", "user1"),
-            "role", "teacher",
-            "sourcedId", "sourced-1"
+                "metadata", Map.of("smsc.legacyIdentifier", "user1"),
+                "role", "teacher",
+                "sourcedId", "sourced-1"
         );
         when(oneRosterClient.fetchUsers("test.smartschool.be")).thenReturn(List.of(rosterUser));
         when(userRepository.findById("user1")).thenReturn(Optional.empty());
         when(roleService.getRoleEntity("teacher")).thenReturn(null);
 
-        // Act
         syncService.syncAllSchools();
 
-        // Assert
         verify(oneRosterClient).fetchUsers("test.smartschool.be");
         verify(userRepository).save(any(User.class));
     }
 
     @Test
     void Given_MissingLegacyId_When_SyncSchoolUsers_Then_SkipsUser() {
-        // Arrange
         School school = new School();
         school.setDomainName("test.smartschool.be");
-        
+
         Map<String, Object> rosterUser = Map.of(
-            "metadata", Map.of("wrongKey", "user1")
+                "metadata", Map.of("wrongKey", "user1")
         );
         when(oneRosterClient.fetchUsers("test.smartschool.be")).thenReturn(List.of(rosterUser));
 
-        // Act
-        // Accessing private method via syncAllSchools flow or just syncAllSchools
         OneRosterCredential cred = new OneRosterCredential();
         cred.setSchool(school);
         when(credentialRepository.findAll()).thenReturn(List.of(cred));
@@ -94,7 +84,6 @@ class OneRosterUserSyncServiceTest {
 
         syncService.syncAllSchools();
 
-        // Assert
         verify(userRepository, never()).save(any());
     }
 }

@@ -23,11 +23,13 @@ import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 class OneRosterDataService {
     private final RestTemplate restTemplate;
     private final String apiPath;
+    private final String baseUrl;
     private final OneRosterLabelFilter labelFilter;
 
-    OneRosterDataService(RestTemplate restTemplate, String apiPath, OneRosterLabelFilter labelFilter) {
+    OneRosterDataService(RestTemplate restTemplate, String apiPath, String baseUrl, OneRosterLabelFilter labelFilter) {
         this.restTemplate = restTemplate;
         this.apiPath = apiPath;
+        this.baseUrl = baseUrl;
         this.labelFilter = labelFilter;
     }
 
@@ -263,6 +265,9 @@ class OneRosterDataService {
     }
 
     private URI buildApiUri(String host, String endpoint) {
+        if (baseUrl != null && !baseUrl.isEmpty()) {
+            return URI.create(baseUrl + apiPath + endpoint);
+        }
         return URI.create("https://" + host + apiPath + endpoint);
     }
 }

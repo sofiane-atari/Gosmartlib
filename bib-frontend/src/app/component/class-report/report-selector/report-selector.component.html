@@ -31,53 +31,57 @@
       </div>
     </button>
 
-    <!-- Schoolrapportage Card -->
-    <button
-      type="button"
-      class="report-option-card"
-      (click)="navigateToCampusReport()"
-      title="Ga naar Schoolrapportage">
-      <div class="card-header">
-        <div class="icon-wrapper">
-          <lucide-icon [name]="icons.building" width="32" height="32"></lucide-icon>
+    @if (canViewSchoolReport()) {
+      <!-- Schoolrapportage Card -->
+      <button
+        type="button"
+        class="report-option-card"
+        (click)="navigateToCampusReport()"
+        title="Ga naar Schoolrapportage">
+        <div class="card-header">
+          <div class="icon-wrapper">
+            <lucide-icon [name]="icons.building" width="32" height="32"></lucide-icon>
+          </div>
         </div>
-      </div>
 
-      <div class="card-content">
-        <h2>Schoolrapportage</h2>
-        <p>Bekijk populaire boeken, uitleenpieken en klasactiviteit over alle campussen heen.</p>
-      </div>
-
-      <div class="card-arrow">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </button>
-
-    <!-- Systeemrapportage Card -->
-    <button
-      type="button"
-      class="report-option-card"
-      (click)="navigateToSystemReport()"
-      title="Ga naar Systeemrapportage">
-      <div class="card-header">
-        <div class="icon-wrapper">
-          <lucide-icon [name]="icons.system" width="32" height="32"></lucide-icon>
+        <div class="card-content">
+          <h2>Schoolrapportage</h2>
+          <p>Bekijk populaire boeken, uitleenpieken en klasactiviteit over alle campussen heen.</p>
         </div>
-      </div>
 
-      <div class="card-content">
-        <h2>Systeemrapportage</h2>
-        <p>Bekijk systeembrede KPI's, catalogusstatistieken, schoolactiviteit en syncstatus.</p>
-      </div>
+        <div class="card-arrow">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </button>
+    }
 
-      <div class="card-arrow">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </button>
+    @if (canViewSystemReport()) {
+      <!-- Systeemrapportage Card -->
+      <button
+        type="button"
+        class="report-option-card"
+        (click)="navigateToSystemReport()"
+        title="Ga naar Systeemrapportage">
+        <div class="card-header">
+          <div class="icon-wrapper">
+            <lucide-icon [name]="icons.system" width="32" height="32"></lucide-icon>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <h2>Systeemrapportage</h2>
+          <p>Bekijk systeembrede KPI's, catalogusstatistieken, schoolactiviteit en syncstatus.</p>
+        </div>
+
+        <div class="card-arrow">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </button>
+    }
   </div>
 </section>
 

@@ -15,6 +15,7 @@ import { LoansService } from '../../../services/loan/loans.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { PagingComponent } from '../../shared/paging/paging.component';
+import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
 @Component({
   selector: 'app-loan-history',
@@ -24,7 +25,8 @@ import { PagingComponent } from '../../shared/paging/paging.component';
     LucideAngularModule,
     ButtonHoverHelpComponent,
     PagingComponent,
-  ],
+    StatCardComponent
+],
   templateUrl: './loan-history.component.html',
   styleUrl: './loan-history.component.css',
 })
