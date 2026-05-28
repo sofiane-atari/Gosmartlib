@@ -37,6 +37,9 @@ export class LessonTipAttachmentsPanelComponent {
   protected readonly uploadProgress = signal<number | null>(null);
   protected readonly deletingAttachmentId = signal<number | null>(null);
 
+  private static readonly MAX_ATTACHMENT_SIZE_MB = 50;
+  private static readonly BYTES_PER_MB = 1024 * 1024;
+
   public constructor() {
     effect(
       () => {
@@ -58,6 +61,14 @@ export class LessonTipAttachmentsPanelComponent {
 
     if (!file) {
       this.toastService.show('Selecteer eerst een bestand.', 'error');
+      return;
+    }
+
+    if (this.isFileTooLarge(file)) {
+      this.toastService.show(
+        `Dit bestand is te groot. Upload maximaal ${LessonTipAttachmentsPanelComponent.MAX_ATTACHMENT_SIZE_MB} MB per bijlage.`,
+        'error',
+      );
       return;
     }
 
@@ -87,8 +98,9 @@ export class LessonTipAttachmentsPanelComponent {
         error: () => {
           this.isUploading.set(false);
           this.uploadProgress.set(null);
+
           this.toastService.show(
-            'De bijlage kon niet worden opgeladen.',
+            `De bijlage kon niet worden opgeladen. Controleer of het bestand kleiner is dan ${LessonTipAttachmentsPanelComponent.MAX_ATTACHMENT_SIZE_MB} MB.`,
             'error',
           );
         },
@@ -189,5 +201,13 @@ export class LessonTipAttachmentsPanelComponent {
           );
         },
       });
+  }
+
+  private isFileTooLarge(file: File): boolean {
+    return (
+      file.size >
+      LessonTipAttachmentsPanelComponent.MAX_ATTACHMENT_SIZE_MB *
+        LessonTipAttachmentsPanelComponent.BYTES_PER_MB
+    );
   }
 }
