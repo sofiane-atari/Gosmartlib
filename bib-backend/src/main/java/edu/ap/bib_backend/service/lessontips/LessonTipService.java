@@ -12,6 +12,9 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
 import edu.ap.bib_backend.mapper.lessontips.LessonTipMapper;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,12 +82,15 @@ public class LessonTipService {
     }
 
     @Transactional(readOnly = true)
-    public List<LessonTipResponseDto> getAllLessonTips(Long bookId) {
-        List<LessonTip> lessonTips = resolveLessonTips(bookId);
+    public Page<LessonTipResponseDto> getAllLessonTips(
+            Long bookId,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
 
-        return lessonTips.stream()
-                .map(this::toResponse)
-                .toList();
+        return resolveLessonTips(bookId, pageable)
+                .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
@@ -163,13 +169,13 @@ public class LessonTipService {
         }
     }
 
-    private List<LessonTip> resolveLessonTips(Long bookId) {
+    private Page<LessonTip> resolveLessonTips(Long bookId, Pageable pageable) {
         if (bookId == null) {
-            return lessonTipRepository.findAllByOrderByUpdatedAtDesc();
+            return lessonTipRepository.findAllByOrderByUpdatedAtDesc(pageable);
         }
 
         ensureBookExists(bookId);
-        return lessonTipRepository.findAllByBookLinksBookIdOrderByUpdatedAtDesc(bookId);
-    }
+        return lessonTipRepository.findAllByBookLinksBookIdOrderByUpdatedAtDesc(bookId, pageable);
+}
 
 }

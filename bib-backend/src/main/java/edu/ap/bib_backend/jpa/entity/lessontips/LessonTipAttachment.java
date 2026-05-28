@@ -2,6 +2,7 @@ package edu.ap.bib_backend.jpa.entity.lessontips;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -32,14 +34,16 @@ public class LessonTipAttachment {
     @Column(name = "original_file_name", nullable = false, length = 255)
     private String originalFileName;
 
-    @Column(name = "stored_file_name", nullable = false, unique = true, length = 255)
-    private String storedFileName;
-
     @Column(name = "content_type", nullable = false, length = 150)
     private String contentType;
 
     @Column(name = "file_size", nullable = false)
     private Long fileSize;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "file_data", nullable = false, columnDefinition = "LONGBLOB")
+    private byte[] fileData;
 
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private LocalDateTime uploadedAt;

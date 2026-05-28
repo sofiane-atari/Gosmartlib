@@ -12,4 +12,10 @@ public interface LessonTipAttachmentRepository extends JpaRepository<LessonTipAt
     List<LessonTipAttachment> findAllByLessonTipIdOrderByUploadedAtDesc(Long LessonTipId);
 
     Optional<LessonTipAttachment> findByIdAndLessonTipId(Long id, Long LessonTipId);
+
+    boolean existsByLessonTipIdAndOriginalFileNameIgnoreCaseAndFileSize(
+            Long lessonTipId,
+            String originalFileName,
+            Long fileSize
+    );
 }

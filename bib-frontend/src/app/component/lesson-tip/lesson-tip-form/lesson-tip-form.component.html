@@ -9,13 +9,28 @@
     <div class="form-group">
       <label for="title">Titel *</label>
       <input
-        id="title"
-        name="title"
         type="text"
+        class="form-input"
+        [class.form-input--invalid]="hasFieldError('title')"
         [ngModel]="title()"
+        [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="title.set($event)"
+        (blur)="markFieldAsTouched('title')"
         placeholder="Bijvoorbeeld begrijpend lezen met jeugdboeken"
       />
+
+      @if (getFieldError("title"); as errorMessage) {
+        @if (hasFieldError("title")) {
+          <p class="field-error">{{ errorMessage }}</p>
+        }
+      }
+
+      <p
+        class="field-counter"
+        [class.field-counter--invalid]="getRemainingCharacters('title')! < 0"
+      >
+        {{ title().length }}/{{ titleMaxLength }} tekens
+      </p>
     </div>
 
     <div class="form-group">
@@ -24,6 +39,7 @@
         id="materialType"
         name="materialType"
         [ngModel]="lessonTipType()"
+        [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="lessonTipType.set($event)"
       >
         @for (option of lessonTipTypeOptions; track option.value) {
@@ -36,51 +52,91 @@
   <div class="form-group full-width">
     <label for="description">Beschrijving *</label>
     <textarea
-      id="description"
-      name="description"
-      rows="6"
+      class="form-textarea"
+      [class.form-input--invalid]="hasFieldError('description')"
       [ngModel]="description()"
+      [ngModelOptions]="{ standalone: true }"
       (ngModelChange)="description.set($event)"
+      (blur)="markFieldAsTouched('description')"
       placeholder="Beschrijf waarvoor deze lestip gebruikt kan worden"
     ></textarea>
+
+    @if (getFieldError("description"); as errorMessage) {
+      @if (hasFieldError("description")) {
+        <p class="field-error">{{ errorMessage }}</p>
+      }
+    }
+
+    <p
+      class="field-counter"
+      [class.field-counter--invalid]="
+        getRemainingCharacters('description')! < 0
+      "
+    >
+      {{ description().length }}/{{ descriptionMaxLength }} tekens
+    </p>
   </div>
 
   <div class="form-row">
     <div class="form-group">
       <label for="subject">Vak</label>
       <input
-        id="subject"
-        name="subject"
         type="text"
+        class="form-input"
+        [class.form-input--invalid]="hasFieldError('subject')"
         [ngModel]="subject()"
+        [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="subject.set($event)"
+        (blur)="markFieldAsTouched('subject')"
         placeholder="Bijvoorbeeld Nederlands"
       />
+
+      @if (getFieldError("subject"); as errorMessage) {
+        @if (hasFieldError("subject")) {
+          <p class="field-error">{{ errorMessage }}</p>
+        }
+      }
     </div>
 
     <div class="form-group">
       <label for="educationLevel">Niveau</label>
       <input
-        id="educationLevel"
-        name="educationLevel"
         type="text"
+        class="form-input"
+        [class.form-input--invalid]="hasFieldError('educationLevel')"
         [ngModel]="educationLevel()"
+        [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="educationLevel.set($event)"
+        (blur)="markFieldAsTouched('educationLevel')"
         placeholder="Bijvoorbeeld eerste graad"
       />
+
+      @if (getFieldError("educationLevel"); as errorMessage) {
+        @if (hasFieldError("educationLevel")) {
+          <p class="field-error">{{ errorMessage }}</p>
+        }
+      }
     </div>
   </div>
 
   <div class="form-group full-width">
     <label for="keywords">Trefwoorden</label>
     <input
-      id="keywords"
-      name="keywords"
       type="text"
+      class="form-input"
+      [class.form-input--invalid]="hasFieldError('keywords')"
       [ngModel]="keywords()"
+      [ngModelOptions]="{ standalone: true }"
       (ngModelChange)="keywords.set($event)"
-      placeholder="Bijvoorbeeld lezen, evaluatie, taal"
+      (blur)="markFieldAsTouched('keywords')"
+      placeholder="Bijvoorbeeld lezen, woordenschat, toets"
     />
+
+    @if (getFieldError("keywords"); as errorMessage) {
+      @if (hasFieldError("keywords")) {
+        <p class="field-error">{{ errorMessage }}</p>
+      }
+    }
   </div>
 
   @if (showSubmitButton()) {

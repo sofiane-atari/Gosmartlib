@@ -42,9 +42,7 @@ import { Availability } from '../../../model/enums/availability.enum';
 import { Review } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
-import {
-  ReadingListService
-} from '../../../services/reading-list/reading-list.service';
+import { ReadingListService } from '../../../services/reading-list/reading-list.service';
 import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../services/role-service/role.service';
@@ -233,7 +231,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   }
 
   public openLessonTipDetail(lessonTipId: number): void {
-    void this.router.navigate(['/lesson', lessonTipId]);
+    void this.router.navigate([`/${LESSON_TIP_PATHS.root}`, lessonTipId]);
   }
 
   public openAllLessonTipsForBook(): void {
@@ -912,6 +910,21 @@ export class BookDetailComponent implements OnDestroy, OnInit {
         },
       });
     }
+  }
+
+  public createLessonTipForCurrentBook(): void {
+    const bookId = this.selectedBook?.id;
+
+    if (!bookId) {
+      return;
+    }
+
+    void this.router.navigate(
+      [`/${LESSON_TIP_PATHS.root}/${LESSON_TIP_PATHS.create}`],
+      {
+        queryParams: { bookId },
+      },
+    );
   }
 
   ngOnDestroy(): void {

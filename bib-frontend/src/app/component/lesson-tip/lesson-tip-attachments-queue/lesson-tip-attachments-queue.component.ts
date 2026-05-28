@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 import { ToastService } from '../../../services/toast/toast.service';
 import { FileUploadComponent } from '../../shared/file-upload/file-upload.component';
@@ -42,15 +49,8 @@ export class LessonTipAttachmentsQueueComponent {
       return;
     }
 
-    const alreadyQueued = this.queuedFiles().some(
-      (queuedFile) =>
-        queuedFile.name === selectedFile.name &&
-        queuedFile.size === selectedFile.size &&
-        queuedFile.lastModified === selectedFile.lastModified,
-    );
-
-    if (alreadyQueued) {
-      this.toastService.show('Dit bestand staat al in de wachtrij.', 'error');
+    if (this.hasQueuedFileWithSameNameAndSize(selectedFile)) {
+      this.toastService.show('Deze bijlage staat al in de wachtrij.', 'error');
       return;
     }
 
@@ -68,5 +68,15 @@ export class LessonTipAttachmentsQueueComponent {
   public clearQueue(): void {
     this.selectedFile.set(null);
     this.queueChanged.emit([]);
+  }
+
+  private hasQueuedFileWithSameNameAndSize(file: File): boolean {
+    const normalizedFileName = file.name.trim().toLowerCase();
+
+    return this.queuedFiles().some(
+      (queuedFile) =>
+        queuedFile.name.trim().toLowerCase() === normalizedFileName &&
+        queuedFile.size === file.size,
+    );
   }
 }

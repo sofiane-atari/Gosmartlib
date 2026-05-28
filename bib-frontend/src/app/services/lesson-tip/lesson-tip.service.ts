@@ -1,11 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { from, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   CreateLessonTipRequest,
   LessonTip,
 } from '../../model/lesson-tip/lesson-tip.model';
+import { PageingOpt } from '../../model/shared/paging/PageingOpt.model';
+import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 
 @Injectable({
   providedIn: 'root',
@@ -14,14 +16,21 @@ export class LessonTipService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/lesson-tips`;
 
-  public getAll(bookId?: number): Observable<LessonTip[]> {
-    let params = new HttpParams();
+  public getAll(
+    bookId?: number,
+    pagingOptions: PageingOpt = { page: 0, pageSize: 10 },
+  ): Observable<PaginatedResponse<LessonTip>> {
+    let params = new HttpParams()
+      .set('page', pagingOptions.page)
+      .set('size', pagingOptions.pageSize);
 
     if (bookId !== undefined) {
       params = params.set('bookId', bookId);
     }
 
-    return this.http.get<LessonTip[]>(this.baseUrl, { params });
+    return this.http.get<PaginatedResponse<LessonTip>>(this.baseUrl, {
+      params,
+    });
   }
 
   public getById(id: number): Observable<LessonTip> {

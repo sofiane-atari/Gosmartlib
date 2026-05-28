@@ -14,17 +14,32 @@
           class="action-button action-button--primary"
           (click)="navigateToCreatePage()"
         >
-          Lestip toevoegen
+          + Lestip toevoegen
         </button>
       </div>
     </div>
 
-    @if (filteredBookId(); as activeBookId) {
+    @if (filteredBookId()) {
       <section class="state-panel state-panel--compact" @fadeInUp>
-        <p>
-          Je bekijkt momenteel alleen lestips die gekoppeld zijn aan boek
-          {{ activeBookId }}.
-        </p>
+        @if (isLoadingBookContext()) {
+          <p>Boekgegevens worden geladen...</p>
+        } @else {
+          @if (filteredBook(); as book) {
+            <p>
+              Je bekijkt momenteel alleen lestips die gekoppeld zijn aan
+              <strong>{{ book.title }}</strong
+              >.
+
+              @if (book.isbn) {
+                <span>ISBN: {{ book.isbn }}</span>
+              }
+            </p>
+          } @else {
+            <p>
+              Je bekijkt momenteel alleen lestips voor het geselecteerde boek.
+            </p>
+          }
+        }
 
         <button
           type="button"
@@ -74,6 +89,12 @@
           />
         }
       </section>
+    }
+    @if (pagingMeta().totalPages > 1) {
+      <app-paging
+        [meta]="pagingMeta()"
+        (pageChange)="handlePageChange($event)"
+      />
     }
   </div>
 </div>

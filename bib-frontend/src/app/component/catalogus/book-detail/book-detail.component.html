@@ -66,7 +66,9 @@
             }
 
             <span>
-              {{ isSubscribed() ? "Melding aan" : "Melding bij beschikbaarheid" }}
+              {{
+                isSubscribed() ? "Melding aan" : "Melding bij beschikbaarheid"
+              }}
             </span>
           </button>
         </app-button-hover-help>
@@ -194,31 +196,28 @@
 
         @if (roleService.canManageLessonTip()) {
           <section class="detail-section">
-            <div class="detail-section__header" style="margin-bottom: 16px">
-              <p
-                class="detail-section__eyebrow"
-                style="
-                  margin: 0 0 4px;
-                  font-size: 12px;
-                  font-weight: 700;
-                  text-transform: uppercase;
-                  color: var(--main-color, #8a1e41);
-                "
-              >
-                Lestips
-              </p>
+            <div
+              class="detail-section__header detail-section__header--with-action"
+            >
+              <div class="detail-section__heading-content">
+                <p class="detail-section__eyebrow">Lestips</p>
 
-              <h2
-                class="detail-section__title"
-                style="
-                  margin: 0;
-                  font-size: 1.2rem;
-                  font-weight: 800;
-                  color: #1f2937;
-                "
+                <h2 class="detail-section__title">Lestip(s) bij dit boek</h2>
+              </div>
+
+              <app-button-hover-help
+                class="add-lesson-tip-help"
+                text="Maak een nieuwe lestip aan en koppel dit boek automatisch."
               >
-                Lestip(s) bij dit boek
-              </h2>
+                <button
+                  type="button"
+                  class="add-lesson-tip-button"
+                  (click)="createLessonTipForCurrentBook()"
+                >
+                  <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+                  <span>Lestip toevoegen</span>
+                </button>
+              </app-button-hover-help>
             </div>
 
             @if (isLoadingLessonTips()) {
@@ -408,7 +407,6 @@
                                   {{ getConditionLabel(copy.condition) }}
                                 </span>
                               }
-
                             </div>
 
                             @if (roleService.canAccessAdminOnlyFeatures()) {
@@ -461,8 +459,6 @@
           <h2 class="section-title">Samenvatting</h2>
           <p class="summary-text">{{ selectedBook.description }}</p>
         </section>
-
-
 
         <section class="genres-section">
           <h2 class="section-title">Genres</h2>

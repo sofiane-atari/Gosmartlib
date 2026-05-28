@@ -9,6 +9,13 @@ body {
   font-family: var(--main-font);
 }
 
+button,
+input,
+textarea,
+select {
+  font: var(--main-font);
+}
+
 *,
 *:before,
 *:after {
