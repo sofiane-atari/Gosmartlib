@@ -71,6 +71,13 @@ public class LessonTipAttachmentService {
         LessonTip lessonTip = findLessonTipForModification(lessonTipId, authentication);
         validateFile(file);
 
+        String originalFileName = resolveOriginalFileName(file);
+        assertAttachmentWithSameNameAndSizeDoesNotExist(
+                lessonTipId,
+                originalFileName,
+                file.getSize()
+        );
+
         LessonTipAttachment attachment = buildAttachment(lessonTip, file);
         LessonTipAttachment savedAttachment = lessonTipAttachmentRepository.save(attachment);
 
@@ -197,5 +204,24 @@ public class LessonTipAttachmentService {
         }
 
         return extension;
+    }
+
+    private void assertAttachmentWithSameNameAndSizeDoesNotExist(
+            Long lessonTipId,
+            String originalFileName,
+            Long fileSize
+    ) {
+        boolean attachmentExists =
+                lessonTipAttachmentRepository.existsByLessonTipIdAndOriginalFileNameIgnoreCaseAndFileSize(
+                        lessonTipId,
+                        originalFileName,
+                        fileSize
+                );
+
+        if (attachmentExists) {
+            throw new IllegalArgumentException(
+                    "Deze bijlage bestaat al voor deze lestip."
+            );
+        }
     }
 }

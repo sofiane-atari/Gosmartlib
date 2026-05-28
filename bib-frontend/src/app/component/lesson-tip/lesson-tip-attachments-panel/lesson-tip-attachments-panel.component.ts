@@ -72,6 +72,14 @@ export class LessonTipAttachmentsPanelComponent {
       return;
     }
 
+    if (this.hasAttachmentWithSameName(file)) {
+      this.toastService.show(
+        'Er bestaat al een bijlage met deze bestandsnaam.',
+        'error',
+      );
+      return;
+    }
+
     this.isUploading.set(true);
     this.uploadProgress.set(0);
 
@@ -208,6 +216,15 @@ export class LessonTipAttachmentsPanelComponent {
       file.size >
       LessonTipAttachmentsPanelComponent.MAX_ATTACHMENT_SIZE_MB *
         LessonTipAttachmentsPanelComponent.BYTES_PER_MB
+    );
+  }
+
+  private hasAttachmentWithSameName(file: File): boolean {
+    const normalizedFileName = file.name.trim().toLowerCase();
+
+    return this.attachments().some(
+      (attachment) =>
+        attachment.originalFileName.trim().toLowerCase() === normalizedFileName,
     );
   }
 }
