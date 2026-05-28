@@ -122,9 +122,15 @@ public class SecurityConfig {
                                                         "/books/upload/**")
                                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
-                                        auth.requestMatchers("/genres/**")
-                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(), Role.ADMIN.name(),
-                                                                        Role.LIBRARIAN.name());
+                                        auth.requestMatchers(HttpMethod.POST, "/genres/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.PUT, "/genres/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.DELETE, "/genres/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.GET, "/genres/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/loans/**")
                                                         .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
@@ -135,6 +141,14 @@ public class SecurityConfig {
 
                                         auth.requestMatchers("/schools/**")
                                                         .hasRole(Role.ADMIN.name());
+
+                                        auth.requestMatchers(HttpMethod.POST, "/campuses/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.PUT, "/campuses/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.GET, "/campuses/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/reports/**")
                                                         .hasAnyRole(Role.TEACHER.name(),
