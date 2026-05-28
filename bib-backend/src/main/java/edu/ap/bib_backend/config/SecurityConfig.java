@@ -132,9 +132,15 @@ public class SecurityConfig {
                                                         .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                         Role.LIBRARIAN.name(), Role.ADMIN.name());
 
-                                        auth.requestMatchers("/loans/**")
+                                        auth.requestMatchers(HttpMethod.POST, "/loans/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.PATCH, "/loans/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.GET, "/loans/me/**")
                                                         .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                         Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.GET, "/loans/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/schools/dev-mode-enabled")
                                                         .permitAll();
