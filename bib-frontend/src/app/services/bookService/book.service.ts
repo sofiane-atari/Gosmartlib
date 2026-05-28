@@ -1,6 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
+import { AuthService } from '../authorization/auth.service';
 import { Book, BookCondition } from '../../model/book/book.model';
 import { BookPreview } from '../../model/book/book-preview.model';
 import { environment } from '../../../environments/environment';
@@ -20,6 +22,8 @@ import {
 })
 export class BookService {
   private apiUrl = `${environment.apiUrl}/books`;
+
+  private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}
 
@@ -122,10 +126,33 @@ export class BookService {
     });
   }
 
-  validateBooksStream(tempFileId: string): EventSource {
-    return new EventSource(
-      `${this.apiUrl}/upload/validate-stream/${tempFileId}`,
-    );
+  validateBooksStream(
+    tempFileId: string,
+    onMessage: (event: { event: string; data: string }) => void,
+    onError: (error: any) => void,
+    onOpen?: (response: Response) => Promise<void>,
+  ): AbortController {
+    const abortController = new AbortController();
+    const token = this.authService.getValidToken();
+
+    if (!token) {
+      onError(new Error('Geen geldige token'));
+      return abortController;
+    }
+
+    fetchEventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'text/event-stream',
+      },
+      signal: abortController.signal,
+      onopen: onOpen,
+      onmessage: onMessage,
+      onerror: onError,
+    });
+
+    return abortController;
   }
 
   searchBooksInDb(

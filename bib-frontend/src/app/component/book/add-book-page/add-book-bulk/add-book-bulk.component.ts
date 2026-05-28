@@ -98,30 +98,30 @@ export class AddBookBulkComponent {
       return;
     }
 
-    const sse = this.bs.validateBooksStream(tempFileId);
-
-    sse.addEventListener('progress', (event: any) => {
-      const data = JSON.parse(event.data);
-      this.progress = data.progress;
-      if (data.errors?.length) this.errors.push(...data.errors);
-    });
-
-    sse.addEventListener('complete', () => {
-      this.validating = false;
-      this.progress = 100;
-      this.validationCompleted = true;
-      this.validationSucceeded = this.blockingErrors.length === 0;
-      sse.close();
-    });
-
-    sse.onerror = (err: any) => {
-      console.error(err);
-      this.ts.show('Validatie mislukt', 'error');
-      this.validating = false;
-      this.validationCompleted = true;
-      this.validationSucceeded = false;
-      sse.close();
-    };
+    const abortCtrl = this.bs.validateBooksStream(
+      tempFileId,
+      (event) => {
+        if (event.event === 'progress') {
+          const data = JSON.parse(event.data);
+          this.progress = data.progress;
+          if (data.errors?.length) this.errors.push(...data.errors);
+        } else if (event.event === 'complete') {
+          this.validating = false;
+          this.progress = 100;
+          this.validationCompleted = true;
+          this.validationSucceeded = this.blockingErrors.length === 0;
+          abortCtrl.abort();
+        }
+      },
+      (err) => {
+        console.error(err);
+        this.ts.show('Validatie mislukt', 'error');
+        this.validating = false;
+        this.validationCompleted = true;
+        this.validationSucceeded = false;
+        abortCtrl.abort();
+      },
+    );
   }
   get blockingErrors(): FileValidationError[] {
     return this.errors.filter(e => (e.severity ?? 'error') === 'error');
