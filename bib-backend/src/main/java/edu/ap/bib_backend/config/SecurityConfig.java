@@ -123,8 +123,8 @@ public class SecurityConfig {
                                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/genres/**")
-                                                        .hasAnyRole(Role.STUDENT.name(), Role.ADMIN.name(),
-                                                                        Role.LIBRARIAN.name(), Role.TEACHER.name());
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(), Role.ADMIN.name(),
+                                                                        Role.LIBRARIAN.name());
 
                                         auth.requestMatchers("/loans/**")
                                                         .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
