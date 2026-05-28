@@ -28,7 +28,7 @@ public class BookCopyController {
     }
 
     @PatchMapping("/{copyId}/condition")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('LIBRARIAN','ADMIN')")
     public ResponseEntity<BookCopyConditionUpdateDTO> updateCondition(
             @PathVariable Long copyId,
             @Valid @RequestBody BookCopyConditionUpdateDTO request,
