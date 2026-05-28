@@ -72,7 +72,7 @@ export class LessonTipAttachmentsPanelComponent {
       return;
     }
 
-    if (this.hasAttachmentWithSameName(file)) {
+    if (this.hasAttachmentWithSameNameAndSize(file)) {
       this.toastService.show(
         'Er bestaat al een bijlage met deze bestandsnaam.',
         'error',
@@ -219,12 +219,13 @@ export class LessonTipAttachmentsPanelComponent {
     );
   }
 
-  private hasAttachmentWithSameName(file: File): boolean {
+  private hasAttachmentWithSameNameAndSize(file: File): boolean {
     const normalizedFileName = file.name.trim().toLowerCase();
 
     return this.attachments().some(
       (attachment) =>
-        attachment.originalFileName.trim().toLowerCase() === normalizedFileName,
+        attachment.originalFileName.trim().toLowerCase() ===
+          normalizedFileName && attachment.fileSize === file.size,
     );
   }
 }

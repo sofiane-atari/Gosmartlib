@@ -1,368 +1,434 @@
-// package edu.ap.bib_backend.service.lessontip;
+package edu.ap.bib_backend.service.lessontip;
 
-// import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentDownloadDataDto;
-// import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentResponseDto;
-// import edu.ap.bib_backend.exception.ResourceNotFoundException;
-// import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
-// import edu.ap.bib_backend.jpa.entity.lessontips.LessonTipAttachment;
-// import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipAttachmentRepository;
-// import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
-// import edu.ap.bib_backend.mapper.lessontips.LessonTipAttachmentMapper;
-// import edu.ap.bib_backend.service.lessontips.LessonTipAttachmentService;
-// import edu.ap.bib_backend.service.lessontips.LessonTipAuthorizationService;
-// import org.junit.jupiter.api.Test;
-// import org.junit.jupiter.api.extension.ExtendWith;
-// import org.mockito.ArgumentCaptor;
-// import org.mockito.InjectMocks;
-// import org.mockito.Mock;
-// import org.mockito.junit.jupiter.MockitoExtension;
-// import org.springframework.core.io.ByteArrayResource;
-// import org.springframework.security.core.Authentication;
-// import org.springframework.web.multipart.MultipartFile;
+import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentDownloadDataDto;
+import edu.ap.bib_backend.dto.lessontips.LessonTipAttachmentResponseDto;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
+import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
+import edu.ap.bib_backend.jpa.entity.lessontips.LessonTipAttachment;
+import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipAttachmentRepository;
+import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
+import edu.ap.bib_backend.mapper.lessontips.LessonTipAttachmentMapper;
+import edu.ap.bib_backend.service.lessontips.LessonTipAttachmentService;
+import edu.ap.bib_backend.service.lessontips.LessonTipAuthorizationService;
 
-// import java.time.LocalDateTime;
-// import java.util.List;
-// import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
-// import static org.assertj.core.api.Assertions.assertThat;
-// import static org.junit.jupiter.api.Assertions.assertThrows;
-// import static org.mockito.ArgumentMatchers.any;
-// import static org.mockito.BDDMockito.given;
-// import static org.mockito.BDDMockito.then;
-// import static org.mockito.Mockito.never;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
-// @ExtendWith(MockitoExtension.class)
-// class LessonTipAttachmentServiceTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
-//     private static final Long MATERIAL_ID = 7L;
-//     private static final Long ATTACHMENT_ID = 9L;
+@ExtendWith(MockitoExtension.class)
+class LessonTipAttachmentServiceTest {
 
-//     @Mock
-//     private LessonTipRepository didacticMaterialRepository;
+    private static final Long LESSON_TIP_ID = 7L;
+    private static final Long ATTACHMENT_ID = 9L;
+    private static final byte[] FILE_DATA = "pdf-content".getBytes(StandardCharsets.UTF_8);
 
-//     @Mock
-//     private LessonTipAttachmentRepository didacticMaterialAttachmentRepository;
+    @Mock
+    private LessonTipRepository lessonTipRepository;
 
-//     @Mock
-//     private LessonTipAttachmentMapper didacticMaterialAttachmentMapper;
+    @Mock
+    private LessonTipAttachmentRepository lessonTipAttachmentRepository;
 
-//     @Mock
-//     private LessonTipAuthorizationService didacticMaterialAuthorizationService;
+    @Mock
+    private LessonTipAttachmentMapper lessonTipAttachmentMapper;
 
-//     @Mock
-//     private MultipartFile file;
+    @Mock
+    private LessonTipAuthorizationService lessonTipAuthorizationService;
 
-//     @Mock
-//     private Authentication authentication;
+    @Mock
+    private MultipartFile file;
 
-//     @InjectMocks
-//     private LessonTipAttachmentService didacticMaterialAttachmentService;
+    @Mock
+    private Authentication authentication;
 
-//     @Test
-//     void givenExistingMaterialId_whenGetAttachmentsByMaterialId_thenReturnMappedAttachments() {
-//         // Arrange
-//         LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
-//         LessonTipAttachment firstAttachment = createAttachment(1L, material, "first.pdf", "stored-first.pdf");
-//         LessonTipAttachment secondAttachment = createAttachment(2L, material, "second.pdf", "stored-second.pdf");
+    @InjectMocks
+    private LessonTipAttachmentService lessonTipAttachmentService;
 
-//         LessonTipAttachmentResponseDto firstResponse = createAttachmentResponseDto(1L, "first.pdf");
-//         LessonTipAttachmentResponseDto secondResponse = createAttachmentResponseDto(2L, "second.pdf");
+    @Test
+    void givenExistingLessonTipId_whenGetAttachmentsByLessonTipId_thenReturnMappedAttachments() {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
+        LessonTipAttachment firstAttachment = createAttachment(1L, lessonTip, "first.pdf");
+        LessonTipAttachment secondAttachment = createAttachment(2L, lessonTip, "second.pdf");
 
-//         given(didacticMaterialRepository.findById(MATERIAL_ID))
-//                 .willReturn(Optional.of(material));
-//         given(didacticMaterialAttachmentRepository.findAllByLessonTipIdOrderByUploadedAtDesc(MATERIAL_ID))
-//                 .willReturn(List.of(firstAttachment, secondAttachment));
-//         given(didacticMaterialAttachmentMapper.toResponseList(List.of(firstAttachment, secondAttachment)))
-//                 .willReturn(List.of(firstResponse, secondResponse));
+        LessonTipAttachmentResponseDto firstResponse = createAttachmentResponseDto(1L, "first.pdf");
+        LessonTipAttachmentResponseDto secondResponse = createAttachmentResponseDto(2L, "second.pdf");
 
-//         // Act
-//         List<LessonTipAttachmentResponseDto> result =
-//                 didacticMaterialAttachmentService.getAttachmentsByLessonTipId(MATERIAL_ID);
+        List<LessonTipAttachment> attachments = List.of(firstAttachment, secondAttachment);
+        List<LessonTipAttachmentResponseDto> expectedResponses = List.of(firstResponse, secondResponse);
 
-//         // Assert
-//         assertThat(result).containsExactly(firstResponse, secondResponse);
+        given(lessonTipRepository.findById(LESSON_TIP_ID))
+                .willReturn(Optional.of(lessonTip));
+        given(lessonTipAttachmentRepository.findAllByLessonTipIdOrderByUploadedAtDesc(LESSON_TIP_ID))
+                .willReturn(attachments);
+        given(lessonTipAttachmentMapper.toResponseList(attachments))
+                .willReturn(expectedResponses);
 
-//         then(didacticMaterialRepository).should().findById(MATERIAL_ID);
-//         then(didacticMaterialAttachmentRepository).should()
-//                 .findAllByLessonTipIdOrderByUploadedAtDesc(MATERIAL_ID);
-//     }
+        // Act
+        List<LessonTipAttachmentResponseDto> result =
+                lessonTipAttachmentService.getAttachmentsByLessonTipId(LESSON_TIP_ID);
 
-//     @Test
-//     void givenUnknownMaterialId_whenGetAttachmentsByMaterialId_thenThrowResourceNotFoundException() {
-//         // Arrange
-//         given(didacticMaterialRepository.findById(MATERIAL_ID))
-//                 .willReturn(Optional.empty());
+        // Assert
+        assertThat(result).containsExactly(firstResponse, secondResponse);
 
-//         // Act
-//         assertThrows(
-//                 ResourceNotFoundException.class,
-//                 () -> didacticMaterialAttachmentService.getAttachmentsByLessonTipId(MATERIAL_ID)
-//         );
+        then(lessonTipRepository).should().findById(LESSON_TIP_ID);
+        then(lessonTipAttachmentRepository).should()
+                .findAllByLessonTipIdOrderByUploadedAtDesc(LESSON_TIP_ID);
+        then(lessonTipAttachmentMapper).should().toResponseList(attachments);
+    }
 
-//         // Assert
-//         then(didacticMaterialRepository).should().findById(MATERIAL_ID);
-//         then(didacticMaterialAttachmentRepository).should(never())
-//                 .findAllByLessonTipIdOrderByUploadedAtDesc(any());
-//     }
+    @Test
+    void givenUnknownLessonTipId_whenGetAttachmentsByLessonTipId_thenThrowResourceNotFoundException() {
+        // Arrange
+        given(lessonTipRepository.findById(LESSON_TIP_ID))
+                .willReturn(Optional.empty());
 
-//     @Test
-//     void givenValidFileAndAuthorizedUser_whenUploadAttachment_thenSaveAttachmentAndReturnMappedResponse() {
-//         // Arrange
-//         LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
-//         LessonTipAttachment savedAttachment = createAttachment(
-//                 ATTACHMENT_ID,
-//                 material,
-//                 "lesfiche.pdf",
-//                 "stored-123.pdf"
-//         );
-//         LessonTipAttachmentResponseDto responseDto = createAttachmentResponseDto(ATTACHMENT_ID, "lesfiche.pdf");
+        // Act
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> lessonTipAttachmentService.getAttachmentsByLessonTipId(LESSON_TIP_ID)
+        );
 
-//         ArgumentCaptor<LessonTipAttachment> attachmentCaptor =
-//                 ArgumentCaptor.forClass(LessonTipAttachment.class);
+        // Assert
+        then(lessonTipRepository).should().findById(LESSON_TIP_ID);
+        then(lessonTipAttachmentRepository).should(never())
+                .findAllByLessonTipIdOrderByUploadedAtDesc(any());
+    }
 
-//         given(didacticMaterialRepository.findById(MATERIAL_ID))
-//                 .willReturn(Optional.of(material));
-//         given(fileStorageService.storeFile(file))
-//                 .willReturn("stored-123.pdf");
-//         given(file.getOriginalFilename())
-//                 .willReturn("  lesfiche.pdf  ");
-//         given(file.getContentType())
-//                 .willReturn("application/pdf");
-//         given(file.getSize())
-//                 .willReturn(2048L);
-//         given(didacticMaterialAttachmentRepository.save(any(LessonTipAttachment.class)))
-//                 .willReturn(savedAttachment);
-//         given(didacticMaterialAttachmentMapper.toResponse(savedAttachment))
-//                 .willReturn(responseDto);
+    @Test
+    void givenValidFileAndAuthorizedUser_whenUploadAttachment_thenSaveAttachmentAndReturnMappedResponse()
+            throws IOException {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
+        LessonTipAttachment savedAttachment = createAttachment(
+                ATTACHMENT_ID,
+                lessonTip,
+                "lesfiche.pdf"
+        );
+        LessonTipAttachmentResponseDto responseDto = createAttachmentResponseDto(ATTACHMENT_ID, "lesfiche.pdf");
 
-//         // Act
-//         LessonTipAttachmentResponseDto result =
-//                 didacticMaterialAttachmentService.uploadAttachment(MATERIAL_ID, file, authentication);
+        ArgumentCaptor<LessonTipAttachment> attachmentCaptor =
+                ArgumentCaptor.forClass(LessonTipAttachment.class);
 
-//         // Assert
-//         assertThat(result).isEqualTo(responseDto);
+        given(lessonTipRepository.findById(LESSON_TIP_ID))
+                .willReturn(Optional.of(lessonTip));
+        given(file.getOriginalFilename())
+                .willReturn("  lesfiche.pdf  ");
+        given(file.getContentType())
+                .willReturn("application/pdf");
+        given(file.getSize())
+                .willReturn(2048L);
+        given(file.getBytes())
+                .willReturn(FILE_DATA);
+        given(lessonTipAttachmentRepository.existsByLessonTipIdAndOriginalFileNameIgnoreCaseAndFileSize(
+                LESSON_TIP_ID,
+                "lesfiche.pdf",
+                2048L
+        )).willReturn(false);
+        given(lessonTipAttachmentRepository.save(any(LessonTipAttachment.class)))
+                .willReturn(savedAttachment);
+        given(lessonTipAttachmentMapper.toResponse(savedAttachment))
+                .willReturn(responseDto);
 
-//         then(didacticMaterialAuthorizationService).should().assertCanModify(material, authentication);
-//         then(fileStorageService).should().storeFile(file);
-//         then(didacticMaterialAttachmentRepository).should().save(attachmentCaptor.capture());
+        // Act
+        LessonTipAttachmentResponseDto result =
+                lessonTipAttachmentService.uploadAttachment(LESSON_TIP_ID, file, authentication);
 
-//         LessonTipAttachment capturedAttachment = attachmentCaptor.getValue();
-//         assertThat(capturedAttachment.getLessonTip()).isEqualTo(material);
-//         assertThat(capturedAttachment.getOriginalFileName()).isEqualTo("lesfiche.pdf");
-//         assertThat(capturedAttachment.getStoredFileName()).isEqualTo("stored-123.pdf");
-//         assertThat(capturedAttachment.getContentType()).isEqualTo("application/pdf");
-//         assertThat(capturedAttachment.getFileSize()).isEqualTo(2048L);
-//     }
+        // Assert
+        assertThat(result).isEqualTo(responseDto);
 
-//     @Test
-//     void givenBlankContentType_whenUploadAttachment_thenFallbackToApplicationOctetStream() {
-//         // Arrange
-//         LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
-//         LessonTipAttachment savedAttachment = createAttachment(
-//                 ATTACHMENT_ID,
-//                 material,
-//                 "bestand.bin",
-//                 "stored-123.bin"
-//         );
+        then(lessonTipAuthorizationService).should().assertCanModify(lessonTip, authentication);
+        then(lessonTipAttachmentRepository).should().save(attachmentCaptor.capture());
 
-//         ArgumentCaptor<LessonTipAttachment> attachmentCaptor =
-//                 ArgumentCaptor.forClass(LessonTipAttachment.class);
+        LessonTipAttachment capturedAttachment = attachmentCaptor.getValue();
+        assertThat(capturedAttachment.getLessonTip()).isEqualTo(lessonTip);
+        assertThat(capturedAttachment.getOriginalFileName()).isEqualTo("lesfiche.pdf");
+        assertThat(capturedAttachment.getContentType()).isEqualTo("application/pdf");
+        assertThat(capturedAttachment.getFileSize()).isEqualTo(2048L);
+        assertThat(capturedAttachment.getFileData()).isEqualTo(FILE_DATA);
+    }
 
-//         given(didacticMaterialRepository.findById(MATERIAL_ID))
-//                 .willReturn(Optional.of(material));
-//         given(fileStorageService.storeFile(file))
-//                 .willReturn("stored-123.bin");
-//         given(file.getOriginalFilename())
-//                 .willReturn("bestand.bin");
-//         given(file.getContentType())
-//                 .willReturn(" ");
-//         given(file.getSize())
-//                 .willReturn(50L);
-//         given(didacticMaterialAttachmentRepository.save(any(LessonTipAttachment.class)))
-//                 .willReturn(savedAttachment);
-//         given(didacticMaterialAttachmentMapper.toResponse(savedAttachment))
-//                 .willReturn(createAttachmentResponseDto(ATTACHMENT_ID, "bestand.bin"));
+    @Test
+    void givenBlankContentType_whenUploadAttachment_thenFallbackToApplicationOctetStream()
+            throws IOException {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
+        LessonTipAttachment savedAttachment = createAttachment(
+                ATTACHMENT_ID,
+                lessonTip,
+                "bestand.pdf"
+        );
 
-//         // Act
-//         didacticMaterialAttachmentService.uploadAttachment(MATERIAL_ID, file, authentication);
+        ArgumentCaptor<LessonTipAttachment> attachmentCaptor =
+                ArgumentCaptor.forClass(LessonTipAttachment.class);
 
-//         // Assert
-//         then(didacticMaterialAttachmentRepository).should().save(attachmentCaptor.capture());
-//         assertThat(attachmentCaptor.getValue().getContentType()).isEqualTo("application/octet-stream");
-//     }
+        given(lessonTipRepository.findById(LESSON_TIP_ID))
+                .willReturn(Optional.of(lessonTip));
+        given(file.getOriginalFilename())
+                .willReturn("bestand.pdf");
+        given(file.getContentType())
+                .willReturn(" ");
+        given(file.getSize())
+                .willReturn(50L);
+        given(file.getBytes())
+                .willReturn(FILE_DATA);
+        given(lessonTipAttachmentRepository.existsByLessonTipIdAndOriginalFileNameIgnoreCaseAndFileSize(
+                LESSON_TIP_ID,
+                "bestand.pdf",
+                50L
+        )).willReturn(false);
+        given(lessonTipAttachmentRepository.save(any(LessonTipAttachment.class)))
+                .willReturn(savedAttachment);
+        given(lessonTipAttachmentMapper.toResponse(savedAttachment))
+                .willReturn(createAttachmentResponseDto(ATTACHMENT_ID, "bestand.pdf"));
 
-//     @Test
-//     void givenMissingOriginalFileName_whenUploadAttachment_thenDeleteStoredFileAndRethrowException() {
-//         // Arrange
-//         LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
+        // Act
+        lessonTipAttachmentService.uploadAttachment(LESSON_TIP_ID, file, authentication);
 
-//         given(didacticMaterialRepository.findById(MATERIAL_ID))
-//                 .willReturn(Optional.of(material));
-//         given(fileStorageService.storeFile(file))
-//                 .willReturn("stored-123.pdf");
-//         given(file.getOriginalFilename())
-//                 .willReturn(" ");
+        // Assert
+        then(lessonTipAttachmentRepository).should().save(attachmentCaptor.capture());
+        assertThat(attachmentCaptor.getValue().getContentType()).isEqualTo("application/octet-stream");
+    }
 
-//         // Act
-//         assertThrows(
-//                 IllegalArgumentException.class,
-//                 () -> didacticMaterialAttachmentService.uploadAttachment(MATERIAL_ID, file, authentication)
-//         );
+    @Test
+    void givenMissingOriginalFileName_whenUploadAttachment_thenThrowIllegalArgumentException() {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
 
-//         // Assert
-//         then(fileStorageService).should().deleteFile("stored-123.pdf");
-//         then(didacticMaterialAttachmentRepository).should(never()).save(any());
-//     }
+        given(lessonTipRepository.findById(LESSON_TIP_ID))
+                .willReturn(Optional.of(lessonTip));
+        given(file.getOriginalFilename())
+                .willReturn(" ");
 
-//     @Test
-//     void givenRepositoryFailureDuringUpload_whenUploadAttachment_thenDeleteStoredFileAndRethrowException() {
-//         // Arrange
-//         LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
+        // Act
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> lessonTipAttachmentService.uploadAttachment(LESSON_TIP_ID, file, authentication)
+        );
 
-//         given(didacticMaterialRepository.findById(MATERIAL_ID))
-//                 .willReturn(Optional.of(material));
-//         given(fileStorageService.storeFile(file))
-//                 .willReturn("stored-123.pdf");
-//         given(file.getOriginalFilename())
-//                 .willReturn("lesfiche.pdf");
-//         given(file.getContentType())
-//                 .willReturn("application/pdf");
-//         given(file.getSize())
-//                 .willReturn(100L);
-//         given(didacticMaterialAttachmentRepository.save(any(LessonTipAttachment.class)))
-//                 .willThrow(new RuntimeException("Database error"));
+        // Assert
+        then(lessonTipAuthorizationService).should().assertCanModify(lessonTip, authentication);
+        then(lessonTipAttachmentRepository).should(never()).save(any());
+    }
 
-//         // Act
-//         assertThrows(
-//                 RuntimeException.class,
-//                 () -> didacticMaterialAttachmentService.uploadAttachment(MATERIAL_ID, file, authentication)
-//         );
+    @Test
+    void givenRepositoryFailureDuringUpload_whenUploadAttachment_thenRethrowException()
+            throws IOException {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
 
-//         // Assert
-//         then(fileStorageService).should().deleteFile("stored-123.pdf");
-//     }
+        given(lessonTipRepository.findById(LESSON_TIP_ID))
+                .willReturn(Optional.of(lessonTip));
+        given(file.getOriginalFilename())
+                .willReturn("lesfiche.pdf");
+        given(file.getContentType())
+                .willReturn("application/pdf");
+        given(file.getSize())
+                .willReturn(100L);
+        given(file.getBytes())
+                .willReturn(FILE_DATA);
+        given(lessonTipAttachmentRepository.existsByLessonTipIdAndOriginalFileNameIgnoreCaseAndFileSize(
+                LESSON_TIP_ID,
+                "lesfiche.pdf",
+                100L
+        )).willReturn(false);
+        given(lessonTipAttachmentRepository.save(any(LessonTipAttachment.class)))
+                .willThrow(new RuntimeException("Database error"));
 
-//     @Test
-//     void givenExistingAttachmentId_whenGetAttachmentDownloadData_thenReturnDownloadData() {
-//         // Arrange
-//         LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
-//         LessonTipAttachment attachment = createAttachment(
-//                 ATTACHMENT_ID,
-//                 material,
-//                 "lesfiche.pdf",
-//                 "stored-123.pdf"
-//         );
-//         ByteArrayResource resource = new ByteArrayResource("pdf-content".getBytes());
+        // Act
+        assertThrows(
+                RuntimeException.class,
+                () -> lessonTipAttachmentService.uploadAttachment(LESSON_TIP_ID, file, authentication)
+        );
 
-//         given(didacticMaterialAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, MATERIAL_ID))
-//                 .willReturn(Optional.of(attachment));
-//         given(fileStorageService.loadAsResource("stored-123.pdf"))
-//                 .willReturn(resource);
+        // Assert
+        then(lessonTipAttachmentRepository).should().save(any(LessonTipAttachment.class));
+    }
 
-//         // Act
-//         LessonTipAttachmentDownloadDataDto result =
-//                 didacticMaterialAttachmentService.getAttachmentDownloadData(MATERIAL_ID, ATTACHMENT_ID);
+    @Test
+    void givenDuplicateAttachment_whenUploadAttachment_thenThrowIllegalArgumentException() {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
 
-//         // Assert
-//         assertThat(result.resource()).isEqualTo(resource);
-//         assertThat(result.originalFileName()).isEqualTo("lesfiche.pdf");
-//         assertThat(result.contentType()).isEqualTo("application/pdf");
+        given(lessonTipRepository.findById(LESSON_TIP_ID))
+                .willReturn(Optional.of(lessonTip));
+        given(file.getOriginalFilename())
+                .willReturn("lesfiche.pdf");
+        given(file.getSize())
+                .willReturn(2048L);
+        given(lessonTipAttachmentRepository.existsByLessonTipIdAndOriginalFileNameIgnoreCaseAndFileSize(
+                LESSON_TIP_ID,
+                "lesfiche.pdf",
+                2048L
+        )).willReturn(true);
 
-//         then(fileStorageService).should().loadAsResource("stored-123.pdf");
-//     }
+        // Act
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> lessonTipAttachmentService.uploadAttachment(LESSON_TIP_ID, file, authentication)
+        );
 
-//     @Test
-//     void givenUnknownAttachmentId_whenGetAttachmentDownloadData_thenThrowResourceNotFoundException() {
-//         // Arrange
-//         given(didacticMaterialAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, MATERIAL_ID))
-//                 .willReturn(Optional.empty());
+        // Assert
+        then(lessonTipAttachmentRepository).should(never()).save(any());
+    }
 
-//         // Act
-//         assertThrows(
-//                 ResourceNotFoundException.class,
-//                 () -> didacticMaterialAttachmentService.getAttachmentDownloadData(MATERIAL_ID, ATTACHMENT_ID)
-//         );
+    @Test
+    void givenExistingAttachmentId_whenGetAttachmentDownloadData_thenReturnDownloadData()
+            throws Exception {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
+        LessonTipAttachment attachment = createAttachment(
+                ATTACHMENT_ID,
+                lessonTip,
+                "lesfiche.pdf"
+        );
 
-//         // Assert
-//         then(fileStorageService).should(never()).loadAsResource(any());
-//     }
+        given(lessonTipAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, LESSON_TIP_ID))
+                .willReturn(Optional.of(attachment));
 
-//     @Test
-//     void givenExistingAttachmentAndAuthorizedUser_whenDeleteAttachment_thenDeleteAttachmentAndStoredFile() {
-//         // Arrange
-//         LessonTip material = createMaterial(MATERIAL_ID, "teacher-123");
-//         LessonTipAttachment attachment = createAttachment(
-//                 ATTACHMENT_ID,
-//                 material,
-//                 "lesfiche.pdf",
-//                 "stored-123.pdf"
-//         );
+        // Act
+        LessonTipAttachmentDownloadDataDto result =
+                lessonTipAttachmentService.getAttachmentDownloadData(LESSON_TIP_ID, ATTACHMENT_ID);
 
-//         given(didacticMaterialAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, MATERIAL_ID))
-//                 .willReturn(Optional.of(attachment));
+        // Assert
+        assertThat(result.resource()).isInstanceOf(ByteArrayResource.class);
+        assertThat(result.resource().getContentAsByteArray()).isEqualTo(FILE_DATA);
+        assertThat(result.originalFileName()).isEqualTo("lesfiche.pdf");
+        assertThat(result.contentType()).isEqualTo("application/pdf");
+    }
 
-//         // Act
-//         didacticMaterialAttachmentService.deleteAttachment(MATERIAL_ID, ATTACHMENT_ID, authentication);
+    @Test
+    void givenExistingAttachmentWithoutFileData_whenGetAttachmentDownloadData_thenThrowResourceNotFoundException() {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
+        LessonTipAttachment attachment = createAttachment(
+                ATTACHMENT_ID,
+                lessonTip,
+                "lesfiche.pdf"
+        );
+        attachment.setFileData(null);
 
-//         // Assert
-//         then(didacticMaterialAuthorizationService).should().assertCanModify(material, authentication);
-//         then(didacticMaterialAttachmentRepository).should().delete(attachment);
-//         then(fileStorageService).should().deleteFile("stored-123.pdf");
-//     }
+        given(lessonTipAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, LESSON_TIP_ID))
+                .willReturn(Optional.of(attachment));
 
-//     @Test
-//     void givenUnknownAttachmentId_whenDeleteAttachment_thenThrowResourceNotFoundException() {
-//         // Arrange
-//         given(didacticMaterialAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, MATERIAL_ID))
-//                 .willReturn(Optional.empty());
+        // Act
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> lessonTipAttachmentService.getAttachmentDownloadData(LESSON_TIP_ID, ATTACHMENT_ID)
+        );
 
-//         // Act
-//         assertThrows(
-//                 ResourceNotFoundException.class,
-//                 () -> didacticMaterialAttachmentService.deleteAttachment(MATERIAL_ID, ATTACHMENT_ID, authentication)
-//         );
+        // Assert
+        then(lessonTipAttachmentRepository).should()
+                .findByIdAndLessonTipId(ATTACHMENT_ID, LESSON_TIP_ID);
+    }
 
-//         // Assert
-//         then(didacticMaterialAttachmentRepository).should(never()).delete(any());
-//         then(fileStorageService).should(never()).deleteFile(any());
-//     }
+    @Test
+    void givenUnknownAttachmentId_whenGetAttachmentDownloadData_thenThrowResourceNotFoundException() {
+        // Arrange
+        given(lessonTipAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, LESSON_TIP_ID))
+                .willReturn(Optional.empty());
 
-//     private LessonTip createMaterial(Long id, String createdByUserId) {
-//         LessonTip material = new LessonTip();
-//         material.setId(id);
-//         material.setTitle("Titel");
-//         material.setDescription("Beschrijving");
-//         material.setLessonTipType(edu.ap.bib_backend.jpa.enums.LessonTipType.WORKSHEET);
-//         material.setCreatedByUserId(createdByUserId);
-//         material.setCreatedAt(LocalDateTime.of(2026, 4, 20, 10, 0));
-//         material.setUpdatedAt(LocalDateTime.of(2026, 4, 21, 11, 0));
-//         return material;
-//     }
+        // Act
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> lessonTipAttachmentService.getAttachmentDownloadData(LESSON_TIP_ID, ATTACHMENT_ID)
+        );
 
-//     private LessonTipAttachment createAttachment(
-//             Long id,
-//             LessonTip material,
-//             String originalFileName,
-//             String storedFileName
-//     ) {
-//         LessonTipAttachment attachment = new LessonTipAttachment();
-//         attachment.setId(id);
-//         attachment.setLessonTip(material);
-//         attachment.setOriginalFileName(originalFileName);
-//         attachment.setStoredFileName(storedFileName);
-//         attachment.setContentType("application/pdf");
-//         attachment.setFileSize(1024L);
-//         attachment.setUploadedAt(LocalDateTime.of(2026, 4, 21, 14, 15));
-//         return attachment;
-//     }
+        // Assert
+        then(lessonTipAttachmentRepository).should()
+                .findByIdAndLessonTipId(ATTACHMENT_ID, LESSON_TIP_ID);
+    }
 
-//     private LessonTipAttachmentResponseDto createAttachmentResponseDto(Long id, String fileName) {
-//         return new LessonTipAttachmentResponseDto(
-//                 id,
-//                 fileName,
-//                 "application/pdf",
-//                 1024L,
-//                 LocalDateTime.of(2026, 4, 21, 14, 15)
-//         );
-//     }
-// }
+    @Test
+    void givenExistingAttachmentAndAuthorizedUser_whenDeleteAttachment_thenDeleteAttachment() {
+        // Arrange
+        LessonTip lessonTip = createLessonTip(LESSON_TIP_ID, "teacher-123");
+        LessonTipAttachment attachment = createAttachment(
+                ATTACHMENT_ID,
+                lessonTip,
+                "lesfiche.pdf"
+        );
+
+        given(lessonTipAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, LESSON_TIP_ID))
+                .willReturn(Optional.of(attachment));
+
+        // Act
+        lessonTipAttachmentService.deleteAttachment(LESSON_TIP_ID, ATTACHMENT_ID, authentication);
+
+        // Assert
+        then(lessonTipAuthorizationService).should().assertCanModify(lessonTip, authentication);
+        then(lessonTipAttachmentRepository).should().delete(attachment);
+    }
+
+    @Test
+    void givenUnknownAttachmentId_whenDeleteAttachment_thenThrowResourceNotFoundException() {
+        // Arrange
+        given(lessonTipAttachmentRepository.findByIdAndLessonTipId(ATTACHMENT_ID, LESSON_TIP_ID))
+                .willReturn(Optional.empty());
+
+        // Act
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> lessonTipAttachmentService.deleteAttachment(LESSON_TIP_ID, ATTACHMENT_ID, authentication)
+        );
+
+        // Assert
+        then(lessonTipAttachmentRepository).should(never()).delete(any());
+    }
+
+    private LessonTip createLessonTip(Long id, String createdByUserId) {
+        LessonTip lessonTip = new LessonTip();
+        lessonTip.setId(id);
+        lessonTip.setTitle("Titel");
+        lessonTip.setDescription("Beschrijving");
+        lessonTip.setLessonTipType(edu.ap.bib_backend.jpa.enums.LessonTipType.WORKSHEET);
+        lessonTip.setCreatedByUserId(createdByUserId);
+        lessonTip.setCreatedAt(LocalDateTime.of(2026, 4, 20, 10, 0));
+        lessonTip.setUpdatedAt(LocalDateTime.of(2026, 4, 21, 11, 0));
+        return lessonTip;
+    }
+
+    private LessonTipAttachment createAttachment(
+            Long id,
+            LessonTip lessonTip,
+            String originalFileName
+    ) {
+        LessonTipAttachment attachment = new LessonTipAttachment();
+        attachment.setId(id);
+        attachment.setLessonTip(lessonTip);
+        attachment.setOriginalFileName(originalFileName);
+        attachment.setContentType("application/pdf");
+        attachment.setFileSize(1024L);
+        attachment.setFileData(FILE_DATA);
+        attachment.setUploadedAt(LocalDateTime.of(2026, 4, 21, 14, 15));
+        return attachment;
+    }
+
+    private LessonTipAttachmentResponseDto createAttachmentResponseDto(Long id, String fileName) {
+        return new LessonTipAttachmentResponseDto(
+                id,
+                fileName,
+                "application/pdf",
+                1024L,
+                LocalDateTime.of(2026, 4, 21, 14, 15)
+        );
+    }
+}
