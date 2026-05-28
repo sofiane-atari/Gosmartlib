@@ -6,6 +6,13 @@ import {
   LessonTipType,
 } from '../../../model/lesson-tip/lesson-tip.model';
 
+type LessonTipFormField =
+  | 'title'
+  | 'description'
+  | 'subject'
+  | 'educationLevel'
+  | 'keywords';
+
 @Component({
   selector: 'app-lesson-tip-form',
   standalone: true,
@@ -14,6 +21,12 @@ import {
   styleUrl: './lesson-tip-form.component.css',
 })
 export class LessonTipFormComponent {
+  private static readonly TITLE_MAX_LENGTH = 150;
+  private static readonly DESCRIPTION_MAX_LENGTH = 2000;
+  private static readonly SUBJECT_MAX_LENGTH = 100;
+  private static readonly EDUCATION_LEVEL_MAX_LENGTH = 100;
+  private static readonly KEYWORDS_MAX_LENGTH = 255;
+
   public readonly isSubmitting = input<boolean>(false);
   public readonly initialValue = input<CreateLessonTipRequest | null>(null);
   public readonly submitLabel = input<string>('Lestip opslaan');
@@ -30,6 +43,22 @@ export class LessonTipFormComponent {
   protected readonly keywords = signal('');
   protected readonly linkedBookIds = signal<number[]>([]);
   protected readonly validationMessage = signal<string | null>(null);
+  private readonly hasLoadedInitialValue = signal(false);
+
+  protected readonly touchedFields = signal<ReadonlySet<LessonTipFormField>>(
+    new Set(),
+  );
+  protected readonly submitAttempted = signal(false);
+
+  protected readonly titleMaxLength = LessonTipFormComponent.TITLE_MAX_LENGTH;
+  protected readonly descriptionMaxLength =
+    LessonTipFormComponent.DESCRIPTION_MAX_LENGTH;
+  protected readonly subjectMaxLength =
+    LessonTipFormComponent.SUBJECT_MAX_LENGTH;
+  protected readonly educationLevelMaxLength =
+    LessonTipFormComponent.EDUCATION_LEVEL_MAX_LENGTH;
+  protected readonly keywordsMaxLength =
+    LessonTipFormComponent.KEYWORDS_MAX_LENGTH;
 
   protected readonly lessonTipTypeOptions: ReadonlyArray<{
     readonly value: LessonTipType;
@@ -51,9 +80,14 @@ export class LessonTipFormComponent {
         const initialValue = this.initialValue();
 
         if (initialValue === null) {
-          this.resetForm();
+          if (!this.hasLoadedInitialValue()) {
+            this.resetForm();
+          }
+
           return;
         }
+
+        this.hasLoadedInitialValue.set(true);
 
         this.title.set(initialValue.title ?? '');
         this.description.set(initialValue.description ?? '');
@@ -63,12 +97,17 @@ export class LessonTipFormComponent {
         this.keywords.set(initialValue.keywords ?? '');
         this.linkedBookIds.set(initialValue.linkedBookIds ?? []);
         this.validationMessage.set(null);
+        this.submitAttempted.set(false);
+        this.touchedFields.set(new Set());
       },
       { allowSignalWrites: true },
     );
   }
 
   public submitForm(): void {
+    this.submitAttempted.set(true);
+    this.markRequiredFieldsAsTouched();
+
     const request = this.buildValidatedRequest();
 
     if (request === null) {
@@ -83,12 +122,65 @@ export class LessonTipFormComponent {
     this.formSubmitted.emit(request);
   }
 
+  protected markFieldAsTouched(field: LessonTipFormField): void {
+    this.touchedFields.update((currentFields) => {
+      const updatedFields = new Set(currentFields);
+      updatedFields.add(field);
+      return updatedFields;
+    });
+  }
+
+  protected hasFieldError(field: LessonTipFormField): boolean {
+    return (
+      this.shouldShowFieldError(field) && this.getFieldError(field) !== null
+    );
+  }
+
+  protected getFieldError(field: LessonTipFormField): string | null {
+    const value = this.getFieldValue(field).trim();
+
+    if (field === 'title' && value.length === 0) {
+      return 'Titel is verplicht.';
+    }
+
+    if (field === 'description' && value.length === 0) {
+      return 'Beschrijving is verplicht.';
+    }
+
+    const maxLength = this.getFieldMaxLength(field);
+
+    if (maxLength !== null && value.length > maxLength) {
+      return `Dit veld mag maximaal ${maxLength} tekens bevatten.`;
+    }
+
+    return null;
+  }
+
+  protected getRemainingCharacters(field: LessonTipFormField): number | null {
+    const maxLength = this.getFieldMaxLength(field);
+
+    if (maxLength === null) {
+      return null;
+    }
+
+    return maxLength - this.getFieldValue(field).length;
+  }
+
   private buildValidatedRequest(): CreateLessonTipRequest | null {
     const trimmedTitle = this.title().trim();
     const trimmedDescription = this.description().trim();
 
-    if (!trimmedTitle || !trimmedDescription) {
-      this.validationMessage.set('Titel en beschrijving zijn verplicht.');
+    const hasErrors =
+      this.getFieldError('title') !== null ||
+      this.getFieldError('description') !== null ||
+      this.getFieldError('subject') !== null ||
+      this.getFieldError('educationLevel') !== null ||
+      this.getFieldError('keywords') !== null;
+
+    if (hasErrors) {
+      this.validationMessage.set(
+        'Controleer de verplichte velden en de maximale lengte.',
+      );
       return null;
     }
 
@@ -105,6 +197,52 @@ export class LessonTipFormComponent {
     };
   }
 
+  private markRequiredFieldsAsTouched(): void {
+    this.touchedFields.set(
+      new Set([
+        'title',
+        'description',
+        'subject',
+        'educationLevel',
+        'keywords',
+      ]),
+    );
+  }
+
+  private shouldShowFieldError(field: LessonTipFormField): boolean {
+    return this.submitAttempted() || this.touchedFields().has(field);
+  }
+
+  private getFieldValue(field: LessonTipFormField): string {
+    switch (field) {
+      case 'title':
+        return this.title();
+      case 'description':
+        return this.description();
+      case 'subject':
+        return this.subject();
+      case 'educationLevel':
+        return this.educationLevel();
+      case 'keywords':
+        return this.keywords();
+    }
+  }
+
+  private getFieldMaxLength(field: LessonTipFormField): number | null {
+    switch (field) {
+      case 'title':
+        return LessonTipFormComponent.TITLE_MAX_LENGTH;
+      case 'description':
+        return LessonTipFormComponent.DESCRIPTION_MAX_LENGTH;
+      case 'subject':
+        return LessonTipFormComponent.SUBJECT_MAX_LENGTH;
+      case 'educationLevel':
+        return LessonTipFormComponent.EDUCATION_LEVEL_MAX_LENGTH;
+      case 'keywords':
+        return LessonTipFormComponent.KEYWORDS_MAX_LENGTH;
+    }
+  }
+
   private resetForm(): void {
     this.title.set('');
     this.description.set('');
@@ -114,6 +252,8 @@ export class LessonTipFormComponent {
     this.keywords.set('');
     this.linkedBookIds.set([]);
     this.validationMessage.set(null);
+    this.submitAttempted.set(false);
+    this.touchedFields.set(new Set());
   }
 
   private normalizeOptionalValue(value: string): string | null {

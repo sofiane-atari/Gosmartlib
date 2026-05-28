@@ -16,7 +16,6 @@ public interface LessonTipRepository extends JpaRepository<LessonTip, Long> {
     @EntityGraph(attributePaths = {"bookLinks", "bookLinks.book"})
     List<LessonTip> findAllByOrderByUpdatedAtDesc();
 
-    @EntityGraph(attributePaths = {"bookLinks", "bookLinks.book"})
     Page<LessonTip> findAllByOrderByUpdatedAtDesc(Pageable pageable);
 
     @Override
@@ -31,7 +30,6 @@ public interface LessonTipRepository extends JpaRepository<LessonTip, Long> {
     @EntityGraph(attributePaths = {"bookLinks", "bookLinks.book"})
     List<LessonTip> findAllByBookLinksBookIdOrderByUpdatedAtDesc(Long bookId);
 
-    @EntityGraph(attributePaths = {"bookLinks", "bookLinks.book"})
     Page<LessonTip> findAllByBookLinksBookIdOrderByUpdatedAtDesc(Long bookId, Pageable pageable);
 
 }
