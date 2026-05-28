@@ -45,7 +45,6 @@ import { TagDashboardComponent } from './component/tags/tag-dashboard/tag-dashbo
 import { ReturnLoanComponent } from './component/loan/return-loan/return-loan.component';
 import { UserManagementComponent } from './component/user-management/user-management.component';
 import { ClassReportComponent } from './component/class-report/class-report/class-report.component';
-import { CampusReportComponent } from './component/class-report/campus-report/campus-report.component';
 import { ReportSelectorComponent } from './component/class-report/report-selector/report-selector.component';
 import { SystemReportComponent } from './component/class-report/system-report/system-report.component';
 import { UnauthorizedComponent } from './component/unauthorized/unauthorized.component';
@@ -188,11 +187,6 @@ export const routes: Routes = [
         path: 'class',
         component: ClassReportComponent,
         canActivate: [authGuard, staffOnlyGuard]
-      },
-      {
-        path: 'school',
-        component: CampusReportComponent,
-        canActivate: [authGuard, librarianOrAdminGuard]
       },
       {
         path: 'system',

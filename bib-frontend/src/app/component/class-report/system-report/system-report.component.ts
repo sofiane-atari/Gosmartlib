@@ -31,10 +31,7 @@ import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
     ButtonHoverHelpComponent,
     StatCardComponent
 ],
-  styleUrls: [
-    '../campus-report/campus-report.component.css',
-    './system-report.component.css',
-  ],
+  styleUrls: ['./system-report.component.css'],
 })
 export class SystemReportComponent implements OnInit {
   report: SystemReport | null = null;
