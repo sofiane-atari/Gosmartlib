@@ -27,6 +27,7 @@ import {
   Locate,
 } from 'lucide-angular';
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
+import { BookImagePlaceholderComponent } from '../../shared/book-image-placeholder/book-image-placeholder.component';
 import { PagingComponent } from '../../shared/paging/paging.component';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
@@ -50,6 +51,7 @@ import { RoleService } from '../../../services/role-service/role.service';
     CommonModule,
     LucideAngularModule,
     BookListSidebarComponent,
+    BookImagePlaceholderComponent,
     PagingComponent,
     GenrePickerComponent,
     FeaturedReadingListsSidebarComponent,
@@ -108,6 +110,8 @@ export class BooksComponent implements OnInit {
   protected readonly canFilterDidacticBooks = computed(() =>
     this.roleService.canFilterDidacticBooks()
   );
+
+  protected readonly erroredImages = new Set<number>();
 
   featuredReadingLists: ReadingList[] = [];
   isLoadingFeaturedReadingLists = false;
@@ -584,6 +588,12 @@ export class BooksComponent implements OnInit {
 
   public toBookDetailPage(book: Book) {
     this.router.navigate(['/book', book.id]);
+  }
+
+  protected onImgError(bookId: number | undefined): void {
+    if (bookId !== undefined) {
+      this.erroredImages.add(bookId);
+    }
   }
 
   public onPageChange(page: number): void {
