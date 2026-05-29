@@ -133,7 +133,7 @@ export class RoleService {
    * @returns `true` if the user is allowed to moderate reviews, otherwise `false`.
    */
   public canModerateReviews(): boolean {
-    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN']);
   }
 
   /**

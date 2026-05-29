@@ -62,7 +62,7 @@ export const routes: Routes = [
   {
     path: 'review-dashboard',
     component: ReviewDashboardComponent,
-    canActivate: [reviewModerationGuard, authGuard, staffOnlyGuard],
+    canActivate: [reviewModerationGuard, authGuard, librarianOrAdminGuard],
   },
 
   ...LessonTipRoutes,

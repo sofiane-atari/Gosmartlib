@@ -149,7 +149,7 @@ export class SidebarComponent {
       icon: Flag,
       label: 'Reviewbeheer',
       route: '/review-dashboard',
-      staffOnly: true,
+      librarianOrAdmin: true,
     },
     {
       icon: LibraryBig,
