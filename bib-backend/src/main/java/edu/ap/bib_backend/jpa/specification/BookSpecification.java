@@ -152,6 +152,24 @@ public static Specification<Book> belongsToCampus(Long campusId) {
         };
     }
 
+    public static Specification<Book> hasNonLostCopyInSchool(Long schoolId) {
+        return (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+
+            jakarta.persistence.criteria.Subquery<Long> nonLostCopySubquery = query.subquery(Long.class);
+            var copyRoot = nonLostCopySubquery.from(BookCopy.class);
+
+            nonLostCopySubquery.select(copyRoot.get("id"))
+                    .where(
+                            criteriaBuilder.equal(copyRoot.get("book"), root),
+                            criteriaBuilder.equal(copyRoot.get("campus").get("school").get("id"), schoolId),
+                            criteriaBuilder.notEqual(copyRoot.get("condition"), BookCondition.LOST)
+                    );
+
+            return criteriaBuilder.exists(nonLostCopySubquery);
+        };
+    }
+
     public static Specification<Book> visibleForUser(boolean canSeeDidacticBooks) {
         return (root, query, criteriaBuilder) -> {
             if (canSeeDidacticBooks) {

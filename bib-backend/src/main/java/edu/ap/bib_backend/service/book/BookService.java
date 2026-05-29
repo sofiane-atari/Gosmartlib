@@ -96,7 +96,14 @@ public class BookService {
     @Transactional
     public List<BookDTO> getAllBooks(Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
-        return bookMapper.toDTOList(bookRepository.findByCampusSchoolId(school.getId()));
+
+        Specification<Book> spec = Specification.where(BookSpecification.belongsToSchool(school.getId()));
+
+        if (!currentUserService.isModerator(authentication)) {
+            spec = spec.and(BookSpecification.hasNonLostCopyInSchool(school.getId()));
+        }
+
+        return bookMapper.toDTOList(bookRepository.findAll(spec));
     }
 
     @Transactional
