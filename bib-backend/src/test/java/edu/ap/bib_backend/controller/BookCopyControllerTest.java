@@ -56,7 +56,6 @@ class BookCopyControllerTest {
         copy.setId(10L);
         copy.setCampus(campus);
 
-        when(currentUserService.getCurrentUserCampus(any())).thenReturn(campus);
         when(bookCopyRepository.findById(10L)).thenReturn(Optional.of(copy));
         when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> invocation.getArgument(0));
 

@@ -62,8 +62,8 @@ class SchoolReportServiceTest {
         when(loanRepository.findClassLoanActivityForSchool(1L, null)).thenReturn(List.of(classActivity));
         when(loanRepository.countLoanedBookCopiesForSchool(1L, null)).thenReturn(12L);
         when(loanRepository.countActiveLoanedBookCopiesForSchool(1L, null)).thenReturn(3L);
-        when(loanRepository.countClassesForSchool(1L, null)).thenReturn(4L);
-        when(loanRepository.countStudentsWithClassForSchool(1L, null)).thenReturn(5L);
+        when(loanRepository.countClassesForSchool(1L)).thenReturn(4L);
+        when(loanRepository.countStudentsWithClassForSchool(1L)).thenReturn(5L);
         when(statisticsQueryService.findPopularGenresForSchool(any(), any(), any(Pageable.class)))
                 .thenReturn(List.of(new PopularGenreDTO(1L, "Fantasy", "#123456", 9L)));
         when(statisticsQueryService.findTopRatedBooksForSchool(any(), any(), any(Pageable.class)))
@@ -118,8 +118,8 @@ class SchoolReportServiceTest {
         when(loanRepository.findClassLoanActivityForSchool(1L, null)).thenReturn(List.of());
         when(loanRepository.countLoanedBookCopiesForSchool(1L, null)).thenReturn(8L);
         when(loanRepository.countActiveLoanedBookCopiesForSchool(1L, null)).thenReturn(0L);
-        when(loanRepository.countClassesForSchool(1L, null)).thenReturn(0L);
-        when(loanRepository.countStudentsWithClassForSchool(1L, null)).thenReturn(0L);
+        when(loanRepository.countClassesForSchool(1L)).thenReturn(0L);
+        when(loanRepository.countStudentsWithClassForSchool(1L)).thenReturn(0L);
 
         SchoolReportDTO result = service.generateSchoolReport(teacherAuthentication("teacher-1"), null, 10, 0);
 

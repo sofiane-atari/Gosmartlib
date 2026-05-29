@@ -84,7 +84,6 @@ class LoanServiceIntegrationTest {
         user.setId("loan-user-1");
         user.setRole(role);
         user.setSchool(school);
-        user.setCampus(campus);
         userRepository.save(user);
 
         Book book = new Book();

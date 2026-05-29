@@ -58,7 +58,7 @@ class UserServiceIntegrationTest {
         campus = campusRepository.save(campus);
 
         // Act
-        User created = userService.createUser(userId, role, school, campus);
+        User created = userService.createUser(userId, role, school);
 
         // Assert
         assertNotNull(created);

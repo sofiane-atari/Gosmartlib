@@ -607,7 +607,6 @@ class ReadingListServiceTest {
         private User makeUser() {
                 User user = new User();
                 user.setId(USER_ID);
-                user.setCampus(makeCampus());
                 return user;
         }
 

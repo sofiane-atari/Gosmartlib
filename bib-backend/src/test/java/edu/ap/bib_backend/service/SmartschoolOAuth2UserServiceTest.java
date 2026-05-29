@@ -6,8 +6,6 @@ import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
-import edu.ap.bib_backend.jpa.entity.Campus;
-import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolAudienceResolverService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolOAuth2UserService;
@@ -90,9 +88,6 @@ class SmartschoolOAuth2UserServiceTest {
     @MockitoBean
     private OneRosterClient oneRosterClient;
 
-    @MockitoBean
-    private CampusRepository campusRepository;
-
     private MockRestServiceServer mockRestServiceServer;
 
     @BeforeEach
@@ -101,12 +96,6 @@ class SmartschoolOAuth2UserServiceTest {
         ReflectionTestUtils.setField(smartschoolOAuth2UserService, "restTemplate", restTemplate);
         mockRestServiceServer = MockRestServiceServer.bindTo(restTemplate).build();
         when(schoolRepository.findByDomainName(SCHOOL_DOMAIN_NAME)).thenReturn(Optional.of(createSchool()));
-
-        Campus defaultCampus = new Campus();
-        defaultCampus.setId(1L);
-        defaultCampus.setName("Default Campus");
-        lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(any()))
-                .thenReturn(Optional.of(defaultCampus));
     }
 
     @Test
@@ -164,7 +153,7 @@ class SmartschoolOAuth2UserServiceTest {
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")));
 
         verify(userService, times(1)).getUser("existing-user");
-        verify(userService, never()).createUser(anyString(), any(), any(), any());
+        verify(userService, never()).createUser(anyString(), any(), any());
         verify(roleService, never()).getRoleEntity(anyString());
         verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
         verify(groupService, times(1)).getGroup(eq(1L), eq("2ITSOF1"));
@@ -186,7 +175,7 @@ class SmartschoolOAuth2UserServiceTest {
 
         when(userService.getUser("new-user")).thenReturn(Optional.empty());
         when(roleService.getRoleEntity("leerling")).thenReturn(studentRole);
-        when(userService.createUser(eq("new-user"), eq(studentRole), any(School.class), any())).thenReturn(createdUser);
+        when(userService.createUser(eq("new-user"), eq(studentRole), any(School.class))).thenReturn(createdUser);
         when(smartschoolProfileService.fetchGroups(accessTokenValue))
                 .thenReturn(new SmartschoolGroupDto("2ITSOF1", List.of("Leerlingen")));
         when(groupService.getGroup(1L, "2ITSOF1")).thenReturn(existingGroup);
@@ -232,7 +221,7 @@ class SmartschoolOAuth2UserServiceTest {
 
         verify(userService, times(1)).getUser("new-user");
         verify(roleService, times(1)).getRoleEntity("leerling");
-        verify(userService, times(1)).createUser(eq("new-user"), eq(studentRole), any(School.class), any());
+        verify(userService, times(1)).createUser(eq("new-user"), eq(studentRole), any(School.class));
         verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
         verify(groupService, times(1)).getGroup(eq(1L), eq("2ITSOF1"));
         verify(groupService, never()).createGroup(any(), anyString());

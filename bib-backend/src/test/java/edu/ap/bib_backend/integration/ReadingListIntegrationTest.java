@@ -308,7 +308,6 @@ class ReadingListIntegrationTest {
         user.setId(userId);
         user.setRole(role);
         user.setSchool(school);
-        user.setCampus(userCampus);
 
         userRepository.save(user);
     }

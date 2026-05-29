@@ -84,8 +84,7 @@ class UserServiceTest {
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
-        Campus campus = new Campus();
-        User result = userService.createUser(userId, role, school, campus);
+        User result = userService.createUser(userId, role, school);
 
         // Assert
         assertNotNull(result);
@@ -102,7 +101,7 @@ class UserServiceTest {
 
         // Act
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> userService.createUser(userId, new RoleEntity(), new School(), new Campus()));
+                () -> userService.createUser(userId, new RoleEntity(), new School()));
 
         // Assert
         assertNotNull(exception.getMessage());
