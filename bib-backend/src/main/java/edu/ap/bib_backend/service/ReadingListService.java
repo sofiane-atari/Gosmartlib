@@ -328,6 +328,14 @@ public class ReadingListService {
             return;
         }
 
+        if (targetType == ReadingListTargetType.SYSTEM) {
+            if (currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+                return;
+            }
+
+            throw new IllegalArgumentException("Alleen bibliothecarissen en admins kunnen uitgelichte leeslijsten aanmaken");
+        }
+
         if (!isTeacherAuthenticated()) {
             throw new IllegalArgumentException("Alleen leerkrachten kunnen gedeelde leeslijsten maken");
         }
@@ -339,7 +347,7 @@ public class ReadingListService {
         }
 
         if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
-            if (currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+            if (currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
                 return;
             }
 
@@ -416,7 +424,7 @@ public class ReadingListService {
             throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
         }
 
-        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
             throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
         }
 
@@ -468,7 +476,7 @@ public class ReadingListService {
             throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
         }
 
-        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
             throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
         }
 

@@ -245,7 +245,7 @@ export class ReadingListOverviewComponent implements OnInit {
   }
 
   canManageCatalogFeaturedLists(): boolean {
-    return this.roleService.canManageReadingLists();
+    return this.roleService.canManageFeaturedReadingLists();
   }
 
   isCatalogFeatured(list: ReadingList): boolean {
