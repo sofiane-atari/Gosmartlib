@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +29,18 @@ import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 public class LoanReminderService {
 
     private static final Logger log = LoggerFactory.getLogger(LoanReminderService.class);
-    private static final DateTimeFormatter DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("d MMMM yyyy", new Locale("nl", "BE"));
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy",
+            new Locale("nl", "BE"));
     private static final ZoneId BRUSSELS_ZONE = ZoneId.of("Europe/Brussels");
 
     private static final String BOOK_CARD_STYLE = "display: flex; align-items: center; padding: 12px; " +
             "margin: 0 0 10px 0; background-color: #faf5f7; " +
             "border-radius: 8px; border: 1px solid #f0e4e8;";
-    private static final String COVER_WRAPPER_STYLE = "flex-shrink: 0; width: 56px; height: 80px; margin-right: 14px; " +
+    private static final String COVER_WRAPPER_STYLE = "flex-shrink: 0; width: 56px; height: 80px; margin-right: 14px; "
+            +
             "background-color: #f0e4e8; border-radius: 4px; overflow: hidden;";
-    private static final String COVER_PLACEHOLDER_STYLE = "width: 100%; height: 100%; display: flex; align-items: center; " +
+    private static final String COVER_PLACEHOLDER_STYLE = "width: 100%; height: 100%; display: flex; align-items: center; "
+            +
             "justify-content: center; color: #8a7580; font-size: 20px;";
     private static final String GENRE_BADGE_STYLE = "display: inline-block; padding: 1px 8px; margin: 0 4px 2px 0; " +
             "font-size: 11px; color: #8a1e41; background-color: #fdf0f5; " +
@@ -71,6 +72,7 @@ public class LoanReminderService {
         this.frontendUrl = frontendUrl;
     }
 
+    @Transactional(readOnly = true)
     public void sendUpcomingReturnReminders() {
         LocalDate targetDate = LocalDate.now(BRUSSELS_ZONE).plusDays(2);
         log.info("Checking for loans due on {}", targetDate);
@@ -87,6 +89,7 @@ public class LoanReminderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public void sendOverdueUserReminders() {
         LocalDate today = LocalDate.now(BRUSSELS_ZONE);
         LocalDate oneWeekAgo = today.minusDays(7);
@@ -122,7 +125,8 @@ public class LoanReminderService {
         }
     }
 
-    private void sendReminder(Loan loan, String templateName) {
+    @Transactional
+    public void sendReminder(Loan loan, String templateName) {
         User user = loan.getUser();
         if (user == null || user.getId() == null) {
             log.warn("Loan {} has no user, skipping reminder", loan.getId());
@@ -151,7 +155,8 @@ public class LoanReminderService {
         placeholders.put("TITLE", title);
         placeholders.put("USER_NAME", userDisplayName);
         placeholders.put("LOAN_DATE", loan.getLoanDate() != null ? loan.getLoanDate().format(DATE_FORMATTER) : "-");
-        placeholders.put("RETURN_DATE", loan.getReturnDate() != null ? loan.getReturnDate().format(DATE_FORMATTER) : "-");
+        placeholders.put("RETURN_DATE",
+                loan.getReturnDate() != null ? loan.getReturnDate().format(DATE_FORMATTER) : "-");
         placeholders.put("BOOK_COUNT", String.valueOf(loan.getCopies() != null ? loan.getCopies().size() : 0));
         placeholders.put("BOOKS_HTML", booksHtml);
         placeholders.put("FRONTEND_URL", frontendUrl);
@@ -178,7 +183,6 @@ public class LoanReminderService {
         log.info("Sent {} reminder for loan {} to user {}", templateName, loan.getId(), user.getId());
     }
 
-    @Transactional
     protected void sendLibrarianAlert(Loan loan) {
         if (loan.getLibrarianId() == null || loan.getLibrarianId().isBlank()) {
             log.warn("Loan {} has no librarianId, cannot send librarian alert", loan.getId());
@@ -208,7 +212,8 @@ public class LoanReminderService {
         placeholders.put("TITLE", "Boek(en) meer dan een week te laat");
         placeholders.put("USER_NAME", userDisplayName);
         placeholders.put("LOAN_DATE", loan.getLoanDate() != null ? loan.getLoanDate().format(DATE_FORMATTER) : "-");
-        placeholders.put("RETURN_DATE", loan.getReturnDate() != null ? loan.getReturnDate().format(DATE_FORMATTER) : "-");
+        placeholders.put("RETURN_DATE",
+                loan.getReturnDate() != null ? loan.getReturnDate().format(DATE_FORMATTER) : "-");
         placeholders.put("DAYS_OVERDUE", String.valueOf(daysOverdue));
         placeholders.put("DAYS_OVERDUE_SUFFIX", daysOverdue != 1 ? "en" : "");
         placeholders.put("BOOKS_HTML", booksHtml);
@@ -227,7 +232,8 @@ public class LoanReminderService {
     }
 
     private String resolveUserDisplayName(User user) {
-        if (user == null) return "Gebruiker";
+        if (user == null)
+            return "Gebruiker";
         if (user.getSchool() == null || user.getSchool().getDomainName() == null
                 || user.getOneRosterSourcedId() == null) {
             return user.getOneRosterSourcedId() != null ? user.getOneRosterSourcedId() : user.getId();
@@ -243,10 +249,12 @@ public class LoanReminderService {
 
         Map<Long, BookGroup> groupedBooks = new LinkedHashMap<>();
         for (BookCopy copy : loan.getCopies()) {
-            if (copy == null || copy.getBook() == null) continue;
+            if (copy == null || copy.getBook() == null)
+                continue;
             Book book = copy.getBook();
             groupedBooks.compute(book.getId(), (id, existing) -> {
-                if (existing == null) return new BookGroup(book, 1);
+                if (existing == null)
+                    return new BookGroup(book, 1);
                 return new BookGroup(existing.book(), existing.count() + 1);
             });
         }
@@ -309,7 +317,8 @@ public class LoanReminderService {
     }
 
     private void appendGenres(StringBuilder sb, Book book) {
-        if (book.getGenres() == null || book.getGenres().isEmpty()) return;
+        if (book.getGenres() == null || book.getGenres().isEmpty())
+            return;
         sb.append("<div style=\"margin-top: 4px;\">");
         for (var genre : book.getGenres()) {
             sb.append("<span style=\"").append(GENRE_BADGE_STYLE).append("\">");
