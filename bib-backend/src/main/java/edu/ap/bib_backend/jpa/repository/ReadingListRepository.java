@@ -17,20 +17,20 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
         @Query("""
                         SELECT rl
                         FROM ReadingList rl
-                        WHERE rl.campus.id = :campusId
-                          AND (
-                                (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
-                             OR (:includeOwnShared = true
-                                 AND rl.user.id = :userId
-                                 AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
-                             OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
-                                 AND (
-                                     LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
-                                     OR (COALESCE(rl.targetValue, '') <> ''
-                                         AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
-                                 ))
-                             OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
-                          )
+                        WHERE rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM
+                           OR (rl.campus.id = :campusId
+                               AND (
+                                    (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
+                                 OR (:includeOwnShared = true
+                                     AND rl.user.id = :userId
+                                     AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
+                                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
+                                     AND (
+                                         LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
+                                         OR (COALESCE(rl.targetValue, '') <> ''
+                                             AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
+                                     ))
+                               ))
                         """)
         List<ReadingList> findVisibleForUser(
                         @Param("userId") String userId,
@@ -44,20 +44,20 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                         SELECT rl
                         FROM ReadingList rl
                         WHERE rl.id = :id
-                          AND rl.campus.id = :campusId
-                          AND (
-                                (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
-                             OR (:includeOwnShared = true
-                                 AND rl.user.id = :userId
-                                 AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
-                             OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
-                                 AND (
-                                     LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
-                                     OR (COALESCE(rl.targetValue, '') <> ''
-                                         AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
-                                 ))
-                             OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
-                          )
+                          AND (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM
+                           OR (rl.campus.id = :campusId
+                               AND (
+                                    (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
+                                 OR (:includeOwnShared = true
+                                     AND rl.user.id = :userId
+                                     AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
+                                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
+                                     AND (
+                                         LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
+                                         OR (COALESCE(rl.targetValue, '') <> ''
+                                             AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
+                                     ))
+                               )))
                         """)
         Optional<ReadingList> findVisibleById(
                         @Param("id") Long id,
