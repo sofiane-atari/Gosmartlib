@@ -1,0 +1,37 @@
+.dev-feature-wrapper {
+  position: relative;
+  border: 2px dashed #f59e0b;
+  border-radius: 8px;
+  padding: 1rem;
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.dev-feature-wrapper--compact {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+}
+
+.dev-feature-wrapper__badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  background: #f59e0b;
+  color: #1a1a2e;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0 8px 0 8px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dev-feature-wrapper--compact .dev-feature-wrapper__badge {
+  top: -4px;
+  right: -4px;
+  border-radius: 4px;
+  font-size: 0.55rem;
+  padding: 0.1rem 0.3rem;
+}
