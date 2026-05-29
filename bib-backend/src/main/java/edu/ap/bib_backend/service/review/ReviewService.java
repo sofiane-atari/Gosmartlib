@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,12 +63,14 @@ public class ReviewService {
 
         public List<ReviewDTO> getReviewsForBook(Long bookId, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
+                Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
 
                 List<ReviewModerationStatus> visibleStatuses = List.of(
                                 ReviewModerationStatus.ACTIVE,
                                 ReviewModerationStatus.KEPT);
 
-                return reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses).stream()
+                return reviewRepository.findVisibleReviewsByBookIdAndUserSchoolId(bookId, visibleStatuses, schoolId)
+                                .stream()
                                 .map(review -> reviewMapper.toDto(review, currentUserId))
                                 .toList();
         }
@@ -87,21 +90,24 @@ public class ReviewService {
 
         public List<ReviewDTO> getAllReviews(Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
+                Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
 
-                return reviewRepository.findAll().stream()
+                return reviewRepository.findAllByUserSchoolId(schoolId).stream()
                                 .map(review -> reviewMapper.toDto(review, currentUserId))
                                 .toList();
         }
 
         public Page<ReviewDTO> getFlaggedReviews(Authentication authentication, int page, int size) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
+                Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
 
                 Pageable pageable = PageRequest.of(
                                 Math.max(page, 0),
                                 Math.min(Math.max(size, 1), 50),
                                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-                return reviewRepository.findByModerationStatus(ReviewModerationStatus.FLAGGED, pageable)
+                return reviewRepository.findByModerationStatusAndUserSchoolId(
+                                ReviewModerationStatus.FLAGGED, schoolId, pageable)
                                 .map(review -> reviewMapper.toDto(review, currentUserId));
         }
 
@@ -146,7 +152,6 @@ public class ReviewService {
 
                 Review savedReview = reviewRepository.save(review);
 
-
                 publishReviewCreatedEvent(savedReview);
 
                 return reviewMapper.toDto(savedReview, currentUserId);
@@ -156,8 +161,10 @@ public class ReviewService {
                 return reviewRepository.getAverageRatingForBook(bookId);
         }
 
+        @Transactional
         public void deleteReview(Long reviewId, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
+                Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
 
                 Review review = reviewRepository.findById(reviewId)
                                 .orElseThrow(() -> new ResourceNotFoundException("reviewId",
@@ -171,9 +178,14 @@ public class ReviewService {
                         throw new IllegalStateException("Je mag alleen je eigen review verwijderen.");
                 }
 
+                if (!isOwner && !review.getUser().getSchool().getId().equals(schoolId)) {
+                        throw new AccessDeniedException("Review hoort niet bij deze school.");
+                }
+
                 reviewRepository.delete(review);
         }
 
+        @Transactional
         public ReviewDTO reportReview(Long reviewId, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
@@ -207,10 +219,15 @@ public class ReviewService {
         @Transactional
         public ReviewDTO keepReview(Long reviewId, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
+                Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
 
                 Review review = reviewRepository.findById(reviewId)
                                 .orElseThrow(() -> new ResourceNotFoundException("reviewId",
                                                 "Review niet gevonden met id: " + reviewId));
+
+                if (!review.getUser().getSchool().getId().equals(schoolId)) {
+                        throw new AccessDeniedException("Review hoort niet bij deze school.");
+                }
 
                 review.markAsKept();
                 Review updatedReview = reviewRepository.save(review);
@@ -218,13 +235,18 @@ public class ReviewService {
                 return reviewMapper.toDto(updatedReview, currentUserId);
         }
 
-        public ReviewDashboardStatsDTO getFlaggedReviewStats() {
-                long totalFlaggedReviews = reviewRepository.countByModerationStatus(
-                                ReviewModerationStatus.FLAGGED);
+        public ReviewDashboardStatsDTO getFlaggedReviewStats(Authentication authentication) {
+                Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
 
-                long criticalFlaggedReviews = reviewRepository.countByModerationStatusAndReportCountGreaterThanEqual(
+                long totalFlaggedReviews = reviewRepository.countByModerationStatusAndUserSchoolId(
                                 ReviewModerationStatus.FLAGGED,
-                                5);
+                                schoolId);
+
+                long criticalFlaggedReviews = reviewRepository
+                                .countByModerationStatusAndReportCountGreaterThanEqualAndUserSchoolId(
+                                                ReviewModerationStatus.FLAGGED,
+                                                5,
+                                                schoolId);
 
                 return new ReviewDashboardStatsDTO(
                                 totalFlaggedReviews,
@@ -239,7 +261,6 @@ public class ReviewService {
                 if (review.getBook() == null || review.getBook().getId() == null) {
                         return;
                 }
-
 
                 applicationEventPublisher.publishEvent(
                         new ReviewCreatedGamificationEvent(

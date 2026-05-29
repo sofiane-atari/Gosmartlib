@@ -44,7 +44,62 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
         Page<Review> findByModerationStatus(ReviewModerationStatus moderationStatus, Pageable pageable);
 
+        @Query("""
+                        SELECT r
+                        FROM Review r
+                        WHERE r.moderationStatus = :moderationStatus
+                          AND r.user.school.id = :schoolId
+                        ORDER BY r.createdAt DESC
+                    """)
+        Page<Review> findByModerationStatusAndUserSchoolId(
+                        @Param("moderationStatus") ReviewModerationStatus moderationStatus,
+                        @Param("schoolId") Long schoolId,
+                        Pageable pageable);
+
+        @Query("""
+                        SELECT r
+                        FROM Review r
+                        WHERE r.user.school.id = :schoolId
+                        ORDER BY r.createdAt DESC
+                    """)
+        List<Review> findAllByUserSchoolId(@Param("schoolId") Long schoolId);
+
+        @Query("""
+                        SELECT r
+                        FROM Review r
+                        WHERE r.book.id = :bookId
+                          AND r.moderationStatus IN :statuses
+                          AND r.user.school.id = :schoolId
+                        ORDER BY r.createdAt DESC
+                    """)
+        List<Review> findVisibleReviewsByBookIdAndUserSchoolId(
+                        @Param("bookId") Long bookId,
+                        @Param("statuses") List<ReviewModerationStatus> statuses,
+                        @Param("schoolId") Long schoolId);
+
         long countByModerationStatus(ReviewModerationStatus moderationStatus);
+
+        @Query("""
+                        SELECT COUNT(r)
+                        FROM Review r
+                        WHERE r.moderationStatus = :moderationStatus
+                          AND r.user.school.id = :schoolId
+                    """)
+        long countByModerationStatusAndUserSchoolId(
+                        @Param("moderationStatus") ReviewModerationStatus moderationStatus,
+                        @Param("schoolId") Long schoolId);
+
+        @Query("""
+                        SELECT COUNT(r)
+                        FROM Review r
+                        WHERE r.moderationStatus = :moderationStatus
+                          AND r.reportCount >= :reportCount
+                          AND r.user.school.id = :schoolId
+                    """)
+        long countByModerationStatusAndReportCountGreaterThanEqualAndUserSchoolId(
+                        @Param("moderationStatus") ReviewModerationStatus moderationStatus,
+                        @Param("reportCount") int reportCount,
+                        @Param("schoolId") Long schoolId);
 
         long countByModerationStatusAndReportCountGreaterThanEqual(
                         ReviewModerationStatus moderationStatus,
