@@ -180,6 +180,14 @@ public class SecurityConfig {
                                         auth.requestMatchers("/oneroster/**")
                                                         .hasRole(Role.ADMIN.name());
 
+                                        auth.requestMatchers("/reading-levels/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers("/reading-lists/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+
                                         auth.anyRequest().authenticated();
                                 })
 
