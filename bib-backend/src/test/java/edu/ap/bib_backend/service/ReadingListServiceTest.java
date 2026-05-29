@@ -23,6 +23,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import org.springframework.data.domain.Pageable;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -553,6 +555,266 @@ class ReadingListServiceTest {
                 verify(readingListBookRepository).deleteAllByReadingListIdAndBookId(listId, bookId);
         }
 
+        @Test
+        void givenSystemListAndAdmin_whenDeleteReadingList_thenAllow() {
+                setAuthenticationAsAdmin();
+
+                Long id = 14L;
+
+                ReadingList list = new ReadingList();
+                list.setId(id);
+                list.setName("Uitgelicht");
+                list.setTargetType(ReadingListTargetType.SYSTEM);
+                list.setCampus(makeCampus());
+
+                when(readingListRepository.findVisibleById(
+                                id,
+                                USER_ID,
+                                CAMPUS_ID,
+                                CLASS_CODE,
+                                YEAR_CODE,
+                                SCHOOL_CODE,
+                                true)).thenReturn(Optional.of(list));
+
+                readingListService.deleteReadingList(USER_ID, id);
+
+                verify(readingListRepository).deleteById(id);
+        }
+
+        @Test
+        void givenSystemListAndLibrarian_whenDeleteReadingList_thenAllow() {
+                setAuthenticationAsLibrarian();
+
+                Long id = 15L;
+
+                ReadingList list = new ReadingList();
+                list.setId(id);
+                list.setName("Uitgelicht");
+                list.setTargetType(ReadingListTargetType.SYSTEM);
+                list.setCampus(makeCampus());
+
+                when(readingListRepository.findVisibleById(
+                                id,
+                                USER_ID,
+                                CAMPUS_ID,
+                                CLASS_CODE,
+                                YEAR_CODE,
+                                SCHOOL_CODE,
+                                true)).thenReturn(Optional.of(list));
+
+                readingListService.deleteReadingList(USER_ID, id);
+
+                verify(readingListRepository).deleteById(id);
+        }
+
+        @Test
+        void givenSystemListAndTeacher_whenDeleteReadingList_thenThrow() {
+                setAuthenticationAsTeacher();
+
+                Long id = 16L;
+
+                ReadingList list = new ReadingList();
+                list.setId(id);
+                list.setName("Uitgelicht");
+                list.setTargetType(ReadingListTargetType.SYSTEM);
+                list.setCampus(makeCampus());
+
+                when(readingListRepository.findVisibleById(
+                                id,
+                                USER_ID,
+                                CAMPUS_ID,
+                                CLASS_CODE,
+                                YEAR_CODE,
+                                SCHOOL_CODE,
+                                true)).thenReturn(Optional.of(list));
+
+                IllegalArgumentException exception = assertThrows(
+                                IllegalArgumentException.class,
+                                () -> readingListService.deleteReadingList(USER_ID, id));
+
+                assertEquals("Alleen bibliothecarissen en admins kunnen uitgelichte leeslijsten verwijderen", exception.getMessage());
+                verify(readingListRepository, never()).deleteById(any());
+        }
+
+        @Test
+        void givenClassListAndAdmin_whenDeleteReadingList_thenAllow() {
+                setAuthenticationAsAdmin();
+
+                Long id = 17L;
+
+                ReadingList list = new ReadingList();
+                list.setId(id);
+                list.setName("Klaslijst");
+                list.setTargetType(ReadingListTargetType.CLASS);
+                list.setCampus(makeCampus());
+
+                when(readingListRepository.findVisibleById(
+                                id,
+                                USER_ID,
+                                CAMPUS_ID,
+                                CLASS_CODE,
+                                YEAR_CODE,
+                                SCHOOL_CODE,
+                                true)).thenReturn(Optional.of(list));
+
+                readingListService.deleteReadingList(USER_ID, id);
+
+                verify(readingListRepository).deleteById(id);
+        }
+
+        @Test
+        void givenClassListAndLibrarian_whenDeleteReadingList_thenAllow() {
+                setAuthenticationAsLibrarian();
+
+                Long id = 18L;
+
+                ReadingList list = new ReadingList();
+                list.setId(id);
+                list.setName("Klaslijst");
+                list.setTargetType(ReadingListTargetType.CLASS);
+                list.setCampus(makeCampus());
+
+                when(readingListRepository.findVisibleById(
+                                id,
+                                USER_ID,
+                                CAMPUS_ID,
+                                CLASS_CODE,
+                                YEAR_CODE,
+                                SCHOOL_CODE,
+                                true)).thenReturn(Optional.of(list));
+
+                readingListService.deleteReadingList(USER_ID, id);
+
+                verify(readingListRepository).deleteById(id);
+        }
+
+        @Test
+        void givenSystemType_whenCreateReadingListByAdmin_thenAllow() {
+                setAuthenticationAsAdmin();
+
+                ReadingListDTO dto = new ReadingListDTO("Uitgelicht", ReadingListTargetType.SYSTEM, null);
+
+                ReadingList savedList = new ReadingList();
+                savedList.setId(20L);
+                savedList.setName("Uitgelicht");
+                savedList.setTargetType(ReadingListTargetType.SYSTEM);
+                savedList.setCampus(makeCampus());
+
+                when(readingListRepository.save(any(ReadingList.class))).thenReturn(savedList);
+
+                ReadingList result = readingListService.createReadingList(USER_ID, dto);
+
+                assertNotNull(result);
+                assertEquals("Uitgelicht", result.getName());
+                verify(readingListRepository).save(argThat(list ->
+                                list.getTargetType() == ReadingListTargetType.SYSTEM));
+        }
+
+        @Test
+        void givenSystemType_whenCreateReadingListByLibrarian_thenAllow() {
+                setAuthenticationAsLibrarian();
+
+                ReadingListDTO dto = new ReadingListDTO("Uitgelicht", ReadingListTargetType.SYSTEM, null);
+
+                ReadingList savedList = new ReadingList();
+                savedList.setId(21L);
+                savedList.setName("Uitgelicht");
+                savedList.setTargetType(ReadingListTargetType.SYSTEM);
+                savedList.setCampus(makeCampus());
+
+                when(readingListRepository.save(any(ReadingList.class))).thenReturn(savedList);
+
+                ReadingList result = readingListService.createReadingList(USER_ID, dto);
+
+                assertNotNull(result);
+                assertEquals("Uitgelicht", result.getName());
+                verify(readingListRepository).save(argThat(list ->
+                                list.getTargetType() == ReadingListTargetType.SYSTEM));
+        }
+
+        @Test
+        void givenSystemType_whenCreateReadingListByTeacher_thenThrow() {
+                setAuthenticationAsTeacher();
+
+                ReadingListDTO dto = new ReadingListDTO("Uitgelicht", ReadingListTargetType.SYSTEM, null);
+
+                IllegalArgumentException exception = assertThrows(
+                                IllegalArgumentException.class,
+                                () -> readingListService.createReadingList(USER_ID, dto));
+
+                assertEquals("Alleen bibliothecarissen en admins kunnen uitgelichte leeslijsten aanmaken", exception.getMessage());
+                verify(readingListRepository, never()).save(any());
+        }
+
+        @Test
+        void givenClassType_whenCreateReadingListByAdmin_thenAllow() {
+                setAuthenticationAsAdmin();
+
+                ReadingListDTO dto = new ReadingListDTO("Klaslijst", ReadingListTargetType.CLASS, CLASS_CODE);
+
+                ReadingList savedList = new ReadingList();
+                savedList.setId(22L);
+                savedList.setName("Klaslijst");
+                savedList.setTargetType(ReadingListTargetType.CLASS);
+                savedList.setTargetValue(CLASS_CODE);
+                savedList.setCampus(makeCampus());
+
+                when(readingListRepository.save(any(ReadingList.class))).thenReturn(savedList);
+
+                ReadingList result = readingListService.createReadingList(USER_ID, dto);
+
+                assertNotNull(result);
+                assertEquals("Klaslijst", result.getName());
+                verify(readingListRepository).save(argThat(list ->
+                                list.getTargetType() == ReadingListTargetType.CLASS
+                                && CLASS_CODE.equals(list.getTargetValue())));
+        }
+
+        @Test
+        void givenClassType_whenCreateReadingListByLibrarian_thenAllow() {
+                setAuthenticationAsLibrarian();
+
+                ReadingListDTO dto = new ReadingListDTO("Klaslijst", ReadingListTargetType.CLASS, CLASS_CODE);
+
+                ReadingList savedList = new ReadingList();
+                savedList.setId(23L);
+                savedList.setName("Klaslijst");
+                savedList.setTargetType(ReadingListTargetType.CLASS);
+                savedList.setTargetValue(CLASS_CODE);
+                savedList.setCampus(makeCampus());
+
+                when(readingListRepository.save(any(ReadingList.class))).thenReturn(savedList);
+
+                ReadingList result = readingListService.createReadingList(USER_ID, dto);
+
+                assertNotNull(result);
+                assertEquals("Klaslijst", result.getName());
+                verify(readingListRepository).save(argThat(list ->
+                                list.getTargetType() == ReadingListTargetType.CLASS
+                                && CLASS_CODE.equals(list.getTargetValue())));
+        }
+
+        @Test
+        void givenSystemList_whenGetCatalogFeaturedListsForCurrentUserSchool_thenReturnsSchoolLists() {
+                ReadingList list = new ReadingList();
+                list.setId(30L);
+                list.setName("Uitgelicht voor school");
+                list.setTargetType(ReadingListTargetType.SYSTEM);
+                list.setCampus(makeCampus());
+
+                when(readingListRepository.findTop2FeaturedBySchoolId(
+                                ReadingListTargetType.SYSTEM,
+                                SCHOOL_ID,
+                                Pageable.ofSize(2))).thenReturn(List.of(list));
+
+                List<ReadingList> result = readingListService.getCatalogFeaturedListsForCurrentUserSchool(USER_ID);
+
+                assertEquals(1, result.size());
+                assertEquals("Uitgelicht voor school", result.get(0).getName());
+                verify(readingListRepository).findTop2FeaturedBySchoolId(
+                                ReadingListTargetType.SYSTEM, SCHOOL_ID, Pageable.ofSize(2));
+        }
+
         private void setAuthenticationAsStudent() {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                                 USER_ID,
@@ -561,6 +823,16 @@ class ReadingListServiceTest {
 
                 applyAudienceDetails(authentication);
                 mockCurrentUserAuthorities("ROLE_STUDENT");
+        }
+
+        private void setAuthenticationAsAdmin() {
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                USER_ID,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+                applyAudienceDetails(authentication);
+                mockCurrentUserAuthorities("ROLE_ADMIN");
         }
 
         private void setAuthenticationAsLibrarian() {
