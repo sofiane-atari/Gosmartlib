@@ -59,6 +59,15 @@ public class BookCopyService {
         }
 
         Book book = copy.getBook();
+
+        // Remove join rows first to satisfy FK constraint (loan_copies -> book_copies).
+        // Then delete now-orphaned loan rows (loans without any remaining copies).
+        List<Long> loanIds = bookLoanRepository.findLoanIdsByCopyId(copyId);
+        bookLoanRepository.deleteLoanCopiesByCopyId(copyId);
+        if (!loanIds.isEmpty()) {
+            bookLoanRepository.deleteOrphanLoansByIds(loanIds);
+        }
+
         bookCopyRepository.delete(copy);
 
         bookCopyRepository.flush();
@@ -77,6 +86,15 @@ public class BookCopyService {
         List<BookCopy> copies = bookCopyRepository.findAllByBookIdAndCampusSchoolId(bookId, school.getId());
         if (copies.isEmpty()) {
             throw new IllegalArgumentException("Geen exemplaren gevonden in deze school.");
+        }
+
+        // Delete join rows first, otherwise MySQL blocks deleting copies via FK.
+        // Then delete loans that became orphaned.
+        List<Long> copyIds = copies.stream().map(BookCopy::getId).toList();
+        List<Long> loanIds = bookLoanRepository.findLoanIdsByCopyIds(copyIds);
+        bookLoanRepository.deleteLoanCopiesByCopyIds(copyIds);
+        if (!loanIds.isEmpty()) {
+            bookLoanRepository.deleteOrphanLoansByIds(loanIds);
         }
 
         bookCopyRepository.deleteAll(copies);
