@@ -24,7 +24,7 @@ import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanReturnDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.event.BookAvailableEvent;
-import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
+import edu.ap.bib_backend.event.gamification.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;

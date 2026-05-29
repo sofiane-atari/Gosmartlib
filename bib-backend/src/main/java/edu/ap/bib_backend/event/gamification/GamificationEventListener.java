@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.event;
+package edu.ap.bib_backend.event.gamification;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;

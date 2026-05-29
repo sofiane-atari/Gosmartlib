@@ -55,6 +55,7 @@ public class BookSearchService {
             Integer maxPages,
             Long readingLevelId,
             String genreName,
+            Boolean didactic,
             int page,
             int size,
             BookSortOption sortBy,
@@ -88,6 +89,10 @@ public class BookSearchService {
 
         if (availabilityFilter == BookAvailabilityFilter.AVAILABLE) {
             specification = specification.and(BookSpecification.hasAnyAvailableCopy());
+        }
+
+        if (Boolean.TRUE.equals(didactic)) {
+            specification = specification.and(BookSpecification.onlyDidactic());
         }
 
         List<BookDTO> uniqueBooks = bookRepository.findAll(specification, sort).stream()

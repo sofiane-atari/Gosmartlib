@@ -102,6 +102,10 @@ export class RoleService {
     return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
   }
 
+  public canFilterDidacticBooks(): boolean {
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
+  }
+
   /**
    * Determines whether the user is allowed to manage genres.
    *

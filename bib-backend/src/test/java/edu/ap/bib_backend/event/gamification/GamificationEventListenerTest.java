@@ -11,11 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
-import edu.ap.bib_backend.event.GamificationEventListener;
-import edu.ap.bib_backend.event.GamificationEventService;
-import edu.ap.bib_backend.event.ReviewCreatedGamificationEvent;
-
 @ExtendWith(MockitoExtension.class)
 class GamificationEventListenerTest {
 

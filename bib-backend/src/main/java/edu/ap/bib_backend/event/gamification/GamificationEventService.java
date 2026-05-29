@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.event;
+package edu.ap.bib_backend.event.gamification;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

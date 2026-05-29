@@ -52,7 +52,7 @@ export class BadgeCollectionComponent {
 
   protected readonly rarityOptions: BadgeFilterOption<BadgeRarityFilter>[] = [
     { label: 'Alle niveaus', value: 'ALL' },
-    { label: 'Gewoon', value: 'COMMON' },
+    { label: 'Basis', value: 'COMMON' },
     { label: 'Zeldzaam', value: 'RARE' },
     { label: 'Episch', value: 'EPIC' },
     { label: 'Legendarisch', value: 'LEGENDARY' },

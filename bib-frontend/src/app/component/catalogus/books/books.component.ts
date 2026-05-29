@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   OnInit,
   signal,
   inject,
@@ -39,6 +40,7 @@ import { FeaturedReadingListsSidebarComponent } from "../featured-reading-lists-
 import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 import { UserSettingsService } from '../../../services/user-settings/user-settings.service';
 import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
+import { RoleService } from '../../../services/role-service/role.service';
 
 @Component({
   selector: 'app-books',
@@ -72,6 +74,7 @@ export class BooksComponent implements OnInit {
   private readonly campusService = inject(CampusService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly roleService = inject(RoleService);
 
   books = signal<Book[]>([]);
   protected readonly pagingMeta = signal({
@@ -102,6 +105,9 @@ export class BooksComponent implements OnInit {
   protected readonly currentPage = signal(0);
   private readonly pageSize = signal(15);
   protected readonly userSettingsService = inject(UserSettingsService);
+  protected readonly canFilterDidacticBooks = computed(() =>
+    this.roleService.canFilterDidacticBooks()
+  );
 
   featuredReadingLists: ReadingList[] = [];
   isLoadingFeaturedReadingLists = false;
@@ -138,6 +144,7 @@ export class BooksComponent implements OnInit {
   protected readonly filters = signal<BookFilters>({
     searchTerm: '',
     availability: 'ALL',
+    didactic: 'ALL',
     minPages: null,
     maxPages: null,
     sortBy: 'AZ',
@@ -212,6 +219,7 @@ export class BooksComponent implements OnInit {
         filters.maxPages,
         filters.readingLevelId,
         filters.genreName,
+        filters.didactic,
         this.currentPage(),
         this.pageSize(),
         filters.sortBy,
@@ -340,6 +348,15 @@ export class BooksComponent implements OnInit {
     this.loadCatalogBooks();
   }
 
+  public updateDidactic(didactic: BookFilters['didactic']): void {
+    this.filters.update((current: BookFilters) => ({
+      ...current,
+      didactic,
+    }));
+    this.currentPage.set(0);
+    this.loadCatalogBooks();
+  }
+
   public updateSortBy(sortBy: BookFilters['sortBy']): void {
     this.filters.update((current: BookFilters) => ({
       ...current,
@@ -409,6 +426,7 @@ export class BooksComponent implements OnInit {
     this.filters.set({
       searchTerm: '',
       availability: 'ALL',
+      didactic: 'ALL',
       minPages: this.absoluteMinPages(),
       maxPages: this.absoluteMaxPages(),
       sortBy: 'AZ',
@@ -475,6 +493,9 @@ export class BooksComponent implements OnInit {
       searchTerm:
         typeof rawFilters.searchTerm === 'string' ? rawFilters.searchTerm : '',
       availability: this.normalizeAvailability(rawFilters.availability),
+      didactic: this.canFilterDidacticBooks()
+        ? this.normalizeDidactic(rawFilters.didactic)
+        : 'ALL',
       minPages: this.normalizePageFilterValue(rawFilters.minPages),
       maxPages: this.normalizePageFilterValue(rawFilters.maxPages),
       sortBy: this.normalizeSortBy(rawFilters.sortBy),
@@ -489,6 +510,17 @@ export class BooksComponent implements OnInit {
 
     if (normalized === 'AVAILABLE' || normalized === 'BESCHIKBAAR') {
       return 'AVAILABLE';
+    }
+
+    return 'ALL';
+  }
+
+  private normalizeDidactic(value: unknown): BookFilters['didactic'] {
+    const normalized =
+      typeof value === 'string' ? value.trim().toUpperCase() : '';
+
+    if (normalized === 'DIDACTIC') {
+      return 'DIDACTIC';
     }
 
     return 'ALL';

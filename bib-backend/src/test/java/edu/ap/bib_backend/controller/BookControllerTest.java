@@ -95,10 +95,11 @@ public class BookControllerTest {
                                 BookAvailabilityFilter.ALL,
                                 100,
                                 500,
-                                null,
-                                null,
-                                0,
-                                10,
+                                 null,
+                                 null,
+                                 null,
+                                 0,
+                                 10,
                                 BookSortOption.AZ, null)).thenReturn(page);
 
                 // Act
@@ -122,10 +123,11 @@ public class BookControllerTest {
                                 BookAvailabilityFilter.ALL,
                                 100,
                                 500,
-                                null,
-                                null,
-                                0,
-                                10,
+                                 null,
+                                 null,
+                                 null,
+                                 0,
+                                 10,
                                 BookSortOption.AZ, null);
         }
 
@@ -192,11 +194,12 @@ public class BookControllerTest {
                     Mockito.isNull(),
                     Mockito.isNull(),
                     Mockito.isNull(),
-                    Mockito.isNull(),
-                    Mockito.isNull(),
-                    Mockito.isNull(),
-                    Mockito.eq(0),
-                    Mockito.eq(10),
+                     Mockito.isNull(),
+                     Mockito.isNull(),
+                     Mockito.isNull(),
+                     Mockito.isNull(),
+                     Mockito.eq(0),
+                     Mockito.eq(10),
                     Mockito.isNull(),
                     Mockito.nullable(Authentication.class)))
                     .thenReturn(page);
@@ -213,11 +216,12 @@ public class BookControllerTest {
                     Mockito.isNull(),
                     Mockito.isNull(),
                     Mockito.isNull(),
-                    Mockito.isNull(),
-                    Mockito.isNull(),
-                    Mockito.isNull(),
-                    Mockito.eq(0),
-                    Mockito.eq(10),
+                     Mockito.isNull(),
+                     Mockito.isNull(),
+                     Mockito.isNull(),
+                     Mockito.isNull(),
+                     Mockito.eq(0),
+                     Mockito.eq(10),
                     Mockito.isNull(),
                     Mockito.nullable(Authentication.class));
         }
