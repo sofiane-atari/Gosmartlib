@@ -161,4 +161,8 @@ public static Specification<Book> belongsToCampus(Long campusId) {
             return criteriaBuilder.isFalse(root.get("didactic"));
         };
     }
+
+    public static Specification<Book> onlyDidactic() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("didactic"));
+    }
 }

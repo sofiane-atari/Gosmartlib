@@ -113,6 +113,7 @@ class BookSearchServiceTest {
                 null,
                 null,
                 null,
+                null,
                 0,
                 10,
                 null,
@@ -133,7 +134,7 @@ class BookSearchServiceTest {
                 .willReturn(List.of());
 
         Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null, null, null, null, null, null, -5, 10, null, authentication);
+                null, null, null, null, null, null, null, -5, 10, null, authentication);
 
         assertThat(result.getPageable().getPageNumber()).isEqualTo(0);
     }
@@ -144,7 +145,7 @@ class BookSearchServiceTest {
                 .willReturn(List.of());
 
         Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null, null, null, null, null, null, 0, 0, null, authentication);
+                null, null, null, null, null, null, null, 0, 0, null, authentication);
 
         assertThat(result.getPageable().getPageSize()).isEqualTo(1);
     }
@@ -155,7 +156,7 @@ class BookSearchServiceTest {
                 .willReturn(List.of());
 
         Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null, null, null, null, null, null, 0, 999, null, authentication);
+                null, null, null, null, null, null, null, 0, 999, null, authentication);
 
         assertThat(result.getPageable().getPageSize()).isEqualTo(50);
     }
@@ -167,6 +168,7 @@ class BookSearchServiceTest {
                 null,
                 300,
                 100,
+                null,
                 null,
                 null,
                 0,
@@ -190,6 +192,7 @@ class BookSearchServiceTest {
                 null,
                 null,
                 null,
+                null,
                 0,
                 10,
                 null,
@@ -205,6 +208,7 @@ class BookSearchServiceTest {
                 .willReturn(List.of());
 
         bookSearchService.getFilteredBooks(
+                null,
                 null,
                 null,
                 null,
@@ -240,6 +244,7 @@ class BookSearchServiceTest {
                 .willReturn(List.of(book));
 
         Page<BookDTO> result = bookSearchService.getFilteredBooks(
+                null,
                 null,
                 null,
                 null,
@@ -288,6 +293,7 @@ class BookSearchServiceTest {
         Page<BookDTO> result = bookSearchService.getFilteredBooks(
                 null,
                 BookAvailabilityFilter.AVAILABLE,
+                null,
                 null,
                 null,
                 null,
