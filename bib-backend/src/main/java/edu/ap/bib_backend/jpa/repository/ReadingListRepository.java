@@ -2,6 +2,7 @@ package edu.ap.bib_backend.jpa.repository;
 
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -82,6 +83,10 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                         ReadingListTargetType targetType,
                         Long campusId);
 
+        Optional<ReadingList> findFirstByTargetTypeAndCampus_School_Id(
+                        ReadingListTargetType targetType,
+                        Long schoolId);
+
         Optional<ReadingList> findByPublicShareIdAndShareEnabledTrue(String publicShareId);
 
         boolean existsByPublicShareId(String publicShareId);
@@ -90,12 +95,29 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                         ReadingListTargetType targetType,
                         Long campusId);
 
-        List<ReadingList> findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
-                        ReadingListTargetType targetType,
-                        Long campusId);
+        @Query("""
+                        SELECT rl
+                        FROM ReadingList rl
+                        WHERE rl.targetType = :targetType
+                          AND rl.campus.school.id = :schoolId
+                          AND rl.showOnCatalog = true
+                        ORDER BY rl.catalogFeaturedOrder ASC
+                        """)
+        List<ReadingList> findFeaturedBySchoolId(
+                        @Param("targetType") ReadingListTargetType targetType,
+                        @Param("schoolId") Long schoolId);
 
-        List<ReadingList> findTop2ByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
-                        ReadingListTargetType targetType,
-                        Long campusId);
+        @Query("""
+                        SELECT rl
+                        FROM ReadingList rl
+                        WHERE rl.targetType = :targetType
+                          AND rl.campus.school.id = :schoolId
+                          AND rl.showOnCatalog = true
+                        ORDER BY rl.catalogFeaturedOrder ASC
+                        """)
+        List<ReadingList> findTop2FeaturedBySchoolId(
+                        @Param("targetType") ReadingListTargetType targetType,
+                        @Param("schoolId") Long schoolId,
+                        Pageable pageable);
                         
 }
