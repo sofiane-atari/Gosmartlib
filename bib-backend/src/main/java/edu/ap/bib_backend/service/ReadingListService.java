@@ -107,8 +107,17 @@ public class ReadingListService {
     public void deleteReadingList(String userId, Long id) {
         ReadingList list = getListById(userId, id);
 
-        if (isFavoritesList(list.getName()) || list.getTargetType() == ReadingListTargetType.SYSTEM) {
+        if (isFavoritesList(list.getName())) {
             throw new IllegalArgumentException("Deze leeslijst kan niet verwijderd worden");
+        }
+
+        if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
+            if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+                throw new IllegalArgumentException("Alleen bibliothecarissen en admins kunnen uitgelichte leeslijsten verwijderen");
+            }
+
+            readingListRepository.deleteById(id);
+            return;
         }
 
         if (list.getTargetType() != ReadingListTargetType.PERSONAL && !isTeacherAuthenticated()) {

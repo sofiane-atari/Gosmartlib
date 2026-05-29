@@ -192,7 +192,7 @@ export class ReadingListOverviewComponent implements OnInit {
     }
 
     if ((list.targetType ?? 'PERSONAL') === 'SYSTEM') {
-      return false;
+      return this.roleService.hasAnyRole(['ADMIN', 'LIBRARIAN']);
     }
 
     return (list.targetType ?? 'PERSONAL') === 'PERSONAL' || this.roleService.isTeacher();
