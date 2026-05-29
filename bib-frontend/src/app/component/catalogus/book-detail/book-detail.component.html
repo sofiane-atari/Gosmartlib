@@ -177,7 +177,7 @@
                 <button
                   type="button"
                   class="action-btn action-button--delete"
-                  (click)="deleteBook(selectedBook.id)"
+                  (click)="openDeleteModal()"
                 >
                   <lucide-icon
                     [img]="Trash2"
@@ -810,6 +810,18 @@
           </div>
         }
       </main>
+
+      <app-copy-selection-modal
+        [isVisible]="isDeleteModalVisible()"
+        [copies]="copySelectionItems"
+        title="Exemplaren verwijderen"
+        confirmLabel="Verwijderen"
+        confirmLoadingLabel="Verwijderen..."
+        cancelLabel="Annuleren"
+        [isConfirmLoading]="isDeletingCopies()"
+        (confirmRequested)="handleCopyDeletion($event)"
+        (cancelRequested)="closeDeleteModal()"
+      />
     </div>
   </div>
 }

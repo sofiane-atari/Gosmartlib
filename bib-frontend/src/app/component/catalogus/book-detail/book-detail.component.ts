@@ -1,11 +1,12 @@
 import {
   Component,
-  Inject,
   inject,
   OnDestroy,
   signal,
   OnInit,
 } from '@angular/core';
+
+import { forkJoin } from 'rxjs';
 
 import {
   Book,
@@ -59,6 +60,10 @@ import { CampusService } from '../../../services/campus/campus.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
 import { ReadingList } from '../../../model/readingList.model';
 import { GamificationNotificationStoreService } from '../../../services/gamification/notification/gamification-notification-store.service';
+import {
+  CopySelectionModalComponent,
+  CopySelectionItem,
+} from '../../shared/copy-selection-modal/copy-selection-modal.component';
 interface CopyStatusSummary {
   status: 'available' | 'borrowed' | 'lost';
   count: number;
@@ -75,6 +80,7 @@ interface CopyStatusSummary {
     FormsModule,
     RouterLink,
     ButtonHoverHelpComponent,
+    CopySelectionModalComponent,
   ],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css',
@@ -144,6 +150,8 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
   protected readonly isSubscribed = signal(false);
   protected readonly subscriptionLoading = signal(false);
+  protected readonly isDeleteModalVisible = signal(false);
+  protected readonly isDeletingCopies = signal(false);
   private readonly mailSubscriptionService = inject(MailSubscriptionService);
 
   Availability = Availability;
@@ -277,6 +285,26 @@ export class BookDetailComponent implements OnDestroy, OnInit {
         (group) => group.copies.length > 0,
       ) ?? []
     );
+  }
+
+  protected get copySelectionItems(): CopySelectionItem[] {
+    const items: CopySelectionItem[] = [];
+
+    for (const group of this.copyLocationGroups) {
+      for (const copy of group.copies) {
+        items.push({
+          id: copy.id,
+          label: `Exemplaar #${copy.id}`,
+          campusName: group.campusName,
+          description:
+            this.getCopyAvailabilityLabel(copy) +
+            ' · ' +
+            this.getConditionLabel(copy.condition),
+        });
+      }
+    }
+
+    return items;
   }
 
   protected get hasLocationInfo(): boolean {
@@ -775,30 +803,77 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     return this.authService.currentUser()?.role === 'STUDENT';
   }
 
-  public deleteBook(bookId?: number): void {
+  protected openDeleteModal(): void {
+    if (this.copySelectionItems.length === 0) {
+      this.toastService.show(
+        'Er zijn geen exemplaren om te verwijderen.',
+        'error',
+      );
+      return;
+    }
+
+    this.isDeleteModalVisible.set(true);
+  }
+
+  protected closeDeleteModal(): void {
+    this.isDeleteModalVisible.set(false);
+    this.isDeletingCopies.set(false);
+  }
+
+  protected handleCopyDeletion(selectedIds: number[]): void {
+    if (selectedIds.length === 0) {
+      return;
+    }
+
+    const bookId = this.selectedBook?.id;
     if (!bookId) {
       return;
     }
 
-    this.toastService.showConfirm(
-      'Weet je zeker dat je dit boek wilt verwijderen?',
-      () => {
-        this.bookService.deleteBook(bookId).subscribe({
-          next: () => {
-            this.toastService.show('Boek succesvol verwijderd.', 'success');
-            void this.router.navigate(['/catalog']);
-          },
-          error: (err) => {
-            const backendMessage = err?.error?.error?.message;
-            this.toastService.show(
-              backendMessage ?? 'Het boek kon niet verwijderd worden.',
-              'error',
-            );
-          },
+    this.isDeletingCopies.set(true);
+
+    const allCopyIds = this.copySelectionItems.map((c) => c.id);
+    const isDeletingAll = selectedIds.length === allCopyIds.length;
+
+    const deleteObservables = isDeletingAll
+      ? [this.bookService.deleteAllBookCopies(bookId)]
+      : selectedIds.map((id) => this.bookService.deleteBookCopy(id));
+
+    forkJoin(deleteObservables).subscribe({
+      next: () => {
+        this.isDeletingCopies.set(false);
+        this.isDeleteModalVisible.set(false);
+        this.toastService.show(
+          selectedIds.length === 1
+            ? 'Exemplaar succesvol verwijderd.'
+            : `${selectedIds.length} exemplaren succesvol verwijderd.`,
+          'success',
+        );
+
+        const remainingIds = allCopyIds.filter(
+          (id) => !selectedIds.includes(id),
+        );
+
+        if (remainingIds.length === 0) {
+          void this.router.navigate(['/catalog']);
+          return;
+        }
+
+        this.bookService.getBookById(bookId).subscribe((book) => {
+          this.selectedBook = book;
+          this.loadCampusForBook(book);
         });
       },
-      () => {},
-    );
+      error: (err) => {
+        this.isDeletingCopies.set(false);
+        const backendMessage = err?.error?.error?.message;
+        this.toastService.show(
+          backendMessage ??
+            'Er is een fout opgetreden bij het verwijderen van de exemplaren.',
+          'error',
+        );
+      },
+    });
   }
 
   private getReviewDraftKey(bookId: number): string {

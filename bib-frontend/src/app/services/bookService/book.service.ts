@@ -87,10 +87,6 @@ export class BookService {
     return this.http.put<Book>(`${this.apiUrl}/${id}`, book);
   }
 
-  public deleteBook(id: number) {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
   public getBookByISBN(isbn: string): Observable<Book> {
     return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
   }
@@ -209,6 +205,14 @@ export class BookService {
       `${environment.apiUrl}/book-copies/${copyId}/condition`,
       { condition },
     );
+  }
+
+  public deleteBookCopy(copyId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/book-copies/${copyId}`);
+  }
+
+  public deleteAllBookCopies(bookId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/book-copies/book/${bookId}`);
   }
 
   getRelatedBooksCarousel(

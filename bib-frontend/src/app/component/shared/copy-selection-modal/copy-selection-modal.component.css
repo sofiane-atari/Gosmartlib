@@ -1,0 +1,164 @@
+.copy-selection-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.copy-selection-card {
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  border-radius: 18px;
+  background: #ffffff;
+  text-align: left;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+  font-family: var(--main-font);
+}
+
+.copy-selection-card h2 {
+  margin: 0 0 16px;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.copy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  flex: 1;
+  margin-bottom: 20px;
+}
+
+.select-all-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 700;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.copy-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.copy-row:hover {
+  background: #f9fafb;
+}
+
+.copy-row input[type='checkbox'],
+.select-all-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--main-color, #8a1e41);
+  flex-shrink: 0;
+}
+
+.copy-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.copy-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.copy-detail {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.copy-selection-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 42px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--main-font);
+}
+
+.primary-button {
+  border: none;
+  background: #8a1e41;
+  color: #ffffff;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #6f1834;
+}
+
+.primary-button--danger {
+  background: var(--error-color, #ef4444);
+}
+
+.primary-button--danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.secondary-button {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .copy-selection-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+}

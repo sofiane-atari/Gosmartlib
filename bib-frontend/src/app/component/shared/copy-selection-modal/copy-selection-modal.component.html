@@ -1,0 +1,64 @@
+@if (isVisible()) {
+  <div class="copy-selection-backdrop" (click)="cancel()">
+    <section
+      class="copy-selection-card"
+      role="dialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <h2>{{ title() }}</h2>
+
+      <div class="copy-list">
+        <label class="select-all-row">
+          <input
+            type="checkbox"
+            [checked]="allSelected()"
+            [indeterminate]="indeterminate()"
+            (change)="toggleSelectAll()"
+          />
+          <span>Selecteer alle exemplaren</span>
+        </label>
+
+        @for (copy of copies(); track copy.id) {
+          <label class="copy-row">
+            <input
+              type="checkbox"
+              [checked]="isSelected(copy.id)"
+              (change)="toggleCopy(copy.id)"
+            />
+            <div class="copy-info">
+              <span class="copy-label">{{ copy.label }}</span>
+              <span class="copy-detail"
+                >{{ copy.campusName }} · {{ copy.description }}</span
+              >
+            </div>
+          </label>
+        }
+      </div>
+
+      <div class="copy-selection-actions">
+        <button
+          class="secondary-button"
+          type="button"
+          [disabled]="isConfirmLoading()"
+          (click)="cancel()"
+        >
+          {{ cancelLabel() }}
+        </button>
+
+        <button
+          class="primary-button primary-button--danger"
+          type="button"
+          [disabled]="selectedIds().size === 0 || isConfirmLoading()"
+          (click)="confirm()"
+        >
+          @if (isConfirmLoading() && confirmLoadingLabel()) {
+            {{ confirmLoadingLabel() }}
+          } @else {
+            {{ confirmLabel() }} ({{ selectedIds().size }})
+          }
+        </button>
+      </div>
+    </section>
+  </div>
+}
