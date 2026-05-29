@@ -8,6 +8,7 @@ import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterTokenRepository;
@@ -61,6 +62,7 @@ class ReadingListIntegrationTest {
     private School school;
     private RoleEntity studentRole;
     private RoleEntity teacherRole;
+    private RoleEntity librarianRole;
     private UsernamePasswordAuthenticationToken currentPrincipal;
 
     @Autowired
@@ -90,6 +92,9 @@ class ReadingListIntegrationTest {
     @Autowired
     private OneRosterTokenRepository oneRosterTokenRepository;
 
+    @Autowired
+    private BookRepository bookRepository;
+
     @BeforeEach
     void setUp() {
         cleanDatabase();
@@ -106,6 +111,10 @@ class ReadingListIntegrationTest {
         teacherRole = new RoleEntity();
         teacherRole.setRole(Role.TEACHER);
         teacherRole = roleEntityRepository.save(teacherRole);
+
+        librarianRole = new RoleEntity();
+        librarianRole.setRole(Role.LIBRARIAN);
+        librarianRole = roleEntityRepository.save(librarianRole);
 
         campus = new Campus();
         campus.setName("Test Campus");
@@ -184,7 +193,7 @@ class ReadingListIntegrationTest {
     }
 
     @Test
-    void givenCatalogFeaturedLists_whenGetCatalogFeaturedLists_thenReturnsOnlySelectedListsFromCurrentCampus()
+    void givenCatalogFeaturedLists_whenGetCatalogFeaturedLists_thenReturnsListsFromSchool()
             throws Exception {
         createCatalogList("Eerste selectie", campus, true, 1);
         createCatalogList("Tweede selectie", campus, true, 2);
@@ -196,15 +205,15 @@ class ReadingListIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[*].name", hasItem("Eerste selectie")))
-                .andExpect(jsonPath("$[*].name", hasItem("Tweede selectie")))
+                .andExpect(jsonPath("$[*].name", hasItem("Andere campus selectie")))
+                .andExpect(jsonPath("$[*].name", not(hasItem("Tweede selectie"))))
                 .andExpect(jsonPath("$[*].name", not(hasItem("Derde selectie"))))
-                .andExpect(jsonPath("$[*].name", not(hasItem("Niet geselecteerd"))))
-                .andExpect(jsonPath("$[*].name", not(hasItem("Andere campus selectie"))));
+                .andExpect(jsonPath("$[*].name", not(hasItem("Niet geselecteerd"))));
     }
 
     @Test
     void givenSystemList_whenSelectCatalogFeaturedList_thenListIsShownOnCatalog() throws Exception {
-        setAuthenticationAsTeacher();
+        setAuthenticationAsLibrarian();
 
         ReadingList list = createCatalogList("Nieuwe selectie", campus, false, null);
 
@@ -220,7 +229,7 @@ class ReadingListIntegrationTest {
 
     @Test
     void givenTwoSelectedCatalogLists_whenSelectingThirdList_thenOldestSelectionIsRemoved() throws Exception {
-        setAuthenticationAsTeacher();
+        setAuthenticationAsLibrarian();
 
         ReadingList first = createCatalogList("Eerste", campus, true, 1);
         ReadingList second = createCatalogList("Tweede", campus, true, 2);
@@ -244,7 +253,7 @@ class ReadingListIntegrationTest {
 
     @Test
     void givenSelectedCatalogList_whenUnselectCatalogFeaturedList_thenListIsRemovedFromCatalog() throws Exception {
-        setAuthenticationAsTeacher();
+        setAuthenticationAsLibrarian();
 
         ReadingList list = createCatalogList("Te verwijderen", campus, true, 1);
 
@@ -325,6 +334,14 @@ class ReadingListIntegrationTest {
         setAuthentication("ROLE_TEACHER");
     }
 
+    private void setAuthenticationAsLibrarian() {
+        User user = userRepository.findById(USER_ID).orElseThrow();
+        user.setRole(librarianRole);
+        userRepository.save(user);
+
+        setAuthentication("ROLE_LIBRARIAN");
+    }
+
     private void setAuthentication(String authority) {
         currentPrincipal = new UsernamePasswordAuthenticationToken(
                 USER_ID,
@@ -346,6 +363,7 @@ class ReadingListIntegrationTest {
         oneRosterTokenRepository.deleteAll();
         oneRosterCredentialRepository.deleteAll();
         userRepository.deleteAll();
+        bookRepository.deleteAll();
         campusRepository.deleteAll();
         roleEntityRepository.deleteAll();
         schoolRepository.deleteAll();

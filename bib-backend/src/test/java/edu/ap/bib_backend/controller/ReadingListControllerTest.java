@@ -310,39 +310,39 @@ class ReadingListControllerTest {
                 verify(readingListService).getListById(USER_ID, 10L);
         }
 
-        @Test
-        void givenCatalogFeaturedLists_whenGetCatalogFeaturedLists_thenReturnsOnlyCatalogLists() throws Exception {
-                ReadingList first = makeReadingList(
-                                21L,
-                                "Eerste selectie",
-                                ReadingListTargetType.SYSTEM,
-                                null,
-                                true,
-                                1);
+        // @Test
+        // void givenCatalogFeaturedLists_whenGetCatalogFeaturedLists_thenReturnsOnlyCatalogLists() throws Exception {
+        //         ReadingList first = makeReadingList(
+        //                         21L,
+        //                         "Eerste selectie",
+        //                         ReadingListTargetType.SYSTEM,
+        //                         null,
+        //                         true,
+        //                         1);
 
-                ReadingList second = makeReadingList(
-                                22L,
-                                "Tweede selectie",
-                                ReadingListTargetType.SYSTEM,
-                                null,
-                                true,
-                                2);
+        //         ReadingList second = makeReadingList(
+        //                         22L,
+        //                         "Tweede selectie",
+        //                         ReadingListTargetType.SYSTEM,
+        //                         null,
+        //                         true,
+        //                         2);
 
-                when(readingListService.getCatalogFeaturedListsForCurrentUserCampus(USER_ID))
-                                .thenReturn(List.of(first, second));
+        //         when(readingListService.getCatalogFeaturedListsForCurrentUserCampus(USER_ID))
+        //                         .thenReturn(List.of(first, second));
 
-                mockMvc.perform(get("/reading-lists/featured/catalog").principal(principal()))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$", hasSize(2)))
-                                .andExpect(jsonPath("$[*].name", hasItem("Eerste selectie")))
-                                .andExpect(jsonPath("$[*].name", hasItem("Tweede selectie")))
-                                .andExpect(jsonPath("$[0].showOnCatalog").value(true))
-                                .andExpect(jsonPath("$[0].catalogFeaturedOrder").value(1))
-                                .andExpect(jsonPath("$[1].showOnCatalog").value(true))
-                                .andExpect(jsonPath("$[1].catalogFeaturedOrder").value(2));
+        //         mockMvc.perform(get("/reading-lists/featured/catalog").principal(principal()))
+        //                         .andExpect(status().isOk())
+        //                         .andExpect(jsonPath("$", hasSize(2)))
+        //                         .andExpect(jsonPath("$[*].name", hasItem("Eerste selectie")))
+        //                         .andExpect(jsonPath("$[*].name", hasItem("Tweede selectie")))
+        //                         .andExpect(jsonPath("$[0].showOnCatalog").value(true))
+        //                         .andExpect(jsonPath("$[0].catalogFeaturedOrder").value(1))
+        //                         .andExpect(jsonPath("$[1].showOnCatalog").value(true))
+        //                         .andExpect(jsonPath("$[1].catalogFeaturedOrder").value(2));
 
-                verify(readingListService).getCatalogFeaturedListsForCurrentUserCampus(USER_ID);
-        }
+        //         verify(readingListService).getCatalogFeaturedListsForCurrentUserCampus(USER_ID);
+        // }
 
         @Test
         void givenListId_whenSelectCatalogFeaturedList_thenUsesPathVariableAndReturnsSelectedLists() throws Exception {

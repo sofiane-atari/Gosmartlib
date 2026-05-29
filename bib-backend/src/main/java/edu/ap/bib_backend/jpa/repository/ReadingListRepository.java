@@ -2,6 +2,7 @@ package edu.ap.bib_backend.jpa.repository;
 
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,20 +17,20 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
         @Query("""
                         SELECT rl
                         FROM ReadingList rl
-                        WHERE rl.campus.id = :campusId
-                          AND (
-                                (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
-                             OR (:includeOwnShared = true
-                                 AND rl.user.id = :userId
-                                 AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
-                             OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
-                                 AND (
-                                     LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
-                                     OR (COALESCE(rl.targetValue, '') <> ''
-                                         AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
-                                 ))
-                             OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
-                          )
+                        WHERE rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM
+                           OR (rl.campus.id = :campusId
+                               AND (
+                                    (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
+                                 OR (:includeOwnShared = true
+                                     AND rl.user.id = :userId
+                                     AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
+                                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
+                                     AND (
+                                         LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
+                                         OR (COALESCE(rl.targetValue, '') <> ''
+                                             AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
+                                     ))
+                               ))
                         """)
         List<ReadingList> findVisibleForUser(
                         @Param("userId") String userId,
@@ -43,20 +44,20 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                         SELECT rl
                         FROM ReadingList rl
                         WHERE rl.id = :id
-                          AND rl.campus.id = :campusId
-                          AND (
-                                (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
-                             OR (:includeOwnShared = true
-                                 AND rl.user.id = :userId
-                                 AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
-                             OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
-                                 AND (
-                                     LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
-                                     OR (COALESCE(rl.targetValue, '') <> ''
-                                         AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
-                                 ))
-                             OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM)
-                          )
+                          AND (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM
+                           OR (rl.campus.id = :campusId
+                               AND (
+                                    (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
+                                 OR (:includeOwnShared = true
+                                     AND rl.user.id = :userId
+                                     AND rl.targetType <> edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL)
+                                 OR (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.CLASS
+                                     AND (
+                                         LOWER(COALESCE(rl.targetValue, '')) = LOWER(:classCode)
+                                         OR (COALESCE(rl.targetValue, '') <> ''
+                                             AND LOWER(:classCode) LIKE CONCAT(LOWER(rl.targetValue), '%'))
+                                     ))
+                               )))
                         """)
         Optional<ReadingList> findVisibleById(
                         @Param("id") Long id,
@@ -82,6 +83,10 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                         ReadingListTargetType targetType,
                         Long campusId);
 
+        Optional<ReadingList> findFirstByTargetTypeAndCampus_School_Id(
+                        ReadingListTargetType targetType,
+                        Long schoolId);
+
         Optional<ReadingList> findByPublicShareIdAndShareEnabledTrue(String publicShareId);
 
         boolean existsByPublicShareId(String publicShareId);
@@ -90,12 +95,29 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                         ReadingListTargetType targetType,
                         Long campusId);
 
-        List<ReadingList> findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
-                        ReadingListTargetType targetType,
-                        Long campusId);
+        @Query("""
+                        SELECT rl
+                        FROM ReadingList rl
+                        WHERE rl.targetType = :targetType
+                          AND rl.campus.school.id = :schoolId
+                          AND rl.showOnCatalog = true
+                        ORDER BY rl.catalogFeaturedOrder ASC
+                        """)
+        List<ReadingList> findFeaturedBySchoolId(
+                        @Param("targetType") ReadingListTargetType targetType,
+                        @Param("schoolId") Long schoolId);
 
-        List<ReadingList> findTop2ByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
-                        ReadingListTargetType targetType,
-                        Long campusId);
+        @Query("""
+                        SELECT rl
+                        FROM ReadingList rl
+                        WHERE rl.targetType = :targetType
+                          AND rl.campus.school.id = :schoolId
+                          AND rl.showOnCatalog = true
+                        ORDER BY rl.catalogFeaturedOrder ASC
+                        """)
+        List<ReadingList> findTop2FeaturedBySchoolId(
+                        @Param("targetType") ReadingListTargetType targetType,
+                        @Param("schoolId") Long schoolId,
+                        Pageable pageable);
                         
 }

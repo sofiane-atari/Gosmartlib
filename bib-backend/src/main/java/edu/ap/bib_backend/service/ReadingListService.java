@@ -14,6 +14,7 @@ import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
@@ -107,11 +108,21 @@ public class ReadingListService {
     public void deleteReadingList(String userId, Long id) {
         ReadingList list = getListById(userId, id);
 
-        if (isFavoritesList(list.getName()) || list.getTargetType() == ReadingListTargetType.SYSTEM) {
+        if (isFavoritesList(list.getName())) {
             throw new IllegalArgumentException("Deze leeslijst kan niet verwijderd worden");
         }
 
-        if (list.getTargetType() != ReadingListTargetType.PERSONAL && !isTeacherAuthenticated()) {
+        if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
+            if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+                throw new IllegalArgumentException("Alleen bibliothecarissen en admins kunnen uitgelichte leeslijsten verwijderen");
+            }
+
+            readingListRepository.deleteById(id);
+            return;
+        }
+
+        if (list.getTargetType() != ReadingListTargetType.PERSONAL
+                && !currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN")) {
             throw new IllegalArgumentException("Alleen leerkrachten kunnen deze leeslijst verwijderen");
         }
 
@@ -296,7 +307,7 @@ public class ReadingListService {
             String targetValue,
             String defaultName) {
         if (targetType == ReadingListTargetType.SYSTEM) {
-            if (readingListRepository.findFirstByTargetTypeAndCampusId(targetType, campus.getId()).isPresent()) {
+            if (readingListRepository.findFirstByTargetTypeAndCampus_School_Id(targetType, owner.getSchool().getId()).isPresent()) {
                 return;
             }
         } else if (targetValue != null && readingListRepository
@@ -319,8 +330,16 @@ public class ReadingListService {
             return;
         }
 
-        if (!isTeacherAuthenticated()) {
-            throw new IllegalArgumentException("Alleen leerkrachten kunnen gedeelde leeslijsten maken");
+        if (targetType == ReadingListTargetType.SYSTEM) {
+            if (currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+                return;
+            }
+
+            throw new IllegalArgumentException("Alleen bibliothecarissen en admins kunnen uitgelichte leeslijsten aanmaken");
+        }
+
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+            throw new IllegalArgumentException("Alleen leerkrachten, bibliothecarissen en admins kunnen gedeelde leeslijsten maken");
         }
     }
 
@@ -330,7 +349,7 @@ public class ReadingListService {
         }
 
         if (list.getTargetType() == ReadingListTargetType.SYSTEM) {
-            if (currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+            if (currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
                 return;
             }
 
@@ -343,7 +362,7 @@ public class ReadingListService {
     }
 
     private boolean shouldIncludeOwnSharedLists() {
-        return isTeacherAuthenticated();
+        return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN");
     }
 
     private boolean isTeacherAuthenticated() {
@@ -382,19 +401,20 @@ public class ReadingListService {
                 .orElseThrow(() -> new IllegalArgumentException("Gedeelde leeslijst niet gevonden"));
     }
 
-    public List<ReadingList> getCatalogFeaturedListsForCurrentUserCampus(String userId) {
+    public List<ReadingList> getCatalogFeaturedListsForCurrentUserSchool(String userId) {
         User user = getUserOrThrow(userId);
-        Campus campus = resolveReadingListCampus(user);
+        Long schoolId = user.getSchool().getId();
 
         return readingListRepository
-                .findTop2ByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                .findTop2FeaturedBySchoolId(
                         ReadingListTargetType.SYSTEM,
-                        campus.getId());
+                        schoolId,
+                        Pageable.ofSize(2));
     }
 
     public List<ReadingList> selectFeaturedListForCatalog(String userId, Long listId) {
         User user = getUserOrThrow(userId);
-        Campus campus = resolveReadingListCampus(user);
+        Long schoolId = user.getSchool().getId();
 
         ReadingList selectedList = readingListRepository.findById(listId)
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst niet gevonden"));
@@ -403,18 +423,18 @@ public class ReadingListService {
             throw new IllegalArgumentException("Alleen uitgelichte leeslijsten kunnen op de catalogus getoond worden");
         }
 
-        if (selectedList.getCampus() == null || !selectedList.getCampus().getId().equals(campus.getId())) {
-            throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
+        if (selectedList.getCampus() == null || !selectedList.getCampus().getSchool().getId().equals(schoolId)) {
+            throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw school");
         }
 
-        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
             throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
         }
 
         List<ReadingList> currentSelected = readingListRepository
-                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                .findFeaturedBySchoolId(
                         ReadingListTargetType.SYSTEM,
-                        campus.getId());
+                        schoolId);
 
         if (selectedList.isShowOnCatalog()) {
             return currentSelected;
@@ -439,14 +459,14 @@ public class ReadingListService {
         readingListRepository.save(selectedList);
 
         return readingListRepository
-                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                .findFeaturedBySchoolId(
                         ReadingListTargetType.SYSTEM,
-                        campus.getId());
+                        schoolId);
     }
 
     public List<ReadingList> unselectFeaturedListForCatalog(String userId, Long listId) {
         User user = getUserOrThrow(userId);
-        Campus campus = resolveReadingListCampus(user);
+        Long schoolId = user.getSchool().getId();
 
         ReadingList list = readingListRepository.findById(listId)
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst niet gevonden"));
@@ -455,11 +475,11 @@ public class ReadingListService {
             throw new IllegalArgumentException("Alleen uitgelichte leeslijsten kunnen aangepast worden");
         }
 
-        if (list.getCampus() == null || !list.getCampus().getId().equals(campus.getId())) {
-            throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw campus");
+        if (list.getCampus() == null || !list.getCampus().getSchool().getId().equals(schoolId)) {
+            throw new IllegalArgumentException("Deze leeslijst hoort niet bij jouw school");
         }
 
-        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN", "ROLE_TEACHER")) {
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
             throw new IllegalArgumentException("Alleen beheerders kunnen uitgelichte leeslijsten beheren");
         }
 
@@ -468,9 +488,9 @@ public class ReadingListService {
         readingListRepository.save(list);
 
         return readingListRepository
-                .findByTargetTypeAndCampus_IdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                .findFeaturedBySchoolId(
                         ReadingListTargetType.SYSTEM,
-                        campus.getId());
+                        schoolId);
     }
 
     private String generateUniquePublicShareId() {

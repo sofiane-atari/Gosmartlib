@@ -82,7 +82,7 @@ public class ReadingListController {
     @GetMapping("/featured/catalog")
     public ResponseEntity<List<ReadingListResponseDTO>> getCatalogFeaturedLists(Principal principal) {
         List<ReadingListResponseDTO> lists = readingListService
-                .getCatalogFeaturedListsForCurrentUserCampus(requireUserId(principal))
+                .getCatalogFeaturedListsForCurrentUserSchool(requireUserId(principal))
                 .stream()
                 .map(this::toReadingListResponse)
                 .toList();
@@ -144,7 +144,7 @@ public class ReadingListController {
     }
 
     @GetMapping("/teacher/audience-options")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'LIBRARIAN', 'ADMIN')")
     public ResponseEntity<OneRosterAudienceOptionsDto> getTeacherAudienceOptions(
             HttpServletRequest request,
             Principal principal) {

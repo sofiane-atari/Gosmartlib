@@ -18,11 +18,12 @@ describe('ReadingListOverviewComponent', () => {
     readingListServiceSpy = jasmine.createSpyObj<ReadingListService>('ReadingListService', ['getLists', 'deleteList']);
     toastServiceSpy = jasmine.createSpyObj<ToastService>('ToastService', ['show', 'showConfirm']);
     const bookServiceSpy = jasmine.createSpyObj<BookService>('BookService', ['getBookById']);
-    roleServiceSpy = jasmine.createSpyObj<RoleService>('RoleService', ['isTeacher']);
+    roleServiceSpy = jasmine.createSpyObj<RoleService>('RoleService', ['isTeacher', 'hasAnyRole']);
 
     readingListServiceSpy.getLists.and.returnValue(of([]));
     readingListServiceSpy.deleteList.and.returnValue(of(void 0));
     roleServiceSpy.isTeacher.and.returnValue(false);
+    roleServiceSpy.hasAnyRole.and.returnValue(false);
 
     await TestBed.configureTestingModule({
       imports: [ReadingListOverviewComponent],
@@ -45,12 +46,12 @@ describe('ReadingListOverviewComponent', () => {
   });
 
   it('should route students to standard create page', () => {
-    roleServiceSpy.isTeacher.and.returnValue(false);
+    roleServiceSpy.hasAnyRole.and.returnValue(false);
     expect(component.createRoute).toBe('/reading-list/create');
   });
 
-  it('should route teachers to teacher create page', () => {
-    roleServiceSpy.isTeacher.and.returnValue(true);
+  it('should route teachers and staff to teacher create page', () => {
+    roleServiceSpy.hasAnyRole.and.returnValue(true);
     expect(component.createRoute).toBe('/reading-list/create-teacher');
   });
 
@@ -99,8 +100,8 @@ describe('ReadingListOverviewComponent', () => {
     expect(toastServiceSpy.show).toHaveBeenCalledWith('Leeslijst verwijderd', 'success');
   });
 
-  it('should allow teachers to delete shared lists', () => {
-    roleServiceSpy.isTeacher.and.returnValue(true);
+  it('should allow teachers and staff to delete shared lists', () => {
+    roleServiceSpy.hasAnyRole.and.returnValue(true);
     component.readingLists = [
       { id: 1, name: 'Klaslijst', targetType: 'CLASS' },
       { id: 2, name: 'Favorieten', targetType: 'PERSONAL' }
