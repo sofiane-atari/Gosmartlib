@@ -51,7 +51,12 @@ public class OneRosterUserSyncService {
 
     @Async
     public void syncSchoolAsync(School school) {
-        syncSchoolUsers(school);
+        try {
+            syncSchoolUsers(school);
+        } catch (Exception e) {
+            logger.error("Async user sync failed for school id={} name='{}'",
+                    school.getId(), school.getName(), e);
+        }
     }
 
     @Transactional

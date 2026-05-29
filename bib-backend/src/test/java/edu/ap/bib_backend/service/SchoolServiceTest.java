@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,6 +62,9 @@ class SchoolServiceTest {
     @Mock
     private Query query;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private SchoolService schoolService;
 
     @BeforeEach
@@ -72,6 +76,7 @@ class SchoolServiceTest {
                 userRepository,
                 oneRosterClient,
                 oneRosterUserSyncService,
+                eventPublisher,
                 30L
         );
         Field entityManagerField = SchoolService.class.getDeclaredField("entityManager");

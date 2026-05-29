@@ -3,6 +3,7 @@ package edu.ap.bib_backend.service;
 import edu.ap.bib_backend.dto.CampusDTO;
 import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
+import edu.ap.bib_backend.event.SchoolCreatedEvent;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
@@ -17,6 +18,7 @@ import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -38,6 +41,7 @@ public class SchoolService {
     private final UserRepository userRepository;
     private final OneRosterClient oneRosterClient;
     private final OneRosterUserSyncService oneRosterUserSyncService;
+    private final ApplicationEventPublisher eventPublisher;
     private final long gracePeriodDays;
 
     @PersistenceContext
@@ -50,6 +54,7 @@ public class SchoolService {
             UserRepository userRepository,
             OneRosterClient oneRosterClient,
             OneRosterUserSyncService oneRosterUserSyncService,
+            ApplicationEventPublisher eventPublisher,
             @Value("${school.deletion.grace-period-days:30}") long gracePeriodDays
     ) {
         this.schoolRepository = schoolRepository;
@@ -58,6 +63,7 @@ public class SchoolService {
         this.userRepository = userRepository;
         this.oneRosterClient = oneRosterClient;
         this.oneRosterUserSyncService = oneRosterUserSyncService;
+        this.eventPublisher = eventPublisher;
         this.gracePeriodDays = gracePeriodDays;
     }
 
@@ -103,7 +109,7 @@ public class SchoolService {
         credential.setClientSecret(clientSecret);
         credentialRepository.save(credential);
 
-        oneRosterUserSyncService.syncSchoolAsync(savedSchool);
+        eventPublisher.publishEvent(new SchoolCreatedEvent(savedSchool.getId()));
 
         return toDto(savedSchool);
     }
@@ -267,6 +273,12 @@ public class SchoolService {
         entityManager.createNativeQuery(sql)
                 .setParameter("schoolId", schoolId)
                 .executeUpdate();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SchoolDTO> findSchoolByDomainName(String domainName) {
+        return schoolRepository.findByDomainName(normalizeDomainName(domainName))
+                .map(this::toDto);
     }
 
     public void checkDomain(String domainName) {
