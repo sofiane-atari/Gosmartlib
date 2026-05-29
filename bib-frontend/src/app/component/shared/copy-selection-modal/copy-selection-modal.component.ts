@@ -1,12 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, input, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 export interface CopySelectionItem {
   id: number;
   label: string;
   campusName: string;
   description: string;
+  isBorrowed: boolean;
 }
+
+type Step = 'selection' | 'confirm';
 
 @Component({
   selector: 'app-copy-selection-modal',
@@ -27,7 +37,19 @@ export class CopySelectionModalComponent {
   public readonly confirmRequested = output<number[]>();
   public readonly cancelRequested = output<void>();
 
+  protected readonly step = signal<Step>('selection');
   protected readonly selectedIds = signal<Set<number>>(new Set());
+  protected readonly confirmationInput = signal('');
+
+  constructor() {
+    effect(() => {
+      if (this.isVisible()) {
+        this.step.set('selection');
+        this.selectedIds.set(new Set());
+        this.confirmationInput.set('');
+      }
+    });
+  }
 
   protected readonly allSelected = computed(() => {
     const copyList = this.copies();
@@ -41,6 +63,25 @@ export class CopySelectionModalComponent {
     const someSelected = copyList.some((c) => selected.has(c.id));
     return someSelected && !this.allSelected();
   });
+
+  protected readonly selectedCount = computed(() => this.selectedIds().size);
+  protected readonly hasSelection = computed(() => this.selectedCount() > 0);
+
+  protected readonly borrowedCount = computed(() => {
+    const selected = this.selectedIds();
+    return this.copies().filter((c) => selected.has(c.id) && c.isBorrowed)
+      .length;
+  });
+
+  protected readonly availableCount = computed(
+    () => this.selectedCount() - this.borrowedCount(),
+  );
+
+  protected readonly isConfirmationValid = computed(
+    () =>
+      this.hasSelection() &&
+      this.confirmationInput().trim().toLowerCase() === 'verwijderen',
+  );
 
   protected isSelected(copyId: number): boolean {
     return this.selectedIds().has(copyId);
@@ -66,12 +107,43 @@ export class CopySelectionModalComponent {
     this.selectedIds.set(current);
   }
 
+  protected updateConfirmationInput(event: Event): void {
+    this.confirmationInput.set(
+      (event.target as HTMLInputElement).value,
+    );
+  }
+
+  protected proceedToConfirm(): void {
+    this.confirmationInput.set('');
+    this.step.set('confirm');
+  }
+
+  protected goBackToSelection(): void {
+    this.step.set('selection');
+  }
+
   protected confirm(): void {
+    if (!this.isConfirmationValid()) {
+      return;
+    }
+
     this.confirmRequested.emit(Array.from(this.selectedIds()));
   }
 
   protected cancel(): void {
+    if (this.step() === 'confirm') {
+      this.step.set('selection');
+      return;
+    }
+
     this.selectedIds.set(new Set());
+    this.step.set('selection');
+    this.cancelRequested.emit();
+  }
+
+  protected handleBackdropClick(): void {
+    this.selectedIds.set(new Set());
+    this.step.set('selection');
     this.cancelRequested.emit();
   }
 }

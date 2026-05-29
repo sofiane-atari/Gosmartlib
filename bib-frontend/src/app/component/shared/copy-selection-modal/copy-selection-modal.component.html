@@ -1,64 +1,184 @@
 @if (isVisible()) {
-  <div class="copy-selection-backdrop" (click)="cancel()">
-    <section
-      class="copy-selection-card"
-      role="dialog"
-      aria-modal="true"
-      (click)="$event.stopPropagation()"
-    >
-      <h2>{{ title() }}</h2>
+  <div class="modal-backdrop" (click)="handleBackdropClick()">
+    @if (step() === 'selection') {
+      <section
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="modal-header">
+          <div class="modal-header-icon">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path
+                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+              />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
+          </div>
+          <h2>{{ title() }}</h2>
+        </div>
 
-      <div class="copy-list">
-        <label class="select-all-row">
-          <input
-            type="checkbox"
-            [checked]="allSelected()"
-            [indeterminate]="indeterminate()"
-            (change)="toggleSelectAll()"
-          />
-          <span>Selecteer alle exemplaren</span>
-        </label>
+        <p class="modal-description">
+          Selecteer de exemplaren die je wilt verwijderen.
+        </p>
 
-        @for (copy of copies(); track copy.id) {
-          <label class="copy-row">
+        <div class="copy-list-container">
+          <label class="select-all-row">
             <input
               type="checkbox"
-              [checked]="isSelected(copy.id)"
-              (change)="toggleCopy(copy.id)"
+              [checked]="allSelected()"
+              [indeterminate]="indeterminate()"
+              (change)="toggleSelectAll()"
             />
-            <div class="copy-info">
-              <span class="copy-label">{{ copy.label }}</span>
-              <span class="copy-detail"
-                >{{ copy.campusName }} · {{ copy.description }}</span
-              >
-            </div>
+            <span>Selecteer alle exemplaren</span>
           </label>
-        }
-      </div>
 
-      <div class="copy-selection-actions">
-        <button
-          class="secondary-button"
-          type="button"
-          [disabled]="isConfirmLoading()"
-          (click)="cancel()"
-        >
-          {{ cancelLabel() }}
-        </button>
+          <div class="copy-list">
+            @for (copy of copies(); track copy.id) {
+              <label class="copy-row">
+                <input
+                  type="checkbox"
+                  [checked]="isSelected(copy.id)"
+                  (change)="toggleCopy(copy.id)"
+                />
+                <div class="copy-info">
+                  <span class="copy-label">{{ copy.label }}</span>
+                  <span class="copy-detail"
+                    >{{ copy.campusName }} · {{ copy.description }}</span
+                  >
+                </div>
+              </label>
+            }
+          </div>
+        </div>
 
-        <button
-          class="primary-button primary-button--danger"
-          type="button"
-          [disabled]="selectedIds().size === 0 || isConfirmLoading()"
-          (click)="confirm()"
-        >
-          @if (isConfirmLoading() && confirmLoadingLabel()) {
-            {{ confirmLoadingLabel() }}
-          } @else {
-            {{ confirmLabel() }} ({{ selectedIds().size }})
-          }
-        </button>
-      </div>
-    </section>
+        <div class="modal-actions">
+          <button
+            class="btn btn--secondary"
+            type="button"
+            (click)="cancel()"
+          >
+            {{ cancelLabel() }}
+          </button>
+
+          <button
+            class="btn btn--danger"
+            type="button"
+            [disabled]="!hasSelection()"
+            (click)="proceedToConfirm()"
+          >
+            {{ confirmLabel() }}
+            @if (hasSelection()) {
+              <span class="btn-count">{{ selectedCount() }}</span>
+            }
+          </button>
+        </div>
+      </section>
+    } @else {
+      <section
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="modal-header modal-header--warning">
+          <div class="modal-header-icon modal-header-icon--warning">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+              />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <h2>Verwijderen bevestigen</h2>
+        </div>
+
+        <div class="warning-box">
+          <p class="warning-text">
+            Je staat op het punt om
+            <strong>{{ selectedCount() }}</strong>
+            @if (selectedCount() === 1) {
+              exemplaar
+            } @else {
+              exemplaren
+            }
+            te verwijderen
+            @if (borrowedCount() > 0) {
+              , waarvan <strong>{{ borrowedCount() }}</strong>
+              @if (borrowedCount() === 1) {
+                uitgeleend
+              } @else {
+                uitgeleend
+              }
+            }
+            . Eventuele uitleningen die aan deze exemplaren gekoppeld zijn,
+            worden ook permanent verwijderd. Deze actie kan niet ongedaan
+            worden gemaakt.
+          </p>
+        </div>
+
+        <div class="confirmation-input-group">
+          <label class="confirmation-input-label" for="confirm-delete-input">
+            Typ <strong>verwijderen</strong> om te bevestigen
+          </label>
+          <input
+            id="confirm-delete-input"
+            class="confirmation-input"
+            type="text"
+            autocomplete="off"
+            [value]="confirmationInput()"
+            (input)="updateConfirmationInput($event)"
+            placeholder="verwijderen"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button
+            class="btn btn--secondary"
+            type="button"
+            [disabled]="isConfirmLoading()"
+            (click)="goBackToSelection()"
+          >
+            Annuleren
+          </button>
+
+          <button
+            class="btn btn--danger-solid"
+            type="button"
+            [disabled]="!isConfirmationValid() || isConfirmLoading()"
+            (click)="confirm()"
+          >
+            @if (isConfirmLoading() && confirmLoadingLabel()) {
+              <span class="btn-spinner"></span>
+              {{ confirmLoadingLabel() }}
+            } @else {
+              Ja, verwijderen
+            }
+          </button>
+        </div>
+      </section>
+    }
   </div>
 }

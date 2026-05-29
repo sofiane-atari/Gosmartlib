@@ -300,6 +300,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
             this.getCopyAvailabilityLabel(copy) +
             ' · ' +
             this.getConditionLabel(copy.condition),
+          isBorrowed: this.isBorrowed(copy.availability),
         });
       }
     }
