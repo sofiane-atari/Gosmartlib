@@ -299,5 +299,11 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
         long countByReturnedDateIsNotNull();
 
+        long countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateGreaterThanEqual(Long schoolId, LocalDate today);
+
+        long countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateBefore(Long schoolId, LocalDate today);
+
+        long countByCampusSchoolIdAndReturnedDateIsNotNull(Long schoolId);
+
 
 }

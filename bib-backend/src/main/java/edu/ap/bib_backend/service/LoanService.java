@@ -423,17 +423,19 @@ public class LoanService {
         return 3;
     }
 
-    public LoanStatsDTO getLoanStats() {
+    public LoanStatsDTO getLoanStats(Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Long schoolId = school.getId();
         LocalDate today = LocalDate.now();
 
         long activeLoans = loanRepository
-                .countByReturnedDateIsNullAndReturnDateGreaterThanEqual(today);
+                .countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateGreaterThanEqual(schoolId, today);
 
         long overdueLoans = loanRepository
-                .countByReturnedDateIsNullAndReturnDateBefore(today);
+                .countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateBefore(schoolId, today);
 
         long returnedLoans = loanRepository
-                .countByReturnedDateIsNotNull();
+                .countByCampusSchoolIdAndReturnedDateIsNotNull(schoolId);
 
         return new LoanStatsDTO(activeLoans, overdueLoans, returnedLoans);
     }
