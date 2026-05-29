@@ -2,7 +2,7 @@ package edu.ap.bib_backend.service.review;
 
 import edu.ap.bib_backend.dto.ReviewDTO;
 import edu.ap.bib_backend.dto.ReviewDashboardStatsDTO;
-import edu.ap.bib_backend.event.ReviewCreatedGamificationEvent;
+import edu.ap.bib_backend.event.gamification.ReviewCreatedGamificationEvent;
 import edu.ap.bib_backend.exception.ResourceAlreadyExistsException;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Book;

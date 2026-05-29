@@ -13,9 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import edu.ap.bib_backend.event.BookReturnedGamificationEvent;
-import edu.ap.bib_backend.event.GamificationEventService;
-import edu.ap.bib_backend.event.ReviewCreatedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.gamification.GamificationProfile;
 import edu.ap.bib_backend.jpa.enums.gamification.PointTransactionType;
 import edu.ap.bib_backend.service.gamification.BadgeProgressService;

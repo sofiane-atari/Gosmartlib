@@ -1,4 +1,4 @@
-package edu.ap.bib_backend.event;
+package edu.ap.bib_backend.event.gamification;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
