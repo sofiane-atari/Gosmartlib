@@ -8,6 +8,7 @@ import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterTokenRepository;
@@ -90,6 +91,9 @@ class ReadingListIntegrationTest {
 
     @Autowired
     private OneRosterTokenRepository oneRosterTokenRepository;
+
+    @Autowired
+    private BookRepository bookRepository;
 
     @BeforeEach
     void setUp() {
@@ -359,6 +363,7 @@ class ReadingListIntegrationTest {
         oneRosterTokenRepository.deleteAll();
         oneRosterCredentialRepository.deleteAll();
         userRepository.deleteAll();
+        bookRepository.deleteAll();
         campusRepository.deleteAll();
         roleEntityRepository.deleteAll();
         schoolRepository.deleteAll();
