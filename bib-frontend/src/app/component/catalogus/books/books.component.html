@@ -50,21 +50,6 @@
         </select>
       </div>
 
-      @if (canFilterDidacticBooks()) {
-        <div class="filter-item filter-item--toggle">
-          <label class="switch" aria-label="Alleen didactische boeken tonen">
-            <input
-              type="checkbox"
-              [checked]="filters().didactic === 'DIDACTIC'"
-              [disabled]="catalogLoading()"
-              (change)="updateDidactic(filters().didactic === 'DIDACTIC' ? 'ALL' : 'DIDACTIC')"
-            />
-            <span class="slider"></span>
-          </label>
-          <span class="toggle-label">Alleen didactisch</span>
-        </div>
-      }
-
       <div class="filter-item">
         <label>Leesniveau</label>
         <select
@@ -129,6 +114,24 @@
           }
         </div>
       </div>
+      @if (canFilterDidacticBooks()) {
+        <div class="filter-item filter-item--toggle">
+          <label class="switch" aria-label="Alleen didactische boeken tonen">
+            <input
+              type="checkbox"
+              [checked]="filters().didactic === 'DIDACTIC'"
+              [disabled]="catalogLoading()"
+              (change)="
+                updateDidactic(
+                  filters().didactic === 'DIDACTIC' ? 'ALL' : 'DIDACTIC'
+                )
+              "
+            />
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">Alleen didactisch</span>
+        </div>
+      }
     </div>
 
     <div class="panel-footer">
@@ -142,29 +145,31 @@
     class="main-content"
     [class.main-content--no-sidebar]="catalogSidebarHidden$ | async"
   >
-      @if (catalogLoading()) {
-        <div class="books-grid">
-          @for (_ of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
-            <div class="book-card skeleton-book-card">
-              <div class="book-image skeleton-book-image">
-                <div class="skeleton-rating-badge"></div>
-              </div>
+    @if (catalogLoading()) {
+      <div class="books-grid">
+        @for (_ of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track $index) {
+          <div class="book-card skeleton-book-card">
+            <div class="book-image skeleton-book-image">
+              <div class="skeleton-rating-badge"></div>
+            </div>
 
-              <div class="book-info">
-                <div class="skeleton-line skeleton-book-title"></div>
-                <div class="skeleton-line skeleton-book-author"></div>
-                <div class="skeleton-line skeleton-book-description"></div>
-                <div class="skeleton-line skeleton-book-description skeleton-book-description--short"></div>
+            <div class="book-info">
+              <div class="skeleton-line skeleton-book-title"></div>
+              <div class="skeleton-line skeleton-book-author"></div>
+              <div class="skeleton-line skeleton-book-description"></div>
+              <div
+                class="skeleton-line skeleton-book-description skeleton-book-description--short"
+              ></div>
 
-                <div class="card-footer">
-                  <div class="skeleton-line skeleton-pages"></div>
-                  <div class="skeleton-favorite"></div>
-                </div>
+              <div class="card-footer">
+                <div class="skeleton-line skeleton-pages"></div>
+                <div class="skeleton-favorite"></div>
               </div>
             </div>
-          }
-        </div>
-      } @else {
+          </div>
+        }
+      </div>
+    } @else {
       <div class="books-grid">
         @for (book of books(); track book.id || $index) {
           <div class="book-card" (click)="toBookDetailPage(book)" @fadeInUp>
@@ -187,10 +192,7 @@
               <h3 class="book-title">{{ book.title }}</h3>
               <p class="book-author">{{ book.author }}</p>
 
-
-
               <p class="book-description">{{ book.description }}</p>
-
 
               <div class="card-footer">
                 <div class="pages">
@@ -254,7 +256,7 @@
         }
       </aside>
     }
-    </div>
+  </div>
 
   @if (pagingMeta().totalPages > 1) {
     <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
