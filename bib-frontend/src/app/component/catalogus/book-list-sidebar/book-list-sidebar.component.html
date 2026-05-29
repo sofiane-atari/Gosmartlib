@@ -24,7 +24,7 @@
         <div class="book-item" (click)="navigateToBook(book)" @fadeInUp>
           <div class="book-cover">
             @if (book.imageUrl) {
-              <img [src]="book.imageUrl" [alt]="book.title" />
+              <img [src]="book.imageUrl" [alt]="book.title" (error)="book.imageUrl = undefined" />
             } @else {
               <div class="book-cover-placeholder">
                 <lucide-angular [img]="BookOpen" size="24"></lucide-angular>

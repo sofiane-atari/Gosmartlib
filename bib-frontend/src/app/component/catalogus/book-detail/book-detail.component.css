@@ -69,6 +69,15 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
+.book-cover--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  object-fit: none;
+  background: var(--main-light-color, #fff5f8);
+  overflow: hidden;
+}
+
 .quick-stats {
   background: white;
   border-radius: 8px;
@@ -845,6 +854,14 @@
   border-radius: 4px;
   background: #f3f4f6;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.carousel-book-cover--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  object-fit: none;
+  background: var(--main-light-color, #fff5f8);
 }
 .carousel-book-title {
   font-size: 0.75rem;
