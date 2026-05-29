@@ -111,6 +111,7 @@ public class LoanService {
         loan.setCampus(selectedCopies.get(0).getCampus());
         loan.setLoanDate(today);
         loan.setReturnDate(parsedReturnDate);
+        loan.setLibrarianId(currentUserService.extractCurrentUserId(authentication));
         loan.getCopies().clear();
         loan.getCopies().addAll(selectedCopies);
 

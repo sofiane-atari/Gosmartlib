@@ -1,0 +1,72 @@
+.msg-btn-primary {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.msg-btn-primary:hover {
+    background-color: #6b1532 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 14px rgba(138, 30, 65, 0.35) !important;
+}
+.msg-book-link {
+    transition: color 0.2s ease !important;
+}
+.msg-book-link:hover {
+    color: #8a1e41 !important;
+}
+.msg-book-card {
+    transition: all 0.2s ease !important;
+}
+.msg-book-card:hover {
+    background-color: #fdf0f5 !important;
+    border-color: #d4b0bc !important;
+}
+.msg-cover-link {
+    transition: opacity 0.2s ease !important;
+}
+.msg-cover-link:hover {
+    opacity: 0.85 !important;
+}
+.msg-warning-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b85c00;
+    background-color: #fff3e0;
+    border-radius: 12px;
+}
+.msg-urgent-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b71c1c;
+    background-color: #ffebee;
+    border-radius: 12px;
+}
+.msg-countdown {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #8a1e41;
+    padding: 10px 0;
+}
+.msg-countdown-label {
+    text-align: center;
+    font-size: 13px;
+    color: #8a7580;
+    margin: 0 0 16px 0;
+}
+.msg-overdue-icon {
+    font-size: 32px;
+    text-align: center;
+    padding: 8px 0;
+}
+.msg-librarian-alert {
+    background-color: #fff3e0;
+    border-left: 4px solid #e65100;
+    padding: 14px 18px;
+    margin: 0 0 20px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
