@@ -50,6 +50,21 @@
         </select>
       </div>
 
+      @if (canFilterDidacticBooks()) {
+        <div class="filter-item filter-item--toggle">
+          <label class="switch" aria-label="Alleen didactische boeken tonen">
+            <input
+              type="checkbox"
+              [checked]="filters().didactic === 'DIDACTIC'"
+              [disabled]="catalogLoading()"
+              (change)="updateDidactic(filters().didactic === 'DIDACTIC' ? 'ALL' : 'DIDACTIC')"
+            />
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">Alleen didactisch</span>
+        </div>
+      }
+
       <div class="filter-item">
         <label>Leesniveau</label>
         <select

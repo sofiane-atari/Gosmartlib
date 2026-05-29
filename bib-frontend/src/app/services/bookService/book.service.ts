@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 import {
   BookAvailabilityFilter,
+  BookDidacticFilter,
   BookSortOption,
 } from '../../model/book/bookFilter.model';
 import { BookCandidate } from '../../model/book/book-candidate.model';
@@ -34,6 +35,7 @@ export class BookService {
     maxPages: number | null,
     readingLevelId: number | null,
     genreName: string | null,
+    didactic: BookDidacticFilter,
     page: number,
     size: number,
     sortBy: BookSortOption,
@@ -66,6 +68,11 @@ export class BookService {
     if (genreName && genreName.trim().length > 0) {
       params = params.set('genreName', genreName.trim());
     }
+
+    if (didactic === 'DIDACTIC') {
+      params = params.set('didactic', 'true');
+    }
+
     return this.http.get<PaginatedResponse<Book>>(`${this.apiUrl}/catalog`, {
       params,
     });
