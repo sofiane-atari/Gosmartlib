@@ -303,5 +303,19 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
         long countByReturnedDateIsNotNull();
 
+        List<Loan> findByReturnedDateIsNullAndReturnDate(LocalDate returnDate);
+
+        List<Loan> findByReturnedDateIsNullAndReturnDateBeforeAndReturnDateGreaterThanEqual(
+                LocalDate before, LocalDate after);
+
+        @Query("""
+                select l from Loan l
+                where l.returnedDate is null
+                and l.returnDate < :date
+                and l.librarianNotifiedAt is null
+                """)
+        List<Loan> findOverdueLoansWithoutLibrarianNotification(@Param("date") LocalDate date);
+
+        List<Loan> findByLibrarianIdAndReturnedDateIsNull(String librarianId);
 
 }

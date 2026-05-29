@@ -1,0 +1,54 @@
+<div style="font-family: 'Segoe UI', Calibri, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a0a10; border: 1px solid #e8d5dc; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(138, 30, 65, 0.08);">
+    <style>
+        .msg-btn-primary { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        .msg-btn-primary:hover { background-color: #6b1532 !important; transform: translateY(-1px) !important; box-shadow: 0 4px 14px rgba(138, 30, 65, 0.35) !important; }
+        .msg-book-link { transition: color 0.2s ease !important; }
+        .msg-book-link:hover { color: #8a1e41 !important; }
+        .msg-book-card { transition: all 0.2s ease !important; }
+        .msg-book-card:hover { background-color: #fdf0f5 !important; border-color: #d4b0bc !important; }
+        .msg-cover-link { transition: opacity 0.2s ease !important; }
+        .msg-cover-link:hover { opacity: 0.85 !important; }
+        .msg-urgent-badge { display: inline-block; padding: 3px 12px; font-size: 12px; font-weight: 600; color: #b71c1c; background-color: #ffebee; border-radius: 12px; }
+    </style>
+    <div style="background: linear-gradient(135deg, #8a1e41 0%, #a82550 100%); color: white; padding: 28px 20px; text-align: center;">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 600;">{{TITLE}}</h2>
+    </div>
+    <div style="padding: 24px 28px; background-color: #ffffff;">
+        <div style="font-size: 32px; text-align: center; padding: 8px 0;">&#9200;</div>
+
+        <p style="font-size: 15px; line-height: 1.6; margin: 0 0 12px 0;">Beste {{USER_NAME}},</p>
+        <p style="font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+            Je bent te laat met het terugbrengen van onderstaande boeken. De retourdatum was
+            <strong>{{RETURN_DATE}}</strong>, dit is al <strong>{{DAYS_OVERDUE}}</strong> dag{{DAYS_OVERDUE_SUFFIX}} geleden.
+            Gelieve de boeken zo snel mogelijk terug te brengen naar de bibliotheek.
+        </p>
+
+        <div style="background-color: #ffebee; padding: 18px 20px; border-left: 4px solid #b71c1c; margin: 0 0 24px 0; border-radius: 0 8px 8px 0;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <tr>
+                    <td style="padding: 6px 12px 6px 0; color: #8a7580; width: 160px;">Uitleendatum:</td>
+                    <td style="padding: 6px 0; font-weight: 600;">{{LOAN_DATE}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 12px 6px 0; color: #8a7580;">Retourdatum:</td>
+                    <td style="padding: 6px 0; font-weight: 600; color: #b71c1c;">{{RETURN_DATE}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 12px 6px 0; color: #8a7580;">Status:</td>
+                    <td style="padding: 6px 0;"><span class="msg-urgent-badge">Te laat</span></td>
+                </tr>
+            </table>
+        </div>
+
+        {{BOOKS_HTML}}
+
+        <div style="text-align: center; margin: 24px 0 0 0;">
+            <a href="{{FRONTEND_URL}}/history" class="msg-btn-primary" style="background-color: #8a1e41; color: white; padding: 13px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block; border: none; cursor: pointer;">
+                Bekijk mijn uitleenhistoriek
+            </a>
+        </div>
+    </div>
+    <div style="background-color: #faf5f7; padding: 16px 28px; text-align: center; font-size: 12px; color: #8a7580; border-top: 1px solid #f0e4e8;">
+        Dit is een automatisch gegenereerd bericht. Gelieve niet te reageren.
+    </div>
+</div>

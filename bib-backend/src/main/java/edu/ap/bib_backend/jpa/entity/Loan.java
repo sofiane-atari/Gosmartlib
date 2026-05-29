@@ -1,12 +1,14 @@
 package edu.ap.bib_backend.jpa.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -50,6 +52,12 @@ public class Loan {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "campus_id", nullable = false)
     private Campus campus;
+
+    @Column(name = "librarian_id")
+    private String librarianId;
+
+    @Column(name = "librarian_notified_at")
+    private LocalDateTime librarianNotifiedAt;
 
     @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoanExtension> extensions = new ArrayList<>();
