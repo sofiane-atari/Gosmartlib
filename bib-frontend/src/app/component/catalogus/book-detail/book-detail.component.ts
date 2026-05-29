@@ -480,7 +480,7 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     const role = this.authService.currentUser()?.role;
 
     if (target === 'SYSTEM') {
-      return role === 'TEACHER' || role === 'LIBRARIAN' || role === 'ADMIN';
+      return role === 'LIBRARIAN' || role === 'ADMIN';
     }
 
     if (target === 'PERSONAL') {

@@ -147,7 +147,7 @@ export class RoleService {
   }
 
   public canManageReadingLists(): boolean {
-    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN']);
   }
 
   public canModifyLessonTip(ownerUserId: string | null | undefined): boolean {
