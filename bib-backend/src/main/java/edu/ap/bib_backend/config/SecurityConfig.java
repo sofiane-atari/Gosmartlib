@@ -173,6 +173,10 @@ public class SecurityConfig {
                                                         .hasAnyRole(Role.TEACHER.name(), Role.LIBRARIAN.name(),
                                                                         Role.ADMIN.name());
 
+                                        auth.requestMatchers("/subscriptions/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+
                                         auth.anyRequest().authenticated();
                                 })
 

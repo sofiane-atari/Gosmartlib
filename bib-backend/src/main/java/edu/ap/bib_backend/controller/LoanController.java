@@ -2,7 +2,6 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
-import edu.ap.bib_backend.dto.loan.LoanExtensionDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
@@ -11,8 +10,6 @@ import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.service.LoanExtensionService;
 import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
-
-import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -77,8 +74,7 @@ public class LoanController {
     public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(loanService.findHistoryForCurrentUser(page, pageSize, authentication));
     }
 
