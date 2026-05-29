@@ -91,8 +91,8 @@ public class LoanController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<LoanStatsDTO> getLoanStats() {
-        return ResponseEntity.ok(loanService.getLoanStats());
+    public ResponseEntity<LoanStatsDTO> getLoanStats(Authentication authentication) {
+        return ResponseEntity.ok(loanService.getLoanStats(authentication));
     }
 
     @GetMapping("/grouped")

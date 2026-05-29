@@ -157,7 +157,7 @@ export class SidebarComponent {
       route: '/genre',
       adminOnly: true,
     },
-    { icon: Tag, label: 'Labelbeheer', route: '/tag', adminOnly: true },
+    { icon: Tag, label: 'Tagbeheer', route: '/tags', librarianOrAdmin: true },
     { icon: School, label: 'Schoolbeheer', route: '/schools', adminOnly: true },
     {
       icon: UserCog,

@@ -82,7 +82,7 @@ export class TagDashboardComponent {
   private readonly router = inject(Router);
 
   protected readonly columns: DataTableColumn[] = [
-    { id: 'name', header: 'Label', dataLabel: 'Label' },
+    { id: 'name', header: 'Tag', dataLabel: 'Tag' },
     { id: 'description', header: 'Beschrijving', dataLabel: 'Beschrijving' },
     { id: 'bookCount', header: 'Boeken', dataLabel: 'Boeken' },
     { id: 'actions', header: 'Acties', dataLabel: 'Acties', align: 'right' },

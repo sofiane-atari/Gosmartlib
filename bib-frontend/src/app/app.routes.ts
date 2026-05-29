@@ -161,9 +161,9 @@ export const routes: Routes = [
     canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
-    path: 'tag',
+    path: 'tags',
     component: TagDashboardComponent,
-    canActivate: [authGuard, adminOnlyGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
     path: 'loans/return',
