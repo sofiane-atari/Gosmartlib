@@ -24,6 +24,7 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
+import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 
 @Service
 public class LoanReminderService {
@@ -49,6 +50,7 @@ public class LoanReminderService {
     private final UserRepository userRepository;
     private final SmartschoolTokenRefreshService smartschoolTokenRefreshService;
     private final SmartschoolMessageService smartschoolMessageService;
+    private final ExternalUserDisplayService externalUserDisplayService;
     private final TemplateRenderer templateRenderer;
     private final String frontendUrl;
 
@@ -57,12 +59,14 @@ public class LoanReminderService {
             UserRepository userRepository,
             SmartschoolTokenRefreshService smartschoolTokenRefreshService,
             SmartschoolMessageService smartschoolMessageService,
+            ExternalUserDisplayService externalUserDisplayService,
             TemplateRenderer templateRenderer,
             @Value("${FRONTEND_URL:http://localhost:4200}") String frontendUrl) {
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
         this.smartschoolTokenRefreshService = smartschoolTokenRefreshService;
         this.smartschoolMessageService = smartschoolMessageService;
+        this.externalUserDisplayService = externalUserDisplayService;
         this.templateRenderer = templateRenderer;
         this.frontendUrl = frontendUrl;
     }
@@ -224,8 +228,12 @@ public class LoanReminderService {
 
     private String resolveUserDisplayName(User user) {
         if (user == null) return "Gebruiker";
-        String name = user.getOneRosterSourcedId();
-        return name != null ? name : user.getId();
+        if (user.getSchool() == null || user.getSchool().getDomainName() == null
+                || user.getOneRosterSourcedId() == null) {
+            return user.getOneRosterSourcedId() != null ? user.getOneRosterSourcedId() : user.getId();
+        }
+        return externalUserDisplayService.getDisplayName(
+                user.getSchool().getDomainName(), user.getOneRosterSourcedId());
     }
 
     private String buildBooksHtml(Loan loan) {
