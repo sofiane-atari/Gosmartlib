@@ -952,40 +952,6 @@ class BookServiceTest {
     }
 
     @Test
-    @DisplayName("Given existing book with no borrowed copies, When deleteBook is called, Then delete successfully")
-    void givenExistingBookWithNoBorrowedCopies_whenDeleteBook_thenDeleteSuccessfully() {
-        Book book = new Book();
-        book.setId(1L);
-        book.setCampus(campus);
-        book.setGenres(new HashSet<>());
-
-        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(book));
-        given(bcr.existsByBookIdAndCampusIdAndAvailability(1L, 1L, Availability.BORROWED)).willReturn(false);
-
-        bs.deleteBook(1L, authentication);
-
-        then(reviewRepository).should().deleteByBookId(1L);
-        then(bookLoanRepository).should().deleteByCopiesBookId(1L);
-        then(bcr).should().deleteByBookId(1L);
-        then(br).should().delete(book);
-    }
-
-    @Test
-    @DisplayName("Given book with borrowed copies, When deleteBook is called, Then throw exception")
-    void givenBookWithBorrowedCopies_whenDeleteBook_thenThrowException() {
-        Book book = new Book();
-        book.setId(1L);
-        book.setCampus(campus);
-
-        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(book));
-        given(bcr.existsByBookIdAndCampusIdAndAvailability(1L, 1L, Availability.BORROWED)).willReturn(true);
-
-        assertThatThrownBy(() -> bs.deleteBook(1L, authentication))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("kan niet verwijderd worden");
-    }
-
-    @Test
     @DisplayName("Given title and author filters, When searchBooksInDb is called, Then return matching candidates")
     void givenTitleAndAuthorFilters_whenSearchBooksInDb_thenReturnMatchingCandidates() {
         Book book = new Book();

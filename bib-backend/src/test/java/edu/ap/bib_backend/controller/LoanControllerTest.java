@@ -131,7 +131,7 @@ class LoanControllerTest {
 
     @Test
     void Given_LoanStatsExist_When_GetLoanStats_Then_ReturnOkWithStats() throws Exception {
-        when(loanService.getLoanStats()).thenReturn(new LoanStatsDTO(8L, 3L, 12L));
+        when(loanService.getLoanStats(any())).thenReturn(new LoanStatsDTO(8L, 3L, 12L));
 
         mockMvc.perform(get("/loans/stats"))
                 .andExpect(status().isOk())

@@ -53,8 +53,6 @@ class TagServiceIntegrationTest {
         tagRepository.deleteAll();
         schoolRepository.deleteAll();
 
-        tagService.setCurrentUserService(new CurrentUserService(userRepository));
-
         RoleEntity librarianRole = new RoleEntity();
         librarianRole.setRole(Role.LIBRARIAN);
         roleRepository.save(librarianRole);
@@ -94,7 +92,7 @@ class TagServiceIntegrationTest {
                 null
         );
 
-        TagDTO createdTag = tagService.createTag(request);
+        TagDTO createdTag = tagService.createTag(request, schoolAAuthentication);
 
         assertThat(createdTag.id()).isNotNull();
         assertThat(createdTag.name()).isEqualTo("Populair");
@@ -113,7 +111,7 @@ class TagServiceIntegrationTest {
                 null
         );
 
-        TagDTO createdTag = tagService.createTag(request);
+        TagDTO createdTag = tagService.createTag(request, schoolAAuthentication);
 
         assertThat(createdTag.name()).isEqualTo("Fantasy");
         assertThat(createdTag.description()).isEqualTo("Magische boeken");
@@ -129,7 +127,7 @@ class TagServiceIntegrationTest {
                 null
         );
 
-        assertThatThrownBy(() -> tagService.createTag(request))
+        assertThatThrownBy(() -> tagService.createTag(request, schoolAAuthentication))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Naam is verplicht");
     }
@@ -142,7 +140,7 @@ class TagServiceIntegrationTest {
                 "Fantasy boeken",
                 null,
                 null
-        ));
+        ), schoolAAuthentication);
 
         TagDTO duplicate = new TagDTO(
                 null,
@@ -152,7 +150,7 @@ class TagServiceIntegrationTest {
                 null
         );
 
-        assertThatThrownBy(() -> tagService.createTag(duplicate))
+        assertThatThrownBy(() -> tagService.createTag(duplicate, schoolAAuthentication))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Deze tag bestaat al");
     }
@@ -165,7 +163,7 @@ class TagServiceIntegrationTest {
                 "Oude beschrijving",
                 null,
                 null
-        ));
+        ), schoolAAuthentication);
 
         TagDTO updateRequest = new TagDTO(
                 createdTag.id(),
@@ -175,7 +173,7 @@ class TagServiceIntegrationTest {
                 null
         );
 
-        TagDTO updatedTag = tagService.updateTag(createdTag.id(), updateRequest);
+        TagDTO updatedTag = tagService.updateTag(createdTag.id(), updateRequest, schoolAAuthentication);
 
         assertThat(updatedTag.id()).isEqualTo(createdTag.id());
         assertThat(updatedTag.name()).isEqualTo("Nieuw");
@@ -192,7 +190,7 @@ class TagServiceIntegrationTest {
                 null
         );
 
-        assertThatThrownBy(() -> tagService.updateTag(999L, updateRequest))
+        assertThatThrownBy(() -> tagService.updateTag(999L, updateRequest, schoolAAuthentication))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Tag niet gevonden");
     }
@@ -205,7 +203,7 @@ class TagServiceIntegrationTest {
                 "Fantasy boeken",
                 null,
                 null
-        ));
+        ), schoolAAuthentication);
 
         tagService.createTag(new TagDTO(
                 null,
@@ -213,7 +211,7 @@ class TagServiceIntegrationTest {
                 "Spannende boeken",
                 null,
                 null
-        ));
+        ), schoolAAuthentication);
 
         TagDTO updateRequest = new TagDTO(
                 first.id(),
@@ -223,7 +221,7 @@ class TagServiceIntegrationTest {
                 null
         );
 
-        assertThatThrownBy(() -> tagService.updateTag(first.id(), updateRequest))
+        assertThatThrownBy(() -> tagService.updateTag(first.id(), updateRequest, schoolAAuthentication))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Deze tag bestaat al");
     }
@@ -236,32 +234,33 @@ class TagServiceIntegrationTest {
                 "Beschrijving",
                 null,
                 null
-        ));
+        ), schoolAAuthentication);
 
-        tagService.deleteTag(createdTag.id());
+        tagService.deleteTag(createdTag.id(), schoolAAuthentication);
 
         assertThat(tagRepository.existsById(createdTag.id())).isFalse();
     }
 
     @Test
     void deleteTag_shouldThrowException_whenTagDoesNotExist() {
-        assertThatThrownBy(() -> tagService.deleteTag(999L))
+        assertThatThrownBy(() -> tagService.deleteTag(999L, schoolAAuthentication))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Tag niet gevonden");
     }
 
     @Test
     void getTagsByPage_shouldReturnPagedTags() {
-        tagService.createTag(new TagDTO(null, "Fantasy", "Fantasy boeken", null, null));
-        tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null));
-        tagService.createTag(new TagDTO(null, "Romantiek", "Romantische boeken", null, null));
+        tagService.createTag(new TagDTO(null, "Fantasy", "Fantasy boeken", null, null), schoolAAuthentication);
+        tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null), schoolAAuthentication);
+        tagService.createTag(new TagDTO(null, "Romantiek", "Romantische boeken", null, null), schoolAAuthentication);
 
         PageDTO<TagDTO> page = tagService.getTagsByPage(
                 0,
                 2,
                 null,
                 null,
-                true
+                true,
+                schoolAAuthentication
         );
 
         assertThat(page.data()).hasSize(2);
@@ -273,15 +272,16 @@ class TagServiceIntegrationTest {
 
     @Test
     void getTagsByPage_shouldFilterBySearch() {
-        tagService.createTag(new TagDTO(null, "Fantasy", "Fantasy boeken", null, null));
-        tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null));
+        tagService.createTag(new TagDTO(null, "Fantasy", "Fantasy boeken", null, null), schoolAAuthentication);
+        tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null), schoolAAuthentication);
 
         PageDTO<TagDTO> page = tagService.getTagsByPage(
                 0,
                 10,
                 "fant",
                 null,
-                true
+                true,
+                schoolAAuthentication
         );
 
         assertThat(page.data()).hasSize(1);
@@ -290,10 +290,10 @@ class TagServiceIntegrationTest {
 
     @Test
     void getTagStats_shouldReturnStats() {
-        tagService.createTag(new TagDTO(null, "Fantasy", "Fantasy boeken", null, null));
-        tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null));
+        tagService.createTag(new TagDTO(null, "Fantasy", "Fantasy boeken", null, null), schoolAAuthentication);
+        tagService.createTag(new TagDTO(null, "Thriller", "Thriller boeken", null, null), schoolAAuthentication);
 
-        TagStatsDTO stats = tagService.getTagStats();
+        TagStatsDTO stats = tagService.getTagStats(schoolAAuthentication);
 
         assertThat(stats.totalItems()).isEqualTo(2L);
         assertThat(stats.unActiveTags()).isEqualTo(2L);

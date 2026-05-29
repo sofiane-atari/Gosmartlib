@@ -63,7 +63,7 @@ class TagControllerIntegrationTest {
                 0L,
                 null);
 
-        Mockito.when(tagService.createTag(any(TagDTO.class)))
+        Mockito.when(tagService.createTag(any(TagDTO.class), any(Authentication.class)))
                 .thenReturn(response);
 
         mockMvc.perform(post("/tags")
@@ -89,7 +89,8 @@ class TagControllerIntegrationTest {
                 eq(2),
                 isNull(),
                 isNull(),
-                eq(true)))
+                eq(true),
+                any(Authentication.class)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/tags")
@@ -118,7 +119,8 @@ class TagControllerIntegrationTest {
                 eq(10),
                 eq("fant"),
                 isNull(),
-                eq(true)))
+                eq(true),
+                any(Authentication.class)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/tags")
@@ -131,7 +133,7 @@ class TagControllerIntegrationTest {
 
     @Test
     void getTagStats_shouldReturnStats() throws Exception {
-        Mockito.when(tagService.getTagStats())
+        Mockito.when(tagService.getTagStats(any(Authentication.class)))
                 .thenReturn(new TagStatsDTO(2L, 2L));
 
         mockMvc.perform(get("/tags/stats"))
@@ -156,7 +158,7 @@ class TagControllerIntegrationTest {
                 0L,
                 null);
 
-        Mockito.when(tagService.updateTag(eq(1L), any(TagDTO.class)))
+        Mockito.when(tagService.updateTag(eq(1L), any(TagDTO.class), any(Authentication.class)))
                 .thenReturn(response);
 
         mockMvc.perform(put("/tags/{id}", 1L)
@@ -173,7 +175,7 @@ class TagControllerIntegrationTest {
         mockMvc.perform(delete("/tags/{id}", 1L))
                 .andExpect(status().isOk());
 
-        Mockito.verify(tagService).deleteTag(1L);
+        Mockito.verify(tagService).deleteTag(eq(1L), any(Authentication.class));
     }
 
     @Test

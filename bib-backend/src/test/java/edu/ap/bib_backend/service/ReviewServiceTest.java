@@ -582,7 +582,7 @@ class ReviewServiceTest {
                 5)).thenReturn(50L);
 
         // Act
-        ReviewDashboardStatsDTO result = reviewService.getFlaggedReviewStats();
+        ReviewDashboardStatsDTO result = reviewService.getFlaggedReviewStats(authentication);
 
         // Assert
         assertNotNull(result);

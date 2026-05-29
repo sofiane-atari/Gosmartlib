@@ -184,30 +184,6 @@ public class BookService {
     }
 
     @Transactional
-    public void deleteBook(Long id, Authentication authentication) {
-        School school = currentUserService.getCurrentUserSchool(authentication);
-        Book book = findBookInSchoolOrThrow(id, school.getId());
-        Campus campus = book.getCampus();
-
-        if (campus == null) {
-            throw new IllegalStateException("Boek heeft geen campus gekoppeld.");
-        }
-
-        if (bookCopyRepository.existsByBookIdAndCampusIdAndAvailability(id, campus.getId(), Availability.BORROWED)) {
-            throw new IllegalStateException(
-                    "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.");
-        }
-
-        reviewRepository.deleteByBookId(id);
-        bookLoanRepository.deleteByCopiesBookId(id);
-        bookCopyRepository.deleteByBookId(id);
-
-        book.getGenres().clear();
-        book.getTags().clear();
-        bookRepository.delete(book);
-    }
-
-    @Transactional
     public BookDTO updateBook(Long id, BookDTO dto, Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
         Book book = findBookInSchoolOrThrow(id, school.getId());

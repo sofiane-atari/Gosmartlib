@@ -276,7 +276,7 @@ class LoanServiceTest {
         when(loanRepository.countByReturnedDateIsNullAndReturnDateBefore(today)).thenReturn(2L);
         when(loanRepository.countByReturnedDateIsNotNull()).thenReturn(10L);
 
-        LoanStatsDTO result = loanService.getLoanStats();
+        LoanStatsDTO result = loanService.getLoanStats(authentication);
 
         assertEquals(5L, result.activeLoans());
         assertEquals(2L, result.overdueLoans());

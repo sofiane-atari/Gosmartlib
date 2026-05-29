@@ -187,15 +187,6 @@ public class BookController {
         return ResponseEntity.ok(updatedBook);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(
-            @PathVariable Long id,
-            Authentication authentication) {
-        bookService.deleteBook(id, authentication);
-        return ResponseEntity.noContent().build();
-    }
-
     @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     @PostMapping("/{bookId}/copies")
     public ResponseEntity<BookDTO> addCopy(

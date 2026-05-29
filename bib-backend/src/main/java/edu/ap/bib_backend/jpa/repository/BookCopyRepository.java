@@ -56,4 +56,13 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
             HAVING SUM(CASE WHEN bl.id IS NOT NULL AND bl.returnedDate IS NULL THEN 1 ELSE 0 END) = 0
             """)
     java.util.List<BookCopy> findAvailableCopiesByBookIdAndCampusId(@Param("bookId") Long bookId, @Param("campusId") Long campusId);
+
+    @Query("""
+            SELECT bc
+            FROM BookCopy bc
+            JOIN bc.campus c
+            WHERE bc.book.id = :bookId
+              AND c.school.id = :schoolId
+            """)
+    java.util.List<BookCopy> findAllByBookIdAndCampusSchoolId(@Param("bookId") Long bookId, @Param("schoolId") Long schoolId);
 }
