@@ -24,6 +24,8 @@ import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -131,6 +133,7 @@ class LoanServiceTest {
                 .build();
 
         when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn("librarian-1");
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(bookCopyRepository.findAllById(List.of(10L))).thenReturn(List.of(copy));
         when(loanMapper.toEntity(inputDto)).thenReturn(loan);
@@ -143,6 +146,7 @@ class LoanServiceTest {
         assertEquals(user, loan.getUser());
         assertEquals(campus, loan.getCampus());
         assertEquals(List.of(copy), loan.getCopies());
+        assertEquals("librarian-1", loan.getLibrarianId());
         verify(loanRepository).save(loan);
     }
 
@@ -281,6 +285,39 @@ class LoanServiceTest {
         assertEquals(5L, result.activeLoans());
         assertEquals(2L, result.overdueLoans());
         assertEquals(10L, result.returnedLoans());
+    }
+
+    @Test
+    void Given_ValidRequest_When_Create_Then_SetsLibrarianIdFromCurrentUser() {
+        String returnDate = LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString();
+        LoanDTO inputDto = LoanDTO.builder()
+                .userId("user123")
+                .bookCopyIds(List.of(10L))
+                .returnDate(returnDate)
+                .build();
+
+        User user = new User();
+        user.setId("user123");
+        user.setSchool(school);
+
+        Book book = new Book();
+        book.setId(1L);
+        book.setTitle("Test Book");
+
+        BookCopy copy = availableCopy(10L, book, campus);
+
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn("librarian-42");
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(bookCopyRepository.findAllById(List.of(10L))).thenReturn(List.of(copy));
+        when(loanMapper.toEntity(inputDto)).thenReturn(new Loan());
+        when(loanRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        loanService.create(inputDto, authentication);
+
+        ArgumentCaptor<Loan> loanCaptor = ArgumentCaptor.forClass(Loan.class);
+        verify(loanRepository).save(loanCaptor.capture());
+        assertEquals("librarian-42", loanCaptor.getValue().getLibrarianId());
     }
 
     private BookCopy availableCopy(Long id, Book book, Campus copyCampus) {
