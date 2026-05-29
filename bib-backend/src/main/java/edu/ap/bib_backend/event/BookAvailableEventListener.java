@@ -70,15 +70,15 @@ public class BookAvailableEventListener {
             return;
         }
 
-        Long bookCampusId = book.getCampus().getId();
+        Long bookCampusSchoolId = book.getCampus().getSchool().getId();
 
-        log.info("Notifying subscribers that book '{}' is available (campus id={})", book.getTitle(), bookCampusId);
+        log.info("Notifying subscribers that book '{}' is available (school id={})", book.getTitle(), bookCampusSchoolId);
 
         for (MailSubscription subscription : subscribers) {
             String userId = subscription.getUser().getId();
 
-            if (!subscription.getUser().getCampus().getId().equals(bookCampusId)) {
-                log.debug("Skipping user {} from different campus", userId);
+            if (!subscription.getUser().getSchool().getId().equals(bookCampusSchoolId)) {
+                log.debug("Skipping user {} from different school", userId);
                 continue;
             }
 

@@ -241,23 +241,19 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         select count(distinct u.id)
                         from User u
                         where u.school.id = :schoolId
-                        and (:campusId is null or u.campus.id = :campusId)
                         and size(u.groups) > 0
                         """)
         long countStudentsWithClassForSchool(
-                @Param("schoolId") Long schoolId,
-                @Param("campusId") Long campusId);
+                @Param("schoolId") Long schoolId);
 
         @Query("""
                         select count(distinct g.name)
                         from User u
                         join u.groups g
                         where u.school.id = :schoolId
-                        and (:campusId is null or u.campus.id = :campusId)
                         """)
         long countClassesForSchool(
-                @Param("schoolId") Long schoolId,
-                @Param("campusId") Long campusId);
+                @Param("schoolId") Long schoolId);
 
         @Query("""
                         select count(bc.id)

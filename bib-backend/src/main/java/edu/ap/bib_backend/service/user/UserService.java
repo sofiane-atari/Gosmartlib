@@ -21,7 +21,6 @@ import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.enums.Role;
-import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
@@ -32,7 +31,6 @@ import edu.ap.bib_backend.service.GroupService;
 import edu.ap.bib_backend.service.review.ProfanityFilterService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
-import edu.ap.bib_backend.jpa.repository.CampusRepository;
 
 @Service
 public class UserService {
@@ -41,20 +39,18 @@ public class UserService {
     private final UserMapper userMapper;
     private final OneRosterClient oneRosterClient;
     private final TokenStorageService tokenStorageService;
-    private final CampusRepository campusRepository;
     private final CurrentUserService currentUserService;
     private final SchoolRepository schoolRepository;
 
     public UserService(UserRepository userRepository, ProfanityFilterService profanityFilterService,
             UserMapper userMapper, GroupService groupService, SchoolRepository schoolRepository,
             OneRosterClient oneRosterClient, TokenStorageService tokenStorageService,
-            CampusRepository campusRepository, CurrentUserService currentUserService) {
+            CurrentUserService currentUserService) {
 
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.oneRosterClient = oneRosterClient;
         this.tokenStorageService = tokenStorageService;
-        this.campusRepository = campusRepository;
         this.currentUserService = currentUserService;
         this.schoolRepository = schoolRepository;
     }
@@ -165,7 +161,7 @@ public class UserService {
                                 actualRole, dto.email(), dto.username(),
                                 dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
                                 dto.parentGroupNames(), dto.reviewBlocked(),
-                                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                                dto.schoolId(), dto.schoolName(),
                                 dto.school());
                     }
                     return dto;
@@ -227,7 +223,7 @@ public class UserService {
                                 actualRole, dto.email(), dto.username(),
                                 dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
                                 dto.parentGroupNames(), dto.reviewBlocked(),
-                                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                                dto.schoolId(), dto.schoolName(),
                                 dto.school());
                     }
                     return dto;
@@ -239,7 +235,7 @@ public class UserService {
                 .toList();
     }
 
-    public User createUser(String userId, RoleEntity role, School school, Campus campus) {
+    public User createUser(String userId, RoleEntity role, School school) {
         if (userRepository.existsById(userId)) {
             throw new RuntimeException("Gebruiker bestaat al");
         }
@@ -249,13 +245,8 @@ public class UserService {
 
         user.setRole(Objects.requireNonNull(role, "role mag niet null zijn"));
         user.setSchool(Objects.requireNonNull(school, "school mag niet null zijn"));
-        user.setCampus(campus);
 
         return userRepository.save(user);
-    }
-
-    public User createUser(String userId, RoleEntity role, School school) {
-        return createUser(userId, role, school, null);
     }
 
     public AuthUserDto setReviewBlocked(String userId, boolean blocked) {
@@ -266,44 +257,6 @@ public class UserService {
         user.setReviewBlocked(blocked);
         User updatedUser = userRepository.save(user);
         return userMapper.toDto(updatedUser);
-    }
-
-    /**
-     * @param authentication authenticated user's security context
-     * @param campusId       target campus id
-     * @return updated AuthUserDto with the new campus
-     */
-    @Transactional
-    public AuthUserDto switchCurrentUserCampus(Authentication authentication, Long campusId) {
-        if (campusId == null) {
-            throw new IllegalArgumentException("campusId is verplicht.");
-        }
-
-        String currentUserId = currentUserService.extractCurrentUserId(authentication);
-
-        User user = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "userId",
-                        "Gebruiker niet gevonden met id: " + currentUserId
-                ));
-
-        if (user.getSchool() == null) {
-            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
-        }
-
-        Campus campus = campusRepository.findById(campusId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "campusId",
-                        "Campus niet gevonden met id: " + campusId
-                ));
-
-        if (campus.getSchool() == null || !campus.getSchool().getId().equals(user.getSchool().getId())) {
-            throw new IllegalArgumentException("Deze campus hoort niet bij jouw school.");
-        }
-
-        user.setCampus(campus);
-
-        return userMapper.toDto(userRepository.save(user));
     }
 
     public User save(User user) {
@@ -369,8 +322,6 @@ public class UserService {
                 null,
                 List.of(),
                 false,
-                null,
-                null,
                 null,
                 null,
                 schoolSummary);

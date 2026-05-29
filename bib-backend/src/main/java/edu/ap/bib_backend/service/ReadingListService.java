@@ -181,10 +181,6 @@ public class ReadingListService {
     }
 
     private Campus resolveReadingListCampus(User user) {
-        if (user.getCampus() != null) {
-            return user.getCampus();
-        }
-
         School school = user.getSchool();
         if (school == null || school.getId() == null) {
             throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");

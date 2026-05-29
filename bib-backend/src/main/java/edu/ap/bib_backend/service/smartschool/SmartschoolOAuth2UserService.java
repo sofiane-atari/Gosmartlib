@@ -6,7 +6,6 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.enums.SchoolStatus;
-import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.GroupService;
 import edu.ap.bib_backend.service.RoleService;
@@ -46,7 +45,6 @@ public class SmartschoolOAuth2UserService
     private final GroupService groupService;
     private final SmartschoolProfileService smartschoolProfileService;
     private final SchoolRepository schoolRepository;
-    private final CampusRepository campusRepository;
     private final OneRosterClient oneRosterClient;
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -58,7 +56,6 @@ public class SmartschoolOAuth2UserService
             GroupService groupService,
             SmartschoolProfileService smartschoolProfileService,
             SchoolRepository schoolRepository,
-            CampusRepository campusRepository,
             OneRosterClient oneRosterClient
     ) {
         this.userService = userService;
@@ -67,7 +64,6 @@ public class SmartschoolOAuth2UserService
         this.groupService = groupService;
         this.smartschoolProfileService = smartschoolProfileService;
         this.schoolRepository = schoolRepository;
-        this.campusRepository = campusRepository;
         this.oneRosterClient = oneRosterClient;
     }
 
@@ -121,8 +117,7 @@ public class SmartschoolOAuth2UserService
                 .orElseGet(() -> userService.createUser(
                         userId,
                         roleService.getRoleEntity(basisrol),
-                        school,
-                        null
+                        school
                 ));
 
         String oneRosterSourcedId =
@@ -170,7 +165,6 @@ public class SmartschoolOAuth2UserService
         }
 
         attributes.put("schoolId", school.getId());
-        attributes.put("campusId", user.getCampus() != null ? user.getCampus().getId() : null);
 
         String roleString = getOAuthUserRole(user.getRole().getRole());
 

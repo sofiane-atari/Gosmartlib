@@ -101,9 +101,7 @@ public class BookService {
 
     @Transactional
     public BookDTO addCopyToBook(Long bookId, Long campusId, Authentication authentication) {
-        Campus campus = campusId == null
-                ? currentUserService.getCurrentUserCampus(authentication)
-                : resolveCampusForCurrentUserSchool(campusId, authentication);
+        Campus campus = resolveCampusForCurrentUserSchool(campusId, authentication);
         Book book = findBookForCopyTarget(bookId, campus, authentication);
 
         createAvailableCopy(book, campus);

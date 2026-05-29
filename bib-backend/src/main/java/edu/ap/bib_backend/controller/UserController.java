@@ -2,7 +2,6 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.PageDTO;
-import edu.ap.bib_backend.dto.SwitchCampusRequestDto;
 import edu.ap.bib_backend.dto.TeacherStatsDTO;
 import edu.ap.bib_backend.dto.UserReviewAccessUpdateDto;
 import edu.ap.bib_backend.options.UserGetOptions;
@@ -55,13 +54,6 @@ public class UserController {
             @PathVariable Long schoolId,
             Authentication authentication) {
         return ResponseEntity.ok(userService.getUsersBySchoolId(authentication, schoolId));
-    }
-
-    @PatchMapping("/me/campus")
-    public ResponseEntity<AuthUserDto> switchCurrentUserCampus(
-            @RequestBody SwitchCampusRequestDto payload,
-            Authentication authentication) {
-        return ResponseEntity.ok(userService.switchCurrentUserCampus(authentication, payload.campusId()));
     }
 
     @GetMapping("/has-refresh-token")

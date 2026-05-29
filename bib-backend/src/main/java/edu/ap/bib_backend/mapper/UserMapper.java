@@ -28,8 +28,6 @@ public interface UserMapper {
     @Mapping(target = "reviewBlocked", source = "reviewBlocked")
     @Mapping(target = "schoolId", source = "school.id")
     @Mapping(target = "schoolName", source = "school.name")
-    @Mapping(target = "campusId", source = "campus.id")
-    @Mapping(target = "campusName", source = "campus.name")
     AuthUserDto toDto(User user);
 
     List<AuthUserDto> toDtoList(List<User> users);
