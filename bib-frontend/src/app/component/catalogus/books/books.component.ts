@@ -170,6 +170,7 @@ export class BooksComponent implements OnInit {
     this.loadCampuses();
     this.loadSidebarBooks();
     this.loadFeaturedReadingLists();
+    this.userSettingsService.loadCatalogSidebarSettings();
   }
 
   private loadFeaturedReadingLists(): void {

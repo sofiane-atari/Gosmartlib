@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -15,7 +15,7 @@ import { DevFeatureWrapperComponent } from '../shared/dev-feature-wrapper/dev-fe
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   private readonly syncService = inject(OneRosterSyncService);
   private readonly devSeedService = inject(DevSeedService);
   private readonly authService = inject(AuthService);
@@ -34,6 +34,10 @@ export class SettingsComponent {
   protected readonly seedErrorMessage = signal<string | null>(null);
   protected readonly clearSuccessMessage = signal<string | null>(null);
   protected readonly clearErrorMessage = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.userSettingsService.loadCatalogSidebarSettings();
+  }
 
   protected syncNow(): void {
     if (this.isSyncing()) {
