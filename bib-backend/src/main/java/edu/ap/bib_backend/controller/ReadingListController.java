@@ -144,7 +144,7 @@ public class ReadingListController {
     }
 
     @GetMapping("/teacher/audience-options")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'LIBRARIAN', 'ADMIN')")
     public ResponseEntity<OneRosterAudienceOptionsDto> getTeacherAudienceOptions(
             HttpServletRequest request,
             Principal principal) {

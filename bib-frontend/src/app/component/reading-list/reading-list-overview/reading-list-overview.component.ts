@@ -66,7 +66,7 @@ export class ReadingListOverviewComponent implements OnInit {
   ) { }
 
   get createRoute(): string {
-    return this.roleService.isTeacher() ? '/reading-list/create-teacher' : '/reading-list/create';
+    return this.roleService.hasAnyRole(['TEACHER', 'ADMIN', 'LIBRARIAN']) ? '/reading-list/create-teacher' : '/reading-list/create';
   }
 
   ngOnInit() {
@@ -195,7 +195,7 @@ export class ReadingListOverviewComponent implements OnInit {
       return this.roleService.hasAnyRole(['ADMIN', 'LIBRARIAN']);
     }
 
-    return (list.targetType ?? 'PERSONAL') === 'PERSONAL' || this.roleService.isTeacher();
+    return (list.targetType ?? 'PERSONAL') === 'PERSONAL' || this.roleService.hasAnyRole(['TEACHER', 'ADMIN', 'LIBRARIAN']);
   }
 
   deleteList(list: ReadingList) {

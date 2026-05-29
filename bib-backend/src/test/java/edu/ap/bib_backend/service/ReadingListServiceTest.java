@@ -5,6 +5,7 @@ import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListBook;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
@@ -47,7 +48,8 @@ class ReadingListServiceTest {
         private static final String CLASS_CODE = "2ITSOF1";
         private static final String YEAR_CODE = "2";
         private static final String SCHOOL_CODE = "https://aphogeschool.smartschool.be";
-        private static final Long CAMPUS_ID = 100L;
+	private static final Long CAMPUS_ID = 100L;
+	private static final Long SCHOOL_ID = 200L;
 
         @Mock
         private ReadingListRepository readingListRepository;
@@ -118,9 +120,9 @@ class ReadingListServiceTest {
                                 CLASS_CODE,
                                 CAMPUS_ID)).thenReturn(Optional.empty());
 
-                when(readingListRepository.findFirstByTargetTypeAndCampusId(
+                when(readingListRepository.findFirstByTargetTypeAndCampus_School_Id(
                                 ReadingListTargetType.SYSTEM,
-                                CAMPUS_ID)).thenReturn(Optional.empty());
+                                SCHOOL_ID)).thenReturn(Optional.empty());
 
                 when(readingListRepository.findVisibleForUser(
                                 USER_ID,
@@ -369,8 +371,8 @@ class ReadingListServiceTest {
         }
 
         @Test
-        void givenSystemListAndTeacher_whenAddBookToList_thenAllow() {
-                setAuthenticationAsTeacher();
+        void givenSystemListAndLibrarian_whenAddBookToList_thenAllow() {
+                setAuthenticationAsLibrarian();
 
                 Long listId = 3L;
                 Long bookId = 102L;
@@ -524,8 +526,8 @@ class ReadingListServiceTest {
         }
 
         @Test
-        void givenSystemListAndTeacher_whenRemoveBookFromList_thenAllow() {
-                setAuthenticationAsTeacher();
+        void givenSystemListAndLibrarian_whenRemoveBookFromList_thenAllow() {
+                setAuthenticationAsLibrarian();
 
                 Long listId = 12L;
                 Long bookId = 104L;
@@ -559,6 +561,16 @@ class ReadingListServiceTest {
 
                 applyAudienceDetails(authentication);
                 mockCurrentUserAuthorities("ROLE_STUDENT");
+        }
+
+        private void setAuthenticationAsLibrarian() {
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                USER_ID,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_LIBRARIAN")));
+
+                applyAudienceDetails(authentication);
+                mockCurrentUserAuthorities("ROLE_LIBRARIAN");
         }
 
         private void setAuthenticationAsTeacher() {
@@ -605,9 +617,11 @@ class ReadingListServiceTest {
         }
 
         private User makeUser() {
+                School school = makeSchool();
                 User user = new User();
                 user.setId(USER_ID);
                 user.setCampus(makeCampus());
+                user.setSchool(school);
                 return user;
         }
 
@@ -615,6 +629,14 @@ class ReadingListServiceTest {
                 Campus campus = new Campus();
                 campus.setId(CAMPUS_ID);
                 campus.setName("Test Campus");
+                campus.setSchool(makeSchool());
                 return campus;
+        }
+
+        private School makeSchool() {
+                School school = new School();
+                school.setId(SCHOOL_ID);
+                school.setName("Test School");
+                return school;
         }
 }

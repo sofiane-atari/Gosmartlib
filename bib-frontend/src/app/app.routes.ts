@@ -21,7 +21,7 @@ import { SmartschoolCallbackComponent } from './component/login-profile/smartsch
 
 // Guards
 import { authGuard, publicOnlyGuard } from './guards/authentication/auth.guard';
-import { teacherOnlyGuard } from './guards/authentication/teacher-only.guard';
+import { teacherOrStaffGuard } from './guards/authentication/teacher-only.guard';
 import { adminOnlyGuard } from './guards/authentication/admin-only.guard';
 import { reviewModerationGuard } from './guards/review/review-moderation.guard';
 import { Routes } from '@angular/router';
@@ -95,7 +95,7 @@ export const routes: Routes = [
   {
     path: 'reading-list/create-teacher',
     component: CreateTeacherReadingListComponent,
-    canActivate: [authGuard, teacherOnlyGuard],
+    canActivate: [authGuard, teacherOrStaffGuard],
   },
   {
     path: 'reading-list/shared/:publicShareId',

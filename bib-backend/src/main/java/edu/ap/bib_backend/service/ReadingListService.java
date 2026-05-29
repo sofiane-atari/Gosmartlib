@@ -121,7 +121,8 @@ public class ReadingListService {
             return;
         }
 
-        if (list.getTargetType() != ReadingListTargetType.PERSONAL && !isTeacherAuthenticated()) {
+        if (list.getTargetType() != ReadingListTargetType.PERSONAL
+                && !currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN")) {
             throw new IllegalArgumentException("Alleen leerkrachten kunnen deze leeslijst verwijderen");
         }
 
@@ -337,8 +338,8 @@ public class ReadingListService {
             throw new IllegalArgumentException("Alleen bibliothecarissen en admins kunnen uitgelichte leeslijsten aanmaken");
         }
 
-        if (!isTeacherAuthenticated()) {
-            throw new IllegalArgumentException("Alleen leerkrachten kunnen gedeelde leeslijsten maken");
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+            throw new IllegalArgumentException("Alleen leerkrachten, bibliothecarissen en admins kunnen gedeelde leeslijsten maken");
         }
     }
 
@@ -361,7 +362,7 @@ public class ReadingListService {
     }
 
     private boolean shouldIncludeOwnSharedLists() {
-        return isTeacherAuthenticated();
+        return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN");
     }
 
     private boolean isTeacherAuthenticated() {

@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../../services/authorization/auth.service';
 import { RoleService } from '../../services/role-service/role.service';
 
-export const teacherOnlyGuard: CanActivateFn = () => {
+export const teacherOrStaffGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const roleService = inject(RoleService);
   const router = inject(Router);
@@ -12,14 +12,14 @@ export const teacherOnlyGuard: CanActivateFn = () => {
     return router.parseUrl('/login');
   }
 
-  if (roleService.isTeacher() || hasTeacherRoleInToken(authService.getValidToken())) {
+  if (roleService.hasAnyRole(['TEACHER', 'ADMIN', 'LIBRARIAN']) || hasStaffRoleInToken(authService.getValidToken())) {
     return true;
   }
 
   return router.parseUrl('/reading-list');
 };
 
-function hasTeacherRoleInToken(token: string | null): boolean {
+function hasStaffRoleInToken(token: string | null): boolean {
   if (!token) {
     return false;
   }
@@ -34,7 +34,11 @@ function hasTeacherRoleInToken(token: string | null): boolean {
     const paddedPayload = base64Payload.padEnd(Math.ceil(base64Payload.length / 4) * 4, '=');
     const payload = JSON.parse(atob(paddedPayload)) as { roles?: unknown };
 
-    return payload.roles === 'ROLE_TEACHER' || payload.roles === 'TEACHER';
+    if (typeof payload.roles === 'string') {
+      return ['ROLE_TEACHER', 'TEACHER', 'ROLE_ADMIN', 'ADMIN', 'ROLE_LIBRARIAN', 'LIBRARIAN'].includes(payload.roles);
+    }
+
+    return false;
   } catch {
     return false;
   }
