@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { Campus, CreateCampusRequest } from '../../model/campus.model';
-import { AuthUserDto } from '../../model/auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -35,11 +34,5 @@ export class CampusService {
 
   public update(id: number, campus: CreateCampusRequest): Observable<Campus> {
     return this.http.put<Campus>(`${this.url}/${id}`, campus);
-  }
-
-  public switchMyCampus(campusId: number): Observable<AuthUserDto> {
-    return this.http.patch<AuthUserDto>(`${environment.apiUrl}/users/me/campus`, {
-      campusId,
-    });
   }
 }

@@ -9,5 +9,4 @@ export interface ProfileViewModel {
   primaryGroupName: string;
   parentGroupNames: string[];
   schoolName: string;
-  campusName: string;
 }
