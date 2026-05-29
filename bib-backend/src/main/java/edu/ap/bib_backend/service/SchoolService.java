@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.CampusDTO;
+import edu.ap.bib_backend.dto.CatalogSidebarSettingsDTO;
 import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
 import edu.ap.bib_backend.event.SchoolCreatedEvent;
@@ -395,5 +396,24 @@ public class SchoolService {
 
     private String normalizeDomainName(String domainName) {
         return domainName == null ? null : domainName.trim().toLowerCase();
+    }
+
+    public CatalogSidebarSettingsDTO getCatalogSidebarSettings(Long schoolId) {
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "School niet gevonden"));
+        return new CatalogSidebarSettingsDTO(
+                school.isCatalogFeaturedListsEnabled(),
+                school.isCatalogMostReadEnabled(),
+                school.isCatalogNewestEnabled());
+    }
+
+    public CatalogSidebarSettingsDTO updateCatalogSidebarSettings(Long schoolId, CatalogSidebarSettingsDTO dto) {
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "School niet gevonden"));
+        school.setCatalogFeaturedListsEnabled(dto.catalogFeaturedListsEnabled());
+        school.setCatalogMostReadEnabled(dto.catalogMostReadEnabled());
+        school.setCatalogNewestEnabled(dto.catalogNewestEnabled());
+        schoolRepository.save(school);
+        return dto;
     }
 }

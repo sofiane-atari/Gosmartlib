@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.controller;
 
+import edu.ap.bib_backend.dto.CatalogSidebarSettingsDTO;
 import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.service.SchoolService;
 import jakarta.validation.Valid;
@@ -108,6 +109,18 @@ public class SchoolController {
     public ResponseEntity<Void> checkDomain(@RequestParam String domainName) {
         schoolService.checkDomain(domainName);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/catalog-sidebar-settings")
+    public ResponseEntity<CatalogSidebarSettingsDTO> getCatalogSidebarSettings(@PathVariable Long id) {
+        return ResponseEntity.ok(schoolService.getCatalogSidebarSettings(id));
+    }
+
+    @PutMapping("/{id}/catalog-sidebar-settings")
+    public ResponseEntity<CatalogSidebarSettingsDTO> updateCatalogSidebarSettings(
+            @PathVariable Long id,
+            @Valid @RequestBody CatalogSidebarSettingsDTO dto) {
+        return ResponseEntity.ok(schoolService.updateCatalogSidebarSettings(id, dto));
     }
 
     public record DevModeResponse(boolean enabled) {

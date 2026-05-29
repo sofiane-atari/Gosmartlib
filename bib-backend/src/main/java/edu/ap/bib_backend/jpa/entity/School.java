@@ -64,6 +64,15 @@ public class School {
     @Column(name = "marked_for_deletion_at")
     private LocalDateTime markedForDeletionAt;
 
+    @Column(name = "catalog_featured_lists_enabled", nullable = false)
+    private boolean catalogFeaturedListsEnabled = true;
+
+    @Column(name = "catalog_most_read_enabled", nullable = false)
+    private boolean catalogMostReadEnabled = true;
+
+    @Column(name = "catalog_newest_enabled", nullable = false)
+    private boolean catalogNewestEnabled = true;
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
 
