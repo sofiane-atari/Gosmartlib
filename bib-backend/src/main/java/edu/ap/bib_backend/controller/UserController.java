@@ -19,13 +19,10 @@ public class UserController {
 
     private final UserService userService;
     private final CurrentUserService currentUserService;
-    private final edu.ap.bib_backend.service.TokenStorageService tokenStorageService;
 
-    public UserController(UserService userService, CurrentUserService currentUserService,
-            edu.ap.bib_backend.service.TokenStorageService tokenStorageService) {
+    public UserController(UserService userService, CurrentUserService currentUserService) {
         this.userService = userService;
         this.currentUserService = currentUserService;
-        this.tokenStorageService = tokenStorageService;
     }
 
     @GetMapping
@@ -54,11 +51,6 @@ public class UserController {
             @PathVariable Long schoolId,
             Authentication authentication) {
         return ResponseEntity.ok(userService.getUsersBySchoolId(authentication, schoolId));
-    }
-
-    @GetMapping("/has-refresh-token")
-    public ResponseEntity<Boolean> hasRefreshToken(@RequestParam String userId) {
-        return ResponseEntity.ok(tokenStorageService.hasValidSmartschoolRefreshToken(userId));
     }
 
     @PatchMapping("/{userId}/review-access")
