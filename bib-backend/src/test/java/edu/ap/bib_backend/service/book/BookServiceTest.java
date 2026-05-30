@@ -154,7 +154,7 @@ class BookServiceTest {
         dto.setTitle("Test Boek");
         dto.setAuthor("Auteur X");
 
-        given(br.findByCampusSchoolId(1L)).willReturn(List.of(book));
+        given(br.findAll((org.springframework.data.jpa.domain.Specification<Book>) any())).willReturn(List.of(book));
         given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
         List<BookDTO> result = bs.getAllBooks(authentication);
@@ -779,7 +779,7 @@ class BookServiceTest {
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
-        BookDTO result = bs.addCopyToBook(11L, null, authentication);
+        BookDTO result = bs.addCopyToBook(11L, 1L, authentication);
 
         assertThat(result.getId()).isEqualTo(11L);
 

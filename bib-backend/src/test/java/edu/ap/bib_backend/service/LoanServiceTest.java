@@ -272,9 +272,10 @@ class LoanServiceTest {
     @Test
     void Given_Stats_When_GetLoanStats_Then_ReturnsCounts() {
         LocalDate today = LocalDate.now();
-        when(loanRepository.countByReturnedDateIsNullAndReturnDateGreaterThanEqual(today)).thenReturn(5L);
-        when(loanRepository.countByReturnedDateIsNullAndReturnDateBefore(today)).thenReturn(2L);
-        when(loanRepository.countByReturnedDateIsNotNull()).thenReturn(10L);
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
+        when(loanRepository.countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateGreaterThanEqual(1L, today)).thenReturn(5L);
+        when(loanRepository.countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateBefore(1L, today)).thenReturn(2L);
+        when(loanRepository.countByCampusSchoolIdAndReturnedDateIsNotNull(1L)).thenReturn(10L);
 
         LoanStatsDTO result = loanService.getLoanStats(authentication);
 
