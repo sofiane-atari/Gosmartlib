@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.CampusDTO;
+import edu.ap.bib_backend.dto.CatalogSidebarSettingsDTO;
 import edu.ap.bib_backend.dto.SchoolDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
@@ -471,6 +472,79 @@ class SchoolServiceTest {
                 new OneRosterCredentialDTO("client", "secret"), null, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> schoolService.create(dto));
+    }
+
+    @Test
+    void givenExistingDomain_whenFindSchoolByDomainName_thenReturnsSchoolDto() {
+        School school = schoolEntity(1L, "ap.be", "AP");
+        when(schoolRepository.findByDomainName("ap.be")).thenReturn(Optional.of(school));
+
+        Optional<SchoolDTO> result = schoolService.findSchoolByDomainName("ap.be");
+
+        assertTrue(result.isPresent());
+        assertEquals(1L, result.get().id());
+        assertEquals("ap.be", result.get().domainName());
+    }
+
+    @Test
+    void givenNonExistentDomain_whenFindSchoolByDomainName_thenReturnsEmpty() {
+        when(schoolRepository.findByDomainName("unknown.be")).thenReturn(Optional.empty());
+
+        Optional<SchoolDTO> result = schoolService.findSchoolByDomainName("unknown.be");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void givenExistingSchool_whenGetCatalogSidebarSettings_thenReturnsSettings() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+
+        CatalogSidebarSettingsDTO result = schoolService.getCatalogSidebarSettings(schoolId);
+
+        assertTrue(result.catalogFeaturedListsEnabled());
+        assertTrue(result.catalogMostReadEnabled());
+        assertTrue(result.catalogNewestEnabled());
+    }
+
+    @Test
+    void givenUnknownSchool_whenGetCatalogSidebarSettings_thenThrowsResponseStatusException() {
+        when(schoolRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> schoolService.getCatalogSidebarSettings(999L));
+    }
+
+    @Test
+    void givenExistingSchool_whenUpdateCatalogSidebarSettings_thenUpdatesAndReturnsDto() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CatalogSidebarSettingsDTO dto = new CatalogSidebarSettingsDTO(false, true, false);
+
+        CatalogSidebarSettingsDTO result = schoolService.updateCatalogSidebarSettings(schoolId, dto);
+
+        assertFalse(result.catalogFeaturedListsEnabled());
+        assertTrue(result.catalogMostReadEnabled());
+        assertFalse(result.catalogNewestEnabled());
+
+        assertFalse(school.isCatalogFeaturedListsEnabled());
+        assertTrue(school.isCatalogMostReadEnabled());
+        assertFalse(school.isCatalogNewestEnabled());
+        verify(schoolRepository).save(school);
+    }
+
+    @Test
+    void givenUnknownSchool_whenUpdateCatalogSidebarSettings_thenThrowsResponseStatusException() {
+        when(schoolRepository.findById(999L)).thenReturn(Optional.empty());
+
+        CatalogSidebarSettingsDTO dto = new CatalogSidebarSettingsDTO(true, true, true);
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> schoolService.updateCatalogSidebarSettings(999L, dto));
     }
 
     private SchoolDTO schoolDto(
