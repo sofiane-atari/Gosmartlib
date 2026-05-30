@@ -9,6 +9,7 @@ import edu.ap.bib_backend.options.UserGetOptions;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.service.user.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -86,7 +87,7 @@ public class UserController {
             @RequestBody UserReviewAccessUpdateDto payload,
             Authentication authentication) {
         if (!currentUserService.isModerator(authentication)) {
-            throw new IllegalStateException("Alleen moderators kunnen reviewtoegang aanpassen.");
+            throw new AccessDeniedException("Alleen moderators kunnen reviewtoegang aanpassen.");
         }
 
         return ResponseEntity.ok(userService.setReviewBlocked(userId, payload.blocked()));

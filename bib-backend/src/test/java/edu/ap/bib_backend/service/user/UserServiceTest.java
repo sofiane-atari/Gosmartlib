@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -349,7 +350,7 @@ class UserServiceTest {
                 .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         // Act
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
                 () -> userService.getTeachers(authentication, false, false, 0, 10, null));
 
         // Assert
@@ -423,7 +424,7 @@ class UserServiceTest {
                 .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         // Act
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
                 () -> userService.searchExternalUsers(authentication, 2L, null, null));
 
         // Assert

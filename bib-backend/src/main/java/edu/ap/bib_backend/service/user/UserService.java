@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -93,7 +94,7 @@ public class UserService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isLibrarian && !isAdmin) {
-            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
+            throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
         School school = getCurrentUserSchool(userId);
@@ -142,7 +143,7 @@ public class UserService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isLibrarian && !isAdmin) {
-            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
+            throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
         School school = getCurrentUserSchool(userId);
@@ -202,7 +203,7 @@ public class UserService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isLibrarian && !isAdmin) {
-            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen externe gebruikers zoeken.");
+            throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen externe gebruikers zoeken.");
         }
 
         School school = schoolRepository.findById(schoolId)
@@ -231,7 +232,7 @@ public class UserService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isAdmin) {
-            throw new IllegalStateException("Alleen platformbeheerders kunnen gebruikers van een school opvragen.");
+            throw new AccessDeniedException("Alleen platformbeheerders kunnen gebruikers van een school opvragen.");
         }
 
         School school = schoolRepository.findById(schoolId)
