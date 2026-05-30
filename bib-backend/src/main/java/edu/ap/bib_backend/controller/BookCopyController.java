@@ -68,14 +68,14 @@ public class BookCopyController {
     }
 
     @DeleteMapping("/{copyId}")
-    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCopy(@PathVariable Long copyId, Authentication authentication) {
         bookCopyService.deleteCopy(copyId, authentication);
     }
 
     @DeleteMapping("/book/{bookId}")
-    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAllCopiesByBookIdForSchool(@PathVariable Long bookId, Authentication authentication) {
         bookCopyService.deleteAllCopiesByBookIdForSchool(bookId, authentication);
