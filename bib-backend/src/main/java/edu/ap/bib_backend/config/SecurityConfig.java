@@ -163,6 +163,9 @@ public class SecurityConfig {
                                                         .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                         Role.LIBRARIAN.name(), Role.ADMIN.name());
 
+                                        auth.requestMatchers("/tags/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+
                                         auth.requestMatchers("/reports/**")
                                                         .hasAnyRole(Role.TEACHER.name(),
                                                                         Role.LIBRARIAN.name(), Role.ADMIN.name());
