@@ -80,31 +80,31 @@
           <!-- We genereren 5 nep-rijen om de tabel te vullen -->
           @for (dummy of [1, 2, 3, 4, 5]; track dummy) {
             <tr class="loan-row loan-row--skeleton">
-              <td class="text-center">
+              <td class="text-center" data-label="Gebruiker">
                 <div class="skeleton-cell-content">
                   <div class="skeleton skeleton--text-main"></div>
                   <div class="skeleton skeleton--text-sub"></div>
                 </div>
               </td>
-              <td class="text-center">
+              <td class="text-center" data-label="Boek">
                 <div class="skeleton-cell-content">
                   <div class="skeleton skeleton--text-main"></div>
                   <div class="skeleton skeleton--text-sub"></div>
                 </div>
               </td>
-              <td class="text-center">
+              <td class="text-center" data-label="Aantal">
                 <div class="skeleton skeleton--badge"></div>
               </td>
-              <td class="text-center">
+              <td class="text-center" data-label="Retourdatum">
                 <div class="skeleton skeleton--date"></div>
               </td>
-              <td class="text-center">
+              <td class="text-center" data-label="Tijd over">
                 <div class="skeleton skeleton--badge-wide"></div>
               </td>
-              <td class="text-center">
+              <td class="text-center" data-label="Status">
                 <div class="skeleton skeleton--badge-wide"></div>
               </td>
-              <td class="text-center">
+              <td class="text-center" data-label="Actie">
                 <div class="skeleton skeleton--button"></div>
               </td>
             </tr>
@@ -140,43 +140,39 @@
               [class.loan-row--expanded]="isUserGroupExpanded(group.groupId)"
               (click)="toggleUserGroup(group.groupId)"
             >
-              <td class="text-center">
+              <td class="text-center" data-label="Gebruiker">
                 <div class="user-cell user-cell--center">
                   <strong>{{ getFirstName(group.userDisplayName) }}</strong>
                   <span>{{ getLastName(group.userDisplayName) }}</span>
                 </div>
               </td>
 
-              <td class="text-center">
+              <td class="text-center" data-label="Boek">
                 <div class="book-cell">
                   <strong>{{ getGroupLoanCount(group) }} lening(en)</strong>
                   <small>Klik om alle leningen te bekijken</small>
                 </div>
               </td>
 
-              <td class="text-center">
+              <td class="text-center" data-label="Aantal">
                 <span class="book-count">
                   {{ getGroupBookCount(group) }}
                 </span>
               </td>
-
-              <td class="text-center">
+              <td class="text-center" data-label="Retourdatum">
                 {{ getGroupReturnDate(group) | date: "dd/MM/yyyy" }}
               </td>
-
-              <td class="text-center">
+              <td class="text-center" data-label="Tijd over">
                 <span [class]="getGroupTimeLeftClass(group)">
                   {{ getGroupTimeLeftText(group) }}
                 </span>
               </td>
-
-              <td class="text-center">
+              <td class="text-center" data-label="Status">
                 <span [class]="getGroupStatusClass(group)">
                   {{ getGroupStatus(group) }}
                 </span>
               </td>
-
-              <td class="text-center">
+              <td class="text-center" data-label="Actie">
                 <span class="muted">
                   {{ getGroupLoanCount(group) }} item(s)
                 </span>

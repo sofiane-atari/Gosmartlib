@@ -58,14 +58,14 @@
               [class.loan-row--expanded]="isLoanExpanded(loan.id)"
               (click)="toggleLoan(loan.id)"
             >
-              <td class="text-center">
+              <td class="text-center" data-label="Gebruiker">
                 <div class="user-cell user-cell--center">
                   <strong>{{ getFirstName(loan.userDisplayName) }}</strong>
                   <span>{{ getLastName(loan.userDisplayName) }}</span>
                 </div>
               </td>
 
-              <td class="text-center">
+              <td class="text-center" data-label="Boek">
                 @if (firstBook(loan); as book) {
                   <div class="book-cell">
                     <strong>{{ book.title }}</strong>
@@ -79,29 +79,29 @@
                 }
               </td>
 
-              <td class="text-center">
+              <td class="text-center" data-label="Aantal">
                 <span class="book-count">
                   {{ bookCount(loan) }}
                 </span>
               </td>
 
-              <td class="text-center">
+              <td class="text-center" data-label="Retourdatum">
                 {{ loan.returnDate | date: 'dd/MM/yyyy' }}
               </td>
 
-              <td class="text-center">
+              <td class="text-center" data-label="Tijd over">
                 <span [class]="getTimeLeftClass(loan)">
                   {{ getTimeLeftText(loan) }}
                 </span>
               </td>
 
-              <td class="text-center">
+              <td class="text-center" data-label="Status">
                 <span [class]="getStatusClass(loan)">
                   {{ getLoanStatus(loan) }}
                 </span>
               </td>
 
-              <td class="text-center" (click)="$event.stopPropagation()">
+              <td class="text-center" data-label="Actie" (click)="$event.stopPropagation()">
                 <div class="table-actions">
                   <button
                     type="button"

@@ -310,6 +310,32 @@ lucide-icon {
     padding: 3.5rem 1rem 1rem 1rem;
   }
 
+  .profile-container {
+    gap: 16px;
+  }
+
+  .avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+  }
+
+  .avatar-logo {
+    padding: 6px;
+  }
+
+  .welcome-text {
+    font-size: 0.85rem;
+  }
+
+  .user-name {
+    font-size: 1.15rem;
+  }
+
+  .user-role {
+    font-size: 0.9rem;
+  }
+
   .menu-item {
     padding: 12px;
   }
@@ -333,9 +359,8 @@ lucide-icon {
   }
 
   .avatar {
-    width: 56px;
-    height: 56px;
-    padding-left: 14px;
+    width: 64px;
+    height: 64px;
   }
 
   .profile-info {
