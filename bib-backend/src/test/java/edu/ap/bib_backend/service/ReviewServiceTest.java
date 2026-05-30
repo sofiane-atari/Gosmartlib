@@ -88,6 +88,13 @@ class ReviewServiceTest {
         currentUser = createUser(CURRENT_USER_ID);
         otherUser = createUser(OTHER_USER_ID);
 
+        School school = new School();
+        school.setId(1L);
+        school.setDomainName("test.smartschool.be");
+        currentUser.setSchool(school);
+        otherUser.setSchool(school);
+
+        lenient().when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
     }
 
     @Test
@@ -108,7 +115,7 @@ class ReviewServiceTest {
         ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 0, defaultBook, ReviewModerationStatus.KEPT,
                 false);
 
-        when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses))
+        when(reviewRepository.findVisibleReviewsByBookIdAndUserSchoolId(bookId, visibleStatuses, 1L))
                 .thenReturn(List.of(review1, review2));
         when(reviewMapper.toDto(review1, CURRENT_USER_ID)).thenReturn(reviewDto1);
         when(reviewMapper.toDto(review2, CURRENT_USER_ID)).thenReturn(reviewDto2);
@@ -126,7 +133,7 @@ class ReviewServiceTest {
         assertEquals("Test Author", result.get(0).getBookAuthor());
 
         verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findVisibleReviewsByBookId(bookId, visibleStatuses);
+        verify(reviewRepository).findVisibleReviewsByBookIdAndUserSchoolId(bookId, visibleStatuses, 1L);
         verify(reviewMapper).toDto(review1, CURRENT_USER_ID);
         verify(reviewMapper).toDto(review2, CURRENT_USER_ID);
     }
@@ -139,7 +146,7 @@ class ReviewServiceTest {
         List<ReviewModerationStatus> visibleStatuses = List.of(
                 ReviewModerationStatus.ACTIVE,
                 ReviewModerationStatus.KEPT);
-        when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses)).thenReturn(List.of());
+        when(reviewRepository.findVisibleReviewsByBookIdAndUserSchoolId(bookId, visibleStatuses, 1L)).thenReturn(List.of());
 
         // Act
         List<ReviewDTO> result = reviewService.getReviewsForBook(bookId, authentication);
@@ -149,7 +156,7 @@ class ReviewServiceTest {
         assertTrue(result.isEmpty());
 
         verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findVisibleReviewsByBookId(bookId, visibleStatuses);
+        verify(reviewRepository).findVisibleReviewsByBookIdAndUserSchoolId(bookId, visibleStatuses, 1L);
         verifyNoInteractions(reviewMapper);
     }
 
@@ -220,7 +227,7 @@ class ReviewServiceTest {
                 PageRequest.of(0, 10),
                 1);
 
-        when(reviewRepository.findByModerationStatus(eq(ReviewModerationStatus.FLAGGED), any(Pageable.class)))
+        when(reviewRepository.findByModerationStatusAndUserSchoolId(eq(ReviewModerationStatus.FLAGGED), eq(1L), any(Pageable.class)))
                 .thenReturn(reviewPage);
         when(reviewMapper.toDto(flaggedReview, CURRENT_USER_ID)).thenReturn(flaggedReviewDto);
 
@@ -234,7 +241,7 @@ class ReviewServiceTest {
         assertEquals(ReviewModerationStatus.FLAGGED, result.getContent().get(0).getModerationStatus());
 
         verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findByModerationStatus(eq(ReviewModerationStatus.FLAGGED), any(Pageable.class));
+        verify(reviewRepository).findByModerationStatusAndUserSchoolId(eq(ReviewModerationStatus.FLAGGED), eq(1L), any(Pageable.class));
         verify(reviewMapper).toDto(flaggedReview, CURRENT_USER_ID);
     }
 
@@ -543,10 +550,11 @@ class ReviewServiceTest {
     @DisplayName("whenGetFlaggedReviewStats thenReturnDashboardStats")
     void whenGetFlaggedReviewStats_thenReturnDashboardStats() {
         // Arrange
-        when(reviewRepository.countByModerationStatus(ReviewModerationStatus.FLAGGED)).thenReturn(80L);
-        when(reviewRepository.countByModerationStatusAndReportCountGreaterThanEqual(
+        when(reviewRepository.countByModerationStatusAndUserSchoolId(ReviewModerationStatus.FLAGGED, 1L)).thenReturn(80L);
+        when(reviewRepository.countByModerationStatusAndReportCountGreaterThanEqualAndUserSchoolId(
                 ReviewModerationStatus.FLAGGED,
-                5)).thenReturn(50L);
+                5,
+                1L)).thenReturn(50L);
 
         // Act
         ReviewDashboardStatsDTO result = reviewService.getFlaggedReviewStats(authentication);
@@ -556,10 +564,11 @@ class ReviewServiceTest {
         assertEquals(80L, result.totalFlaggedReviews());
         assertEquals(50L, result.criticalFlaggedReviews());
 
-        verify(reviewRepository).countByModerationStatus(ReviewModerationStatus.FLAGGED);
-        verify(reviewRepository).countByModerationStatusAndReportCountGreaterThanEqual(
+        verify(reviewRepository).countByModerationStatusAndUserSchoolId(ReviewModerationStatus.FLAGGED, 1L);
+        verify(reviewRepository).countByModerationStatusAndReportCountGreaterThanEqualAndUserSchoolId(
                 ReviewModerationStatus.FLAGGED,
-                5);
+                5,
+                1L);
     }
 
     private Book createBook(Long id, String title, String author) {

@@ -163,22 +163,13 @@ class SmartschoolOAuth2UserServiceTest {
     }
 
     @Test
-    @DisplayName("givenNonExistingUser whenLoadUser thenCreateUserAndReturnOAuth2UserWithCreatedUserRole")
-    void givenNonExistingUser_whenLoadUser_thenCreateUserAndReturnOAuth2UserWithCreatedUserRole() {
+    @DisplayName("givenNonExistingUser whenLoadUser thenThrowOAuth2AuthenticationExceptionNotRegistered")
+    void givenNonExistingUser_whenLoadUser_thenThrowOAuth2AuthenticationExceptionNotRegistered() {
         // Arrange
         String accessTokenValue = "access-token-456";
         OAuth2UserRequest userRequest = createUserRequest(accessTokenValue);
 
-        RoleEntity studentRole = createRoleEntity(Role.STUDENT);
-        User createdUser = createUser("new-user", Role.STUDENT, createSchool());
-        Group existingGroup = createGroup("2ITSOF1");
-
         when(userService.getUser("new-user")).thenReturn(Optional.empty());
-        when(roleService.getRoleEntity("leerling")).thenReturn(studentRole);
-        when(userService.createUser(eq("new-user"), eq(studentRole), any(School.class))).thenReturn(createdUser);
-        when(smartschoolProfileService.fetchGroups(accessTokenValue))
-                .thenReturn(new SmartschoolGroupDto("2ITSOF1", List.of("Leerlingen")));
-        when(groupService.getGroup(1L, "2ITSOF1")).thenReturn(existingGroup);
 
         expectUserInfoRequest(accessTokenValue, """
             {
@@ -188,43 +179,17 @@ class SmartschoolOAuth2UserServiceTest {
             }
             """);
 
-        expectGroupInfoRequest(accessTokenValue, """
-            {
-              "groups": [
-                {
-                  "groupID": "7868b96OFO4=",
-                  "name": "2ITSOF1",
-                  "description": "2ITSOF1",
-                  "platform": "https://aphogeschool.smartschool.be"
-                }
-              ],
-              "parentGroups": [
-                {
-                  "groupID": "rvLPM/sIwrg=",
-                  "name": "Leerlingen",
-                  "description": "Leerlingen",
-                  "platform": "https://aphogeschool.smartschool.be"
-                }
-              ]
-            }
-            """);
+        // Act + Assert
+        OAuth2AuthenticationException exception = assertThrows(
+                OAuth2AuthenticationException.class,
+                () -> smartschoolOAuth2UserService.loadUser(userRequest)
+        );
 
-        // Act
-        OAuth2User result = smartschoolOAuth2UserService.loadUser(userRequest);
-
-        // Assert
-        assertEquals("new-user", result.getAttribute("userID"));
-        assertEquals("2ITSOF1", result.getAttribute("classCode"));
-        assertEquals("2", result.getAttribute("yearCode"));
-        assertEquals(PLATFORM_URL, result.getAttribute("schoolCode"));
-        assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_STUDENT")));
+        assertTrue(exception.getMessage().contains("niet geregistreerd"));
 
         verify(userService, times(1)).getUser("new-user");
-        verify(roleService, times(1)).getRoleEntity("leerling");
-        verify(userService, times(1)).createUser(eq("new-user"), eq(studentRole), any(School.class));
-        verify(smartschoolProfileService, times(1)).fetchGroups(accessTokenValue);
-        verify(groupService, times(1)).getGroup(eq(1L), eq("2ITSOF1"));
-        verify(groupService, never()).createGroup(any(), anyString());
+        verify(roleService, never()).getRoleEntity(anyString());
+        verify(userService, never()).createUser(anyString(), any(), any());
 
         mockRestServiceServer.verify();
     }
