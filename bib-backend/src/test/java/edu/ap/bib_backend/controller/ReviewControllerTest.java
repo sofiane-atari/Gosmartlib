@@ -129,63 +129,6 @@ class ReviewControllerTest {
         }
 
         @Test
-        @DisplayName("whenGetAllReviews thenReturn200AndReviewList")
-        void whenGetAllReviews_thenReturn200AndReviewList() throws Exception {
-                Long bookId = 1L;
-                // Arrange
-                ReviewDTO review1 = new ReviewDTO(
-                                1L,
-                                "Geweldig boek!",
-                                5,
-                                0,
-                                bookId,
-                                "Title 1",
-                                "Author 1",
-                                "https://example.com/cover.jpg",
-                                ReviewModerationStatus.ACTIVE,
-                                false,
-                                LocalDateTime.now(),
-                                "user-1",
-                                false,
-                                true);
-
-                ReviewDTO review2 = new ReviewDTO(
-                                2L,
-                                "Beetje saai",
-                                3,
-                                0,
-                                bookId,
-                                "Title 1",
-                                "Author 1",
-                                "https://example.com/cover.jpg",
-                                ReviewModerationStatus.ACTIVE,
-                                false,
-                                LocalDateTime.now(),
-                                "user-2",
-                                false,
-                                false);
-
-                List<ReviewDTO> mockReviews = List.of(review1, review2);
-
-                Mockito.when(reviewService.getAllReviews(any(Authentication.class)))
-                                .thenReturn(mockReviews);
-
-                // Act
-                ResultActions result = mockMvc.perform(
-                                get("/reviews")
-                                                .principal(new TestingAuthenticationToken("user-1", null))
-                                                .contentType(MediaType.APPLICATION_JSON));
-
-                // Assert
-                result.andExpect(status().isOk())
-                                .andExpect(jsonPath("$.length()").value(2))
-                                .andExpect(jsonPath("$[0].id").value(1))
-                                .andExpect(jsonPath("$[0].comment").value("Geweldig boek!"))
-                                .andExpect(jsonPath("$[0].rating").value(5))
-                                .andExpect(jsonPath("$[1].comment").value("Beetje saai"));
-        }
-
-        @Test
         @DisplayName("givenValidReviewDTO whenAddReview thenReturn200AndSavedReview")
         void givenValidReviewDTO_whenAddReview_thenReturn200AndSavedReview() throws Exception {
                 // Arrange

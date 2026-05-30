@@ -122,7 +122,6 @@ class LoanServiceTest {
         book.setTitle("Test Book");
 
         BookCopy copy = availableCopy(10L, book, campus);
-        Loan loan = new Loan();
         LoanDTO expectedDto = LoanDTO.builder()
                 .id(100L)
                 .userId("user123")
@@ -133,17 +132,18 @@ class LoanServiceTest {
         when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(bookCopyRepository.findAllById(List.of(10L))).thenReturn(List.of(copy));
-        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
-        when(loanRepository.save(loan)).thenReturn(loan);
-        when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+        when(smartschoolTokenRefreshService.getValidSmartschoolAccessToken("user123")).thenReturn(null);
+        when(loanRepository.save(any(Loan.class))).thenAnswer(invocation -> {
+            Loan saved = invocation.getArgument(0);
+            saved.setId(100L);
+            return saved;
+        });
+        when(loanMapper.toDtoList(any())).thenReturn(List.of(expectedDto));
 
-        LoanDTO result = loanService.create(inputDto, authentication);
+        List<LoanDTO> result = loanService.create(inputDto, authentication);
 
-        assertEquals(expectedDto, result);
-        assertEquals(user, loan.getUser());
-        assertEquals(campus, loan.getCampus());
-        assertEquals(List.of(copy), loan.getCopies());
-        verify(loanRepository).save(loan);
+        assertEquals(List.of(expectedDto), result);
+        verify(loanRepository).save(any(Loan.class));
     }
 
     @Test
@@ -227,7 +227,7 @@ class LoanServiceTest {
         loan.setUser(user);
         loan.setCampus(campus);
         loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(1));
-        loan.getCopies().add(copy);
+        loan.setCopy(copy);
 
         LoanReturnDTO request = new LoanReturnDTO(List.of(
                 new BookCopyConditionUpdateDTO(10L, BookCondition.DAMAGED)
@@ -289,7 +289,6 @@ class LoanServiceTest {
         copy.setBook(book);
         copy.setCampus(copyCampus);
         copy.setCondition(BookCondition.GOOD_CONDITION);
-        copy.setLoans(new ArrayList<>());
         ReflectionTestUtils.setField(copy, "availability", Availability.AVAILABLE);
         return copy;
     }

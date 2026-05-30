@@ -60,7 +60,7 @@ class LoanControllerTest {
                 .returnDate("2099-12-31")
                 .build();
 
-        when(loanService.create(any(), any())).thenReturn(loanDto);
+        when(loanService.create(any(), any())).thenReturn(List.of(loanDto));
 
         mockMvc.perform(post("/loans")
                         .with(csrf())
@@ -73,10 +73,10 @@ class LoanControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.userId").value("user1"))
-                .andExpect(jsonPath("$.bookCopyIds[0]").value(10))
-                .andExpect(jsonPath("$.returnDate").value("2099-12-31"));
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].userId").value("user1"))
+                .andExpect(jsonPath("$[0].bookCopyIds[0]").value(10))
+                .andExpect(jsonPath("$[0].returnDate").value("2099-12-31"));
     }
 
     @Test

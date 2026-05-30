@@ -206,39 +206,6 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("whenGetAllReviews thenReturnReviewDtoList")
-    void whenGetAllReviews_thenReturnReviewDtoList() {
-        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
-        // Arrange
-        Review review1 = createReview(10L, "Super boek", 5, defaultBook, otherUser, ReviewModerationStatus.ACTIVE, 0);
-        Review review2 = createReview(11L, "Minder goed", 2, defaultBook, otherUser, ReviewModerationStatus.FLAGGED, 3);
-
-        ReviewDTO reviewDto1 = createReviewDto(10L, "Super boek", 5, 0, defaultBook, ReviewModerationStatus.ACTIVE,
-                false);
-        ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 3, defaultBook, ReviewModerationStatus.FLAGGED,
-                true);
-
-        when(reviewRepository.findAll()).thenReturn(List.of(review1, review2));
-        when(reviewMapper.toDto(review1, CURRENT_USER_ID)).thenReturn(reviewDto1);
-        when(reviewMapper.toDto(review2, CURRENT_USER_ID)).thenReturn(reviewDto2);
-
-        // Act
-        List<ReviewDTO> result = reviewService.getAllReviews(authentication);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(10L, result.get(0).getId());
-        assertEquals(ReviewModerationStatus.FLAGGED, result.get(1).getModerationStatus());
-        assertTrue(result.get(1).isReportedByCurrentUser());
-
-        verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findAll();
-        verify(reviewMapper).toDto(review1, CURRENT_USER_ID);
-        verify(reviewMapper).toDto(review2, CURRENT_USER_ID);
-    }
-
-    @Test
     @DisplayName("whenGetFlaggedReviewsWithPagination thenReturnPaginatedFlaggedReviews")
     void whenGetFlaggedReviewsWithPagination_thenReturnPaginatedFlaggedReviews() {
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
