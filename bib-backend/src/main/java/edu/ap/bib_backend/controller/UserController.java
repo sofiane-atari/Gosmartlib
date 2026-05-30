@@ -9,6 +9,7 @@ import edu.ap.bib_backend.options.UserGetOptions;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.service.user.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +36,7 @@ public class UserController {
     }
 
     @GetMapping("/search-external")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<List<AuthUserDto>> searchExternalUsers(
             Authentication authentication,
             @RequestParam Long schoolId,
