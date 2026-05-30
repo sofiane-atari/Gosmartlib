@@ -1,10 +1,10 @@
 package edu.ap.bib_backend.service.user;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -15,6 +15,8 @@ import org.springframework.util.StringUtils;
 import jakarta.transaction.Transactional;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.oneroster.OneRosterClassDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
 import edu.ap.bib_backend.dto.TeacherStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
@@ -77,12 +79,16 @@ public class UserService {
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
-        Map<String, String> localGroupNamesByUserId = getLocalGroupNamesByUserId(school.getId());
+        Map<String, String> oneRosterGroupNamesByUserId = getOneRosterGroupNamesByUserId(
+                schoolCode,
+                smartschoolToken,
+                rosterUsers,
+                true);
 
         return rosterUsers.stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
-                .map(dto -> withLocalGroupName(dto, localGroupNamesByUserId.get(dto.id())))
+                .map(dto -> withPrimaryGroupName(dto, oneRosterGroupNamesByUserId.get(dto.id())))
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
     }
@@ -218,13 +224,18 @@ public class UserService {
 
         Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(schoolId).stream()
                 .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
-        Map<String, String> localGroupNamesByUserId = getLocalGroupNamesByUserId(schoolId);
+        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsers(school.getDomainName());
+        Map<String, String> oneRosterGroupNamesByUserId = getOneRosterGroupNamesByUserId(
+                school.getDomainName(),
+                null,
+                rosterUsers,
+                false);
 
-        return oneRosterClient.fetchUsers(school.getDomainName()).stream()
+        return rosterUsers.stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
                 .map(dto -> withLocalRole(dto, localRolesByUserId.get(dto.id())))
-                .map(dto -> withLocalGroupName(dto, localGroupNamesByUserId.get(dto.id())))
+                .map(dto -> withPrimaryGroupName(dto, oneRosterGroupNamesByUserId.get(dto.id())))
                 .filter(this::isAllowedExternalBorrower)
                 .filter(dto -> matchesFilter(dto.firstName(), firstName))
                 .filter(dto -> matchesFilter(dto.lastName(), lastName))
@@ -475,21 +486,87 @@ public class UserService {
         return null;
     }
 
-    private Map<String, String> getLocalGroupNamesByUserId(Long schoolId) {
-        return userRepository.findBySchoolIdWithGroups(schoolId).stream()
-                .filter(user -> user.getGroups() != null && !user.getGroups().isEmpty())
-                .collect(Collectors.toMap(User::getId, user -> user.getGroups().iterator().next().getName()));
+    private Map<String, String> getOneRosterGroupNamesByUserId(
+            String schoolCode,
+            String bearerToken,
+            List<Map<String, Object>> rosterUsers,
+            boolean useBearer
+    ) {
+        if (rosterUsers == null || rosterUsers.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<String, String> appUserIdsByOneRosterUserId = new HashMap<>();
+        for (Map<String, Object> rosterUser : rosterUsers) {
+            String appUserId = readMetadataString(rosterUser, "smsc.legacyIdentifier");
+            String oneRosterUserId = firstNonBlank(rosterUser, "sourcedId", "userId");
+
+            if (StringUtils.hasText(appUserId) && StringUtils.hasText(oneRosterUserId)) {
+                appUserIdsByOneRosterUserId.put(oneRosterUserId, appUserId);
+            }
+        }
+
+        if (appUserIdsByOneRosterUserId.isEmpty()) {
+            return Map.of();
+        }
+
+        List<OneRosterClassDTO> classes = useBearer
+                ? oneRosterClient.fetchClassesWithBearer(schoolCode, bearerToken)
+                : oneRosterClient.fetchClasses(schoolCode);
+
+        Map<String, String> classNamesBySourcedId = safeList(classes).stream()
+                .filter(oneRosterClass -> StringUtils.hasText(oneRosterClass.sourcedId()))
+                .collect(Collectors.toMap(
+                        OneRosterClassDTO::sourcedId,
+                        this::resolveOneRosterClassName,
+                        (left, right) -> left));
+
+        if (classNamesBySourcedId.isEmpty()) {
+            return Map.of();
+        }
+
+        List<OneRosterEnrollmentDTO> enrollments = useBearer
+                ? oneRosterClient.fetchEnrollmentsWithBearer(schoolCode, bearerToken)
+                : oneRosterClient.fetchEnrollments(schoolCode);
+
+        Map<String, String> groupNamesByUserId = new HashMap<>();
+        for (OneRosterEnrollmentDTO enrollment : safeList(enrollments)) {
+            String appUserId = appUserIdsByOneRosterUserId.get(enrollment.userSourcedId());
+            String className = classNamesBySourcedId.get(enrollment.classSourcedId());
+
+            if (StringUtils.hasText(appUserId) && StringUtils.hasText(className)) {
+                groupNamesByUserId.putIfAbsent(appUserId, className);
+            }
+        }
+
+        return groupNamesByUserId;
     }
 
-    private AuthUserDto withLocalGroupName(AuthUserDto dto, String localGroupName) {
-        if (StringUtils.hasText(dto.primaryGroupName()) || !StringUtils.hasText(localGroupName)) {
+    private <T> List<T> safeList(List<T> items) {
+        return items == null ? List.of() : items;
+    }
+
+    private String resolveOneRosterClassName(OneRosterClassDTO oneRosterClass) {
+        if (StringUtils.hasText(oneRosterClass.title())) {
+            return oneRosterClass.title();
+        }
+
+        if (StringUtils.hasText(oneRosterClass.classCode())) {
+            return oneRosterClass.classCode();
+        }
+
+        return oneRosterClass.sourcedId();
+    }
+
+    private AuthUserDto withPrimaryGroupName(AuthUserDto dto, String primaryGroupName) {
+        if (StringUtils.hasText(dto.primaryGroupName()) || !StringUtils.hasText(primaryGroupName)) {
             return dto;
         }
 
         return new AuthUserDto(
                 dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
                 dto.role(), dto.email(), dto.username(),
-                dto.smartschoolId(), dto.platform(), localGroupName,
+                dto.smartschoolId(), dto.platform(), primaryGroupName,
                 dto.parentGroupNames(), dto.reviewBlocked(),
                 dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
                 dto.school());
