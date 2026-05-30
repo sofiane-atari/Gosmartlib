@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 
 import edu.ap.bib_backend.dto.gamification.GamificationNotificationDTO;
 import edu.ap.bib_backend.service.gamification.GamificationNotificationService;
+import edu.ap.bib_backend.service.gamification.sse.GamificationNotificationSseService;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @ExtendWith(MockitoExtension.class)
 class GamificationNotificationControllerTest {
@@ -25,6 +27,9 @@ class GamificationNotificationControllerTest {
 
     @Mock
     private GamificationNotificationService gamificationNotificationService;
+
+    @Mock
+    private GamificationNotificationSseService gamificationNotificationSseService;
 
     @Mock
     private Authentication authentication;
@@ -70,5 +75,22 @@ class GamificationNotificationControllerTest {
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(204);
         verify(gamificationNotificationService).markAsRead(authentication, NOTIFICATION_ID);
+    }
+
+    @Test
+    void givenAuthenticatedUser_whenStreamNotifications_thenSubscribesCurrentUser() {
+        // Arrange
+        String userId = "student-user-id";
+        SseEmitter emitter = new SseEmitter();
+
+        when(authentication.getName()).thenReturn(userId);
+        when(gamificationNotificationSseService.subscribe(userId)).thenReturn(emitter);
+
+        // Act
+        SseEmitter result = gamificationNotificationController.streamNotifications(authentication);
+
+        // Assert
+        assertThat(result).isSameAs(emitter);
+        verify(gamificationNotificationSseService).subscribe(userId);
     }
 }

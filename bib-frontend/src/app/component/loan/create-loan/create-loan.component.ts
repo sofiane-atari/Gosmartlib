@@ -137,7 +137,10 @@ export class CreateLoanComponent {
 
   public readonly selectedCampusId = computed(() => this.getSelectedCampusId());
   public readonly availableExternalSchools = computed(() => {
-    const currentSchoolId = this.authService.currentUser()?.school?.id ?? this.authService.currentUser()?.schoolId ?? null;
+    const currentSchoolId =
+      this.authService.currentUser()?.school?.id ??
+      this.authService.currentUser()?.schoolId ??
+      null;
     return this.schools().filter((school) => school.id !== currentSchoolId);
   });
 
@@ -290,7 +293,10 @@ export class CreateLoanComponent {
       this.saveToSession('bookSearchIsbn', this.bookSearchIsbn());
       this.saveToSession('schoolSummary', this.schoolSummary());
       this.saveToSession('isExternalUserSearch', this.isExternalUserSearch());
-      this.saveToSession('selectedExternalSchoolId', this.selectedExternalSchoolId());
+      this.saveToSession(
+        'selectedExternalSchoolId',
+        this.selectedExternalSchoolId(),
+      );
       this.saveToSession('isCustomDate', this.isCustomDate());
     });
 
@@ -811,7 +817,10 @@ export class CreateLoanComponent {
       });
   }
 
-  private loadExternalUsers(firstName: string = '', lastName: string = ''): void {
+  private loadExternalUsers(
+    firstName: string = '',
+    lastName: string = '',
+  ): void {
     const schoolId = this.selectedExternalSchoolId();
     if (schoolId === null) {
       this.users.set([]);
@@ -821,20 +830,22 @@ export class CreateLoanComponent {
 
     this.isLoadingUsers.set(true);
 
-    this.userService.searchExternalUsers(schoolId, firstName, lastName).subscribe({
-      next: (users) => {
-        this.users.set(users);
-        this.isLoadingUsers.set(false);
-        if (users.length === 1) {
-          this.selectUser(users[0]);
-        }
-      },
-      error: () => {
-        this.users.set([]);
-        this.isLoadingUsers.set(false);
-        this.showError('Externe gebruikers konden niet worden geladen.');
-      },
-    });
+    this.userService
+      .searchExternalUsers(schoolId, firstName, lastName)
+      .subscribe({
+        next: (users) => {
+          this.users.set(users);
+          this.isLoadingUsers.set(false);
+          if (users.length === 1) {
+            this.selectUser(users[0]);
+          }
+        },
+        error: () => {
+          this.users.set([]);
+          this.isLoadingUsers.set(false);
+          this.showError('Externe gebruikers konden niet worden geladen.');
+        },
+      });
   }
 
   private loadSchools(): void {
