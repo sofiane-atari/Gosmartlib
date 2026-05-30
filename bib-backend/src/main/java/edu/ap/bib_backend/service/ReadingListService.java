@@ -395,9 +395,12 @@ public class ReadingListService {
         }
 
         return readingListRepository
-                .findTop2ByTargetTypeAndCampusSchoolIdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
+                .findByTargetTypeAndCampusSchoolIdAndShowOnCatalogTrueOrderByCatalogFeaturedOrderAsc(
                         ReadingListTargetType.SYSTEM,
-                        school.getId());
+                        school.getId())
+                .stream()
+                .limit(2)
+                .toList();
     }
 
     public List<ReadingList> selectFeaturedListForCatalog(String userId, Long listId) {
