@@ -4,13 +4,12 @@ import edu.ap.bib_backend.dto.report.SchoolReportDTO;
 import edu.ap.bib_backend.dto.report.PopularGenreDTO;
 import edu.ap.bib_backend.dto.report.TopRatedBookReportDTO;
 import edu.ap.bib_backend.jpa.entity.School;
-import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.projection.report.ClassLoanActivityProjection;
 import edu.ap.bib_backend.projection.report.LoanVolumePeriodProjection;
 import edu.ap.bib_backend.projection.report.PopularLoanedBookProjection;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -35,22 +34,22 @@ import static org.mockito.Mockito.when;
 class SchoolReportServiceTest {
 
     private final ReportAccessService reportAccessService = new ReportAccessService();
-    private final UserRepository userRepository = mock(UserRepository.class);
     private final SchoolRepository schoolRepository = mock(SchoolRepository.class);
     private final LoanRepository loanRepository = mock(LoanRepository.class);
     private final ReportStatisticsQueryService statisticsQueryService = mock(ReportStatisticsQueryService.class);
+    private final CurrentUserService currentUserService = mock(CurrentUserService.class);
 
     private final SchoolReportService service = new SchoolReportService(
             reportAccessService,
-            userRepository,
             schoolRepository,
             loanRepository,
-            statisticsQueryService);
+            statisticsQueryService,
+            currentUserService);
 
     @Test
     void generateSchoolReport_aggregatesSchoolLevelDataAndCalculatesAverage() {
-        User user = user("teacher-1", 1L, "School Een");
-        when(userRepository.findById("teacher-1")).thenReturn(Optional.of(user));
+        School school = school(1L, "School Een");
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(school);
 
         PopularLoanedBookProjection popularBook = popularBook(10L, "Boek A", null, null, 7L);
         LoanVolumePeriodProjection volumePeriod = volumePeriod(2026, 5, 12L);
@@ -117,8 +116,8 @@ class SchoolReportServiceTest {
 
     @Test
     void generateSchoolReport_returnsZeroAverageWhenSchoolHasNoStudents() {
-        User user = user("teacher-1", 1L, "School Een");
-        when(userRepository.findById("teacher-1")).thenReturn(Optional.of(user));
+        School school = school(1L, "School Een");
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(school);
 
         when(loanRepository.findPopularLoanedBooksForSchool(any(), any(), any(Pageable.class))).thenReturn(List.of());
         when(loanRepository.findMonthlyLoanVolumeForSchool(1L, null)).thenReturn(List.of());
@@ -142,10 +141,10 @@ class SchoolReportServiceTest {
 
     @Test
     void generateSchoolReport_allowsAdminToRequestAnotherSchool() {
-        User user = user("admin-1", 1L, "School Een");
+        School adminSchool = school(1L, "School Een");
         School requestedSchool = school(2L, "School Twee");
 
-        when(userRepository.findById("admin-1")).thenReturn(Optional.of(user));
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(adminSchool);
         when(schoolRepository.findById(2L)).thenReturn(Optional.of(requestedSchool));
         when(loanRepository.findPopularLoanedBooksForSchool(any(), any(), any(Pageable.class))).thenReturn(List.of());
         when(loanRepository.findMonthlyLoanVolumeForSchool(2L, null)).thenReturn(List.of());
@@ -161,8 +160,8 @@ class SchoolReportServiceTest {
 
     @Test
     void generateSchoolReport_rejectsTeacherRequestingAnotherSchool() {
-        User user = user("teacher-1", 1L, "School Een");
-        when(userRepository.findById("teacher-1")).thenReturn(Optional.of(user));
+        School school = school(1L, "School Een");
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(school);
 
         assertThatThrownBy(() -> service.generateSchoolReport(teacherAuthentication("teacher-1"), 2L, 10, 0))
                 .isInstanceOf(ResponseStatusException.class)
@@ -183,13 +182,6 @@ class SchoolReportServiceTest {
                 userId,
                 null,
                 List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
-    }
-
-    private User user(String userId, Long schoolId, String schoolName) {
-        User user = new User();
-        user.setId(userId);
-        user.setSchool(school(schoolId, schoolName));
-        return user;
     }
 
     private School school(Long id, String name) {

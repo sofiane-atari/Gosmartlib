@@ -68,7 +68,7 @@ public class UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = requireUserId(authentication);
 
-        School school = getCurrentUserSchool(userId);
+        School school = currentUserService.getCurrentUserSchool(authentication);
 
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
@@ -95,7 +95,7 @@ public class UserService {
             throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
-        School school = getCurrentUserSchool(userId);
+        School school = currentUserService.getCurrentUserSchool(authentication);
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
@@ -144,7 +144,7 @@ public class UserService {
             throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
-        School school = getCurrentUserSchool(userId);
+        School school = currentUserService.getCurrentUserSchool(authentication);
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
@@ -207,7 +207,7 @@ public class UserService {
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResourceNotFoundException("schoolId", "School niet gevonden met id: " + schoolId));
 
-        School currentUserSchool = getCurrentUserSchool(currentUserService.extractCurrentUserId(authentication));
+        School currentUserSchool = currentUserService.getCurrentUserSchool(authentication);
         if (currentUserSchool.getId() != null && currentUserSchool.getId().equals(schoolId)) {
             throw new IllegalArgumentException("Kies een andere school voor extern uitlenen.");
         }
@@ -305,18 +305,6 @@ public class UserService {
         }
 
         return authentication.getName();
-    }
-
-    private School getCurrentUserSchool(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Gebruiker niet gevonden: " + userId));
-
-        if (user.getSchool() == null) {
-            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
-        }
-
-        return user.getSchool();
     }
 
     /**

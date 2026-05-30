@@ -5,11 +5,10 @@ import edu.ap.bib_backend.dto.report.PopularLoanedBookDTO;
 import edu.ap.bib_backend.dto.report.SchoolReportClassActivityDTO;
 import edu.ap.bib_backend.dto.report.SchoolReportDTO;
 import edu.ap.bib_backend.jpa.entity.School;
-import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.projection.report.ClassLoanActivityProjection;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,37 +24,35 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class SchoolReportService {
 
     private final ReportAccessService reportAccessService;
-    private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
     private final LoanRepository loanRepository;
     private final ReportStatisticsQueryService statisticsQueryService;
+    private final CurrentUserService currentUserService;
 
     public SchoolReportService(
             ReportAccessService reportAccessService,
-            UserRepository userRepository,
             SchoolRepository schoolRepository,
             LoanRepository loanRepository,
-            ReportStatisticsQueryService statisticsQueryService) {
+            ReportStatisticsQueryService statisticsQueryService,
+            CurrentUserService currentUserService) {
         this.reportAccessService = reportAccessService;
-        this.userRepository = userRepository;
         this.schoolRepository = schoolRepository;
         this.loanRepository = loanRepository;
         this.statisticsQueryService = statisticsQueryService;
+        this.currentUserService = currentUserService;
     }
 
     public SchoolReportDTO generateSchoolReport(Authentication authentication, Long requestedSchoolId, int limit, int offset) {
         reportAccessService.requireAuthenticated(authentication);
         reportAccessService.requireReportAccess(authentication);
 
-        User user = userRepository.findById(authentication.getName())
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "User niet gevonden"));
-
-        Long userSchoolId = user.getSchool().getId();
+        School activeSchool = currentUserService.getCurrentUserSchool(authentication);
+        Long userSchoolId = activeSchool.getId();
         Long schoolId = requestedSchoolId == null ? userSchoolId : requestedSchoolId;
         reportAccessService.requireSameSchoolOrAdmin(authentication, userSchoolId, schoolId);
 
         School school = requestedSchoolId == null || requestedSchoolId.equals(userSchoolId)
-                ? user.getSchool()
+                ? activeSchool
                 : schoolRepository.findById(schoolId)
                         .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "School niet gevonden"));
 
