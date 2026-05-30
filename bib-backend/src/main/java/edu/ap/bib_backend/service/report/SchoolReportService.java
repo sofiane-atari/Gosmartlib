@@ -101,6 +101,12 @@ public class SchoolReportService {
         long activeLoans = loanRepository.countActiveLoanedBookCopiesForSchool(schoolId, campusId);
         long totalStudentCount = loanRepository.countStudentsWithClassForSchool(schoolId, campusId);
 
+        long onTimeReturns = loanRepository.countOnTimeReturnsForSchool(schoolId, campusId);
+        long lateReturns = loanRepository.countLateReturnsForSchool(schoolId, campusId);
+        long totalReturns = onTimeReturns + lateReturns;
+        double onTimePct = totalReturns == 0 ? 0 : round((double) onTimeReturns / totalReturns * 100);
+        double latePct = totalReturns == 0 ? 0 : round((double) lateReturns / totalReturns * 100);
+
         return new SchoolReportDTO(
                 schoolId,
                 school.getName(),
@@ -116,7 +122,11 @@ public class SchoolReportService {
                 topRatedBooks,
                 popularBooks,
                 loanVolume,
-                classActivity);
+                classActivity,
+                onTimeReturns,
+                lateReturns,
+                onTimePct,
+                latePct);
     }
 
     private SchoolReportClassActivityDTO toClassActivity(ClassLoanActivityProjection row) {

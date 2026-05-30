@@ -33,26 +33,29 @@ class SystemReportServiceIntegrationTest {
 
     @BeforeEach
     void seedData() {
+        jdbcTemplate.update("SET REFERENTIAL_INTEGRITY FALSE");
         jdbcTemplate.update("DELETE FROM loan_copies");
         jdbcTemplate.update("DELETE FROM loans");
         jdbcTemplate.update("DELETE FROM book_copies");
         jdbcTemplate.update("DELETE FROM books");
         jdbcTemplate.update("DELETE FROM auth_sessions");
         jdbcTemplate.update("DELETE FROM users");
+        jdbcTemplate.update("DELETE FROM oneroster_credentials");
         jdbcTemplate.update("DELETE FROM campuses");
         jdbcTemplate.update("DELETE FROM schools");
         jdbcTemplate.update("DELETE FROM roles");
+        jdbcTemplate.update("SET REFERENTIAL_INTEGRITY TRUE");
 
         jdbcTemplate.update("INSERT INTO roles (role) VALUES ('STUDENT')");
         jdbcTemplate.update("INSERT INTO roles (role) VALUES ('ADMIN')");
 
         jdbcTemplate.update("""
-                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at)
-                VALUES (1, 'school-a.smartschool.be', 'School A', '', 0, 15, ?)
+                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at, provider_type, status)
+                VALUES (1, 'school-a.smartschool.be', 'School A', '', 0, 15, ?, 'REAL', 'ACTIVE')
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
         jdbcTemplate.update("""
-                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at)
-                VALUES (2, 'school-b.smartschool.be', 'School B', '', 0, 15, ?)
+                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at, provider_type, status)
+                VALUES (2, 'school-b.smartschool.be', 'School B', '', 0, 15, ?, 'REAL', 'ACTIVE')
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
 
         jdbcTemplate.update("INSERT INTO campuses (id, name, school_id) VALUES (1, 'Campus A', 1)");
@@ -79,44 +82,55 @@ class SystemReportServiceIntegrationTest {
         jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (1, 1, 1, 'GOOD_CONDITION')");
         jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (2, 1, 1, 'GOOD_CONDITION')");
         jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (3, 2, 2, 'GOOD_CONDITION')");
+        jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (4, 1, 1, 'GOOD_CONDITION')");
 
         jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, loan_date, return_date, returned_date) VALUES (1, 'student-1', 1, ?, ?, null)",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 15));
         jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, loan_date, return_date, returned_date) VALUES (2, 'student-3', 2, ?, ?, ?)",
                 LocalDate.of(2026, 5, 2), LocalDate.of(2026, 5, 16), LocalDate.of(2026, 5, 10));
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, loan_date, return_date, returned_date) VALUES (3, 'student-1', 1, ?, ?, ?)",
+                LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 15), LocalDate.of(2026, 3, 20));
 
         jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (1, 1)");
         jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (1, 2)");
         jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (2, 3)");
+        jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (3, 4)");
     }
 
     @Test
     void generateSystemReport_aggregatesPersistedDataAcrossSchools() {
         SystemReportDTO result = service.generateSystemReport(adminAuthentication());
 
-        assertThat(result.totalLoans()).isEqualTo(3);
+        assertThat(result.totalLoans()).isEqualTo(4);
         assertThat(result.activeLoans()).isEqualTo(2);
         assertThat(result.totalSchools()).isEqualTo(2);
         assertThat(result.totalBooks()).isEqualTo(2);
-        assertThat(result.totalCopies()).isEqualTo(3);
+        assertThat(result.totalCopies()).isEqualTo(4);
         assertThat(result.activeUsers()).isEqualTo(2);
         assertThat(result.linkedUsersPercentage()).isEqualTo(66.67);
 
-        assertThat(result.loanVolume()).hasSize(1);
-        assertThat(result.loanVolume().get(0).period()).isEqualTo("2026-05");
-        assertThat(result.loanVolume().get(0).loanCount()).isEqualTo(2);
+        assertThat(result.loanVolume()).hasSize(2);
+        assertThat(result.loanVolume().get(0).period()).isEqualTo("2026-03");
+        assertThat(result.loanVolume().get(0).loanCount()).isEqualTo(1);
+        assertThat(result.loanVolume().get(1).period()).isEqualTo("2026-05");
+        assertThat(result.loanVolume().get(1).loanCount()).isEqualTo(2);
 
         assertThat(result.popularBooks()).hasSize(2);
         assertThat(result.popularBooks().get(0).title()).isEqualTo("Boek Een");
-        assertThat(result.popularBooks().get(0).loanCount()).isEqualTo(2);
+        assertThat(result.popularBooks().get(0).loanCount()).isEqualTo(3);
 
         assertThat(result.schools()).hasSize(2);
         assertThat(result.schools().get(0).schoolName()).isEqualTo("School A");
         assertThat(result.schools().get(0).totalStudents()).isEqualTo(2);
         assertThat(result.schools().get(0).linkedStudents()).isEqualTo(1);
-        assertThat(result.schools().get(0).totalLoans()).isEqualTo(2);
+        assertThat(result.schools().get(0).totalLoans()).isEqualTo(3);
         assertThat(result.schools().get(0).activeLoans()).isEqualTo(2);
-        assertThat(result.schools().get(0).averageLoansPerStudent()).isEqualTo(1.0);
+        assertThat(result.schools().get(0).averageLoansPerStudent()).isEqualTo(1.5);
+
+        assertThat(result.returnedOnTimeLoans()).isEqualTo(1);
+        assertThat(result.returnedLateLoans()).isEqualTo(1);
+        assertThat(result.onTimePercentage()).isEqualTo(50.0);
+        assertThat(result.latePercentage()).isEqualTo(50.0);
     }
 
     private UsernamePasswordAuthenticationToken adminAuthentication() {

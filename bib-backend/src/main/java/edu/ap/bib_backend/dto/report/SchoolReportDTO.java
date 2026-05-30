@@ -19,5 +19,9 @@ public record SchoolReportDTO(
         @JsonProperty("topRatedBooks") List<TopRatedBookReportDTO> topRatedBooks,
         @JsonProperty("popularBooks") List<PopularLoanedBookDTO> popularBooks,
         @JsonProperty("loanVolume") List<LoanVolumePeriodDTO> loanVolume,
-        @JsonProperty("classActivity") List<SchoolReportClassActivityDTO> classActivity) {
+        @JsonProperty("classActivity") List<SchoolReportClassActivityDTO> classActivity,
+        @JsonProperty("returnedOnTimeLoans") long returnedOnTimeLoans,
+        @JsonProperty("returnedLateLoans") long returnedLateLoans,
+        @JsonProperty("onTimePercentage") double onTimePercentage,
+        @JsonProperty("latePercentage") double latePercentage) {
 }

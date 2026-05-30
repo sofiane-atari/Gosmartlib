@@ -81,12 +81,8 @@
   padding: 20px;
 }
 
-.system-engagement-card {
-  grid-column: span 2;
-}
-
 .adoption-panel {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .adoption-panel__label {

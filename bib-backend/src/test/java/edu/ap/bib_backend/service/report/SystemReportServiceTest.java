@@ -57,6 +57,8 @@ class SystemReportServiceTest {
         when(loanRepository.findPopularLoanedBooksForSystem(any())).thenReturn(List.of(popularBook));
         when(loanRepository.findMonthlyLoanVolumeForSystem()).thenReturn(List.of(volumePeriod));
         when(userRepository.findSystemSchoolActivity()).thenReturn(List.of(schoolActivity));
+        when(loanRepository.countOnTimeReturnsForSystem()).thenReturn(8L);
+        when(loanRepository.countLateReturnsForSystem()).thenReturn(2L);
 
         SystemReportDTO result = service.generateSystemReport(adminAuthentication());
 
@@ -74,6 +76,11 @@ class SystemReportServiceTest {
         assertThat(result.schools()).hasSize(1);
         assertThat(result.schools().get(0).averageLoansPerStudent()).isEqualTo(2.0);
         assertThat(result.schools().get(0).syncStatus()).isEqualTo("ok");
+
+        assertThat(result.returnedOnTimeLoans()).isEqualTo(8L);
+        assertThat(result.returnedLateLoans()).isEqualTo(2L);
+        assertThat(result.onTimePercentage()).isEqualTo(80.0);
+        assertThat(result.latePercentage()).isEqualTo(20.0);
     }
 
     @Test
@@ -94,6 +101,8 @@ class SystemReportServiceTest {
         when(loanRepository.findPopularLoanedBooksForSystem(any())).thenReturn(List.of());
         when(loanRepository.findMonthlyLoanVolumeForSystem()).thenReturn(List.of());
         when(userRepository.findSystemSchoolActivity()).thenReturn(List.of(schoolActivity));
+        when(loanRepository.countOnTimeReturnsForSystem()).thenReturn(0L);
+        when(loanRepository.countLateReturnsForSystem()).thenReturn(0L);
 
         SystemReportDTO result = service.generateSystemReport(adminAuthentication());
 
@@ -104,6 +113,11 @@ class SystemReportServiceTest {
         assertThat(result.schools().get(0).totalLoans()).isZero();
         assertThat(result.schools().get(0).activeLoans()).isZero();
         assertThat(result.schools().get(0).averageLoansPerStudent()).isZero();
+
+        assertThat(result.returnedOnTimeLoans()).isZero();
+        assertThat(result.returnedLateLoans()).isZero();
+        assertThat(result.onTimePercentage()).isZero();
+        assertThat(result.latePercentage()).isZero();
     }
 
     private UsernamePasswordAuthenticationToken adminAuthentication() {

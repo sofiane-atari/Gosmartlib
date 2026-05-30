@@ -39,7 +39,11 @@ class ReportControllerSystemTest {
                 75.0,
                 List.of(),
                 List.of(),
-                List.of());
+                List.of(),
+                0,
+                0,
+                0.0,
+                0.0);
 
         when(systemReportService.generateSystemReport(authentication)).thenReturn(report);
 

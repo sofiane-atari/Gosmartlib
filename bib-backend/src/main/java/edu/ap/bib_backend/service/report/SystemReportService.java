@@ -51,6 +51,9 @@ public class SystemReportService {
         long totalStudents = userRepository.countStudentsForSystem();
         long linkedStudents = userRepository.countLinkedStudentsForSystem();
 
+        long onTimeReturns = loanRepository.countOnTimeReturnsForSystem();
+        long lateReturns = loanRepository.countLateReturnsForSystem();
+
         List<PopularLoanedBookDTO> popularBooks = loanRepository
                 .findPopularLoanedBooksForSystem(PageRequest.of(0, 10))
                 .stream()
@@ -74,6 +77,10 @@ public class SystemReportService {
                 .map(this::toSchoolActivity)
                 .toList();
 
+        long totalReturns = onTimeReturns + lateReturns;
+        double onTimePct = totalReturns == 0 ? 0 : round((double) onTimeReturns / totalReturns * 100);
+        double latePct = totalReturns == 0 ? 0 : round((double) lateReturns / totalReturns * 100);
+
         return new SystemReportDTO(
                 totalLoans,
                 activeLoans,
@@ -84,7 +91,11 @@ public class SystemReportService {
                 totalStudents == 0 ? 0 : round(((double) linkedStudents / totalStudents) * 100),
                 loanVolume,
                 popularBooks,
-                schools);
+                schools,
+                onTimeReturns,
+                lateReturns,
+                onTimePct,
+                latePct);
     }
 
     private SystemSchoolActivityDTO toSchoolActivity(SystemSchoolActivityProjection row) {
