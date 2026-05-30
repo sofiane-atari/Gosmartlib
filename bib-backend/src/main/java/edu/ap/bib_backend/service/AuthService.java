@@ -21,6 +21,7 @@ import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.dto.SmartschoolGroupDto;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.SmartschoolRefreshResult;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.enums.SchoolStatus;
@@ -42,6 +43,7 @@ public class AuthService {
     private final SmartschoolProfileService smartschoolProfileService;
     private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
+    private final ActiveSchoolContext activeSchoolContext;
 
     @Value("${spring.security.oauth2.client.registration.smartschool.client-id}")
     private String smartschoolClientId;
@@ -58,13 +60,15 @@ public class AuthService {
             OAuth2AuthorizedClientService authorizedClientService,
             SmartschoolProfileService smartschoolProfileService,
             UserRepository userRepository,
-            SchoolRepository schoolRepository) {
+            SchoolRepository schoolRepository,
+            ActiveSchoolContext activeSchoolContext) {
         this.jwtService = jwtService;
         this.tokenStorageService = tokenStorageService;
         this.authorizedClientService = authorizedClientService;
         this.smartschoolProfileService = smartschoolProfileService;
         this.userRepository = userRepository;
         this.schoolRepository = schoolRepository;
+        this.activeSchoolContext = activeSchoolContext;
     }
 
     public AuthUserDto getUserDetails(Authentication authentication) {
@@ -93,6 +97,17 @@ public class AuthService {
 SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 ? dbUser.getSchool().getSchoolSummaryDto()
                 : null;
+
+        if (role == Role.ADMIN && activeSchoolContext.getActiveSchoolId() != null) {
+            School overrideSchool = schoolRepository.findById(activeSchoolContext.getActiveSchoolId())
+                    .filter(s -> s.getStatus() == SchoolStatus.ACTIVE)
+                    .orElse(null);
+            if (overrideSchool != null) {
+                schoolId = overrideSchool.getId();
+                schoolName = overrideSchool.getName();
+                schoolSummary = overrideSchool.getSchoolSummaryDto();
+            }
+        }
 
         if (smartschoolToken != null && !smartschoolToken.isBlank()) {
             try {
