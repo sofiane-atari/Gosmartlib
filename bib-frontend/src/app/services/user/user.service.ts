@@ -55,6 +55,19 @@ export class UserService {
     });
   }
 
+  public searchExternalUsers(
+    schoolId: number,
+    firstName: string = '',
+    lastName: string = '',
+  ): Observable<AuthUserDto[]> {
+    const params = new HttpParams()
+      .set('schoolId', schoolId)
+      .set('firstName', firstName)
+      .set('lastName', lastName);
+
+    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/search-external`, { params });
+  }
+
 
   public getDisplayName(user: AuthUserDto | null): string {
     if (!user) {

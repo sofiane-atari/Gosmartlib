@@ -36,7 +36,7 @@
   flex-shrink: 0;
 }
 
-.page-header__right .clear-btn {
+.page-header__right .clear-btn-help {
   position: absolute;
   bottom: 1.5rem;
   right: 1.8rem;

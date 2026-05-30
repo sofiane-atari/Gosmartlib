@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -72,10 +73,12 @@ public class UserService {
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
+        Map<String, String> localGroupNamesByUserId = getLocalGroupNamesByUserId(school.getId());
 
         return rosterUsers.stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
+                .map(dto -> withLocalGroupName(dto, localGroupNamesByUserId.get(dto.id())))
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
     }
@@ -89,7 +92,7 @@ public class UserService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isLibrarian && !isAdmin) {
-            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
+            throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
         School school = getCurrentUserSchool(userId);
@@ -138,7 +141,7 @@ public class UserService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isLibrarian && !isAdmin) {
-            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
+            throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
         School school = getCurrentUserSchool(userId);
@@ -161,7 +164,7 @@ public class UserService {
                                 actualRole, dto.email(), dto.username(),
                                 dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
                                 dto.parentGroupNames(), dto.reviewBlocked(),
-                                dto.schoolId(), dto.schoolName(),
+                                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
                                 dto.school());
                     }
                     return dto;
@@ -191,12 +194,45 @@ public class UserService {
         return new PageDTO<>(pageData, new PaginatedMeta(page, pageSize, totalItems, totalPages));
     }
 
+    public List<AuthUserDto> searchExternalUsers(Authentication authentication, Long schoolId, String firstName, String lastName) {
+        boolean isLibrarian = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isLibrarian && !isAdmin) {
+            throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen externe gebruikers zoeken.");
+        }
+
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("schoolId", "School niet gevonden met id: " + schoolId));
+
+        School currentUserSchool = getCurrentUserSchool(currentUserService.extractCurrentUserId(authentication));
+        if (currentUserSchool.getId() != null && currentUserSchool.getId().equals(schoolId)) {
+            throw new IllegalArgumentException("Kies een andere school voor extern uitlenen.");
+        }
+
+        Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(schoolId).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
+        Map<String, String> localGroupNamesByUserId = getLocalGroupNamesByUserId(schoolId);
+
+        return oneRosterClient.fetchUsers(school.getDomainName()).stream()
+                .map(user -> toAuthUserDto(user, school))
+                .filter(Objects::nonNull)
+                .map(dto -> withLocalRole(dto, localRolesByUserId.get(dto.id())))
+                .map(dto -> withLocalGroupName(dto, localGroupNamesByUserId.get(dto.id())))
+                .filter(this::isAllowedExternalBorrower)
+                .filter(dto -> matchesFilter(dto.firstName(), firstName))
+                .filter(dto -> matchesFilter(dto.lastName(), lastName))
+                .toList();
+    }
+
     public List<AuthUserDto> getUsersBySchoolId(Authentication authentication, Long schoolId) {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isAdmin) {
-            throw new IllegalStateException("Alleen platformbeheerders kunnen gebruikers van een school opvragen.");
+            throw new AccessDeniedException("Alleen platformbeheerders kunnen gebruikers van een school opvragen.");
         }
 
         School school = schoolRepository.findById(schoolId)
@@ -223,7 +259,7 @@ public class UserService {
                                 actualRole, dto.email(), dto.username(),
                                 dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
                                 dto.parentGroupNames(), dto.reviewBlocked(),
-                                dto.schoolId(), dto.schoolName(),
+                                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
                                 dto.school());
                     }
                     return dto;
@@ -306,6 +342,7 @@ public class UserService {
         String email = firstNonBlank(rosterUser, "email", "emailAddress", "mail");
         String username = firstNonBlank(rosterUser, "username", "userName");
         Role role = mapOneRosterRole(firstNonBlank(rosterUser, "role"));
+        String primaryGroupName = resolveGroupName(rosterUser);
 
         SchoolSummaryDto schoolSummary = ctxSchool.getSchoolSummaryDto();
 
@@ -319,9 +356,11 @@ public class UserService {
                 username,
                 null,
                 null,
-                null,
+                primaryGroupName,
                 List.of(),
                 false,
+                null,
+                null,
                 null,
                 null,
                 schoolSummary);
@@ -367,6 +406,65 @@ public class UserService {
         }
 
         return value.toLowerCase().contains(filter.trim().toLowerCase());
+    }
+
+    private String resolveGroupName(Map<String, Object> rosterUser) {
+        String direct = readMetadataString(rosterUser, "smsc.classInfo");
+        if (StringUtils.hasText(direct)) {
+            return direct;
+        }
+
+        String classLevel = readMetadataString(rosterUser, "smsc.classLevel");
+        String classNumber = readMetadataString(rosterUser, "smsc.classNumber");
+        if (StringUtils.hasText(classLevel) && StringUtils.hasText(classNumber)) {
+            return classLevel + classNumber;
+        }
+
+        String classYear = readMetadataString(rosterUser, "smsc.classYear");
+        if (StringUtils.hasText(classYear)) {
+            return classYear;
+        }
+
+        return null;
+    }
+
+    private Map<String, String> getLocalGroupNamesByUserId(Long schoolId) {
+        return userRepository.findBySchoolIdWithGroups(schoolId).stream()
+                .filter(user -> user.getGroups() != null && !user.getGroups().isEmpty())
+                .collect(Collectors.toMap(User::getId, user -> user.getGroups().iterator().next().getName()));
+    }
+
+    private AuthUserDto withLocalGroupName(AuthUserDto dto, String localGroupName) {
+        if (StringUtils.hasText(dto.primaryGroupName()) || !StringUtils.hasText(localGroupName)) {
+            return dto;
+        }
+
+        return new AuthUserDto(
+                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                dto.role(), dto.email(), dto.username(),
+                dto.smartschoolId(), dto.platform(), localGroupName,
+                dto.parentGroupNames(), dto.reviewBlocked(),
+                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                dto.school());
+    }
+
+    private AuthUserDto withLocalRole(AuthUserDto dto, Role actualRole) {
+        if (actualRole == null) {
+            return dto;
+        }
+
+        return new AuthUserDto(
+                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                actualRole, dto.email(), dto.username(),
+                dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
+                dto.parentGroupNames(), dto.reviewBlocked(),
+                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                dto.school());
+    }
+
+    private boolean isAllowedExternalBorrower(AuthUserDto dto) {
+        Role role = dto.role();
+        return role == Role.TEACHER || role == Role.LIBRARIAN || role == Role.ADMIN;
     }
 
     private String firstNonBlank(Map<String, Object> source, String... keys) {

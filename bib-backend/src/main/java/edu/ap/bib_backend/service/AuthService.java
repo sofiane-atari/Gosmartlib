@@ -114,6 +114,8 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                         reviewBlocked,
                         schoolId,
                         schoolName,
+                        null,
+                        null,
                         schoolSummary
                 );
             } catch (Exception ignored) {
@@ -176,6 +178,8 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                     reviewBlocked,
                     schoolId,
                     schoolName,
+                    null,
+                    null,
                     schoolSummary
             );
         }
@@ -197,6 +201,8 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                     reviewBlocked,
                     schoolId,
                     schoolName,
+                    null,
+                    null,
                     schoolSummary
             );
         }
@@ -216,6 +222,8 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 reviewBlocked,
                 schoolId,
                 schoolName,
+                null,
+                null,
                 schoolSummary
         );
     }

@@ -22,5 +22,7 @@ public record AuthUserDto(
 
         Long schoolId,
         String schoolName,
+        Long campusId,
+        String campusName,
         SchoolSummaryDto school
 ) {}

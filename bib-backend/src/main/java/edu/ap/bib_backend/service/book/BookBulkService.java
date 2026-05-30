@@ -356,7 +356,7 @@ public class BookBulkService {
                     rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Invalide jaar"));
                 }
             } catch (NumberFormatException e) {
-                rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Uitgave jaar moet een nummer zijn"));
+                rowErrors.add(new FileValidationError(rowNumber, "ReleaseYear", "Ongeldig jaartal: " + e.getMessage()));
             }
         }
 

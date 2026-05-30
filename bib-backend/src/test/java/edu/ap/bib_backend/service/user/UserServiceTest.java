@@ -10,6 +10,8 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
@@ -24,6 +26,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -58,6 +61,8 @@ class UserServiceTest {
     private CurrentUserService currentUserService;
     @Mock
     private SchoolRepository schoolRepository;
+    @Mock
+    private CampusRepository campusRepository;
 
     @InjectMocks
     private UserService userService;
@@ -150,7 +155,9 @@ class UserServiceTest {
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 
         Map<String, Object> rosterUser = Map.of(
-                "metadata", Map.of("smsc.legacyIdentifier", "other-user"),
+                "metadata", Map.of(
+                        "smsc.legacyIdentifier", "other-user",
+                        "smsc.classInfo", "3A"),
                 "fullName", "Other User");
         when(oneRosterClient.fetchUsersWithBearer("test.smartschool.be", "token"))
                 .thenReturn(List.of(rosterUser));
@@ -165,6 +172,7 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("other-user", result.get(0).id());
+        assertEquals("3A", result.get(0).primaryGroupName());
 
         SecurityContextHolder.clearContext();
     }
@@ -346,11 +354,85 @@ class UserServiceTest {
                 .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         // Act
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
                 () -> userService.getTeachers(authentication, false, false, 0, 10, null));
 
         // Assert
         assertEquals("Alleen bibliothecarissen en admins kunnen docenten bekijken.", exception.getMessage());
+    }
+
+    @Test
+    void Given_LibrarianAndExternalSchool_When_SearchExternalUsers_Then_ReturnsAllowedRolesOnly() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        School school = new School();
+        school.setId(2L);
+        school.setName("Externe school");
+        school.setDomainName("extern.smartschool.be");
+        when(schoolRepository.findById(2L)).thenReturn(Optional.of(school));
+
+        School currentSchool = new School();
+        currentSchool.setId(1L);
+        User currentUser = new User();
+        currentUser.setId(userId);
+        currentUser.setSchool(currentSchool);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+        Map<String, Object> teacher = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "teacher-1"),
+                "givenName", "Alice",
+                "familyName", "Teacher",
+                "role", "teacher");
+        Map<String, Object> student = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "student-1"),
+                "givenName", "Bob",
+                "familyName", "Student",
+                "role", "student");
+        Map<String, Object> localAdmin = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "admin-1"),
+                "givenName", "Cara",
+                "familyName", "Admin",
+                "role", "teacher");
+        when(oneRosterClient.fetchUsers("extern.smartschool.be"))
+                .thenReturn(List.of(teacher, student, localAdmin));
+
+        RoleEntity adminRole = new RoleEntity();
+        adminRole.setRole(Role.ADMIN);
+        User adminUser = new User();
+        adminUser.setId("admin-1");
+        adminUser.setRole(adminRole);
+        when(userRepository.findBySchoolId(2L)).thenReturn(List.of(adminUser));
+
+        // Act
+        List<AuthUserDto> result = userService.searchExternalUsers(authentication, 2L, null, null);
+
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals(List.of("teacher-1", "admin-1"), result.stream().map(AuthUserDto::id).toList());
+        assertEquals(Role.ADMIN, result.get(1).role());
+    }
+
+    @Test
+    void Given_NonPrivilegedAuthentication_When_SearchExternalUsers_Then_ThrowsIllegalState() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        // Act
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> userService.searchExternalUsers(authentication, 2L, null, null));
+
+        // Assert
+        assertEquals("Alleen bibliothecarissen en admins kunnen externe gebruikers zoeken.", exception.getMessage());
     }
 
     @ParameterizedTest

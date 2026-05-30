@@ -15,6 +15,7 @@ import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TagService {
@@ -22,10 +23,11 @@ public class TagService {
     private final TagRepository tagRepository;
     private final CurrentUserService currentUserService;
 
-    public TagService(TagRepository tagRepository, CurrentUserService currentUserService) {
+    public TagService(TagRepository tagRepository, Optional<CurrentUserService> currentUserService) {
         this.tagRepository = tagRepository;
-        this.currentUserService = currentUserService;
+        this.currentUserService = currentUserService.orElse(null);
     }
+
 
     public PageDTO<TagDTO> getTagsByPage(
             int page,
@@ -34,13 +36,29 @@ public class TagService {
             String bookCount,
             boolean includeBookCount,
             Authentication authentication) {
-        return getTagsByPageForSchool(page, pageSize, search, bookCount, includeBookCount, resolveSchoolId(authentication));
+        return getTagsByPageForSchool(page, pageSize, search, bookCount, includeBookCount, resolveSchool(authentication).getId());
+    }
+
+    public PageDTO<TagDTO> getTagsByPage(
+            int page,
+            int pageSize,
+            String search,
+            String bookCount,
+            boolean includeBookCount) {
+        return getTagsByPageForSchool(page, pageSize, search, bookCount, includeBookCount, null);
     }
 
     public TagStatsDTO getTagStats(Authentication authentication) {
-        Long schoolId = resolveSchoolId(authentication);
+        Long schoolId = resolveSchool(authentication).getId();
         Long totalItems = tagRepository.countBySchoolIdOrNull(schoolId);
         Long unActiveTags = tagRepository.countUnusedTags(schoolId);
+
+        return new TagStatsDTO(totalItems, unActiveTags);
+    }
+
+    public TagStatsDTO getTagStats() {
+        Long totalItems = tagRepository.countBySchoolIdOrNull(null);
+        Long unActiveTags = tagRepository.countUnusedTags(null);
 
         return new TagStatsDTO(totalItems, unActiveTags);
     }
@@ -49,7 +67,12 @@ public class TagService {
         return createTagForSchool(tagDTO, resolveSchool(authentication));
     }
 
+    public TagDTO createTag(TagDTO tagDTO) {
+        return createTagForSchool(tagDTO, null);
+    }
+
     private TagDTO createTagForSchool(TagDTO tagDTO, School school) {
+        Long schoolId = school != null ? school.getId() : null;
         String name = normalizeName(tagDTO.name());
         String description = normalizeDescription(tagDTO.description());
 
@@ -57,7 +80,7 @@ public class TagService {
             throw new IllegalArgumentException("Naam is verplicht.");
         }
 
-        if (tagRepository.existsByNameInSchool(name, school.getId())) {
+        if (tagRepository.existsByNameInSchool(name, schoolId)) {
             throw new IllegalArgumentException("Deze tag bestaat al.");
         }
 
@@ -75,8 +98,13 @@ public class TagService {
         return updateTagForSchool(id, tagDTO, resolveSchool(authentication));
     }
 
+    public TagDTO updateTag(Long id, TagDTO tagDTO) {
+        return updateTagForSchool(id, tagDTO, null);
+    }
+
     private TagDTO updateTagForSchool(Long id, TagDTO tagDTO, School school) {
-        Tag tag = tagRepository.findByIdInSchool(id, school.getId())
+        Long schoolId = school != null ? school.getId() : null;
+        Tag tag = tagRepository.findByIdInSchool(id, schoolId)
                 .orElseThrow(() -> new IllegalArgumentException("Tag niet gevonden."));
 
         String name = normalizeName(tagDTO.name());
@@ -86,7 +114,7 @@ public class TagService {
             throw new IllegalArgumentException("Naam is verplicht.");
         }
 
-        if (tagRepository.existsByNameInSchoolAndIdNot(name, school.getId(), id)) {
+        if (tagRepository.existsByNameInSchoolAndIdNot(name, schoolId, id)) {
             throw new IllegalArgumentException("Deze tag bestaat al.");
         }
 
@@ -102,8 +130,13 @@ public class TagService {
         deleteTagForSchool(id, resolveSchool(authentication));
     }
 
+    public void deleteTag(Long id) {
+        deleteTagForSchool(id, null);
+    }
+
     private void deleteTagForSchool(Long id, School school) {
-        Tag tag = tagRepository.findByIdInSchool(id, school.getId())
+        Long schoolId = school != null ? school.getId() : null;
+        Tag tag = tagRepository.findByIdInSchool(id, schoolId)
                 .orElseThrow(() -> new IllegalArgumentException("Tag niet gevonden."));
 
         if (getBookCount(tag) > 0) {
@@ -151,11 +184,11 @@ public class TagService {
     }
 
     private School resolveSchool(Authentication authentication) {
-        return currentUserService.getCurrentUserSchool(authentication);
-    }
+        if (currentUserService == null) {
+            throw new IllegalStateException("CurrentUserService is niet beschikbaar.");
+        }
 
-    private Long resolveSchoolId(Authentication authentication) {
-        return resolveSchool(authentication).getId();
+        return currentUserService.getCurrentUserSchool(authentication);
     }
 
     private TagDTO toDTO(Tag tag, boolean includeBookCount) {

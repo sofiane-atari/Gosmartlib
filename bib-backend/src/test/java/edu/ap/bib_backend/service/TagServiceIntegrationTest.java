@@ -27,9 +27,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @DataJpaTest
-@Import(TagService.class)
+@Import({TagService.class, CurrentUserService.class})
 @ActiveProfiles("test")
 class TagServiceIntegrationTest {
+
+    static {
+        System.setProperty("JASYPT_ENCRYPTOR_PASSWORD", "test-encryption-password");
+    }
 
     @Autowired
     private TagService tagService;

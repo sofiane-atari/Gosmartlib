@@ -1,9 +1,4 @@
-import {
-  Component,
-  inject,
-  signal,
-  OnInit,
-} from '@angular/core';
+import { Component, Inject, inject, signal, OnInit } from '@angular/core';
 
 import { forkJoin } from 'rxjs';
 
@@ -845,5 +840,4 @@ export class BookDetailComponent implements OnInit {
       },
     );
   }
-
 }
