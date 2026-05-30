@@ -17,6 +17,7 @@ export interface School {
   status?: SchoolStatus;
   markedForDeletionAt?: string;
   daysUntilDeletion?: number;
+  catalogVisible?: boolean;
 }
 
 export interface OneRosterCredentialRequest {

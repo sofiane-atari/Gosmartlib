@@ -52,8 +52,8 @@ class SchoolReportServiceIntegrationTest {
         jdbcTemplate.update("INSERT INTO roles (role) VALUES ('TEACHER')");
 
         jdbcTemplate.update("""
-                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at, provider_type, status)
-                VALUES (1, 'school-a.smartschool.be', 'School A', '', 0, 15, ?, 'REAL', 'ACTIVE')
+                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at, provider_type, status, catalog_visible)
+                VALUES (1, 'school-a.smartschool.be', 'School A', '', 0, 15, ?, 'REAL', 'ACTIVE', true)
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
 
         jdbcTemplate.update("INSERT INTO campuses (id, name, school_id) VALUES (1, 'Campus A', 1)");

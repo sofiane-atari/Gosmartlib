@@ -1,6 +1,8 @@
 package edu.ap.bib_backend.controller;
 
+import edu.ap.bib_backend.dto.CatalogSidebarSettingsDTO;
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.service.SchoolService;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -8,6 +10,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +34,11 @@ public class SchoolController {
             @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
         this.schoolService = schoolService;
         this.devModeEnabled = devModeEnabled;
+    }
+
+    @GetMapping("/accessible")
+    public ResponseEntity<List<SchoolSummaryDto>> getAccessibleSchools(Authentication authentication) {
+        return ResponseEntity.ok(schoolService.getAccessibleSchools(authentication));
     }
 
     @GetMapping
@@ -110,6 +118,30 @@ public class SchoolController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{id}/catalog-visibility")
+    public ResponseEntity<Void> setCatalogVisibility(
+            @PathVariable Long id,
+            @RequestBody CatalogVisibilityRequest request,
+            Authentication authentication) {
+        schoolService.setCatalogVisibility(id, request.visible(), authentication);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/catalog-sidebar-settings")
+    public ResponseEntity<CatalogSidebarSettingsDTO> getCatalogSidebarSettings(@PathVariable Long id) {
+        return ResponseEntity.ok(schoolService.getCatalogSidebarSettings(id));
+    }
+
+    @PutMapping("/{id}/catalog-sidebar-settings")
+    public ResponseEntity<CatalogSidebarSettingsDTO> updateCatalogSidebarSettings(
+            @PathVariable Long id,
+            @Valid @RequestBody CatalogSidebarSettingsDTO dto) {
+        return ResponseEntity.ok(schoolService.updateCatalogSidebarSettings(id, dto));
+    }
+
     public record DevModeResponse(boolean enabled) {
+    }
+
+    public record CatalogVisibilityRequest(boolean visible) {
     }
 }

@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = SecurityConfigTestController.class)
@@ -86,6 +88,159 @@ class SecurityConfigTest {
     void givenAdminRoleAuthentication_whenGetGenresEndpoint_thenReturnOk() throws Exception {
         mockMvc.perform(get("/genres/test")
                 .with(user("admin-user").roles("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenLibrarianRole_whenGetUsersEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/users/test")
+                .with(user("librarian").roles("LIBRARIAN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenAdminRole_whenGetUsersEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/users/test")
+                .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenLibrarianRole_whenGetTagsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/tags/test")
+                .with(user("librarian").roles("LIBRARIAN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenAdminRole_whenGetTagsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/tags/test")
+                .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenAdminRole_whenAssignAdminEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(post("/roles/assign-admin")
+                .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenAdminRole_whenRevokeAdminEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(post("/roles/revoke-admin")
+                .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenLibrarianRole_whenAssignLibrarianEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(post("/roles/assign-librarian")
+                .with(user("librarian").roles("LIBRARIAN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenAdminRole_whenAssignLibrarianEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(post("/roles/assign-librarian")
+                .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenTeacherRole_whenGetReportsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/reports/test")
+                .with(user("teacher").roles("TEACHER")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenLibrarianRole_whenGetReportsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/reports/test")
+                .with(user("librarian").roles("LIBRARIAN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenLibrarianRole_whenGetBookCopiesEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/book-copies/test")
+                .with(user("librarian").roles("LIBRARIAN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenLibrarianRole_whenPostLoansEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(post("/loans/test")
+                .with(user("librarian").roles("LIBRARIAN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenStudentRole_whenGetLoansMeEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/loans/me")
+                .with(user("student").roles("STUDENT")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenStudentRole_whenGetReadingListsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/reading-lists/test")
+                .with(user("student").roles("STUDENT")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenStudentRole_whenGetSubscriptionsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/subscriptions/test")
+                .with(user("student").roles("STUDENT")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenStudentRole_whenGetCatalogSidebarSettingsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/schools/1/catalog-sidebar-settings")
+                .with(user("student").roles("STUDENT")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenLibrarianRole_whenPutCatalogSidebarSettingsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(put("/schools/1/catalog-sidebar-settings")
+                .with(user("librarian").roles("LIBRARIAN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenStudentRole_whenGetCampusesEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/campuses/test")
+                .with(user("student").roles("STUDENT")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenTeacherRole_whenGetLessonTipsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/lesson-tips/test")
+                .with(user("teacher").roles("TEACHER")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenStudentRole_whenGetReadingLevelsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/reading-levels/test")
+                .with(user("student").roles("STUDENT")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenNoAuthentication_whenGetDevModeEnabledEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/schools/dev-mode-enabled"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenStudentRole_whenGetReviewsEndpoint_thenReturnOk() throws Exception {
+        mockMvc.perform(get("/reviews/test")
+                .with(user("student").roles("STUDENT")))
                 .andExpect(status().isOk());
     }
 

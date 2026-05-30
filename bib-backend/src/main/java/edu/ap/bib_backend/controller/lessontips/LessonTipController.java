@@ -19,7 +19,6 @@ import edu.ap.bib_backend.service.user.CurrentUserService;
 
 @RestController
 @RequestMapping("/lesson-tips")
-@PreAuthorize("hasAnyRole('TEACHER','LIBRARIAN','ADMIN')")
 public class LessonTipController {
 
     private final LessonTipService lessonTipService;
@@ -54,12 +53,10 @@ public class LessonTipController {
 
     @PostMapping
     public ResponseEntity<LessonTipResponseDto> createLessonTip(
-        @Valid @RequestBody CreateLessonTipRequestDto request,
-        Authentication authentication
-    ) {
+            @Valid @RequestBody CreateLessonTipRequestDto request,
+            Authentication authentication) {
         String currentUserId = currentUserService.extractCurrentUserId(authentication);
-        LessonTipResponseDto createdLessonTip =
-                lessonTipService.createLessonTip(request, currentUserId);
+        LessonTipResponseDto createdLessonTip = lessonTipService.createLessonTip(request, currentUserId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdLessonTip);
     }
@@ -68,10 +65,8 @@ public class LessonTipController {
     public ResponseEntity<LessonTipResponseDto> updateLessonTip(
             @PathVariable Long id,
             @Valid @RequestBody CreateLessonTipRequestDto request,
-            Authentication authentication
-    ) {
-        LessonTipResponseDto updatedLessonTip =
-                lessonTipService.updateLessonTip(id, request, authentication);
+            Authentication authentication) {
+        LessonTipResponseDto updatedLessonTip = lessonTipService.updateLessonTip(id, request, authentication);
 
         return ResponseEntity.ok(updatedLessonTip);
     }
@@ -79,8 +74,7 @@ public class LessonTipController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLessonTip(
             @PathVariable Long id,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         lessonTipService.deleteLessonTip(id, authentication);
         return ResponseEntity.noContent().build();
     }

@@ -63,10 +63,11 @@ class TagControllerIntegrationTest {
                 0L,
                 null);
 
-        Mockito.when(tagService.createTag(any(TagDTO.class)))
+        Mockito.when(tagService.createTag(any(TagDTO.class), any(Authentication.class)))
                 .thenReturn(response);
 
         mockMvc.perform(post("/tags")
+                .principal(authentication)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -89,10 +90,12 @@ class TagControllerIntegrationTest {
                 eq(2),
                 isNull(),
                 isNull(),
-                eq(true)))
+                eq(true),
+                any(Authentication.class)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/tags")
+                .principal(authentication)
                 .param("page", "0")
                 .param("pageSize", "2")
                 .param("includeBookCount", "true"))
@@ -118,10 +121,12 @@ class TagControllerIntegrationTest {
                 eq(10),
                 eq("fant"),
                 isNull(),
-                eq(true)))
+                eq(true),
+                any(Authentication.class)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/tags")
+                .principal(authentication)
                 .param("search", "fant")
                 .param("includeBookCount", "true"))
                 .andExpect(status().isOk())
@@ -131,10 +136,11 @@ class TagControllerIntegrationTest {
 
     @Test
     void getTagStats_shouldReturnStats() throws Exception {
-        Mockito.when(tagService.getTagStats())
+        Mockito.when(tagService.getTagStats(any(Authentication.class)))
                 .thenReturn(new TagStatsDTO(2L, 2L));
 
-        mockMvc.perform(get("/tags/stats"))
+        mockMvc.perform(get("/tags/stats")
+                .principal(authentication))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalItems").value(2))
                 .andExpect(jsonPath("$.unActiveTags").value(2));
@@ -156,10 +162,11 @@ class TagControllerIntegrationTest {
                 0L,
                 null);
 
-        Mockito.when(tagService.updateTag(eq(1L), any(TagDTO.class)))
+        Mockito.when(tagService.updateTag(eq(1L), any(TagDTO.class), any(Authentication.class)))
                 .thenReturn(response);
 
         mockMvc.perform(put("/tags/{id}", 1L)
+                .principal(authentication)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -170,10 +177,11 @@ class TagControllerIntegrationTest {
 
     @Test
     void deleteTag_shouldDeleteTag() throws Exception {
-        mockMvc.perform(delete("/tags/{id}", 1L))
+        mockMvc.perform(delete("/tags/{id}", 1L)
+                .principal(authentication))
                 .andExpect(status().isOk());
 
-        Mockito.verify(tagService).deleteTag(1L);
+        Mockito.verify(tagService).deleteTag(eq(1L), eq(authentication));
     }
 
     @Test

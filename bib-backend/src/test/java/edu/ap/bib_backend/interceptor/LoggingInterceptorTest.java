@@ -45,7 +45,6 @@ class LoggingInterceptorTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         when(request.getURI()).thenReturn(URI.create("https://smartschool.example.com/token"));
-        when(request.getHeaders()).thenReturn(new HttpHeaders());
         when(execution.execute(request, requestBody)).thenReturn(originalResponse);
         when(originalResponse.getBody()).thenReturn(new ByteArrayInputStream(responseBody));
         when(originalResponse.getHeaders()).thenReturn(headers);
@@ -73,7 +72,6 @@ class LoggingInterceptorTest {
         byte[] requestBody = "request-body".getBytes(StandardCharsets.UTF_8);
 
         when(request.getURI()).thenReturn(URI.create("https://smartschool.example.com/token"));
-        when(request.getHeaders()).thenReturn(new HttpHeaders());
         when(execution.execute(request, requestBody)).thenReturn(originalResponse);
         when(originalResponse.getBody()).thenReturn(new ByteArrayInputStream("response".getBytes(StandardCharsets.UTF_8)));
         when(originalResponse.getHeaders()).thenReturn(new HttpHeaders());

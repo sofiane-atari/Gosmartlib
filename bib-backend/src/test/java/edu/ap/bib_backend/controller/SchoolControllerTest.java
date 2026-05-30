@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import edu.ap.bib_backend.TestSecurityConfig;
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.SchoolService;
@@ -203,6 +204,32 @@ class SchoolControllerTest {
         verify(schoolService, times(1)).checkDomain("new.school.be");
     }
 
+    @Test
+    void Given_ValidRequest_When_SetCatalogVisibility_Then_Returns200() throws Exception {
+        mockMvc.perform(put("/schools/{id}/catalog-visibility", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"visible\":true}"))
+                .andExpect(status().isOk());
+
+        verify(schoolService).setCatalogVisibility(eq(1L), eq(true), any());
+    }
+
+    @Test
+    void Given_SchoolsExist_When_GetAccessibleSchools_Then_Returns200() throws Exception {
+        SchoolSummaryDto school1 = new SchoolSummaryDto(1L, "AP Hogeschool", "ap.be", 15, null, true);
+        SchoolSummaryDto school2 = new SchoolSummaryDto(2L, "Andere School", "andere.be", 15, null, true);
+        given(schoolService.getAccessibleSchools(any())).willReturn(List.of(school1, school2));
+
+        mockMvc.perform(get("/schools/accessible"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("AP Hogeschool"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].name").value("Andere School"));
+
+        verify(schoolService).getAccessibleSchools(any());
+    }
+
     private SchoolDTO schoolDto(
             Long id,
             String domainName,
@@ -217,6 +244,7 @@ class SchoolControllerTest {
                 java.util.List.of(),
                 LocalDateTime.of(2026, 4, 28, 12, 0),
                 false,
+                null,
                 null,
                 null,
                 null,

@@ -3,6 +3,7 @@ package edu.ap.bib_backend.controller;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,6 +53,7 @@ public class RoleController {
     }
 
     @PostMapping("/assign-admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AuthUserDto> assignAdmin(
             @Valid @RequestBody AssignLibrarianRequestDto request,
             Authentication authentication) {
@@ -64,6 +66,7 @@ public class RoleController {
     }
 
     @PostMapping("/revoke-admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AuthUserDto> revokeAdmin(
             @Valid @RequestBody AssignLibrarianRequestDto request,
             Authentication authentication) {

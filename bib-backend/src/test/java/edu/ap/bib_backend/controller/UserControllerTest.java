@@ -66,19 +66,6 @@ class UserControllerTest {
     }
 
     @Test
-    void Given_UserId_When_HasRefreshToken_Then_ReturnsBoolean() throws Exception {
-        // Arrange
-        when(tokenStorageService.hasValidSmartschoolRefreshToken("user123")).thenReturn(true);
-
-        // Act
-        var result = mockMvc.perform(get("/users/has-refresh-token").param("userId", "user123"));
-
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(content().string("true"));
-    }
-
-    @Test
     @WithMockUser(roles = "LIBRARIAN")
     void Given_Moderator_When_UpdateReviewAccess_Then_ReturnsUpdatedUser() throws Exception {
         // Arrange

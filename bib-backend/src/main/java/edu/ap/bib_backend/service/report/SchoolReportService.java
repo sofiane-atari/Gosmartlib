@@ -99,7 +99,7 @@ public class SchoolReportService {
 
         long totalLoans = loanRepository.countLoanedBookCopiesForSchool(schoolId, campusId);
         long activeLoans = loanRepository.countActiveLoanedBookCopiesForSchool(schoolId, campusId);
-        long totalStudentCount = loanRepository.countStudentsWithClassForSchool(schoolId, campusId);
+        long totalStudentCount = loanRepository.countStudentsWithClassForSchool(schoolId);
 
         long onTimeReturns = loanRepository.countOnTimeReturnsForSchool(schoolId, campusId);
         long lateReturns = loanRepository.countLateReturnsForSchool(schoolId, campusId);
@@ -115,7 +115,7 @@ public class SchoolReportService {
                 List.of(),
                 totalLoans,
                 activeLoans,
-                (int) loanRepository.countClassesForSchool(schoolId, campusId),
+                (int) loanRepository.countClassesForSchool(schoolId),
                 totalStudentCount,
                 totalStudentCount == 0 ? 0 : round((double) totalLoans / totalStudentCount),
                 popularGenres,

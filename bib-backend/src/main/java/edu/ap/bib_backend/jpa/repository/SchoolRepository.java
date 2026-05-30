@@ -16,4 +16,8 @@ public interface SchoolRepository extends JpaRepository<School, Long> {
     boolean existsByDomainName(String domainName);
 
     List<School> findByStatusAndMarkedForDeletionAtBefore(SchoolStatus status, LocalDateTime threshold);
+
+    List<School> findByStatus(SchoolStatus status);
+
+    List<School> findByIdIn(List<Long> ids);
 }

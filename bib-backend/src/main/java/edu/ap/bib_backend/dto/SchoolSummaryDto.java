@@ -7,5 +7,6 @@ public record SchoolSummaryDto(
     String name,
     String domainName,
     Integer defaultLoanDurationDays,
-    SchoolStatus status
+    SchoolStatus status,
+    Boolean catalogVisible
 ) {}

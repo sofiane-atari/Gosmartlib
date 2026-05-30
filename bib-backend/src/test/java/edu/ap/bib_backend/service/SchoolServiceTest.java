@@ -1,7 +1,9 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.CampusDTO;
+import edu.ap.bib_backend.dto.CatalogSidebarSettingsDTO;
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
@@ -12,6 +14,7 @@ import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.lang.reflect.Field;
@@ -23,6 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +36,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,10 +63,16 @@ class SchoolServiceTest {
     private OneRosterUserSyncService oneRosterUserSyncService;
 
     @Mock
+    private CurrentUserService currentUserService;
+
+    @Mock
     private EntityManager entityManager;
 
     @Mock
     private Query query;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     private SchoolService schoolService;
 
@@ -72,6 +85,8 @@ class SchoolServiceTest {
                 userRepository,
                 oneRosterClient,
                 oneRosterUserSyncService,
+                currentUserService,
+                eventPublisher,
                 30L
         );
         Field entityManagerField = SchoolService.class.getDeclaredField("entityManager");
@@ -392,7 +407,7 @@ class SchoolServiceTest {
         SchoolDTO dto = new SchoolDTO(
                 null, "nullcamp.be", "Null Camp", 15, null,
                 LocalDateTime.now(), false,
-                new OneRosterCredentialDTO("client", "secret"), null, null, null);
+                new OneRosterCredentialDTO("client", "secret"), null, null, null, null);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> schoolService.create(dto));
@@ -409,7 +424,7 @@ class SchoolServiceTest {
         SchoolDTO dto = new SchoolDTO(
                 null, "dup.be", "School", 15, List.of(campus1, campus2),
                 LocalDateTime.now(), false,
-                new OneRosterCredentialDTO("client", "secret"), null, null, null);
+                new OneRosterCredentialDTO("client", "secret"), null, null, null, null);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> schoolService.create(dto));
@@ -426,7 +441,7 @@ class SchoolServiceTest {
         SchoolDTO dto = new SchoolDTO(
                 null, "multi.be", "Multi", 15, List.of(campus1, campus2),
                 LocalDateTime.now(), false,
-                new OneRosterCredentialDTO("client", "secret"), null, null, null);
+                new OneRosterCredentialDTO("client", "secret"), null, null, null, null);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> schoolService.create(dto));
@@ -445,7 +460,7 @@ class SchoolServiceTest {
         SchoolDTO update = new SchoolDTO(
                 schoolId, "ap.be", "AP", 15,
                 List.of(campusDto()), LocalDateTime.now(), false,
-                new OneRosterCredentialDTO("client", "secret"), null, null, null);
+                new OneRosterCredentialDTO("client", "secret"), null, null, null, null);
 
         schoolService.update(schoolId, update);
 
@@ -463,9 +478,183 @@ class SchoolServiceTest {
         SchoolDTO dto = new SchoolDTO(
                 null, "noaddr.be", "No Addr", 15, List.of(badCampus),
                 LocalDateTime.now(), false,
-                new OneRosterCredentialDTO("client", "secret"), null, null, null);
+                new OneRosterCredentialDTO("client", "secret"), null, null, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> schoolService.create(dto));
+    }
+
+    @Test
+    void Given_OwnSchool_When_SetCatalogVisibilityTrue_Then_UpdatesAndSaves() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+        Authentication auth = mock(Authentication.class);
+
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(school);
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+        when(schoolRepository.save(any(School.class))).thenAnswer(i -> i.getArgument(0));
+
+        schoolService.setCatalogVisibility(schoolId, true, auth);
+
+        assertTrue(school.getCatalogVisible());
+        verify(schoolRepository).findById(schoolId);
+    }
+
+    @Test
+    void givenExistingDomain_whenFindSchoolByDomainName_thenReturnsSchoolDto() {
+        School school = schoolEntity(1L, "ap.be", "AP");
+        when(schoolRepository.findByDomainName("ap.be")).thenReturn(Optional.of(school));
+
+        Optional<SchoolDTO> result = schoolService.findSchoolByDomainName("ap.be");
+
+        assertTrue(result.isPresent());
+        assertEquals(1L, result.get().id());
+        assertEquals("ap.be", result.get().domainName());
+    }
+
+    @Test
+    void givenNonExistentDomain_whenFindSchoolByDomainName_thenReturnsEmpty() {
+        when(schoolRepository.findByDomainName("unknown.be")).thenReturn(Optional.empty());
+
+        Optional<SchoolDTO> result = schoolService.findSchoolByDomainName("unknown.be");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void givenExistingSchool_whenGetCatalogSidebarSettings_thenReturnsSettings() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+
+        CatalogSidebarSettingsDTO result = schoolService.getCatalogSidebarSettings(schoolId);
+
+        assertTrue(result.catalogFeaturedListsEnabled());
+        assertTrue(result.catalogMostReadEnabled());
+        assertTrue(result.catalogNewestEnabled());
+    }
+
+    @Test
+    void givenUnknownSchool_whenGetCatalogSidebarSettings_thenThrowsResponseStatusException() {
+        when(schoolRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> schoolService.getCatalogSidebarSettings(999L));
+    }
+
+    @Test
+    void givenExistingSchool_whenUpdateCatalogSidebarSettings_thenUpdatesAndReturnsDto() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+        when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CatalogSidebarSettingsDTO dto = new CatalogSidebarSettingsDTO(false, true, false);
+
+        CatalogSidebarSettingsDTO result = schoolService.updateCatalogSidebarSettings(schoolId, dto);
+
+        assertFalse(result.catalogFeaturedListsEnabled());
+        assertTrue(result.catalogMostReadEnabled());
+        assertFalse(result.catalogNewestEnabled());
+
+        assertFalse(school.isCatalogFeaturedListsEnabled());
+        assertTrue(school.isCatalogMostReadEnabled());
+        assertFalse(school.isCatalogNewestEnabled());
+        verify(schoolRepository).save(school);
+    }
+
+    @Test
+    void Given_OwnSchool_When_SetCatalogVisibilityFalse_Then_UpdatesAndSaves() {
+        Long schoolId = 1L;
+        School school = schoolEntity(schoolId, "ap.be", "AP");
+        school.setCatalogVisible(true);
+        Authentication auth = mock(Authentication.class);
+
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(school);
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+        when(schoolRepository.save(any(School.class))).thenAnswer(i -> i.getArgument(0));
+
+        schoolService.setCatalogVisibility(schoolId, false, auth);
+
+        assertFalse(school.getCatalogVisible());
+        verify(schoolRepository).save(school);
+    }
+
+    @Test
+    void Given_OtherSchool_When_SetCatalogVisibility_Then_ThrowsAccessDeniedException() {
+        School userSchool = schoolEntity(1L, "user.be", "User School");
+        Authentication auth = mock(Authentication.class);
+
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(userSchool);
+
+        assertThrows(AccessDeniedException.class,
+                () -> schoolService.setCatalogVisibility(2L, true, auth));
+        verify(schoolRepository, never()).save(any(School.class));
+    }
+
+    @Test
+    void Given_UnknownSchool_When_SetCatalogVisibility_Then_ThrowsIllegalArgumentException() {
+        Long schoolId = 1L;
+        School userSchool = schoolEntity(schoolId, "user.be", "User School");
+        Authentication auth = mock(Authentication.class);
+
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(userSchool);
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> schoolService.setCatalogVisibility(schoolId, true, auth));
+        verify(schoolRepository, never()).save(any(School.class));
+    }
+
+    @Test
+    void Given_SchoolsWithMixedVisibility_When_GetAccessibleSchools_Then_ReturnsOwnAndVisible() {
+        School ownSchool = schoolEntity(1L, "own.be", "Own");
+        ownSchool.setCatalogVisible(false);
+        School visibleSchool = schoolEntity(2L, "vis.be", "Visible");
+        visibleSchool.setCatalogVisible(true);
+        School hiddenSchool = schoolEntity(3L, "hid.be", "Hidden");
+        hiddenSchool.setCatalogVisible(false);
+        Authentication auth = mock(Authentication.class);
+
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(ownSchool);
+        when(schoolRepository.findByStatus(SchoolStatus.ACTIVE))
+                .thenReturn(List.of(ownSchool, visibleSchool, hiddenSchool));
+
+        List<SchoolSummaryDto> result = schoolService.getAccessibleSchools(auth);
+
+        assertEquals(2, result.size());
+        assertTrue(result.stream().anyMatch(s -> s.id().equals(1L)));
+        assertTrue(result.stream().anyMatch(s -> s.id().equals(2L)));
+        assertTrue(result.stream().noneMatch(s -> s.id().equals(3L)));
+    }
+
+    @Test
+    void Given_AllOtherSchoolsHidden_When_GetAccessibleSchools_Then_ReturnsOnlyOwnSchool() {
+        School ownSchool = schoolEntity(1L, "own.be", "Own");
+        ownSchool.setCatalogVisible(false);
+        School hiddenA = schoolEntity(2L, "hidA.be", "Hidden A");
+        hiddenA.setCatalogVisible(false);
+        School hiddenB = schoolEntity(3L, "hidB.be", "Hidden B");
+        hiddenB.setCatalogVisible(false);
+        Authentication auth = mock(Authentication.class);
+
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(ownSchool);
+        when(schoolRepository.findByStatus(SchoolStatus.ACTIVE))
+                .thenReturn(List.of(ownSchool, hiddenA, hiddenB));
+
+        List<SchoolSummaryDto> result = schoolService.getAccessibleSchools(auth);
+
+        assertEquals(1, result.size());
+        assertEquals(1L, result.getFirst().id());
+    }
+
+    @Test
+    void givenUnknownSchool_whenUpdateCatalogSidebarSettings_thenThrowsResponseStatusException() {
+        when(schoolRepository.findById(999L)).thenReturn(Optional.empty());
+
+        CatalogSidebarSettingsDTO dto = new CatalogSidebarSettingsDTO(true, true, true);
+
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> schoolService.updateCatalogSidebarSettings(999L, dto));
     }
 
     private SchoolDTO schoolDto(
@@ -480,6 +669,7 @@ class SchoolServiceTest {
                 List.of(campusDto()),
                 LocalDateTime.of(2026, 4, 28, 12, 0),
                 false,
+                null,
                 null,
                 null,
                 null,
@@ -501,6 +691,7 @@ class SchoolServiceTest {
                 LocalDateTime.of(2026, 4, 28, 12, 0),
                 false,
                 new OneRosterCredentialDTO(clientId, clientSecret),
+                null,
                 null,
                 null,
                 null);

@@ -233,6 +233,26 @@ h1 {
   .header-actions {
     margin-top: 0.5rem;
   }
+
+  .page-header__right {
+    position: relative;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .page-header__right .clear-btn-help {
+    position: static;
+  }
+
+  .back-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .clear-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .back-button {

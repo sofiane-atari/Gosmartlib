@@ -68,7 +68,6 @@ class MailSubscriptionServiceIntegrationTest {
 
         user = new User();
         user.setId("integration-test-user");
-        user.setCampus(campus);
         user.setSchool(school);
         user.setRole(role);
         userRepository.save(user);

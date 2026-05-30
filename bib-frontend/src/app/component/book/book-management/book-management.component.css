@@ -224,7 +224,7 @@
 }
 .table-card th.text-center,
 .table-card td.text-center {
-  text-align: center;
+  text-align: right;
 }
 
 /* =========================================================
@@ -236,8 +236,8 @@
   gap: 2px;
 }
 .user-cell--center {
-  align-items: center;
-  text-align: center;
+  align-items: flex-end;
+  text-align: right;
 }
 
 .user-cell strong {
@@ -257,14 +257,21 @@
 
 .book-cell {
   max-width: 250px;
-  margin: 0 auto;
+  margin: 0 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: flex-end;
+  text-align: right;
+  gap: 6px;
   background: #f9f4f6;
   border: 1px solid #f0e4e8;
   border-radius: 8px; /* Was 10px */
   padding: 6px 10px; /* Compacter (Was 8px 12px) */
+}
+
+.book-cell strong,
+.book-cell small {
+  display: block;
 }
 
 .book-cell strong {
@@ -573,5 +580,113 @@ lucide-icon {
   .action-card {
     align-items: flex-start;
     padding: 16px;
+  }
+
+  /* ── Mobiel: tabel → cards ── */
+  .table-card {
+    overflow-x: visible;
+  }
+
+  .table-card table {
+    min-width: 0;
+  }
+
+  .table-card table,
+  .table-card thead,
+  .table-card tbody,
+  .table-card tr,
+  .table-card th,
+  .table-card td {
+    display: block;
+  }
+
+  .table-card thead {
+    display: none;
+  }
+
+  .table-card tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid #f0e4e8;
+    border-radius: 10px;
+    padding: 0.5rem 0;
+    background: #fff;
+  }
+
+  .table-card td {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    word-break: break-word;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-bottom: 1px solid #f5eef0;
+    text-align: right;
+    font-size: 13px;
+  }
+
+  .table-card td:last-child {
+    border-bottom: none;
+  }
+
+  .table-card td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #1a0a10;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .table-card .user-cell,
+  .table-card .book-cell {
+    display: block;
+    text-align: right;
+    background: none;
+    border: none;
+    padding: 0;
+    max-width: none;
+    margin: 0;
+  }
+
+  .loan-details-row td {
+    display: block;
+    padding: 0;
+  }
+
+  .table-card td .book-count,
+  .table-card td [class*="time-left"],
+  .table-card td [class*="status"] {
+    display: inline;
+    background: none;
+    border: none;
+    padding: 0;
+    min-width: 0;
+    height: auto;
+    border-radius: 0;
+    white-space: normal;
+  }
+
+  .table-card td * {
+    font-size: inherit;
+  }
+
+  .table-card .book-cell strong,
+  .table-card .book-cell small,
+  .table-card .user-cell strong,
+  .table-card .user-cell span {
+    display: block;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .table-card .user-cell span {
+    max-width: none;
+    width: 100%;
+    text-align: right;
+  }
+
+  .table-card .book-cell small {
+    margin-top: 4px;
   }
 }

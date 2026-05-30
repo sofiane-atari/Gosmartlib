@@ -40,10 +40,6 @@ public class User {
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campus_id")
-    private Campus campus;
-
     @Column(name = "review_blocked", nullable = false)
     private boolean reviewBlocked = false;
 }

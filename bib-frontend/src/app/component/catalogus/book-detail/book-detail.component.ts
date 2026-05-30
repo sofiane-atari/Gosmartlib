@@ -1,5 +1,7 @@
 import { Component, Inject, inject, signal, OnInit } from '@angular/core';
 
+import { forkJoin } from 'rxjs';
+
 import {
   Book,
   BookCondition,
@@ -38,6 +40,7 @@ import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
+import { SelectedSchoolService } from '../../../services/selected-school/selected-school.service';
 import { BookLessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
@@ -47,6 +50,11 @@ import { CampusService } from '../../../services/campus/campus.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
 import { ReadingList } from '../../../model/readingList.model';
 import { BookReviewsComponent } from '../../reviews/book-reviews/book-reviews.component';
+import { GamificationNotificationStoreService } from '../../../services/gamification/notification/gamification-notification-store.service';
+import {
+  CopySelectionModalComponent,
+  CopySelectionItem,
+} from '../../shared/copy-selection-modal/copy-selection-modal.component';
 interface CopyStatusSummary {
   status: 'available' | 'borrowed' | 'lost';
   count: number;
@@ -65,6 +73,7 @@ interface CopyStatusSummary {
     ButtonHoverHelpComponent,
     BookReviewsComponent,
     BookImagePlaceholderComponent,
+    CopySelectionModalComponent,
   ],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css',
@@ -127,6 +136,8 @@ export class BookDetailComponent implements OnInit {
 
   protected readonly isSubscribed = signal(false);
   protected readonly subscriptionLoading = signal(false);
+  protected readonly isDeleteModalVisible = signal(false);
+  protected readonly isDeletingCopies = signal(false);
   private readonly mailSubscriptionService = inject(MailSubscriptionService);
 
   Availability = Availability;
@@ -135,6 +146,7 @@ export class BookDetailComponent implements OnInit {
   relatedBooksCarousel: Book[] = [];
 
   protected readonly roleService = inject(RoleService);
+  private readonly selectedSchoolService = inject(SelectedSchoolService);
 
   protected readonly erroredCoverImages = new Set<number>();
   protected readonly erroredCarouselImages = new Set<number>();
@@ -169,11 +181,12 @@ export class BookDetailComponent implements OnInit {
 
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
+      const schoolId = this.selectedSchoolService.schoolId();
 
       if (id) {
         const numericBookId = +id;
 
-        this.bookService.getBookById(numericBookId).subscribe((book) => {
+        this.bookService.getBookById(numericBookId, schoolId ?? undefined).subscribe((book) => {
           this.selectedBook = book;
           this.loadCampusForBook(book);
           this.loadSubscriptionStatus(numericBookId);
@@ -183,7 +196,7 @@ export class BookDetailComponent implements OnInit {
           }
         });
 
-        this.loadRelatedBooksCarousel(numericBookId);
+        this.loadRelatedBooksCarousel(numericBookId, schoolId ?? undefined);
         this.updateAverage(numericBookId);
       }
     });
@@ -191,8 +204,8 @@ export class BookDetailComponent implements OnInit {
     this.loadReadingLists();
   }
 
-  private loadRelatedBooksCarousel(bookId: number) {
-    this.bookService.getRelatedBooksCarousel(bookId, 10).subscribe({
+  private loadRelatedBooksCarousel(bookId: number, schoolId?: number) {
+    this.bookService.getRelatedBooksCarousel(bookId, 10, schoolId).subscribe({
       next: (books) => {
         this.relatedBooksCarousel = books;
       },
@@ -267,6 +280,27 @@ export class BookDetailComponent implements OnInit {
         (group) => group.copies.length > 0,
       ) ?? []
     );
+  }
+
+  protected get copySelectionItems(): CopySelectionItem[] {
+    const items: CopySelectionItem[] = [];
+
+    for (const group of this.copyLocationGroups) {
+      for (const copy of group.copies) {
+        items.push({
+          id: copy.id,
+          label: `Exemplaar #${copy.id}`,
+          campusName: group.campusName,
+          description:
+            this.getCopyAvailabilityLabel(copy) +
+            ' · ' +
+            this.getConditionLabel(copy.condition),
+          isBorrowed: this.isBorrowed(copy.availability),
+        });
+      }
+    }
+
+    return items;
   }
 
   protected get hasLocationInfo(): boolean {
@@ -457,7 +491,7 @@ export class BookDetailComponent implements OnInit {
     const role = this.authService.currentUser()?.role;
 
     if (target === 'SYSTEM') {
-      return role === 'TEACHER' || role === 'LIBRARIAN' || role === 'ADMIN';
+      return role === 'LIBRARIAN' || role === 'ADMIN';
     }
 
     if (target === 'PERSONAL') {
@@ -653,29 +687,84 @@ export class BookDetailComponent implements OnInit {
   }
 
   public deleteBook(bookId?: number): void {
+    this.openDeleteModal();
+  }
+
+  protected isLeerling(): boolean {
+    return this.authService.currentUser()?.role === 'STUDENT';
+  }
+
+  protected openDeleteModal(): void {
+    if (this.copySelectionItems.length === 0) {
+      this.toastService.show(
+        'Er zijn geen exemplaren om te verwijderen.',
+        'error',
+      );
+      return;
+    }
+
+    this.isDeleteModalVisible.set(true);
+  }
+
+  protected closeDeleteModal(): void {
+    this.isDeleteModalVisible.set(false);
+    this.isDeletingCopies.set(false);
+  }
+
+  protected handleCopyDeletion(selectedIds: number[]): void {
+    if (selectedIds.length === 0) {
+      return;
+    }
+
+    const bookId = this.selectedBook?.id;
     if (!bookId) {
       return;
     }
 
-    this.toastService.showConfirm(
-      'Weet je zeker dat je dit boek wilt verwijderen?',
-      () => {
-        this.bookService.deleteBook(bookId).subscribe({
-          next: () => {
-            this.toastService.show('Boek succesvol verwijderd.', 'success');
-            void this.router.navigate(['/catalog']);
-          },
-          error: (err) => {
-            const backendMessage = err?.error?.error?.message;
-            this.toastService.show(
-              backendMessage ?? 'Het boek kon niet verwijderd worden.',
-              'error',
-            );
-          },
+    this.isDeletingCopies.set(true);
+
+    const allCopyIds = this.copySelectionItems.map((c) => c.id);
+    const isDeletingAll = selectedIds.length === allCopyIds.length;
+
+    const deleteObservables = isDeletingAll
+      ? [this.bookService.deleteAllBookCopies(bookId)]
+      : selectedIds.map((id) => this.bookService.deleteBookCopy(id));
+
+    forkJoin(deleteObservables).subscribe({
+      next: () => {
+        this.isDeletingCopies.set(false);
+        this.isDeleteModalVisible.set(false);
+        this.toastService.show(
+          selectedIds.length === 1
+            ? 'Exemplaar succesvol verwijderd.'
+            : `${selectedIds.length} exemplaren succesvol verwijderd.`,
+          'success',
+        );
+
+        const remainingIds = allCopyIds.filter(
+          (id) => !selectedIds.includes(id),
+        );
+
+        if (remainingIds.length === 0) {
+          void this.router.navigate(['/catalog']);
+          return;
+        }
+
+        this.bookService.getBookById(bookId).subscribe((book) => {
+          this.selectedBook = book;
+          this.loadCampusForBook(book);
         });
       },
-      () => {},
-    );
+      error: (err) => {
+        this.isDeletingCopies.set(false);
+        const backendMessage = err?.error?.error?.message;
+        this.toastService.show(
+          backendMessage ??
+            'Er is een fout opgetreden bij het verwijderen van de exemplaren.',
+          'error',
+        );
+      },
+    });
   }
 
   public goBack(): void {

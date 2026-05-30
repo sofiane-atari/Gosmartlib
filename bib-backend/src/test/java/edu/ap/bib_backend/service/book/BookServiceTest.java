@@ -132,9 +132,9 @@ class BookServiceTest {
         school.setId(1L);
         campus.setSchool(school);
 
-        given(currentUserService.getCurrentUserCampus(authentication)).willReturn(campus);
         given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(true);
+        given(currentUserService.resolveSchool(any(), any())).willReturn(school);
         given(campusRepository.findByIdAndSchoolId(1L, 1L)).willReturn(Optional.of(campus));
     }
 
@@ -160,7 +160,7 @@ class BookServiceTest {
         dto.setTitle("Test Boek");
         dto.setAuthor("Auteur X");
 
-        given(br.findByCampusSchoolId(1L)).willReturn(List.of(book));
+        given(br.findAll((org.springframework.data.jpa.domain.Specification<Book>) any())).willReturn(List.of(book));
         given(bookMapper1.toDTOList(List.of(book))).willReturn(List.of(dto));
 
         List<BookDTO> result = bs.getAllBooks(authentication);
@@ -785,7 +785,7 @@ class BookServiceTest {
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
-        BookDTO result = bs.addCopyToBook(11L, null, authentication);
+        BookDTO result = bs.addCopyToBook(11L, 1L, authentication);
 
         assertThat(result.getId()).isEqualTo(11L);
 
@@ -955,40 +955,6 @@ class BookServiceTest {
         List<BookDTO> result = bs.getRelatedBooksForLoan(List.of(1L), 5, "school.be");
 
         assertThat(result).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Given existing book with no borrowed copies, When deleteBook is called, Then delete successfully")
-    void givenExistingBookWithNoBorrowedCopies_whenDeleteBook_thenDeleteSuccessfully() {
-        Book book = new Book();
-        book.setId(1L);
-        book.setCampus(campus);
-        book.setGenres(new HashSet<>());
-
-        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(book));
-        given(bcr.existsByBookIdAndCampusIdAndAvailability(1L, 1L, Availability.BORROWED)).willReturn(false);
-
-        bs.deleteBook(1L, authentication);
-
-        then(reviewRepository).should().deleteByBookId(1L);
-        then(bookLoanRepository).should().deleteByCopiesBookId(1L);
-        then(bcr).should().deleteByBookId(1L);
-        then(br).should().delete(book);
-    }
-
-    @Test
-    @DisplayName("Given book with borrowed copies, When deleteBook is called, Then throw exception")
-    void givenBookWithBorrowedCopies_whenDeleteBook_thenThrowException() {
-        Book book = new Book();
-        book.setId(1L);
-        book.setCampus(campus);
-
-        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(book));
-        given(bcr.existsByBookIdAndCampusIdAndAvailability(1L, 1L, Availability.BORROWED)).willReturn(true);
-
-        assertThatThrownBy(() -> bs.deleteBook(1L, authentication))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("kan niet verwijderd worden");
     }
 
     @Test

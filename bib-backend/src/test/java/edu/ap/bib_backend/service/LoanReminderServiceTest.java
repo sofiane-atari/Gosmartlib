@@ -97,7 +97,7 @@ class LoanReminderServiceTest {
         loan.setUser(user);
         loan.setLoanDate(LocalDate.now(BRUSSELS_ZONE).minusDays(5));
         loan.setReturnDate(LocalDate.now(BRUSSELS_ZONE).plusDays(2));
-        loan.getCopies().add(copy);
+        loan.setCopy(copy);
     }
 
     @Test
@@ -137,7 +137,7 @@ class LoanReminderServiceTest {
         otherLoan.setUser(otherUser);
         otherLoan.setLoanDate(LocalDate.now(BRUSSELS_ZONE).minusDays(3));
         otherLoan.setReturnDate(LocalDate.now(BRUSSELS_ZONE).plusDays(2));
-        otherLoan.getCopies().add(copy);
+        otherLoan.setCopy(copy);
 
         when(loanRepository.findByReturnedDateIsNullAndReturnDate(any())).thenReturn(List.of(loan, otherLoan));
         when(smartschoolTokenRefreshService.getValidSmartschoolAccessToken(user.getId())).thenReturn(null);

@@ -43,18 +43,6 @@ public class School {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String address = "";
-
-    @Column(nullable = false)
-    private Integer postalCode = 0;
-
-    @Column(name = "contact_phone", length = 50)
-    private String contactPhone;
-
-    @Column(name = "contact_email", length = 255)
-    private String contactEmail;
-
     @Column(name = "default_loan_duration_days", nullable = false)
     private Integer defaultLoanDurationDays = 15;
 
@@ -76,10 +64,22 @@ public class School {
     @Column(name = "marked_for_deletion_at")
     private LocalDateTime markedForDeletionAt;
 
+    @Column(name = "catalog_visible", nullable = false)
+    private Boolean catalogVisible = true;
+    
+    @Column(name = "catalog_featured_lists_enabled", nullable = false)
+    private boolean catalogFeaturedListsEnabled = true;
+
+    @Column(name = "catalog_most_read_enabled", nullable = false)
+    private boolean catalogMostReadEnabled = true;
+
+    @Column(name = "catalog_newest_enabled", nullable = false)
+    private boolean catalogNewestEnabled = true;
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
 
     public SchoolSummaryDto getSchoolSummaryDto() {
-        return new SchoolSummaryDto(id, name, getDomainName(), defaultLoanDurationDays, status);
+        return new SchoolSummaryDto(id, name, getDomainName(), defaultLoanDurationDays, status, catalogVisible);
     }
 }

@@ -111,11 +111,6 @@ export class UserService {
     return this.http.patch<AuthUserDto>(`${this.apiUrl}/users/${userId}/review-access`, { blocked });
   }
 
-  public hasValidRefreshToken(userId: string): Observable<boolean> {
-    const params = new HttpParams().set('userId', userId);
-    return this.http.get<boolean>(`${this.apiUrl}/users/has-refresh-token`, { params });
-  }
-
   public getUsersBySchoolId(schoolId: number): Observable<AuthUserDto[]> {
     return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/by-school/${schoolId}`);
   }

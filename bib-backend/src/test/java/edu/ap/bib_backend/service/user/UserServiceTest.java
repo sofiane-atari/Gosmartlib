@@ -5,14 +5,16 @@ import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.TeacherStatsDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterClassDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
 import edu.ap.bib_backend.service.GroupService;
@@ -93,8 +95,7 @@ class UserServiceTest {
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
-        Campus campus = new Campus();
-        User result = userService.createUser(userId, role, school, campus);
+        User result = userService.createUser(userId, role, school);
 
         // Assert
         assertNotNull(result);
@@ -111,7 +112,7 @@ class UserServiceTest {
 
         // Act
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> userService.createUser(userId, new RoleEntity(), new School(), new Campus()));
+                () -> userService.createUser(userId, new RoleEntity(), new School()));
 
         // Assert
         assertNotNull(exception.getMessage());
@@ -564,6 +565,166 @@ class UserServiceTest {
         // Assert
         assertEquals(1, result.size());
         assertNotNull(result.get(0).role());
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void Given_AdminAuthenticationAndValidSchool_When_GetUsersBySchoolId_Then_ReturnsTeachers() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn(userId);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        Long schoolId = 1L;
+        School school = new School();
+        school.setId(schoolId);
+        school.setDomainName("target.smartschool.be");
+        when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
+
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
+
+        Map<String, Object> rosterUser1 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "t1"),
+                "fullName", "Alice Teacher",
+                "role", "teacher",
+                "email", "alice@school.be");
+        when(oneRosterClient.fetchUsersWithBearer("target.smartschool.be", "token"))
+                .thenReturn(List.of(rosterUser1));
+
+        when(userRepository.findBySchoolId(schoolId)).thenReturn(List.of());
+
+        // Act
+        List<AuthUserDto> result = userService.getUsersBySchoolId(authentication, schoolId);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("t1", result.get(0).id());
+        assertEquals(Role.TEACHER, result.get(0).role());
+    }
+
+    @Test
+    void Given_NonAdminAuthentication_When_GetUsersBySchoolId_Then_ThrowsIllegalStateException() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        // Act
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> userService.getUsersBySchoolId(authentication, 1L));
+
+        // Assert
+        assertEquals("Alleen platformbeheerders kunnen gebruikers van een school opvragen.",
+                exception.getMessage());
+    }
+
+    @Test
+    void Given_AdminAuthenticationAndUnknownSchool_When_GetUsersBySchoolId_Then_ThrowsResourceNotFoundException() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        Long unknownSchoolId = 999L;
+        when(schoolRepository.findById(unknownSchoolId)).thenReturn(Optional.empty());
+
+        // Act
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> userService.getUsersBySchoolId(authentication, unknownSchoolId));
+
+        // Assert
+        assertTrue(exception.getMessage().contains("School niet gevonden"));
+    }
+
+    @Test
+    void Given_NonPrivilegedAuthentication_When_GetTeacherStats_Then_ThrowsIllegalStateException() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
+
+        // Act
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> userService.getTeacherStats(authentication));
+
+        // Assert
+        assertEquals("Alleen bibliothecarissen en admins kunnen docenten bekijken.",
+                exception.getMessage());
+    }
+
+    @Test
+    void Given_UserNotFound_When_SetReviewBlocked_Then_ThrowsResourceNotFoundException() {
+        // Arrange
+        String unknownUserId = "unknown-user";
+        when(userRepository.findById(unknownUserId)).thenReturn(Optional.empty());
+
+        // Act
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> userService.setReviewBlocked(unknownUserId, true));
+
+        // Assert
+        assertTrue(exception.getMessage().contains("Gebruiker niet gevonden"));
+    }
+
+    @Test
+    void Given_NullOptions_When_GetUsers_Then_ReturnsAllUsersWithoutFiltering() {
+        // Arrange
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(userId);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        SecurityContextHolder.setContext(securityContext);
+
+        User currentUser = new User();
+        School school = new School();
+        school.setDomainName("test.smartschool.be");
+        currentUser.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
+
+        Map<String, Object> user1 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "u1"),
+                "fullName", "User One");
+        Map<String, Object> user2 = Map.of(
+                "metadata", Map.of("smsc.legacyIdentifier", "u2"),
+                "fullName", "User Two");
+        when(oneRosterClient.fetchUsersWithBearer("test.smartschool.be", "token"))
+                .thenReturn(List.of(user1, user2));
+
+        // Act
+        List<AuthUserDto> result = userService.getUsers(null);
+
+        // Assert
+        assertEquals(2, result.size());
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void Given_NullAuthentication_When_GetUsers_Then_ThrowsIllegalStateException() {
+        // Arrange
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(null);
+        SecurityContextHolder.setContext(securityContext);
+
+        // Act
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> userService.getUsers(new UserGetOptions()));
+
+        // Assert
+        assertEquals("Geen geauthenticeerde gebruiker gevonden.", exception.getMessage());
 
         SecurityContextHolder.clearContext();
     }

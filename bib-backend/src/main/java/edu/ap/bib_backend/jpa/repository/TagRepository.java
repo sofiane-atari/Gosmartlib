@@ -13,7 +13,7 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
                 SELECT COUNT(t) > 0
                 FROM Tag t
                 WHERE LOWER(t.name) = LOWER(:name)
-                  AND ((:schoolId IS NULL AND t.school IS NULL) OR t.school.id = :schoolId)
+                  AND t.school.id = :schoolId
             """)
     boolean existsByNameInSchool(@Param("name") String name, @Param("schoolId") Long schoolId);
 
@@ -22,7 +22,7 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
                 FROM Tag t
                 WHERE LOWER(t.name) = LOWER(:name)
                   AND t.id <> :id
-                  AND ((:schoolId IS NULL AND t.school IS NULL) OR t.school.id = :schoolId)
+                  AND t.school.id = :schoolId
             """)
     boolean existsByNameInSchoolAndIdNot(@Param("name") String name, @Param("schoolId") Long schoolId, @Param("id") Long id);
 
@@ -30,14 +30,14 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
                 SELECT t
                 FROM Tag t
                 WHERE t.id = :id
-                  AND ((:schoolId IS NULL AND t.school IS NULL) OR t.school.id = :schoolId)
+                  AND t.school.id = :schoolId
             """)
     java.util.Optional<Tag> findByIdInSchool(@Param("id") Long id, @Param("schoolId") Long schoolId);
 
     @Query("""
                 SELECT t
                 FROM Tag t
-                WHERE ((:schoolId IS NULL AND t.school IS NULL) OR t.school.id = :schoolId)
+                WHERE t.school.id = :schoolId
                   AND (:search IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')))
             """)
     Page<Tag> findBySearch(
@@ -48,7 +48,7 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
     @Query("""
                 SELECT COUNT(t)
                 FROM Tag t
-                WHERE ((:schoolId IS NULL AND t.school IS NULL) OR t.school.id = :schoolId)
+                WHERE t.school.id = :schoolId
                   AND SIZE(t.books) = 0
             """)
     Long countUnusedTags(@Param("schoolId") Long schoolId);
@@ -64,7 +64,7 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
     @Query("""
                 SELECT COUNT(t)
                 FROM Tag t
-                WHERE ((:schoolId IS NULL AND t.school IS NULL) OR t.school.id = :schoolId)
+                WHERE t.school.id = :schoolId
             """)
     Long countBySchoolIdOrNull(@Param("schoolId") Long schoolId);
 }

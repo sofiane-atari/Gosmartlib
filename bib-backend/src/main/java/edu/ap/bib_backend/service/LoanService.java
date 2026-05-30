@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
@@ -90,7 +91,7 @@ public class LoanService {
     }
 
     @Transactional
-    public LoanDTO create(LoanDTO loanDTO, Authentication authentication) {
+    public List<LoanDTO> create(LoanDTO loanDTO, Authentication authentication) {
         School currentUserSchool = currentUserService.getCurrentUserSchool(authentication);
 
         if (loanDTO.bookCopyIds() == null || loanDTO.bookCopyIds().isEmpty()) {
@@ -106,16 +107,19 @@ public class LoanService {
 
         List<BookCopy> selectedCopies = resolveSelectedCopies(loanDTO.bookCopyIds(), currentUserSchool);
 
-        Loan loan = loanMapper.toEntity(loanDTO);
-        loan.setUser(user);
-        loan.setCampus(selectedCopies.get(0).getCampus());
-        loan.setLoanDate(today);
-        loan.setReturnDate(parsedReturnDate);
-        loan.setLibrarianId(currentUserService.extractCurrentUserId(authentication));
-        loan.getCopies().clear();
-        loan.getCopies().addAll(selectedCopies);
-
-        Loan savedLoan = loanRepository.save(loan);
+String batchId = UUID.randomUUID().toString();
+        String librarianId = currentUserService.extractCurrentUserId(authentication);
+        List<Loan> createdLoans = selectedCopies.stream().map(copy -> {
+            Loan loan = new Loan();
+            loan.setUser(user);
+            loan.setCampus(copy.getCampus());
+            loan.setLoanDate(today);
+            loan.setReturnDate(parsedReturnDate);
+            loan.setBatchId(batchId);
+            loan.setCopy(copy);
+            loan.setLibrarianId(librarianId);
+            return loanRepository.save(loan);
+        }).toList();
 
         List<Long> selectedBookIds = selectedCopies.stream()
                 .map(BookCopy::getBook)
@@ -127,9 +131,9 @@ public class LoanService {
         sendLoanConfirmationMessage(
                 loanDTO.userId(),
                 selectedBookIds,
-                List.of(savedLoan));
+                createdLoans);
 
-        return loanMapper.toDto(savedLoan);
+        return loanMapper.toDtoList(createdLoans);
     }
 
     public PageDTO<LoanDTO> findAll(int page, int pageSize, Authentication authentication) {
@@ -232,7 +236,7 @@ public class LoanService {
         return LoanHistoryDTO.builder()
                 .activeLoanCount(activeLoanEntities.size())
                 .returnedLoanCount(returnedLoanDtos.size())
-                .totalLoanedBookCount(allLoans.stream().mapToInt(loan -> loan.getCopies().size()).sum())
+                .totalLoanedBookCount((int) allLoans.stream().filter(loan -> loan.getCopy() != null).count())
                 .activeLoans(loanMapper.toDtoList(activeLoanEntities))
                 .returnedLoans(new PageDTO<>(
                         returnedPageData,
@@ -259,15 +263,13 @@ public class LoanService {
     }
 
     private void publishBookAvailableEvents(Loan loan) {
-        loan.getCopies().stream()
-                .map(copy -> copy.getBook())
-                .filter(book -> book != null && book.getId() != null)
-                .collect(Collectors.toSet())
-                .forEach(book -> {
-                    log.debug("Publishing BookAvailableEvent for book id={}", book.getId());
-                    applicationEventPublisher.publishEvent(
-                            new BookAvailableEvent(book.getId(), LocalDateTime.now()));
-                });
+        if (loan.getCopy() == null || loan.getCopy().getBook() == null || loan.getCopy().getBook().getId() == null) {
+            return;
+        }
+
+        Long bookId = loan.getCopy().getBook().getId();
+        log.debug("Publishing BookAvailableEvent for book id={}", bookId);
+        applicationEventPublisher.publishEvent(new BookAvailableEvent(bookId, LocalDateTime.now()));
     }
 
     private List<BookCopy> resolveSelectedCopies(List<Long> bookCopyIds, School currentUserSchool) {
@@ -310,9 +312,10 @@ public class LoanService {
             return;
         }
 
-        Map<Long, BookCopy> loanCopiesById = loan.getCopies().stream()
-                .filter(copy -> copy.getId() != null)
-                .collect(Collectors.toMap(BookCopy::getId, copy -> copy));
+        BookCopy loanCopy = loan.getCopy();
+        Map<Long, BookCopy> loanCopiesById = (loanCopy != null && loanCopy.getId() != null)
+                ? Map.of(loanCopy.getId(), loanCopy)
+                : Map.of();
 
         for (BookCopyConditionUpdateDTO update : request.copyConditions()) {
             if (update.bookCopyId() == null) {
@@ -376,19 +379,21 @@ public class LoanService {
 
                     String lookupId = loan.getUser() != null ? loan.getUser().getOneRosterSourcedId() : null;
 
-                    return LoanDTO.builder()
-                            .id(dto.id())
-                            .userId(dto.userId())
-                            .userDisplayName(displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"))
-                            .bookCopyIds(dto.bookCopyIds())
-                            .books(dto.books())
-                            .loanDate(dto.loanDate())
-                            .returnDate(dto.returnDate())
-                            .returnedDate(dto.returnedDate())
-                            .status(dto.status())
-                            .build();
-                })
-                .toList();
+                     return LoanDTO.builder()
+                             .id(dto.id())
+                             .batchId(dto.batchId())
+                             .userId(dto.userId())
+                             .userDisplayName(displayNamesByUserId.getOrDefault(lookupId, "Onbekende gebruiker"))
+                             .bookCopyIds(dto.bookCopyIds())
+                             .books(dto.books())
+                             .loanDate(dto.loanDate())
+                             .returnDate(dto.returnDate())
+                             .returnedDate(dto.returnedDate())
+                             .status(dto.status())
+                             .extensionCount(dto.extensionCount())
+                             .build();
+                 })
+                 .toList();
 
         int safePage = Math.max(page, 0);
         int safePageSize = Math.max(pageSize, 1);
@@ -424,17 +429,19 @@ public class LoanService {
         return 3;
     }
 
-    public LoanStatsDTO getLoanStats() {
+    public LoanStatsDTO getLoanStats(Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Long schoolId = school.getId();
         LocalDate today = LocalDate.now();
 
         long activeLoans = loanRepository
-                .countByReturnedDateIsNullAndReturnDateGreaterThanEqual(today);
+                .countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateGreaterThanEqual(schoolId, today);
 
         long overdueLoans = loanRepository
-                .countByReturnedDateIsNullAndReturnDateBefore(today);
+                .countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateBefore(schoolId, today);
 
         long returnedLoans = loanRepository
-                .countByReturnedDateIsNotNull();
+                .countByCampusSchoolIdAndReturnedDateIsNotNull(schoolId);
 
         return new LoanStatsDTO(activeLoans, overdueLoans, returnedLoans);
     }
@@ -592,32 +599,13 @@ public class LoanService {
     }
 
     private String buildCombinedLoanMessage(List<Loan> loans, List<BookDTO> recommendations) {
-        Loan combinedLoan = createCombinedMessageLoan(loans);
-
         return new HtmlMessageBuilder(
                 loans.size() == 1 ? "Bevestiging nieuwe uitlening" : "Bevestiging nieuwe uitleningen",
                 frontendUrl)
-                .addComponent(new LoanGeneralInfoComponent(combinedLoan, frontendUrl))
-                .addComponent(new LoanBookListComponent(combinedLoan, frontendUrl))
+                .addComponent(new LoanGeneralInfoComponent(loans, frontendUrl))
+                .addComponent(new LoanBookListComponent(loans, frontendUrl))
                 .addComponent(new BookRecommendationComponent(recommendations, frontendUrl))
                 .build();
-    }
-
-    private Loan createCombinedMessageLoan(List<Loan> loans) {
-        Loan firstLoan = loans.get(0);
-
-        Loan combinedLoan = new Loan();
-        combinedLoan.setUser(firstLoan.getUser());
-        combinedLoan.setCampus(firstLoan.getCampus());
-        combinedLoan.setLoanDate(firstLoan.getLoanDate());
-        combinedLoan.setReturnDate(firstLoan.getReturnDate());
-        combinedLoan.setReturnedDate(firstLoan.getReturnedDate());
-
-        for (Loan loan : loans) {
-            combinedLoan.getCopies().addAll(loan.getCopies());
-        }
-
-        return combinedLoan;
     }
 
     private String buildLoanGroupKey(Loan loan, LocalDate today) {
@@ -698,7 +686,7 @@ public class LoanService {
         if (hasActiveLoan) {
             return LoanStatus.ACTIVE;
         }
-
+        
         return LoanStatus.RETURNED;
     }
 

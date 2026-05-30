@@ -1,11 +1,9 @@
 package edu.ap.bib_backend.controller;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -46,12 +44,6 @@ public class ReviewController {
                         PageMapper.toPaginatedMeta(reviewPage)
                 )
         );
-    }
-
-    @GetMapping
-    public ResponseEntity<List<ReviewDTO>> getAllReviews(Authentication authentication) {
-        List<ReviewDTO> reviews = reviewService.getAllReviews(authentication);
-        return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/me")
@@ -118,8 +110,9 @@ public class ReviewController {
     }
 
     @GetMapping("/flagged/stats")
-    public ResponseEntity<ReviewDashboardStatsDTO> getFlaggedReviewStats() {
-        ReviewDashboardStatsDTO stats = reviewService.getFlaggedReviewStats();
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    public ResponseEntity<ReviewDashboardStatsDTO> getFlaggedReviewStats(Authentication authentication) {
+        ReviewDashboardStatsDTO stats = reviewService.getFlaggedReviewStats(authentication);
         return ResponseEntity.ok(stats);
     }
 

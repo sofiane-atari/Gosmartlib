@@ -12,25 +12,22 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.Tag;
 import edu.ap.bib_backend.jpa.repository.TagRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TagService {
 
     private final TagRepository tagRepository;
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    public TagService(TagRepository tagRepository) {
+    public TagService(TagRepository tagRepository, Optional<CurrentUserService> currentUserService) {
         this.tagRepository = tagRepository;
+        this.currentUserService = currentUserService.orElse(null);
     }
 
-    @Autowired(required = false)
-    public void setCurrentUserService(CurrentUserService currentUserService) {
-        this.currentUserService = currentUserService;
-    }
 
     public PageDTO<TagDTO> getTagsByPage(
             int page,

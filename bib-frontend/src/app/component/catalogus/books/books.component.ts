@@ -6,6 +6,7 @@ import {
   inject,
   effect,
   DestroyRef,
+  HostListener,
 } from '@angular/core';
 import { Book } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
@@ -25,6 +26,7 @@ import {
   BookPlus,
   Search,
   Locate,
+  ChevronDown,
 } from 'lucide-angular';
 import { BookListSidebarComponent } from '../book-list-sidebar/book-list-sidebar.component';
 import { BookImagePlaceholderComponent } from '../../shared/book-image-placeholder/book-image-placeholder.component';
@@ -42,6 +44,10 @@ import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations
 import { UserSettingsService } from '../../../services/user-settings/user-settings.service';
 import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
 import { RoleService } from '../../../services/role-service/role.service';
+import { School } from '../../../model/school.model';
+import { SchoolService } from '../../../services/school/school.service';
+import { SelectedSchoolService } from '../../../services/selected-school/selected-school.service';
+import { AuthService } from '../../../services/authorization/auth.service';
 
 @Component({
   selector: 'app-books',
@@ -67,6 +73,7 @@ export class BooksComponent implements OnInit {
   readonly Search = Search;
   readonly Star = Star;
   readonly Locate = Locate;
+  readonly ChevronDown = ChevronDown;
 
   private readonly bookService = inject(BookService);
   private readonly router = inject(Router);
@@ -77,6 +84,9 @@ export class BooksComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly roleService = inject(RoleService);
+  private readonly schoolService = inject(SchoolService);
+  private readonly selectedSchoolService = inject(SelectedSchoolService);
+  protected readonly authService = inject(AuthService);
 
   books = signal<Book[]>([]);
   protected readonly pagingMeta = signal({
@@ -111,6 +121,17 @@ export class BooksComponent implements OnInit {
     this.roleService.canFilterDidacticBooks()
   );
 
+  protected readonly canViewOtherSchools = computed(() =>
+    this.roleService.canViewOtherSchools()
+  );
+
+  protected readonly accessibleSchools = signal<School[]>([]);
+  protected readonly schoolsLoading = signal(false);
+
+  protected readonly selectedSchoolId = this.selectedSchoolService.schoolId;
+  protected readonly currentSchoolName = this.selectedSchoolService.schoolName;
+  protected readonly isSchoolDropdownOpen = signal(false);
+
   private readonly favoritesListId = signal<number | null>(null);
 
   protected readonly erroredImages = new Set<number>();
@@ -122,6 +143,39 @@ export class BooksComponent implements OnInit {
     effect(() => {
       localStorage.setItem('bookFilters', JSON.stringify(this.filters()));
     });
+
+    effect(() => {
+      const status = this.authService.adminOverrideStatus();
+      const user = this.authService.currentUser();
+
+      if (!user?.schoolId) {
+        return;
+      }
+
+      if (this.canViewOtherSchools()) {
+        return;
+      }
+
+      if (status?.enabled) {
+        return;
+      }
+
+      if (Number(this.selectedSchoolId()) === Number(user.schoolId)) {
+        return;
+      }
+
+      this.selectedSchoolService.selectSchool(user.schoolId, user.schoolName ?? '');
+      this.currentPage.set(0);
+      this.loadCatalogBooks();
+      this.loadSidebarBooks();
+      this.loadFeaturedReadingLists();
+    }, { allowSignalWrites: true });
+
+    effect(() => {
+      if (this.canViewOtherSchools()) {
+        this.loadAccessibleSchools();
+      }
+    }, { allowSignalWrites: true });
 
     this.pageRangeSubject
       .pipe(debounceTime(400), takeUntilDestroyed(this.destroyRef))
@@ -169,6 +223,8 @@ export class BooksComponent implements OnInit {
   );
   
   ngOnInit(): void {
+    this.ensureCorrectSchool();
+
     const parsedFilters: BookFilters | null = this.getSavedFilters();
 
     if (parsedFilters) {
@@ -183,13 +239,76 @@ export class BooksComponent implements OnInit {
     this.loadCampuses();
     this.loadSidebarBooks();
     this.loadFeaturedReadingLists();
+    this.userSettingsService.loadCatalogSidebarSettings();
     this.loadFavoritesState();
+  }
+
+  private loadAccessibleSchools(): void {
+    this.schoolsLoading.set(true);
+
+    this.schoolService.getAccessibleSchools().subscribe({
+      next: (schools) => {
+        this.accessibleSchools.set(schools);
+        this.schoolsLoading.set(false);
+      },
+      error: () => {
+        this.accessibleSchools.set([]);
+        this.schoolsLoading.set(false);
+      },
+    });
+  }
+
+  protected toggleSchoolDropdown(): void {
+    this.isSchoolDropdownOpen.update((open) => !open);
+  }
+
+  protected selectSchoolFromDropdown(schoolId: number, schoolName: string): void {
+    this.isSchoolDropdownOpen.set(false);
+
+    this.onSchoolChange(schoolId, schoolName);
+  }
+
+  protected getSelectedSchoolTitle(): string {
+    const selectedSchoolId = this.selectedSchoolId();
+
+    if (selectedSchoolId === null) {
+      return 'Kies een school';
+    }
+
+    const selectedIdAsNumber = Number(selectedSchoolId);
+
+    const selected = this.accessibleSchools().find(
+      (school) => school.id === selectedIdAsNumber,
+    );
+
+    return selected?.name || this.currentSchoolName() || 'Kies een school';
+  }
+
+  @HostListener('document:click', ['$event'])
+  protected closeSchoolDropdown(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+
+    if (!target.closest('.school-dropdown')) {
+      this.isSchoolDropdownOpen.set(false);
+    }
+  }
+
+  protected onSchoolChange(schoolId: number | null, schoolName?: string): void {
+    this.selectedSchoolService.selectSchool(
+      schoolId,
+      schoolName ?? '',
+    );
+
+    this.currentPage.set(0);
+    this.loadCatalogBooks();
+    this.loadSidebarBooks();
+    this.loadFeaturedReadingLists();
   }
 
   private loadFeaturedReadingLists(): void {
     this.isLoadingFeaturedReadingLists = true;
 
-    this.readingListService.getCatalogFeaturedLists().subscribe({
+    this.readingListService.getCatalogFeaturedLists(this.selectedSchoolId() ?? undefined).subscribe({
       next: (lists) => {
         this.featuredReadingLists = lists;
         this.isLoadingFeaturedReadingLists = false;
@@ -213,6 +332,22 @@ export class BooksComponent implements OnInit {
     });
   }
 
+  private ensureCorrectSchool(): void {
+    const user = this.authService.currentUser();
+
+    if (this.canViewOtherSchools()) {
+      return;
+    }
+
+    if (!user?.schoolId) {
+      return;
+    }
+
+    if (Number(this.selectedSchoolId()) !== Number(user.schoolId)) {
+      this.selectedSchoolService.selectSchool(user.schoolId, user.schoolName ?? '');
+    }
+  }
+
   private loadCatalogBooks(): void {
     this.catalogLoading.set(true);
 
@@ -230,6 +365,7 @@ export class BooksComponent implements OnInit {
         this.currentPage(),
         this.pageSize(),
         filters.sortBy,
+        this.selectedSchoolId() ?? undefined,
       )
       .subscribe({
         next: (response: PaginatedResponse<Book>) => {
@@ -318,7 +454,10 @@ export class BooksComponent implements OnInit {
   }
 
   private loadSidebarBooks(): void {
-    this.bookService.getMostReadBooks(3).subscribe({
+    this.mostReadLoading.set(true);
+    this.newestLoading.set(true);
+
+    this.bookService.getMostReadBooks(3, this.selectedSchoolId() ?? undefined).subscribe({
       next: (books) => {
         this.mostReadBooks.set(books);
         this.mostReadLoading.set(false);
@@ -329,7 +468,7 @@ export class BooksComponent implements OnInit {
       },
     });
 
-    this.bookService.getNewestBooks(3).subscribe({
+    this.bookService.getNewestBooks(3, this.selectedSchoolId() ?? undefined).subscribe({
       next: (books) => {
         this.newestBooks.set(books);
         this.newestLoading.set(false);

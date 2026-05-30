@@ -75,8 +75,27 @@ public class BookSearchService {
             BookSortOption sortBy,
             Authentication authentication
     ) {
-        School school = currentUserService.getCurrentUserSchool(authentication);
-        Long schoolId = school.getId();
+        return getFilteredBooks(searchTerm, availabilityFilter, minPages, maxPages,
+                readingLevelId, genreName, didactic, page, size, sortBy, authentication, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BookDTO> getFilteredBooks(
+            String searchTerm,
+            BookAvailabilityFilter availabilityFilter,
+            Integer minPages,
+            Integer maxPages,
+            Long readingLevelId,
+            String genreName,
+            Boolean didactic,
+            int page,
+            int size,
+            BookSortOption sortBy,
+            Authentication authentication,
+            Long schoolId
+    ) {
+        School school = currentUserService.resolveSchool(schoolId, authentication);
+        Long resolvedSchoolId = school.getId();
 
         String normalizedSearchTerm = normalizeSearchTerm(searchTerm);
         validatePageRange(minPages, maxPages);
@@ -88,10 +107,10 @@ public class BookSearchService {
         Pageable pageable = PageRequest.of(validatedPage, validatedSize, sort);
 
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+        boolean isModerator = currentUserService.isModerator(authentication);
 
-        // School-brede boeken in plaats van campus-specifieke
         Specification<Book> specification = Specification
-                .where(BookSpecification.belongsToSchool(schoolId))
+                .where(BookSpecification.belongsToSchool(resolvedSchoolId))
                 .and(BookSpecification.withFilters(
                         normalizedSearchTerm,
                         minPages,
@@ -100,6 +119,10 @@ public class BookSearchService {
                         genreName
                 ))
                 .and(BookSpecification.visibleForUser(canSeeDidacticBooks));
+
+        if (!isModerator) {
+            specification = specification.and(BookSpecification.hasNonLostCopyInSchool(schoolId));
+        }
 
         if (availabilityFilter == BookAvailabilityFilter.AVAILABLE) {
             specification = specification.and(BookSpecification.hasAnyAvailableCopy());
@@ -165,11 +188,9 @@ public class BookSearchService {
         try {
             String userId = currentUserService.extractCurrentUserId(authentication);
             User user = currentUserService.getCurrentUser(authentication);
-            Long campusId = user.getCampus() != null
-                    ? user.getCampus().getId()
-                    : campusRepository.findFirstBySchoolIdOrderByIdAsc(user.getSchool().getId())
-                        .map(Campus::getId)
-                        .orElse(null);
+            Long campusId = campusRepository.findFirstBySchoolIdOrderByIdAsc(user.getSchool().getId())
+                    .map(Campus::getId)
+                    .orElse(null);
             if (campusId == null) return Set.of();
 
             return readingListRepository

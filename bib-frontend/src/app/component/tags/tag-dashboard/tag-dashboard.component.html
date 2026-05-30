@@ -1,19 +1,19 @@
 <div class="tag-dashboard">
   <div class="page-header">
     <div class="page-header__text">
-      <h1>Labelbeheer</h1>
+      <h1>Tagbeheer</h1>
       <p>Beheer tags voor de boekencatalogus.</p>
     </div>
 
     <button type="button" class="btn-new" (click)="openCreatePopup()">
       <lucide-icon [name]="Plus" class="icon-sm"></lucide-icon>
-      Nieuw label
+      Nieuwe tag
     </button>
   </div>
 
   <section class="stat-cards">
     <app-stat-card
-      label="Totaal labels"
+      label="Totaal tags"
       [value]="stats().totalItems"
       [icon]="TagIcon"
       variant="purple"
@@ -21,7 +21,7 @@
     ></app-stat-card>
 
     <app-stat-card
-      label="Gebruikte labels"
+      label="Gebruikte tags"
       [value]="totalActive()"
       [icon]="CheckCircle"
       variant="green"
@@ -29,7 +29,7 @@
     ></app-stat-card>
 
     <app-stat-card
-      label="Ongebruikte labels"
+      label="Ongebruikte tags"
       [value]="stats().unActiveTags"
       [icon]="CircleOff"
       variant="orange"
@@ -39,7 +39,7 @@
 
   <section class="search-panel">
     <app-search-bar
-      placeholder="Zoek labels op naam..."
+      placeholder="Zoek tags op naam..."
       (searchChange)="onSearch($event)"
     ></app-search-bar>
   </section>
@@ -60,7 +60,7 @@
   <app-data-table
     [data]="tags()"
     [columns]="columns"
-    [emptyMessage]="'Geen labels gevonden.'"
+    [emptyMessage]="'Geen tags gevonden.'"
     [pagingMeta]="pagingMeta()"
     (pageChange)="onPageChange($event)"
   >

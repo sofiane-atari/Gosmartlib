@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import edu.ap.bib_backend.jpa.entity.Book;
-
+import edu.ap.bib_backend.jpa.entity.Loan;
 public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
 
     Optional<Book> findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(
@@ -61,7 +61,7 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
             SELECT b
             FROM Book b
             LEFT JOIN b.bookCopies bc
-            LEFT JOIN bc.loans bl
+            LEFT JOIN Loan bl ON bl.copy = bc
             LEFT JOIN bl.user u
             GROUP BY b.id
             ORDER BY COUNT(DISTINCT u.id) DESC
@@ -83,7 +83,7 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
             SELECT b
             FROM Book b
             LEFT JOIN b.bookCopies bc
-            LEFT JOIN bc.loans bl
+            LEFT JOIN Loan bl ON bl.copy = bc
             LEFT JOIN bl.user u
             WHERE b.campus.id = :campusId
             GROUP BY b
@@ -95,7 +95,7 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
             SELECT b
             FROM Book b
             LEFT JOIN b.bookCopies bc
-            LEFT JOIN bc.loans bl
+            LEFT JOIN Loan bl ON bl.copy = bc
             LEFT JOIN bl.user u
             WHERE b.campus.school.id = :schoolId
             GROUP BY b

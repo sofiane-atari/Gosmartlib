@@ -1,6 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
+import { AuthService } from '../authorization/auth.service';
 import { Book, BookCondition } from '../../model/book/book.model';
 import { BookPreview } from '../../model/book/book-preview.model';
 import { environment } from '../../../environments/environment';
@@ -22,6 +24,8 @@ import {
 export class BookService {
   private apiUrl = `${environment.apiUrl}/books`;
 
+  private authService = inject(AuthService);
+
   constructor(private http: HttpClient) {}
 
   getBooks(): Observable<Book[]> {
@@ -39,6 +43,7 @@ export class BookService {
     page: number,
     size: number,
     sortBy: BookSortOption,
+    schoolId?: number,
   ): Observable<PaginatedResponse<Book>> {
     let params = new HttpParams()
       .set('page', Math.max(0, page))
@@ -73,13 +78,21 @@ export class BookService {
       params = params.set('didactic', 'true');
     }
 
+    if (schoolId !== undefined && schoolId !== null) {
+      params = params.set('schoolId', schoolId);
+    }
+
     return this.http.get<PaginatedResponse<Book>>(`${this.apiUrl}/catalog`, {
       params,
     });
   }
 
-  getBookById(id: number): Observable<Book> {
-    return this.http.get<Book>(`${this.apiUrl}/${id}`);
+  getBookById(id: number, schoolId?: number): Observable<Book> {
+    let params = new HttpParams();
+    if (schoolId !== undefined && schoolId !== null) {
+      params = params.set('schoolId', schoolId);
+    }
+    return this.http.get<Book>(`${this.apiUrl}/${id}`, { params });
   }
 
   addBook(book: Book): Observable<Book> {
@@ -88,10 +101,6 @@ export class BookService {
 
   public updateBook(id: number, book: Book): Observable<Book> {
     return this.http.put<Book>(`${this.apiUrl}/${id}`, book);
-  }
-
-  public deleteBook(id: number) {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
   public getBookByISBN(isbn: string): Observable<Book> {
@@ -110,13 +119,19 @@ export class BookService {
     return this.http.get<number>(`${this.apiUrl}/pages/min`);
   }
 
-  getMostReadBooks(limit: number = 3): Observable<Book[]> {
-    const params = new HttpParams().set('limit', limit);
+  getMostReadBooks(limit: number = 3, schoolId?: number): Observable<Book[]> {
+    let params = new HttpParams().set('limit', limit);
+    if (schoolId !== undefined && schoolId !== null) {
+      params = params.set('schoolId', schoolId);
+    }
     return this.http.get<Book[]>(`${this.apiUrl}/most-read`, { params });
   }
 
-  getNewestBooks(limit: number = 3): Observable<Book[]> {
-    const params = new HttpParams().set('limit', limit);
+  getNewestBooks(limit: number = 3, schoolId?: number): Observable<Book[]> {
+    let params = new HttpParams().set('limit', limit);
+    if (schoolId !== undefined && schoolId !== null) {
+      params = params.set('schoolId', schoolId);
+    }
     return this.http.get<Book[]>(`${this.apiUrl}/newest`, { params });
   }
 
@@ -129,10 +144,33 @@ export class BookService {
     });
   }
 
-  validateBooksStream(tempFileId: string): EventSource {
-    return new EventSource(
-      `${this.apiUrl}/upload/validate-stream/${tempFileId}`,
-    );
+  validateBooksStream(
+    tempFileId: string,
+    onMessage: (event: { event: string; data: string }) => void,
+    onError: (error: any) => void,
+    onOpen?: (response: Response) => Promise<void>,
+  ): AbortController {
+    const abortController = new AbortController();
+    const token = this.authService.getValidToken();
+
+    if (!token) {
+      onError(new Error('Geen geldige token'));
+      return abortController;
+    }
+
+    fetchEventSource(`${this.apiUrl}/upload/validate-stream/${tempFileId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'text/event-stream',
+      },
+      signal: abortController.signal,
+      onopen: onOpen,
+      onmessage: onMessage,
+      onerror: onError,
+    });
+
+    return abortController;
   }
 
   searchBooksInDb(
@@ -191,12 +229,26 @@ export class BookService {
     );
   }
 
+  public deleteBookCopy(copyId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/book-copies/${copyId}`);
+  }
+
+  public deleteAllBookCopies(bookId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/book-copies/book/${bookId}`);
+  }
+
   getRelatedBooksCarousel(
     bookId: number,
     limit: number = 10,
+    schoolId?: number,
   ): Observable<Book[]> {
+    let params = new HttpParams().set('limit', limit);
+    if (schoolId !== undefined && schoolId !== null) {
+      params = params.set('schoolId', schoolId);
+    }
     return this.http.get<Book[]>(
-      `${this.apiUrl}/${bookId}/related-carousel?limit=${limit}`,
+      `${this.apiUrl}/${bookId}/related-carousel`,
+      { params },
     );
   }
 
