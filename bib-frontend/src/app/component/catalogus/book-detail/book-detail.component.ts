@@ -44,6 +44,7 @@ import { BookPreview } from '../../../model/book/book-preview.model';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
+import { SelectedSchoolService } from '../../../services/selected-school/selected-school.service';
 import { BookLessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
@@ -141,6 +142,7 @@ export class BookDetailComponent implements OnInit {
   relatedBooksCarousel: Book[] = [];
 
   protected readonly roleService = inject(RoleService);
+  private readonly selectedSchoolService = inject(SelectedSchoolService);
 
   protected readonly erroredCoverImages = new Set<number>();
   protected readonly erroredCarouselImages = new Set<number>();
@@ -175,11 +177,12 @@ export class BookDetailComponent implements OnInit {
 
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
+      const schoolId = this.selectedSchoolService.schoolId();
 
       if (id) {
         const numericBookId = +id;
 
-        this.bookService.getBookById(numericBookId).subscribe((book) => {
+        this.bookService.getBookById(numericBookId, schoolId ?? undefined).subscribe((book) => {
           this.selectedBook = book;
           this.loadCampusForBook(book);
           this.loadSubscriptionStatus(numericBookId);
@@ -189,7 +192,7 @@ export class BookDetailComponent implements OnInit {
           }
         });
 
-        this.loadRelatedBooksCarousel(numericBookId);
+        this.loadRelatedBooksCarousel(numericBookId, schoolId ?? undefined);
         this.updateAverage(numericBookId);
       }
     });
@@ -197,8 +200,8 @@ export class BookDetailComponent implements OnInit {
     this.loadReadingLists();
   }
 
-  private loadRelatedBooksCarousel(bookId: number) {
-    this.bookService.getRelatedBooksCarousel(bookId, 10).subscribe({
+  private loadRelatedBooksCarousel(bookId: number, schoolId?: number) {
+    this.bookService.getRelatedBooksCarousel(bookId, 10, schoolId).subscribe({
       next: (books) => {
         this.relatedBooksCarousel = books;
       },

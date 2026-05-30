@@ -102,6 +102,7 @@ class BookSearchServiceTest {
                 .thenReturn(campus);
         lenient().when(currentUserService.getCurrentUserSchool(authentication))
                 .thenReturn(school);
+        lenient().when(currentUserService.resolveSchool(any(), any())).thenReturn(school);
 
         lenient().when(bookMapper.toDTO(any(Book.class)))
                 .thenAnswer(invocation -> {

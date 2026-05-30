@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.CampusDTO;
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
@@ -278,6 +279,23 @@ public class SchoolService {
                     "Er bestaat al een school met domein '" + domainName + "'."
             );
         }
+    }
+
+    public List<SchoolSummaryDto> getAccessibleSchools() {
+        return schoolRepository.findByStatus(SchoolStatus.ACTIVE)
+                .stream()
+                .map(school -> new SchoolSummaryDto(
+                        school.getId(),
+                        school.getName(),
+                        school.getDomainName(),
+                        school.getDefaultLoanDurationDays(),
+                        school.getStatus()))
+                .toList();
+    }
+
+    public School getSchoolById(Long schoolId) {
+        return schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
     }
 
     public long getBookCountBySchool(Long schoolId) {

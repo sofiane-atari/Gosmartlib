@@ -158,6 +158,10 @@ export class RoleService {
     return this.hasAnyRole(['ADMIN', 'LIBRARIAN']);
   }
 
+  public canViewOtherSchools(): boolean {
+    return this.hasAnyRole(['ADMIN', 'LIBRARIAN', 'TEACHER']);
+  }
+
   public canModifyLessonTip(ownerUserId: string | null | undefined): boolean {
     const currentUserId = this.authService.currentUser()?.id;
 

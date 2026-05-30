@@ -135,6 +135,9 @@ public class SecurityConfig {
                                         auth.requestMatchers("/schools/dev-mode-enabled")
                                         .permitAll();
 
+                                        auth.requestMatchers(HttpMethod.GET, "/schools/accessible")
+                                        .hasAnyRole(Role.TEACHER.name(), Role.LIBRARIAN.name(), Role.ADMIN.name());
+
                                         auth.requestMatchers("/schools/**")
                                         .hasRole(Role.ADMIN.name());
 

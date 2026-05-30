@@ -11,6 +11,7 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
@@ -33,6 +34,7 @@ public class ReadingListService {
     private final UserRepository userRepository;
     private final CampusRepository campusRepository;
     private final CurrentUserService currentUserService;
+    private final SchoolRepository schoolRepository;
 
     private static final String FAVORITES_NAME = "Favorieten";
     private static final int MAX_CATALOG_FEATURED_LISTS = 2;
@@ -43,12 +45,14 @@ public class ReadingListService {
             ReadingListBookRepository readingListBookRepository,
             UserRepository userRepository,
             CampusRepository campusRepository,
-            CurrentUserService currentUserService) {
+            CurrentUserService currentUserService,
+            SchoolRepository schoolRepository) {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
         this.userRepository = userRepository;
         this.campusRepository = campusRepository;
         this.currentUserService = currentUserService;
+        this.schoolRepository = schoolRepository;
     }
 
     public ReadingList createReadingList(String userId, ReadingListDTO dto) {
@@ -405,13 +409,21 @@ public class ReadingListService {
     }
 
     public List<ReadingList> getCatalogFeaturedListsForCurrentUserSchool(String userId) {
-        User user = getUserOrThrow(userId);
-        Long schoolId = user.getSchool().getId();
+        return getCatalogFeaturedLists(userId, null);
+    }
+
+    public List<ReadingList> getCatalogFeaturedLists(String userId, Long schoolId) {
+        Long resolvedSchoolId = schoolId;
+
+        if (resolvedSchoolId == null) {
+            User user = getUserOrThrow(userId);
+            resolvedSchoolId = user.getSchool().getId();
+        }
 
         return readingListRepository
                 .findTop2FeaturedBySchoolId(
                         ReadingListTargetType.SYSTEM,
-                        schoolId,
+                        resolvedSchoolId,
                         Pageable.ofSize(2));
     }
 

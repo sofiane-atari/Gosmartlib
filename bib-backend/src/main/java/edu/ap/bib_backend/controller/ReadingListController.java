@@ -80,9 +80,11 @@ public class ReadingListController {
     }
 
     @GetMapping("/featured/catalog")
-    public ResponseEntity<List<ReadingListResponseDTO>> getCatalogFeaturedLists(Principal principal) {
+    public ResponseEntity<List<ReadingListResponseDTO>> getCatalogFeaturedLists(
+            @RequestParam(required = false) Long schoolId,
+            Principal principal) {
         List<ReadingListResponseDTO> lists = readingListService
-                .getCatalogFeaturedListsForCurrentUserSchool(requireUserId(principal))
+                .getCatalogFeaturedLists(requireUserId(principal), schoolId)
                 .stream()
                 .map(this::toReadingListResponse)
                 .toList();

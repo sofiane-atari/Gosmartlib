@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.service.SchoolService;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -31,6 +32,11 @@ public class SchoolController {
             @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
         this.schoolService = schoolService;
         this.devModeEnabled = devModeEnabled;
+    }
+
+    @GetMapping("/accessible")
+    public ResponseEntity<List<SchoolSummaryDto>> getAccessibleSchools() {
+        return ResponseEntity.ok(schoolService.getAccessibleSchools());
     }
 
     @GetMapping

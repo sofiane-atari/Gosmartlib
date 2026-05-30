@@ -75,8 +75,27 @@ public class BookSearchService {
             BookSortOption sortBy,
             Authentication authentication
     ) {
-        School school = currentUserService.getCurrentUserSchool(authentication);
-        Long schoolId = school.getId();
+        return getFilteredBooks(searchTerm, availabilityFilter, minPages, maxPages,
+                readingLevelId, genreName, didactic, page, size, sortBy, authentication, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BookDTO> getFilteredBooks(
+            String searchTerm,
+            BookAvailabilityFilter availabilityFilter,
+            Integer minPages,
+            Integer maxPages,
+            Long readingLevelId,
+            String genreName,
+            Boolean didactic,
+            int page,
+            int size,
+            BookSortOption sortBy,
+            Authentication authentication,
+            Long schoolId
+    ) {
+        School school = currentUserService.resolveSchool(schoolId, authentication);
+        Long resolvedSchoolId = school.getId();
 
         String normalizedSearchTerm = normalizeSearchTerm(searchTerm);
         validatePageRange(minPages, maxPages);
@@ -91,7 +110,7 @@ public class BookSearchService {
 
         // School-brede boeken in plaats van campus-specifieke
         Specification<Book> specification = Specification
-                .where(BookSpecification.belongsToSchool(schoolId))
+                .where(BookSpecification.belongsToSchool(resolvedSchoolId))
                 .and(BookSpecification.withFilters(
                         normalizedSearchTerm,
                         minPages,

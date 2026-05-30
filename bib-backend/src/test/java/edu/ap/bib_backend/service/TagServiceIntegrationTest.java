@@ -53,7 +53,7 @@ class TagServiceIntegrationTest {
         tagRepository.deleteAll();
         schoolRepository.deleteAll();
 
-        tagService.setCurrentUserService(new CurrentUserService(userRepository));
+        tagService.setCurrentUserService(new CurrentUserService(userRepository, schoolRepository));
 
         RoleEntity librarianRole = new RoleEntity();
         librarianRole.setRole(Role.LIBRARIAN);

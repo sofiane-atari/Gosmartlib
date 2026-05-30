@@ -135,6 +135,7 @@ class BookServiceTest {
         given(currentUserService.getCurrentUserCampus(authentication)).willReturn(campus);
         given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(true);
+        given(currentUserService.resolveSchool(any(), any())).willReturn(school);
         given(campusRepository.findByIdAndSchoolId(1L, 1L)).willReturn(Optional.of(campus));
     }
 

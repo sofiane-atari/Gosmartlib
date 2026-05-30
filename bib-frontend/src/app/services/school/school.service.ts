@@ -16,6 +16,10 @@ export class SchoolService {
     return this.http.get<School[]>(this.url);
   }
 
+  public getAccessibleSchools(): Observable<School[]> {
+    return this.http.get<School[]>(`${this.url}/accessible`);
+  }
+
   public create(school: CreateSchoolRequest): Observable<School> {
     return this.http.post<School>(this.url, school);
   }
