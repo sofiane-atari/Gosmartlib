@@ -66,19 +66,6 @@ class UserControllerTest {
     }
 
     @Test
-    void Given_UserId_When_HasRefreshToken_Then_ReturnsBoolean() throws Exception {
-        // Arrange
-        when(tokenStorageService.hasValidSmartschoolRefreshToken("user123")).thenReturn(true);
-
-        // Act
-        var result = mockMvc.perform(get("/users/has-refresh-token").param("userId", "user123"));
-
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(content().string("true"));
-    }
-
-    @Test
     @WithMockUser(roles = "LIBRARIAN")
     void Given_Moderator_When_UpdateReviewAccess_Then_ReturnsUpdatedUser() throws Exception {
         // Arrange
@@ -136,5 +123,24 @@ class UserControllerTest {
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].id").value("t1"))
                 .andExpect(jsonPath("$.meta.totalItems").value(1));
+    }
+
+    @Test
+    void Given_QueryParams_When_SearchExternalUsers_Then_ReturnsUsers() throws Exception {
+        // Arrange
+        AuthUserDto teacher = AuthUserDto.builder().id("t1").fullName("Alice").build();
+        when(userService.searchExternalUsers(any(Authentication.class), eq(2L), eq("Alice"), eq("Teacher")))
+                .thenReturn(List.of(teacher));
+
+        // Act
+        var result = mockMvc.perform(get("/users/search-external")
+                .param("schoolId", "2")
+                .param("firstName", "Alice")
+                .param("lastName", "Teacher")
+                .principal(new UsernamePasswordAuthenticationToken("user", null)));
+
+        // Assert
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("t1"));
     }
 }

@@ -5,15 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,20 +23,16 @@ class AdminOverrideServiceTest {
     @Mock
     private TokenStorageService tokenStorageService;
 
-    @Mock
-    private Environment environment;
-
     @Test
-    void givenNonProdProfileAndEnabledFlag_whenEnableOverride_thenStoresOverrideAndReturnsStatus() {
-        when(environment.acceptsProfiles(any(Profiles.class))).thenReturn(false);
+    void givenDevModeEnabled_whenEnableOverride_thenStoresOverrideAndReturnsStatus() {
         when(tokenStorageService.hasAdminOverride("user-1")).thenReturn(true);
         when(tokenStorageService.getAdminOverrideTtlSeconds("user-1")).thenReturn(1800L);
 
-        AdminOverrideService service = new AdminOverrideService(tokenStorageService, environment, true, 30, false);
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, true, 30L);
 
         AdminOverrideStatusDto status = service.setOverride("user-1", true, "127.0.0.1");
 
-        verify(tokenStorageService).storeAdminOverride("user-1", 30);
+        verify(tokenStorageService).storeAdminOverride("user-1", 30L);
         verify(tokenStorageService).hasAdminOverride("user-1");
         verify(tokenStorageService).getAdminOverrideTtlSeconds("user-1");
 
@@ -47,10 +42,9 @@ class AdminOverrideServiceTest {
 
     @Test
     void givenActiveOverride_whenDisableOverride_thenRemovesOverride() {
-        when(environment.acceptsProfiles(any(Profiles.class))).thenReturn(false);
         when(tokenStorageService.hasAdminOverride("user-2")).thenReturn(false);
 
-        AdminOverrideService service = new AdminOverrideService(tokenStorageService, environment, true, 30, false);
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, true, 30L);
 
         AdminOverrideStatusDto status = service.setOverride("user-2", false, "127.0.0.1");
 
@@ -62,10 +56,8 @@ class AdminOverrideServiceTest {
     }
 
     @Test
-    void givenProdProfile_whenCheckingStatus_thenThrowNotFound() {
-        when(environment.acceptsProfiles(any(Profiles.class))).thenReturn(true);
-
-        AdminOverrideService service = new AdminOverrideService(tokenStorageService, environment, true, 30, false);
+    void givenDevModeDisabled_whenGetStatus_thenThrowNotFound() {
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, false, 30L);
 
         assertThrows(ResponseStatusException.class, () -> service.getStatus("user-3"));
 
@@ -73,40 +65,75 @@ class AdminOverrideServiceTest {
     }
 
     @Test
-    void givenDisabledFeature_whenCheckingStatus_thenThrowNotFound() {
-        AdminOverrideService service = new AdminOverrideService(tokenStorageService, environment, false, 30, false);
+    void givenDevModeDisabled_whenSetOverride_thenThrowNotFound() {
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, false, 30L);
 
-        assertThrows(ResponseStatusException.class, () -> service.getStatus("user-5"));
+        assertThrows(ResponseStatusException.class,
+                () -> service.setOverride("user-4", true, "127.0.0.1"));
 
-        verify(tokenStorageService, never()).hasAdminOverride("user-5");
+        verify(tokenStorageService, never()).storeAdminOverride("user-4", 30L);
     }
 
     @Test
-    void givenLocalhostOnlyAndRemoteIp_whenEnableOverride_thenThrowForbidden() {
-        when(environment.acceptsProfiles(any(Profiles.class))).thenReturn(false);
+    void givenDevModeEnabledAndActiveOverride_whenIsAdminOverrideActive_thenReturnsTrue() {
+        when(tokenStorageService.hasAdminOverride("user-5")).thenReturn(true);
 
-        AdminOverrideService service = new AdminOverrideService(tokenStorageService, environment, true, 30, true);
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, true, 30L);
 
-        assertThrows(
-                ResponseStatusException.class,
-                () -> service.setOverride("user-4", true, "192.168.0.8"));
+        boolean result = service.isAdminOverrideActive("user-5");
 
-        verify(tokenStorageService, never()).storeAdminOverride("user-4", 30);
+        assertTrue(result);
+        verify(tokenStorageService).hasAdminOverride("user-5");
     }
 
     @Test
-    void givenLocalhostOnlyAndLocalhostIp_whenEnableOverride_thenStoresOverride() {
-        when(environment.acceptsProfiles(any(Profiles.class))).thenReturn(false);
-        when(tokenStorageService.hasAdminOverride("user-6")).thenReturn(true);
-        when(tokenStorageService.getAdminOverrideTtlSeconds("user-6")).thenReturn(1800L);
+    void givenDevModeEnabledAndNoOverride_whenIsAdminOverrideActive_thenReturnsFalse() {
+        when(tokenStorageService.hasAdminOverride("user-6")).thenReturn(false);
 
-        AdminOverrideService service = new AdminOverrideService(tokenStorageService, environment, true, 30, true);
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, true, 30L);
 
-        AdminOverrideStatusDto status = service.setOverride("user-6", true, "127.0.0.1");
+        boolean result = service.isAdminOverrideActive("user-6");
 
-        verify(tokenStorageService).storeAdminOverride("user-6", 30);
+        assertFalse(result);
+        verify(tokenStorageService).hasAdminOverride("user-6");
+    }
+
+    @Test
+    void givenDevModeDisabled_whenIsAdminOverrideActive_thenReturnsFalseWithoutTokenCheck() {
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, false, 30L);
+
+        boolean result = service.isAdminOverrideActive("user-7");
+
+        assertFalse(result);
+        verify(tokenStorageService, never()).hasAdminOverride("user-7");
+    }
+
+    @Test
+    void givenDevModeEnabledAndActiveOverride_whenGetStatus_thenReturnsStatusWithExpiry() {
+        when(tokenStorageService.hasAdminOverride("user-8")).thenReturn(true);
+        when(tokenStorageService.getAdminOverrideTtlSeconds("user-8")).thenReturn(600L);
+
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, true, 30L);
+
+        AdminOverrideStatusDto status = service.getStatus("user-8");
 
         assertTrue(status.enabled());
-        assertEquals(1800L, status.expiresInSeconds());
+        assertEquals(600L, status.expiresInSeconds());
+        verify(tokenStorageService).hasAdminOverride("user-8");
+        verify(tokenStorageService).getAdminOverrideTtlSeconds("user-8");
+    }
+
+    @Test
+    void givenDevModeEnabledAndNoOverride_whenGetStatus_thenReturnsInactiveStatus() {
+        when(tokenStorageService.hasAdminOverride("user-9")).thenReturn(false);
+
+        AdminOverrideService service = new AdminOverrideService(tokenStorageService, true, 30L);
+
+        AdminOverrideStatusDto status = service.getStatus("user-9");
+
+        assertFalse(status.enabled());
+        assertNull(status.expiresInSeconds());
+        verify(tokenStorageService).hasAdminOverride("user-9");
+        verify(tokenStorageService, never()).getAdminOverrideTtlSeconds("user-9");
     }
 }

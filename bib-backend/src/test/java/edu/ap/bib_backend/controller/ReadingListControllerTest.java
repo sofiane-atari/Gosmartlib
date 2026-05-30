@@ -460,7 +460,7 @@ class ReadingListControllerTest {
 
                 User user = new User();
                 user.setId(USER_ID);
-                user.setCampus(campus);
+                user.setSchool(campus.getSchool());
 
                 ReadingList list = new ReadingList();
                 list.setId(id);

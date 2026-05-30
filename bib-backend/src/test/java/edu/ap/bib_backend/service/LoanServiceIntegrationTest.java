@@ -76,15 +76,17 @@ class LoanServiceIntegrationTest {
         campus.setPostalCode(2000);
         campus = campusRepository.save(campus);
 
-        RoleEntity role = new RoleEntity();
-        role.setRole(Role.STUDENT);
-        roleEntityRepository.save(role);
+        RoleEntity role = roleEntityRepository.findByRole(Role.STUDENT)
+                .orElseGet(() -> {
+                    RoleEntity newRole = new RoleEntity();
+                    newRole.setRole(Role.STUDENT);
+                    return roleEntityRepository.save(newRole);
+                });
 
         User user = new User();
         user.setId("loan-user-1");
         user.setRole(role);
         user.setSchool(school);
-        user.setCampus(campus);
         userRepository.save(user);
 
         Book book = new Book();
@@ -110,11 +112,12 @@ class LoanServiceIntegrationTest {
                 .build();
 
         // Act
-        LoanDTO result = loanService.create(loanDto, authentication);
+        List<LoanDTO> result = loanService.create(loanDto, authentication);
         // Assert
         assertNotNull(result);
-        assertNotNull(result.id());
-        assertEquals("loan-user-1", result.userId());
-        assertEquals(List.of(copyId), result.bookCopyIds());
+        assertEquals(1, result.size());
+        assertNotNull(result.get(0).id());
+        assertEquals("loan-user-1", result.get(0).userId());
+        assertEquals(List.of(copyId), result.get(0).bookCopyIds());
     }
 }

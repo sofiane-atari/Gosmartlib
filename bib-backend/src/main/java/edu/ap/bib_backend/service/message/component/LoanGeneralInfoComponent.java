@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.message.component;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.List;
 
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
@@ -12,11 +13,11 @@ public class LoanGeneralInfoComponent implements MessageComponent {
     private static final DateTimeFormatter DATE_FORMATTER =
             DateTimeFormatter.ofPattern("d MMMM yyyy", new Locale("nl", "BE"));
 
-    private final Loan loan;
+    private final List<Loan> loans;
     private final String frontendUrl;
 
-    public LoanGeneralInfoComponent(Loan loan, String frontendUrl) {
-        this.loan = loan;
+    public LoanGeneralInfoComponent(List<Loan> loans, String frontendUrl) {
+        this.loans = loans;
         this.frontendUrl = frontendUrl;
     }
 
@@ -27,7 +28,8 @@ public class LoanGeneralInfoComponent implements MessageComponent {
 
     @Override
     public String build() {
-        int bookCount = loan.getCopies() != null ? loan.getCopies().size() : 0;
+        int bookCount = loans != null ? loans.size() : 0;
+        Loan firstLoan = loans != null && !loans.isEmpty() ? loans.get(0) : null;
 
         StringBuilder sb = new StringBuilder();
 
@@ -47,14 +49,14 @@ public class LoanGeneralInfoComponent implements MessageComponent {
         sb.append("<tr>");
         sb.append("<td style=\"padding: 6px 12px 6px 0; color: #8a7580; width: 160px;\">Uitleendatum:</td>");
         sb.append("<td style=\"padding: 6px 0; font-weight: 600;\">");
-        sb.append(loan.getLoanDate() != null ? loan.getLoanDate().format(DATE_FORMATTER) : "-");
+        sb.append(firstLoan != null && firstLoan.getLoanDate() != null ? firstLoan.getLoanDate().format(DATE_FORMATTER) : "-");
         sb.append("</td>");
         sb.append("</tr>");
 
         sb.append("<tr>");
         sb.append("<td style=\"padding: 6px 12px 6px 0; color: #8a7580;\">Retourdatum:</td>");
         sb.append("<td style=\"padding: 6px 0; font-weight: 600;\">");
-        sb.append(loan.getReturnDate() != null ? loan.getReturnDate().format(DATE_FORMATTER) : "-");
+        sb.append(firstLoan != null && firstLoan.getReturnDate() != null ? firstLoan.getReturnDate().format(DATE_FORMATTER) : "-");
         sb.append("</td>");
         sb.append("</tr>");
 

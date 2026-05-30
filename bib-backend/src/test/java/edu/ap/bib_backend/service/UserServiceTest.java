@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.service;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
-import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
@@ -71,7 +70,7 @@ class UserServiceTest {
             user.setSchool(mockSchool);
             return user;
         });
-        User result = userService.createUser(newUserId, mockRole, mockSchool, createCampus());
+        User result = userService.createUser(newUserId, mockRole, mockSchool);
         assertNotNull(result);
         assertEquals(newUserId, result.getId());
         assertEquals(mockRole, result.getRole());
@@ -88,7 +87,7 @@ class UserServiceTest {
         School mockSchool = createSchool();
         when(userRepository.existsById(existingUserId)).thenReturn(true);
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> userService.createUser(existingUserId, mockRole, mockSchool, createCampus()));
+                () -> userService.createUser(existingUserId, mockRole, mockSchool));
         assertEquals("Gebruiker bestaat al", exception.getMessage());
         verify(userRepository, times(1)).existsById(existingUserId);
         verify(userRepository, never()).save(any(User.class));
@@ -100,7 +99,7 @@ class UserServiceTest {
         RoleEntity role = new RoleEntity();
         when(userRepository.existsById(validUserId)).thenReturn(false);
         NullPointerException exception = assertThrows(NullPointerException.class,
-                () -> userService.createUser(validUserId, role, null, createCampus()));
+                () -> userService.createUser(validUserId, role, null));
         assertEquals("school mag niet null zijn", exception.getMessage());
         verify(userRepository, times(1)).existsById(validUserId);
         verify(userRepository, never()).save(any(User.class));
@@ -155,12 +154,5 @@ class UserServiceTest {
         school.setDomainName("aphogeschool.smartschool.be");
         school.setName("AP Hogeschool");
         return school;
-    }
-
-    private Campus createCampus() {
-        Campus campus = new Campus();
-        campus.setId(1L);
-        campus.setName("Test Campus");
-        return campus;
     }
 }

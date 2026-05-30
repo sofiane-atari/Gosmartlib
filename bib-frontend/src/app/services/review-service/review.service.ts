@@ -18,10 +18,6 @@ export class ReviewService {
     );
   }
 
-  public getAllReviews() {
-    return this.http.get<Review[]>(this.apiUrl);
-  }
-
   public getMyReviews(page: number, size: number): Observable<PaginatedResponse<Review>> {
     return this.http.get<PaginatedResponse<Review>>(
       `${this.apiUrl}/me?page=${page}&size=${size}`,

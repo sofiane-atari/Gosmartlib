@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.message.component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.List;
 
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.Loan;
@@ -28,17 +29,17 @@ public class LoanBookListComponent implements MessageComponent {
 
     private static final String LINK_STYLE = "color: #1a0a10; text-decoration: none; font-weight: 600;";
 
-    private final Loan loan;
+    private final List<Loan> loans;
     private final String frontendUrl;
 
-    public LoanBookListComponent(Loan loan, String frontendUrl) {
-        this.loan = loan;
+    public LoanBookListComponent(List<Loan> loans, String frontendUrl) {
+        this.loans = loans;
         this.frontendUrl = frontendUrl;
     }
 
     @Override
     public boolean isEnabled() {
-        return loan.getCopies() != null && !loan.getCopies().isEmpty();
+        return loans != null && !loans.isEmpty();
     }
 
     @Override
@@ -106,7 +107,8 @@ public class LoanBookListComponent implements MessageComponent {
     private Map<Long, BookGroup> groupBooksById() {
         Map<Long, BookGroup> groupedBooks = new LinkedHashMap<>();
 
-        loan.getCopies().stream()
+        loans.stream()
+                .map(Loan::getCopy)
                 .filter(copy -> copy != null && copy.getBook() != null)
                 .forEach(copy -> {
                     Book book = copy.getBook();

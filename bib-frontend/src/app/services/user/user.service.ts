@@ -55,6 +55,19 @@ export class UserService {
     });
   }
 
+  public searchExternalUsers(
+    schoolId: number,
+    firstName: string = '',
+    lastName: string = '',
+  ): Observable<AuthUserDto[]> {
+    const params = new HttpParams()
+      .set('schoolId', schoolId)
+      .set('firstName', firstName)
+      .set('lastName', lastName);
+
+    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/search-external`, { params });
+  }
+
 
   public getDisplayName(user: AuthUserDto | null): string {
     if (!user) {
@@ -96,11 +109,6 @@ export class UserService {
 
   public updateReviewAccess(userId: string, blocked: boolean): Observable<AuthUserDto> {
     return this.http.patch<AuthUserDto>(`${this.apiUrl}/users/${userId}/review-access`, { blocked });
-  }
-
-  public hasValidRefreshToken(userId: string): Observable<boolean> {
-    const params = new HttpParams().set('userId', userId);
-    return this.http.get<boolean>(`${this.apiUrl}/users/has-refresh-token`, { params });
   }
 
   public getUsersBySchoolId(schoolId: number): Observable<AuthUserDto[]> {

@@ -32,6 +32,7 @@ import { RoleService } from '../../services/role-service/role.service';
 import { UserService } from '../../services/user/user.service';
 import { SchoolService } from '../../services/school/school.service';
 import { SidebarActiveLoansComponent } from './sidebar-active-loans/sidebar-active-loans.component';
+import { DevFeatureWrapperComponent } from '../shared/dev-feature-wrapper/dev-feature-wrapper.component';
 
 @Component({
   selector: 'app-sidebar',
@@ -42,6 +43,7 @@ import { SidebarActiveLoansComponent } from './sidebar-active-loans/sidebar-acti
     RouterModule,
     FormsModule,
     SidebarActiveLoansComponent,
+    DevFeatureWrapperComponent,
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
@@ -147,7 +149,7 @@ export class SidebarComponent {
       icon: Flag,
       label: 'Reviewbeheer',
       route: '/review-dashboard',
-      staffOnly: true,
+      librarianOrAdmin: true,
     },
     {
       icon: LibraryBig,
@@ -155,7 +157,7 @@ export class SidebarComponent {
       route: '/genre',
       adminOnly: true,
     },
-    { icon: Tag, label: 'Labelbeheer', route: '/tag', adminOnly: true },
+    { icon: Tag, label: 'Tagbeheer', route: '/tags', librarianOrAdmin: true },
     { icon: School, label: 'Schoolbeheer', route: '/schools', adminOnly: true },
     {
       icon: UserCog,

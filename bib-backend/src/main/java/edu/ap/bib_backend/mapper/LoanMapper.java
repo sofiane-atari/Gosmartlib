@@ -14,9 +14,10 @@ import edu.ap.bib_backend.jpa.entity.Loan;
 public interface LoanMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "batchId", ignore = true)
     @Mapping(target = "loanDate", ignore = true)
     @Mapping(target = "returnDate", ignore = true)
-    @Mapping(target = "copies", ignore = true)
+    @Mapping(target = "copy", ignore = true)
     @Mapping(target = "user.id", source = "userId")
     @Mapping(target = "returnedDate", ignore = true)
     @Mapping(target = "campus", ignore = true)
@@ -24,8 +25,9 @@ public interface LoanMapper {
     Loan toEntity(LoanDTO dto);
 
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "bookCopyIds", expression = "java(mapBookCopyIds(loan.getCopies()))")
-    @Mapping(target = "books", expression = "java(mapBooks(loan.getCopies()))")
+    @Mapping(target = "batchId", source = "batchId")
+    @Mapping(target = "bookCopyIds", expression = "java(mapBookCopyIds(loan.getCopy()))")
+    @Mapping(target = "books", expression = "java(mapBooks(loan.getCopy()))")
     @Mapping(target = "loanDate", expression = "java(loan.getLoanDate() != null ? loan.getLoanDate().toString() : null)")
     @Mapping(target = "returnDate", expression = "java(loan.getReturnDate() != null ? loan.getReturnDate().toString() : null)")
     @Mapping(target = "returnedDate", expression = "java(loan.getReturnedDate() != null ? loan.getReturnedDate().toString() : null)")
@@ -34,34 +36,27 @@ public interface LoanMapper {
     LoanDTO toDto(Loan loan);
 
     List<LoanDTO> toDtoList(List<Loan> loans);
-    default List<Long> mapBookCopyIds(List<BookCopy> copies) {
-        if (copies == null) {
+    default List<Long> mapBookCopyIds(BookCopy copy) {
+        if (copy == null || copy.getId() == null) {
             return List.of();
         }
 
-        return copies.stream()
-                .map(BookCopy::getId)
-                .toList();
+        return List.of(copy.getId());
     }
 
-    default List<LoanBookDTO> mapBooks(List<BookCopy> copies) {
-        if (copies == null) {
+    default List<LoanBookDTO> mapBooks(BookCopy copy) {
+        if (copy == null || copy.getBook() == null || copy.getBook().getId() == null) {
             return List.of();
         }
 
-        return copies.stream()
-                .filter(copy -> copy.getBook() != null)
-                .collect(java.util.stream.Collectors.groupingBy(BookCopy::getBook))
-                .entrySet()
-                .stream()
-                .map(entry -> new LoanBookDTO(
-                        entry.getKey().getId(),
-                        entry.getKey().getTitle(),
-                        entry.getKey().getAuthor(),
-                        entry.getKey().getIsbn(),
-                        entry.getKey().getImageUrl(),
-                        entry.getValue().stream().map(BookCopy::getId).toList(),
-                        entry.getValue().size()))
-                .toList();
+        var book = copy.getBook();
+        return List.of(new LoanBookDTO(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getIsbn(),
+                book.getImageUrl(),
+                copy.getId() == null ? List.of() : List.of(copy.getId()),
+                1));
     }
 }

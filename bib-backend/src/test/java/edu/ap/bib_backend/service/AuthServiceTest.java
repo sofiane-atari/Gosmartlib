@@ -6,6 +6,7 @@ import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -200,7 +201,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void Given_SmartschoolTokenThrowsException_When_GetUserDetails_Then_FallsBackToOAuth() {
+    void given_SmartschoolTokenThrowsException_When_GetUserDetails_Then_FallsBackToOAuth() {
         // Arrange
         String userId = "user123";
         Authentication auth = mock(Authentication.class);
@@ -219,5 +220,111 @@ class AuthServiceTest {
 
         // Assert - should not throw, fallback to OAuth
         assertNotNull(result);
+    }
+
+    @Test
+    void given_UserWithDisabledSchool_When_GetUserDetails_Then_ThrowsForbidden() {
+        String userId = "user123";
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(userId);
+        when(auth.getAuthorities()).thenAnswer(i -> Collections.singleton(new SimpleGrantedAuthority("ROLE_STUDENT")));
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn(null);
+
+        School school = new School();
+        school.setName("Disabled School");
+        school.setStatus(SchoolStatus.DISABLED);
+
+        User user = new User();
+        user.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> authService.getUserDetails(auth));
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
+    @Test
+    void given_UserWithMarkedForDeletionSchool_When_GetUserDetails_Then_ThrowsForbidden() {
+        String userId = "user123";
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(userId);
+        when(auth.getAuthorities()).thenAnswer(i -> Collections.singleton(new SimpleGrantedAuthority("ROLE_STUDENT")));
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn(null);
+
+        School school = new School();
+        school.setName("Deleted School");
+        school.setStatus(SchoolStatus.MARKED_FOR_DELETION);
+
+        User user = new User();
+        user.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> authService.getUserDetails(auth));
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
+    @Test
+    void given_UserWithActiveSchool_When_GetUserDetails_Then_ReturnsDetails() {
+        String userId = "user123";
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(userId);
+        when(auth.getAuthorities()).thenAnswer(i -> Collections.singleton(new SimpleGrantedAuthority("ROLE_STUDENT")));
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn(null);
+
+        School school = new School();
+        school.setName("Active School");
+        school.setStatus(SchoolStatus.ACTIVE);
+
+        User user = new User();
+        user.setReviewBlocked(false);
+        user.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        AuthUserDto result = authService.getUserDetails(auth);
+
+        assertNotNull(result);
+        assertEquals("Active School", result.schoolName());
+    }
+
+    @Test
+    void given_ReviewBlockedUser_When_GetUserDetails_Then_ReviewBlockedIsTrue() {
+        String userId = "user123";
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(userId);
+        when(auth.getAuthorities()).thenAnswer(i -> Collections.singleton(new SimpleGrantedAuthority("ROLE_STUDENT")));
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn(null);
+
+        School school = new School();
+        school.setName("School");
+        school.setStatus(SchoolStatus.ACTIVE);
+
+        User user = new User();
+        user.setReviewBlocked(true);
+        user.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        AuthUserDto result = authService.getUserDetails(auth);
+
+        assertTrue(result.reviewBlocked());
+    }
+
+    @Test
+    void given_UserNotInDb_When_GetUserDetails_Then_ReturnsMinimalDetails() {
+        String userId = "user123";
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(userId);
+        when(auth.getAuthorities()).thenAnswer(i -> Collections.singleton(new SimpleGrantedAuthority("ROLE_STUDENT")));
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn(null);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        AuthUserDto result = authService.getUserDetails(auth);
+
+        assertNotNull(result);
+        assertEquals(userId, result.id());
+        assertEquals(Role.STUDENT, result.role());
+        assertFalse(result.reviewBlocked());
     }
 }

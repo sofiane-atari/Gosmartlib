@@ -39,6 +39,7 @@ public class OneRosterSyncController {
     }
 
     @GetMapping("/config")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SyncConfigDto> getSyncConfig() {
         String syncTime = extractTime(syncCron);
         return ResponseEntity.ok(new SyncConfigDto(syncTime, syncZone, syncIntervalDays, syncCron));

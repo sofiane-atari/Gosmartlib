@@ -53,7 +53,6 @@ class MailSubscriptionRepositoryTest {
 
         user = new User();
         user.setId("repo-test-user");
-        user.setCampus(campus);
         user.setSchool(school);
         user.setRole(role);
         entityManager.persist(user);

@@ -1,5 +1,9 @@
 package edu.ap.bib_backend.seed;
 
+import edu.ap.bib_backend.dto.CampusDTO;
+import edu.ap.bib_backend.dto.SchoolDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterCredentialDTO;
+import edu.ap.bib_backend.service.SchoolService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,12 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.StringUtils;
 
-import edu.ap.bib_backend.jpa.entity.Campus;
-import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
-import edu.ap.bib_backend.jpa.entity.School;
-import edu.ap.bib_backend.jpa.repository.CampusRepository;
-import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
-import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import java.util.List;
 
 @Configuration
 @Order(1)
@@ -24,10 +23,7 @@ public class InitialSchoolSeeder {
 
     @Bean
     CommandLineRunner seedInitialSchool(
-            SchoolRepository schoolRepository,
-            CampusRepository campusRepository,
-            OneRosterCredentialRepository credentialRepository,
-            BookSeeder bookSeeder,
+            SchoolService schoolService,
             @Value("${school.seed.domain:}") String schoolDomain,
             @Value("${school.seed.name:}") String schoolName,
             @Value("${school.seed.oneroster-client-id:}") String clientId,
@@ -43,88 +39,64 @@ public class InitialSchoolSeeder {
                 return;
             }
 
-            String normalizedDomain = schoolDomain.trim();
-            School school = schoolRepository.findByDomainName(normalizedDomain)
-                    .orElseGet(() -> createSchool(
-                            schoolRepository,
+            String normalizedDomain = schoolDomain.trim().toLowerCase();
+            boolean hasCredentials = StringUtils.hasText(clientId) && StringUtils.hasText(clientSecret);
+
+            var existingSchool = schoolService.findSchoolByDomainName(normalizedDomain);
+
+            if (existingSchool.isPresent()) {
+                SchoolDTO school = existingSchool.get();
+
+                if (hasCredentials) {
+                    OneRosterCredentialDTO credentialDTO = new OneRosterCredentialDTO(
+                            clientId.trim(), clientSecret.trim());
+                    SchoolDTO updateDTO = new SchoolDTO(
+                            school.id(),
                             normalizedDomain,
-                            schoolName
-                    ));
-
-            if (!StringUtils.hasText(clientId) || !StringUtils.hasText(clientSecret)) {
-                logger.info("OneRoster seed credentials ontbreken, seed wordt overgeslagen.");
-                return;
-            }
-
-            OneRosterCredential credential = credentialRepository.findBySchoolId(school.getId())
-                    .orElseGet(OneRosterCredential::new);
-            credential.setSchool(school);
-            credential.setClientId(clientId.trim());
-            credential.setClientSecret(clientSecret.trim());
-            credentialRepository.save(credential);
-            logger.info("OneRoster credentials opgeslagen voor school: {}", normalizedDomain);
-
-            seedCampusIfNotExists(
-                    campusRepository, bookSeeder, school,
-                    campusName, campusAddress, campusPostalCode,
-                    campusContactPhone, campusContactEmail
-            );
-        };
-    }
-
-    private School createSchool(
-            SchoolRepository schoolRepository,
-            String domain,
-            String name
-    ) {
-        if (!StringUtils.hasText(name)) {
-            throw new IllegalStateException(
-                    "School niet gevonden voor domain: " + domain +
+                            StringUtils.hasText(schoolName) ? schoolName.trim() : school.name(),
+                            null,
+                            null,
+                            null, null,
+                            credentialDTO,
+                            null, null, null, null
+                    );
+                    schoolService.update(school.id(), updateDTO);
+                }
+            } else {
+                if (!StringUtils.hasText(schoolName)) {
+                    throw new IllegalStateException(
+                            "School niet gevonden voor domain: " + normalizedDomain +
                             ". Voor automatisch aanmaken is school.seed.name verplicht.");
-        }
+                }
 
-        School school = new School();
-        school.setDomainName(domain);
-        school.setName(name.trim());
+                String campusNameValue = StringUtils.hasText(campusName)
+                        ? campusName.trim()
+                        : schoolName.trim() + " - Campus 1";
 
-        School savedSchool = schoolRepository.save(school);
-        logger.info("School aangemaakt voor domain: {}", domain);
-        return savedSchool;
-    }
+                CampusDTO campus = new CampusDTO(
+                        null,
+                        campusNameValue, null, null,
+                        StringUtils.hasText(campusAddress) ? campusAddress.trim() : "Onbekend adres",
+                        campusPostalCode != null ? campusPostalCode : 0,
+                        StringUtils.hasText(campusContactPhone) ? campusContactPhone.trim() : null,
+                        StringUtils.hasText(campusContactEmail) ? campusContactEmail.trim() : null
+                );
 
-    private void seedCampusIfNotExists(
-            CampusRepository campusRepository,
-            BookSeeder bookSeeder,
-            School school,
-            String campusName,
-            String campusAddress,
-            Integer campusPostalCode,
-            String campusContactPhone,
-            String campusContactEmail
-    ) {
-        Campus campus = campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId())
-                .orElseGet(() -> {
-                    Campus newCampus = new Campus();
-                    newCampus.setSchool(school);
-                    newCampus.setName(StringUtils.hasText(campusName)
-                            ? campusName.trim()
-                            : school.getName() + " - Campus 1");
-                    newCampus.setAddress(StringUtils.hasText(campusAddress)
-                            ? campusAddress.trim()
-                            : "");
-                    newCampus.setPostalCode(campusPostalCode != null ? campusPostalCode : 0);
-                    newCampus.setContactPhone(StringUtils.hasText(campusContactPhone)
-                            ? campusContactPhone.trim()
-                            : null);
-                    newCampus.setContactEmail(StringUtils.hasText(campusContactEmail)
-                            ? campusContactEmail.trim()
-                            : null);
+                SchoolDTO schoolDTO = new SchoolDTO(
+                        null,
+                        normalizedDomain,
+                        schoolName.trim(),
+                        null,
+                        List.of(campus),
+                        null, null,
+                        hasCredentials
+                                ? new OneRosterCredentialDTO(clientId.trim(), clientSecret.trim())
+                                : null,
+                        null, null, null, null
+                );
 
-                    Campus saved = campusRepository.save(newCampus);
-                    logger.info("Campus aangemaakt voor school: {}", school.getDomainName());
-                    return saved;
-                });
-
-        bookSeeder.seedBooksForCampusIfEmpty(campus);
+                schoolService.create(schoolDTO);
+            }
+        };
     }
 }

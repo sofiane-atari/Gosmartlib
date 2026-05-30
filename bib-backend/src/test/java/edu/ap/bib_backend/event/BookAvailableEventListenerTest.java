@@ -33,6 +33,7 @@ class BookAvailableEventListenerTest {
 
     private static final Long BOOK_ID = 1L;
     private static final Long CAMPUS_ID = 10L;
+    private static final Long SCHOOL_ID = 1L;
     private static final String USER_ID = "user1";
     private static final String SCHOOL_DOMAIN = "school.be";
 
@@ -61,18 +62,20 @@ class BookAvailableEventListenerTest {
         Campus campus = new Campus();
         campus.setId(campusId);
         School school = new School();
+        school.setId(SCHOOL_ID);
         school.setDomainName(SCHOOL_DOMAIN);
         campus.setSchool(school);
         book.setCampus(campus);
         return book;
     }
 
-    private MailSubscription createSubscription(String userId, Long campusId) {
+    private MailSubscription createSubscription(String userId, Long schoolId) {
         User user = new User();
         user.setId(userId);
-        Campus campus = new Campus();
-        campus.setId(campusId);
-        user.setCampus(campus);
+        School school = new School();
+        school.setId(schoolId);
+        school.setDomainName(SCHOOL_DOMAIN);
+        user.setSchool(school);
         MailSubscription sub = new MailSubscription();
         sub.setUser(user);
         return sub;
@@ -140,7 +143,7 @@ class BookAvailableEventListenerTest {
     @Test
     void GivenSubscriberWithNoValidToken_WhenOnBookAvailable_ThenSkipsThatSubscriber() {
         Book book = createBook(BOOK_ID, "No Token Book", 3, CAMPUS_ID);
-        MailSubscription sub = createSubscription(USER_ID, CAMPUS_ID);
+        MailSubscription sub = createSubscription(USER_ID, SCHOOL_ID);
         BookAvailableEvent event = new BookAvailableEvent(BOOK_ID, LocalDateTime.now());
         given(bookRepository.findById(BOOK_ID)).willReturn(Optional.of(book));
         given(mailSubscriptionService.findSubscriptionsByBookId(BOOK_ID)).willReturn(List.of(sub));
@@ -154,7 +157,7 @@ class BookAvailableEventListenerTest {
     @Test
     void GivenSubscriberWithBlankToken_WhenOnBookAvailable_ThenSkipsThatSubscriber() {
         Book book = createBook(BOOK_ID, "Blank Token Book", 3, CAMPUS_ID);
-        MailSubscription sub = createSubscription(USER_ID, CAMPUS_ID);
+        MailSubscription sub = createSubscription(USER_ID, SCHOOL_ID);
         BookAvailableEvent event = new BookAvailableEvent(BOOK_ID, LocalDateTime.now());
         given(bookRepository.findById(BOOK_ID)).willReturn(Optional.of(book));
         given(mailSubscriptionService.findSubscriptionsByBookId(BOOK_ID)).willReturn(List.of(sub));
@@ -168,7 +171,7 @@ class BookAvailableEventListenerTest {
     @Test
     void GivenValidSubscriber_WhenOnBookAvailable_ThenSendsEmail() {
         Book book = createBook(BOOK_ID, "Available Book", 3, CAMPUS_ID);
-        MailSubscription sub = createSubscription(USER_ID, CAMPUS_ID);
+        MailSubscription sub = createSubscription(USER_ID, SCHOOL_ID);
         BookAvailableEvent event = new BookAvailableEvent(BOOK_ID, LocalDateTime.now());
         BookDTO recommendation = new BookDTO();
         recommendation.setId(2L);
@@ -189,8 +192,8 @@ class BookAvailableEventListenerTest {
     @Test
     void GivenMultipleSubscribers_WhenOnBookAvailable_ThenNotifiesAllWithValidToken() {
         Book book = createBook(BOOK_ID, "Multiple Subscribers Book", 3, CAMPUS_ID);
-        MailSubscription sub1 = createSubscription("user1", CAMPUS_ID);
-        MailSubscription sub2 = createSubscription("user2", CAMPUS_ID);
+        MailSubscription sub1 = createSubscription("user1", SCHOOL_ID);
+        MailSubscription sub2 = createSubscription("user2", SCHOOL_ID);
         BookAvailableEvent event = new BookAvailableEvent(BOOK_ID, LocalDateTime.now());
 
         given(bookRepository.findById(BOOK_ID)).willReturn(Optional.of(book));
@@ -209,8 +212,8 @@ class BookAvailableEventListenerTest {
     @Test
     void GivenExceptionDuringSending_WhenOnBookAvailable_ThenContinuesToNextSubscriber() {
         Book book = createBook(BOOK_ID, "Partial Failure Book", 3, CAMPUS_ID);
-        MailSubscription sub1 = createSubscription("user1", CAMPUS_ID);
-        MailSubscription sub2 = createSubscription("user2", CAMPUS_ID);
+        MailSubscription sub1 = createSubscription("user1", SCHOOL_ID);
+        MailSubscription sub2 = createSubscription("user2", SCHOOL_ID);
         BookAvailableEvent event = new BookAvailableEvent(BOOK_ID, LocalDateTime.now());
 
         given(bookRepository.findById(BOOK_ID)).willReturn(Optional.of(book));

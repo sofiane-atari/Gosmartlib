@@ -69,6 +69,8 @@ public class AuthController {
             String errorType = oauthEx.getError().getErrorCode();
             if ("school_not_authorized".equals(errorType)) {
                 errorCode = "school_not_authorized";
+            } else if ("user_not_authorized".equals(errorType)) {
+                errorCode = "user_not_authorized";
             }
         }
 

@@ -239,6 +239,8 @@ export class BooksComponent implements OnInit {
     this.loadCampuses();
     this.loadSidebarBooks();
     this.loadFeaturedReadingLists();
+    this.userSettingsService.loadCatalogSidebarSettings();
+    this.loadFavoritesState();
   }
 
   private loadAccessibleSchools(): void {

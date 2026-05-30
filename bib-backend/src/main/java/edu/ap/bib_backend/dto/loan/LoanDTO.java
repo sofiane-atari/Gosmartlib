@@ -13,6 +13,9 @@ import lombok.Builder;
 public record LoanDTO(
         @JsonProperty("id") Long id,
 
+        @JsonProperty("batchId")
+        String batchId,
+
         @JsonProperty("userId")
         @NotBlank(message = "Gebruiker ID is verplicht")
         String userId,
@@ -44,6 +47,6 @@ public record LoanDTO(
         int extensionCount
 ) {
     public LoanDTO(String userId, List<Long> bookCopyIds, String returnDate) {
-        this(null, userId, null, bookCopyIds, null, null, returnDate, null, null, 0);
+        this(null, null, userId, null, bookCopyIds, null, null, returnDate, null, null, 0);
     }
 }

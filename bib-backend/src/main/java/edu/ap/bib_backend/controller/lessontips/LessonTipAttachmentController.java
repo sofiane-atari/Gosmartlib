@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/lesson-tips/{lessonTipId}/attachments")
-@PreAuthorize("hasAnyRole('TEACHER','LIBRARIAN','ADMIN')")
 public class LessonTipAttachmentController {
 
     private final LessonTipAttachmentService lessonTipAttachmentService;

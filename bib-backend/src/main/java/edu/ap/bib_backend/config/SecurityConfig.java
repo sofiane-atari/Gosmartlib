@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -89,7 +88,7 @@ public class SecurityConfig {
                                                         "/auth/initiate-login",
                                                         "/oauth2/**",
                                                         "/login/**")
-                                        .permitAll();
+                                                        .permitAll();
 
                                         if (mockModeEnabled && devModeEnabled) {
                                                 auth.requestMatchers(
@@ -97,43 +96,61 @@ public class SecurityConfig {
                                                                 "/Api/V1/**",
                                                                 "/ims/oneroster/**",
                                                                 "/mock/schools/**")
-                                                .permitAll();
+                                                                .permitAll();
                                         } else {
                                                 auth.requestMatchers(
                                                                 "/OAuth/**",
                                                                 "/Api/V1/**",
                                                                 "/ims/oneroster/**",
                                                                 "/mock/schools/**")
-                                                .denyAll();
+                                                                .denyAll();
                                         }
-
-                                        auth.requestMatchers(
-                                                        "/books/template",
-                                                        "/books/upload/**")
-                                        .permitAll();
 
                                         auth.requestMatchers("/auth/me", "/auth/logout", "/auth/refresh",
                                                         "/auth/admin-override/**")
-                                        .authenticated();
+                                                        .authenticated();
 
                                         auth.requestMatchers("/reviews/**")
-                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
-                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/books/**")
-                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
-                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers(
+                                                        "/books/template",
+                                                        "/books/upload/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
-                                        auth.requestMatchers("/genres/**")
-                                        .hasAnyRole(Role.STUDENT.name(), Role.ADMIN.name(),
-                                                        Role.LIBRARIAN.name(), Role.TEACHER.name());
+                                        auth.requestMatchers(HttpMethod.POST, "/genres/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.PUT, "/genres/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.DELETE, "/genres/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.GET, "/genres/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
 
-                                        auth.requestMatchers("/loans/**")
-                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
-                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.POST, "/loans/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.PATCH, "/loans/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.GET, "/loans/me/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.GET, "/loans/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/schools/dev-mode-enabled")
-                                        .permitAll();
+                                                        .permitAll();
+
+                                        auth.requestMatchers(HttpMethod.GET, "/schools/*/catalog-sidebar-settings")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers(HttpMethod.PUT, "/schools/*/catalog-sidebar-settings")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers(HttpMethod.GET, "/schools/accessible")
                                         .hasAnyRole(Role.TEACHER.name(), Role.LIBRARIAN.name(), Role.ADMIN.name());
@@ -142,20 +159,60 @@ public class SecurityConfig {
                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/schools/**")
-                                        .hasRole(Role.ADMIN.name());
+                                                        .hasRole(Role.ADMIN.name());
+
+                                        auth.requestMatchers(HttpMethod.POST, "/campuses/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.PUT, "/campuses/**")
+                                                        .hasRole(Role.ADMIN.name());
+                                        auth.requestMatchers(HttpMethod.GET, "/campuses/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers("/tags/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/reports/**")
-                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
-                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                                        .hasAnyRole(Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/roles/admin-promotion-enabled")
-                                        .authenticated();
+                                                        .authenticated();
+
+                                        auth.requestMatchers(HttpMethod.POST, "/roles/assign-admin", "/roles/revoke-admin")
+                                                        .hasRole(Role.ADMIN.name());
 
                                         auth.requestMatchers("/roles/**")
-                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
+                                        auth.requestMatchers("/users/teachers/stats")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
                                         auth.requestMatchers("/users/teachers")
-                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers("/users/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers("/lesson-tips/**")
+                                                        .hasAnyRole(Role.TEACHER.name(), Role.LIBRARIAN.name(),
+                                                                        Role.ADMIN.name());
+
+                                        auth.requestMatchers("/subscriptions/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers("/oneroster/**")
+                                                        .hasRole(Role.ADMIN.name());
+
+                                        auth.requestMatchers("/book-copies/**")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers("/reading-levels/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers("/reading-lists/**")
+                                                        .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
+                                                                        Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.anyRequest().authenticated();
                                 })

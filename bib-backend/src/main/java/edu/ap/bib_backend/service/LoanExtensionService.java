@@ -3,6 +3,7 @@ package edu.ap.bib_backend.service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.LoanExtension;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.LoanExtensionRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
@@ -51,6 +53,8 @@ public class LoanExtensionService {
                         "loanId",
                         "Lening niet gevonden met id: " + loanId
                 ));
+
+        verifyLoanBelongsToSchool(loan, authentication);
 
         validateLoanCanBeExtended(loan);
 
@@ -97,6 +101,15 @@ public class LoanExtensionService {
             return LocalDate.parse(customReturnDate);
         } catch (Exception ex) {
             throw new IllegalArgumentException("Nieuwe retourdatum heeft een ongeldig formaat.");
+        }
+    }
+
+    private void verifyLoanBelongsToSchool(Loan loan, Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
+
+        if (loan.getCampus() == null || loan.getCampus().getSchool() == null
+                || !loan.getCampus().getSchool().getId().equals(school.getId())) {
+            throw new AccessDeniedException("Lening behoort tot een andere school.");
         }
     }
 

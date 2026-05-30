@@ -2,7 +2,6 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.loan.LoanDTO;
-import edu.ap.bib_backend.dto.loan.LoanExtensionDTO;
 import edu.ap.bib_backend.dto.loan.LoanExtensionRequestDTO;
 import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
@@ -40,7 +39,7 @@ public class LoanController {
 
     @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     @PostMapping
-    public ResponseEntity<LoanDTO> createLoan(
+    public ResponseEntity<List<LoanDTO>> createLoan(
             @Valid @RequestBody LoanDTO loanDTO,
             Authentication authentication) {
         return ResponseEntity.ok(loanService.create(loanDTO, authentication));
@@ -77,8 +76,7 @@ public class LoanController {
     public ResponseEntity<LoanHistoryDTO> getMyLoanHistory(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(loanService.findHistoryForCurrentUser(page, pageSize, authentication));
     }
 
@@ -91,8 +89,8 @@ public class LoanController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<LoanStatsDTO> getLoanStats() {
-        return ResponseEntity.ok(loanService.getLoanStats());
+    public ResponseEntity<LoanStatsDTO> getLoanStats(Authentication authentication) {
+        return ResponseEntity.ok(loanService.getLoanStats(authentication));
     }
 
     @GetMapping("/grouped")

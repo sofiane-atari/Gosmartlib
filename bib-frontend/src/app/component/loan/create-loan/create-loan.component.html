@@ -16,13 +16,18 @@
         <lucide-icon [img]="ArrowLeft" [size]="16"></lucide-icon>
         <span>Terug naar boekoverzicht</span>
       </button>
-      <button
-        type="button"
-        class="clear-btn"
-        (click)="requestClearAllProgress()"
+      <app-button-hover-help
+        class="clear-btn-help"
+        text="Verwijdert de geselecteerde gebruiker, gekozen boeken, zoekopdrachten en ingevulde terugbrengdatum voor deze lening."
       >
-        Wis alle voortgang
-      </button>
+        <button
+          type="button"
+          class="clear-btn"
+          (click)="requestClearAllProgress()"
+        >
+          Wis alle voortgang
+        </button>
+      </app-button-hover-help>
     </div>
   </header>
 
@@ -40,8 +45,14 @@
       [selectedUser]="selectedUser()"
       [searchFirstname]="searchFirstname()"
       [searchLastname]="searchLastname()"
+      [isExternalMode]="isExternalUserSearch()"
+      [schools]="availableExternalSchools()"
+      [selectedExternalSchoolId]="selectedExternalSchoolId()"
+      [isLoadingSchools]="isLoadingSchools()"
       (firstnameChanged)="onFirstnameSearchChange($event)"
       (lastnameChanged)="onLastnameSearchChange($event)"
+      (externalModeChanged)="onExternalModeChange($event)"
+      (externalSchoolChanged)="onExternalSchoolChange($event)"
       (searchTriggered)="searchUsers()"
       (userSelected)="selectUser($event)"
       (clearSelectedUserRequested)="clearSelectedUser()"

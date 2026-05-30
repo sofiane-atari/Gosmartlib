@@ -95,7 +95,6 @@ class LoanReminderServiceIntegrationTest {
         user.setId("reminder-user-1");
         user.setRole(role);
         user.setSchool(school);
-        user.setCampus(campus);
         user.setOneRosterSourcedId("sourced-user-1");
         userRepository.save(user);
 
@@ -114,7 +113,7 @@ class LoanReminderServiceIntegrationTest {
         loan.setCampus(campus);
         loan.setLoanDate(LocalDate.now(BRUSSELS_ZONE));
         loan.setReturnDate(LocalDate.now(BRUSSELS_ZONE).plusDays(2));
-        loan.getCopies().add(copy);
+        loan.setCopy(copy);
         loanRepository.save(loan);
 
         entityManager.flush();
@@ -148,7 +147,6 @@ class LoanReminderServiceIntegrationTest {
         user.setId("overdue-user-1");
         user.setRole(overdueRole);
         user.setSchool(school);
-        user.setCampus(campus);
         user.setOneRosterSourcedId("sourced-overdue");
         userRepository.save(user);
 
@@ -167,7 +165,7 @@ class LoanReminderServiceIntegrationTest {
         loan.setCampus(campus);
         loan.setLoanDate(LocalDate.now(BRUSSELS_ZONE).minusDays(10));
         loan.setReturnDate(LocalDate.now(BRUSSELS_ZONE).minusDays(3));
-        loan.getCopies().add(copy);
+        loan.setCopy(copy);
         loanRepository.save(loan);
 
         entityManager.flush();
@@ -205,7 +203,6 @@ class LoanReminderServiceIntegrationTest {
         user.setId("alert-borrower-1");
         user.setRole(borrowerRole);
         user.setSchool(school);
-        user.setCampus(campus);
         user.setOneRosterSourcedId("sourced-borrower");
         userRepository.save(user);
 
@@ -213,7 +210,6 @@ class LoanReminderServiceIntegrationTest {
         librarian.setId("alert-librarian-1");
         librarian.setRole(librarianRole);
         librarian.setSchool(school);
-        librarian.setCampus(campus);
         userRepository.save(librarian);
 
         Book book = new Book();
@@ -232,7 +228,7 @@ class LoanReminderServiceIntegrationTest {
         loan.setLibrarianId("alert-librarian-1");
         loan.setLoanDate(LocalDate.now(BRUSSELS_ZONE).minusDays(14));
         loan.setReturnDate(LocalDate.now(BRUSSELS_ZONE).minusDays(10));
-        loan.getCopies().add(copy);
+        loan.setCopy(copy);
         loanRepository.save(loan);
 
         entityManager.flush();

@@ -85,7 +85,8 @@ class BookSearchServiceTest {
         Campus userCampus = new Campus();
         userCampus.setId(1L);
         userCampus.setSchool(school);
-        user.setCampus(userCampus);
+        lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId()))
+                .thenReturn(java.util.Optional.of(userCampus));
 
         lenient().when(userRepository.findById("test-user"))
                 .thenReturn(java.util.Optional.of(user));
@@ -98,8 +99,6 @@ class BookSearchServiceTest {
         Campus campus = new Campus();
         campus.setId(1L);
         campus.setSchool(school);
-        lenient().when(currentUserService.getCurrentUserCampus(authentication))
-                .thenReturn(campus);
         lenient().when(currentUserService.getCurrentUserSchool(authentication))
                 .thenReturn(school);
         lenient().when(currentUserService.resolveSchool(any(), any())).thenReturn(school);

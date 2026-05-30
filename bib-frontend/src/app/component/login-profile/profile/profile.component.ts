@@ -73,7 +73,6 @@ export class ProfileComponent implements OnInit {
       primaryGroupName: profile.primaryGroupName ?? 'Nog niet beschikbaar',
       parentGroupNames: profile.parentGroupNames ?? [],
       schoolName: profile.schoolName ?? 'Nog niet beschikbaar',
-      campusName: profile.campusName ?? 'Nog niet beschikbaar',
     };
   });
 

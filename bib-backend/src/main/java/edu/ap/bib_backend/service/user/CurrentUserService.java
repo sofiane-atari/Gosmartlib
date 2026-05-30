@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.service.user;
 
-import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
@@ -44,34 +43,14 @@ public class CurrentUserService {
                 .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden: " + userId));
     }
 
-    public Campus getCurrentUserCampus(Authentication authentication) {
-        User user = getCurrentUser(authentication);
-
-        if (user.getCampus() == null) {
-            throw new IllegalStateException("Gebruiker heeft geen campus gekoppeld.");
-        }
-
-        return user.getCampus();
-    }
-
     public School getCurrentUserSchool(Authentication authentication) {
         User user = getCurrentUser(authentication);
 
-        if (user.getSchool() != null) {
-            return user.getSchool();
-        }
-
-        Campus campus = user.getCampus();
-
-        if (campus == null) {
+        if (user.getSchool() == null) {
             throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
         }
 
-        if (campus.getSchool() == null) {
-            throw new IllegalStateException("Campus heeft geen school gekoppeld.");
-        }
-
-        return campus.getSchool();
+        return user.getSchool();
     }
 
     public boolean isAdmin(Authentication authentication) {

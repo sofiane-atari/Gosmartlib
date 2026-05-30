@@ -17,7 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import edu.ap.bib_backend.dto.MailSubscriptionDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.MailSubscription;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.MailType;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
@@ -81,10 +83,16 @@ class MailSubscriptionServiceTest {
 
     @Test
     void GivenValidUserAndBook_WhenSubscribe_ThenCreatesAndReturnsSubscription() {
+        School school = new School();
+        school.setId(1L);
+        Campus campus = new Campus();
+        campus.setSchool(school);
         User user = new User();
         user.setId("user1");
+        user.setSchool(school);
         Book book = new Book();
         book.setId(1L);
+        book.setCampus(campus);
         MailSubscription subscription = new MailSubscription();
         MailSubscription saved = new MailSubscription();
         MailSubscriptionDTO expectedDto = MailSubscriptionDTO.builder().id(1L).bookId(1L).build();
