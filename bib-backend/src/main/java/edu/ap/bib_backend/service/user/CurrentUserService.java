@@ -74,6 +74,10 @@ public class CurrentUserService {
         return campus.getSchool();
     }
 
+    public boolean isAdmin(Authentication authentication) {
+        return hasAnyAuthority(authentication, ROLE_ADMIN);
+    }
+
     public boolean isModerator(Authentication authentication) {
         return hasAnyAuthority(authentication, ROLE_LIBRARIAN, ROLE_ADMIN);
     }

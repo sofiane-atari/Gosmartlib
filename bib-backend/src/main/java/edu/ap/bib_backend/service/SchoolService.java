@@ -280,7 +280,7 @@ public class SchoolService {
     public void setCatalogVisibility(Long schoolId, boolean visible, Authentication authentication) {
         School userSchool = currentUserService.getCurrentUserSchool(authentication);
 
-        if (!userSchool.getId().equals(schoolId)) {
+        if (!userSchool.getId().equals(schoolId) && !currentUserService.isAdmin(authentication)) {
             throw new AccessDeniedException("Je kunt alleen de zichtbaarheid van je eigen school aanpassen.");
         }
 

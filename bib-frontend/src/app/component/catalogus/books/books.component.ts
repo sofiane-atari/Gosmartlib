@@ -148,27 +148,27 @@ export class BooksComponent implements OnInit {
       const status = this.authService.adminOverrideStatus();
       const user = this.authService.currentUser();
 
-      if (status && !status.enabled && user?.schoolId && this.selectedSchoolId() !== user.schoolId) {
-        this.selectedSchoolService.selectSchool(user.schoolId, user.schoolName ?? '');
-        this.currentPage.set(0);
-        this.loadCatalogBooks();
-        this.loadSidebarBooks();
-        this.loadFeaturedReadingLists();
+      if (!user?.schoolId) {
+        return;
       }
-    }, { allowSignalWrites: true });
 
-    effect(() => {
-      const user = this.authService.currentUser();
-
-      if (!user?.schoolId) return;
-
-      if (!this.canViewOtherSchools() && this.selectedSchoolId() !== user.schoolId) {
-        this.selectedSchoolService.selectSchool(user.schoolId, user.schoolName ?? '');
-        this.currentPage.set(0);
-        this.loadCatalogBooks();
-        this.loadSidebarBooks();
-        this.loadFeaturedReadingLists();
+      if (this.canViewOtherSchools()) {
+        return;
       }
+
+      if (status?.enabled) {
+        return;
+      }
+
+      if (Number(this.selectedSchoolId()) === Number(user.schoolId)) {
+        return;
+      }
+
+      this.selectedSchoolService.selectSchool(user.schoolId, user.schoolName ?? '');
+      this.currentPage.set(0);
+      this.loadCatalogBooks();
+      this.loadSidebarBooks();
+      this.loadFeaturedReadingLists();
     }, { allowSignalWrites: true });
 
     effect(() => {
@@ -263,23 +263,23 @@ export class BooksComponent implements OnInit {
   protected selectSchoolFromDropdown(schoolId: number, schoolName: string): void {
     this.isSchoolDropdownOpen.set(false);
 
-    if (schoolId === this.selectedSchoolId()) {
-      return;
-    }
-
     this.onSchoolChange(schoolId, schoolName);
   }
 
   protected getSelectedSchoolTitle(): string {
-    if (this.selectedSchoolId() === null) {
+    const selectedSchoolId = this.selectedSchoolId();
+
+    if (selectedSchoolId === null) {
       return 'Kies een school';
     }
 
+    const selectedIdAsNumber = Number(selectedSchoolId);
+
     const selected = this.accessibleSchools().find(
-      (s) => s.id === this.selectedSchoolId(),
+      (school) => school.id === selectedIdAsNumber,
     );
 
-    return selected?.name ?? this.currentSchoolName() ?? 'Kies een school';
+    return selected?.name || this.currentSchoolName() || 'Kies een school';
   }
 
   @HostListener('document:click', ['$event'])
@@ -333,7 +333,15 @@ export class BooksComponent implements OnInit {
   private ensureCorrectSchool(): void {
     const user = this.authService.currentUser();
 
-    if (user?.schoolId && !this.canViewOtherSchools() && this.selectedSchoolId() !== user.schoolId) {
+    if (this.canViewOtherSchools()) {
+      return;
+    }
+
+    if (!user?.schoolId) {
+      return;
+    }
+
+    if (Number(this.selectedSchoolId()) !== Number(user.schoolId)) {
       this.selectedSchoolService.selectSchool(user.schoolId, user.schoolName ?? '');
     }
   }
