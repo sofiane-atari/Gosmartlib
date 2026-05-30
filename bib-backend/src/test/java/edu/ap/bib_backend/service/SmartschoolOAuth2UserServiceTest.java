@@ -179,6 +179,27 @@ class SmartschoolOAuth2UserServiceTest {
             }
             """);
 
+        expectGroupInfoRequest(accessTokenValue, """
+            {
+              "groups": [
+                {
+                  "groupID": "7868b96OFO4=",
+                  "name": "2ITSOF1",
+                  "description": "2ITSOF1",
+                  "platform": "https://aphogeschool.smartschool.be"
+                }
+              ],
+              "parentGroups": [
+                {
+                  "groupID": "rvLPM/sIwrg=",
+                  "name": "Leerlingen",
+                  "description": "Leerlingen",
+                  "platform": "https://aphogeschool.smartschool.be"
+                }
+              ]
+            }
+            """);
+
         // Act + Assert
         OAuth2AuthenticationException exception = assertThrows(
                 OAuth2AuthenticationException.class,

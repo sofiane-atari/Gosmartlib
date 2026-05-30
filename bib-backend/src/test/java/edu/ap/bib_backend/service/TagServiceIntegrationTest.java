@@ -21,8 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @DataJpaTest
 @Import(TagService.class)
@@ -43,6 +45,9 @@ class TagServiceIntegrationTest {
 
     @Autowired
     private RoleEntityRepository roleRepository;
+
+    @MockitoBean
+    private CurrentUserService currentUserService;
 
     private Authentication schoolAAuthentication;
     private Authentication schoolBAuthentication;
@@ -65,6 +70,9 @@ class TagServiceIntegrationTest {
 
         schoolAAuthentication = new UsernamePasswordAuthenticationToken("librarian-a", null);
         schoolBAuthentication = new UsernamePasswordAuthenticationToken("librarian-b", null);
+
+        when(currentUserService.getCurrentUserSchool(schoolAAuthentication)).thenReturn(schoolA);
+        when(currentUserService.getCurrentUserSchool(schoolBAuthentication)).thenReturn(schoolB);
     }
 
     private School createSchool(String domainName, String name) {

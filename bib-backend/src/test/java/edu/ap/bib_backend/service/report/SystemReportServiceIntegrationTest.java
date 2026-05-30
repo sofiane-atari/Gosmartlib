@@ -33,13 +33,18 @@ class SystemReportServiceIntegrationTest {
 
     @BeforeEach
     void seedData() {
-        jdbcTemplate.update("DELETE FROM loan_copies");
         jdbcTemplate.update("DELETE FROM loans");
         jdbcTemplate.update("DELETE FROM book_copies");
         jdbcTemplate.update("DELETE FROM books");
         jdbcTemplate.update("DELETE FROM auth_sessions");
+        jdbcTemplate.update("DELETE FROM user_groups");
         jdbcTemplate.update("DELETE FROM users");
+        jdbcTemplate.update("DELETE FROM oneroster_tokens");
+        jdbcTemplate.update("DELETE FROM oneroster_credentials");
+        jdbcTemplate.update("DELETE FROM tags");
         jdbcTemplate.update("DELETE FROM campuses");
+        jdbcTemplate.update("DELETE FROM classes");
+        jdbcTemplate.update("DELETE FROM reading_lists");
         jdbcTemplate.update("DELETE FROM schools");
         jdbcTemplate.update("DELETE FROM roles");
 
@@ -47,21 +52,27 @@ class SystemReportServiceIntegrationTest {
         jdbcTemplate.update("INSERT INTO roles (role) VALUES ('ADMIN')");
 
         jdbcTemplate.update("""
-                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at)
-                VALUES (1, 'school-a.smartschool.be', 'School A', '', 0, 15, ?)
+                INSERT INTO schools (id, domain_name, name, default_loan_duration_days, created_at,
+                                     provider_type, status, catalog_featured_lists_enabled,
+                                     catalog_most_read_enabled, catalog_newest_enabled)
+                VALUES (1, 'school-a.smartschool.be', 'School A', 15, ?,
+                        'REAL', 'ACTIVE', false, false, false)
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
         jdbcTemplate.update("""
-                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at)
-                VALUES (2, 'school-b.smartschool.be', 'School B', '', 0, 15, ?)
+                INSERT INTO schools (id, domain_name, name, default_loan_duration_days, created_at,
+                                     provider_type, status, catalog_featured_lists_enabled,
+                                     catalog_most_read_enabled, catalog_newest_enabled)
+                VALUES (2, 'school-b.smartschool.be', 'School B', 15, ?,
+                        'REAL', 'ACTIVE', false, false, false)
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
 
         jdbcTemplate.update("INSERT INTO campuses (id, name, school_id) VALUES (1, 'Campus A', 1)");
         jdbcTemplate.update("INSERT INTO campuses (id, name, school_id) VALUES (2, 'Campus B', 2)");
 
-        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, campus_id, review_blocked) VALUES ('admin-1', 'ADMIN', 1, 1, false)");
-        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, campus_id, review_blocked) VALUES ('student-1', 'STUDENT', 1, 1, false)");
-        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, campus_id, review_blocked) VALUES ('student-2', 'STUDENT', 1, 1, false)");
-        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, campus_id, review_blocked) VALUES ('student-3', 'STUDENT', 2, 2, false)");
+        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, review_blocked) VALUES ('admin-1', 'ADMIN', 1, false)");
+        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, review_blocked) VALUES ('student-1', 'STUDENT', 1, false)");
+        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, review_blocked) VALUES ('student-2', 'STUDENT', 1, false)");
+        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, review_blocked) VALUES ('student-3', 'STUDENT', 2, false)");
 
         insertAuthSession("student-1", "ROLE_STUDENT", true);
         insertAuthSession("student-2", "ROLE_STUDENT", false);
@@ -80,14 +91,12 @@ class SystemReportServiceIntegrationTest {
         jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (2, 1, 1, 'GOOD_CONDITION')");
         jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (3, 2, 2, 'GOOD_CONDITION')");
 
-        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, loan_date, return_date, returned_date) VALUES (1, 'student-1', 1, ?, ?, null)",
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (1, 'student-1', 1, 1, ?, ?, null)",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 15));
-        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, loan_date, return_date, returned_date) VALUES (2, 'student-3', 2, ?, ?, ?)",
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (2, 'student-1', 1, 2, ?, ?, null)",
+                LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 15));
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (3, 'student-3', 2, 3, ?, ?, ?)",
                 LocalDate.of(2026, 5, 2), LocalDate.of(2026, 5, 16), LocalDate.of(2026, 5, 10));
-
-        jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (1, 1)");
-        jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (1, 2)");
-        jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (2, 3)");
     }
 
     @Test
@@ -104,7 +113,7 @@ class SystemReportServiceIntegrationTest {
 
         assertThat(result.loanVolume()).hasSize(1);
         assertThat(result.loanVolume().get(0).period()).isEqualTo("2026-05");
-        assertThat(result.loanVolume().get(0).loanCount()).isEqualTo(2);
+        assertThat(result.loanVolume().get(0).loanCount()).isEqualTo(3);
 
         assertThat(result.popularBooks()).hasSize(2);
         assertThat(result.popularBooks().get(0).title()).isEqualTo("Boek Een");

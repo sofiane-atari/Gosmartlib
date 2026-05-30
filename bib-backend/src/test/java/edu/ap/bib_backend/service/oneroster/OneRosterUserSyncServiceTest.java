@@ -64,7 +64,8 @@ class OneRosterUserSyncServiceTest {
         syncService.syncAllSchools();
 
         verify(oneRosterClient).fetchUsers("test.smartschool.be");
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).findById("user1");
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test

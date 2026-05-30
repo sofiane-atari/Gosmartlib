@@ -76,9 +76,12 @@ class LoanServiceIntegrationTest {
         campus.setPostalCode(2000);
         campus = campusRepository.save(campus);
 
-        RoleEntity role = new RoleEntity();
-        role.setRole(Role.STUDENT);
-        roleEntityRepository.save(role);
+        RoleEntity role = roleEntityRepository.findByRole(Role.STUDENT)
+                .orElseGet(() -> {
+                    RoleEntity newRole = new RoleEntity();
+                    newRole.setRole(Role.STUDENT);
+                    return roleEntityRepository.save(newRole);
+                });
 
         User user = new User();
         user.setId("loan-user-1");

@@ -8,13 +8,23 @@ import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.GroupRepository;
+import edu.ap.bib_backend.jpa.repository.LoanExtensionRepository;
+import edu.ap.bib_backend.jpa.repository.LoanRepository;
+import edu.ap.bib_backend.jpa.repository.MailSubscriptionRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterCredentialRepository;
 import edu.ap.bib_backend.jpa.repository.OneRosterTokenRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
+import edu.ap.bib_backend.jpa.repository.review.ReviewReportRepository;
+import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.jpa.repository.StudentClassStatisticRepository;
+import edu.ap.bib_backend.jpa.repository.TagRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +71,7 @@ class ReadingListIntegrationTest {
     private School school;
     private RoleEntity studentRole;
     private RoleEntity teacherRole;
+    private RoleEntity librarianRole;
     private UsernamePasswordAuthenticationToken currentPrincipal;
 
     @Autowired
@@ -90,6 +101,36 @@ class ReadingListIntegrationTest {
     @Autowired
     private OneRosterTokenRepository oneRosterTokenRepository;
 
+    @Autowired
+    private GroupRepository groupRepository;
+
+    @Autowired
+    private LoanExtensionRepository loanExtensionRepository;
+
+    @Autowired
+    private LoanRepository loanRepository;
+
+    @Autowired
+    private ReviewReportRepository reviewReportRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    @Autowired
+    private MailSubscriptionRepository mailSubscriptionRepository;
+
+    @Autowired
+    private BookCopyRepository bookCopyRepository;
+
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Autowired
+    private TagRepository tagRepository;
+
+    @Autowired
+    private StudentClassStatisticRepository studentClassStatisticRepository;
+
     @BeforeEach
     void setUp() {
         cleanDatabase();
@@ -99,13 +140,9 @@ class ReadingListIntegrationTest {
         school.setName("Test School");
         school = schoolRepository.save(school);
 
-        studentRole = new RoleEntity();
-        studentRole.setRole(Role.STUDENT);
-        studentRole = roleEntityRepository.save(studentRole);
-
-        teacherRole = new RoleEntity();
-        teacherRole.setRole(Role.TEACHER);
-        teacherRole = roleEntityRepository.save(teacherRole);
+        studentRole = getOrCreateRole(Role.STUDENT);
+        teacherRole = getOrCreateRole(Role.TEACHER);
+        librarianRole = getOrCreateRole(Role.LIBRARIAN);
 
         campus = new Campus();
         campus.setName("Test Campus");
@@ -190,7 +227,7 @@ class ReadingListIntegrationTest {
         createCatalogList("Tweede selectie", campus, true, 2);
         createCatalogList("Derde selectie", campus, true, 3);
         createCatalogList("Niet geselecteerd", campus, false, null);
-        createCatalogList("Andere campus selectie", otherCampus, true, 1);
+        createCatalogList("Andere campus selectie", otherCampus, true, 4);
 
         getCatalogFeaturedLists()
                 .andExpect(status().isOk())
@@ -204,7 +241,7 @@ class ReadingListIntegrationTest {
 
     @Test
     void givenSystemList_whenSelectCatalogFeaturedList_thenListIsShownOnCatalog() throws Exception {
-        setAuthenticationAsTeacher();
+        setAuthenticationAsLibrarian();
 
         ReadingList list = createCatalogList("Nieuwe selectie", campus, false, null);
 
@@ -220,7 +257,7 @@ class ReadingListIntegrationTest {
 
     @Test
     void givenTwoSelectedCatalogLists_whenSelectingThirdList_thenOldestSelectionIsRemoved() throws Exception {
-        setAuthenticationAsTeacher();
+        setAuthenticationAsLibrarian();
 
         ReadingList first = createCatalogList("Eerste", campus, true, 1);
         ReadingList second = createCatalogList("Tweede", campus, true, 2);
@@ -244,7 +281,7 @@ class ReadingListIntegrationTest {
 
     @Test
     void givenSelectedCatalogList_whenUnselectCatalogFeaturedList_thenListIsRemovedFromCatalog() throws Exception {
-        setAuthenticationAsTeacher();
+        setAuthenticationAsLibrarian();
 
         ReadingList list = createCatalogList("Te verwijderen", campus, true, 1);
 
@@ -324,6 +361,14 @@ class ReadingListIntegrationTest {
         setAuthentication("ROLE_TEACHER");
     }
 
+    private void setAuthenticationAsLibrarian() {
+        User user = userRepository.findById(USER_ID).orElseThrow();
+        user.setRole(librarianRole);
+        userRepository.save(user);
+
+        setAuthentication("ROLE_LIBRARIAN");
+    }
+
     private void setAuthentication(String authority) {
         currentPrincipal = new UsernamePasswordAuthenticationToken(
                 USER_ID,
@@ -339,12 +384,31 @@ class ReadingListIntegrationTest {
         SecurityContextHolder.getContext().setAuthentication(currentPrincipal);
     }
 
+    private RoleEntity getOrCreateRole(Role role) {
+        return roleEntityRepository.findByRole(role)
+                .orElseGet(() -> {
+                    RoleEntity newRole = new RoleEntity();
+                    newRole.setRole(role);
+                    return roleEntityRepository.save(newRole);
+                });
+    }
+
     private void cleanDatabase() {
         readingListBookRepository.deleteAll();
         readingListRepository.deleteAll();
+        reviewReportRepository.deleteAll();
+        reviewRepository.deleteAll();
+        mailSubscriptionRepository.deleteAll();
+        loanExtensionRepository.deleteAll();
+        loanRepository.deleteAll();
         oneRosterTokenRepository.deleteAll();
         oneRosterCredentialRepository.deleteAll();
+        studentClassStatisticRepository.deleteAll();
+        bookCopyRepository.deleteAll();
+        bookRepository.deleteAll();
+        tagRepository.deleteAll();
         userRepository.deleteAll();
+        groupRepository.deleteAll();
         campusRepository.deleteAll();
         roleEntityRepository.deleteAll();
         schoolRepository.deleteAll();
