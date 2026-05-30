@@ -60,16 +60,20 @@ public class ReviewService {
                 this.applicationEventPublisher = applicationEventPublisher;
         }
 
-        public List<ReviewDTO> getReviewsForBook(Long bookId, Authentication authentication) {
+        public Page<ReviewDTO> getReviewsForBook(Long bookId, int page, int size, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
                 List<ReviewModerationStatus> visibleStatuses = List.of(
                                 ReviewModerationStatus.ACTIVE,
                                 ReviewModerationStatus.KEPT);
 
-                return reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses).stream()
-                                .map(review -> reviewMapper.toDto(review, currentUserId))
-                                .toList();
+                Pageable pageable = PageRequest.of(
+                                Math.max(page, 0),
+                                Math.min(Math.max(size, 1), 50),
+                                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+                return reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses, pageable)
+                                .map(review -> reviewMapper.toDto(review, currentUserId));
         }
 
         public Page<ReviewDTO> getCurrentUserReviews(Authentication authentication, int page, int size) {

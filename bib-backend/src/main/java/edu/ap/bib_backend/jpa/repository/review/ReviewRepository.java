@@ -57,9 +57,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
                             AND r.moderationStatus IN :statuses
                             ORDER BY r.createdAt DESC
                         """)
-        List<Review> findVisibleReviewsByBookId(
+        Page<Review> findVisibleReviewsByBookId(
                         @Param("bookId") Long bookId,
-                        @Param("statuses") List<ReviewModerationStatus> statuses);
+                        @Param("statuses") List<ReviewModerationStatus> statuses,
+                        Pageable pageable);
 
         @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = :bookId AND r.moderationStatus IN ('ACTIVE','KEPT')")
         Double getAverageRatingForBook(@Param("bookId") Long bookId);

@@ -32,9 +32,19 @@ public class ReviewController {
     }
 
     @GetMapping("/book/{bookId}")
-    public ResponseEntity<List<ReviewDTO>> getReviewsByBookId(@PathVariable Long bookId, Authentication authentication) {
-        List<ReviewDTO> reviews = reviewService.getReviewsForBook(bookId, authentication);
-        return ResponseEntity.ok(reviews);
+    public ResponseEntity<PageDTO<ReviewDTO>> getReviewsByBookId(
+            @PathVariable Long bookId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Authentication authentication) {
+        Page<ReviewDTO> reviewPage = reviewService.getReviewsForBook(bookId, page, size, authentication);
+
+        return ResponseEntity.ok(
+                new PageDTO<>(
+                        reviewPage.getContent(),
+                        PageMapper.toPaginatedMeta(reviewPage)
+                )
+        );
     }
 
     @GetMapping
