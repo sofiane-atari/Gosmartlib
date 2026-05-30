@@ -618,7 +618,12 @@ export class CreateLoanComponent {
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
-          this.showSuccess('De lening is succesvol aangemaakt.');
+          const count = bookCopyIds.length;
+          this.showSuccess(
+            count === 1
+              ? 'De lening is succesvol aangemaakt.'
+              : 'De leningen zijn succesvol aangemaakt.',
+          );
           this.clearAllProgress();
           void this.router.navigate(['/books-management']);
         },
