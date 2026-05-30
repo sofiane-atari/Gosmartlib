@@ -42,4 +42,8 @@ export interface SchoolReport {
   popularBooks: PopularLoanedBook[];
   loanVolume: LoanVolumePeriod[];
   classActivity: SchoolReportClassActivity[];
+  returnedOnTimeLoans: number;
+  returnedLateLoans: number;
+  onTimePercentage: number;
+  latePercentage: number;
 }

@@ -13,6 +13,10 @@ export interface SystemReport {
   loanVolume: LoanVolumePeriod[];
   popularBooks: PopularBook[];
   schools: SystemSchoolActivity[];
+  returnedOnTimeLoans: number;
+  returnedLateLoans: number;
+  onTimePercentage: number;
+  latePercentage: number;
 }
 
 export interface SystemSchoolActivity {

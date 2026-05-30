@@ -179,69 +179,110 @@
           }
         </section>
 
-        <section class="insight-card school-card">
-          <div class="insight-card__header">
-            <div>
-              <h3>Uitleenvolume per maand</h3>
-              <p>Piekmomenten in de volledige school.</p>
+        <div class="chart-stack">
+          <section class="insight-card school-card chart-stack__card">
+            <div class="insight-card__header">
+              <div>
+                <h3>Uitleenvolume per maand</h3>
+                <p>Piekmomenten in de volledige school.</p>
+              </div>
             </div>
-          </div>
 
-          @if (report.loanVolume.length === 0) {
-            <div class="empty-table-state">Geen periodegegevens beschikbaar.</div>
-          } @else {
-            <svg class="volume-bar-chart" viewBox="0 0 500 200" role="img" aria-label="Uitleenvolume per maand">
-              <defs>
-                <linearGradient id="volumeBarGradient" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#2563eb" />
-                  <stop offset="100%" stop-color="var(--main-color)" />
-                </linearGradient>
-              </defs>
+            @if (report.loanVolume.length === 0) {
+              <div class="empty-table-state">Geen periodegegevens beschikbaar.</div>
+            } @else {
+              <svg class="volume-bar-chart" viewBox="0 0 500 200" role="img" aria-label="Uitleenvolume per maand">
+                <defs>
+                  <linearGradient id="volumeBarGradient" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#2563eb" />
+                    <stop offset="100%" stop-color="var(--main-color)" />
+                  </linearGradient>
+                </defs>
 
-              @for (tick of getLoanVolumeTicks(); track tick; let tickIndex = $index) {
-                <line
-                  class="volume-grid-line"
-                  x1="52"
-                  x2="472"
-                  [attr.y1]="getLoanVolumeTickY(tickIndex)"
-                  [attr.y2]="getLoanVolumeTickY(tickIndex)" />
-                <text class="volume-axis-label" x="42" [attr.y]="getLoanVolumeTickY(tickIndex) + 4" text-anchor="end">
-                  {{ tick }}
-                </text>
-              }
+                @for (tick of getLoanVolumeTicks(); track tick; let tickIndex = $index) {
+                  <line
+                    class="volume-grid-line"
+                    x1="52"
+                    x2="472"
+                    [attr.y1]="getLoanVolumeTickY(tickIndex)"
+                    [attr.y2]="getLoanVolumeTickY(tickIndex)" />
+                  <text class="volume-axis-label" x="42" [attr.y]="getLoanVolumeTickY(tickIndex) + 4" text-anchor="end">
+                    {{ formatTick(tick) }}
+                  </text>
+                }
 
-              <line class="volume-axis-line" x1="52" y1="20" x2="52" y2="150" />
-              <line class="volume-axis-line" x1="52" y1="150" x2="472" y2="150" />
+                <line class="volume-axis-line" x1="52" y1="20" x2="52" y2="150" />
+                <line class="volume-axis-line" x1="52" y1="150" x2="472" y2="150" />
 
-              @for (period of report.loanVolume; track period.period; let i = $index) {
-                <rect
-                  class="volume-chart-bar"
-                  [attr.x]="getLoanVolumeBarX(i)"
-                  [attr.y]="getLoanVolumeBarY(period.loanCount)"
-                  [attr.width]="getLoanVolumeBarWidth()"
-                  [attr.height]="getLoanVolumeBarHeight(period.loanCount)"
-                  rx="5" />
-                <text
-                  class="volume-value-label"
-                  [attr.x]="getLoanVolumeBarX(i) + getLoanVolumeBarWidth() / 2"
-                  [attr.y]="getLoanVolumeBarY(period.loanCount) - 6"
-                  text-anchor="middle">
-                  {{ period.loanCount }}
-                </text>
-                <text
-                  class="volume-x-label"
-                  [attr.x]="getLoanVolumeBarX(i) + getLoanVolumeBarWidth() / 2"
-                  y="172"
-                  text-anchor="middle">
-                  {{ formatPeriod(period.period) }}
-                </text>
-              }
+                @for (period of report.loanVolume; track period.period; let i = $index) {
+                  <rect
+                    class="volume-chart-bar"
+                    [attr.x]="getLoanVolumeBarX(i)"
+                    [attr.y]="getLoanVolumeBarY(period.loanCount)"
+                    [attr.width]="getLoanVolumeBarWidth()"
+                    [attr.height]="getLoanVolumeBarHeight(period.loanCount)"
+                    rx="5" />
+                  <text
+                    class="volume-value-label"
+                    [attr.x]="getLoanVolumeBarX(i) + getLoanVolumeBarWidth() / 2"
+                    [attr.y]="getLoanVolumeBarY(period.loanCount) - 6"
+                    text-anchor="middle">
+                    {{ period.loanCount }}
+                  </text>
+                  <text
+                    class="volume-x-label"
+                    [attr.x]="getLoanVolumeBarX(i) + getLoanVolumeBarWidth() / 2"
+                    y="172"
+                    text-anchor="middle">
+                    {{ formatPeriod(period.period) }}
+                  </text>
+                }
 
-              <text class="volume-axis-title" x="262" y="195" text-anchor="middle">Maand</text>
-              <text class="volume-axis-title" x="15" y="88" text-anchor="middle" transform="rotate(-90 15 88)">Uitleningen</text>
-            </svg>
-          }
-        </section>
+                <text class="volume-axis-title" x="262" y="195" text-anchor="middle">Maand</text>
+                <text class="volume-axis-title" x="15" y="88" text-anchor="middle" transform="rotate(-90 15 88)">Uitleningen</text>
+              </svg>
+            }
+          </section>
+
+          <section class="insight-card school-card chart-stack__card">
+            <div class="insight-card__header">
+              <div>
+                <h3>Retourstatistieken</h3>
+                <p>Optijd versus te laat teruggebrachte boeken.</p>
+              </div>
+            </div>
+
+            @if ((report.returnedOnTimeLoans + report.returnedLateLoans + report.activeLoans) === 0) {
+              <div class="empty-table-state">Geen retourgegevens beschikbaar.</div>
+            } @else {
+              <div class="return-pie-chart">
+                <div class="pie-visual">
+                  <svg viewBox="0 0 240 200" role="img" aria-label="Optijd versus te laat">
+                    @for (slice of getPieSliceData(); track slice.label) {
+                      @if (slice.d) {
+                        <path [attr.d]="slice.d" [attr.fill]="slice.color" />
+                      }
+                    }
+                  </svg>
+                </div>
+                <div class="pie-details">
+                  <div class="pie-legend">
+                    @for (slice of getPieSliceData(); track slice.label) {
+                      <div class="legend-item">
+                        <span class="legend-dot" [style.background]="slice.color"></span>
+                        <div class="legend-item__text">
+                          <span class="legend-item__label">{{ slice.label }}</span>
+                          <span class="legend-item__value">{{ slice.count }}</span>
+                          <span class="legend-item__pct">{{ slice.percentage | number:'1.0-1' }}%</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </section>
+        </div>
       </section>
 
       <section class="search-panel">

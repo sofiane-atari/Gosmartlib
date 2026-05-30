@@ -14,5 +14,9 @@ public record SystemReportDTO(
         @JsonProperty("linkedUsersPercentage") double linkedUsersPercentage,
         @JsonProperty("loanVolume") List<LoanVolumePeriodDTO> loanVolume,
         @JsonProperty("popularBooks") List<PopularLoanedBookDTO> popularBooks,
-        @JsonProperty("schools") List<SystemSchoolActivityDTO> schools) {
+        @JsonProperty("schools") List<SystemSchoolActivityDTO> schools,
+        @JsonProperty("returnedOnTimeLoans") long returnedOnTimeLoans,
+        @JsonProperty("returnedLateLoans") long returnedLateLoans,
+        @JsonProperty("onTimePercentage") double onTimePercentage,
+        @JsonProperty("latePercentage") double latePercentage) {
 }
