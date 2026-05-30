@@ -128,6 +128,10 @@ export class CopySelectionModalComponent {
     }
 
     this.confirmRequested.emit(Array.from(this.selectedIds()));
+
+    this.selectedIds.set(new Set());
+    this.confirmationInput.set('');
+    this.step.set('selection');
   }
 
   protected cancel(): void {
