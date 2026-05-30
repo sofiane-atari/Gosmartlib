@@ -86,9 +86,38 @@
       </app-dev-feature-wrapper>
     }
 
+    @if (roleService.isAdmin()) {
+      @if (isSchoolOverrideActive()) {
+        <div class="active-school-badge">
+          <span class="active-school-name">{{ activeSchoolDisplayName() }}</span>
+          <button class="btn btn-outline-white" (click)="openSchoolSwitchModal()">
+            <lucide-icon [name]="SchoolSwitchIcon" class="btn-icon"></lucide-icon>
+            <span class="btn-text">School wisselen</span>
+          </button>
+        </div>
+      } @else {
+        <button class="btn btn-outline-white" (click)="openSchoolSwitchModal()">
+          <lucide-icon [name]="SchoolSwitchIcon" class="btn-icon"></lucide-icon>
+          <span class="btn-text">School wisselen</span>
+        </button>
+      }
+    }
+
     <button class="btn btn-rose" (click)="logout()">
       <lucide-icon [name]="LogOutIcon" class="btn-icon"></lucide-icon>
       <span class="btn-text">Log uit</span>
     </button>
   </div>
 </aside>
+
+<app-school-switch-modal
+  [isVisible]="isSchoolSwitchModalOpen()"
+  [schools]="schoolsForSwitch()"
+  [isLoading]="isLoadingSchools()"
+  [errorMessage]="schoolSwitchError()"
+  [isOverrideActive]="isSchoolOverrideActive()"
+  [activeSchoolName]="schoolOverrideService.activeSchoolName()"
+  (schoolSelected)="onSchoolSelected($event)"
+  (cancelRequested)="closeSchoolSwitchModal()"
+  (resetRequested)="resetSchoolOverride()"
+></app-school-switch-modal>

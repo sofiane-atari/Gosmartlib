@@ -31,8 +31,11 @@ import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
 import { UserService } from '../../services/user/user.service';
 import { SchoolService } from '../../services/school/school.service';
+import { SchoolOverrideService } from '../../services/school-override/school-override.service';
 import { SidebarActiveLoansComponent } from './sidebar-active-loans/sidebar-active-loans.component';
 import { DevFeatureWrapperComponent } from '../shared/dev-feature-wrapper/dev-feature-wrapper.component';
+import { SchoolSwitchModalComponent } from '../shared/school-switch-modal/school-switch-modal.component';
+import { School as SchoolModel } from '../../model/school.model';
 
 @Component({
   selector: 'app-sidebar',
@@ -44,6 +47,7 @@ import { DevFeatureWrapperComponent } from '../shared/dev-feature-wrapper/dev-fe
     FormsModule,
     SidebarActiveLoansComponent,
     DevFeatureWrapperComponent,
+    SchoolSwitchModalComponent,
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
@@ -54,17 +58,32 @@ export class SidebarComponent {
   readonly RotateCcwIcon = RotateCcw;
   readonly LogOutIcon = LogOut;
   readonly ShieldIcon = Shield;
+  readonly SchoolSwitchIcon = School;
   public readonly FolderKanbanIcon = FolderKanban;
 
   public readonly authService = inject(AuthService);
   public readonly roleService = inject(RoleService);
   private readonly userService = inject(UserService);
   private readonly schoolService = inject(SchoolService);
+  public readonly schoolOverrideService = inject(SchoolOverrideService);
 
   public mobileOpen = input<boolean>(false);
   public sidebarClosed = output<void>();
 
   protected readonly devModeEnabled = signal(false);
+  protected readonly isSchoolSwitchModalOpen = signal(false);
+  protected readonly schoolsForSwitch = signal<SchoolModel[]>([]);
+  protected readonly isLoadingSchools = signal(false);
+  protected readonly schoolSwitchError = signal<string | null>(null);
+
+  protected readonly isSchoolOverrideActive = computed(
+    () => this.schoolOverrideService.isActive(),
+  );
+
+  protected readonly activeSchoolDisplayName = computed(() => {
+    const name = this.schoolOverrideService.activeSchoolName();
+    return name ?? 'Onbekende school';
+  });
 
   public constructor(private readonly router: Router) {
     this.schoolService.isDevModeEnabled().subscribe({
@@ -214,5 +233,38 @@ export class SidebarComponent {
   public toggleAdminOverride(): void {
     const enable = !this.isAdminOverrideEnabled();
     this.authService.setAdminOverride(enable);
+  }
+
+  public openSchoolSwitchModal(): void {
+    this.schoolSwitchError.set(null);
+    this.isLoadingSchools.set(true);
+    this.isSchoolSwitchModalOpen.set(true);
+
+    this.schoolService.getAll().subscribe({
+      next: (schools) => {
+        const activeSchools = schools.filter((s) => s.status === 'ACTIVE');
+        this.schoolsForSwitch.set(activeSchools);
+        this.isLoadingSchools.set(false);
+      },
+      error: () => {
+        this.schoolSwitchError.set('De lijst met scholen kon niet worden opgehaald. Probeer het opnieuw.');
+        this.isLoadingSchools.set(false);
+      },
+    });
+  }
+
+  public onSchoolSelected(school: SchoolModel): void {
+    this.schoolOverrideService.setActiveSchool(school);
+    this.isSchoolSwitchModalOpen.set(false);
+    window.location.reload();
+  }
+
+  public resetSchoolOverride(): void {
+    this.schoolOverrideService.clearActiveSchool();
+    window.location.reload();
+  }
+
+  public closeSchoolSwitchModal(): void {
+    this.isSchoolSwitchModalOpen.set(false);
   }
 }
