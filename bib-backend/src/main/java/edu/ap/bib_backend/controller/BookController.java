@@ -72,7 +72,9 @@ public class BookController {
             @RequestParam(required = false) BookSortOption sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            Authentication authentication) {
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication
+    ) {
         Page<BookDTO> bookPage = bookSearchService.getFilteredBooks(
                 searchTerm,
                 availability,
@@ -84,7 +86,9 @@ public class BookController {
                 page,
                 size,
                 sortBy,
-                authentication);
+                authentication,
+                schoolId
+        );
 
         return new PageDTO<>(
                 bookPage.getContent(),
@@ -94,8 +98,10 @@ public class BookController {
     @GetMapping("/{id}")
     public ResponseEntity<BookDTO> getBookById(
             @PathVariable("id") Long id,
-            Authentication authentication) {
-        BookDTO book = bookService.getBookById(id, authentication);
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication
+    ) {
+        BookDTO book = bookService.getBookById(id, authentication, schoolId);
         return ResponseEntity.ok(book);
     }
 
@@ -103,8 +109,10 @@ public class BookController {
     public ResponseEntity<List<BookDTO>> getRelatedBooksCarousel(
             @PathVariable("id") Long id,
             @RequestParam(defaultValue = "10", required = false) int limit,
-            Authentication authentication) {
-        return ResponseEntity.ok(bookService.getRelatedBooksCarousel(id, limit, authentication));
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(bookService.getRelatedBooksCarousel(id, limit, authentication, schoolId));
     }
 
     @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
@@ -119,8 +127,10 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDTO> getBookByISBN(
             @PathVariable String isbn,
-            Authentication authentication) {
-        return ResponseEntity.ok(bookService.getBookByISBN(isbn, authentication));
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(bookService.getBookByISBN(isbn, authentication, schoolId));
     }
 
     @GetMapping("/isbn/{isbn}/preview")
@@ -141,15 +151,19 @@ public class BookController {
     @GetMapping("/most-read")
     public ResponseEntity<List<BookDTO>> getMostReadBooks(
             @RequestParam(defaultValue = "3", required = false) int limit,
-            Authentication authentication) {
-        return ResponseEntity.ok(bookService.getMostReadBooks(limit, authentication));
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(bookService.getMostReadBooks(limit, authentication, schoolId));
     }
 
     @GetMapping("/newest")
     public ResponseEntity<List<BookDTO>> getNewestBooks(
             @RequestParam(defaultValue = "3", required = false) int limit,
-            Authentication authentication) {
-        return ResponseEntity.ok(bookService.getNewestBooks(limit, authentication));
+            @RequestParam(required = false) Long schoolId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(bookService.getNewestBooks(limit, authentication, schoolId));
     }
 
     @GetMapping("/search-candidates")

@@ -6,6 +6,48 @@
         >{{ pagingMeta().totalItems }} boeken gevonden</span
       >
     </div>
+    @if (canViewOtherSchools()) {
+      <div class="school-selector">
+        <div class="school-dropdown">
+          <label class="school-dropdown__label">School:</label>
+
+          <button
+            type="button"
+            class="school-dropdown__trigger"
+            [class.school-dropdown__trigger--open]="isSchoolDropdownOpen()"
+            [disabled]="schoolsLoading()"
+            (click)="toggleSchoolDropdown()"
+          >
+            @if (schoolsLoading()) {
+              <span class="school-dropdown__skeleton">
+                <span class="skeleton-block skeleton-line skeleton-dropdown-text"></span>
+              </span>
+            } @else {
+              <span>{{ getSelectedSchoolTitle() }}</span>
+            }
+
+            <span class="school-dropdown__chevron">
+              <lucide-icon [img]="ChevronDown" [size]="18"></lucide-icon>
+            </span>
+          </button>
+
+          @if (isSchoolDropdownOpen()) {
+            <div class="school-dropdown__menu">
+              @for (school of accessibleSchools(); track school.id) {
+                <button
+                  type="button"
+                  class="school-dropdown__option"
+                  [class.school-dropdown__option--selected]="school.id === selectedSchoolId()"
+                  (click)="selectSchoolFromDropdown(school.id, school.name)"
+                >
+                  <span class="school-dropdown__option-main">{{ school.name }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
   </div>
 
   <section class="search-panel">

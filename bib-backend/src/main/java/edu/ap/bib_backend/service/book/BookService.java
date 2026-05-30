@@ -217,7 +217,11 @@ public class BookService {
 
     @Transactional
     public BookDTO getBookById(Long id, Authentication authentication) {
-        School school = currentUserService.getCurrentUserSchool(authentication);
+        return getBookById(id, authentication, null);
+    }
+
+    public BookDTO getBookById(Long id, Authentication authentication, Long schoolId) {
+        School school = currentUserService.resolveSchool(schoolId, authentication);
         Book book = findBookInSchoolOrThrow(id, school.getId());
         validateBookVisibility(book, authentication);
 
@@ -271,12 +275,17 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getMostReadBooks(int limit, Authentication authentication) {
-        Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
+        return getMostReadBooks(limit, authentication, null);
+    }
+
+    @Transactional
+    public List<BookDTO> getMostReadBooks(int limit, Authentication authentication, Long schoolId) {
+        Long resolvedSchoolId = currentUserService.resolveSchool(schoolId, authentication).getId();
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
         List<Book> books = bookRepository.findMostReadBookBySchool(
-                schoolId,
+                resolvedSchoolId,
                 PageRequest.of(0, safeLimit)
         );
 
@@ -288,12 +297,17 @@ public class BookService {
 
     @Transactional
     public List<BookDTO> getNewestBooks(int limit, Authentication authentication) {
-        Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
+        return getNewestBooks(limit, authentication, null);
+    }
+
+    @Transactional
+    public List<BookDTO> getNewestBooks(int limit, Authentication authentication, Long schoolId) {
+        Long resolvedSchoolId = currentUserService.resolveSchool(schoolId, authentication).getId();
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         int safeLimit = Math.max(1, Math.min(limit, 20));
 
         List<Book> books = bookRepository.findNewestBooksBySchool(
-                schoolId,
+                resolvedSchoolId,
                 PageRequest.of(0, safeLimit)
         );
 
@@ -304,7 +318,11 @@ public class BookService {
     }
 
     public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit, Authentication authentication) {
-        School school = currentUserService.getCurrentUserSchool(authentication);
+        return getRelatedBooksCarousel(bookId, limit, authentication, null);
+    }
+
+    public List<BookDTO> getRelatedBooksCarousel(Long bookId, int limit, Authentication authentication, Long schoolId) {
+        School school = currentUserService.resolveSchool(schoolId, authentication);
         Book sourceBook = findBookInSchoolOrThrow(bookId, school.getId());
         validateBookVisibility(sourceBook, authentication);
 
@@ -422,7 +440,12 @@ public class BookService {
 
     @Transactional
     public BookDTO getBookByISBN(String rawIsbn, Authentication authentication) {
-        School school = currentUserService.getCurrentUserSchool(authentication);
+        return getBookByISBN(rawIsbn, authentication, null);
+    }
+
+    @Transactional
+    public BookDTO getBookByISBN(String rawIsbn, Authentication authentication, Long schoolId) {
+        School school = currentUserService.resolveSchool(schoolId, authentication);
         String normalizedIsbn = IsbnUtils.normalizeIsbn(rawIsbn);
 
         if (normalizedIsbn == null || normalizedIsbn.isBlank()) {

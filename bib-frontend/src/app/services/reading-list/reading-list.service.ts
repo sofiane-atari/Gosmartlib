@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from '../../../environments/environment';
 import { CreateReadingListDTO, ReadingList, ReadingListBook, ReadingListShare, TeacherAudienceOptions } from '../../model/readingList.model';
@@ -70,8 +70,12 @@ export class ReadingListService {
     );
   }
 
-  getCatalogFeaturedLists(): Observable<ReadingList[]> {
-    return this.http.get<ReadingList[]>(`${this.apiUrl}/featured/catalog`);
+  getCatalogFeaturedLists(schoolId?: number): Observable<ReadingList[]> {
+    let params = new HttpParams();
+    if (schoolId !== undefined && schoolId !== null) {
+      params = params.set('schoolId', schoolId);
+    }
+    return this.http.get<ReadingList[]>(`${this.apiUrl}/featured/catalog`, { params });
   }
 
   selectCatalogFeaturedList(id: number): Observable<ReadingList[]> {

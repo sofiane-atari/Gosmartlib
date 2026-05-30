@@ -686,7 +686,7 @@ String batchId = UUID.randomUUID().toString();
         if (hasActiveLoan) {
             return LoanStatus.ACTIVE;
         }
-
+        
         return LoanStatus.RETURNED;
     }
 

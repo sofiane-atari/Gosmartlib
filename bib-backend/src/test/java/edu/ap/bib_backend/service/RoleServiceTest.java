@@ -186,7 +186,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -229,7 +230,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -254,7 +256,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(role));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         // Act
         IllegalStateException exception = assertThrows(IllegalStateException.class,
@@ -270,7 +273,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -305,7 +309,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -348,7 +353,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
         User currentUser = new User();
         School school = new School();
         school.setId(1L);
@@ -372,7 +378,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         User currentUser = new User();
         when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
@@ -391,7 +398,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -433,7 +441,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -472,7 +481,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -511,7 +521,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> roleService.assignAdmin(authentication, "target-user", "test.smartschool.be"));
@@ -524,7 +535,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         User currentUser = new User();
         when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
@@ -540,7 +552,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -564,7 +577,8 @@ class RoleServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> roleService.assignAdmin(authentication, "target-user", "test.smartschool.be"));
 
-        assertEquals("Alleen leerkrachten en bibliothecarissen kunnen gepromoveerd worden tot platformbeheerder.", exception.getMessage());
+        assertEquals("Alleen leerkrachten en bibliothecarissen kunnen gepromoveerd worden tot platformbeheerder.",
+                exception.getMessage());
     }
 
     @Test
@@ -572,7 +586,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -611,7 +626,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> roleService.revokeAdmin(authentication, "target-user", "test.smartschool.be"));
@@ -624,7 +640,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -656,7 +673,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -681,7 +699,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -702,7 +721,8 @@ class RoleServiceTest {
 
         when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
         when(userRepository.findByIdAndSchoolId("new-user", 1L)).thenReturn(Optional.empty());
-        when(oneRosterClient.findSourcedIdByLegacyIdentifier(school.getDomainName(), "new-user")).thenReturn("sourced-123");
+        when(oneRosterClient.findSourcedIdByLegacyIdentifier(school.getDomainName(), "new-user"))
+                .thenReturn("sourced-123");
         when(roleEntityRepository.findByRole(Role.TEACHER)).thenReturn(Optional.of(teacherRole));
         when(userService.createUser("new-user", teacherRole, school)).thenReturn(createdUser);
         when(roleEntityRepository.findByRole(Role.LIBRARIAN)).thenReturn(Optional.of(librarianRole));
@@ -723,7 +743,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);
@@ -745,7 +766,8 @@ class RoleServiceTest {
         when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
         when(schoolRepository.findByDomainName("test.smartschool.be")).thenReturn(Optional.of(school));
         when(userRepository.findByIdAndSchoolId("new-user", 1L)).thenReturn(Optional.empty());
-        when(oneRosterClient.findSourcedIdByLegacyIdentifier(school.getDomainName(), "new-user")).thenReturn("sourced-456");
+        when(oneRosterClient.findSourcedIdByLegacyIdentifier(school.getDomainName(), "new-user"))
+                .thenReturn("sourced-456");
         when(roleEntityRepository.findByRole(Role.TEACHER)).thenReturn(Optional.of(teacherRole));
         when(userService.createUser("new-user", teacherRole, school)).thenReturn(createdUser);
         when(roleEntityRepository.findByRole(Role.ADMIN)).thenReturn(Optional.of(adminRole));
@@ -784,7 +806,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         User currentUser = new User();
         when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
@@ -801,7 +824,8 @@ class RoleServiceTest {
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        when(authentication.getAuthorities()).thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         School school = new School();
         school.setId(1L);

@@ -92,6 +92,29 @@
     </section>
   }
 
+  @if (currentUser()?.role === 'LIBRARIAN' || currentUser()?.role === 'ADMIN') {
+    <section class="settings-panel">
+      <h2>School</h2>
+
+      <div class="setting-row">
+        <div>
+          <h3>Catalogus zichtbaar voor andere scholen</h3>
+          <p>Laat leerkrachten, bibliothecarissen en beheerders van andere scholen de catalogus van jouw school bekijken.</p>
+        </div>
+
+        <label class="switch">
+          <input
+            type="checkbox"
+            [checked]="catalogVisible()"
+            [disabled]="catalogVisToggling()"
+            (change)="toggleCatalogVisibility($event)"
+          />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+  }
+
   <section class="settings-panel">
     <h2>Weergave</h2>
 

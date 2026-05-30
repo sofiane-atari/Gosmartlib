@@ -56,169 +56,165 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class LessonTipIntegrationTest {
 
-    private static final String BASE_URL = "/lesson-tips";
+        private static final String BASE_URL = "/lesson-tips";
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Autowired
-    private LessonTipRepository didacticMaterialRepository;
+        @Autowired
+        private LessonTipRepository didacticMaterialRepository;
 
-    @MockitoBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+        @MockitoBean
+        private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @MockitoBean
-    private JwtService jwtService;
+        @MockitoBean
+        private JwtService jwtService;
 
-    @MockitoBean
-    private TokenStorageService tokenStorageService;
+        @MockitoBean
+        private TokenStorageService tokenStorageService;
 
-    @MockitoBean
-    private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
+        @MockitoBean
+        private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
 
-    @BeforeEach
-    void setUp() {
-        didacticMaterialRepository.deleteAll();
-    }
+        @BeforeEach
+        void setUp() {
+                didacticMaterialRepository.deleteAll();
+        }
 
+        @Test
+        void givenInvalidRequest_whenCreateMaterial_thenReturnBadRequestWithValidationDetails() throws Exception {
+                // Arrange
+                CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
+                                "",
+                                "",
+                                null,
+                                "Nederlands",
+                                "Eerste graad",
+                                "lezen",
+                                List.of());
 
-    @Test
-    void givenInvalidRequest_whenCreateMaterial_thenReturnBadRequestWithValidationDetails() throws Exception {
-        // Arrange
-        CreateLessonTipRequestDto requestDto = new CreateLessonTipRequestDto(
-                "",
-                "",
-                null,
-                "Nederlands",
-                "Eerste graad",
-                "lezen",
-                List.of()
-        );
+                // Act
+                var result = mockMvc.perform(post(BASE_URL)
+                                .with(authentication(authenticationToken("teacher-123", "TEACHER")))
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(requestDto)));
 
-        // Act
-        var result = mockMvc.perform(post(BASE_URL)
-                .with(authentication(authenticationToken("teacher-123", "TEACHER")))
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)));
+                // Assert
+                result.andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.error.code").value(400))
+                                .andExpect(jsonPath("$.error.message").value("Validatie mislukt"))
+                                .andExpect(jsonPath("$.error.details.length()").value(3));
 
-        // Assert
-        result.andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.code").value(400))
-                .andExpect(jsonPath("$.error.message").value("Validatie mislukt"))
-                .andExpect(jsonPath("$.error.details.length()").value(3));
+                assertThat(didacticMaterialRepository.findAll()).isEmpty();
+        }
 
-        assertThat(didacticMaterialRepository.findAll()).isEmpty();
-    }
+        @Test
+        void givenExistingMaterials_whenGetAllMaterials_thenReturnOkWithMaterials() throws Exception {
+                // Arrange
+                didacticMaterialRepository.save(createMaterial("Werkblad 1", "teacher-1"));
+                didacticMaterialRepository.save(createMaterial("Werkblad 2", "teacher-2"));
 
-    @Test
-    void givenExistingMaterials_whenGetAllMaterials_thenReturnOkWithMaterials() throws Exception {
-        // Arrange
-        didacticMaterialRepository.save(createMaterial("Werkblad 1", "teacher-1"));
-        didacticMaterialRepository.save(createMaterial("Werkblad 2", "teacher-2"));
+                // Act
+                var result = mockMvc.perform(get(BASE_URL)
+                                .with(authentication(authenticationToken("teacher-123", "TEACHER"))));
 
-        // Act
-        var result = mockMvc.perform(get(BASE_URL)
-                .with(authentication(authenticationToken("teacher-123", "TEACHER"))));
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.length()").value(2));
+        }
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
-    }
+        @Test
+        void givenExistingMaterialId_whenGetMaterialById_thenReturnOkWithMaterial() throws Exception {
+                // Arrange
+                LessonTip savedMaterial = didacticMaterialRepository.save(createMaterial("Leesfiche", "teacher-123"));
 
-    @Test
-    void givenExistingMaterialId_whenGetMaterialById_thenReturnOkWithMaterial() throws Exception {
-        // Arrange
-        LessonTip savedMaterial = didacticMaterialRepository.save(createMaterial("Leesfiche", "teacher-123"));
+                // Act
+                var result = mockMvc.perform(get(BASE_URL + "/{id}", savedMaterial.getId())
+                                .with(authentication(authenticationToken("teacher-123", "TEACHER"))));
 
-        // Act
-        var result = mockMvc.perform(get(BASE_URL + "/{id}", savedMaterial.getId())
-                .with(authentication(authenticationToken("teacher-123", "TEACHER"))));
+                // Assert
+                result.andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(savedMaterial.getId()))
+                                .andExpect(jsonPath("$.title").value("Leesfiche"))
+                                .andExpect(jsonPath("$.createdByUserId").value("teacher-123"));
+        }
 
-        // Assert
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedMaterial.getId()))
-                .andExpect(jsonPath("$.title").value("Leesfiche"))
-                .andExpect(jsonPath("$.createdByUserId").value("teacher-123"));
-    }
+        @Test
+        void givenUnknownMaterialId_whenGetMaterialById_thenReturnNotFound() throws Exception {
+                // Arrange
+                Long unknownId = 999L;
 
-    @Test
-    void givenUnknownMaterialId_whenGetMaterialById_thenReturnNotFound() throws Exception {
-        // Arrange
-        Long unknownId = 999L;
+                // Act
+                var result = mockMvc.perform(get(BASE_URL + "/{id}", unknownId)
+                                .with(authentication(authenticationToken("teacher-123", "TEACHER"))));
 
-        // Act
-        var result = mockMvc.perform(get(BASE_URL + "/{id}", unknownId)
-                .with(authentication(authenticationToken("teacher-123", "TEACHER"))));
+                // Assert
+                result.andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error.code").value(404))
+                                .andExpect(jsonPath("$.error.message").value("Item niet gevonden"))
+                                .andExpect(jsonPath("$.error.details[0].field").value("id"));
+        }
 
-        // Assert
-        result.andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error.code").value(404))
-                .andExpect(jsonPath("$.error.message").value("Item niet gevonden"))
-                .andExpect(jsonPath("$.error.details[0].field").value("id"));
-    }
+        @Test
+        void givenUnknownMaterialId_whenDeleteMaterial_thenReturnNotFound() throws Exception {
+                // Arrange
+                Long unknownId = 999L;
 
+                // Act
+                var result = mockMvc.perform(delete(BASE_URL + "/{id}", unknownId)
+                                .with(authentication(authenticationToken("teacher-123", "TEACHER"))));
 
-    @Test
-    void givenUnknownMaterialId_whenDeleteMaterial_thenReturnNotFound() throws Exception {
-        // Arrange
-        Long unknownId = 999L;
+                // Assert
+                result.andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error.code").value(404))
+                                .andExpect(jsonPath("$.error.message").value("Item niet gevonden"))
+                                .andExpect(jsonPath("$.error.details[0].field").value("id"));
+        }
 
-        // Act
-        var result = mockMvc.perform(delete(BASE_URL + "/{id}", unknownId)
-                .with(authentication(authenticationToken("teacher-123", "TEACHER"))));
+        private LessonTip createMaterial(String title, String createdByUserId) {
+                LessonTip material = new LessonTip();
+                material.setTitle(title);
+                material.setDescription("Beschrijving");
+                material.setLessonTipType(LessonTipType.WORKSHEET);
+                material.setSubject("Nederlands");
+                material.setEducationLevel("Eerste graad");
+                material.setKeywords("lezen");
+                material.setCreatedByUserId(createdByUserId);
+                return material;
+        }
 
-        // Assert
-        result.andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error.code").value(404))
-                .andExpect(jsonPath("$.error.message").value("Item niet gevonden"))
-                .andExpect(jsonPath("$.error.details[0].field").value("id"));
-    }
+        private UsernamePasswordAuthenticationToken authenticationToken(String userId, String role) {
+                return new UsernamePasswordAuthenticationToken(
+                                userId,
+                                "password",
+                                List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+        }
 
-    private LessonTip createMaterial(String title, String createdByUserId) {
-        LessonTip material = new LessonTip();
-        material.setTitle(title);
-        material.setDescription("Beschrijving");
-        material.setLessonTipType(LessonTipType.WORKSHEET);
-        material.setSubject("Nederlands");
-        material.setEducationLevel("Eerste graad");
-        material.setKeywords("lezen");
-        material.setCreatedByUserId(createdByUserId);
-        return material;
-    }
-
-    private UsernamePasswordAuthenticationToken authenticationToken(String userId, String role) {
-        return new UsernamePasswordAuthenticationToken(
-                userId,
-                "password",
-                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-        );
-    }
-
-    @SpringBootConfiguration
-    @EnableAutoConfiguration(exclude = {
-            SecurityAutoConfiguration.class,
-            SecurityFilterAutoConfiguration.class,
-            UserDetailsServiceAutoConfiguration.class,
-            OAuth2ClientAutoConfiguration.class,
-            OAuth2ClientWebSecurityAutoConfiguration.class,
-            OAuth2ResourceServerAutoConfiguration.class,
-            Saml2RelyingPartyAutoConfiguration.class
-    })
-    @EntityScan(basePackages = "edu.ap.bib_backend.jpa.entity")
-    @EnableJpaRepositories(basePackages = "edu.ap.bib_backend.jpa.repository")
-    @Import({
-            GlobalExceptionHandler.class,
-            LessonTipController.class,
-            LessonTipService.class,
-            LessonTipBookLinkService.class,
-            LessonTipCreatorRoleService.class,
-            LessonTipAuthorizationService.class,
-            CurrentUserService.class,
-            LessonTipMapperImpl.class
-    })
-    static class TestApplication {
-    }
+        @SpringBootConfiguration
+        @EnableAutoConfiguration(exclude = {
+                        SecurityAutoConfiguration.class,
+                        SecurityFilterAutoConfiguration.class,
+                        UserDetailsServiceAutoConfiguration.class,
+                        OAuth2ClientAutoConfiguration.class,
+                        OAuth2ClientWebSecurityAutoConfiguration.class,
+                        OAuth2ResourceServerAutoConfiguration.class,
+                        Saml2RelyingPartyAutoConfiguration.class
+        })
+        @EntityScan(basePackages = "edu.ap.bib_backend.jpa.entity")
+        @EnableJpaRepositories(basePackages = "edu.ap.bib_backend.jpa.repository")
+        @Import({
+                        GlobalExceptionHandler.class,
+                        LessonTipController.class,
+                        LessonTipService.class,
+                        LessonTipBookLinkService.class,
+                        LessonTipCreatorRoleService.class,
+                        LessonTipAuthorizationService.class,
+                        CurrentUserService.class,
+                        LessonTipMapperImpl.class
+        })
+        static class TestApplication {
+        }
 }

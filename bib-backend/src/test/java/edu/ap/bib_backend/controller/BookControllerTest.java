@@ -140,12 +140,12 @@ public class BookControllerTest {
                     Mockito.isNull(),
                     Mockito.isNull(),
                     Mockito.isNull(),
-                     Mockito.isNull(),
-                     Mockito.isNull(),
-                     Mockito.isNull(),
-                     Mockito.isNull(),
-                     Mockito.eq(0),
-                     Mockito.eq(10),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.isNull(),
+                    Mockito.eq(0),
+                    Mockito.eq(10),
                     Mockito.isNull(),
                     Mockito.nullable(Authentication.class)))
                     .thenReturn(page);

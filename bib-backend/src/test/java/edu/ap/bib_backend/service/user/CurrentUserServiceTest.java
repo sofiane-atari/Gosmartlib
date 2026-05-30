@@ -1,8 +1,12 @@
 package edu.ap.bib_backend.service.user;
 
-import edu.ap.bib_backend.jpa.entity.School;
-import edu.ap.bib_backend.jpa.entity.User;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+import java.util.Optional;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,24 +15,26 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import edu.ap.bib_backend.exception.ResourceNotFoundException;
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class CurrentUserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private SchoolRepository schoolRepository;
 
     @InjectMocks
     private CurrentUserService currentUserService;
@@ -212,6 +218,131 @@ class CurrentUserServiceTest {
     }
 
     @Test
+    void Given_AdminRole_When_IsAdmin_Then_ReturnsTrue() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getAuthorities()).thenReturn(
+                (java.util.Collection) Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        boolean result = currentUserService.isAdmin(auth);
+
+        assertTrue(result);
+    }
+
+    @Test
+    void Given_LibrarianRole_When_IsAdmin_Then_ReturnsFalse() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getAuthorities()).thenReturn(
+                (java.util.Collection) Collections.singleton(new SimpleGrantedAuthority("ROLE_LIBRARIAN")));
+
+        boolean result = currentUserService.isAdmin(auth);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void Given_NullAuthentication_When_IsAdmin_Then_ReturnsFalse() {
+        boolean result = currentUserService.isAdmin(null);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void Given_OwnSchoolWithoutCatalogVisible_When_ResolveSchool_Then_ReturnsOwnSchool() {
+        School userSchool = schoolEntity(1L, "ap.be", "AP");
+        userSchool.setCatalogVisible(false);
+        User user = new User();
+        user.setSchool(userSchool);
+        Authentication auth = mock(Authentication.class);
+
+        when(auth.getName()).thenReturn("user123");
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        School result = currentUserService.resolveSchool(null, auth);
+
+        assertEquals(1L, result.getId());
+        assertFalse(result.getCatalogVisible());
+    }
+
+    @Test
+    void Given_SameSchool_When_ResolveSchool_Then_ReturnsOwnSchoolRegardlessOfVisibility() {
+        School userSchool = schoolEntity(1L, "ap.be", "AP");
+        userSchool.setCatalogVisible(false);
+        User user = new User();
+        user.setSchool(userSchool);
+        Authentication auth = mock(Authentication.class);
+
+        when(auth.getName()).thenReturn("user123");
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        School result = currentUserService.resolveSchool(1L, auth);
+
+        assertEquals(1L, result.getId());
+        assertEquals("AP", result.getName());
+    }
+
+    @Test
+    void Given_OtherSchoolWithCatalogVisible_When_ResolveSchool_Then_ReturnsSchool() {
+        School userSchool = schoolEntity(1L, "own.be", "Own");
+        userSchool.setCatalogVisible(true);
+        User user = new User();
+        user.setSchool(userSchool);
+
+        School otherSchool = schoolEntity(2L, "other.be", "Other");
+        otherSchool.setCatalogVisible(true);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("user123");
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(auth.getAuthorities()).thenReturn(
+                (java.util.Collection) Collections.singleton(new SimpleGrantedAuthority("ROLE_TEACHER")));
+        when(schoolRepository.findById(2L)).thenReturn(Optional.of(otherSchool));
+
+        School result = currentUserService.resolveSchool(2L, auth);
+
+        assertEquals(2L, result.getId());
+        assertTrue(result.getCatalogVisible());
+    }
+
+    @Test
+    void Given_OtherSchoolWithCatalogNotVisible_When_ResolveSchool_Then_ThrowsAccessDeniedException() {
+        School userSchool = schoolEntity(1L, "own.be", "Own");
+        userSchool.setCatalogVisible(true);
+        User user = new User();
+        user.setSchool(userSchool);
+
+        School otherSchool = schoolEntity(2L, "other.be", "Other");
+        otherSchool.setCatalogVisible(false);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("user123");
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(auth.getAuthorities()).thenReturn(
+                (java.util.Collection) Collections.singleton(new SimpleGrantedAuthority("ROLE_TEACHER")));
+        when(schoolRepository.findById(2L)).thenReturn(Optional.of(otherSchool));
+
+        assertThrows(AccessDeniedException.class,
+                () -> currentUserService.resolveSchool(2L, auth));
+    }
+
+    @Test
+    void Given_OtherSchoolNotFound_When_ResolveSchool_Then_ThrowsResourceNotFoundException() {
+        School userSchool = schoolEntity(1L, "own.be", "Own");
+        userSchool.setCatalogVisible(true);
+        User user = new User();
+        user.setSchool(userSchool);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("user123");
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(auth.getAuthorities()).thenReturn(
+                (java.util.Collection) Collections.singleton(new SimpleGrantedAuthority("ROLE_TEACHER")));
+        when(schoolRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> currentUserService.resolveSchool(999L, auth));
+    }
+
+    @Test
     void givenMatchingAuthority_whenCurrentUserHasAnyAuthority_thenReturnsTrue() {
         Authentication auth = mock(Authentication.class);
         when(auth.getAuthorities()).thenReturn(
@@ -250,5 +381,13 @@ class CurrentUserServiceTest {
         boolean result = currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN");
 
         assertFalse(result);
+    }
+
+    private School schoolEntity(Long id, String domainName, String name) {
+        School school = new School();
+        school.setId(id);
+        school.setDomainName(domainName);
+        school.setName(name);
+        return school;
     }
 }

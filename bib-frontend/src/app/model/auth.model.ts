@@ -6,6 +6,7 @@ export interface SchoolSummaryDto {
   domainName: string;
   defaultLoanDurationDays?: number;
   status?: string;
+  catalogVisible?: boolean;
 }
 
 export interface AuthUserDto {

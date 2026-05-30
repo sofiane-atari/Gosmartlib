@@ -16,6 +16,10 @@ export class SchoolService {
     return this.http.get<School[]>(this.url);
   }
 
+  public getAccessibleSchools(): Observable<School[]> {
+    return this.http.get<School[]>(`${this.url}/accessible`);
+  }
+
   public create(school: CreateSchoolRequest): Observable<School> {
     return this.http.post<School>(this.url, school);
   }
@@ -51,6 +55,10 @@ export class SchoolService {
 
   public getTotalBookCount(): Observable<number> {
     return this.http.get<number>(`${this.url}/books/count`);
+  }
+
+  public setCatalogVisibility(id: number, visible: boolean): Observable<void> {
+    return this.http.put<void>(`${this.url}/${id}/catalog-visibility`, { visible });
   }
 
   public checkDomain(domainName: string): Observable<void> {

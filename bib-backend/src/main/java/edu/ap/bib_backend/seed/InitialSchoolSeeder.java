@@ -58,7 +58,7 @@ public class InitialSchoolSeeder {
                             null,
                             null, null,
                             credentialDTO,
-                            null, null, null
+                            null, null, null, null
                     );
                     schoolService.update(school.id(), updateDTO);
                 }
@@ -92,7 +92,7 @@ public class InitialSchoolSeeder {
                         hasCredentials
                                 ? new OneRosterCredentialDTO(clientId.trim(), clientSecret.trim())
                                 : null,
-                        null, null, null
+                        null, null, null, null
                 );
 
                 schoolService.create(schoolDTO);

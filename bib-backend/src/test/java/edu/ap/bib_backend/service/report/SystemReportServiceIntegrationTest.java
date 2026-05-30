@@ -55,17 +55,19 @@ class SystemReportServiceIntegrationTest {
 
         jdbcTemplate.update("""
                 INSERT INTO schools (id, domain_name, name, default_loan_duration_days, created_at,
-                                     provider_type, status, catalog_featured_lists_enabled,
-                                     catalog_most_read_enabled, catalog_newest_enabled)
+                                     provider_type, status, catalog_visible,
+                                     catalog_featured_lists_enabled, catalog_most_read_enabled,
+                                     catalog_newest_enabled)
                 VALUES (1, 'school-a.smartschool.be', 'School A', 15, ?,
-                        'REAL', 'ACTIVE', false, false, false)
+                        'REAL', 'ACTIVE', true, false, false, false)
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
         jdbcTemplate.update("""
                 INSERT INTO schools (id, domain_name, name, default_loan_duration_days, created_at,
-                                     provider_type, status, catalog_featured_lists_enabled,
-                                     catalog_most_read_enabled, catalog_newest_enabled)
+                                     provider_type, status, catalog_visible,
+                                     catalog_featured_lists_enabled, catalog_most_read_enabled,
+                                     catalog_newest_enabled)
                 VALUES (2, 'school-b.smartschool.be', 'School B', 15, ?,
-                        'REAL', 'ACTIVE', false, false, false)
+                        'REAL', 'ACTIVE', true, false, false, false)
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
 
         jdbcTemplate.update("INSERT INTO campuses (id, name, school_id) VALUES (1, 'Campus A', 1)");
