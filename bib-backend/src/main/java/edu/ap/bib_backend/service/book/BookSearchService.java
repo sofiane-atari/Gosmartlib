@@ -74,8 +74,8 @@ public class BookSearchService {
         Pageable pageable = PageRequest.of(validatedPage, validatedSize, sort);
 
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
+        boolean isModerator = currentUserService.isModerator(authentication);
 
-        // School-brede boeken in plaats van campus-specifieke
         Specification<Book> specification = Specification
                 .where(BookSpecification.belongsToSchool(schoolId))
                 .and(BookSpecification.withFilters(
@@ -86,6 +86,10 @@ public class BookSearchService {
                         genreName
                 ))
                 .and(BookSpecification.visibleForUser(canSeeDidacticBooks));
+
+        if (!isModerator) {
+            specification = specification.and(BookSpecification.hasNonLostCopyInSchool(schoolId));
+        }
 
         if (availabilityFilter == BookAvailabilityFilter.AVAILABLE) {
             specification = specification.and(BookSpecification.hasAnyAvailableCopy());

@@ -50,8 +50,14 @@ public class OneRosterUserSyncService {
     }
 
     @Async
+    @Transactional
     public void syncSchoolAsync(School school) {
-        syncSchoolUsers(school);
+        try {
+            syncSchoolUsers(school);
+        } catch (Exception e) {
+            logger.error("Async user sync failed for school id={} name='{}'",
+                    school.getId(), school.getName(), e);
+        }
     }
 
     @Transactional
@@ -188,9 +194,14 @@ public class OneRosterUserSyncService {
 
     private String resolveRoleName(String roleName) {
         if (!StringUtils.hasText(roleName)) {
-            return "leerling";
+            return "STUDENT";
         }
-        return roleName;
+        return switch (roleName.toLowerCase()) {
+            case "teacher" -> "TEACHER";
+            case "student" -> "STUDENT";
+            case "administrator" -> "TEACHER";
+            default -> "STUDENT";
+        };
     }
 
     private Group resolveGroup(Long schoolId, String groupName) {

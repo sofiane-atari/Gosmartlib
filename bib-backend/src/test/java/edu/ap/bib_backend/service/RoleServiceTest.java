@@ -762,27 +762,21 @@ class RoleServiceTest {
     }
 
     @Test
-    void Given_DutchRoleNameDirectie_When_GetRoleEntity_Then_ReturnsAdminRoleEntity() {
-        RoleEntity mockRoleEntity = new RoleEntity();
-        mockRoleEntity.setRole(Role.ADMIN);
-        when(roleEntityRepository.findByRole(Role.ADMIN)).thenReturn(Optional.of(mockRoleEntity));
+    void Given_DutchRoleNameDirectie_When_GetRoleEntity_Then_ThrowsIllegalArgumentException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> roleService.getRoleEntity("directie"));
 
-        RoleEntity result = roleService.getRoleEntity("directie");
-
-        assertEquals(Role.ADMIN, result.getRole());
-        verify(roleEntityRepository, times(1)).findByRole(Role.ADMIN);
+        assertEquals("The ingegeven rol is ongeldig: directie", exception.getMessage());
+        verifyNoInteractions(roleEntityRepository);
     }
 
     @Test
-    void Given_DutchRoleNameBibliothecaris_When_GetRoleEntity_Then_ReturnsLibrarianRoleEntity() {
-        RoleEntity mockRoleEntity = new RoleEntity();
-        mockRoleEntity.setRole(Role.LIBRARIAN);
-        when(roleEntityRepository.findByRole(Role.LIBRARIAN)).thenReturn(Optional.of(mockRoleEntity));
+    void Given_DutchRoleNameBibliothecaris_When_GetRoleEntity_Then_ThrowsIllegalArgumentException() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> roleService.getRoleEntity("bibliothecaris"));
 
-        RoleEntity result = roleService.getRoleEntity("bibliothecaris");
-
-        assertEquals(Role.LIBRARIAN, result.getRole());
-        verify(roleEntityRepository, times(1)).findByRole(Role.LIBRARIAN);
+        assertEquals("The ingegeven rol is ongeldig: bibliothecaris", exception.getMessage());
+        verifyNoInteractions(roleEntityRepository);
     }
 
     @Test

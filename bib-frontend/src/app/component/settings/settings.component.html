@@ -2,7 +2,7 @@
   <div class="page-header">
     <div class="page-header__text">
       <h1>Instellingen</h1>
-      <p>Beheer synchronisaties, campusvoorkeuren en systeemtaken</p>
+      <p>Beheer synchronisaties en systeemtaken</p>
     </div>
   </div>
 
@@ -29,13 +29,66 @@
         </button>
       </div>
 
-      @if (successMessage()) {
-        <div class="alert alert--success">{{ successMessage() }}</div>
+      @if (syncSuccessMessage()) {
+        <div class="alert alert--success">{{ syncSuccessMessage() }}</div>
       }
 
-      @if (errorMessage()) {
-        <div class="alert alert--error">{{ errorMessage() }}</div>
+      @if (syncErrorMessage()) {
+        <div class="alert alert--error">{{ syncErrorMessage() }}</div>
       }
+    </section>
+
+    <section class="settings-panel">
+      <h2>Dev-seed</h2>
+      <app-dev-feature-wrapper>
+        <p class="panel-description">
+          Vul de database met voorbeelddata (tags, boeken, leningen, reviews, leeslijsten, lestips en abonnementen). Dit is alleen beschikbaar in development-modus.
+        </p>
+
+        <div class="panel-actions">
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="isSeeding()"
+            (click)="triggerDevSeed()"
+          >
+            @if (isSeeding()) {
+              Seeding uitvoeren...
+            } @else {
+              Dev-seed uitvoeren
+            }
+          </button>
+
+          <button
+            type="button"
+            class="btn-danger"
+            [disabled]="isClearing()"
+            (click)="clearDevSeed()"
+          >
+            @if (isClearing()) {
+              Wissen...
+            } @else {
+              Seed data wissen
+            }
+          </button>
+        </div>
+
+        @if (seedSuccessMessage()) {
+          <div class="alert alert--success">{{ seedSuccessMessage() }}</div>
+        }
+
+        @if (seedErrorMessage()) {
+          <div class="alert alert--error">{{ seedErrorMessage() }}</div>
+        }
+
+        @if (clearSuccessMessage()) {
+          <div class="alert alert--success">{{ clearSuccessMessage() }}</div>
+        }
+
+        @if (clearErrorMessage()) {
+          <div class="alert alert--error">{{ clearErrorMessage() }}</div>
+        }
+      </app-dev-feature-wrapper>
     </section>
   }
 
@@ -62,7 +115,7 @@
       <div class="setting-row">
         <div>
           <h3>Uitgelichte leeslijsten</h3>
-          <p>Toon de uitgelichte leeslijsten van jouw campus in de catalogus.</p>
+          <p>Toon de uitgelichte leeslijsten van jouw school in de catalogus.</p>
         </div>
 
         <label class="switch">

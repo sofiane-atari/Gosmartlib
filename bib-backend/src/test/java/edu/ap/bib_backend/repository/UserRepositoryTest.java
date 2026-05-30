@@ -57,7 +57,6 @@ class UserRepositoryTest {
         user.setId("user-1");
         user.setSchool(school);
         user.setRole(teacherRole);
-        user.setCampus(campus);
         userRepository.save(user);
 
         // Act
@@ -90,7 +89,6 @@ class UserRepositoryTest {
         user.setId("user-2");
         user.setSchool(school);
         user.setRole(teacherRole);
-        user.setCampus(campus);
         userRepository.save(user);
 
         // Act

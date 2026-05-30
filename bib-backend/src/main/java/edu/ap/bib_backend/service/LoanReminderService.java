@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -157,7 +156,7 @@ public class LoanReminderService {
         placeholders.put("LOAN_DATE", loan.getLoanDate() != null ? loan.getLoanDate().format(DATE_FORMATTER) : "-");
         placeholders.put("RETURN_DATE",
                 loan.getReturnDate() != null ? loan.getReturnDate().format(DATE_FORMATTER) : "-");
-        placeholders.put("BOOK_COUNT", String.valueOf(loan.getCopies() != null ? loan.getCopies().size() : 0));
+        placeholders.put("BOOK_COUNT", String.valueOf(loan.getCopy() != null ? 1 : 0));
         placeholders.put("BOOKS_HTML", booksHtml);
         placeholders.put("FRONTEND_URL", frontendUrl);
 
@@ -243,65 +242,44 @@ public class LoanReminderService {
     }
 
     private String buildBooksHtml(Loan loan) {
-        if (loan.getCopies() == null || loan.getCopies().isEmpty()) {
+        if (loan.getCopy() == null ||
+                loan.getCopy().getBook() == null) {
             return "";
         }
-
-        Map<Long, BookGroup> groupedBooks = new LinkedHashMap<>();
-        for (BookCopy copy : loan.getCopies()) {
-            if (copy == null || copy.getBook() == null)
-                continue;
-            Book book = copy.getBook();
-            groupedBooks.compute(book.getId(), (id, existing) -> {
-                if (existing == null)
-                    return new BookGroup(book, 1);
-                return new BookGroup(existing.book(), existing.count() + 1);
-            });
-        }
+        Book book = loan.getCopy().getBook();
 
         StringBuilder sb = new StringBuilder();
+        String bookUrl = frontendUrl + "/book/" + book.getId();
 
-        for (BookGroup group : groupedBooks.values()) {
-            Book book = group.book();
-            long count = group.count();
-            String bookUrl = frontendUrl + "/book/" + book.getId();
+        sb.append("<div style=\"").append(BOOK_CARD_STYLE)
+                .append("\" class=\"msg-book-card\">");
 
-            sb.append("<div style=\"").append(BOOK_CARD_STYLE)
-                    .append("\" class=\"msg-book-card\">");
+        sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
+                .append("\" class=\"msg-cover-link\" style=\"text-decoration: none; display: block;\">");
+        sb.append("<div style=\"").append(COVER_WRAPPER_STYLE).append("\">");
+        appendCoverImage(sb, book);
+        sb.append("</div>");
+        sb.append("</a>");
 
-            sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
-                    .append("\" class=\"msg-cover-link\" style=\"text-decoration: none; display: block;\">");
-            sb.append("<div style=\"").append(COVER_WRAPPER_STYLE).append("\">");
-            appendCoverImage(sb, book);
-            sb.append("</div>");
-            sb.append("</a>");
+        sb.append("<div style=\"flex: 1; min-width: 0;\">");
+        sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
+                .append("\" class=\"msg-book-link\" style=\"").append(LINK_STYLE).append("\">");
+        sb.append("<p style=\"margin: 0 0 3px 0; font-size: 14px; ")
+                .append("overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">");
+        sb.append(HtmlMessageBuilder.escapeHtml(book.getTitle()));
+        sb.append("</p>");
+        sb.append("</a>");
 
-            sb.append("<div style=\"flex: 1; min-width: 0;\">");
-            sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
-                    .append("\" class=\"msg-book-link\" style=\"").append(LINK_STYLE).append("\">");
-            sb.append("<p style=\"margin: 0 0 3px 0; font-size: 14px; ")
-                    .append("overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">");
-            sb.append(HtmlMessageBuilder.escapeHtml(book.getTitle()));
+        if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
+            sb.append("<p style=\"margin: 0 0 2px 0; font-size: 13px; color: #8a7580;\">");
+            sb.append(HtmlMessageBuilder.escapeHtml(book.getAuthor()));
             sb.append("</p>");
-            sb.append("</a>");
-
-            if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
-                sb.append("<p style=\"margin: 0 0 2px 0; font-size: 13px; color: #8a7580;\">");
-                sb.append(HtmlMessageBuilder.escapeHtml(book.getAuthor()));
-                sb.append("</p>");
-            }
-
-            appendGenres(sb, book);
-
-            if (count > 1) {
-                sb.append("<p style=\"margin: 4px 0 0 0; font-size: 12px; color: #8a7580;\">");
-                sb.append(count).append(" exemplaren");
-                sb.append("</p>");
-            }
-
-            sb.append("</div>");
-            sb.append("</div>");
         }
+
+        appendGenres(sb, book);
+
+        sb.append("</div>");
+        sb.append("</div>");
 
         return sb.toString();
     }

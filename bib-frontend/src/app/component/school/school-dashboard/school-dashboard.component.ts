@@ -29,6 +29,7 @@ import { CampusService } from '../../../services/campus/campus.service';
 import { HttpErrorResponseError } from '../../../error-reponse.model';
 import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { DevFeatureWrapperComponent } from '../../shared/dev-feature-wrapper/dev-feature-wrapper.component';
 import { ToastService } from '../../../services/toast/toast.service';
 import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 
@@ -42,8 +43,9 @@ import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
     RouterLink,
     SearchBarComponent,
     ButtonHoverHelpComponent,
+    DevFeatureWrapperComponent,
     StatCardComponent
-],
+  ],
   templateUrl: './school-dashboard.component.html',
   styleUrl: './school-dashboard.component.css',
 })

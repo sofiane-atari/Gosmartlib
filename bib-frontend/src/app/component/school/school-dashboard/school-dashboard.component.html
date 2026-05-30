@@ -255,19 +255,21 @@
                   }
 
 @if (devModeEnabled()) {
-                      <app-button-hover-help
-                        text="Verwijder deze school en alle gerelateerde gegevens definitief."
-                      >
-                        <button
-                          type="button"
-                          class="icon-button icon-button--purge"
-                          aria-label="School volledig verwijderen"
-                          (click)="openPurgeModal(school)"
-                          [disabled]="isPurging()"
+                      <app-dev-feature-wrapper [compact]="true">
+                        <app-button-hover-help
+                          text="Verwijder deze school en alle gerelateerde gegevens definitief."
                         >
-                          <lucide-icon [name]="Flame"></lucide-icon>
-                        </button>
-                      </app-button-hover-help>
+                          <button
+                            type="button"
+                            class="icon-button icon-button--purge"
+                            aria-label="School volledig verwijderen"
+                            (click)="openPurgeModal(school)"
+                            [disabled]="isPurging()"
+                          >
+                            <lucide-icon [name]="Flame"></lucide-icon>
+                          </button>
+                        </app-button-hover-help>
+                      </app-dev-feature-wrapper>
                     }
                   </div>
                 </td>

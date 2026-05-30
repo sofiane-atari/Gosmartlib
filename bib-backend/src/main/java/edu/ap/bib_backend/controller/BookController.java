@@ -47,8 +47,7 @@ public class BookController {
             BookSearchService bookSearchService,
             GoogleBooksClient googleBooksClient,
             OpenLibraryClient openLibraryClient,
-            LessonTipService lessonTipService
-    ) {
+            LessonTipService lessonTipService) {
         this.bookService = bookService;
         this.bookSearchService = bookSearchService;
         this.googleBooksClient = googleBooksClient;
@@ -73,8 +72,7 @@ public class BookController {
             @RequestParam(required = false) BookSortOption sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         Page<BookDTO> bookPage = bookSearchService.getFilteredBooks(
                 searchTerm,
                 availability,
@@ -86,20 +84,17 @@ public class BookController {
                 page,
                 size,
                 sortBy,
-                authentication
-        );
+                authentication);
 
         return new PageDTO<>(
                 bookPage.getContent(),
-                PageMapper.toPaginatedMeta(bookPage)
-        );
+                PageMapper.toPaginatedMeta(bookPage));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<BookDTO> getBookById(
             @PathVariable("id") Long id,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         BookDTO book = bookService.getBookById(id, authentication);
         return ResponseEntity.ok(book);
     }
@@ -108,8 +103,7 @@ public class BookController {
     public ResponseEntity<List<BookDTO>> getRelatedBooksCarousel(
             @PathVariable("id") Long id,
             @RequestParam(defaultValue = "10", required = false) int limit,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(bookService.getRelatedBooksCarousel(id, limit, authentication));
     }
 
@@ -117,8 +111,7 @@ public class BookController {
     @PostMapping
     public ResponseEntity<BookDTO> addBook(
             Authentication authentication,
-            @RequestBody BookDTO dto
-    ) {
+            @RequestBody BookDTO dto) {
         BookDTO savedBook = bookService.addBook(dto, authentication);
         return ResponseEntity.ok(savedBook);
     }
@@ -126,8 +119,7 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookDTO> getBookByISBN(
             @PathVariable String isbn,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(bookService.getBookByISBN(isbn, authentication));
     }
 
@@ -149,16 +141,14 @@ public class BookController {
     @GetMapping("/most-read")
     public ResponseEntity<List<BookDTO>> getMostReadBooks(
             @RequestParam(defaultValue = "3", required = false) int limit,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(bookService.getMostReadBooks(limit, authentication));
     }
 
     @GetMapping("/newest")
     public ResponseEntity<List<BookDTO>> getNewestBooks(
             @RequestParam(defaultValue = "3", required = false) int limit,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(bookService.getNewestBooks(limit, authentication));
     }
 
@@ -166,8 +156,7 @@ public class BookController {
     public ResponseEntity<List<BookCandidateDTO>> searchBookCandidates(
             @RequestParam String title,
             @RequestParam String author,
-            @RequestParam Integer releaseYear
-    ) {
+            @RequestParam Integer releaseYear) {
         List<BookCandidateDTO> candidates = googleBooksClient.searchBookCandidates(title, author, releaseYear);
         return ResponseEntity.ok(candidates);
     }
@@ -177,8 +166,7 @@ public class BookController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String author,
             @RequestParam(required = false) Integer releaseYear,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         return ResponseEntity.ok(bookService.searchBooksInDb(title, author, releaseYear, authentication));
     }
 
@@ -186,8 +174,7 @@ public class BookController {
     public ResponseEntity<BookDTO> selectBook(
             @RequestParam String isbn13,
             @RequestParam Long campusId,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         BookDTO book = bookService.getBookByISBN(isbn13, authentication);
         return ResponseEntity.ok(book);
     }
@@ -197,20 +184,9 @@ public class BookController {
     public ResponseEntity<BookDTO> updateBook(
             @PathVariable Long id,
             @RequestBody BookDTO dto,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         BookDTO updatedBook = bookService.updateBook(id, dto, authentication);
         return ResponseEntity.ok(updatedBook);
-    }
-
-    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(
-            @PathVariable Long id,
-            Authentication authentication
-    ) {
-        bookService.deleteBook(id, authentication);
-        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
@@ -218,22 +194,19 @@ public class BookController {
     public ResponseEntity<BookDTO> addCopy(
             Authentication authentication,
             @PathVariable Long bookId,
-            @RequestParam(required = false) Long campusId
-    ) {
+            @RequestParam(required = false) Long campusId) {
         return ResponseEntity.ok(bookService.addCopyToBook(bookId, campusId, authentication));
     }
 
     @GetMapping("/{bookId}/lesson-tips")
     public ResponseEntity<List<LessonTipPreviewResponseDto>> getLessonTipsByBookId(
-            @PathVariable Long bookId
-    ) {
+            @PathVariable Long bookId) {
         return ResponseEntity.ok(lessonTipService.getLessonTipPreviewsByBookId(bookId));
     }
 
     @GetMapping("/{bookId}/lesson-tips/preview")
     public ResponseEntity<BookLessonTipPreviewResponseDto> getLessonTipPreviewByBookId(
-            @PathVariable Long bookId
-    ) {
+            @PathVariable Long bookId) {
         return ResponseEntity.ok(lessonTipService.getLessonTipPreviewByBookId(bookId));
     }
 }

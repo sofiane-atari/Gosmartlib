@@ -132,60 +132,6 @@ public class BookControllerTest {
         }
 
         @Test
-        void givenExistingBookId_whenDeleteBook_thenReturn204() throws Exception {
-                // Arrange
-                Long bookId = 1L;
-                Mockito.doNothing().when(bs).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
-
-                // Act
-                var result = mockMvc.perform(delete("/books/{id}", bookId));
-
-                // Assert
-                result.andExpect(status().isNoContent());
-
-                Mockito.verify(bs, Mockito.times(1)).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
-        }
-
-        @Test
-        void givenNonExistingBookId_whenDeleteBook_thenReturn404() throws Exception {
-                // Arrange
-                Long bookId = 99L;
-                Mockito.doThrow(new edu.ap.bib_backend.exception.ResourceNotFoundException("id",
-                                "Boek niet gevonden met id: 99"))
-                                .when(bs).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
-
-                // Act
-                var result = mockMvc.perform(delete("/books/{id}", bookId));
-
-                // Assert
-                result.andExpect(status().isNotFound());
-                Mockito.verify(bs, Mockito.times(1)).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
-        }
-
-        @Test
-        void givenBookWithBorrowedCopies_whenDeleteBook_thenReturn400() throws Exception {
-                // Arrange
-                Long bookId = 2L;
-                Mockito.doThrow(new IllegalStateException(
-                                "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend."))
-                                .when(bs).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
-
-                // Act
-                var result = mockMvc.perform(delete("/books/{id}", bookId));
-
-                // Assert
-                result.andExpect(status().isBadRequest())
-                                .andExpect(r -> org.junit.jupiter.api.Assertions.assertInstanceOf(
-                                                IllegalStateException.class, r.getResolvedException()))
-                                .andExpect(r -> org.junit.jupiter.api.Assertions.assertEquals(
-                                                "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.",
-                                                r.getResolvedException() != null ? r.getResolvedException().getMessage() : null));
-
-                // Controleer of de delete methode daadwerkelijk is aangeroepen
-                Mockito.verify(bs, Mockito.times(1)).deleteBook(Mockito.eq(bookId), Mockito.nullable(Authentication.class));
-        }
-
-        @Test
         void givenNoFilters_whenGetFilteredBooks_thenReturnsPagedResultWithDefaultParams() throws Exception {
             // Arrange
             Page<BookDTO> page = new PageImpl<>(List.of());

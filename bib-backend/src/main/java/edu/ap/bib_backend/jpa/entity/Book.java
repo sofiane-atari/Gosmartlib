@@ -58,9 +58,8 @@ public class Book {
                 WHERE bc.book_id = id
                   AND NOT EXISTS (
                       SELECT 1
-                      FROM loan_copies lc
-                      JOIN loans l ON l.id = lc.loan_id
-                      WHERE lc.book_copy_id = bc.id
+                      FROM loans l
+                      WHERE l.book_copy_id = bc.id
                         AND l.returned_date IS NULL
                   )
             )

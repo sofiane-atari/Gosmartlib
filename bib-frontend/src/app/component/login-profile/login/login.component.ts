@@ -14,17 +14,20 @@ import { SmartschoolButtonComponent } from '../smartschool-button/smartschool-bu
 export class LoginComponent implements OnInit {
   private readonly isLoadingSignal = signal(false);
   private readonly schoolUnauthorizedSignal = signal(false);
+  private readonly userUnauthorizedSignal = signal(false);
   private readonly route = inject(ActivatedRoute);
   private readonly loginService = inject(LoginService);
 
   public readonly isLoading = this.isLoadingSignal.asReadonly();
   public readonly isSchoolUnauthorized = this.schoolUnauthorizedSignal.asReadonly();
+  public readonly isUserUnauthorized = this.userUnauthorizedSignal.asReadonly();
   public readonly contactUrl = 'https://go-antwerpen.be/contact/';
 
   public ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       const error = params['error'];
       this.schoolUnauthorizedSignal.set(error === 'school_not_authorized');
+      this.userUnauthorizedSignal.set(error === 'user_not_authorized');
     });
   }
 

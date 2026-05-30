@@ -70,14 +70,13 @@ public interface UserRepository extends JpaRepository<User, String> {
                        and (aus.smartschool_refresh_token_expires_at is null or aus.smartschool_refresh_token_expires_at > current_timestamp)
                        then u.id
                    end) as linkedStudents,
-                   count(lc.book_copy_id) as totalLoans,
-                   sum(case when l.returned_date is null and lc.book_copy_id is not null then 1 else 0 end) as activeLoans,
+                   count(l.book_copy_id) as totalLoans,
+                   sum(case when l.returned_date is null and l.book_copy_id is not null then 1 else 0 end) as activeLoans,
                    s.last_sync_at as lastSyncAt
             from schools s
             left join users u on u.school_id = s.id
             left join auth_sessions aus on aus.user_id = u.id
             left join loans l on l.user_id = u.id
-            left join loan_copies lc on lc.loan_id = l.id
             group by s.id, s.name, s.last_sync_at
             order by totalLoans desc, s.name asc
             """, nativeQuery = true)

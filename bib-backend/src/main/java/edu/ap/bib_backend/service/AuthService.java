@@ -90,17 +90,10 @@ public class AuthService {
                 ? dbUser.getSchool().getName()
                 : null;
 
-        Long campusId = dbUser != null && dbUser.getCampus() != null
-                ? dbUser.getCampus().getId()
-                : null;
-
-        String campusName = dbUser != null && dbUser.getCampus() != null
-                ? dbUser.getCampus().getName()
-                : null;
-
-        SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
+SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 ? dbUser.getSchool().getSchoolSummaryDto()
                 : null;
+
         if (smartschoolToken != null && !smartschoolToken.isBlank()) {
             try {
                 SmartschoolProfileDto profile = smartschoolProfileService.fetchProfile(smartschoolToken);
@@ -121,8 +114,6 @@ public class AuthService {
                         reviewBlocked,
                         schoolId,
                         schoolName,
-                        campusId,
-                        campusName,
                         schoolSummary
                 );
             } catch (Exception ignored) {
@@ -185,8 +176,6 @@ public class AuthService {
                     reviewBlocked,
                     schoolId,
                     schoolName,
-                    campusId,
-                    campusName,
                     schoolSummary
             );
         }
@@ -208,8 +197,6 @@ public class AuthService {
                     reviewBlocked,
                     schoolId,
                     schoolName,
-                    campusId,
-                    campusName,
                     schoolSummary
             );
         }
@@ -229,8 +216,6 @@ public class AuthService {
                 reviewBlocked,
                 schoolId,
                 schoolName,
-                campusId,
-                campusName,
                 schoolSummary
         );
     }

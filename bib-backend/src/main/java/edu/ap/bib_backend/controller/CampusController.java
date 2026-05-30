@@ -3,6 +3,7 @@ package edu.ap.bib_backend.controller;
 import edu.ap.bib_backend.dto.CampusDTO;
 import edu.ap.bib_backend.service.CampusService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ public class CampusController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<CampusDTO> getCampusesBySchool(@RequestParam Long schoolId) {
         return campusService.getCampusesBySchool(schoolId);
     }
@@ -29,8 +31,8 @@ public class CampusController {
     }
 
     @GetMapping("/{id}")
-    public CampusDTO getCampus(@PathVariable Long id) {
-        return campusService.getCampus(id);
+    public CampusDTO getCampus(@PathVariable Long id, Authentication authentication) {
+        return campusService.getCampus(id, authentication);
     }
 
     @PostMapping

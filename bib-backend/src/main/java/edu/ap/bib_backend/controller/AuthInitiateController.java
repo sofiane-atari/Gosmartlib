@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import edu.ap.bib_backend.service.api.SchoolApiProviderFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.Set;
@@ -31,9 +30,9 @@ public class AuthInitiateController {
     private final HttpSessionOAuth2AuthorizationRequestRepository authRequestRepository;
 
     public AuthInitiateController(SchoolApiProviderFactory providerFactory,
-                                  @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
-                                  ClientRegistrationRepository clientRegistrationRepository,
-                                  @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
+            @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
+            ClientRegistrationRepository clientRegistrationRepository,
+            @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
         this.providerFactory = providerFactory;
         this.mockModeEnabled = mockModeEnabled;
         this.devModeEnabled = devModeEnabled;
@@ -50,7 +49,8 @@ public class AuthInitiateController {
 
         ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("smartschool");
         if (registration == null) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Smartschool OAuth2 client not configured");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Smartschool OAuth2 client not configured");
             return;
         }
 
@@ -70,15 +70,19 @@ public class AuthInitiateController {
         String redirectUrl = authRequest.getAuthorizationUri()
                 + "?response_type=code"
                 + "&client_id=" + authRequest.getClientId()
-                + "&redirect_uri=" + java.net.URLEncoder.encode(authRequest.getRedirectUri(), java.nio.charset.StandardCharsets.UTF_8)
-                + "&scope=" + java.net.URLEncoder.encode(String.join(" ", authRequest.getScopes()), java.nio.charset.StandardCharsets.UTF_8)
+                + "&redirect_uri="
+                + java.net.URLEncoder.encode(authRequest.getRedirectUri(), java.nio.charset.StandardCharsets.UTF_8)
+                + "&scope="
+                + java.net.URLEncoder.encode(String.join(" ", authRequest.getScopes()),
+                        java.nio.charset.StandardCharsets.UTF_8)
                 + "&state=" + authRequest.getState();
 
         response.sendRedirect(redirectUrl);
     }
 
     @GetMapping("/initiate")
-    public void initiateLogin(@RequestParam String school, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void initiateLogin(@RequestParam String school, HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
         if (providerFactory.isMockSchool(school)) {
             response.sendRedirect(request.getContextPath() + "/oauth2/authorization/smartschool-mock");
         } else {

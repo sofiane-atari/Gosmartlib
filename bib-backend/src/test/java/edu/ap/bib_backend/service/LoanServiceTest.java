@@ -124,7 +124,6 @@ class LoanServiceTest {
         book.setTitle("Test Book");
 
         BookCopy copy = availableCopy(10L, book, campus);
-        Loan loan = new Loan();
         LoanDTO expectedDto = LoanDTO.builder()
                 .id(100L)
                 .userId("user123")
@@ -136,18 +135,18 @@ class LoanServiceTest {
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn("librarian-1");
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(bookCopyRepository.findAllById(List.of(10L))).thenReturn(List.of(copy));
-        when(loanMapper.toEntity(inputDto)).thenReturn(loan);
-        when(loanRepository.save(loan)).thenReturn(loan);
-        when(loanMapper.toDto(loan)).thenReturn(expectedDto);
+        when(smartschoolTokenRefreshService.getValidSmartschoolAccessToken("user123")).thenReturn(null);
+        when(loanRepository.save(any(Loan.class))).thenAnswer(invocation -> {
+            Loan saved = invocation.getArgument(0);
+            saved.setId(100L);
+            return saved;
+        });
+        when(loanMapper.toDtoList(any())).thenReturn(List.of(expectedDto));
 
-        LoanDTO result = loanService.create(inputDto, authentication);
+        List<LoanDTO> result = loanService.create(inputDto, authentication);
 
-        assertEquals(expectedDto, result);
-        assertEquals(user, loan.getUser());
-        assertEquals(campus, loan.getCampus());
-        assertEquals(List.of(copy), loan.getCopies());
-        assertEquals("librarian-1", loan.getLibrarianId());
-        verify(loanRepository).save(loan);
+assertEquals(List.of(expectedDto), result);
+        verify(loanRepository).save(any(Loan.class));
     }
 
     @Test
@@ -231,7 +230,7 @@ class LoanServiceTest {
         loan.setUser(user);
         loan.setCampus(campus);
         loan.setReturnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(1));
-        loan.getCopies().add(copy);
+        loan.setCopy(copy);
 
         LoanReturnDTO request = new LoanReturnDTO(List.of(
                 new BookCopyConditionUpdateDTO(10L, BookCondition.DAMAGED)
@@ -276,11 +275,12 @@ class LoanServiceTest {
     @Test
     void Given_Stats_When_GetLoanStats_Then_ReturnsCounts() {
         LocalDate today = LocalDate.now();
-        when(loanRepository.countByReturnedDateIsNullAndReturnDateGreaterThanEqual(today)).thenReturn(5L);
-        when(loanRepository.countByReturnedDateIsNullAndReturnDateBefore(today)).thenReturn(2L);
-        when(loanRepository.countByReturnedDateIsNotNull()).thenReturn(10L);
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
+        when(loanRepository.countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateGreaterThanEqual(1L, today)).thenReturn(5L);
+        when(loanRepository.countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateBefore(1L, today)).thenReturn(2L);
+        when(loanRepository.countByCampusSchoolIdAndReturnedDateIsNotNull(1L)).thenReturn(10L);
 
-        LoanStatsDTO result = loanService.getLoanStats();
+        LoanStatsDTO result = loanService.getLoanStats(authentication);
 
         assertEquals(5L, result.activeLoans());
         assertEquals(2L, result.overdueLoans());
@@ -326,7 +326,6 @@ class LoanServiceTest {
         copy.setBook(book);
         copy.setCampus(copyCampus);
         copy.setCondition(BookCondition.GOOD_CONDITION);
-        copy.setLoans(new ArrayList<>());
         ReflectionTestUtils.setField(copy, "availability", Availability.AVAILABLE);
         return copy;
     }

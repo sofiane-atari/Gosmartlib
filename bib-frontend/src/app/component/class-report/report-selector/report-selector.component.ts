@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Users, Building2, BarChart3 } from 'lucide-angular';
+import { LucideAngularModule, Users, BarChart3 } from 'lucide-angular';
 import { RoleService } from '../../../services/role-service/role.service';
 
 @Component({
@@ -14,15 +14,10 @@ import { RoleService } from '../../../services/role-service/role.service';
 export class ReportSelectorComponent {
   readonly icons = {
     users: Users,
-    building: Building2,
     system: BarChart3
   };
 
   private readonly roleService = inject(RoleService);
-
-  protected readonly canViewSchoolReport = computed(() =>
-    this.roleService.isLibrarian() || this.roleService.isAdmin()
-  );
 
   protected readonly canViewSystemReport = computed(() =>
     this.roleService.isAdmin()
@@ -32,10 +27,6 @@ export class ReportSelectorComponent {
 
   navigateToClassReport(): void {
     void this.router.navigate(['/reports/class']);
-  }
-
-  navigateToCampusReport(): void {
-    void this.router.navigate(['/reports/school']);
   }
 
   navigateToSystemReport(): void {

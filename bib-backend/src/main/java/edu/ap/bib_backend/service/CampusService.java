@@ -11,11 +11,13 @@ import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.CampusMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CampusService {
@@ -63,9 +65,22 @@ public class CampusService {
                 .toList();
     }
 
-    public CampusDTO getCampus(Long id) {
+    public CampusDTO getCampus(Long id, Authentication authentication) {
         Campus campus = campusRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("id", "Campus niet gevonden."));
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            String userId = currentUserService.extractCurrentUserId(authentication);
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden."));
+
+            if (user.getSchool() == null || !Objects.equals(user.getSchool().getId(), campus.getSchool().getId())) {
+                throw new AccessDeniedException("Geen toegang tot deze campus.");
+            }
+        }
 
         return campusMapper.toDto(campus);
     }

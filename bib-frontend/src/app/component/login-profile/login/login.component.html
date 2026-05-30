@@ -19,6 +19,14 @@
       </div>
     }
 
+    <!-- User Not Registered Error -->
+    @if (isUserUnauthorized()) {
+      <div class="error-box">
+        <h2>Account niet geregistreerd</h2>
+        <p>Je account is nog niet geregistreerd in het systeem. Neem contact op met de bibliotheekbeheerder.</p>
+      </div>
+    }
+
     <!-- Info Box -->
     <div class="info-box">
       <h2>Meld je aan met je schoolaccount</h2>

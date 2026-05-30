@@ -15,8 +15,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -37,13 +35,13 @@ public class Loan {
     private LocalDate returnDate;
     private LocalDate returnedDate;
 
-    @ManyToMany
-    @JoinTable(
-            name = "loan_copies",
-            joinColumns = @JoinColumn(name = "loan_id"),
-            inverseJoinColumns = @JoinColumn(name = "book_copy_id")
-    )
-    private List<BookCopy> copies = new ArrayList<>();
+    // Used to group multiple single-copy loans created in one checkout action.
+    // Not intended for end-user display.
+    private String batchId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_copy_id", nullable = false)
+    private BookCopy copy;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

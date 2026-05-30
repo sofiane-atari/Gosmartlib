@@ -47,8 +47,6 @@ class GenreRepositoryTest {
         School school = new School();
         school.setDomainName("test.school.be");
         school.setName("Test School");
-        school.setAddress("Addr");
-        school.setPostalCode(1000);
         entityManager.persistAndFlush(school);
 
         Campus campus = new Campus();

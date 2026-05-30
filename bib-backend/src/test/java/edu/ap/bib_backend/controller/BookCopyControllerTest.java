@@ -2,9 +2,11 @@ package edu.ap.bib_backend.controller;
 
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.BookCopyService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
@@ -40,6 +42,9 @@ class BookCopyControllerTest {
     private CurrentUserService currentUserService;
 
     @MockitoBean
+    private BookCopyService bookCopyService;
+
+    @MockitoBean
     private JwtService jwtService;
 
     @MockitoBean
@@ -50,15 +55,20 @@ class BookCopyControllerTest {
 
     @Test
     void Given_AdminConditionUpdate_When_UpdateCondition_Then_ReturnsUpdatedCondition() throws Exception {
+        School school = new School();
+        school.setId(1L);
+
         Campus campus = new Campus();
         campus.setId(1L);
+        campus.setSchool(school);
+
         BookCopy copy = new BookCopy();
         copy.setId(10L);
         copy.setCampus(campus);
 
-        when(currentUserService.getCurrentUserCampus(any())).thenReturn(campus);
         when(bookCopyRepository.findById(10L)).thenReturn(Optional.of(copy));
         when(bookCopyRepository.save(any(BookCopy.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(school);
 
         mockMvc.perform(patch("/book-copies/10/condition")
                         .with(csrf())

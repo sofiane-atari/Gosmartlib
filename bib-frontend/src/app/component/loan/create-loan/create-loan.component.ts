@@ -279,13 +279,7 @@ export class CreateLoanComponent {
 
     if (this.selectedUser()) {
       const user = this.selectedUser()!;
-      this.userService
-        .hasValidRefreshToken(user.id)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (isValid) => this.hasValidRefreshToken.set(isValid),
-          error: () => this.hasValidRefreshToken.set(false),
-        });
+      this.hasValidRefreshToken.set(true);
 
       if (this.bookSearchQuery().trim()) {
         this.triggerCatalogSearch();
@@ -365,13 +359,7 @@ export class CreateLoanComponent {
     this.triggerCatalogSearch();
     this.triggerIsbnSearch();
 
-    this.userService
-      .hasValidRefreshToken(user.id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (isValid) => this.hasValidRefreshToken.set(isValid),
-        error: () => this.hasValidRefreshToken.set(false),
-      });
+    this.hasValidRefreshToken.set(true);
   }
 
   public clearSelectedUser(): void {
@@ -626,7 +614,12 @@ export class CreateLoanComponent {
       .subscribe({
         next: () => {
           this.isSubmitting.set(false);
-          this.showSuccess('De lening is succesvol aangemaakt.');
+          const count = bookCopyIds.length;
+          this.showSuccess(
+            count === 1
+              ? 'De lening is succesvol aangemaakt.'
+              : 'De leningen zijn succesvol aangemaakt.',
+          );
           this.clearAllProgress();
           void this.router.navigate(['/books-management']);
         },

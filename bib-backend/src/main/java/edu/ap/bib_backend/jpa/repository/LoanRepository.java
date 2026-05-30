@@ -81,7 +81,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
         @Query(value = """
                 select count(*)
                 from loans l
-                join loan_copies lc on lc.loan_id = l.id
                 where l.user_id = :userId
                 and l.campus_id = :campusId
                 """, nativeQuery = true)
@@ -98,7 +97,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
         @Query(value = """
                         select count(*)
                         from loans l
-                        join loan_copies lc on lc.loan_id = l.id
                         where l.user_id = :userId
                         """, nativeQuery = true)
         long countLoanedBooksForUser(@Param("userId") String userId);
@@ -106,7 +104,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
         @Query(value = """
                         select count(*)
                         from loans l
-                        join loan_copies lc on lc.loan_id = l.id
                         where l.user_id = :userId
                         and l.returned_date is null
                         """, nativeQuery = true)
@@ -115,7 +112,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
         @Query(value = """
                         select count(*)
                         from loans l
-                        join loan_copies lc on lc.loan_id = l.id
                         where l.user_id = :userId
                         and l.returned_date is not null
                         """, nativeQuery = true)
@@ -127,8 +123,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                                g.color as color,
                                count(*) as loanCount
                         from loans l
-                        join loan_copies lc on lc.loan_id = l.id
-                        join book_copies bc on bc.id = lc.book_copy_id
+                        join book_copies bc on bc.id = l.book_copy_id
                         join book_genres bg on bg.book_id = bc.book_id
                         join genres g on g.id = bg.genre_id
                         where l.user_id in (:userIds)
@@ -146,8 +141,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         from loans l
                         join users u on u.id = l.user_id
                         join auth_sessions s on s.user_id = u.id
-                        join loan_copies lc on lc.loan_id = l.id
-                        join book_copies bc on bc.id = lc.book_copy_id
+                        join book_copies bc on bc.id = l.book_copy_id
                         join book_genres bg on bg.book_id = bc.book_id
                         join genres g on g.id = bg.genre_id
                         where u.school_id = :schoolId
@@ -169,7 +163,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                                bc.book.imageUrl as imageUrl,
                                count(bc.id) as loanCount
                         from Loan l
-                        join l.copies bc
+                        join l.copy bc
                         where l.campus.school.id = :schoolId
                         and (:campusId is null or l.campus.id = :campusId)
                         group by bc.book.id, bc.book.title, bc.book.author, bc.book.imageUrl
@@ -187,7 +181,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                                bc.book.imageUrl as imageUrl,
                                count(bc.id) as loanCount
                         from Loan l
-                        join l.copies bc
+                        join l.copy bc
                         group by bc.book.id, bc.book.title, bc.book.author, bc.book.imageUrl
                         order by count(bc.id) desc, bc.book.title asc
                         """)
@@ -227,7 +221,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         from Loan l
                         join l.user u
                         left join u.groups g
-                        join l.copies bc
+                        join l.copy bc
                         where l.campus.school.id = :schoolId
                         and (:campusId is null or l.campus.id = :campusId)
                         group by coalesce(g.name, 'Geen klas')
@@ -241,28 +235,23 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         select count(distinct u.id)
                         from User u
                         where u.school.id = :schoolId
-                        and (:campusId is null or u.campus.id = :campusId)
                         and size(u.groups) > 0
                         """)
         long countStudentsWithClassForSchool(
-                @Param("schoolId") Long schoolId,
-                @Param("campusId") Long campusId);
+                @Param("schoolId") Long schoolId);
 
         @Query("""
                         select count(distinct g.name)
                         from User u
                         join u.groups g
                         where u.school.id = :schoolId
-                        and (:campusId is null or u.campus.id = :campusId)
                         """)
         long countClassesForSchool(
-                @Param("schoolId") Long schoolId,
-                @Param("campusId") Long campusId);
+                @Param("schoolId") Long schoolId);
 
         @Query("""
-                        select count(bc.id)
+                        select count(l.copy.id)
                         from Loan l
-                        join l.copies bc
                         where l.campus.school.id = :schoolId
                         and (:campusId is null or l.campus.id = :campusId)
                         """)
@@ -271,9 +260,8 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                 @Param("campusId") Long campusId);
 
         @Query("""
-                        select count(bc.id)
+                        select count(l.copy.id)
                         from Loan l
-                        join l.copies bc
                         where l.campus.school.id = :schoolId
                         and (:campusId is null or l.campus.id = :campusId)
                         and l.returnedDate is null
@@ -283,42 +271,37 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                 @Param("campusId") Long campusId);
 
         @Query("""
-                        select count(bc.id)
+                        select count(l.copy.id)
                         from Loan l
-                        join l.copies bc
                         """)
         long countLoanedBookCopiesForSystem();
 
         @Query("""
-                        select count(bc.id)
+                        select count(l.copy.id)
                         from Loan l
-                        join l.copies bc
                         where l.returnedDate is null
                         """)
         long countActiveLoanedBookCopiesForSystem();
 
         @Query("""
-                        select count(bc.id)
+                        select count(l.copy.id)
                         from Loan l
-                        join l.copies bc
                         where l.returnedDate is not null
                         and l.returnedDate <= l.returnDate
                         """)
         long countOnTimeReturnsForSystem();
 
         @Query("""
-                        select count(bc.id)
+                        select count(l.copy.id)
                         from Loan l
-                        join l.copies bc
                         where l.returnedDate is not null
                         and l.returnedDate > l.returnDate
                         """)
         long countLateReturnsForSystem();
 
         @Query("""
-                        select count(bc.id)
+                        select count(l.copy.id)
                         from Loan l
-                        join l.copies bc
                         where l.campus.school.id = :schoolId
                         and (:campusId is null or l.campus.id = :campusId)
                         and l.returnedDate is not null
@@ -329,9 +312,8 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                 @Param("campusId") Long campusId);
 
         @Query("""
-                        select count(bc.id)
+                        select count(l.copy.id)
                         from Loan l
-                        join l.copies bc
                         where l.campus.school.id = :schoolId
                         and (:campusId is null or l.campus.id = :campusId)
                         and l.returnedDate is not null
@@ -346,6 +328,12 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
         long countByReturnedDateIsNullAndReturnDateBefore(LocalDate today);
 
         long countByReturnedDateIsNotNull();
+
+long countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateGreaterThanEqual(Long schoolId, LocalDate today);
+
+        long countByCampusSchoolIdAndReturnedDateIsNullAndReturnDateBefore(Long schoolId, LocalDate today);
+
+        long countByCampusSchoolIdAndReturnedDateIsNotNull(Long schoolId);
 
         List<Loan> findByReturnedDateIsNullAndReturnDate(LocalDate returnDate);
 

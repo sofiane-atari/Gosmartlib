@@ -78,10 +78,12 @@
       </button>
     }
     @if (isAdminOverrideVisible()) {
-      <button class="btn btn-amber" (click)="toggleAdminOverride()">
-        <lucide-icon [name]="ShieldIcon" class="btn-icon"></lucide-icon>
-        <span class="btn-text">{{ adminOverrideLabel() }}</span>
-      </button>
+      <app-dev-feature-wrapper [compact]="true">
+        <button class="btn btn-amber" (click)="toggleAdminOverride()">
+          <lucide-icon [name]="ShieldIcon" class="btn-icon"></lucide-icon>
+          <span class="btn-text">{{ adminOverrideLabel() }}</span>
+        </button>
+      </app-dev-feature-wrapper>
     }
 
     <button class="btn btn-rose" (click)="logout()">

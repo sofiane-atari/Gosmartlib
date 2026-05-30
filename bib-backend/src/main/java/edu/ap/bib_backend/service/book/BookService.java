@@ -96,14 +96,19 @@ public class BookService {
     @Transactional
     public List<BookDTO> getAllBooks(Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
-        return bookMapper.toDTOList(bookRepository.findByCampusSchoolId(school.getId()));
+
+        Specification<Book> spec = Specification.where(BookSpecification.belongsToSchool(school.getId()));
+
+        if (!currentUserService.isModerator(authentication)) {
+            spec = spec.and(BookSpecification.hasNonLostCopyInSchool(school.getId()));
+        }
+
+        return bookMapper.toDTOList(bookRepository.findAll(spec));
     }
 
     @Transactional
     public BookDTO addCopyToBook(Long bookId, Long campusId, Authentication authentication) {
-        Campus campus = campusId == null
-                ? currentUserService.getCurrentUserCampus(authentication)
-                : resolveCampusForCurrentUserSchool(campusId, authentication);
+        Campus campus = resolveCampusForCurrentUserSchool(campusId, authentication);
         Book book = findBookForCopyTarget(bookId, campus, authentication);
 
         createAvailableCopy(book, campus);
@@ -176,30 +181,6 @@ public class BookService {
         book.setCampus(targetCampus);
 
         return bookRepository.save(book);
-    }
-
-    @Transactional
-    public void deleteBook(Long id, Authentication authentication) {
-        School school = currentUserService.getCurrentUserSchool(authentication);
-        Book book = findBookInSchoolOrThrow(id, school.getId());
-        Campus campus = book.getCampus();
-
-        if (campus == null) {
-            throw new IllegalStateException("Boek heeft geen campus gekoppeld.");
-        }
-
-        if (bookCopyRepository.existsByBookIdAndCampusIdAndAvailability(id, campus.getId(), Availability.BORROWED)) {
-            throw new IllegalStateException(
-                    "Dit boek kan niet verwijderd worden omdat minstens één exemplaar momenteel is uitgeleend.");
-        }
-
-        reviewRepository.deleteByBookId(id);
-        bookLoanRepository.deleteByCopiesBookId(id);
-        bookCopyRepository.deleteByBookId(id);
-
-        book.getGenres().clear();
-        book.getTags().clear();
-        bookRepository.delete(book);
     }
 
     @Transactional
@@ -497,11 +478,13 @@ public class BookService {
     }
 
     private java.time.LocalDate getExpectedReturnDate(BookCopy copy) {
-        return copy.getLoans().stream()
-                .filter(loan -> loan.getReturnedDate() == null)
+        if (copy == null || copy.getId() == null) {
+            return null;
+        }
+
+        return bookLoanRepository
+                .findFirstByCopyIdAndReturnedDateIsNullOrderByReturnDateAsc(copy.getId())
                 .map(Loan::getReturnDate)
-                .filter(Objects::nonNull)
-                .findFirst()
                 .orElse(null);
     }
 

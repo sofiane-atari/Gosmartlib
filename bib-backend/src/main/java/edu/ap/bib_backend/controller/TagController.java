@@ -27,15 +27,6 @@ public class TagController {
             @RequestParam(required = false) String bookCount,
             @RequestParam(defaultValue = "false") boolean includeBookCount,
             Authentication authentication) {
-        if (authentication == null) {
-            return tagService.getTagsByPage(
-                    page,
-                    pageSize,
-                    search,
-                    bookCount,
-                    includeBookCount);
-        }
-
         return tagService.getTagsByPage(
                 page,
                 pageSize,
@@ -47,19 +38,11 @@ public class TagController {
 
     @GetMapping("/stats")
     public TagStatsDTO getTagStats(Authentication authentication) {
-        if (authentication == null) {
-            return tagService.getTagStats();
-        }
-
         return tagService.getTagStats(authentication);
     }
 
     @PostMapping
     public TagDTO createTag(@Valid @RequestBody TagDTO tagDTO, Authentication authentication) {
-        if (authentication == null) {
-            return tagService.createTag(tagDTO);
-        }
-
         return tagService.createTag(tagDTO, authentication);
     }
 
@@ -68,20 +51,11 @@ public class TagController {
             @PathVariable Long id,
             @Valid @RequestBody TagDTO tagDTO,
             Authentication authentication) {
-        if (authentication == null) {
-            return tagService.updateTag(id, tagDTO);
-        }
-
         return tagService.updateTag(id, tagDTO, authentication);
     }
 
     @DeleteMapping("/{id}")
     public void deleteTag(@PathVariable Long id, Authentication authentication) {
-        if (authentication == null) {
-            tagService.deleteTag(id);
-            return;
-        }
-
         tagService.deleteTag(id, authentication);
     }
 }

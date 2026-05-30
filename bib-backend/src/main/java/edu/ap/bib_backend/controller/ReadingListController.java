@@ -27,6 +27,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/reading-lists")
+@PreAuthorize("hasAnyRole('STUDENT','TEACHER','LIBRARIAN','ADMIN')")
 public class ReadingListController {
 
     private final ReadingListService readingListService;
@@ -161,6 +162,7 @@ public class ReadingListController {
     }
 
     @PostMapping("/{id}/catalog-featured")
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     public ResponseEntity<List<ReadingListResponseDTO>> selectCatalogFeaturedList(
             @PathVariable Long id,
             Principal principal) {
@@ -174,6 +176,7 @@ public class ReadingListController {
     }
 
     @DeleteMapping("/{id}/catalog-featured")
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     public ResponseEntity<List<ReadingListResponseDTO>> unselectCatalogFeaturedList(
             @PathVariable Long id,
             Principal principal) {

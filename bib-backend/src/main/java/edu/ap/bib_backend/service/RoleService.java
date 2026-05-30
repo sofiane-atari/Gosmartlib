@@ -228,8 +228,6 @@ public class RoleService {
         return switch (basisrol.toLowerCase()) {
             case "leerling" -> Optional.of(Role.STUDENT);
             case "leerkracht" -> Optional.of(Role.TEACHER);
-            case "directie" -> Optional.of(Role.ADMIN);
-            case "bibliothecaris" -> Optional.of(Role.LIBRARIAN);
             default -> Optional.empty();
         };
     }

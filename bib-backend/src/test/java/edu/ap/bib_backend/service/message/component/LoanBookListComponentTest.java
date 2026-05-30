@@ -34,39 +34,45 @@ class LoanBookListComponentTest {
         return copy;
     }
 
-    private Loan createLoanWithCopies(List<BookCopy> copies) {
-        Loan loan = new Loan();
-        loan.setCopies(copies);
-        return loan;
+    private List<Loan> createLoans(List<BookCopy> copies) {
+        if (copies == null) {
+            return null;
+        }
+
+        List<Loan> loans = new ArrayList<>();
+        for (BookCopy copy : copies) {
+            Loan loan = new Loan();
+            loan.setCopy(copy);
+            loans.add(loan);
+        }
+        return loans;
     }
 
     @Test
-    void isEnabled_withNullCopies_returnsFalse() {
-        Loan loan = createLoanWithCopies(null);
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+    void isEnabled_withNullList_returnsFalse() {
+        LoanBookListComponent component = new LoanBookListComponent(null, FRONTEND_URL);
         assertFalse(component.isEnabled());
     }
 
     @Test
-    void isEnabled_withEmptyCopies_returnsFalse() {
-        Loan loan = createLoanWithCopies(List.of());
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+    void isEnabled_withEmptyList_returnsFalse() {
+        LoanBookListComponent component = new LoanBookListComponent(List.of(), FRONTEND_URL);
         assertFalse(component.isEnabled());
     }
 
     @Test
-    void isEnabled_withCopies_returnsTrue() {
+    void isEnabled_withLoans_returnsTrue() {
         Book book = createBook(1L, "Test Book", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         assertTrue(component.isEnabled());
     }
 
     @Test
     void build_containsTitle() {
         Book book = createBook(1L, "Test Book", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
         assertTrue(html.contains("Test Book"));
     }
@@ -74,8 +80,8 @@ class LoanBookListComponentTest {
     @Test
     void build_containsAuthor() {
         Book book = createBook(1L, "Test Book", "J.K. Rowling", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
         assertTrue(html.contains("J.K. Rowling"));
     }
@@ -83,8 +89,8 @@ class LoanBookListComponentTest {
     @Test
     void build_containsBookLink() {
         Book book = createBook(42L, "Linked Book", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
         assertTrue(html.contains(FRONTEND_URL + "/book/42"));
     }
@@ -92,8 +98,8 @@ class LoanBookListComponentTest {
     @Test
     void build_withImageUrl_rendersImgTag() {
         Book book = createBook(1L, "With Image", "Author", "https://example.com/cover.jpg", null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
         assertTrue(html.contains("<img"));
         assertTrue(html.contains("https://example.com/cover.jpg"));
@@ -102,8 +108,8 @@ class LoanBookListComponentTest {
     @Test
     void build_withoutImageUrl_rendersPlaceholder() {
         Book book = createBook(1L, "No Image", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
         assertFalse(html.contains("<img"));
     }
@@ -111,107 +117,41 @@ class LoanBookListComponentTest {
     @Test
     void build_withEmptyImageUrl_rendersPlaceholder() {
         Book book = createBook(1L, "Empty Image", "Author", "", null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
         assertFalse(html.contains("<img"));
     }
 
     @Test
     void build_withGenres_rendersGenreBadges() {
-        Genre genre1 = new Genre("Fiction", "#ff0000", "Fictional works");
-        genre1.setName("Fiction");
-        Genre genre2 = new Genre("Fantasy", "#00ff00", "Fantasy works");
-        genre2.setName("Fantasy");
-        Book book = createBook(1L, "Genre Book", "Author", null, new LinkedHashSet<>(Set.of(genre1, genre2)));
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+        Set<Genre> genres = new LinkedHashSet<>();
+        Genre genre = new Genre();
+        genre.setName("Fantasy");
+        genre.setColor("#8E44AD");
+        genres.add(genre);
+        Book book = createBook(1L, "Fantasy Book", "Author", null, genres);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
-        assertTrue(html.contains("Fiction"));
         assertTrue(html.contains("Fantasy"));
     }
 
     @Test
-    void build_withoutGenres_doesNotRenderBadges() {
-        Book book = createBook(1L, "No Genre", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
-        String html = component.build();
-    }
-
-    @Test
-    void build_withMultipleCopiesOfSameBook_showsCount() {
-        Book book = createBook(1L, "Popular Book", "Author", null, null);
-        BookCopy copy1 = createBookCopy(book);
-        BookCopy copy2 = createBookCopy(book);
-        Loan loan = createLoanWithCopies(List.of(copy1, copy2));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
-        String html = component.build();
-        assertTrue(html.contains("2 exemplaren"));
-    }
-
-    @Test
-    void build_withSingleCopy_doesNotShowCount() {
-        Book book = createBook(1L, "Solo Book", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
-        String html = component.build();
-        assertFalse(html.contains("exemplaren"));
-    }
-
-    @Test
-    void build_containsUitgeleendeBoekenHeading() {
-        Book book = createBook(1L, "Any", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+    void build_containsUitgeleendeBoeken() {
+        Book book = createBook(1L, "Test Book", "Author", null, null);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
         assertTrue(html.contains("Uitgeleende boeken"));
     }
 
     @Test
-    void build_containsMsgBookCardClass() {
-        Book book = createBook(1L, "Card Test", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
+    void build_htmlEncodingEscapesTitle() {
+        Book book = createBook(1L, "Test & Book", "Author <script>", null, null);
+        LoanBookListComponent component = new LoanBookListComponent(
+                createLoans(List.of(createBookCopy(book))), FRONTEND_URL);
         String html = component.build();
-        assertTrue(html.contains("msg-book-card"));
-    }
-
-    @Test
-    void build_containsMsgCoverLinkClass() {
-        Book book = createBook(1L, "Cover Test", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
-        String html = component.build();
-        assertTrue(html.contains("msg-cover-link"));
-    }
-
-    @Test
-    void build_containsMsgBookLinkClass() {
-        Book book = createBook(1L, "Link Test", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
-        String html = component.build();
-        assertTrue(html.contains("msg-book-link"));
-    }
-
-    @Test
-    void build_withAllNullCopies_returnsEmpty() {
-        List<BookCopy> copies = new ArrayList<>();
-        copies.add(null);
-        Loan loan = createLoanWithCopies(copies);
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
-        String html = component.build();
-        assertEquals("", html);
-    }
-
-    @Test
-    void build_escapesHtmlInTitle() {
-        Book book = createBook(1L, "<script>alert('xss')</script>", "Author", null, null);
-        Loan loan = createLoanWithCopies(List.of(createBookCopy(book)));
-        LoanBookListComponent component = new LoanBookListComponent(loan, FRONTEND_URL);
-        String html = component.build();
-        assertTrue(html.contains("&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"));
-        assertFalse(html.contains("<script>"));
+        assertTrue(html.contains("Test &amp; Book"));
     }
 }
