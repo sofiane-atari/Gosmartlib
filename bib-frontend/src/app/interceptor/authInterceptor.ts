@@ -3,12 +3,14 @@ import { inject, Injector } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/authorization/auth.service';
+import { SchoolOverrideService } from '../services/school-override/school-override.service';
 
 const REDIRECT_PATHS = ['/login', '/unauthorized'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const injector = inject(Injector);
+  const schoolOverrideService = inject(SchoolOverrideService);
 
   const token = localStorage.getItem('authToken');
   const expiry = localStorage.getItem('authTokenExpiry');
@@ -24,10 +26,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  if (schoolOverrideService.isActive()) {
+    const activeId = schoolOverrideService.activeSchoolId();
+    if (activeId !== null && activeId !== undefined) {
+      headers['X-Active-School-Id'] = activeId.toString();
+    }
+  }
+
   const authReq = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`,
-    },
+    setHeaders: headers,
   });
 
   return next(authReq).pipe(

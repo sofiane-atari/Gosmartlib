@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthUserDto } from '../../model/auth.model';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
+import { SchoolOverrideService } from '../school-override/school-override.service';
 
 export interface AdminOverrideStatusDto {
   enabled: boolean;
@@ -20,6 +21,7 @@ export class AuthService {
 
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly schoolOverrideService = inject(SchoolOverrideService);
   private tokenExpiryTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private tokenWarningTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private countdownIntervalId: ReturnType<typeof setInterval> | null = null;
@@ -187,6 +189,8 @@ export class AuthService {
 
     this.isSessionWarningVisible.set(false);
     this.sessionSecondsRemaining.set(null);
+
+    this.schoolOverrideService.clearActiveSchool();
   }
 
 private scheduleTokenTimers(expiresAt: number): void {
