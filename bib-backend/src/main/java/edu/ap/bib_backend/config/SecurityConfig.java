@@ -41,6 +41,7 @@ public class SecurityConfig {
 
         private final SmartschoolOAuth2UserService smartschoolOAuth2UserService;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final ActiveSchoolFilter activeSchoolFilter;
         private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
         private final RestAccessDeniedHandler restAccessDeniedHandler;
         private final boolean mockModeEnabled;
@@ -48,12 +49,14 @@ public class SecurityConfig {
 
         public SecurityConfig(
                         JwtAuthenticationFilter jwtAuthenticationFilter,
+                        ActiveSchoolFilter activeSchoolFilter,
                         SmartschoolOAuth2UserService smartschoolOAuth2UserService,
                         RestAuthenticationEntryPoint restAuthenticationEntryPoint,
                         RestAccessDeniedHandler restAccessDeniedHandler,
                         @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
                         @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+                this.activeSchoolFilter = activeSchoolFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
                 this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
                 this.restAccessDeniedHandler = restAccessDeniedHandler;
@@ -77,6 +80,7 @@ public class SecurityConfig {
 
                                 // JWT filter
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterAfter(activeSchoolFilter, JwtAuthenticationFilter.class)
 
                                 .authorizeHttpRequests(auth -> {
                                         auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();

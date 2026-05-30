@@ -21,7 +21,7 @@ public class CorsConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(allowedOrigins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                        .allowedHeaders("Authorization", "Content-Type", "X-Mock-Role")
+                        .allowedHeaders("Authorization", "Content-Type", "X-Mock-Role", "X-Active-School-Id")
                         .allowCredentials(true);
             }
         };
