@@ -170,6 +170,9 @@ public class SecurityConfig {
                                         auth.requestMatchers("/roles/admin-promotion-enabled")
                                                         .authenticated();
 
+                                        auth.requestMatchers(HttpMethod.POST, "/roles/assign-admin", "/roles/revoke-admin")
+                                                        .hasRole(Role.ADMIN.name());
+
                                         auth.requestMatchers("/roles/**")
                                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
