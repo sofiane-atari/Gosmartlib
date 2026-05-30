@@ -19,16 +19,12 @@ public class CampusReportController {
 
     @GetMapping("/my-campus")
     public CampusReportDTO getMyCampusReport(Authentication authentication) {
-        System.out.println(">>> CAMPUS REPORT CONTROLLER HIT - my-campus");
-        System.out.println("AUTH = " + authentication);
 
         return reportService.generateReportForLoggedInTeacher(authentication);
     }
 
     @GetMapping("/all-campuses")
     public List<CampusReportDTO> getAllCampusReports(Authentication authentication) {
-        System.out.println(">>> CAMPUS REPORT CONTROLLER HIT - all-campuses");
-        System.out.println("AUTH = " + authentication);
 
         return reportService.generateAllCampusReports(authentication);
     }
@@ -37,8 +33,6 @@ public class CampusReportController {
     public CampusReportDTO getCampusReport(
             @PathVariable Long campusId,
             Authentication authentication) {
-        System.out.println(">>> CAMPUS REPORT CONTROLLER HIT - campus/" + campusId);
-        System.out.println("AUTH = " + authentication);
 
         return reportService.generateReportForCampusId(authentication, campusId);
     }
