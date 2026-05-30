@@ -34,6 +34,14 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     List<User> findBySchoolId(Long schoolId);
 
+    @Query("""
+            select distinct u
+            from User u
+            left join fetch u.groups
+            where u.school.id = :schoolId
+            """)
+    List<User> findBySchoolIdWithGroups(@Param("schoolId") Long schoolId);
+
     @Query(value = """
             select count(distinct u.id)
             from users u

@@ -154,7 +154,9 @@ class UserServiceTest {
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 
         Map<String, Object> rosterUser = Map.of(
-                "metadata", Map.of("smsc.legacyIdentifier", "other-user"),
+                "metadata", Map.of(
+                        "smsc.legacyIdentifier", "other-user",
+                        "smsc.classInfo", "3A"),
                 "fullName", "Other User");
         when(oneRosterClient.fetchUsersWithBearer("test.smartschool.be", "token"))
                 .thenReturn(List.of(rosterUser));
@@ -169,6 +171,7 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("other-user", result.get(0).id());
+        assertEquals("3A", result.get(0).primaryGroupName());
 
         SecurityContextHolder.clearContext();
     }

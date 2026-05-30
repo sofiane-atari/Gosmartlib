@@ -1,118 +1,155 @@
 <div class="panel">
-    <div class="panel-header">
-        <div>
-            <p class="panel-eyebrow">Uitleenbeheer</p>
-            <h2>Zoek en selecteer een gebruiker</h2>
-        </div>
-        <span class="pill">{{ users().length }} gevonden</span>
+  <div class="panel-header">
+    <div>
+      <p class="panel-eyebrow">Uitleenbeheer</p>
+      <h2>Zoek en selecteer een gebruiker</h2>
     </div>
+    <span class="pill">{{ users().length }} gevonden</span>
+  </div>
 
-    <div class="search-row">
-        <div class="mode-toggle-row">
-            <app-button-hover-help text="Zoek leerkrachten, bibbeheerders of admins van een andere school.">
-                <label class="mode-toggle" for="externalMode">
-                    <input id="externalMode" type="checkbox" [checked]="isExternalMode()" (change)="onExternalModeChange($event)" />
-                    <span>Extern uitlenen</span>
-                </label>
-            </app-button-hover-help>
-        </div>
+  <div class="search-row">
+    <div class="mode-toggle-row">
+      <app-button-hover-help
+        text="Zoek leerkrachten, bibbeheerders of admins van een andere school."
+      >
+        <label class="mode-toggle" for="externalMode">
+          <input
+            id="externalMode"
+            type="checkbox"
+            [checked]="isExternalMode()"
+            (change)="onExternalModeChange($event)"
+          />
+          <span>Extern uitlenen</span>
+        </label>
+      </app-button-hover-help>
     </div>
+  </div>
 
-    @if (isExternalMode()) {
+  @if (isExternalMode()) {
     <div class="search-row">
-        <label for="externalSchool">School</label>
-        <select id="externalSchool" [value]="selectedExternalSchoolId() ?? ''" (change)="onExternalSchoolChange($event)">
-            <option value="">Kies een school</option>
-            @for (school of schools(); track school.id) {
-            <option [value]="school.id">{{ school.name }} ({{ school.domainName }})</option>
-            }
-        </select>
-        @if (isLoadingSchools()) {
+      <label for="externalSchool">School</label>
+      <select
+        id="externalSchool"
+        [value]="selectedExternalSchoolId() ?? ''"
+        (change)="onExternalSchoolChange($event)"
+      >
+        <option value="">Kies een school</option>
+        @for (school of schools(); track school.id) {
+          <option [value]="school.id">
+            {{ school.name }} ({{ school.domainName }})
+          </option>
+        }
+      </select>
+      @if (isLoadingSchools()) {
         <p class="field-hint">Scholen worden geladen...</p>
-        } @else if (schools().length === 0) {
+      } @else if (schools().length === 0) {
         <p class="field-hint">Er zijn geen andere scholen beschikbaar.</p>
-        }
+      }
     </div>
-    }
+  }
 
-    <div class="search-row">
-        <label for="firstnameSearch">Voornaam</label>
-        <div class="search-action-row">
-            <input id="firstnameSearch" type="text"
-                   [value]="searchFirstname()"
-                   (input)="onFirstnameChange($event)"
-                   placeholder="Typ voornaam" />
-        </div>
+  <div class="search-row">
+    <label for="firstnameSearch">Voornaam</label>
+    <div class="search-action-row">
+      <input
+        id="firstnameSearch"
+        type="text"
+        [value]="searchFirstname()"
+        (input)="onFirstnameChange($event)"
+        placeholder="Typ voornaam"
+      />
     </div>
-    <div class="search-row">
-        <label for="lastnameSearch">Achternaam</label>
-        <div class="search-action-row">
-            <input id="lastnameSearch" type="text"
-                   [value]="searchLastname()"
-                   (input)="onLastnameChange($event)"
-                   placeholder="Typ achternaam" />
-        </div>
+  </div>
+  <div class="search-row">
+    <label for="lastnameSearch">Achternaam</label>
+    <div class="search-action-row">
+      <input
+        id="lastnameSearch"
+        type="text"
+        [value]="searchLastname()"
+        (input)="onLastnameChange($event)"
+        placeholder="Typ achternaam"
+      />
     </div>
+  </div>
 
-    @if (isLoadingUsers()) {
+  @if (isLoadingUsers()) {
     <div class="list user-results">
-        @for (i of [1, 2, 3]; track i) {
+      @for (i of [1, 2, 3]; track i) {
         <div class="list-item user-item skeleton-item">
-            <div class="user-item-content">
-                <div class="user-item-header">
-                    <div class="skeleton skeleton-user-title"></div>
-                </div>
-                <div class="user-item-meta">
-                    <div class="skeleton skeleton-user-id"></div>
-                    <div class="skeleton skeleton-user-group"></div>
-                </div>
+          <div class="user-item-content">
+            <div class="user-item-header">
+              <div class="skeleton skeleton-user-title"></div>
             </div>
+            <div class="user-item-meta">
+              <div class="skeleton skeleton-user-id"></div>
+              <div class="skeleton skeleton-user-group"></div>
+            </div>
+          </div>
         </div>
-        }
+      }
     </div>
-    } @else {
+  } @else {
     <div class="list user-results">
-        @for (user of users(); track user.id) {
-        <button type="button" class="list-item user-item" [class.active]="selectedUser()?.id === user.id"
-                (click)="userSelected.emit(user)">
-            <div class="user-item-content">
-                <div class="user-item-header">
-                    <span class="list-item-title">
-                        {{ user.firstName ?? 'Onbekende voornaam' }} {{ user.lastName ?? 'Onbekende achternaam' }}
-                    </span>
-                    @if (selectedUser()?.id === user.id) {
-                    <span class="user-selected-badge">Geselecteerd</span>
-                    }
-                </div>
-                <div class="user-item-meta">
-                    <span class="user-item-id">ID: {{ user.id }}</span>
-                    <span class="user-item-role">{{ getRoleLabel(user.role) }}</span>
-                    @if (isExternalMode()) {
-                    <span class="list-item-subtitle">School: {{ user.school?.name ?? user.schoolName ?? 'Onbekende school' }}</span>
-                    }
-                    @if (user.role === 'STUDENT') {
-                    <span class="list-item-subtitle">Klas: {{ user.primaryGroupName ?? 'Onbekende klas' }}</span>
-                    }
-                </div>
+      @for (user of users(); track user.id) {
+        <button
+          type="button"
+          class="list-item user-item"
+          [class.active]="selectedUser()?.id === user.id"
+          (click)="userSelected.emit(user)"
+        >
+          <div class="user-item-content">
+            <div class="user-item-header">
+              <span class="list-item-title">
+                {{ user.firstName ?? "Onbekende voornaam" }}
+                {{ user.lastName ?? "Onbekende achternaam" }}
+              </span>
+              @if (selectedUser()?.id === user.id) {
+                <span class="user-selected-badge">Geselecteerd</span>
+              }
             </div>
+            <div class="user-item-meta">
+              <span class="user-item-role">{{ getRoleLabel(user.role) }}</span>
+              @if (isExternalMode()) {
+                <span class="list-item-subtitle"
+                  >School:
+                  {{
+                    user.school?.name ?? user.schoolName ?? "Onbekende school"
+                  }}</span
+                >
+              }
+              @if (user.primaryGroupName) {
+                <span class="list-item-subtitle"
+                  >Klas: {{ user.primaryGroupName }}</span
+                >
+              }
+            </div>
+          </div>
         </button>
-        } @empty {
+      } @empty {
         <div class="state-panel state-panel--compact">
-            <p>Geen gebruikers gevonden.</p>
+          <p>Geen gebruikers gevonden.</p>
         </div>
-        }
+      }
     </div>
-    }
+  }
 
-    @if (selectedUser()) {
+  @if (selectedUser()) {
     <div class="selected-user selected-user--primary">
-        <span class="selected-user-text">
-            Geselecteerde gebruiker: <strong>{{ selectedUser()?.firstName }} {{ selectedUser()?.lastName }}</strong>
-        </span>
-        <button type="button" class="action-button action-button--secondary"
-                (click)="clearSelectedUserRequested.emit()">
-            Gebruiker wissen
-        </button>
+      <span class="selected-user-text">
+        Geselecteerde gebruiker:
+        <strong
+          >{{ selectedUser()?.firstName }}
+          {{ selectedUser()?.lastName }}</strong
+        >
+      </span>
+      <button
+        type="button"
+        class="action-button action-button--secondary"
+        (click)="clearSelectedUserRequested.emit()"
+      >
+        Gebruiker wissen
+      </button>
     </div>
-    }
+  }
 </div>

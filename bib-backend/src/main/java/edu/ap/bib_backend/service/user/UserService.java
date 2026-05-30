@@ -77,10 +77,12 @@ public class UserService {
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
+        Map<String, String> localGroupNamesByUserId = getLocalGroupNamesByUserId(school.getId());
 
         return rosterUsers.stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
+                .map(dto -> withLocalGroupName(dto, localGroupNamesByUserId.get(dto.id())))
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
     }
@@ -216,11 +218,13 @@ public class UserService {
 
         Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(schoolId).stream()
                 .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
+        Map<String, String> localGroupNamesByUserId = getLocalGroupNamesByUserId(schoolId);
 
         return oneRosterClient.fetchUsers(school.getDomainName()).stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
                 .map(dto -> withLocalRole(dto, localRolesByUserId.get(dto.id())))
+                .map(dto -> withLocalGroupName(dto, localGroupNamesByUserId.get(dto.id())))
                 .filter(this::isAllowedExternalBorrower)
                 .filter(dto -> matchesFilter(dto.firstName(), firstName))
                 .filter(dto -> matchesFilter(dto.lastName(), lastName))
@@ -385,6 +389,7 @@ public class UserService {
         String email = firstNonBlank(rosterUser, "email", "emailAddress", "mail");
         String username = firstNonBlank(rosterUser, "username", "userName");
         Role role = mapOneRosterRole(firstNonBlank(rosterUser, "role"));
+        String primaryGroupName = resolveGroupName(rosterUser);
 
         SchoolSummaryDto schoolSummary = ctxSchool.getSchoolSummaryDto();
 
@@ -398,7 +403,7 @@ public class UserService {
                 username,
                 null,
                 null,
-                null,
+                primaryGroupName,
                 List.of(),
                 false,
                 null,
@@ -448,6 +453,46 @@ public class UserService {
         }
 
         return value.toLowerCase().contains(filter.trim().toLowerCase());
+    }
+
+    private String resolveGroupName(Map<String, Object> rosterUser) {
+        String direct = readMetadataString(rosterUser, "smsc.classInfo");
+        if (StringUtils.hasText(direct)) {
+            return direct;
+        }
+
+        String classLevel = readMetadataString(rosterUser, "smsc.classLevel");
+        String classNumber = readMetadataString(rosterUser, "smsc.classNumber");
+        if (StringUtils.hasText(classLevel) && StringUtils.hasText(classNumber)) {
+            return classLevel + classNumber;
+        }
+
+        String classYear = readMetadataString(rosterUser, "smsc.classYear");
+        if (StringUtils.hasText(classYear)) {
+            return classYear;
+        }
+
+        return null;
+    }
+
+    private Map<String, String> getLocalGroupNamesByUserId(Long schoolId) {
+        return userRepository.findBySchoolIdWithGroups(schoolId).stream()
+                .filter(user -> user.getGroups() != null && !user.getGroups().isEmpty())
+                .collect(Collectors.toMap(User::getId, user -> user.getGroups().iterator().next().getName()));
+    }
+
+    private AuthUserDto withLocalGroupName(AuthUserDto dto, String localGroupName) {
+        if (StringUtils.hasText(dto.primaryGroupName()) || !StringUtils.hasText(localGroupName)) {
+            return dto;
+        }
+
+        return new AuthUserDto(
+                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                dto.role(), dto.email(), dto.username(),
+                dto.smartschoolId(), dto.platform(), localGroupName,
+                dto.parentGroupNames(), dto.reviewBlocked(),
+                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                dto.school());
     }
 
     private AuthUserDto withLocalRole(AuthUserDto dto, Role actualRole) {
