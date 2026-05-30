@@ -9,15 +9,37 @@
 }
 
 .page-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 1rem;
-  align-items: center;
   padding: 1.5rem 1.8rem;
   border: 1px solid var(--border-color, var(--sec-color));
   border-radius: 1.2rem;
   background: linear-gradient(135deg, #faf7f8, #f3f5f8);
   box-shadow: 0 8px 20px rgba(26, 10, 16, 0.06);
+}
+
+.page-header__left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-header__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.page-header__right .clear-btn {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.8rem;
 }
 
 .clear-btn {
@@ -193,7 +215,12 @@ h1 {
   }
 
   .page-header {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .page-header__left {
+    flex-direction: column;
     text-align: center;
   }
 
@@ -206,6 +233,36 @@ h1 {
   .header-actions {
     margin-top: 0.5rem;
   }
+}
+
+.back-button {
+  border: 1px solid #f0e4e8;
+  background: #fff;
+  color: var(--main-color);
+  border-radius: 999px;
+  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+  font-family: var(--main-font);
+}
+
+.back-button:hover {
+  background: #fff7fb;
+  border-color: var(--main-color);
+  transform: translateY(-1px);
+}
+
+.back-button lucide-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .warning-banner {

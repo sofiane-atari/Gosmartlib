@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LucideAngularModule, ArrowLeft } from 'lucide-angular';
 import { Book, BookCopyLocation } from '../../../model/book/book.model';
 import { BookService } from '../../../services/bookService/book.service';
 import { LoansService } from '../../../services/loan/loans.service';
@@ -38,6 +39,7 @@ import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.compon
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    LucideAngularModule,
     UserSelectionPanelComponent,
     BookSelectionPanelComponent,
     LoanSummaryPanelComponent,
@@ -49,6 +51,8 @@ import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.compon
   styleUrl: './create-loan.component.css',
 })
 export class CreateLoanComponent {
+  protected readonly ArrowLeft = ArrowLeft;
+
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
@@ -186,6 +190,10 @@ export class CreateLoanComponent {
 
   public cancelClearProgress(): void {
     this.showClearProgressModal.set(false);
+  }
+
+  protected goBack(): void {
+    this.router.navigate(['/books-management']);
   }
 
   public readonly isLoadingBooks = computed(() => {

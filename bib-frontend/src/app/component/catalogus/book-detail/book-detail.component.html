@@ -17,11 +17,20 @@
 
       <aside class="sidebar">
         <div class="cover-container">
-          <img
-            [src]="selectedBook.imageUrl"
-            [alt]="selectedBook.title"
-            class="book-cover"
-          />
+          @if (selectedBook.imageUrl && !erroredCoverImages.has(selectedBook.id!)) {
+            <img
+              [src]="selectedBook.imageUrl"
+              [alt]="selectedBook.title"
+              class="book-cover"
+              (error)="onCoverImgError(selectedBook.id)"
+            />
+          } @else {
+            <div class="book-cover book-cover--placeholder">
+              <app-book-image-placeholder
+                [size]="64"
+              ></app-book-image-placeholder>
+            </div>
+          }
         </div>
 
         <div class="quick-stats">
@@ -540,11 +549,18 @@
                     type="button"
                     (click)="openRelatedBook(book.id)"
                   >
-                    <img
-                      class="carousel-book-cover"
-                      [src]="book.imageUrl"
-                      [alt]="book.title"
-                    />
+                    @if (book.imageUrl && !erroredCarouselImages.has(book.id!)) {
+                      <img
+                        class="carousel-book-cover"
+                        [src]="book.imageUrl"
+                        [alt]="book.title"
+                        (error)="onCarouselImgError(book.id)"
+                      />
+                    } @else {
+                      <div class="carousel-book-cover carousel-book-cover--placeholder">
+                        <app-book-image-placeholder [size]="32"></app-book-image-placeholder>
+                      </div>
+                    }
                     <span class="carousel-book-title">{{ book.title }}</span>
                     <span class="carousel-book-author">{{ book.author }}</span>
                   </button>

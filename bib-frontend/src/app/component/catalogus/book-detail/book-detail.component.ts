@@ -47,6 +47,7 @@ import { AuthService } from '../../../services/authorization/auth.service';
 import { BookLessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { BookImagePlaceholderComponent } from '../../shared/book-image-placeholder/book-image-placeholder.component';
 import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
@@ -69,6 +70,7 @@ interface CopyStatusSummary {
     RouterLink,
     ButtonHoverHelpComponent,
     BookReviewsComponent,
+    BookImagePlaceholderComponent,
   ],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css',
@@ -139,6 +141,21 @@ export class BookDetailComponent implements OnInit {
   relatedBooksCarousel: Book[] = [];
 
   protected readonly roleService = inject(RoleService);
+
+  protected readonly erroredCoverImages = new Set<number>();
+  protected readonly erroredCarouselImages = new Set<number>();
+
+  protected onCoverImgError(bookId: number | undefined): void {
+    if (bookId !== undefined) {
+      this.erroredCoverImages.add(bookId);
+    }
+  }
+
+  protected onCarouselImgError(bookId: number | undefined): void {
+    if (bookId !== undefined) {
+      this.erroredCarouselImages.add(bookId);
+    }
+  }
 
   constructor(
     private route: ActivatedRoute,
