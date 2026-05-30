@@ -2,6 +2,7 @@ package edu.ap.bib_backend.controller.gamification;
 
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import edu.ap.bib_backend.dto.gamification.GamificationNotificationDTO;
 import edu.ap.bib_backend.service.gamification.GamificationNotificationService;
 import edu.ap.bib_backend.service.gamification.sse.GamificationNotificationSseService;
-import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -47,10 +47,8 @@ public class GamificationNotificationController {
      * Opent een SSE-stream voor gamification notificaties van de ingelogde gebruiker.
      * SseEmitter beheert de async context zelf.
      */
-    @GetMapping("/stream")
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamNotifications(Authentication authentication) {
-        //String currentUserId = gamificationNotificationService.getCurrentUserId(authentication);
-        //return gamificationNotificationSseService.subscribe(currentUserId);
-        return null;
+        return gamificationNotificationSseService.subscribe(authentication.getName());
     }
 }

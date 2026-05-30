@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.gamification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -162,6 +163,25 @@ class GamificationNotificationServiceTest {
 
         // Assert
         assertThat(exception).isNotNull();
+    }
+
+    @Test
+    void givenUnlockedBadge_whenCreateBadgeUnlockedNotification_thenSendsNotificationToUser() {
+        // Arrange
+        GamificationProfile profile = createProfile(PROFILE_ID);
+        Badge badge = createBadge();
+        GamificationNotification notification = createNotification(profile);
+        GamificationNotificationDTO dto = createNotificationDto();
+
+        when(notificationRepository.save(any(GamificationNotification.class)))
+                .thenReturn(notification);
+        when(gamificationMapper.toNotificationDTO(notification)).thenReturn(dto);
+
+        // Act
+        notificationService.createBadgeUnlockedNotification(profile, badge);
+
+        // Assert
+        verify(gamificationNotificationSseService).sendNotificationToUser(USER_ID, dto);
     }
 
     private GamificationProfile createProfile(Long id) {

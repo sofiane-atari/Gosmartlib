@@ -3,6 +3,8 @@ package edu.ap.bib_backend.service.user;
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.TeacherStatsDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterClassDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
@@ -173,6 +175,52 @@ class UserServiceTest {
         assertEquals(1, result.size());
         assertEquals("other-user", result.get(0).id());
         assertEquals("3A", result.get(0).primaryGroupName());
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void Given_OneRosterEnrollmentAndClass_When_GetUsers_Then_UsesOneRosterClassName() {
+        // Arrange
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn(userId);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        SecurityContextHolder.setContext(securityContext);
+
+        User currentUser = new User();
+        School school = new School();
+        school.setDomainName("test.smartschool.be");
+        currentUser.setSchool(school);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+        when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
+
+        Map<String, Object> rosterUser = Map.of(
+                "sourcedId", "oneroster-user-1",
+                "metadata", Map.of("smsc.legacyIdentifier", "student-1"),
+                "givenName", "Alice",
+                "familyName", "Student",
+                "role", "student");
+        when(oneRosterClient.fetchUsersWithBearer("test.smartschool.be", "token"))
+                .thenReturn(List.of(rosterUser));
+        when(oneRosterClient.fetchClassesWithBearer("test.smartschool.be", "token"))
+                .thenReturn(List.of(new OneRosterClassDTO("class-1", "2ITSOF1", "2ITSOF1")));
+        when(oneRosterClient.fetchEnrollmentsWithBearer("test.smartschool.be", "token"))
+                .thenReturn(List.of(new OneRosterEnrollmentDTO(
+                        "enrollment-1",
+                        "student",
+                        "oneroster-user-1",
+                        "class-1")));
+
+        // Act
+        List<AuthUserDto> result = userService.getUsers(null);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("student-1", result.get(0).id());
+        assertEquals("2ITSOF1", result.get(0).primaryGroupName());
+        verify(userRepository, never()).findBySchoolIdWithGroups(any());
 
         SecurityContextHolder.clearContext();
     }
@@ -416,6 +464,57 @@ class UserServiceTest {
         assertEquals(2, result.size());
         assertEquals(List.of("teacher-1", "admin-1"), result.stream().map(AuthUserDto::id).toList());
         assertEquals(Role.ADMIN, result.get(1).role());
+    }
+
+    @Test
+    void Given_ExternalOneRosterEnrollmentAndClass_When_SearchExternalUsers_Then_UsesOneRosterClassName() {
+        // Arrange
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_LIBRARIAN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        School school = new School();
+        school.setId(2L);
+        school.setName("Externe school");
+        school.setDomainName("extern.smartschool.be");
+        when(schoolRepository.findById(2L)).thenReturn(Optional.of(school));
+
+        School currentSchool = new School();
+        currentSchool.setId(1L);
+        User currentUser = new User();
+        currentUser.setId(userId);
+        currentUser.setSchool(currentSchool);
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+
+        Map<String, Object> teacher = Map.of(
+                "sourcedId", "oneroster-teacher-1",
+                "metadata", Map.of("smsc.legacyIdentifier", "teacher-1"),
+                "givenName", "Alice",
+                "familyName", "Teacher",
+                "role", "teacher");
+        when(oneRosterClient.fetchUsers("extern.smartschool.be"))
+                .thenReturn(List.of(teacher));
+        when(oneRosterClient.fetchClasses("extern.smartschool.be"))
+                .thenReturn(List.of(new OneRosterClassDTO("class-1", "5 Humane Wetenschappen", "5HW")));
+        when(oneRosterClient.fetchEnrollments("extern.smartschool.be"))
+                .thenReturn(List.of(new OneRosterEnrollmentDTO(
+                        "enrollment-1",
+                        "teacher",
+                        "oneroster-teacher-1",
+                        "class-1")));
+        when(userRepository.findBySchoolId(2L)).thenReturn(List.of());
+
+        // Act
+        List<AuthUserDto> result = userService.searchExternalUsers(authentication, 2L, null, null);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("teacher-1", result.get(0).id());
+        assertEquals("5 Humane Wetenschappen", result.get(0).primaryGroupName());
+        verify(userRepository, never()).findBySchoolIdWithGroups(any());
     }
 
     @Test

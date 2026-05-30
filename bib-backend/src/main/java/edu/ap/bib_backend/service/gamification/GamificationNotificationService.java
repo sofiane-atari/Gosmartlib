@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import edu.ap.bib_backend.dto.gamification.GamificationNotificationDTO;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
@@ -50,31 +52,31 @@ public class GamificationNotificationService {
 
     @Transactional
     public void createBadgeUnlockedNotification(
-        GamificationProfile profile,
-        Badge badge
+            GamificationProfile profile,
+            Badge badge
     ) {
-    GamificationNotification notification = new GamificationNotification(
-            profile,
-            GamificationNotificationType.BADGE_UNLOCKED,
-            BADGE_UNLOCKED_TITLE,
-            "Je hebt de badge '" + badge.getName() + "' ontgrendeld.",
-            badge.getAssetKey(),
-            badge.getThemeColor(),
-            badge.getRarity(),
-            badge.getRewardPoints()
-    );
+        GamificationNotification notification = new GamificationNotification(
+                profile,
+                GamificationNotificationType.BADGE_UNLOCKED,
+                BADGE_UNLOCKED_TITLE,
+                "Je hebt de badge '" + badge.getName() + "' ontgrendeld.",
+                badge.getAssetKey(),
+                badge.getThemeColor(),
+                badge.getRarity(),
+                badge.getRewardPoints()
+        );
 
-    GamificationNotification savedNotification =
-            notificationRepository.save(notification);
+        GamificationNotification savedNotification =
+                notificationRepository.save(notification);
 
-    GamificationNotificationDTO notificationDTO =
-            gamificationMapper.toNotificationDTO(savedNotification);
+        GamificationNotificationDTO notificationDTO =
+                gamificationMapper.toNotificationDTO(savedNotification);
 
-    gamificationNotificationSseService.sendNotificationToUser(
-            profile.getUser().getId(),
-            notificationDTO
-    );
-}
+        sendNotificationAfterCommit(
+                profile.getUser().getId(),
+                notificationDTO
+        );
+    }
 
     @Transactional
     public List<GamificationNotificationDTO> getUnreadNotifications(
@@ -122,7 +124,20 @@ public class GamificationNotificationService {
         return gamificationProfileService.getOrCreateProfile(user);
     }
 
-    public String getCurrentUserId(Authentication authentication) {
-        return currentUserService.extractCurrentUserId(authentication);
+    private void sendNotificationAfterCommit(
+            String userId,
+            GamificationNotificationDTO notificationDTO
+    ) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            gamificationNotificationSseService.sendNotificationToUser(userId, notificationDTO);
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                gamificationNotificationSseService.sendNotificationToUser(userId, notificationDTO);
+            }
+        });
     }
 }
