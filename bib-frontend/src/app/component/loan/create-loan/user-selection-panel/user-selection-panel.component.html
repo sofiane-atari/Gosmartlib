@@ -8,6 +8,33 @@
     </div>
 
     <div class="search-row">
+        <div class="mode-toggle-row">
+            <label class="mode-toggle" for="externalMode">
+                <input id="externalMode" type="checkbox" [checked]="isExternalMode()" (change)="onExternalModeChange($event)" />
+                <span>Extern uitlenen</span>
+            </label>
+            <span class="mode-help">Zoek leerkrachten, bibbeheerders of admins van een andere school.</span>
+        </div>
+    </div>
+
+    @if (isExternalMode()) {
+    <div class="search-row">
+        <label for="externalSchool">School</label>
+        <select id="externalSchool" [value]="selectedExternalSchoolId() ?? ''" (change)="onExternalSchoolChange($event)">
+            <option value="">Kies een school</option>
+            @for (school of schools(); track school.id) {
+            <option [value]="school.id">{{ school.name }} ({{ school.domainName }})</option>
+            }
+        </select>
+        @if (isLoadingSchools()) {
+        <p class="field-hint">Scholen worden geladen...</p>
+        } @else if (schools().length === 0) {
+        <p class="field-hint">Er zijn geen andere scholen beschikbaar.</p>
+        }
+    </div>
+    }
+
+    <div class="search-row">
         <label for="firstnameSearch">Voornaam</label>
         <div class="search-action-row">
             <input id="firstnameSearch" type="text"
@@ -58,6 +85,10 @@
                 </div>
                 <div class="user-item-meta">
                     <span class="user-item-id">ID: {{ user.id }}</span>
+                    <span class="user-item-role">{{ getRoleLabel(user.role) }}</span>
+                    @if (isExternalMode()) {
+                    <span class="list-item-subtitle">School: {{ user.school?.name ?? user.schoolName ?? 'Onbekende school' }}</span>
+                    }
                     @if (user.role === 'STUDENT') {
                     <span class="list-item-subtitle">Klas: {{ user.primaryGroupName ?? 'Onbekende klas' }}</span>
                     }

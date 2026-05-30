@@ -1,10 +1,4 @@
-import {
-  Component,
-  Inject,
-  inject,
-  signal,
-  OnInit,
-} from '@angular/core';
+import { Component, Inject, inject, signal, OnInit } from '@angular/core';
 
 import {
   Book,
@@ -760,5 +754,4 @@ export class BookDetailComponent implements OnInit {
       },
     );
   }
-
 }

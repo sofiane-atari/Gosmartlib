@@ -16,6 +16,8 @@ import { LoansService } from '../../../services/loan/loans.service';
 import { UserService } from '../../../services/user/user.service';
 import { AuthService } from '../../../services/authorization/auth.service';
 import { AuthUserDto, SchoolSummaryDto } from '../../../model/auth.model';
+import { School } from '../../../model/school.model';
+import { SchoolService } from '../../../services/school/school.service';
 import { PaginatedResponse } from '../../../model/shared/paging/PaginatedResponse.model';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -56,6 +58,7 @@ export class CreateLoanComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
+  private readonly schoolService = inject(SchoolService);
   private readonly bookService = inject(BookService);
   private readonly loansService = inject(LoansService);
   private readonly toastService = inject(ToastService);
@@ -68,6 +71,7 @@ export class CreateLoanComponent {
   private readonly authService = inject(AuthService);
 
   public readonly isLoadingUsers = signal(false);
+  public readonly isLoadingSchools = signal(false);
   public readonly isLoadingCatalogBooks = signal(false);
   public readonly isLoadingIsbnBooks = signal(false);
   public readonly isSubmitting = signal(false);
@@ -99,6 +103,13 @@ export class CreateLoanComponent {
     this.loadFromSession('bookSearchIsbn', ''),
   );
   public readonly users = signal<AuthUserDto[]>([]);
+  public readonly schools = signal<School[]>([]);
+  public readonly isExternalUserSearch = signal(
+    this.loadFromSession('isExternalUserSearch', false),
+  );
+  public readonly selectedExternalSchoolId = signal<number | null>(
+    this.loadFromSession('selectedExternalSchoolId', null),
+  );
 
   public readonly catalogBooks = signal<Book[]>([]);
   public readonly isbnBooks = signal<Book[]>([]);
@@ -123,6 +134,10 @@ export class CreateLoanComponent {
   public readonly minReturnDate = signal(this.buildMinReturnDate());
 
   public readonly selectedCampusId = computed(() => this.getSelectedCampusId());
+  public readonly availableExternalSchools = computed(() => {
+    const currentSchoolId = this.authService.currentUser()?.school?.id ?? this.authService.currentUser()?.schoolId ?? null;
+    return this.schools().filter((school) => school.id !== currentSchoolId);
+  });
 
   private loadFromSession<T>(key: string, defaultValue: T): T {
     if (typeof sessionStorage === 'undefined') return defaultValue;
@@ -151,6 +166,8 @@ export class CreateLoanComponent {
       'bookSearchQuery',
       'bookSearchIsbn',
       'schoolSummary',
+      'isExternalUserSearch',
+      'selectedExternalSchoolId',
       'isCustomDate',
       'returnDate',
     ];
@@ -170,6 +187,8 @@ export class CreateLoanComponent {
     this.bookSearchQuery.set('');
     this.bookSearchIsbn.set('');
     this.schoolSummary.set(null);
+    this.isExternalUserSearch.set(false);
+    this.selectedExternalSchoolId.set(null);
     this.isCustomDate.set(false);
     this.loanForm.reset({ returnDate: '' });
     this.clearSession();
@@ -268,8 +287,12 @@ export class CreateLoanComponent {
       this.saveToSession('bookSearchQuery', this.bookSearchQuery());
       this.saveToSession('bookSearchIsbn', this.bookSearchIsbn());
       this.saveToSession('schoolSummary', this.schoolSummary());
+      this.saveToSession('isExternalUserSearch', this.isExternalUserSearch());
+      this.saveToSession('selectedExternalSchoolId', this.selectedExternalSchoolId());
       this.saveToSession('isCustomDate', this.isCustomDate());
     });
+
+    this.loadSchools();
 
     this.loanForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -349,6 +372,29 @@ export class CreateLoanComponent {
 
   public onLastnameSearchChange(value: string): void {
     this.searchLastname.set(value);
+  }
+
+  public onExternalModeChange(isExternal: boolean): void {
+    if (this.isExternalUserSearch() === isExternal) {
+      return;
+    }
+
+    this.isExternalUserSearch.set(isExternal);
+    this.clearSelectedUser();
+    this.users.set([]);
+
+    if (!isExternal) {
+      this.selectedExternalSchoolId.set(null);
+    }
+
+    this.searchUsers();
+  }
+
+  public onExternalSchoolChange(schoolId: number | null): void {
+    this.selectedExternalSchoolId.set(schoolId);
+    this.clearSelectedUser();
+    this.users.set([]);
+    this.searchUsers();
   }
 
   public searchUsers(): void {
@@ -733,6 +779,11 @@ export class CreateLoanComponent {
   }
 
   private loadUsers(firstName: string = '', lastName: string = ''): void {
+    if (this.isExternalUserSearch()) {
+      this.loadExternalUsers(firstName, lastName);
+      return;
+    }
+
     this.isLoadingUsers.set(true);
 
     this.userService
@@ -756,6 +807,48 @@ export class CreateLoanComponent {
           });
         },
       });
+  }
+
+  private loadExternalUsers(firstName: string = '', lastName: string = ''): void {
+    const schoolId = this.selectedExternalSchoolId();
+    if (schoolId === null) {
+      this.users.set([]);
+      this.isLoadingUsers.set(false);
+      return;
+    }
+
+    this.isLoadingUsers.set(true);
+
+    this.userService.searchExternalUsers(schoolId, firstName, lastName).subscribe({
+      next: (users) => {
+        this.users.set(users);
+        this.isLoadingUsers.set(false);
+        if (users.length === 1) {
+          this.selectUser(users[0]);
+        }
+      },
+      error: () => {
+        this.users.set([]);
+        this.isLoadingUsers.set(false);
+        this.showError('Externe gebruikers konden niet worden geladen.');
+      },
+    });
+  }
+
+  private loadSchools(): void {
+    this.isLoadingSchools.set(true);
+
+    this.schoolService.getAll().subscribe({
+      next: (schools) => {
+        this.schools.set(schools);
+        this.isLoadingSchools.set(false);
+      },
+      error: () => {
+        this.schools.set([]);
+        this.isLoadingSchools.set(false);
+        this.showError('Scholen konden niet worden geladen.');
+      },
+    });
   }
 
   private loadCatalogBooks(searchTerm: string = ''): void {
