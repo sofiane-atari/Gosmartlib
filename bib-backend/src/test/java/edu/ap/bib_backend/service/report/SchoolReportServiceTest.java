@@ -64,6 +64,8 @@ class SchoolReportServiceTest {
         when(loanRepository.countActiveLoanedBookCopiesForSchool(1L, null)).thenReturn(3L);
         when(loanRepository.countClassesForSchool(1L, null)).thenReturn(4L);
         when(loanRepository.countStudentsWithClassForSchool(1L, null)).thenReturn(5L);
+        when(loanRepository.countOnTimeReturnsForSchool(1L, null)).thenReturn(8L);
+        when(loanRepository.countLateReturnsForSchool(1L, null)).thenReturn(4L);
         when(statisticsQueryService.findPopularGenresForSchool(any(), any(), any(Pageable.class)))
                 .thenReturn(List.of(new PopularGenreDTO(1L, "Fantasy", "#123456", 9L)));
         when(statisticsQueryService.findTopRatedBooksForSchool(any(), any(), any(Pageable.class)))
@@ -94,6 +96,11 @@ class SchoolReportServiceTest {
         assertThat(result.topRatedBooks()).hasSize(1);
         assertThat(result.topRatedBooks().get(0).averageRating()).isEqualTo(4.75);
 
+        assertThat(result.returnedOnTimeLoans()).isEqualTo(8L);
+        assertThat(result.returnedLateLoans()).isEqualTo(4L);
+        assertThat(result.onTimePercentage()).isEqualTo(66.67);
+        assertThat(result.latePercentage()).isEqualTo(33.33);
+
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(loanRepository).findPopularLoanedBooksForSchool(any(), any(), pageableCaptor.capture());
         assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(20);
@@ -120,11 +127,17 @@ class SchoolReportServiceTest {
         when(loanRepository.countActiveLoanedBookCopiesForSchool(1L, null)).thenReturn(0L);
         when(loanRepository.countClassesForSchool(1L, null)).thenReturn(0L);
         when(loanRepository.countStudentsWithClassForSchool(1L, null)).thenReturn(0L);
+        when(loanRepository.countOnTimeReturnsForSchool(1L, null)).thenReturn(0L);
+        when(loanRepository.countLateReturnsForSchool(1L, null)).thenReturn(0L);
 
         SchoolReportDTO result = service.generateSchoolReport(teacherAuthentication("teacher-1"), null, 10, 0);
 
         assertThat(result.loansPerStudent()).isZero();
         assertThat(result.totalStudentCount()).isZero();
+        assertThat(result.returnedOnTimeLoans()).isZero();
+        assertThat(result.returnedLateLoans()).isZero();
+        assertThat(result.onTimePercentage()).isZero();
+        assertThat(result.latePercentage()).isZero();
     }
 
     @Test
@@ -137,6 +150,8 @@ class SchoolReportServiceTest {
         when(loanRepository.findPopularLoanedBooksForSchool(any(), any(), any(Pageable.class))).thenReturn(List.of());
         when(loanRepository.findMonthlyLoanVolumeForSchool(2L, null)).thenReturn(List.of());
         when(loanRepository.findClassLoanActivityForSchool(2L, null)).thenReturn(List.of());
+        when(loanRepository.countOnTimeReturnsForSchool(2L, null)).thenReturn(0L);
+        when(loanRepository.countLateReturnsForSchool(2L, null)).thenReturn(0L);
 
         SchoolReportDTO result = service.generateSchoolReport(adminAuthentication("admin-1"), 2L, 10, 0);
 

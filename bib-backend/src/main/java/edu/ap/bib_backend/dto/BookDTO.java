@@ -39,6 +39,8 @@ public class BookDTO {
 
     private List<BookCopyCampusLocationDTO> copyLocations = new ArrayList<>();
 
+    private boolean favorite;
+
     public BookDTO() {
     }
 

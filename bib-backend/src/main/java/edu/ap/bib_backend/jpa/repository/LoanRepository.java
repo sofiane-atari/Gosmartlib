@@ -297,6 +297,50 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
                         """)
         long countActiveLoanedBookCopiesForSystem();
 
+        @Query("""
+                        select count(bc.id)
+                        from Loan l
+                        join l.copies bc
+                        where l.returnedDate is not null
+                        and l.returnedDate <= l.returnDate
+                        """)
+        long countOnTimeReturnsForSystem();
+
+        @Query("""
+                        select count(bc.id)
+                        from Loan l
+                        join l.copies bc
+                        where l.returnedDate is not null
+                        and l.returnedDate > l.returnDate
+                        """)
+        long countLateReturnsForSystem();
+
+        @Query("""
+                        select count(bc.id)
+                        from Loan l
+                        join l.copies bc
+                        where l.campus.school.id = :schoolId
+                        and (:campusId is null or l.campus.id = :campusId)
+                        and l.returnedDate is not null
+                        and l.returnedDate <= l.returnDate
+                        """)
+        long countOnTimeReturnsForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId);
+
+        @Query("""
+                        select count(bc.id)
+                        from Loan l
+                        join l.copies bc
+                        where l.campus.school.id = :schoolId
+                        and (:campusId is null or l.campus.id = :campusId)
+                        and l.returnedDate is not null
+                        and l.returnedDate > l.returnDate
+                        """)
+        long countLateReturnsForSchool(
+                @Param("schoolId") Long schoolId,
+                @Param("campusId") Long campusId);
+
         long countByReturnedDateIsNullAndReturnDateGreaterThanEqual(LocalDate today);
 
         long countByReturnedDateIsNullAndReturnDateBefore(LocalDate today);

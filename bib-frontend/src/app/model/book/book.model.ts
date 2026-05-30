@@ -22,6 +22,7 @@ export interface Book {
   campusName?: string;
   availableCampuses?: string[];
   copyLocations?: BookCopyCampusLocation[];
+  favorite?: boolean;
 }
 
 export interface BookCopyCampusLocation {

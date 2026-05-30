@@ -2,7 +2,12 @@ package edu.ap.bib_backend.service.book;
 
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
+import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
+import lombok.extern.slf4j.Slf4j;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.Availability;
@@ -26,7 +31,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class BookSearchService {
 
@@ -36,15 +44,21 @@ public class BookSearchService {
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
     private final CurrentUserService currentUserService;
+    private final ReadingListRepository readingListRepository;
+    private final CampusRepository campusRepository;
 
     public BookSearchService(
             BookRepository bookRepository,
             BookMapper bookMapper,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            ReadingListRepository readingListRepository,
+            CampusRepository campusRepository
     ) {
         this.bookRepository = bookRepository;
         this.bookMapper = bookMapper;
         this.currentUserService = currentUserService;
+        this.readingListRepository = readingListRepository;
+        this.campusRepository = campusRepository;
     }
 
     @Transactional(readOnly = true)
@@ -95,6 +109,8 @@ public class BookSearchService {
             specification = specification.and(BookSpecification.onlyDidactic());
         }
 
+        Set<Long> favoriteBookIds = resolveFavoriteBookIds(authentication);
+
         List<BookDTO> uniqueBooks = bookRepository.findAll(specification, sort).stream()
                 .collect(
                         LinkedHashMap<String, List<Book>>::new,
@@ -103,7 +119,7 @@ public class BookSearchService {
                 )
                 .values()
                 .stream()
-                .map(this::toCatalogDto)
+                .map(books -> toCatalogDto(books, favoriteBookIds))
                 .toList();
 
         int start = Math.min(validatedPage * validatedSize, uniqueBooks.size());
@@ -112,7 +128,7 @@ public class BookSearchService {
         return new PageImpl<>(uniqueBooks.subList(start, end), pageable, uniqueBooks.size());
     }
 
-    private BookDTO toCatalogDto(List<Book> books) {
+    private BookDTO toCatalogDto(List<Book> books, Set<Long> favoriteBookIds) {
         BookDTO dto = bookMapper.toDTO(books.get(0));
         dto.setTotalCopies(books.stream()
                 .map(Book::getTotalCopies)
@@ -134,11 +150,39 @@ public class BookSearchService {
                 .distinct()
                 .toList());
 
+        if (!favoriteBookIds.isEmpty()) {
+            dto.setFavorite(books.stream().anyMatch(b -> favoriteBookIds.contains(b.getId())));
+        }
+
         return dto;
     }
 
     private boolean isAvailableCopy(BookCopy copy) {
         return copy.getAvailability() == Availability.AVAILABLE && copy.getCondition() != BookCondition.LOST;
+    }
+
+    private Set<Long> resolveFavoriteBookIds(Authentication authentication) {
+        try {
+            String userId = currentUserService.extractCurrentUserId(authentication);
+            User user = currentUserService.getCurrentUser(authentication);
+            Long campusId = user.getCampus() != null
+                    ? user.getCampus().getId()
+                    : campusRepository.findFirstBySchoolIdOrderByIdAsc(user.getSchool().getId())
+                        .map(Campus::getId)
+                        .orElse(null);
+            if (campusId == null) return Set.of();
+
+            return readingListRepository
+                    .findByNameIgnoreCaseAndUser_IdAndTargetTypeAndCampusId(
+                            "Favorieten", userId, ReadingListTargetType.PERSONAL, campusId)
+                    .map(list -> list.getBooks().stream()
+                            .map(b -> b.getBookId())
+                            .collect(Collectors.toSet()))
+                    .orElse(Set.of());
+        } catch (Exception e) {
+            log.debug("Kon favorieten niet laden voor catalogus", e);
+            return Set.of();
+        }
     }
 
     private String getCatalogKey(Book book) {
