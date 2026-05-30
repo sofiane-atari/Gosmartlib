@@ -108,10 +108,13 @@ class ReviewControllerTest {
                                 false,
                                 false);
 
-                List<ReviewDTO> mockReviews = List.of(review1, review2);
+                Page<ReviewDTO> mockReviews = new PageImpl<>(
+                                List.of(review1, review2),
+                                PageRequest.of(0, 5),
+                                2);
 
-                Mockito.when(reviewService.getReviewsForBook(eq(bookId), any(Authentication.class)))
-                                .thenReturn(mockReviews);
+                Mockito.when(reviewService.getReviewsForBook(eq(bookId), eq(0), eq(5), any(Authentication.class)))
+                                 .thenReturn(mockReviews);
 
                 // Act
                 ResultActions result = mockMvc.perform(
@@ -121,11 +124,14 @@ class ReviewControllerTest {
 
                 // Assert
                 result.andExpect(status().isOk())
-                                .andExpect(jsonPath("$.length()").value(2))
-                                .andExpect(jsonPath("$[0].id").value(1))
-                                .andExpect(jsonPath("$[0].comment").value("Geweldig boek!"))
-                                .andExpect(jsonPath("$[0].rating").value(5))
-                                .andExpect(jsonPath("$[1].comment").value("Beetje saai"));
+                                .andExpect(jsonPath("$.data.length()").value(2))
+                                .andExpect(jsonPath("$.data[0].id").value(1))
+                                .andExpect(jsonPath("$.data[0].comment").value("Geweldig boek!"))
+                                .andExpect(jsonPath("$.data[0].rating").value(5))
+                                .andExpect(jsonPath("$.data[1].comment").value("Beetje saai"))
+                                .andExpect(jsonPath("$.meta.currentPage").value(0))
+                                .andExpect(jsonPath("$.meta.pageSize").value(5))
+                                .andExpect(jsonPath("$.meta.totalItems").value(2));
         }
 
         @Test
