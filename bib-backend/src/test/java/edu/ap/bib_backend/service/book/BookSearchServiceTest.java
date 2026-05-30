@@ -32,6 +32,8 @@ import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.enums.BookAvailabilityFilter;
 import edu.ap.bib_backend.jpa.enums.BookSortOption;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.BookMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
@@ -51,6 +53,12 @@ class BookSearchServiceTest {
     @Mock
     private CurrentUserService currentUserService;
 
+    @Mock
+    private ReadingListRepository readingListRepository;
+
+    @Mock
+    private CampusRepository campusRepository;
+
     private BookSearchService bookSearchService;
     private UsernamePasswordAuthenticationToken authentication;
 
@@ -59,7 +67,9 @@ class BookSearchServiceTest {
         bookSearchService = new BookSearchService(
                 bookRepository,
                 bookMapper,
-                currentUserService
+                currentUserService,
+                readingListRepository,
+                campusRepository
         );
 
         authentication = new UsernamePasswordAuthenticationToken("test-user", null);
@@ -72,9 +82,16 @@ class BookSearchServiceTest {
         school.setDomainName("school1");
         user.setSchool(school);
 
+        Campus userCampus = new Campus();
+        userCampus.setId(1L);
+        userCampus.setSchool(school);
+        user.setCampus(userCampus);
+
         lenient().when(userRepository.findById("test-user"))
                 .thenReturn(java.util.Optional.of(user));
 
+        lenient().when(currentUserService.getCurrentUser(authentication))
+                .thenReturn(user);
         lenient().when(currentUserService.canSeeDidacticBooks(authentication))
                 .thenReturn(true);
 

@@ -149,11 +149,11 @@ public class ReadingListService {
         return readingListBookRepository.save(newBook);
     }
 
-    public ReadingListBook addBookToFavorites(String userId, Long bookId) {
+    public ReadingList getOrCreateFavoritesList(String userId) {
         User user = getUserOrThrow(userId);
         Campus campus = resolveReadingListCampus(user);
 
-        ReadingList favoritesList = readingListRepository
+        return readingListRepository
                 .findByNameIgnoreCaseAndUser_IdAndTargetTypeAndCampusId(
                         FAVORITES_NAME,
                         userId,
@@ -168,7 +168,10 @@ public class ReadingListService {
                     newFavorites.setTargetValue(null);
                     return readingListRepository.save(newFavorites);
                 });
+    }
 
+    public ReadingListBook addBookToFavorites(String userId, Long bookId) {
+        ReadingList favoritesList = getOrCreateFavoritesList(userId);
         return addBookToList(userId, favoritesList.getId(), bookId);
     }
 

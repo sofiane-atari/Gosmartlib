@@ -205,8 +205,9 @@
                 </div>
                 <button
                   class="favorite-btn"
+                  [class.filled]="book.favorite"
                   (click)="toggleFavorite($event, book)"
-                  title="Voeg toe aan favorieten"
+                  [title]="book.favorite ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten'"
                 >
                   <lucide-icon [img]="Heart" [size]="20"></lucide-icon>
                 </button>

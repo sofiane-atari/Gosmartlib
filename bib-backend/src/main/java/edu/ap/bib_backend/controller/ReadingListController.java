@@ -111,6 +111,12 @@ public class ReadingListController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toReadingListBookResponse(addedBook));
     }
 
+    @GetMapping("/favorites")
+    public ResponseEntity<ReadingListResponseDTO> getFavoritesList(Principal principal) {
+        ReadingList list = readingListService.getOrCreateFavoritesList(requireUserId(principal));
+        return ResponseEntity.ok(toReadingListResponse(list));
+    }
+
     @PostMapping("/favorites/books")
     public ResponseEntity<ReadingListBookResponseDTO> addBookToFavorites(
             @RequestBody AddBookDTO dto,

@@ -23,13 +23,16 @@ import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
+import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.Tag;
+import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.repository.TagRepository;
@@ -57,6 +60,7 @@ public class BookService {
     private final BookCopyRepository bookCopyRepository;
     private final GenreRepository genreRepository;
     private final ReviewRepository reviewRepository;
+    private final ReadingListRepository readingListRepository;
     private final BookLoanRepository bookLoanRepository;
     private final ReadingLevelRepository readingLevelRepository;
     private final CampusRepository campusRepository;
@@ -78,7 +82,8 @@ public class BookService {
             BookMapper bookMapper,
             BookCandidateMapper bookCandidateMapper,
             OpenLibraryClient openLibraryClient,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            ReadingListRepository readingListRepository
     ) {
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
@@ -92,6 +97,7 @@ public class BookService {
         this.bookCandidateMapper = bookCandidateMapper;
         this.openLibraryClient = openLibraryClient;
         this.currentUserService = currentUserService;
+        this.readingListRepository = readingListRepository;
     }
 
     @Transactional
@@ -236,6 +242,26 @@ public class BookService {
 
         BookDTO dto = bookMapper.toDTO(book);
         dto.setCopyLocations(buildCopyLocations(book, school.getId(), authentication));
+
+        try {
+            User user = currentUserService.getCurrentUser(authentication);
+            Long campusId = user.getCampus() != null
+                    ? user.getCampus().getId()
+                    : campusRepository.findFirstBySchoolIdOrderByIdAsc(user.getSchool().getId())
+                        .map(Campus::getId)
+                        .orElse(null);
+            if (campusId != null) {
+                readingListRepository
+                        .findByNameIgnoreCaseAndUser_IdAndTargetTypeAndCampusId(
+                                "Favorieten", currentUserService.extractCurrentUserId(authentication),
+                                ReadingListTargetType.PERSONAL, campusId)
+                        .ifPresent(list -> dto.setFavorite(
+                                list.getBooks().stream().anyMatch(b -> b.getBookId().equals(id))));
+            }
+        } catch (Exception e) {
+            log.debug("Kon favoriet status niet laden voor boek {}", id, e);
+        }
+
         return dto;
     }
 
