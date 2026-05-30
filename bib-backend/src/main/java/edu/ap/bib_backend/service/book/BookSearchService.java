@@ -61,6 +61,22 @@ public class BookSearchService {
         this.campusRepository = campusRepository;
     }
 
+    /**
+     * Returns a paged catalog of books matching the supplied filters.
+     *
+     * @param searchTerm optional title, author, or ISBN search term
+     * @param availabilityFilter optional availability filter
+     * @param minPages optional minimum page count
+     * @param maxPages optional maximum page count
+     * @param readingLevelId optional reading level id
+     * @param genreName optional genre name
+     * @param didactic optional didactic-only filter
+     * @param page zero-based page number
+     * @param size requested page size
+     * @param sortBy sort option
+     * @param authentication current user authentication
+     * @return page of catalog book DTOs
+     */
     @Transactional(readOnly = true)
     public Page<BookDTO> getFilteredBooks(
             String searchTerm,
@@ -151,6 +167,13 @@ public class BookSearchService {
         return new PageImpl<>(uniqueBooks.subList(start, end), pageable, uniqueBooks.size());
     }
 
+    /**
+     * Combines campus-specific book rows into one catalog DTO.
+     *
+     * @param books grouped books for the same catalog item
+     * @param favoriteBookIds favorite book ids for the current user
+     * @return catalog DTO with aggregate copy information
+     */
     private BookDTO toCatalogDto(List<Book> books, Set<Long> favoriteBookIds) {
         BookDTO dto = bookMapper.toDTO(books.get(0));
         dto.setTotalCopies(books.stream()
@@ -184,6 +207,12 @@ public class BookSearchService {
         return copy.getAvailability() == Availability.AVAILABLE && copy.getCondition() != BookCondition.LOST;
     }
 
+    /**
+     * Resolves favorite book ids for the current user.
+     *
+     * @param authentication current user authentication
+     * @return favorite book ids or an empty set
+     */
     private Set<Long> resolveFavoriteBookIds(Authentication authentication) {
         try {
             String userId = currentUserService.extractCurrentUserId(authentication);
@@ -206,6 +235,12 @@ public class BookSearchService {
         }
     }
 
+    /**
+     * Builds the grouping key used to merge catalog books across campuses.
+     *
+     * @param book book to key
+     * @return catalog grouping key
+     */
     private String getCatalogKey(Book book) {
         if (book.getIsbn() != null && !book.getIsbn().isBlank()) {
             return "isbn:" + book.getIsbn().trim().toLowerCase(Locale.ROOT);
@@ -227,12 +262,24 @@ public class BookSearchService {
         return (searchTerm == null || searchTerm.isBlank()) ? null : searchTerm.trim();
     }
 
+    /**
+     * Validates that the book page-count filter range is ordered correctly.
+     *
+     * @param minPages optional minimum page count
+     * @param maxPages optional maximum page count
+     */
     private void validatePageRange(Integer minPages, Integer maxPages) {
         if (minPages != null && maxPages != null && minPages > maxPages) {
             throw new IllegalArgumentException("minPages mag niet groter zijn dan maxPages.");
         }
     }
 
+    /**
+     * Maps a catalog sort option to a Spring sort.
+     *
+     * @param sortBy requested sort option
+     * @return Spring sort
+     */
 private Sort mapSort(BookSortOption sortBy) {
         if (sortBy == null) {
             return Sort.by("title").ascending();

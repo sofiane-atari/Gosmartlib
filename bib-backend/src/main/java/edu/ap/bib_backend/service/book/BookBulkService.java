@@ -47,6 +47,13 @@ public class BookBulkService {
 
     private final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
 
+    /**
+     * Stores an uploaded file in the temporary book upload directory.
+     *
+     * @param file uploaded file
+     * @return generated temporary file id
+     * @throws IOException when the file cannot be stored
+     */
     public String storeTempFile(MultipartFile file) throws IOException {
         Files.createDirectories(tempDir);
 
@@ -65,6 +72,12 @@ public class BookBulkService {
         return tempDir.resolve(tempFileId).toFile();
     }
 
+    /**
+     * Extracts a safe lowercase extension from an uploaded filename.
+     *
+     * @param originalFilename original uploaded filename
+     * @return file extension or .tmp
+     */
     private String getSafeExtension(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {
             return ".tmp";
@@ -80,6 +93,13 @@ public class BookBulkService {
         return safeName.substring(lastDot).toLowerCase();
     }
 
+    /**
+     * Imports books from a spreadsheet and creates copies for the selected campus.
+     *
+     * @param authentication current user authentication
+     * @param file spreadsheet to import
+     * @param campusId target campus id
+     */
     @Transactional
     public void importBooks(Authentication authentication, MultipartFile file, Long campusId) {
         Campus campus = resolveCampusForCurrentUserSchool(authentication, campusId);
@@ -154,6 +174,13 @@ public class BookBulkService {
         }
     }
 
+    /**
+     * Resolves a campus within the current user's school.
+     *
+     * @param authentication current user authentication
+     * @param campusId campus id to resolve
+     * @return matching campus
+     */
     private Campus resolveCampusForCurrentUserSchool(Authentication authentication, Long campusId) {
         if (campusId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "campusId is verplicht.");
@@ -164,6 +191,12 @@ public class BookBulkService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campus niet gevonden."));
     }
 
+    /**
+     * Streams validation progress for a book import spreadsheet.
+     *
+     * @param file spreadsheet file to validate
+     * @return SSE emitter for progress events
+     */
     public SseEmitter validateBooksStream(File file) {
         SseEmitter emitter = new SseEmitter(0L);
 
@@ -218,6 +251,14 @@ public class BookBulkService {
         return emitter;
     }
 
+    /**
+     * Checks whether the import columns in a row are empty.
+     *
+     * @param row spreadsheet row
+     * @param formatter cell formatter
+     * @param evaluator formula evaluator
+     * @return true when no import column contains a value
+     */
     private boolean isRowEmpty(Row row, DataFormatter formatter, FormulaEvaluator evaluator) {
         if (row == null) {
             return true;
@@ -234,6 +275,18 @@ public class BookBulkService {
         return true;
     }
 
+    /**
+     * Validates one spreadsheet row for book import.
+     *
+     * @param row row to validate
+     * @param rowIndex zero-based row index
+     * @param formatter cell formatter
+     * @param evaluator formula evaluator
+     * @param existingIsbns ISBNs already present in the database
+     * @param seenIsbns ISBNs already seen in this file
+     * @param seenNaturalKeys natural keys already seen in this file
+     * @return validation errors and warnings for the row
+     */
     private List<FileValidationError> validateRow(
             Row row,
             int rowIndex,
@@ -414,6 +467,14 @@ public class BookBulkService {
         return rowErrors;
     }
 
+    /**
+     * Maps a spreadsheet row to a book entity for a campus.
+     *
+     * @param row row to map
+     * @param evaluator formula evaluator
+     * @param campus campus to attach to the book
+     * @return mapped book entity
+     */
     private Book mapRowToBook(Row row, FormulaEvaluator evaluator, Campus campus) {
         Book book = new Book();
         DataFormatter formatter = new DataFormatter();
@@ -463,10 +524,24 @@ public class BookBulkService {
         return book;
     }
 
+    /**
+     * Builds a normalized duplicate-detection key from title, author, and year.
+     *
+     * @param title book title
+     * @param author book author
+     * @param releaseYear release year
+     * @return natural key string
+     */
     private String buildNaturalKey(String title, String author, Integer releaseYear) {
         return normalize(title) + "|" + normalize(author) + "|" + (releaseYear == null ? "" : releaseYear);
     }
 
+    /**
+     * Normalizes a value for duplicate detection.
+     *
+     * @param value value to normalize
+     * @return trimmed lowercase value or empty string
+     */
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase();
     }

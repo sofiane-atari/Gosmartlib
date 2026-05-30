@@ -67,6 +67,13 @@ public class AuthService {
         this.schoolRepository = schoolRepository;
     }
 
+    /**
+     * Resolves the authenticated user's profile details and local account state.
+     *
+     * @param authentication current authenticated user
+     * @return authenticated user details
+     * @throws ResponseStatusException if the user's school is not active
+     */
     public AuthUserDto getUserDetails(Authentication authentication) {
         String userId = authentication.getName();
         Role role = extractRole(authentication.getAuthorities());
@@ -228,6 +235,13 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
         );
     }
 
+    /**
+     * Generates and stores a JWT after a successful Smartschool OAuth callback.
+     *
+     * @param oauthToken authenticated Smartschool OAuth token
+     * @return generated JWT
+     * @throws IllegalStateException if no role authority is present
+     */
     public String processCallbackAndGenerateJwt(OAuth2AuthenticationToken oauthToken) {
         String userId = oauthToken.getName();
         String roleStr = oauthToken.getAuthorities().stream()
@@ -297,6 +311,14 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
         tokenStorageService.revokeToken(userId);
     }
 
+    /**
+     * Extracts the application role from Spring Security authorities.
+     *
+     * @param authorities granted authorities to inspect
+     * @return extracted application role
+     * @throws IllegalStateException if no ROLE_ authority is present
+     * @throws IllegalArgumentException if the ROLE_ authority does not map to a known role
+     */
     private Role extractRole(Collection<? extends GrantedAuthority> authorities) {
         return authorities.stream()
                 .map(GrantedAuthority::getAuthority)
@@ -307,15 +329,36 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 .orElseThrow(() -> new IllegalStateException("No valid role found"));
     }
 
+    /**
+     * Reads an OAuth attribute or returns the provided fallback value.
+     *
+     * @param token OAuth token containing principal attributes
+     * @param attr attribute name
+     * @param defaultValue fallback value
+     * @return attribute value or fallback value
+     */
     private String getAttributeOrDefault(OAuth2AuthenticationToken token, String attr, String defaultValue) {
         Object val = token.getPrincipal().getAttribute(attr);
         return val == null ? defaultValue : val.toString();
     }
 
+    /**
+     * Casts a value to a string when possible.
+     *
+     * @param value value to cast
+     * @return string value, or null when the value is not a string
+     */
     private String asString(Object value) {
         return value instanceof String str ? str : null;
     }
 
+    /**
+     * Refreshes the application JWT and Smartschool access token.
+     *
+     * @param oldToken current JWT
+     * @return refreshed JWT and expiration
+     * @throws ResponseStatusException if the token is invalid, inactive, or cannot refresh Smartschool access
+     */
     public JwtTokenDTO refreshJwtToken(String oldToken) {
         if (!jwtService.isValid(oldToken)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
@@ -359,6 +402,13 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
         );
     }
 
+    /**
+     * Exchanges a Smartschool refresh token for a new access token.
+     *
+     * @param refreshToken Smartschool refresh token
+     * @return Smartschool refresh result
+     * @throws ResponseStatusException if Smartschool rejects the refresh or omits an access token
+     */
     private SmartschoolRefreshResult refreshSmartschoolAccessToken(String refreshToken) {
         RestTemplate restTemplate = new RestTemplate();
 

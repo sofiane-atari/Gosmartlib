@@ -90,6 +90,14 @@ public class LoanService {
         this.frontendUrl = frontendUrl;
     }
 
+    /**
+     * Creates loans for the selected available copies in the current user's school.
+     *
+     * @param loanDTO loan request containing the borrower, copies, and optional return date
+     * @param authentication current authenticated user
+     * @return created loans as DTOs
+     * @throws IllegalStateException if the borrower, copies, campus, availability, or return date is invalid
+     */
     @Transactional
     public List<LoanDTO> create(LoanDTO loanDTO, Authentication authentication) {
         School currentUserSchool = currentUserService.getCurrentUserSchool(authentication);
@@ -172,11 +180,27 @@ String batchId = UUID.randomUUID().toString();
         return toPagedLoanDtoResponse(loans, page, pageSize);
     }
 
+    /**
+     * Marks a loan as returned without copy condition updates.
+     *
+     * @param loanId loan identifier
+     * @param authentication current authenticated user
+     * @return returned loan as a DTO
+     */
     @Transactional
     public LoanDTO returnLoan(Long loanId, Authentication authentication) {
         return returnLoan(loanId, null, authentication);
     }
 
+    /**
+     * Marks a loan as returned and applies provided copy condition updates.
+     *
+     * @param loanId loan identifier
+     * @param request optional return details with copy condition updates
+     * @param authentication current authenticated user
+     * @return returned loan as a DTO
+     * @throws IllegalStateException if the loan is missing, outside the school, already returned, or has invalid copy updates
+     */
     @Transactional
     public LoanDTO returnLoan(Long loanId, LoanReturnDTO request, Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
@@ -205,6 +229,14 @@ String batchId = UUID.randomUUID().toString();
         return loanMapper.toDto(savedLoan);
     }
 
+    /**
+     * Finds the active and returned loan history for the current user.
+     *
+     * @param page zero-based returned-loans page index
+     * @param pageSize returned-loans page size
+     * @param authentication current authenticated user
+     * @return loan history with active loans and a paged returned-loans list
+     */
     public LoanHistoryDTO findHistoryForCurrentUser(
             int page,
             int pageSize,
@@ -272,6 +304,14 @@ String batchId = UUID.randomUUID().toString();
         applicationEventPublisher.publishEvent(new BookAvailableEvent(bookId, LocalDateTime.now()));
     }
 
+    /**
+     * Resolves and validates requested copies for a single-school, single-campus loan.
+     *
+     * @param bookCopyIds requested copy identifiers
+     * @param currentUserSchool school of the current user
+     * @return matching book copies
+     * @throws IllegalStateException if any copy is missing, unavailable, lost, or outside the allowed school/campus
+     */
     private List<BookCopy> resolveSelectedCopies(List<Long> bookCopyIds, School currentUserSchool) {
         List<BookCopy> selectedCopies = bookCopyRepository.findAllById(bookCopyIds);
 
@@ -307,6 +347,13 @@ String batchId = UUID.randomUUID().toString();
         return selectedCopies;
     }
 
+    /**
+     * Applies returned copy condition updates to the copy linked to the loan.
+     *
+     * @param loan loan being returned
+     * @param request optional return request containing condition updates
+     * @throws IllegalStateException if a condition update is incomplete or targets another copy
+     */
     private void applyReturnedCopyConditions(Loan loan, LoanReturnDTO request) {
         if (request == null || request.copyConditions() == null || request.copyConditions().isEmpty()) {
             return;
@@ -348,6 +395,14 @@ String batchId = UUID.randomUUID().toString();
                 .orElseThrow(() -> new IllegalStateException("Gebruiker niet gevonden."));
     }
 
+    /**
+     * Sorts, maps, and paginates loan entities for loan list responses.
+     *
+     * @param loans loans to include
+     * @param page zero-based page index
+     * @param pageSize page size
+     * @return paged loan DTO response
+     */
     private PageDTO<LoanDTO> toPagedLoanDtoResponse(List<Loan> loans, int page, int pageSize) {
         Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
                 .filter(loan -> loan.getUser() != null)
@@ -417,6 +472,13 @@ String batchId = UUID.randomUUID().toString();
         return new PageDTO<>(pageData, meta);
     }
 
+    /**
+     * Calculates the list sort priority for a loan status relative to today.
+     *
+     * @param loan loan to prioritize
+     * @param today current date used for overdue checks
+     * @return priority where overdue loans sort first, active second, returned last
+     */
     private int getLoanSortPriority(Loan loan, LocalDate today) {
         if (loan.getReturnedDate() == null && loan.getReturnDate().isBefore(today)) {
             return 1;
@@ -429,6 +491,12 @@ String batchId = UUID.randomUUID().toString();
         return 3;
     }
 
+    /**
+     * Counts active, overdue, and returned loans for the current user's school.
+     *
+     * @param authentication current authenticated user
+     * @return loan statistics for the school
+     */
     public LoanStatsDTO getLoanStats(Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
         Long schoolId = school.getId();
@@ -446,6 +514,14 @@ String batchId = UUID.randomUUID().toString();
         return new LoanStatsDTO(activeLoans, overdueLoans, returnedLoans);
     }
 
+    /**
+     * Finds all school loans grouped by borrower and group status.
+     *
+     * @param page zero-based page index
+     * @param pageSize page size
+     * @param authentication current authenticated user
+     * @return paged grouped loan response
+     */
     public PageDTO<LoanGroupDTO> findAllGrouped(int page, int pageSize, Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
 
@@ -510,6 +586,13 @@ String batchId = UUID.randomUUID().toString();
         return new PageDTO<>(pageData, meta);
     }
 
+    /**
+     * Resolves the requested return date or the school default return date.
+     *
+     * @param loanDTO loan request containing an optional return date
+     * @return resolved return date
+     * @throws IllegalStateException if the supplied return date is invalid or not in the future
+     */
     private LocalDate resolveReturnDate(LoanDTO loanDTO) {
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
 
@@ -543,6 +626,13 @@ String batchId = UUID.randomUUID().toString();
                 .toList();
     }
 
+    /**
+     * Sends a Smartschool confirmation message for newly created loans.
+     *
+     * @param userId borrower identifier
+     * @param requestedBookIds requested book identifiers used for recommendations
+     * @param createdLoans newly created loans
+     */
     private void sendLoanConfirmationMessage(
             String userId,
             List<Long> requestedBookIds,
@@ -598,6 +688,13 @@ String batchId = UUID.randomUUID().toString();
         }
     }
 
+    /**
+     * Builds the combined HTML confirmation message for one or more loans.
+     *
+     * @param loans loans included in the message
+     * @param recommendations related book recommendations
+     * @return rendered HTML message
+     */
     private String buildCombinedLoanMessage(List<Loan> loans, List<BookDTO> recommendations) {
         return new HtmlMessageBuilder(
                 loans.size() == 1 ? "Bevestiging nieuwe uitlening" : "Bevestiging nieuwe uitleningen",
@@ -608,6 +705,13 @@ String batchId = UUID.randomUUID().toString();
                 .build();
     }
 
+    /**
+     * Builds the grouping key from borrower and current loan group status.
+     *
+     * @param loan loan to group
+     * @param today current date used for overdue checks
+     * @return stable group key
+     */
     private String buildLoanGroupKey(Loan loan, LocalDate today) {
         String userId = loan.getUser() != null ? loan.getUser().getId() : "unknown-user";
         LoanStatus groupStatus = resolveLoanGroupStatus(loan, today);
@@ -615,6 +719,13 @@ String batchId = UUID.randomUUID().toString();
         return userId + "-" + groupStatus.name();
     }
 
+    /**
+     * Resolves the status used to group a single loan.
+     *
+     * @param loan loan to inspect
+     * @param today current date used for overdue checks
+     * @return loan group status
+     */
     private LoanStatus resolveLoanGroupStatus(Loan loan, LocalDate today) {
         if (loan.getReturnedDate() != null) {
             return LoanStatus.RETURNED;
@@ -627,6 +738,15 @@ String batchId = UUID.randomUUID().toString();
         return LoanStatus.ACTIVE;
     }
 
+    /**
+     * Maps a loan group to its DTO representation.
+     *
+     * @param groupKey generated group key
+     * @param loans loans in the group
+     * @param displayNamesByUserId display names keyed by OneRoster sourced id
+     * @param today current date used for status checks
+     * @return grouped loan DTO
+     */
     private LoanGroupDTO toLoanGroupDto(
             String groupKey,
             List<Loan> loans,
@@ -670,6 +790,13 @@ String batchId = UUID.randomUUID().toString();
                 loanDtos);
     }
 
+    /**
+     * Resolves the combined status for a group of loans.
+     *
+     * @param loans loans in the group
+     * @param today current date used for overdue checks
+     * @return overdue, active, or returned group status
+     */
     private LoanStatus resolveGroupStatus(List<Loan> loans, LocalDate today) {
         boolean hasOverdueLoan = loans.stream()
                 .anyMatch(loan -> loan.getReturnedDate() == null
@@ -690,6 +817,12 @@ String batchId = UUID.randomUUID().toString();
         return LoanStatus.RETURNED;
     }
 
+    /**
+     * Calculates the list sort priority for a grouped loan status.
+     *
+     * @param status grouped loan status
+     * @return priority where overdue groups sort first, active second, returned last
+     */
     private int getLoanGroupSortPriority(LoanStatus status) {
         return switch (status) {
             case OVERDUE -> 1;
@@ -698,6 +831,12 @@ String batchId = UUID.randomUUID().toString();
         };
     }
 
+    /**
+     * Normalizes a display name for deterministic sorting.
+     *
+     * @param displayName display name to normalize
+     * @return trimmed display name, or a high-sorting placeholder for blank names
+     */
     private String normalizeDisplayName(String displayName) {
         if (displayName == null || displayName.isBlank()) {
             return "zzzzzz";

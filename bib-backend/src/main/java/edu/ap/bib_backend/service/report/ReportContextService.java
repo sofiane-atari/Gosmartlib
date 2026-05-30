@@ -28,6 +28,12 @@ public class ReportContextService {
         this.smartschoolProfileService = smartschoolProfileService;
     }
 
+    /**
+     * Resolves Smartschool token, platform, and school code for the user.
+     *
+     * @param authentication current authenticated user
+     * @return report context for OneRoster and Smartschool calls
+     */
     public ReportContext getContext(Authentication authentication) {
         String userId = authentication.getName();
         String accessToken = tokenStorageService.getSmartschoolAccessToken(userId);
@@ -54,6 +60,13 @@ public class ReportContextService {
                 schoolCode);
     }
 
+    /**
+     * Fetches non-generic Smartschool group names for a platform.
+     *
+     * @param accessToken Smartschool access token
+     * @param platform Smartschool platform URL
+     * @return distinct group names relevant for class matching
+     */
     public List<String> getSmartschoolGroupNames(String accessToken, String platform) {
         SmartschoolGroupInfoDTO groupInfo = smartschoolProfileService.fetchGroupInfo(
                 accessToken,
@@ -76,6 +89,12 @@ public class ReportContextService {
                 .toList();
     }
 
+    /**
+     * Reads a class code from authentication details when present.
+     *
+     * @param authentication current authenticated user
+     * @return trimmed class code, or null when unavailable
+     */
     public String extractClassCodeFromAuthentication(Authentication authentication) {
         Object details = authentication.getDetails();
 
@@ -90,6 +109,12 @@ public class ReportContextService {
         return null;
     }
 
+    /**
+     * Extracts the host portion from a Smartschool platform URL.
+     *
+     * @param platform Smartschool platform URL
+     * @return platform host name
+     */
     private String extractHostFromPlatform(String platform) {
         try {
             URI uri = URI.create(platform);
