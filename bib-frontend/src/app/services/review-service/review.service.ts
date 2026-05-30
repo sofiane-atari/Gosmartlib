@@ -12,8 +12,10 @@ export class ReviewService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/reviews`;
 
-  public getReviewsForBook(bookId: number) {
-    return this.http.get<Review[]>(`${this.apiUrl}/book/${bookId}`);
+  public getReviewsForBook(bookId: number, page: number, size: number): Observable<PaginatedResponse<Review>> {
+    return this.http.get<PaginatedResponse<Review>>(
+      `${this.apiUrl}/book/${bookId}?page=${page}&size=${size}`,
+    );
   }
 
   public getAllReviews() {

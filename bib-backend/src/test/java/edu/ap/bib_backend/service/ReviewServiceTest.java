@@ -91,8 +91,8 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("givenValidBookId whenGetReviewsForBook thenReturnReviewDtoList")
-    void givenValidBookId_whenGetReviewsForBook_thenReturnReviewDtoList() {
+    @DisplayName("givenValidBookId whenGetReviewsForBook thenReturnReviewDtoPage")
+    void givenValidBookId_whenGetReviewsForBook_thenReturnReviewDtoPage() {
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
         // Arrange
         Long bookId = 1L;
@@ -108,48 +108,55 @@ class ReviewServiceTest {
         ReviewDTO reviewDto2 = createReviewDto(11L, "Minder goed", 2, 0, defaultBook, ReviewModerationStatus.KEPT,
                 false);
 
-        when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses))
-                .thenReturn(List.of(review1, review2));
+        Page<Review> reviewPage = new PageImpl<>(
+                List.of(review1, review2),
+                PageRequest.of(0, 10),
+                2);
+
+        when(reviewRepository.findVisibleReviewsByBookId(eq(bookId), eq(visibleStatuses), any(Pageable.class)))
+                .thenReturn(reviewPage);
         when(reviewMapper.toDto(review1, CURRENT_USER_ID)).thenReturn(reviewDto1);
         when(reviewMapper.toDto(review2, CURRENT_USER_ID)).thenReturn(reviewDto2);
 
         // Act
-        List<ReviewDTO> result = reviewService.getReviewsForBook(bookId, authentication);
+        Page<ReviewDTO> result = reviewService.getReviewsForBook(bookId, 0, 10, authentication);
 
         // Assert
         assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(10L, result.get(0).getId());
-        assertEquals("Super boek", result.get(0).getComment());
-        assertEquals(5, result.get(0).getRating());
-        assertEquals("Test Title", result.get(0).getBookTitle());
-        assertEquals("Test Author", result.get(0).getBookAuthor());
+        assertEquals(2, result.getContent().size());
+        assertEquals(10L, result.getContent().get(0).getId());
+        assertEquals("Super boek", result.getContent().get(0).getComment());
+        assertEquals(5, result.getContent().get(0).getRating());
+        assertEquals("Test Title", result.getContent().get(0).getBookTitle());
+        assertEquals("Test Author", result.getContent().get(0).getBookAuthor());
 
         verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findVisibleReviewsByBookId(bookId, visibleStatuses);
+        verify(reviewRepository).findVisibleReviewsByBookId(eq(bookId), eq(visibleStatuses), any(Pageable.class));
         verify(reviewMapper).toDto(review1, CURRENT_USER_ID);
         verify(reviewMapper).toDto(review2, CURRENT_USER_ID);
     }
 
     @Test
-    @DisplayName("givenBookWithoutReviews whenGetReviewsForBook thenReturnEmptyList")
-    void givenBookWithoutReviews_whenGetReviewsForBook_thenReturnEmptyList() {
+    @DisplayName("givenBookWithoutReviews whenGetReviewsForBook thenReturnEmptyPage")
+    void givenBookWithoutReviews_whenGetReviewsForBook_thenReturnEmptyPage() {
         // Arrange
         Long bookId = 2L;
         List<ReviewModerationStatus> visibleStatuses = List.of(
                 ReviewModerationStatus.ACTIVE,
                 ReviewModerationStatus.KEPT);
-        when(reviewRepository.findVisibleReviewsByBookId(bookId, visibleStatuses)).thenReturn(List.of());
+        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
+        when(reviewRepository.findVisibleReviewsByBookId(eq(bookId), eq(visibleStatuses), any(Pageable.class)))
+                .thenReturn(Page.empty());
 
         // Act
-        List<ReviewDTO> result = reviewService.getReviewsForBook(bookId, authentication);
+        Page<ReviewDTO> result = reviewService.getReviewsForBook(bookId, 0, 10, authentication);
 
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
         verify(currentUserService).extractCurrentUserId(authentication);
-        verify(reviewRepository).findVisibleReviewsByBookId(bookId, visibleStatuses);
+        verify(reviewRepository).findVisibleReviewsByBookId(eq(bookId), eq(visibleStatuses), any(Pageable.class));
         verifyNoInteractions(reviewMapper);
     }
 
