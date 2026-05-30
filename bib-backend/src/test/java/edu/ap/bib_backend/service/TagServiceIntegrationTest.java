@@ -25,9 +25,13 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
-@Import(TagService.class)
+@Import({TagService.class, CurrentUserService.class})
 @ActiveProfiles("test")
 class TagServiceIntegrationTest {
+
+    static {
+        System.setProperty("JASYPT_ENCRYPTOR_PASSWORD", "test-encryption-password");
+    }
 
     @Autowired
     private TagService tagService;
@@ -52,8 +56,6 @@ class TagServiceIntegrationTest {
         userRepository.deleteAll();
         tagRepository.deleteAll();
         schoolRepository.deleteAll();
-
-        tagService.setCurrentUserService(new CurrentUserService(userRepository));
 
         RoleEntity librarianRole = new RoleEntity();
         librarianRole.setRole(Role.LIBRARIAN);
