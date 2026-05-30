@@ -128,8 +128,10 @@ public class BookBulkService {
 
                 if (book == null) {
                     book = br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear)
+                            .stream()
                             .filter(existingBook -> existingBook.getCampus() != null
                                     && existingBook.getCampus().getId().equals(campus.getId()))
+                            .findFirst()
                             .orElse(null);
                 }
 
@@ -325,7 +327,7 @@ public class BookBulkService {
                         "De combinatie titel + auteur + jaar komt dubbel voor in het bestand. Er zal een exemplaar toegevoegd worden met de gegevens van de eerst voorkomende rij.",
                         "warning"
                 ));
-            } else if (br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear).isPresent()) {
+            } else if (!br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear).isEmpty()) {
                 rowErrors.add(new FileValidationError(
                         rowNumber,
                         "Title/Author/ReleaseYear",
