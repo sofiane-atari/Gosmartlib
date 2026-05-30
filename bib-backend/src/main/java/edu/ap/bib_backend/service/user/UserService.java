@@ -195,6 +195,37 @@ public class UserService {
         return new PageDTO<>(pageData, new PaginatedMeta(page, pageSize, totalItems, totalPages));
     }
 
+    public List<AuthUserDto> searchExternalUsers(Authentication authentication, Long schoolId, String firstName, String lastName) {
+        boolean isLibrarian = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isLibrarian && !isAdmin) {
+            throw new IllegalStateException("Alleen bibliothecarissen en admins kunnen externe gebruikers zoeken.");
+        }
+
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("schoolId", "School niet gevonden met id: " + schoolId));
+
+        School currentUserSchool = getCurrentUserSchool(currentUserService.extractCurrentUserId(authentication));
+        if (currentUserSchool.getId() != null && currentUserSchool.getId().equals(schoolId)) {
+            throw new IllegalArgumentException("Kies een andere school voor extern uitlenen.");
+        }
+
+        Map<String, Role> localRolesByUserId = userRepository.findBySchoolId(schoolId).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getRole().getRole()));
+
+        return oneRosterClient.fetchUsers(school.getDomainName()).stream()
+                .map(user -> toAuthUserDto(user, school))
+                .filter(Objects::nonNull)
+                .map(dto -> withLocalRole(dto, localRolesByUserId.get(dto.id())))
+                .filter(this::isAllowedExternalBorrower)
+                .filter(dto -> matchesFilter(dto.firstName(), firstName))
+                .filter(dto -> matchesFilter(dto.lastName(), lastName))
+                .toList();
+    }
+
     public List<AuthUserDto> getUsersBySchoolId(Authentication authentication, Long schoolId) {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -416,6 +447,25 @@ public class UserService {
         }
 
         return value.toLowerCase().contains(filter.trim().toLowerCase());
+    }
+
+    private AuthUserDto withLocalRole(AuthUserDto dto, Role actualRole) {
+        if (actualRole == null) {
+            return dto;
+        }
+
+        return new AuthUserDto(
+                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                actualRole, dto.email(), dto.username(),
+                dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
+                dto.parentGroupNames(), dto.reviewBlocked(),
+                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                dto.school());
+    }
+
+    private boolean isAllowedExternalBorrower(AuthUserDto dto) {
+        Role role = dto.role();
+        return role == Role.TEACHER || role == Role.LIBRARIAN || role == Role.ADMIN;
     }
 
     private String firstNonBlank(Map<String, Object> source, String... keys) {

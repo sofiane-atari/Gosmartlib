@@ -34,6 +34,15 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers(options));
     }
 
+    @GetMapping("/search-external")
+    public ResponseEntity<List<AuthUserDto>> searchExternalUsers(
+            Authentication authentication,
+            @RequestParam Long schoolId,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName) {
+        return ResponseEntity.ok(userService.searchExternalUsers(authentication, schoolId, firstName, lastName));
+    }
+
     @GetMapping("/teachers/stats")
     public ResponseEntity<TeacherStatsDTO> getTeacherStats(Authentication authentication) {
         return ResponseEntity.ok(userService.getTeacherStats(authentication));
