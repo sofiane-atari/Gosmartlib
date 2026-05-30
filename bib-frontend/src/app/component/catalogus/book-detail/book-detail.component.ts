@@ -2,7 +2,6 @@ import {
   Component,
   Inject,
   inject,
-  OnDestroy,
   signal,
   OnInit,
 } from '@angular/core';
@@ -26,7 +25,6 @@ import {
   Star,
   MessageCircle,
   Bookmark,
-  Flag,
   Pencil,
   ChevronDown,
   MapPin,
@@ -39,7 +37,6 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookService } from '../../../services/bookService/book.service';
 import { Availability } from '../../../model/enums/availability.enum';
-import { Review } from '../../../model/review/review.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
@@ -49,14 +46,12 @@ import { RoleService } from '../../../services/role-service/role.service';
 import { AuthService } from '../../../services/authorization/auth.service';
 import { BookLessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
-import { DraftStorageService } from '../../../services/storage/draft-storage.service';
-import { ReviewDraft } from '../../../model/review/review-draft.model';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
 import { ReadingList } from '../../../model/readingList.model';
-import { GamificationNotificationStoreService } from '../../../services/gamification/notification/gamification-notification-store.service';
+import { BookReviewsComponent } from '../../reviews/book-reviews/book-reviews.component';
 interface CopyStatusSummary {
   status: 'available' | 'borrowed' | 'lost';
   count: number;
@@ -73,11 +68,12 @@ interface CopyStatusSummary {
     FormsModule,
     RouterLink,
     ButtonHoverHelpComponent,
+    BookReviewsComponent,
   ],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css',
 })
-export class BookDetailComponent implements OnDestroy, OnInit {
+export class BookDetailComponent implements OnInit {
   readonly X = X;
   readonly Library = Library;
   readonly Minus = Minus;
@@ -90,7 +86,6 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   readonly MessageCircle = MessageCircle;
   readonly BookOpen = BookOpen;
   readonly Bookmark = Bookmark;
-  readonly Flag = Flag;
   readonly ChevronDown = ChevronDown;
   readonly MapPin = MapPin;
   readonly Bell = Bell;
@@ -109,11 +104,9 @@ export class BookDetailComponent implements OnDestroy, OnInit {
   ];
 
   //Reviews//
-  public reviews: Review[] = [];
-  public newReviewText: string = '';
-  public newReviewRating: number = 5;
   public readonly starsArray: number[] = [1, 2, 3, 4, 5];
   public averageRating: number = 0;
+  public reviewCount: number = 0;
 
   // Lists //
   readingLists: ReadingList[] = [];
@@ -134,10 +127,6 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     null,
   );
 
-  private readonly gamificationNotificationStore = inject(
-    GamificationNotificationStoreService,
-  );
-
   protected readonly isLoadingLessonTips = signal(false);
 
   protected readonly isSubscribed = signal(false);
@@ -148,9 +137,6 @@ export class BookDetailComponent implements OnDestroy, OnInit {
 
   // Related Books Carousel //
   relatedBooksCarousel: Book[] = [];
-
-  private currentBookId: number | null = null;
-  private reviewDraftIntervalId: ReturnType<typeof setInterval> | null = null;
 
   protected readonly roleService = inject(RoleService);
 
@@ -163,7 +149,6 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     private toastService: ToastService,
     private sanitizer: DomSanitizer,
     protected authService: AuthService,
-    private draftStorage: DraftStorageService,
     private campusService: CampusService,
   ) {}
 
@@ -187,12 +172,8 @@ export class BookDetailComponent implements OnDestroy, OnInit {
           }
         });
 
-        this.currentBookId = numericBookId;
-        this.restoreReviewDraft(numericBookId);
-        this.startReviewDraftAutosave();
-
         this.loadRelatedBooksCarousel(numericBookId);
-        this.loadReviews(numericBookId);
+        this.updateAverage(numericBookId);
       }
     });
 
@@ -451,19 +432,6 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     });
   }
 
-  loadReviews(bookId: number) {
-    this.reviewService.getReviewsForBook(bookId).subscribe({
-      next: (data) => {
-        this.reviews = data.filter(
-          (review) => review.moderationStatus !== 'FLAGGED',
-        );
-      },
-      error: (err) => console.error('Problem with loading the reviews', err),
-    });
-
-    this.updateAverage(bookId);
-  }
-
   loadReadingLists() {
     this.readingListService.getLists().subscribe((lists) => {
       this.readingLists = lists;
@@ -519,11 +487,6 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     }
   }
 
-  setRating(rating: number) {
-    this.newReviewRating = rating;
-    this.saveReviewDraft();
-  }
-
   getRoundedAverage(): number {
     return Math.round(this.averageRating);
   }
@@ -535,101 +498,14 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     });
   }
 
-  submitReview() {
-    const bookId = this.selectedBook?.id;
-
-    if (this.isLeerling() && this.currentUserAlreadyReviewed()) {
-      this.toastService.show(
-        'Je kunt maar één review per boek schrijven.',
-        'error',
-      );
-      return;
+  protected onReviewsChanged(): void {
+    if (this.selectedBook?.id) {
+      this.updateAverage(this.selectedBook.id);
     }
-
-    if (!this.newReviewText.trim() || !bookId) return;
-
-    const newReview: Review = {
-      comment: this.newReviewText,
-      rating: this.newReviewRating,
-    };
-
-    this.reviewService.addReviewToBook(bookId, newReview).subscribe({
-      next: (savedReview) => {
-        this.reviews.push(savedReview);
-        this.newReviewText = '';
-        this.newReviewRating = 5;
-        this.clearReviewDraft();
-
-        this.updateAverage(bookId);
-        this.toastService.show('Review succesvol geplaatst!', 'success');
-        this.gamificationNotificationStore.loadUnreadNotifications();
-      },
-      error: (err) => {
-        console.error('Problem with storing review', err);
-
-        const message =
-          err?.error?.message ??
-          err?.error?.error?.message ??
-          'Je review kon niet geplaatst worden.';
-
-        this.toastService.show(message, 'error');
-      },
-    });
   }
 
-  deleteReview(reviewId?: number) {
-    if (!reviewId) return;
-
-    this.toastService.showConfirm(
-      'Weet je zeker dat je deze review wilt verwijderen?',
-      () => {
-        this.reviewService.deleteReview(reviewId).subscribe({
-          next: () => {
-            this.reviews = this.reviews.filter((r) => r.id !== reviewId);
-            if (this.selectedBook?.id) this.updateAverage(this.selectedBook.id);
-            this.toastService.show('Review verwijderd!', 'success');
-          },
-          error: () =>
-            this.toastService.show('Problem with deleting!', 'error'),
-        });
-      },
-      () => {},
-    );
-  }
-
-  reportReview(review: Review) {
-    if (!review.id || review.reportedByCurrentUser) return;
-
-    this.toastService.showConfirm(
-      'Weet je zeker dat je deze review wilt rapporteren? Onterecht rapporteren kan gevolgen hebben.',
-      () => {
-        this.reviewService.reportReview(review.id!).subscribe({
-          next: () => {
-            review.reportedByCurrentUser = true;
-            review.reportCount = (review.reportCount || 0) + 1;
-
-            this.reviews = this.reviews.filter((r) => r.id !== review.id);
-
-            if (this.selectedBook?.id) {
-              this.updateAverage(this.selectedBook.id);
-            }
-
-            this.toastService.show(
-              'Review succesvol gerapporteerd.',
-              'success',
-            );
-          },
-          error: (err) => {
-            console.error('Problem with reporting review', err);
-            this.toastService.show(
-              'Er liep iets mis bij het rapporteren van deze review.',
-              'error',
-            );
-          },
-        });
-      },
-      () => {},
-    );
+  protected updateReviewCount(reviewCount: number): void {
+    this.reviewCount = reviewCount;
   }
 
   public loadPreview(): void {
@@ -757,20 +633,12 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     this.router.navigate(['/book', bookId]);
   }
 
-  protected currentUserAlreadyReviewed(): boolean {
-    return this.reviews.some((review) => review.currentUserReview === true);
-  }
-
   public goToEditPage(bookId?: number): void {
     if (!bookId) {
       return;
     }
 
     this.router.navigate(['/books', bookId, 'edit']);
-  }
-
-  protected isLeerling(): boolean {
-    return this.authService.currentUser()?.role === 'STUDENT';
   }
 
   public deleteBook(bookId?: number): void {
@@ -797,57 +665,6 @@ export class BookDetailComponent implements OnDestroy, OnInit {
       },
       () => {},
     );
-  }
-
-  private getReviewDraftKey(bookId: number): string {
-    return `book-review-${bookId}`;
-  }
-
-  private saveReviewDraft(): void {
-    if (!this.currentBookId) {
-      return;
-    }
-
-    const draft: ReviewDraft = {
-      text: this.newReviewText,
-      rating: this.newReviewRating,
-    };
-
-    this.draftStorage.saveDraft(
-      this.getReviewDraftKey(this.currentBookId),
-      draft,
-    );
-  }
-
-  private restoreReviewDraft(bookId: number): void {
-    const draft = this.draftStorage.getDraft<ReviewDraft>(
-      this.getReviewDraftKey(bookId),
-    );
-
-    if (!draft) {
-      return;
-    }
-
-    this.newReviewText = draft.text ?? '';
-    this.newReviewRating = draft.rating ?? 5;
-  }
-
-  private clearReviewDraft(): void {
-    if (!this.currentBookId) {
-      return;
-    }
-
-    this.draftStorage.removeDraft(this.getReviewDraftKey(this.currentBookId));
-  }
-
-  private startReviewDraftAutosave(): void {
-    if (this.reviewDraftIntervalId) {
-      return;
-    }
-
-    this.reviewDraftIntervalId = setInterval(() => {
-      this.saveReviewDraft();
-    }, 1000);
   }
 
   public goBack(): void {
@@ -927,12 +744,4 @@ export class BookDetailComponent implements OnDestroy, OnInit {
     );
   }
 
-  ngOnDestroy(): void {
-    this.saveReviewDraft();
-
-    if (this.reviewDraftIntervalId) {
-      clearInterval(this.reviewDraftIntervalId);
-      this.reviewDraftIntervalId = null;
-    }
-  }
 }

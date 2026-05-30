@@ -1,0 +1,154 @@
+<section class="reviews-section">
+  <h2 class="section-title">Reviews</h2>
+
+  @if (reviewsLoading()) {
+    <div class="empty-state">
+      <p>Reviews worden geladen...</p>
+    </div>
+  } @else if (reviews().length === 0) {
+    <div class="empty-state">
+      <p>Nog geen reviews beschikbaar. Wees de eerste!</p>
+    </div>
+  } @else {
+    <div class="reviews-list">
+      @for (review of reviews(); track review.id) {
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-author-rating">
+              <strong>Anonieme lezer</strong>
+
+              <div class="stars-display">
+                @for (star of starsArray; track $index) {
+                  <span class="star" [class.filled]="star <= review.rating">★</span>
+                }
+              </div>
+            </div>
+
+            <div class="review-actions">
+              <app-button-hover-help
+                [text]="
+                  review.reportedByCurrentUser
+                    ? 'Je hebt deze review al gerapporteerd.'
+                    : 'Rapporteer deze review als de inhoud ongepast is.'
+                "
+              >
+                <button
+                  class="delete-review-btn"
+                  [disabled]="review.reportedByCurrentUser"
+                  (click)="reportReview(review)"
+                  [style.opacity]="review.reportedByCurrentUser ? '0.5' : '1'"
+                >
+                  <lucide-angular
+                    [img]="Flag"
+                    size="18"
+                    [style.color]="review.reportedByCurrentUser ? '#f87171' : 'inherit'"
+                  ></lucide-angular>
+
+                  @if (review.reportedByCurrentUser) {
+                    <span class="reported-label">Gerapporteerd</span>
+                  }
+                </button>
+              </app-button-hover-help>
+
+              <app-button-hover-help text="Verwijder deze review.">
+                <button class="delete-review-btn" (click)="deleteReview(review.id)">
+                  <lucide-angular [img]="Trash2" size="18"></lucide-angular>
+                </button>
+              </app-button-hover-help>
+            </div>
+          </div>
+
+          <p class="review-text">{{ review.comment }}</p>
+        </div>
+      }
+    </div>
+
+    @if (pagingMeta().totalPages > 1) {
+      <app-paging [meta]="pagingMeta()" (pageChange)="onPageChange($event)" />
+    }
+  }
+
+  <div class="add-review-container">
+    <h3 class="add-review-title">Laat een review achter</h3>
+
+    @if (authService.currentUser()?.reviewBlocked) {
+      <div class="review-blocked-message">
+        Je kunt momenteel geen reviews plaatsen omdat deze functionaliteit voor jou is geblokkeerd.
+        Neem contact op met een bibliotheekbeheerder voor meer informatie.
+      </div>
+    } @else {
+      <div class="rating-input-group">
+        <span class="rating-label">Jouw beoordeling:</span>
+
+        <div class="stars-clickable">
+          @for (star of starsArray; track $index) {
+            <span
+              class="star clickable"
+              [class.filled]="star <= newReviewRating"
+              (click)="setRating(star)"
+            >
+              ★
+            </span>
+          }
+        </div>
+      </div>
+
+      <details class="review-help-box">
+        <summary>
+          <span>Hoe schrijf ik een goede review?</span>
+          <lucide-angular
+            class="review-help-icon"
+            [img]="ChevronDown"
+            size="18"
+          ></lucide-angular>
+        </summary>
+
+        <div class="review-help-content">
+          <p>
+            <span class="review-step-number">1</span>
+            <span><strong>Korte samenvatting</strong><br />Dit boek gaat over ...</span>
+          </p>
+
+          <p>
+            <span class="review-step-number">2</span>
+            <span><strong>Mijn mening</strong><br />Ik vond het boek ... omdat ...</span>
+          </p>
+
+          <p>
+            <span class="review-step-number">3</span>
+            <span><strong>Personage</strong><br />Mijn favoriete personage was ... omdat ...</span>
+          </p>
+
+          <p>
+            <span class="review-step-number">4</span>
+            <span><strong>Aanrader</strong><br />Ik zou dit boek wel/niet aanraden, want ...</span>
+          </p>
+        </div>
+      </details>
+
+      <textarea
+        [(ngModel)]="newReviewText"
+        rows="4"
+        class="review-textarea"
+        placeholder="Wat vond je van dit boek?"
+      ></textarea>
+
+      <app-button-hover-help
+        class="full-button-help"
+        [text]="
+          !newReviewText.trim()
+            ? 'Schrijf eerst een review voordat je deze kunt plaatsen.'
+            : 'Plaats je review bij dit boek.'
+        "
+      >
+        <button
+          (click)="submitReview()"
+          [disabled]="!newReviewText.trim()"
+          class="action-btn primary submit-review-btn"
+        >
+          <span>Plaats review</span>
+        </button>
+      </app-button-hover-help>
+    }
+  </div>
+</section>
