@@ -49,6 +49,11 @@ public class OneRosterUserSyncService {
         this.groupService = groupService;
     }
 
+    /**
+     * Starts an asynchronous OneRoster user sync for one school.
+     *
+     * @param school school to sync
+     */
     @Async
     @Transactional
     public void syncSchoolAsync(School school) {
@@ -60,6 +65,12 @@ public class OneRosterUserSyncService {
         }
     }
 
+    /**
+     * Fetches OneRoster users for a school and upserts them locally.
+     *
+     * @param school school to sync
+     * @return counts for fetched, saved, and skipped users
+     */
     @Transactional
     public SyncResult syncSchoolUsers(School school) {
         String schoolCode = school.getDomainName();
@@ -84,6 +95,9 @@ public class OneRosterUserSyncService {
         return new SyncResult(rosterUsers.size(), saved, skipped);
     }
 
+    /**
+     * Syncs users for all configured active schools.
+     */
     @Transactional
     public void syncAllSchools() {
         List<OneRosterCredential> credentials = credentialRepository.findAll();
@@ -142,6 +156,13 @@ public class OneRosterUserSyncService {
                 skippedCount);
     }
 
+    /**
+     * Creates or updates one local user from OneRoster data.
+     *
+     * @param school school that owns the roster user
+     * @param rosterUser raw OneRoster user payload
+     * @return true when the user was saved, false when skipped
+     */
     private boolean upsertUserFromRoster(School school, Map<String, Object> rosterUser) {
         String legacyIdentifier = readMetadataString(rosterUser, "smsc.legacyIdentifier");
         String sourcedId = firstNonBlank(rosterUser, "sourcedId");
@@ -184,6 +205,14 @@ public class OneRosterUserSyncService {
         return true;
     }
 
+    /**
+     * Creates a new local user with the resolved role and school.
+     *
+     * @param userId local user identifier
+     * @param roleName OneRoster role name
+     * @param school school assigned to the user
+     * @return unsaved user entity
+     */
     private User createUser(String userId, String roleName, School school) {
         User user = new User();
         user.setId(userId);
@@ -192,6 +221,12 @@ public class OneRosterUserSyncService {
         return user;
     }
 
+    /**
+     * Maps a OneRoster role name to a local role name.
+     *
+     * @param roleName OneRoster role name
+     * @return local role name
+     */
     private String resolveRoleName(String roleName) {
         if (!StringUtils.hasText(roleName)) {
             return "STUDENT";
@@ -204,6 +239,13 @@ public class OneRosterUserSyncService {
         };
     }
 
+    /**
+     * Finds or creates a group for a school.
+     *
+     * @param schoolId school identifier
+     * @param groupName group name
+     * @return resolved group, or null when it cannot be resolved
+     */
     private Group resolveGroup(Long schoolId, String groupName) {
         try {
             return groupService.getGroup(schoolId, groupName);
@@ -216,6 +258,12 @@ public class OneRosterUserSyncService {
         }
     }
 
+    /**
+     * Resolves a class or group name from OneRoster metadata.
+     *
+     * @param rosterUser raw OneRoster user payload
+     * @return group name, or null when no class metadata is present
+     */
     private String resolveGroupName(Map<String, Object> rosterUser) {
         String direct = readMetadataString(rosterUser, "smsc.classInfo");
         if (StringUtils.hasText(direct)) {
@@ -236,6 +284,12 @@ public class OneRosterUserSyncService {
         return null;
     }
 
+    /**
+     * Resolves the school referenced by a OneRoster credential.
+     *
+     * @param credential OneRoster credential
+     * @return persisted school, or null when unresolved
+     */
     private School resolveSchool(OneRosterCredential credential) {
         if (credential == null || credential.getSchool() == null) {
             return null;
@@ -251,6 +305,13 @@ public class OneRosterUserSyncService {
         return null;
     }
 
+    /**
+     * Returns the first non-blank string value for the given keys.
+     *
+     * @param source source map
+     * @param keys keys to inspect in order
+     * @return trimmed value, or null when none is present
+     */
     private String firstNonBlank(Map<String, Object> source, String... keys) {
         if (source == null) {
             return null;
@@ -265,6 +326,13 @@ public class OneRosterUserSyncService {
         return null;
     }
 
+    /**
+     * Reads a non-blank string value from the metadata map.
+     *
+     * @param user raw OneRoster user payload
+     * @param key metadata key
+     * @return trimmed metadata value, or null when absent
+     */
     @SuppressWarnings("unchecked")
     private String readMetadataString(Map<String, Object> user, String key) {
         if (user == null) {

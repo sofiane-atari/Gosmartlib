@@ -52,6 +52,13 @@ public class LessonTipService {
         this.bookRepository = bookRepository;
     }
 
+    /**
+     * Returns a limited lesson tip preview for a book, including the total count.
+     *
+     * @param bookId the book id
+     * @return preview lesson tips and count information
+     * @throws ResourceNotFoundException if the book does not exist
+     */
     @Transactional(readOnly = true)
     public BookLessonTipPreviewResponseDto getLessonTipPreviewByBookId(Long bookId) {
         ensureBookExists(bookId);
@@ -71,6 +78,13 @@ public class LessonTipService {
         );
     }
 
+    /**
+     * Returns all lesson tip previews linked to a book.
+     *
+     * @param bookId the book id
+     * @return lesson tip previews ordered by update date descending
+     * @throws ResourceNotFoundException if the book does not exist
+     */
     @Transactional(readOnly = true)
     public List<LessonTipPreviewResponseDto> getLessonTipPreviewsByBookId(Long bookId) {
         ensureBookExists(bookId);
@@ -81,6 +95,15 @@ public class LessonTipService {
         return lessonTipMapper.toPreviewResponseList(lessonTips);
     }
 
+    /**
+     * Returns paged lesson tips, optionally filtered by book.
+     *
+     * @param bookId optional book id filter
+     * @param page the page index
+     * @param size the page size
+     * @return paged lesson tip responses
+     * @throws ResourceNotFoundException if the book filter does not exist
+     */
     @Transactional(readOnly = true)
     public Page<LessonTipResponseDto> getAllLessonTips(
             Long bookId,
@@ -93,12 +116,26 @@ public class LessonTipService {
                 .map(this::toResponse);
     }
 
+    /**
+     * Returns a lesson tip by id.
+     *
+     * @param id the lesson tip id
+     * @return the lesson tip response
+     * @throws ResourceNotFoundException if the lesson tip does not exist
+     */
     @Transactional(readOnly = true)
     public LessonTipResponseDto getLessonTipById(Long id) {
         LessonTip lessonTip = findLessonTipOrThrow(id);
         return toResponse(lessonTip);
     }
 
+    /**
+     * Creates a lesson tip for the current user.
+     *
+     * @param request the lesson tip data
+     * @param currentUserId the creating user id
+     * @return the created lesson tip response
+     */
     public LessonTipResponseDto createLessonTip(CreateLessonTipRequestDto request, String currentUserId) {
         LessonTip lessonTip = new LessonTip();
         lessonTip.setCreatedByUserId(currentUserId); 
@@ -108,6 +145,15 @@ public class LessonTipService {
         return toResponse(savedLessonTip);
     }
 
+    /**
+     * Updates a lesson tip after checking modification permissions.
+     *
+     * @param id the lesson tip id
+     * @param request the updated lesson tip data
+     * @param authentication the current authentication
+     * @return the updated lesson tip response
+     * @throws ResourceNotFoundException if the lesson tip does not exist
+     */
     public LessonTipResponseDto updateLessonTip(
             Long id,
             CreateLessonTipRequestDto request,
@@ -121,12 +167,25 @@ public class LessonTipService {
         return toResponse(savedLessonTip);
     }
 
+    /**
+     * Deletes a lesson tip after checking modification permissions.
+     *
+     * @param id the lesson tip id
+     * @param authentication the current authentication
+     * @throws ResourceNotFoundException if the lesson tip does not exist
+     */
     public void deleteLessonTip(Long id, Authentication authentication) {
         LessonTip lessonTip = findLessonTipOrThrow(id);
         lessonTipAuthorizationService.assertCanModify(lessonTip, authentication);
         lessonTipRepository.delete(lessonTip);
     }
 
+    /**
+     * Applies request values and linked books to a lesson tip entity.
+     *
+     * @param lessonTip the lesson tip to update
+     * @param request the source request data
+     */
     private void applyRequestFields(LessonTip lessonTip, CreateLessonTipRequestDto request) {
         lessonTip.setTitle(request.title().trim());
         lessonTip.setDescription(request.description().trim());
@@ -137,11 +196,24 @@ public class LessonTipService {
         lessonTipBookLinkService.replaceBookLinks(lessonTip, request.linkedBookIds());
     }
 
+    /**
+     * Maps a lesson tip entity to its response DTO with creator role information.
+     *
+     * @param lessonTip the lesson tip to map
+     * @return the mapped response DTO
+     */
     private LessonTipResponseDto toResponse(LessonTip lessonTip) {
         Role createdByRole = lessonTipCreatorRoleService.getCreatorRole(lessonTip.getCreatedByUserId());
         return lessonTipMapper.toResponse(lessonTip, createdByRole);
     }
 
+    /**
+     * Finds a lesson tip or throws when it is missing.
+     *
+     * @param id the lesson tip id
+     * @return the found lesson tip
+     * @throws ResourceNotFoundException if the lesson tip does not exist
+     */
     private LessonTip findLessonTipOrThrow(Long id) {
         return lessonTipRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -151,6 +223,12 @@ public class LessonTipService {
     }
 
 
+    /**
+     * Trims a nullable value and converts blank values to null.
+     *
+     * @param value the value to normalize
+     * @return the trimmed value, or null when absent or blank
+     */
     private String normalizeNullableValue(String value) {
         if (value == null) {
             return null;
@@ -160,6 +238,12 @@ public class LessonTipService {
         return trimmedValue.isBlank() ? null : trimmedValue;
     }
 
+    /**
+     * Verifies that a book exists.
+     *
+     * @param bookId the book id
+     * @throws ResourceNotFoundException if the book does not exist
+     */
     private void ensureBookExists(Long bookId) {
         if (!bookRepository.existsById(bookId)) {
             throw new ResourceNotFoundException(
@@ -169,6 +253,14 @@ public class LessonTipService {
         }
     }
 
+    /**
+     * Resolves paged lesson tips with an optional book filter.
+     *
+     * @param bookId optional book id filter
+     * @param pageable the paging information
+     * @return paged lesson tip entities
+     * @throws ResourceNotFoundException if the book filter does not exist
+     */
     private Page<LessonTip> resolveLessonTips(Long bookId, Pageable pageable) {
         if (bookId == null) {
             return lessonTipRepository.findAllByOrderByUpdatedAtDesc(pageable);

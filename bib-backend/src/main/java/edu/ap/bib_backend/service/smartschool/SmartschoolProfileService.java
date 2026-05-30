@@ -48,6 +48,12 @@ public class SmartschoolProfileService {
         this.jwtService = jwtService;
     }
 
+    /**
+     * Resolves a mock provider from the access token when available.
+     *
+     * @param accessToken Smartschool access token
+     * @return mock school provider, or null when none matches
+     */
     private SchoolApiProvider resolveMockProvider(String accessToken) {
         try {
             String legacyId = jwtService.extractUsername(accessToken);
@@ -61,6 +67,12 @@ public class SmartschoolProfileService {
         return null;
     }
 
+    /**
+     * Fetches the Smartschool profile for an access token.
+     *
+     * @param accessToken Smartschool access token
+     * @return Smartschool profile data
+     */
     public SmartschoolProfileDto fetchProfile(String accessToken) {
         SchoolApiProvider mock = resolveMockProvider(accessToken);
         if (mock != null) return mock.fetchProfile(accessToken);
@@ -102,6 +114,12 @@ public class SmartschoolProfileService {
         }
     }
 
+    /**
+     * Fetches primary and parent Smartschool groups for an access token.
+     *
+     * @param accessToken Smartschool access token
+     * @return Smartschool group data
+     */
     public SmartschoolGroupDto fetchGroups(String accessToken) {
         SchoolApiProvider mock = resolveMockProvider(accessToken);
         if (mock != null) return mock.fetchGroups(accessToken);
@@ -155,6 +173,13 @@ public class SmartschoolProfileService {
         }
     }
 
+    /**
+     * Fetches Smartschool group info for a platform.
+     *
+     * @param accessToken Smartschool access token
+     * @param platform Smartschool platform URL
+     * @return Smartschool group info response
+     */
     public SmartschoolGroupInfoDTO fetchGroupInfo(String accessToken, String platform) {
         SchoolApiProvider mock = resolveMockProvider(accessToken);
         if (mock != null) {
@@ -178,6 +203,12 @@ public class SmartschoolProfileService {
         return response.getBody();
     }
 
+    /**
+     * Removes a trailing slash from a Smartschool platform URL.
+     *
+     * @param platform Smartschool platform URL
+     * @return normalized platform URL
+     */
     private String normalizePlatform(String platform) {
         if (platform == null || platform.isBlank()) {
             throw new IllegalArgumentException("Geen Smartschool platform gevonden");
@@ -192,6 +223,13 @@ public class SmartschoolProfileService {
         return trimmed;
     }
 
+    /**
+     * Reads a non-blank string value from a map.
+     *
+     * @param source source map
+     * @param key key to read
+     * @return string value, or null when absent
+     */
     private String readString(Map<String, Object> source, String key) {
         Object value = source.get(key);
         if (value instanceof String text && !text.isBlank()) {

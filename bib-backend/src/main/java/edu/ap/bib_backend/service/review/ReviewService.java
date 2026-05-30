@@ -61,6 +61,15 @@ public class ReviewService {
                 this.applicationEventPublisher = applicationEventPublisher;
         }
 
+        /**
+         * Returns visible reviews for a book within the current user's school.
+         *
+         * @param bookId the book id
+         * @param page the page index
+         * @param size the page size
+         * @param authentication the current authentication
+         * @return paged review DTOs
+         */
         public Page<ReviewDTO> getReviewsForBook(Long bookId, int page, int size, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
                 Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
@@ -78,6 +87,14 @@ public class ReviewService {
                                 .map(review -> reviewMapper.toDto(review, currentUserId));
         }
 
+        /**
+         * Returns reviews written by the current user.
+         *
+         * @param authentication the current authentication
+         * @param page the page index
+         * @param size the page size
+         * @return paged review DTOs
+         */
         public Page<ReviewDTO> getCurrentUserReviews(Authentication authentication, int page, int size) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
 
@@ -91,6 +108,14 @@ public class ReviewService {
                                 .map(review -> reviewMapper.toDto(review, currentUserId));
         }
 
+        /**
+         * Returns flagged reviews for the current user's school.
+         *
+         * @param authentication the current authentication
+         * @param page the page index
+         * @param size the page size
+         * @return paged flagged review DTOs
+         */
         public Page<ReviewDTO> getFlaggedReviews(Authentication authentication, int page, int size) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
                 Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
@@ -105,6 +130,17 @@ public class ReviewService {
                                 .map(review -> reviewMapper.toDto(review, currentUserId));
         }
 
+        /**
+         * Adds a review to a book for the current user.
+         *
+         * @param bookId the book id
+         * @param reviewDto the review data
+         * @param authentication the current authentication
+         * @return the created review DTO
+         * @throws ResourceNotFoundException if the book or user does not exist
+         * @throws ResourceAlreadyExistsException if a student already reviewed the book
+         * @throws IllegalStateException if the user is blocked from reviewing
+         */
         @Transactional
         public ReviewDTO addReviewToBook(Long bookId, ReviewDTO reviewDto, Authentication authentication) {
                 Book book = bookRepository.findById(bookId)
@@ -155,6 +191,15 @@ public class ReviewService {
                 return reviewRepository.getAverageRatingForBook(bookId);
         }
 
+        /**
+         * Deletes a review when the current user is allowed to remove it.
+         *
+         * @param reviewId the review id
+         * @param authentication the current authentication
+         * @throws ResourceNotFoundException if the review does not exist
+         * @throws IllegalStateException if the user cannot delete the review
+         * @throws AccessDeniedException if the review belongs to another school
+         */
         @Transactional
         public void deleteReview(Long reviewId, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
@@ -179,6 +224,15 @@ public class ReviewService {
                 reviewRepository.delete(review);
         }
 
+        /**
+         * Reports a review for the current user.
+         *
+         * @param reviewId the review id
+         * @param authentication the current authentication
+         * @return the updated review DTO
+         * @throws ResourceNotFoundException if the review or reporting user does not exist
+         * @throws ResourceAlreadyExistsException if the user already reported the review
+         */
         @Transactional
         public ReviewDTO reportReview(Long reviewId, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
@@ -210,6 +264,15 @@ public class ReviewService {
                 return reviewMapper.toDto(updatedReview, currentUserId);
         }
 
+        /**
+         * Marks a flagged review as kept for the current user's school.
+         *
+         * @param reviewId the review id
+         * @param authentication the current authentication
+         * @return the updated review DTO
+         * @throws ResourceNotFoundException if the review does not exist
+         * @throws AccessDeniedException if the review belongs to another school
+         */
         @Transactional
         public ReviewDTO keepReview(Long reviewId, Authentication authentication) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
@@ -229,6 +292,12 @@ public class ReviewService {
                 return reviewMapper.toDto(updatedReview, currentUserId);
         }
 
+        /**
+         * Returns flagged review dashboard statistics for the current user's school.
+         *
+         * @param authentication the current authentication
+         * @return flagged review statistics
+         */
         public ReviewDashboardStatsDTO getFlaggedReviewStats(Authentication authentication) {
                 Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
 
@@ -247,6 +316,11 @@ public class ReviewService {
                                 criticalFlaggedReviews);
         }
 
+        /**
+         * Publishes a gamification event when a saved review has a user and book.
+         *
+         * @param review the saved review
+         */
         private void publishReviewCreatedEvent(Review review) {
                 if (review.getUser() == null || review.getUser().getId() == null) {
                         return;

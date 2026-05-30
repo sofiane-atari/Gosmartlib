@@ -11,6 +11,11 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 @Service
 public class ReportAccessService {
 
+    /**
+     * Requires a non-null authenticated principal.
+     *
+     * @param authentication current authentication
+     */
     public void requireAuthenticated(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(
@@ -19,6 +24,11 @@ public class ReportAccessService {
         }
     }
 
+    /**
+     * Requires a role allowed to view class reports.
+     *
+     * @param authentication current authentication
+     */
     public void requireReportAccess(Authentication authentication) {
         authentication.getAuthorities()
                 .forEach(authority -> System.out.println("REPORT AUTHORITY = " + authority.getAuthority()));
@@ -37,6 +47,13 @@ public class ReportAccessService {
         }
     }
 
+    /**
+     * Requires access to the requested school or admin privileges.
+     *
+     * @param authentication current authentication
+     * @param userSchoolId school id linked to the current user
+     * @param requestedSchoolId requested school id, or null for unrestricted access
+     */
     public void requireSameSchoolOrAdmin(Authentication authentication, Long userSchoolId, Long requestedSchoolId) {
         if (requestedSchoolId == null || requestedSchoolId.equals(userSchoolId) || hasRole(authentication, "ROLE_ADMIN")) {
             return;
@@ -47,6 +64,11 @@ public class ReportAccessService {
                 "Je hebt geen toegang tot rapporten van deze school");
     }
 
+    /**
+     * Requires administrator privileges.
+     *
+     * @param authentication current authentication
+     */
     public void requireAdmin(Authentication authentication) {
         if (hasRole(authentication, "ROLE_ADMIN")) {
             return;

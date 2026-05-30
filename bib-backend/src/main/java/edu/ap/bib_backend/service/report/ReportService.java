@@ -39,6 +39,12 @@ public class ReportService {
         this.oneRosterClient = oneRosterClient;
     }
 
+    /**
+     * Lists OneRoster classes the authenticated user may access.
+     *
+     * @param authentication current authenticated user
+     * @return matched class options for the user's Smartschool groups
+     */
     public List<ReportClassOptionDTO> getAvailableClasses(Authentication authentication) {
         reportAccessService.requireAuthenticated(authentication);
         reportAccessService.requireReportAccess(authentication);
@@ -63,6 +69,13 @@ public class ReportService {
                 .toList();
     }
 
+    /**
+     * Builds a report for an accessible OneRoster class.
+     *
+     * @param classSourcedId OneRoster class identifier
+     * @param authentication current authenticated user
+     * @return class report with linked student statistics
+     */
     public ClassReportDTO getClassReport(
             String classSourcedId,
             Authentication authentication) {

@@ -61,6 +61,8 @@ public class UserService {
     }
 
     /**
+     * Finds OneRoster users in the current user's school.
+     *
      * @param options firstName, lastName, and id filters (case-insensitive substring match)
      * @return matching users from the OneRoster API mapped to AuthUserDto
      */
@@ -83,6 +85,13 @@ public class UserService {
                 .toList();
     }
 
+    /**
+     * Counts teachers by effective local teacher, librarian, and admin roles.
+     *
+     * @param authentication current authenticated user
+     * @return teacher role statistics
+     * @throws AccessDeniedException if the current user is not a librarian or admin
+     */
     public TeacherStatsDTO getTeacherStats(Authentication authentication) {
         String userId = currentUserService.extractCurrentUserId(authentication);
 
@@ -130,6 +139,18 @@ public class UserService {
         return new TeacherStatsDTO(totalTeachers, activeTeachers, librarians, admins);
     }
 
+    /**
+     * Finds paged teacher users for the current user's school.
+     *
+     * @param authentication current authenticated user
+     * @param excludeLibrarians whether librarian roles should be excluded
+     * @param excludeAdmins whether admin roles should be excluded
+     * @param page zero-based page index
+     * @param pageSize page size
+     * @param search optional text search over teacher identity fields
+     * @return paged teacher users
+     * @throws AccessDeniedException if the current user is not a librarian or admin
+     */
     public PageDTO<AuthUserDto> getTeachers(Authentication authentication,
             boolean excludeLibrarians, boolean excludeAdmins,
             int page, int pageSize, String search) {
@@ -194,6 +215,18 @@ public class UserService {
         return new PageDTO<>(pageData, new PaginatedMeta(page, pageSize, totalItems, totalPages));
     }
 
+    /**
+     * Searches external school users who may borrow books.
+     *
+     * @param authentication current authenticated user
+     * @param schoolId external school identifier
+     * @param firstName optional first-name filter
+     * @param lastName optional last-name filter
+     * @return matching external borrowers
+     * @throws AccessDeniedException if the current user is not a librarian or admin
+     * @throws ResourceNotFoundException if the external school does not exist
+     * @throws IllegalArgumentException if the selected school is the current user's school
+     */
     public List<AuthUserDto> searchExternalUsers(Authentication authentication, Long schoolId, String firstName, String lastName) {
         boolean isLibrarian = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"));
@@ -227,6 +260,15 @@ public class UserService {
                 .toList();
     }
 
+    /**
+     * Finds teacher, librarian, and admin users for a school.
+     *
+     * @param authentication current authenticated user
+     * @param schoolId school identifier
+     * @return users for the school with effective local roles
+     * @throws AccessDeniedException if the current user is not an admin
+     * @throws ResourceNotFoundException if the school does not exist
+     */
     public List<AuthUserDto> getUsersBySchoolId(Authentication authentication, Long schoolId) {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -320,6 +362,8 @@ public class UserService {
     }
 
     /**
+     * Maps a raw OneRoster user to an auth user DTO in the supplied school context.
+     *
      * @param rosterUser raw OneRoster user map
      * @param ctxSchool  pre-resolved school context (avoids per-user DB lookup)
      * @return mapped AuthUserDto, or null if no legacy identifier is found
@@ -366,6 +410,12 @@ public class UserService {
                 schoolSummary);
     }
 
+    /**
+     * Maps a OneRoster role string to the local role enum.
+     *
+     * @param roleStr OneRoster role value
+     * @return matching local role, or null when unknown
+     */
     private Role mapOneRosterRole(String roleStr) {
         if (roleStr == null) {
             return null;
@@ -380,6 +430,13 @@ public class UserService {
         };
     }
 
+    /**
+     * Checks whether a user DTO matches all supplied user filters.
+     *
+     * @param dto user DTO to inspect
+     * @param options filters to apply
+     * @return true when all filters match or no options are supplied
+     */
     private boolean matchesOptions(AuthUserDto dto, UserGetOptions options) {
         if (options == null) {
             return true;
@@ -396,6 +453,13 @@ public class UserService {
         return matchesFilter(dto.lastName(), options.getLastName());
     }
 
+    /**
+     * Checks whether a value contains the supplied filter text.
+     *
+     * @param value value to inspect
+     * @param filter optional filter text
+     * @return true when the filter is blank or contained in the value
+     */
     private boolean matchesFilter(String value, String filter) {
         if (!StringUtils.hasText(filter)) {
             return true;
@@ -408,6 +472,12 @@ public class UserService {
         return value.toLowerCase().contains(filter.trim().toLowerCase());
     }
 
+    /**
+     * Resolves a displayable group name from OneRoster metadata.
+     *
+     * @param rosterUser raw OneRoster user map
+     * @return resolved group name, or null when unavailable
+     */
     private String resolveGroupName(Map<String, Object> rosterUser) {
         String direct = readMetadataString(rosterUser, "smsc.classInfo");
         if (StringUtils.hasText(direct)) {
@@ -428,12 +498,25 @@ public class UserService {
         return null;
     }
 
+    /**
+     * Loads the first local group name for each user in a school.
+     *
+     * @param schoolId school identifier
+     * @return group names keyed by user id
+     */
     private Map<String, String> getLocalGroupNamesByUserId(Long schoolId) {
         return userRepository.findBySchoolIdWithGroups(schoolId).stream()
                 .filter(user -> user.getGroups() != null && !user.getGroups().isEmpty())
                 .collect(Collectors.toMap(User::getId, user -> user.getGroups().iterator().next().getName()));
     }
 
+    /**
+     * Adds a local group name when the DTO has no primary group name.
+     *
+     * @param dto user DTO to update
+     * @param localGroupName local group name
+     * @return original or updated DTO
+     */
     private AuthUserDto withLocalGroupName(AuthUserDto dto, String localGroupName) {
         if (StringUtils.hasText(dto.primaryGroupName()) || !StringUtils.hasText(localGroupName)) {
             return dto;
@@ -448,6 +531,13 @@ public class UserService {
                 dto.school());
     }
 
+    /**
+     * Replaces the DTO role with an effective local role when present.
+     *
+     * @param dto user DTO to update
+     * @param actualRole effective local role
+     * @return original or updated DTO
+     */
     private AuthUserDto withLocalRole(AuthUserDto dto, Role actualRole) {
         if (actualRole == null) {
             return dto;
@@ -462,11 +552,24 @@ public class UserService {
                 dto.school());
     }
 
+    /**
+     * Checks whether an external user role may borrow books.
+     *
+     * @param dto user DTO to inspect
+     * @return true for teachers, librarians, and admins
+     */
     private boolean isAllowedExternalBorrower(AuthUserDto dto) {
         Role role = dto.role();
         return role == Role.TEACHER || role == Role.LIBRARIAN || role == Role.ADMIN;
     }
 
+    /**
+     * Returns the first non-blank string value for the supplied keys.
+     *
+     * @param source source map
+     * @param keys keys to inspect in order
+     * @return first trimmed non-blank value, or null
+     */
     private String firstNonBlank(Map<String, Object> source, String... keys) {
         if (source == null) {
             return null;
@@ -481,6 +584,13 @@ public class UserService {
         return null;
     }
 
+    /**
+     * Reads a non-blank string value from a user's metadata map.
+     *
+     * @param user raw OneRoster user map
+     * @param key metadata key
+     * @return trimmed metadata value, or null
+     */
     @SuppressWarnings("unchecked")
     private String readMetadataString(Map<String, Object> user, String key) {
         if (user == null) {

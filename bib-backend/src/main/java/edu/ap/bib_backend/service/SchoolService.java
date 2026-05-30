@@ -75,6 +75,13 @@ public class SchoolService {
                 .toList();
     }
 
+    /**
+     * Creates a school with campuses and OneRoster credentials.
+     *
+     * @param dto the school data
+     * @return the created school DTO
+     * @throws IllegalArgumentException if required data is missing or the domain already exists
+     */
     @Transactional
     public SchoolDTO create(SchoolDTO dto) {
         OneRosterCredentialDTO credentialDto = dto.onerosterCredential();
@@ -115,6 +122,14 @@ public class SchoolService {
         return toDto(savedSchool);
     }
 
+    /**
+     * Updates school details and optional OneRoster credentials.
+     *
+     * @param id the school id
+     * @param dto the updated school data
+     * @return the updated school DTO
+     * @throws IllegalArgumentException if the school is missing or the domain already exists
+     */
     @Transactional
     public SchoolDTO update(Long id, SchoolDTO dto) {
         School school = schoolRepository.findById(id)
@@ -181,6 +196,12 @@ public class SchoolService {
         return toDto(schoolRepository.save(school));
     }
 
+    /**
+     * Permanently deletes a school and its dependent data.
+     *
+     * @param schoolId the school id
+     * @throws IllegalArgumentException if the school does not exist
+     */
     @Transactional
     public void purge(Long schoolId) {
         if (!schoolRepository.existsById(schoolId)) {
@@ -303,6 +324,12 @@ public class SchoolService {
         return bookCopyRepository.count();
     }
 
+    /**
+     * Maps a school entity to its DTO.
+     *
+     * @param school the school entity
+     * @return the mapped school DTO
+     */
     private SchoolDTO toDto(School school) {
         boolean hasLibrarian = !userRepository.findBySchoolIdAndRoleRole(school.getId(), Role.LIBRARIAN).isEmpty();
 
@@ -331,6 +358,14 @@ public class SchoolService {
                 daysUntilDeletion);
     }
 
+    /**
+     * Creates campus entities for a school.
+     *
+     * @param campusDtos the campus data
+     * @param school the owning school
+     * @return created campus entities
+     * @throws IllegalArgumentException if no campus is provided or campus names are duplicated
+     */
     private List<Campus> createCampuses(List<CampusDTO> campusDtos, School school) {
         if (campusDtos == null || campusDtos.isEmpty()) {
             throw new IllegalArgumentException("Minstens één campus is verplicht bij het aanmaken van een school.");
@@ -372,6 +407,13 @@ public class SchoolService {
         );
     }
 
+    /**
+     * Normalizes a required campus name.
+     *
+     * @param value the campus name
+     * @return the trimmed campus name
+     * @throws IllegalArgumentException if the value is blank or null
+     */
     private String normalizeCampusName(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Campusnaam is verplicht wanneer een school meerdere campussen heeft.");
@@ -380,6 +422,13 @@ public class SchoolService {
         return value.trim();
     }
 
+    /**
+     * Normalizes a required address.
+     *
+     * @param value the address
+     * @return the trimmed address
+     * @throws IllegalArgumentException if the value is blank or null
+     */
     private String normalizeAddress(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Adres is verplicht.");
@@ -392,10 +441,23 @@ public class SchoolService {
         return value == null ? null : value.trim();
     }
 
+    /**
+     * Normalizes a domain name for lookup and storage.
+     *
+     * @param domainName the domain name
+     * @return the trimmed lowercase domain name, or null when absent
+     */
     private String normalizeDomainName(String domainName) {
         return domainName == null ? null : domainName.trim().toLowerCase();
     }
 
+    /**
+     * Returns catalog sidebar settings for a school.
+     *
+     * @param schoolId the school id
+     * @return the catalog sidebar settings
+     * @throws ResponseStatusException if the school does not exist
+     */
     public CatalogSidebarSettingsDTO getCatalogSidebarSettings(Long schoolId) {
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "School niet gevonden"));
@@ -405,6 +467,14 @@ public class SchoolService {
                 school.isCatalogNewestEnabled());
     }
 
+    /**
+     * Updates catalog sidebar settings for a school.
+     *
+     * @param schoolId the school id
+     * @param dto the updated settings
+     * @return the updated catalog sidebar settings
+     * @throws ResponseStatusException if the school does not exist
+     */
     public CatalogSidebarSettingsDTO updateCatalogSidebarSettings(Long schoolId, CatalogSidebarSettingsDTO dto) {
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "School niet gevonden"));

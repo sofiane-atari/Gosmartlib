@@ -40,6 +40,13 @@ public class AuthInitiateController {
         this.authRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
     }
 
+    /**
+     * Starts the default Smartschool OAuth2 login flow.
+     *
+     * @param request current HTTP request
+     * @param response current HTTP response
+     * @throws IOException when redirect or error writing fails
+     */
     @GetMapping("/initiate-login")
     public void initiateLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (mockModeEnabled && devModeEnabled) {
@@ -80,6 +87,14 @@ public class AuthInitiateController {
         response.sendRedirect(redirectUrl);
     }
 
+    /**
+     * Starts a Smartschool OAuth2 login flow for a selected school.
+     *
+     * @param school selected school identifier
+     * @param request current HTTP request
+     * @param response current HTTP response
+     * @throws IOException when redirect writing fails
+     */
     @GetMapping("/initiate")
     public void initiateLogin(@RequestParam String school, HttpServletRequest request, HttpServletResponse response)
             throws IOException {

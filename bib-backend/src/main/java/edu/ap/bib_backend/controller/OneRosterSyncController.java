@@ -38,6 +38,11 @@ public class OneRosterSyncController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Returns the configured OneRoster sync schedule.
+     *
+     * @return sync configuration response
+     */
     @GetMapping("/config")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SyncConfigDto> getSyncConfig() {
@@ -45,6 +50,12 @@ public class OneRosterSyncController {
         return ResponseEntity.ok(new SyncConfigDto(syncTime, syncZone, syncIntervalDays, syncCron));
     }
 
+    /**
+     * Extracts HH:mm time from a cron expression.
+     *
+     * @param cron cron expression
+     * @return formatted time, or null when unavailable
+     */
     private static String extractTime(String cron) {
         String[] parts = cron.split("\\s+");
         if (parts.length >= 3) {

@@ -42,6 +42,18 @@ public class LoanExtensionService {
         this.loanMapper = loanMapper;
     }
 
+    /**
+     * Extends a loan after validating ownership, state, and the requested return date.
+     *
+     * @param loanId loan identifier
+     * @param request extension request
+     * @param authentication current authenticated user
+     * @return updated loan as a DTO
+     * @throws ResourceNotFoundException if the loan does not exist
+     * @throws AccessDeniedException if the loan belongs to another school
+     * @throws IllegalStateException if the loan cannot be extended
+     * @throws IllegalArgumentException if the new return date is invalid
+     */
     @Transactional
     public LoanDTO extendLoan(
             Long loanId,
@@ -79,6 +91,13 @@ public class LoanExtensionService {
         return loanMapper.toDto(savedLoan);
     }
 
+    /**
+     * Calculates the new return date for the requested extension type.
+     *
+     * @param currentReturnDate current return date
+     * @param request extension request
+     * @return calculated return date
+     */
     private LocalDate calculateNewReturnDate(
             LocalDate currentReturnDate,
             LoanExtensionRequestDTO request
@@ -92,6 +111,13 @@ public class LoanExtensionService {
         };
     }
 
+    /**
+     * Parses a custom return date from the request.
+     *
+     * @param customReturnDate custom date string in ISO local-date format
+     * @return parsed return date
+     * @throws IllegalArgumentException if the date is blank or has an invalid format
+     */
     private LocalDate parseCustomReturnDate(String customReturnDate) {
         if (customReturnDate == null || customReturnDate.isBlank()) {
             throw new IllegalArgumentException("Nieuwe retourdatum is verplicht bij een aangepaste datum.");
@@ -104,6 +130,13 @@ public class LoanExtensionService {
         }
     }
 
+    /**
+     * Verifies that the loan belongs to the current user's school.
+     *
+     * @param loan loan to verify
+     * @param authentication current authenticated user
+     * @throws AccessDeniedException if the loan is outside the current user's school
+     */
     private void verifyLoanBelongsToSchool(Loan loan, Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
 
@@ -113,6 +146,13 @@ public class LoanExtensionService {
         }
     }
 
+    /**
+     * Validates that a new return date is in the future and after the current return date.
+     *
+     * @param oldReturnDate current return date
+     * @param newReturnDate proposed return date
+     * @throws IllegalArgumentException if the proposed date is not allowed
+     */
     private void validateNewReturnDate(LocalDate oldReturnDate, LocalDate newReturnDate) {
         LocalDate today = LocalDate.now(APPLICATION_ZONE);
 
@@ -125,6 +165,12 @@ public class LoanExtensionService {
         }
     }
 
+    /**
+     * Validates that a loan is eligible for extension.
+     *
+     * @param loan loan to validate
+     * @throws IllegalStateException if the loan is returned, has no return date, or reached the extension limit
+     */
     private void validateLoanCanBeExtended(Loan loan) {
         if (loan.getReturnedDate() != null) {
             throw new IllegalStateException("Een teruggebrachte lening kan niet verlengd worden.");

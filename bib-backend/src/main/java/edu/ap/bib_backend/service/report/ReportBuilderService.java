@@ -36,6 +36,13 @@ public class ReportBuilderService {
                 this.tokenStorageService = tokenStorageService;
         }
 
+        /**
+         * Builds aggregate and per-student report data for a class.
+         *
+         * @param oneRosterClass OneRoster class being reported
+         * @param students students in the class
+         * @return class report DTO
+         */
         public ClassReportDTO buildReport(
                         OneRosterClassDTO oneRosterClass,
                         List<OneRosterUserDTO> students) {
@@ -101,6 +108,13 @@ public class ReportBuilderService {
                                 rows);
         }
 
+        /**
+         * Maps a OneRoster student to a report row with local statistics.
+         *
+         * @param student OneRoster student
+         * @param classSourcedId OneRoster class identifier
+         * @return report row for the student
+         */
         private ReportRowDTO toReportRow(
                         OneRosterUserDTO student,
                         String classSourcedId) {
@@ -166,6 +180,12 @@ public class ReportBuilderService {
                                 reviewCount);
         }
 
+        /**
+         * Rounds a decimal value to two fractional digits.
+         *
+         * @param value value to round
+         * @return rounded value
+         */
         private double round(double value) {
                 return Math.round(value * 100.0) / 100.0;
         }
