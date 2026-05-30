@@ -30,5 +30,7 @@ public record SchoolDTO(
 
                 @JsonProperty("markedForDeletionAt") LocalDateTime markedForDeletionAt,
 
-                @JsonProperty("daysUntilDeletion") Long daysUntilDeletion) {
+                @JsonProperty("daysUntilDeletion") Long daysUntilDeletion,
+
+                @JsonProperty("catalogVisible") Boolean catalogVisible) {
 }

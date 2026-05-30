@@ -57,6 +57,10 @@ export class SchoolService {
     return this.http.get<number>(`${this.url}/books/count`);
   }
 
+  public setCatalogVisibility(id: number, visible: boolean): Observable<void> {
+    return this.http.put<void>(`${this.url}/${id}/catalog-visibility`, { visible });
+  }
+
   public checkDomain(domainName: string): Observable<void> {
     const params = new HttpParams().set('domainName', domainName);
     return this.http.get<void>(`${this.url}/check-domain`, { params });

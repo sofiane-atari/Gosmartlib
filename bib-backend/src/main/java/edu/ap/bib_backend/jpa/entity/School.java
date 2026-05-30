@@ -76,10 +76,13 @@ public class School {
     @Column(name = "marked_for_deletion_at")
     private LocalDateTime markedForDeletionAt;
 
+    @Column(name = "catalog_visible", nullable = false)
+    private Boolean catalogVisible = true;
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Campus> campuses = new ArrayList<>();
 
     public SchoolSummaryDto getSchoolSummaryDto() {
-        return new SchoolSummaryDto(id, name, getDomainName(), defaultLoanDurationDays, status);
+        return new SchoolSummaryDto(id, name, getDomainName(), defaultLoanDurationDays, status, catalogVisible);
     }
 }

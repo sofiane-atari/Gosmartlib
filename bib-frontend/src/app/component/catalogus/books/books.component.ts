@@ -260,14 +260,14 @@ export class BooksComponent implements OnInit {
     this.isSchoolDropdownOpen.update((open) => !open);
   }
 
-  protected selectSchoolFromDropdown(schoolId: number): void {
+  protected selectSchoolFromDropdown(schoolId: number, schoolName: string): void {
     this.isSchoolDropdownOpen.set(false);
 
     if (schoolId === this.selectedSchoolId()) {
       return;
     }
 
-    this.onSchoolChange(schoolId);
+    this.onSchoolChange(schoolId, schoolName);
   }
 
   protected getSelectedSchoolTitle(): string {
@@ -291,14 +291,10 @@ export class BooksComponent implements OnInit {
     }
   }
 
-  protected onSchoolChange(schoolId: number | null): void {
-    const school = schoolId
-      ? this.accessibleSchools().find((s) => s.id === schoolId)
-      : null;
-
+  protected onSchoolChange(schoolId: number | null, schoolName?: string): void {
     this.selectedSchoolService.selectSchool(
       schoolId,
-      school?.name ?? '',
+      schoolName ?? '',
     );
 
     this.currentPage.set(0);

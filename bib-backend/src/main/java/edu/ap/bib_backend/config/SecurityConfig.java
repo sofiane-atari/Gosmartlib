@@ -138,6 +138,9 @@ public class SecurityConfig {
                                         auth.requestMatchers(HttpMethod.GET, "/schools/accessible")
                                         .hasAnyRole(Role.TEACHER.name(), Role.LIBRARIAN.name(), Role.ADMIN.name());
 
+                                        auth.requestMatchers(HttpMethod.PUT, "/schools/*/catalog-visibility")
+                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+
                                         auth.requestMatchers("/schools/**")
                                         .hasRole(Role.ADMIN.name());
 

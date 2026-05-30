@@ -9,6 +9,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,8 +36,8 @@ public class SchoolController {
     }
 
     @GetMapping("/accessible")
-    public ResponseEntity<List<SchoolSummaryDto>> getAccessibleSchools() {
-        return ResponseEntity.ok(schoolService.getAccessibleSchools());
+    public ResponseEntity<List<SchoolSummaryDto>> getAccessibleSchools(Authentication authentication) {
+        return ResponseEntity.ok(schoolService.getAccessibleSchools(authentication));
     }
 
     @GetMapping
@@ -114,6 +115,18 @@ public class SchoolController {
     public ResponseEntity<Void> checkDomain(@RequestParam String domainName) {
         schoolService.checkDomain(domainName);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/catalog-visibility")
+    public ResponseEntity<Void> setCatalogVisibility(
+            @PathVariable Long id,
+            @RequestBody CatalogVisibilityRequest request,
+            Authentication authentication) {
+        schoolService.setCatalogVisibility(id, request.visible(), authentication);
+        return ResponseEntity.ok().build();
+    }
+
+    public record CatalogVisibilityRequest(boolean visible) {
     }
 
     public record DevModeResponse(boolean enabled) {

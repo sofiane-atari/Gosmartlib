@@ -15,10 +15,13 @@ import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,6 +42,7 @@ public class SchoolService {
     private final UserRepository userRepository;
     private final OneRosterClient oneRosterClient;
     private final OneRosterUserSyncService oneRosterUserSyncService;
+    private final CurrentUserService currentUserService;
     private final long gracePeriodDays;
 
     @PersistenceContext
@@ -51,6 +55,7 @@ public class SchoolService {
             UserRepository userRepository,
             OneRosterClient oneRosterClient,
             OneRosterUserSyncService oneRosterUserSyncService,
+            CurrentUserService currentUserService,
             @Value("${school.deletion.grace-period-days:30}") long gracePeriodDays
     ) {
         this.schoolRepository = schoolRepository;
@@ -59,6 +64,7 @@ public class SchoolService {
         this.userRepository = userRepository;
         this.oneRosterClient = oneRosterClient;
         this.oneRosterUserSyncService = oneRosterUserSyncService;
+        this.currentUserService = currentUserService;
         this.gracePeriodDays = gracePeriodDays;
     }
 
@@ -270,6 +276,21 @@ public class SchoolService {
                 .executeUpdate();
     }
 
+    @Transactional
+    public void setCatalogVisibility(Long schoolId, boolean visible, Authentication authentication) {
+        School userSchool = currentUserService.getCurrentUserSchool(authentication);
+
+        if (!userSchool.getId().equals(schoolId)) {
+            throw new AccessDeniedException("Je kunt alleen de zichtbaarheid van je eigen school aanpassen.");
+        }
+
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new IllegalArgumentException("School niet gevonden."));
+
+        school.setCatalogVisible(visible);
+        schoolRepository.save(school);
+    }
+
     public void checkDomain(String domainName) {
         String normalized = normalizeDomainName(domainName);
 
@@ -281,15 +302,20 @@ public class SchoolService {
         }
     }
 
-    public List<SchoolSummaryDto> getAccessibleSchools() {
+    public List<SchoolSummaryDto> getAccessibleSchools(Authentication authentication) {
+        School userSchool = currentUserService.getCurrentUserSchool(authentication);
+        Long userSchoolId = userSchool.getId();
+
         return schoolRepository.findByStatus(SchoolStatus.ACTIVE)
                 .stream()
+                .filter(school -> school.getCatalogVisible() || school.getId().equals(userSchoolId))
                 .map(school -> new SchoolSummaryDto(
                         school.getId(),
                         school.getName(),
                         school.getDomainName(),
                         school.getDefaultLoanDurationDays(),
-                        school.getStatus()))
+                        school.getStatus(),
+                        school.getCatalogVisible()))
                 .toList();
     }
 
@@ -335,7 +361,8 @@ public class SchoolService {
                 credentialDto,
                 school.getStatus(),
                 school.getMarkedForDeletionAt(),
-                daysUntilDeletion);
+                daysUntilDeletion,
+                school.getCatalogVisible());
     }
 
     private List<Campus> createCampuses(List<CampusDTO> campusDtos, School school) {

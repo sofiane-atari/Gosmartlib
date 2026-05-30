@@ -38,7 +38,7 @@
                   type="button"
                   class="school-dropdown__option"
                   [class.school-dropdown__option--selected]="school.id === selectedSchoolId()"
-                  (click)="selectSchoolFromDropdown(school.id)"
+                  (click)="selectSchoolFromDropdown(school.id, school.name)"
                 >
                   <span class="school-dropdown__option-main">{{ school.name }}</span>
                 </button>

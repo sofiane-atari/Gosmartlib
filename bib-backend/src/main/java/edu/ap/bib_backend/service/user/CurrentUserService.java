@@ -97,8 +97,14 @@ public class CurrentUserService {
             throw new AccessDeniedException("Je hebt geen toestemming om gegevens van andere scholen te bekijken.");
         }
 
-        return schoolRepository.findById(schoolId)
+        School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResourceNotFoundException("schoolId", "School niet gevonden."));
+
+        if (!school.getCatalogVisible()) {
+            throw new AccessDeniedException("De catalogus van deze school is niet zichtbaar.");
+        }
+
+        return school;
     }
 
     public boolean currentUserHasAnyAuthority(String... allowedAuthorities) {
