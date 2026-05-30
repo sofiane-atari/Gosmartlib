@@ -11,6 +11,8 @@ import edu.ap.bib_backend.service.LoanExtensionService;
 import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -37,7 +39,7 @@ public class LoanController {
 
     @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     @PostMapping
-    public ResponseEntity<LoanDTO> createLoan(
+    public ResponseEntity<List<LoanDTO>> createLoan(
             @Valid @RequestBody LoanDTO loanDTO,
             Authentication authentication) {
         return ResponseEntity.ok(loanService.create(loanDTO, authentication));

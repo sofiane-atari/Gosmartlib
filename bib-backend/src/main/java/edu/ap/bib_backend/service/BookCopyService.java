@@ -60,13 +60,7 @@ public class BookCopyService {
 
         Book book = copy.getBook();
 
-        // Remove join rows first to satisfy FK constraint (loan_copies -> book_copies).
-        // Then delete now-orphaned loan rows (loans without any remaining copies).
-        List<Long> loanIds = bookLoanRepository.findLoanIdsByCopyId(copyId);
-        bookLoanRepository.deleteLoanCopiesByCopyId(copyId);
-        if (!loanIds.isEmpty()) {
-            bookLoanRepository.deleteOrphanLoansByIds(loanIds);
-        }
+        bookLoanRepository.deleteByCopyId(copyId);
 
         bookCopyRepository.delete(copy);
 
@@ -88,14 +82,8 @@ public class BookCopyService {
             throw new IllegalArgumentException("Geen exemplaren gevonden in deze school.");
         }
 
-        // Delete join rows first, otherwise MySQL blocks deleting copies via FK.
-        // Then delete loans that became orphaned.
         List<Long> copyIds = copies.stream().map(BookCopy::getId).toList();
-        List<Long> loanIds = bookLoanRepository.findLoanIdsByCopyIds(copyIds);
-        bookLoanRepository.deleteLoanCopiesByCopyIds(copyIds);
-        if (!loanIds.isEmpty()) {
-            bookLoanRepository.deleteOrphanLoansByIds(loanIds);
-        }
+        bookLoanRepository.deleteByCopyIdIn(copyIds);
 
         bookCopyRepository.deleteAll(copies);
         bookCopyRepository.flush();
@@ -114,7 +102,7 @@ public class BookCopyService {
         log.info("Boek '{}' heeft geen exemplaren meer en wordt automatisch verwijderd.", book.getTitle());
 
         reviewRepository.deleteByBookId(book.getId());
-        bookLoanRepository.deleteByCopiesBookId(book.getId());
+        bookLoanRepository.deleteByCopyBookId(book.getId());
 
         book.getGenres().clear();
         book.getTags().clear();

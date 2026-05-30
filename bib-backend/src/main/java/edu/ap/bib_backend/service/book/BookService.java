@@ -478,11 +478,13 @@ public class BookService {
     }
 
     private java.time.LocalDate getExpectedReturnDate(BookCopy copy) {
-        return copy.getLoans().stream()
-                .filter(loan -> loan.getReturnedDate() == null)
+        if (copy == null || copy.getId() == null) {
+            return null;
+        }
+
+        return bookLoanRepository
+                .findFirstByCopyIdAndReturnedDateIsNullOrderByReturnDateAsc(copy.getId())
                 .map(Loan::getReturnDate)
-                .filter(Objects::nonNull)
-                .findFirst()
                 .orElse(null);
     }
 

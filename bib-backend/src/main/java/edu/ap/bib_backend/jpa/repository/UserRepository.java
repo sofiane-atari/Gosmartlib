@@ -77,7 +77,6 @@ public interface UserRepository extends JpaRepository<User, String> {
             left join users u on u.school_id = s.id
             left join auth_sessions aus on aus.user_id = u.id
             left join loans l on l.user_id = u.id
-            left join loan_copies lc on lc.loan_id = l.id
             group by s.id, s.name, s.last_sync_at
             order by totalLoans desc, s.name asc
             """, nativeQuery = true)

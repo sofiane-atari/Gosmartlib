@@ -1,8 +1,5 @@
 package edu.ap.bib_backend.jpa.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookCondition;
 import org.hibernate.annotations.Formula;
@@ -15,7 +12,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -48,19 +44,15 @@ public class BookCopy {
                    WHEN physical_condition = 'LOST' THEN 'UNAVAILABLE'
                    WHEN EXISTS (
                      SELECT 1
-                     FROM loan_copies lc
-                     JOIN loans l ON l.id = lc.loan_id
-                     WHERE lc.book_copy_id = id
-                       AND l.returned_date IS NULL
-                   ) THEN 'BORROWED'
-                   ELSE 'AVAILABLE'
-                 END
-            )
-            """)
+                      FROM loans l
+                      WHERE l.book_copy_id = id
+                        AND l.returned_date IS NULL
+                    ) THEN 'BORROWED'
+                    ELSE 'AVAILABLE'
+                  END
+             )
+             """)
     private Availability availability;
-
-    @ManyToMany(mappedBy = "copies")
-    private List<Loan> loans = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "campus_id", nullable = false)
