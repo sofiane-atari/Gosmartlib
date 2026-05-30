@@ -67,6 +67,7 @@ class TagControllerIntegrationTest {
                 .thenReturn(response);
 
         mockMvc.perform(post("/tags")
+                .principal(authentication)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -94,6 +95,7 @@ class TagControllerIntegrationTest {
                 .thenReturn(response);
 
         mockMvc.perform(get("/tags")
+                .principal(authentication)
                 .param("page", "0")
                 .param("pageSize", "2")
                 .param("includeBookCount", "true"))
@@ -124,6 +126,7 @@ class TagControllerIntegrationTest {
                 .thenReturn(response);
 
         mockMvc.perform(get("/tags")
+                .principal(authentication)
                 .param("search", "fant")
                 .param("includeBookCount", "true"))
                 .andExpect(status().isOk())
@@ -136,7 +139,8 @@ class TagControllerIntegrationTest {
         Mockito.when(tagService.getTagStats(any(Authentication.class)))
                 .thenReturn(new TagStatsDTO(2L, 2L));
 
-        mockMvc.perform(get("/tags/stats"))
+        mockMvc.perform(get("/tags/stats")
+                .principal(authentication))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalItems").value(2))
                 .andExpect(jsonPath("$.unActiveTags").value(2));
@@ -162,6 +166,7 @@ class TagControllerIntegrationTest {
                 .thenReturn(response);
 
         mockMvc.perform(put("/tags/{id}", 1L)
+                .principal(authentication)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -172,10 +177,11 @@ class TagControllerIntegrationTest {
 
     @Test
     void deleteTag_shouldDeleteTag() throws Exception {
-        mockMvc.perform(delete("/tags/{id}", 1L))
+        mockMvc.perform(delete("/tags/{id}", 1L)
+                .principal(authentication))
                 .andExpect(status().isOk());
 
-        Mockito.verify(tagService).deleteTag(eq(1L), any(Authentication.class));
+        Mockito.verify(tagService).deleteTag(eq(1L), eq(authentication));
     }
 
     @Test

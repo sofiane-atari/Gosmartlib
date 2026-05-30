@@ -5,7 +5,9 @@ import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.ReadingList;
 import edu.ap.bib_backend.jpa.entity.ReadingListBook;
 import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -59,6 +61,9 @@ class ReadingListServiceTest {
         private UserRepository userRepository;
 
         @Mock
+        private CampusRepository campusRepository;
+
+        @Mock
         private CurrentUserService currentUserService;
 
         @InjectMocks
@@ -67,6 +72,7 @@ class ReadingListServiceTest {
         @BeforeEach
         void setUp() {
                 lenient().when(userRepository.findById(USER_ID)).thenReturn(Optional.of(makeUser()));
+                lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(1L)).thenReturn(Optional.of(makeCampus()));
                 setAuthenticationAsStudent();
         }
 
@@ -369,21 +375,15 @@ class ReadingListServiceTest {
         }
 
         @Test
-        void givenSystemListAndTeacher_whenAddBookToList_thenAllow() {
+        void givenSystemListAndTeacher_whenAddBookToList_thenThrowException() {
                 setAuthenticationAsTeacher();
 
                 Long listId = 3L;
-                Long bookId = 102L;
 
                 ReadingList list = new ReadingList();
                 list.setId(listId);
                 list.setTargetType(ReadingListTargetType.SYSTEM);
                 list.setCampus(makeCampus());
-
-                ReadingListBook savedBook = new ReadingListBook();
-                savedBook.setId(12L);
-                savedBook.setReadingList(list);
-                savedBook.setBookId(bookId);
 
                 when(readingListRepository.findVisibleById(
                                 listId,
@@ -394,13 +394,12 @@ class ReadingListServiceTest {
                                 SCHOOL_CODE,
                                 true)).thenReturn(Optional.of(list));
 
-                when(readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId)).thenReturn(false);
-                when(readingListBookRepository.save(any(ReadingListBook.class))).thenReturn(savedBook);
+                IllegalArgumentException exception = assertThrows(
+                                IllegalArgumentException.class,
+                                () -> readingListService.addBookToList(USER_ID, listId, 102L));
 
-                ReadingListBook result = readingListService.addBookToList(USER_ID, listId, bookId);
-
-                assertEquals(bookId, result.getBookId());
-                verify(readingListBookRepository).save(any(ReadingListBook.class));
+                assertEquals("De systeembrede leeslijst kan niet aangepast worden", exception.getMessage());
+                verify(readingListBookRepository, never()).save(any());
         }
 
         @Test
@@ -524,11 +523,10 @@ class ReadingListServiceTest {
         }
 
         @Test
-        void givenSystemListAndTeacher_whenRemoveBookFromList_thenAllow() {
+        void givenSystemListAndTeacher_whenRemoveBookFromList_thenThrowException() {
                 setAuthenticationAsTeacher();
 
                 Long listId = 12L;
-                Long bookId = 104L;
 
                 ReadingList systemList = new ReadingList();
                 systemList.setId(listId);
@@ -544,11 +542,12 @@ class ReadingListServiceTest {
                                 SCHOOL_CODE,
                                 true)).thenReturn(Optional.of(systemList));
 
-                when(readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId)).thenReturn(1);
+                IllegalArgumentException exception = assertThrows(
+                                IllegalArgumentException.class,
+                                () -> readingListService.removeBookFromList(USER_ID, listId, 104L));
 
-                readingListService.removeBookFromList(USER_ID, listId, bookId);
-
-                verify(readingListBookRepository).deleteAllByReadingListIdAndBookId(listId, bookId);
+                assertEquals("De systeembrede leeslijst kan niet aangepast worden", exception.getMessage());
+                verify(readingListBookRepository, never()).deleteAllByReadingListIdAndBookId(anyLong(), anyLong());
         }
 
         private void setAuthenticationAsStudent() {
@@ -605,8 +604,12 @@ class ReadingListServiceTest {
         }
 
         private User makeUser() {
+                School school = new School();
+                school.setId(1L);
+                school.setDomainName("test.smartschool.be");
                 User user = new User();
                 user.setId(USER_ID);
+                user.setSchool(school);
                 return user;
         }
 
