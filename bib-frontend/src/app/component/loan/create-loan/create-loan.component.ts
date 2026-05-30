@@ -34,6 +34,7 @@ import {
   CreateLoanWizardStep,
 } from '../../../model/loan/loan-wizard.model';
 import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
+import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-create-loan',
@@ -48,6 +49,7 @@ import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.compon
     ScanIsbnComponent,
     ConfirmationModalComponent,
     StepWizardComponent,
+    ButtonHoverHelpComponent,
   ],
   templateUrl: './create-loan.component.html',
   styleUrl: './create-loan.component.css',

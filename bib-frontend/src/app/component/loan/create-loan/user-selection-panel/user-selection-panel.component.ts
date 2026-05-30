@@ -5,11 +5,12 @@ import { debounceTime } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthUserDto, Role } from '../../../../model/auth.model';
 import { School } from '../../../../model/school.model';
+import { ButtonHoverHelpComponent } from '../../../shared/button-hover-help/button-hover-help.component';
 
 @Component({
   selector: 'app-user-selection-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ButtonHoverHelpComponent],
   templateUrl: './user-selection-panel.component.html',
   styleUrl: './user-selection-panel.component.css',
 })

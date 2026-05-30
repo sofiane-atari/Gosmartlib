@@ -9,11 +9,12 @@
 
     <div class="search-row">
         <div class="mode-toggle-row">
-            <label class="mode-toggle" for="externalMode">
-                <input id="externalMode" type="checkbox" [checked]="isExternalMode()" (change)="onExternalModeChange($event)" />
-                <span>Extern uitlenen</span>
-            </label>
-            <span class="mode-help">Zoek leerkrachten, bibbeheerders of admins van een andere school.</span>
+            <app-button-hover-help text="Zoek leerkrachten, bibbeheerders of admins van een andere school.">
+                <label class="mode-toggle" for="externalMode">
+                    <input id="externalMode" type="checkbox" [checked]="isExternalMode()" (change)="onExternalModeChange($event)" />
+                    <span>Extern uitlenen</span>
+                </label>
+            </app-button-hover-help>
         </div>
     </div>
 
