@@ -43,6 +43,8 @@ class AuthServiceTest {
     private UserRepository userRepository;
     @Mock
     private SchoolRepository schoolRepository;
+    @Mock
+    private ActiveSchoolContext activeSchoolContext;
 
     @InjectMocks
     private AuthService authService;

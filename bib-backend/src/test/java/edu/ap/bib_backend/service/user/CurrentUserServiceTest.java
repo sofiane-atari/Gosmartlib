@@ -2,7 +2,9 @@ package edu.ap.bib_backend.service.user;
 
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +31,10 @@ class CurrentUserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private SchoolRepository schoolRepository;
+    @Mock
+    private ActiveSchoolContext activeSchoolContext;
 
     @InjectMocks
     private CurrentUserService currentUserService;
