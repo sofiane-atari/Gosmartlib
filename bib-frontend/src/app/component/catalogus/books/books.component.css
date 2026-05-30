@@ -542,6 +542,20 @@
   transform: scale(1.1);
 }
 
+.favorite-btn.filled {
+  color: var(--error-color, #ef4444);
+}
+
+.favorite-btn.filled:hover {
+  color: var(--error-color, #ef4444);
+  background-color: #fef2f2;
+}
+
+::ng-deep .favorite-btn.filled lucide-icon svg {
+  fill: var(--error-color, #ef4444);
+  stroke: var(--error-color, #ef4444);
+}
+
 /* =========================================================
    5. EMPTY STATE
    ========================================================= */

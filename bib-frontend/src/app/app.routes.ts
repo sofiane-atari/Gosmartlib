@@ -133,7 +133,7 @@ export const routes: Routes = [
   {
     path: 'books-management',
     component: BookManagementComponent,
-    canActivate: [authGuard, adminOnlyGuard],
+    canActivate: [authGuard, librarianOrAdminGuard],
   },
   {
     path: 'loans/create',

@@ -111,6 +111,8 @@ export class BooksComponent implements OnInit {
     this.roleService.canFilterDidacticBooks()
   );
 
+  private readonly favoritesListId = signal<number | null>(null);
+
   protected readonly erroredImages = new Set<number>();
 
   featuredReadingLists: ReadingList[] = [];
@@ -182,6 +184,7 @@ export class BooksComponent implements OnInit {
     this.loadSidebarBooks();
     this.loadFeaturedReadingLists();
     this.userSettingsService.loadCatalogSidebarSettings();
+    this.loadFavoritesState();
   }
 
   private loadFeaturedReadingLists(): void {
@@ -445,34 +448,59 @@ export class BooksComponent implements OnInit {
 
   public toggleFavorite(event: Event, book: Book) {
     event.stopPropagation();
+    if (!book.id) return;
 
-    if (!book.id) {
-      this.toastService.show(
-        'Het boek kon niet aan favorieten worden toegevoegd.',
-        'error',
-      );
-      return;
+    if (book.favorite) {
+      const listId = this.favoritesListId();
+      if (listId === null) return;
+
+      this.readingListService.removeBookFromList(listId, book.id).subscribe({
+        next: () => {
+          this.books.update(prev =>
+            prev.map(b => (b.id === book.id ? { ...b, favorite: false } : b))
+          );
+        },
+        error: (err) => {
+          console.error('Fout bij verwijderen uit favorieten', err);
+          this.toastService.show(
+            'Er is een fout opgetreden bij het verwijderen uit favorieten.',
+            'error',
+          );
+        },
+      });
+    } else {
+      this.readingListService.addBookToFavorites(book.id).subscribe({
+        next: () => {
+          this.books.update(prev =>
+            prev.map(b => (b.id === book.id ? { ...b, favorite: true } : b))
+          );
+        },
+        error: (err) => {
+          if (err.error === 'Boek zit al in deze leeslijst') {
+            this.books.update(prev =>
+              prev.map(b =>
+                b.id === book.id ? { ...b, favorite: true } : b
+              )
+            );
+          } else {
+            console.error('Fout bij toevoegen aan favorieten', err);
+            this.toastService.show(
+              'Er is een fout opgetreden bij het toevoegen aan favorieten.',
+              'error',
+            );
+          }
+        },
+      });
     }
-    this.readingListService.addBookToFavorites(book.id).subscribe({
-      next: () => {
-        this.toastService.show(
-          `"${book.title}" is toegevoegd aan je Favorieten!`,
-          'success',
-        );
+  }
+
+  private loadFavoritesState(): void {
+    this.readingListService.getFavoritesList().subscribe({
+      next: (list) => {
+        this.favoritesListId.set(list.id);
       },
-      error: (err) => {
-        if (err.error === 'Boek zit al in deze leeslijst') {
-          this.toastService.show(
-            `"${book.title}" staat al in je favorieten.`,
-            'error',
-          );
-        } else {
-          console.error('Fout bij toevoegen aan favorieten', err);
-          this.toastService.show(
-            'Er is een fout opgetreden bij het toevoegen aan favorieten.',
-            'error',
-          );
-        }
+      error: () => {
+        console.error('Kon favorietenlijst niet laden');
       },
     });
   }

@@ -40,6 +40,10 @@ export class ReadingListService {
     return this.http.post<ReadingListBook>(`${this.apiUrl}/${listId}/books`, { bookId });
   }
 
+  getFavoritesList(): Observable<ReadingList> {
+    return this.http.get<ReadingList>(`${this.apiUrl}/favorites`);
+  }
+
   addBookToFavorites(bookId: number): Observable<ReadingListBook> {
     return this.http.post<ReadingListBook>(`${this.apiUrl}/favorites/books`, { bookId });
   }

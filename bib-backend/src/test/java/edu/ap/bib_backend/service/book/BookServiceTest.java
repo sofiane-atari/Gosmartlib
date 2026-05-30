@@ -33,6 +33,7 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
+import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
 import edu.ap.bib_backend.jpa.repository.TagRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
@@ -80,6 +81,9 @@ class BookServiceTest {
     private CampusRepository campusRepository;
 
     @Mock
+    private ReadingListRepository readingListRepository;
+
+    @Mock
     private TagRepository tagRepository;
 
     @Mock
@@ -117,7 +121,8 @@ class BookServiceTest {
                 bookMapper1,
                 bookCandidateMapper,
                 openLibraryClient,
-                currentUserService
+                currentUserService,
+                readingListRepository
         );
 
         campus = new Campus();
