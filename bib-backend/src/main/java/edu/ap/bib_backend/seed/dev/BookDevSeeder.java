@@ -1,9 +1,12 @@
 package edu.ap.bib_backend.seed.dev;
 
 import edu.ap.bib_backend.dto.BookDTO;
+import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.TagDTO;
+import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.service.book.BookService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +14,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -21,12 +26,15 @@ public class BookDevSeeder {
     private final BookService bookService;
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
+    private final GenreRepository genreRepository;
 
     public BookDevSeeder(BookService bookService, BookRepository bookRepository,
-                         BookCopyRepository bookCopyRepository) {
+                         BookCopyRepository bookCopyRepository,
+                         GenreRepository genreRepository) {
         this.bookService = bookService;
         this.bookRepository = bookRepository;
         this.bookCopyRepository = bookCopyRepository;
+        this.genreRepository = genreRepository;
     }
 
     private static final List<BookData> BOOK_DATA = List.of(
@@ -113,6 +121,8 @@ public class BookDevSeeder {
     );
 
     public BookSeedResult seed(Authentication authentication, Long campusId, Map<String, Long> tagNameToId) {
+        ensureDevSeedGenresExist();
+
         List<Long> createdBookIds = new ArrayList<>();
         int booksCreated = 0;
         int copiesCreated = 0;
@@ -134,6 +144,19 @@ public class BookDevSeeder {
                 dto.setReleaseYear(data.releaseYear);
                 dto.setDidactic(false);
                 dto.setCampusId(campusId);
+
+                // These labels are intentionally used as both tags and genres in dev-seed.
+                dto.setGenres(data.tagNames.stream()
+                        .filter(name -> name != null && !name.isBlank())
+                        .map(name -> GenreDTO.builder()
+                                .id(null)
+                                .name(name)
+                                .color("#000000")
+                                .description(null)
+                                .bookCount(null)
+                                .subGenres(null)
+                                .build())
+                        .toList());
 
                 List<TagDTO> bookTags = new ArrayList<>();
                 for (String tagName : data.tagNames) {
@@ -167,6 +190,46 @@ public class BookDevSeeder {
         log.info("Boek seeding voltooid: {} van {} boeken aangemaakt, {} extra exemplaren",
                 booksCreated, BOOK_DATA.size(), copiesCreated);
         return new BookSeedResult(createdBookIds, booksCreated, copiesCreated);
+    }
+
+    private void ensureDevSeedGenresExist() {
+        Set<String> names = new HashSet<>();
+        for (BookData data : BOOK_DATA) {
+            if (data.tagNames == null) {
+                continue;
+            }
+
+            for (String name : data.tagNames) {
+                if (name == null || name.isBlank()) {
+                    continue;
+                }
+                names.add(name);
+            }
+        }
+
+        for (String name : names) {
+            if (genreRepository.existsByName(name)) {
+                continue;
+            }
+
+            Genre genre = new Genre(
+                    name,
+                    resolveDevSeedGenreColor(name),
+                    "Automatisch aangemaakt voor dev-seed.");
+            genreRepository.save(genre);
+        }
+    }
+
+    private String resolveDevSeedGenreColor(String name) {
+        return switch (name) {
+            case "Java" -> "#F97316";
+            case "Python" -> "#2563EB";
+            case "JavaScript" -> "#EAB308";
+            case "Algoritmes" -> "#10B981";
+            case "DevOps" -> "#64748B";
+            case "Software-architectuur" -> "#8B5CF6";
+            default -> "#95A5A6";
+        };
     }
 
     public List<Long> getAvailableCopyIds(Long bookId, Long campusId) {

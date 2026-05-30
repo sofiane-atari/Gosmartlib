@@ -114,17 +114,16 @@ public class SmartschoolOAuth2UserService
         School school = resolveSchool(schoolCode);
 
         User user = userService.getUser(userId)
-                .orElseGet(() -> userService.createUser(
-                        userId,
-                        roleService.getRoleEntity(basisrol),
-                        school
+                .orElseThrow(() -> new OAuth2AuthenticationException(
+                        new OAuth2Error("user_not_authorized"),
+                        "Je account is nog niet geregistreerd in het systeem. Neem contact op met de bibliotheekbeheerder."
                 ));
 
-        String oneRosterSourcedId =
-                oneRosterClient.findSourcedIdByLegacyIdentifier(schoolCode, userId);
-
-        if (oneRosterSourcedId != null && !oneRosterSourcedId.isBlank()) {
-            user.setOneRosterSourcedId(oneRosterSourcedId);
+        if (user.getSchool() == null || !user.getSchool().getId().equals(school.getId())) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("user_not_authorized"),
+                    "Je account behoort niet tot deze school. Neem contact op met de bibliotheekbeheerder."
+            );
         }
 
         if (user.getSchool() == null) {

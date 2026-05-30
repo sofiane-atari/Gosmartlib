@@ -71,7 +71,7 @@ public class DevSeedCleanupService {
         log.info("{} leeslijsten verwijderd", deletedReadingLists);
 
         for (Long bookId : bookIds) {
-            bookLoanRepository.deleteByCopiesBookId(bookId);
+            bookLoanRepository.deleteByCopyBookId(bookId);
         }
         log.info("Leningen verwijderd voor {} boeken", bookIds.size());
 

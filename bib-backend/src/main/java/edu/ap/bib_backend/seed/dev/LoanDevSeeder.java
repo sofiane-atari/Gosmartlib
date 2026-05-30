@@ -69,11 +69,11 @@ public class LoanDevSeeder {
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
 
         int activeStudentCount = Math.min(7, studentIds.size());
-        for (int i = 0; i < activeStudentCount && copyIndex + 1 < availableCopyIds.size(); i++) {
+        for (int i = 0; i < activeStudentCount && copyIndex < availableCopyIds.size(); i++) {
             String studentId = studentIds.get(i);
             Authentication studentAuth = DevSeedAuthentication.forUser(studentId, Role.STUDENT);
 
-            int copyCount = Math.min(1 + (i % 2), availableCopyIds.size() - copyIndex);
+            int copyCount = Math.min(1, availableCopyIds.size() - copyIndex);
             List<Long> loanCopies = availableCopyIds.subList(copyIndex, copyIndex + copyCount)
                     .stream().toList();
 
@@ -83,9 +83,9 @@ public class LoanDevSeeder {
 
             try {
                 LoanDTO loanDTO = new LoanDTO(studentId, new ArrayList<>(loanCopies), returnDate);
-                LoanDTO created = loanService.create(loanDTO, studentAuth);
-                loansCreated++;
-                createdLoanIds.add(created.id());
+                List<LoanDTO> created = loanService.create(loanDTO, studentAuth);
+                loansCreated += created.size();
+                created.stream().map(LoanDTO::id).forEach(createdLoanIds::add);
                 copyIndex += copyCount;
                 log.info("Actieve lening aangemaakt voor student {}", studentId);
             } catch (Exception e) {
@@ -94,12 +94,12 @@ public class LoanDevSeeder {
         }
 
         int returnStudentCount = Math.min(4, studentIds.size());
-        for (int i = 0; i < returnStudentCount && copyIndex + 1 < availableCopyIds.size(); i++) {
+        for (int i = 0; i < returnStudentCount && copyIndex < availableCopyIds.size(); i++) {
             String studentId = studentIds.get(activeStudentCount + i < studentIds.size()
                     ? activeStudentCount + i : i);
             Authentication studentAuth = DevSeedAuthentication.forUser(studentId, Role.STUDENT);
 
-            int copyCount = Math.min(1 + (i % 2), availableCopyIds.size() - copyIndex);
+            int copyCount = Math.min(1, availableCopyIds.size() - copyIndex);
             List<Long> loanCopies = availableCopyIds.subList(copyIndex, copyIndex + copyCount)
                     .stream().toList();
 
@@ -109,12 +109,14 @@ public class LoanDevSeeder {
 
             try {
                 LoanDTO loanDTO = new LoanDTO(studentId, new ArrayList<>(loanCopies), returnDate);
-                LoanDTO createdLoan = loanService.create(loanDTO, studentAuth);
-                loansCreated++;
-                createdLoanIds.add(createdLoan.id());
+                List<LoanDTO> createdLoans = loanService.create(loanDTO, studentAuth);
+                loansCreated += createdLoans.size();
+                createdLoans.stream().map(LoanDTO::id).forEach(createdLoanIds::add);
 
-                loanService.returnLoan(createdLoan.id(), studentAuth);
-                loansReturned++;
+                for (LoanDTO createdLoan : createdLoans) {
+                    loanService.returnLoan(createdLoan.id(), studentAuth);
+                    loansReturned++;
+                }
                 copyIndex += copyCount;
                 log.info("Geretourneerde lening aangemaakt voor student {}", studentId);
             } catch (Exception e) {

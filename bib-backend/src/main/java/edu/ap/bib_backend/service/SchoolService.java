@@ -233,8 +233,6 @@ public class SchoolService {
         executePurgeDelete("DELETE FROM lesson_tip_book_links WHERE book_id IN ("
                 + schoolBooks + ")", schoolId);
 
-        executePurgeDelete("DELETE FROM loan_copies WHERE loan_id IN ("
-                + schoolLoans + ")", schoolId);
         executePurgeDelete("DELETE FROM loan_extensions WHERE loan_id IN ("
                 + schoolLoans + ")", schoolId);
         executePurgeDelete("DELETE FROM loans WHERE campus_id IN ("

@@ -50,6 +50,7 @@ public class OneRosterUserSyncService {
     }
 
     @Async
+    @Transactional
     public void syncSchoolAsync(School school) {
         try {
             syncSchoolUsers(school);
@@ -193,9 +194,14 @@ public class OneRosterUserSyncService {
 
     private String resolveRoleName(String roleName) {
         if (!StringUtils.hasText(roleName)) {
-            return "leerling";
+            return "STUDENT";
         }
-        return roleName;
+        return switch (roleName.toLowerCase()) {
+            case "teacher" -> "TEACHER";
+            case "student" -> "STUDENT";
+            case "administrator" -> "TEACHER";
+            default -> "STUDENT";
+        };
     }
 
     private Group resolveGroup(Long schoolId, String groupName) {

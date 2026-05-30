@@ -38,12 +38,6 @@ public class ReviewController {
         return ResponseEntity.ok(reviews);
     }
 
-    @GetMapping
-    public ResponseEntity<List<ReviewDTO>> getAllReviews(Authentication authentication) {
-        List<ReviewDTO> reviews = reviewService.getAllReviews(authentication);
-        return ResponseEntity.ok(reviews);
-    }
-
     @GetMapping("/me")
     public ResponseEntity<PageDTO<ReviewDTO>> getCurrentUserReviews(
             Authentication authentication,

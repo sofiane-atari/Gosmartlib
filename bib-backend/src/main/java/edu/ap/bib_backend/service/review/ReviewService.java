@@ -88,15 +88,6 @@ public class ReviewService {
                                 .map(review -> reviewMapper.toDto(review, currentUserId));
         }
 
-        public List<ReviewDTO> getAllReviews(Authentication authentication) {
-                String currentUserId = currentUserService.extractCurrentUserId(authentication);
-                Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
-
-                return reviewRepository.findAllByUserSchoolId(schoolId).stream()
-                                .map(review -> reviewMapper.toDto(review, currentUserId))
-                                .toList();
-        }
-
         public Page<ReviewDTO> getFlaggedReviews(Authentication authentication, int page, int size) {
                 String currentUserId = currentUserService.extractCurrentUserId(authentication);
                 Long schoolId = currentUserService.getCurrentUserSchool(authentication).getId();
