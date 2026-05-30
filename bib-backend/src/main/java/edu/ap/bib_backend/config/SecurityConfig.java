@@ -179,7 +179,11 @@ public class SecurityConfig {
                                         auth.requestMatchers("/roles/**")
                                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
+                                        auth.requestMatchers("/users/teachers/stats")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
                                         auth.requestMatchers("/users/teachers")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+                                        auth.requestMatchers("/users/**")
                                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/lesson-tips/**")
