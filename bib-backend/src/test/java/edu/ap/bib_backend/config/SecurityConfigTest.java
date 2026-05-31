@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.config;
 
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
@@ -64,6 +65,12 @@ class SecurityConfigTest {
 
     @MockitoBean
     private RestAccessDeniedHandler restAccessDeniedHandler;
+
+    @MockitoBean
+    private ActiveSchoolContext activeSchoolContext;
+
+    @MockitoBean
+    private edu.ap.bib_backend.jpa.repository.SchoolRepository schoolRepository;
 
     @Test
     void givenNoAuthentication_whenGetAuthMeEndpoint_thenReturnUnauthorizedJson() throws Exception {

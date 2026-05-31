@@ -24,6 +24,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
+import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,6 +59,9 @@ class LoanServiceIntegrationTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @MockitoBean
     private CurrentUserService currentUserService;
 
@@ -76,12 +80,16 @@ class LoanServiceIntegrationTest {
         campus.setPostalCode(2000);
         campus = campusRepository.save(campus);
 
+        RoleEntity existing = roleEntityRepository.findByRole(Role.STUDENT).orElse(null);
+        if (existing == null) {
+            try {
+                jdbcTemplate.update("INSERT INTO roles (role) VALUES ('STUDENT')");
+            } catch (Exception e) {
+                // role might already exist from a previous test
+            }
+        }
         RoleEntity role = roleEntityRepository.findByRole(Role.STUDENT)
-                .orElseGet(() -> {
-                    RoleEntity newRole = new RoleEntity();
-                    newRole.setRole(Role.STUDENT);
-                    return roleEntityRepository.save(newRole);
-                });
+                .orElseThrow(() -> new IllegalStateException("Failed to find STUDENT role"));
 
         User user = new User();
         user.setId("loan-user-1");

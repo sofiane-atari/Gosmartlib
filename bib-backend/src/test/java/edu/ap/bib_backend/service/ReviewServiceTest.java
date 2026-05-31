@@ -152,7 +152,7 @@ class ReviewServiceTest {
                 ReviewModerationStatus.ACTIVE,
                 ReviewModerationStatus.KEPT);
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn(CURRENT_USER_ID);
-        when(reviewRepository.findVisibleReviewsByBookIdAndUserSchoolId(bookId, visibleStatuses, 1L, any(Pageable.class))).thenReturn(Page.empty());
+        when(reviewRepository.findVisibleReviewsByBookIdAndUserSchoolId(eq(bookId), eq(visibleStatuses), eq(1L), any(Pageable.class))).thenReturn(Page.empty());
 
         // Act
         Page<ReviewDTO> result = reviewService.getReviewsForBook(bookId, 0, 10, authentication);

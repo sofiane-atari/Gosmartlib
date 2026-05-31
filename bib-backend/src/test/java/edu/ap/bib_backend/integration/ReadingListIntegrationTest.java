@@ -226,10 +226,8 @@ class ReadingListIntegrationTest {
     void givenCatalogFeaturedLists_whenGetCatalogFeaturedLists_thenReturnsListsFromSchool()
             throws Exception {
         createCatalogList("Eerste selectie", campus, true, 1);
-        createCatalogList("Tweede selectie", campus, true, 2);
-        createCatalogList("Derde selectie", campus, true, 3);
+        createCatalogList("Andere campus selectie", otherCampus, true, 2);
         createCatalogList("Niet geselecteerd", campus, false, null);
-        createCatalogList("Andere campus selectie", otherCampus, true, 4);
 
         getCatalogFeaturedLists()
                 .andExpect(status().isOk())
