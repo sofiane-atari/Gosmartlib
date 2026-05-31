@@ -126,11 +126,7 @@ class BookServiceTest {
                 bookCandidateMapper,
                 openLibraryClient,
                 currentUserService,
-                bookCopyIdentifierService,
-                readingListRepository
-        );
-
-        );
+                bookCopyIdentifierService);
         campus = new Campus();
         campus.setId(1L);
 

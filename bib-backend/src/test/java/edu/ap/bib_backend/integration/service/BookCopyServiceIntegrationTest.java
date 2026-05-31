@@ -6,11 +6,9 @@ import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
-import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
-import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.service.BookCopyService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
@@ -48,12 +46,6 @@ class BookCopyServiceIntegrationTest {
     private CampusRepository campusRepository;
 
     @Autowired
-    private BookLoanRepository bookLoanRepository;
-
-    @Autowired
-    private ReviewRepository reviewRepository;
-
-    @Autowired
     private EntityManager entityManager;
 
     @MockitoBean
@@ -62,10 +54,7 @@ class BookCopyServiceIntegrationTest {
     @Test
     void Given_BookWithCopiesInSchool_When_GetCopiesByBookIdForSchool_Then_ReturnsCopies() {
         School school = createSchool("bookcopy-test-1.be");
-        Campus campus = createCampus("Campus A", school);
         Book book = createBook("Copy Service Book 1");
-        BookCopy copy1 = createCopy(book, campus);
-        BookCopy copy2 = createCopy(book, campus);
         entityManager.flush();
 
         Authentication auth = mockAuth();

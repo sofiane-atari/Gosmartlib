@@ -1,7 +1,6 @@
 package edu.ap.bib_backend.jpa.repository;
 
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.enums.Availability;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

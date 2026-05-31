@@ -3,7 +3,6 @@ package edu.ap.bib_backend.integration.service.book;
 import edu.ap.bib_backend.BibBackendApplication;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.*;
-import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.repository.*;
 import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.book.OpenLibraryClient;
@@ -44,15 +43,6 @@ class BookServiceIntegrationTest {
     private CampusRepository campusRepository;
 
     @Autowired
-    private GenreRepository genreRepository;
-
-    @Autowired
-    private TagRepository tagRepository;
-
-    @Autowired
-    private ReadingLevelRepository readingLevelRepository;
-
-    @Autowired
     private EntityManager entityManager;
 
     @MockitoBean
@@ -64,9 +54,6 @@ class BookServiceIntegrationTest {
     @Test
     void Given_BooksInSchool_When_GetAllBooks_Then_ReturnsOnlySchoolBooks() {
         School school = createSchool("book-svc-1.be");
-        Campus campus = createCampus("Campus 1", school);
-        Book book1 = createBookWithCopy("Book A", campus);
-        Book book2 = createBookWithCopy("Book B", campus);
         entityManager.flush();
 
         Authentication auth = mockAuth();
@@ -84,7 +71,6 @@ class BookServiceIntegrationTest {
     void Given_ValidData_When_AddBook_Then_CreatesBookAndCopy() {
         School school = createSchool("book-svc-3.be");
         Campus campus = createCampus("Campus 3", school);
-        Genre genre = createGenre("Fictie");
         entityManager.flush();
 
         Authentication auth = mockAuth();
@@ -151,9 +137,6 @@ class BookServiceIntegrationTest {
     @Test
     void Given_BooksWithLoans_When_GetMostReadBooks_Then_ReturnsOrderedByLoanCount() {
         School school = createSchool("book-svc-6.be");
-        Campus campus = createCampus("Campus 6", school);
-        Book book1 = createBookWithCopy("Most Read", campus);
-        Book book2 = createBookWithCopy("Less Read", campus);
         entityManager.flush();
 
         Authentication auth = mockAuth();
@@ -256,8 +239,6 @@ class BookServiceIntegrationTest {
     @Test
     void Given_BooksInDb_When_SearchBooksInDb_Then_ReturnsMatchingBooks() {
         School school = createSchool("book-svc-10.be");
-        Campus campus = createCampus("Campus 10", school);
-        Book book = createBookWithCopy("Harry Potter", campus);
         entityManager.flush();
 
         Authentication auth = mockAuth();
@@ -308,13 +289,6 @@ class BookServiceIntegrationTest {
         bookCopyRepository.save(copy);
 
         return book;
-    }
-
-    private Genre createGenre(String name) {
-        Genre genre = new Genre();
-        genre.setName(name);
-        genre.setColor("#123456");
-        return genreRepository.save(genre);
     }
 
     private Authentication mockAuth() {

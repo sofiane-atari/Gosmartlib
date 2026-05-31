@@ -89,7 +89,6 @@ class BookCopyIdentifierServiceIntegrationTest {
     void Given_SavedCopyWithoutIdentifier_When_AssignIdentifier_Then_GeneratesEan13Identifier() {
         BookCopy copy = createUnsavedCopy();
         copy = bookCopyRepository.save(copy);
-        Long copyId = copy.getId();
 
         BookCopy result = service.assignIdentifier(copy);
 

@@ -55,9 +55,6 @@ class CampusServiceIntegrationTest {
     @Test
     void Given_SchoolWithCampuses_When_GetCampusesBySchool_Then_ReturnsCampuses() {
         School school = createSchool("campus-test-1.be");
-        Campus campus1 = createCampus("Campus A", school, "Adres A", 2000);
-        Campus campus2 = createCampus("Campus B", school, "Adres B", 3000);
-
         List<CampusDTO> result = campusService.getCampusesBySchool(school.getId());
 
         assertEquals(2, result.size());
@@ -93,7 +90,6 @@ class CampusServiceIntegrationTest {
     void Given_NonAdminUserSameSchool_When_GetCampus_Then_ReturnsCampus() {
         School school = createSchool("campus-test-4.be");
         Campus campus = createCampus("My Campus", school, "Adres", 2000);
-        User user = createUser("campus-user-4", Role.STUDENT, school);
         Authentication auth = mockAuthWithUserId("campus-user-4");
         when(currentUserService.extractCurrentUserId(auth)).thenReturn("campus-user-4");
 
@@ -173,7 +169,6 @@ class CampusServiceIntegrationTest {
     void Given_DuplicateNameInSameSchool_When_UpdateCampus_Then_ThrowsException() {
         School school = createSchool("campus-test-10.be");
         Campus campus1 = createCampus("First", school, "Address 1", 2000);
-        Campus campus2 = createCampus("Second", school, "Address 2", 3000);
 
         CampusDTO dto = new CampusDTO();
         dto.setName("Second");
