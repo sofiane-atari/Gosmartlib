@@ -3,6 +3,7 @@ package edu.ap.bib_backend.seed.dev;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.GenreDTO;
 import edu.ap.bib_backend.dto.TagDTO;
+import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
@@ -121,6 +122,10 @@ public class BookDevSeeder {
         for (BookData data : BOOK_DATA) {
             if (bookRepository.existsByIsbn(data.isbn)) {
                 log.info("Boek overgeslagen (bestaat al): {}", data.title);
+                Book existing = bookRepository.findByIsbn(data.isbn);
+                if (existing != null) {
+                    createdBookIds.add(existing.getId());
+                }
                 continue;
             }
 

@@ -1,7 +1,11 @@
 package edu.ap.bib_backend.seed.dev;
 
 import edu.ap.bib_backend.dto.TagDTO;
+import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.entity.Tag;
+import edu.ap.bib_backend.jpa.repository.TagRepository;
 import edu.ap.bib_backend.service.TagService;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -15,9 +19,13 @@ import java.util.Map;
 public class TagDevSeeder {
 
     private final TagService tagService;
+    private final TagRepository tagRepository;
+    private final CurrentUserService currentUserService;
 
-    public TagDevSeeder(TagService tagService) {
+    public TagDevSeeder(TagService tagService, TagRepository tagRepository, CurrentUserService currentUserService) {
         this.tagService = tagService;
+        this.tagRepository = tagRepository;
+        this.currentUserService = currentUserService;
     }
 
     private static final List<TagData> TAG_DATA = List.of(
@@ -47,6 +55,11 @@ public class TagDevSeeder {
             } catch (IllegalArgumentException e) {
                 if (e.getMessage() != null && e.getMessage().contains("bestaat al")) {
                     log.info("Tag overgeslagen (bestaat al): {}", data.name);
+                    School school = currentUserService.getCurrentUserSchool(authentication);
+                    Tag existing = tagRepository.findByNameAndSchoolId(data.name, school.getId());
+                    if (existing != null) {
+                        tagNameToId.put(data.name, existing.getId());
+                    }
                 } else {
                     log.warn("Kon tag niet aanmaken '{}': {}", data.name, e.getMessage());
                 }

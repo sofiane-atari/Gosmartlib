@@ -1,6 +1,7 @@
 package edu.ap.bib_backend.seed.dev;
 
 import edu.ap.bib_backend.jpa.entity.Campus;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
@@ -59,8 +60,8 @@ public class DevSeedService {
 
         log.info("=== Dev seed gestart ===");
 
-        User currentUser = currentUserService.getCurrentUser(authentication);
-        Long schoolId = currentUser.getSchool().getId();
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Long schoolId = school.getId();
 
         Long campusId = campusRepository.findFirstBySchoolIdOrderByIdAsc(schoolId)
                 .map(Campus::getId)
@@ -180,8 +181,8 @@ public class DevSeedService {
                     "Dev seed is alleen beschikbaar in development-modus.");
         }
 
-        User currentUser = currentUserService.getCurrentUser(authentication);
-        Long schoolId = currentUser.getSchool().getId();
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        Long schoolId = school.getId();
 
         if (lastSeed == null) {
             throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED,
