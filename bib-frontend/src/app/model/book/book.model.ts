@@ -33,6 +33,7 @@ export interface BookCopyCampusLocation {
 
 export interface BookCopyLocation {
   id: number;
+  identifier?: string | null;
   availability: 'AVAILABLE' | 'BORROWED' | string;
   condition?: BookCondition;
   expectedReturnDate?: string | null;

@@ -100,6 +100,9 @@ class BookServiceTest {
     private CurrentUserService currentUserService;
 
     @Mock
+    private BookCopyIdentifierService bookCopyIdentifierService;
+
+    @Mock
     private Authentication authentication;
 
     private BookService bs;
@@ -123,6 +126,7 @@ class BookServiceTest {
                 bookCandidateMapper,
                 openLibraryClient,
                 currentUserService,
+                bookCopyIdentifierService,
                 readingListRepository
         );
 

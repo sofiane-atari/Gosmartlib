@@ -9,6 +9,7 @@ import lombok.Builder;
 @Builder
 public record BookCopyLocationDTO(
         Long id,
+        String identifier,
         Availability availability,
         BookCondition condition,
         LocalDate expectedReturnDate

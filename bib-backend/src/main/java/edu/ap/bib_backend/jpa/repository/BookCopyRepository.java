@@ -1,11 +1,13 @@
 package edu.ap.bib_backend.jpa.repository;
 
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.entity.Loan;import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.entity.Loan;
+import edu.ap.bib_backend.jpa.enums.Availability;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
@@ -28,6 +30,10 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
     long countByBookId(Long bookId);
 
     long countByCampusSchoolId(Long schoolId);
+
+    List<BookCopy> findByPublicIdentifierIsNull();
+
+    Optional<BookCopy> findByPublicIdentifier(String publicIdentifier);
 
     Optional<BookCopy> findFirstByBookIdAndCampusIdAndAvailability(
             Long bookId,

@@ -44,6 +44,7 @@ public class BookBulkService {
     private final ReadingLevelRepository readingLevelRepository;
     private final CampusRepository campusRepository;
     private final CurrentUserService currentUserService;
+    private final BookCopyIdentifierService bookCopyIdentifierService;
 
     private final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"), "book-uploads");
 
@@ -174,7 +175,8 @@ public class BookBulkService {
                 BookCopy copy = new BookCopy();
                 copy.setBook(book);
                 copy.setCampus(campus);
-                bcr.save(copy);
+                BookCopy savedCopy = bcr.save(copy);
+                bookCopyIdentifierService.assignIdentifier(savedCopy);
             }
         } catch (Exception e) {
             throw new RuntimeException("Gefailed om boeken te importeren: " + e.getMessage(), e);

@@ -295,7 +295,7 @@ export class BookDetailComponent implements OnInit {
       for (const copy of group.copies) {
         items.push({
           id: copy.id,
-          label: `Exemplaar #${copy.id}`,
+          label: `Exemplaar ${this.getCopyDisplayIdentifier(copy)}`,
           campusName: group.campusName,
           description:
             this.getCopyAvailabilityLabel(copy) +
@@ -399,6 +399,10 @@ export class BookDetailComponent implements OnInit {
     }
 
     return this.isBorrowed(copy.availability) ? 'Uitgeleend' : 'Beschikbaar';
+  }
+
+  protected getCopyDisplayIdentifier(copy: BookCopyLocation): string {
+    return copy.identifier?.trim() || `#${copy.id}`;
   }
 
   protected isLostCopy(copy: BookCopyLocation): boolean {

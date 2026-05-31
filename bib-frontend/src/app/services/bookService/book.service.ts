@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { AuthService } from '../authorization/auth.service';
 import { Book, BookCondition } from '../../model/book/book.model';
@@ -25,6 +25,7 @@ export class BookService {
   private apiUrl = `${environment.apiUrl}/books`;
 
   private authService = inject(AuthService);
+  private bookCache = new Map<number, Book>();
 
   constructor(private http: HttpClient) {}
 
@@ -87,12 +88,18 @@ export class BookService {
     });
   }
 
-  getBookById(id: number, schoolId?: number): Observable<Book> {
+  getBookById(id: number, schoolId?: number, forceRefresh?: boolean): Observable<Book> {
+    if (!forceRefresh && this.bookCache.has(id)) {
+      return of(this.bookCache.get(id)!);
+    }
+
     let params = new HttpParams();
     if (schoolId !== undefined && schoolId !== null) {
       params = params.set('schoolId', schoolId);
     }
-    return this.http.get<Book>(`${this.apiUrl}/${id}`, { params });
+    return this.http.get<Book>(`${this.apiUrl}/${id}`, { params }).pipe(
+      tap(book => this.bookCache.set(id, book)),
+    );
   }
 
   addBook(book: Book, campusId: number): Observable<Book> {
@@ -100,7 +107,9 @@ export class BookService {
   }
 
   public updateBook(id: number, book: Book): Observable<Book> {
-    return this.http.put<Book>(`${this.apiUrl}/${id}`, book);
+    return this.http.put<Book>(`${this.apiUrl}/${id}`, book).pipe(
+      tap(updatedBook => this.bookCache.set(id, updatedBook)),
+    );
   }
 
   public getBookByISBN(isbn: string, schoolId?: number): Observable<Book> {
@@ -220,6 +229,7 @@ export class BookService {
   }
 
   public addCopy(bookId: number, campusId?: number | null): Observable<Book> {
+    this.bookCache.delete(bookId);
     const options = campusId ? { params: { campusId } } : {};
     return this.http.post<Book>(`${this.apiUrl}/${bookId}/copies`, {}, options);
   }
@@ -227,18 +237,20 @@ export class BookService {
   public updateBookCopyCondition(
     copyId: number,
     condition: BookCondition,
-  ): Observable<{ bookCopyId: number; condition: BookCondition }> {
-    return this.http.patch<{ bookCopyId: number; condition: BookCondition }>(
+  ): Observable<{ bookCopyId: number; identifier?: string | null; condition: BookCondition }> {
+    return this.http.patch<{ bookCopyId: number; identifier?: string | null; condition: BookCondition }>(
       `${environment.apiUrl}/book-copies/${copyId}/condition`,
       { condition },
     );
   }
 
   public deleteBookCopy(copyId: number): Observable<void> {
+    this.bookCache.clear();
     return this.http.delete<void>(`${environment.apiUrl}/book-copies/${copyId}`);
   }
 
   public deleteAllBookCopies(bookId: number): Observable<void> {
+    this.bookCache.delete(bookId);
     return this.http.delete<void>(`${environment.apiUrl}/book-copies/book/${bookId}`);
   }
 

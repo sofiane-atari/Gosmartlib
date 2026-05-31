@@ -455,7 +455,7 @@
                             [class.copy-condition-row--lost]="isLostCopy(copy)"
                           >
                             <div>
-                              <strong>Exemplaar #{{ copy.id }}</strong>
+                              <strong>Exemplaar {{ getCopyDisplayIdentifier(copy) }}</strong>
 
                               @if (isLostCopy(copy)) {
                                 <span class="copy-lost-badge">Verloren</span>
@@ -467,7 +467,7 @@
                               }
                             </div>
 
-                            @if (roleService.canAccessAdminOnlyFeatures()) {
+                            @if (roleService.canManageBooks()) {
                               <label>
                                 <span>Wijzig staat</span>
 
