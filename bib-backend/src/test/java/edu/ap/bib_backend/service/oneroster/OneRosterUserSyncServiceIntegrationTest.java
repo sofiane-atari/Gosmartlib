@@ -67,6 +67,8 @@ class OneRosterUserSyncServiceIntegrationTest {
             "role", "student"
         );
         when(oneRosterClient.fetchUsers("int-sync.smartschool.be")).thenReturn(List.of(rosterUser));
+        when(oneRosterClient.fetchEnrollments("int-sync.smartschool.be")).thenReturn(List.of());
+        when(oneRosterClient.fetchClasses("int-sync.smartschool.be")).thenReturn(List.of());
 
         // Act
         syncService.syncAllSchools();
