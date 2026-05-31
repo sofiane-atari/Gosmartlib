@@ -260,14 +260,29 @@ public class SchoolService {
                 executePurgeDelete("DELETE FROM loans WHERE campus_id IN ("
                                 + schoolCampuses + ")", schoolId);
 
+                @SuppressWarnings("unchecked")
+                var bookIdNumbers = entityManager.createNativeQuery(
+                                "SELECT bc.book_id FROM book_copies bc WHERE bc.campus_id IN (SELECT c.id FROM campuses c WHERE c.school_id = :schoolId)")
+                                .setParameter("schoolId", schoolId)
+                                .getResultList();
+
                 executePurgeDelete("DELETE FROM book_genres WHERE book_id IN ("
                                 + schoolBooks + ")", schoolId);
                 executePurgeDelete("DELETE FROM book_tags WHERE book_id IN ("
                                 + schoolBooks + ")", schoolId);
-                executePurgeDelete("DELETE FROM books WHERE id IN ("
-                                + schoolBooks + ")", schoolId);
                 executePurgeDelete("DELETE FROM book_copies WHERE campus_id IN ("
                                 + schoolCampuses + ")", schoolId);
+
+                if (!bookIdNumbers.isEmpty()) {
+                        var ids = new StringBuilder();
+                        for (var id : bookIdNumbers) {
+                                if (ids.length() > 0)
+                                        ids.append(",");
+                                ids.append(id.toString());
+                        }
+                        entityManager.createNativeQuery("DELETE FROM books WHERE id IN (" + ids + ")")
+                                        .executeUpdate();
+                }
 
                 executePurgeDelete("DELETE FROM auth_sessions WHERE user_id IN ("
                                 + schoolUsers + ")", schoolId);
