@@ -2,8 +2,14 @@
   <section class="extend-modal" (click)="$event.stopPropagation()">
     <header class="extend-modal__header">
       <div>
-        <h2>Lening verlengen</h2>
-        <p>Kies een nieuwe verlenging voor deze lening.</p>
+        <h2>{{ isBulkExtension() ? 'Alle leningen verlengen' : 'Lening verlengen' }}</h2>
+        <p>
+          {{
+            isBulkExtension()
+              ? 'Kies een verlenging voor alle verlengbare leningen.'
+              : 'Kies een nieuwe verlenging voor deze lening.'
+          }}
+        </p>
       </div>
 
       <button type="button" class="icon-button" (click)="close()">
@@ -20,12 +26,15 @@
         <strong> {{ loanTitle() }}</strong>
         <strong>Lening van {{ loanOwnerName() }}</strong>
         <span
-          >Huidige retourdatum:
-          {{ loan().returnDate | date: "dd/MM/yyyy" }}</span
+          >{{ isBulkExtension() ? 'Laatste huidige retourdatum' : 'Huidige retourdatum' }}:
+          {{ latestCurrentReturnDate() | date: "dd/MM/yyyy" }}</span
         >
         <span
-          >Al {{ loan().extensionCount ?? 0 }} van maximaal 2 keer
-          verlengd.</span
+          >{{
+            isBulkExtension()
+              ? 'Alleen leningen die nog verlengbaar zijn worden meegenomen.'
+              : 'Al ' + (loan().extensionCount ?? 0) + ' van maximaal 2 keer verlengd.'
+          }}</span
         >
       </div>
     </div>
@@ -99,6 +108,8 @@
       >
         @if (isSubmitting()) {
           Verlengen...
+        } @else if (isBulkExtension()) {
+          Alle leningen verlengen
         } @else {
           Verleng lening
         }

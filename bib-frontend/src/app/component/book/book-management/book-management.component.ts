@@ -48,6 +48,7 @@ export class BookManagementComponent implements OnInit {
   private readonly toastService = inject(ToastService);
 
   protected readonly selectedLoanToExtend = signal<Loan | null>(null);
+  protected readonly selectedLoansToExtend = signal<Loan[] | null>(null);
 
   protected readonly BookOpen = BookOpen;
   protected readonly RotateCcw = RotateCcw;
@@ -274,10 +275,26 @@ export class BookManagementComponent implements OnInit {
     }
 
     this.selectedLoanToExtend.set(loan);
+    this.selectedLoansToExtend.set(null);
+  }
+
+  protected openExtendAllLoansModal(group: LoanGroup, event: MouseEvent): void {
+    event.stopPropagation();
+
+    const extendableLoans = this.getExtendableLoans(group);
+
+    if (extendableLoans.length === 0) {
+      this.toastService.show('Er zijn geen leningen die verlengd kunnen worden.', 'error');
+      return;
+    }
+
+    this.selectedLoanToExtend.set(extendableLoans[0]);
+    this.selectedLoansToExtend.set(extendableLoans);
   }
 
   protected closeExtendLoanModal(): void {
     this.selectedLoanToExtend.set(null);
+    this.selectedLoansToExtend.set(null);
   }
 
   protected handleLoanExtended(updatedLoan: Loan): void {
@@ -288,12 +305,27 @@ export class BookManagementComponent implements OnInit {
     );
 
     this.selectedLoanToExtend.set(null);
+    this.selectedLoansToExtend.set(null);
     this.loadLoans();
     this.loadLoanStats();
   }
   
   protected canExtendLoan(loan: Loan): boolean {
     return !loan.returnedDate && (loan.extensionCount ?? 0) < 2;
+  }
+
+  protected getExtendableLoans(group: LoanGroup): Loan[] {
+    return [...group.loans]
+      .filter((loan) => this.canExtendLoan(loan))
+      .sort(
+        (firstLoan, secondLoan) =>
+          new Date(firstLoan.returnDate).getTime() -
+          new Date(secondLoan.returnDate).getTime(),
+      );
+  }
+
+  protected getDirectExtendLoan(group: LoanGroup): Loan | null {
+    return this.getExtendableLoans(group)[0] ?? null;
   }
 
   getGroupLoanCount(group: LoanGroup): number {
@@ -330,8 +362,27 @@ export class BookManagementComponent implements OnInit {
     return 'status-badge status-badge--active';
   }
 
-  getGroupReturnDate(group: LoanGroup): string | null {
-    return group.earliestReturnDate;
+  getDisplayDate(loan: Loan): string | null {
+    return loan.returnedDate ?? loan.returnDate ?? null;
+  }
+
+  getDisplayDateLabel(loan: Loan): string {
+    return loan.returnedDate ? 'Teruggebracht op' : 'Retourdatum';
+  }
+
+  getGroupDisplayDate(group: LoanGroup): string | null {
+    if (group.groupStatus !== 'RETURNED') {
+      return group.earliestReturnDate;
+    }
+
+    return group.loans
+      .map((loan) => loan.returnedDate)
+      .filter((date): date is NonNullable<Loan['returnedDate']> => Boolean(date))
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
+  }
+
+  getGroupDisplayDateLabel(group: LoanGroup): string {
+    return group.groupStatus === 'RETURNED' ? 'Teruggebracht op' : 'Retourdatum';
   }
 
   getGroupTimeLeftText(group: LoanGroup): string {

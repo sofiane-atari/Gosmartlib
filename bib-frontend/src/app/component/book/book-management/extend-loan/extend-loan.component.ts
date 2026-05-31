@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Calendar, Clock, LucideAngularModule, X } from 'lucide-angular';
+import { forkJoin } from 'rxjs';
 import { Loan } from '../../../../model/loan/loan.model';
 import {
   LoanExtensionRequest,
@@ -31,6 +32,7 @@ export class ExtendLoanComponent {
 
   public readonly loanExtended = output<Loan>();
   public readonly loan = input.required<Loan>();
+  public readonly loans = input<Loan[] | null>(null);
 
   public readonly cancelled = output<void>();
 
@@ -47,8 +49,30 @@ export class ExtendLoanComponent {
     () => this.selectedExtensionType() === 'CUSTOM_DATE',
   );
 
+  protected readonly loansToExtend = computed(() => {
+    const loans = this.loans();
+
+    if (loans && loans.length > 0) {
+      return loans;
+    }
+
+    return [this.loan()];
+  });
+
+  protected readonly isBulkExtension = computed(
+    () => this.loansToExtend().length > 1,
+  );
+
+  protected readonly latestCurrentReturnDate = computed(() =>
+    this.loansToExtend()
+      .map((loan) => new Date(loan.returnDate))
+      .sort((firstDate, secondDate) => secondDate.getTime() - firstDate.getTime())[0]
+      .toISOString()
+      .slice(0, 10),
+  );
+
   protected readonly minimumCustomReturnDate = computed(() => {
-    const currentReturnDate = new Date(this.loan().returnDate);
+    const currentReturnDate = new Date(this.latestCurrentReturnDate());
     currentReturnDate.setDate(currentReturnDate.getDate() + 1);
 
     return currentReturnDate.toISOString().slice(0, 10);
@@ -80,10 +104,10 @@ export class ExtendLoanComponent {
       return;
     }
 
-    const currentLoan = this.loan();
+    const loansToExtend = this.loansToExtend();
 
-    if (!currentLoan.id) {
-      this.toastService.show('Lening kon niet gevonden worden.', 'error');
+    if (loansToExtend.some((loan) => !loan.id)) {
+      this.toastService.show('Niet alle leningen konden gevonden worden.', 'error');
       return;
     }
 
@@ -98,20 +122,36 @@ export class ExtendLoanComponent {
 
     this.isSubmitting.set(true);
 
-    this.loansService.extendLoan(currentLoan.id, request).subscribe({
-      next: (updatedLoan) => {
+    forkJoin(
+      loansToExtend.map((loan) => this.loansService.extendLoan(loan.id!, request)),
+    ).subscribe({
+      next: (updatedLoans) => {
         this.isSubmitting.set(false);
-        this.toastService.show('De lening werd succesvol verlengd.', 'success');
-        this.loanExtended.emit(updatedLoan);
+        this.toastService.show(
+          this.isBulkExtension()
+            ? 'Alle leningen werden succesvol verlengd.'
+            : 'De lening werd succesvol verlengd.',
+          'success',
+        );
+        this.loanExtended.emit(updatedLoans[0]);
       },
       error: () => {
         this.isSubmitting.set(false);
-        this.toastService.show('De lening kon niet verlengd worden.', 'error');
+        this.toastService.show(
+          this.isBulkExtension()
+            ? 'Niet alle leningen konden verlengd worden.'
+            : 'De lening kon niet verlengd worden.',
+          'error',
+        );
       },
     });
   }
 
   protected readonly loanTitle = computed(() => {
+    if (this.isBulkExtension()) {
+      return `${this.loansToExtend().length} verlengbare leningen`;
+    }
+
     const loan = this.loan();
 
     if (!loan.books || loan.books.length === 0) {

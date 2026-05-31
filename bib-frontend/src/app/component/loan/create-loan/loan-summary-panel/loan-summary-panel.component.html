@@ -50,12 +50,16 @@
                 <label class="copy-selection-field">
                     <span>Te lenen exemplaar {{ slot + 1 }}</span>
                     <select
-                        [value]="getSelectedCopyId(item.book, slot) ?? ''"
                         (change)="onCopySelectionChange(item.book, slot, $event)"
                     >
+                        <option value="" disabled [selected]="getSelectedCopyId(item.book, slot) === null">Kies een exemplaar</option>
                         @for (copy of getAvailableCopies(item.book); track copy.id) {
-                            <option [value]="copy.id" [disabled]="isCopyDisabled(item.book, copy, slot)">
-                                {{ getCopyLabel(copy, $index) }}
+                            <option
+                                [value]="copy.id"
+                                [disabled]="isCopyDisabled(item.book, copy, slot)"
+                                [selected]="isCopySelected(item.book, copy, slot)"
+                            >
+                                {{ getCopyLabel(copy) }}
                             </option>
                         }
                     </select>
