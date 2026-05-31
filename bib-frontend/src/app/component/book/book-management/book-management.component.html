@@ -59,7 +59,7 @@
   <section class="table-card">
     <div class="table-card__header">
       <div>
-        <h2>Boekoverzicht</h2>
+        <h2>Leningoverzicht</h2>
       </div>
     </div>
 
@@ -70,7 +70,7 @@
             <th class="text-center">Gebruiker</th>
             <th class="text-center">Boek</th>
             <th class="text-center">Aantal boeken</th>
-            <th class="text-center">Retourdatum</th>
+            <th class="text-center">Datum</th>
             <th class="text-center">Tijd over</th>
             <th class="text-center">Status</th>
             <th class="text-center">Actie</th>
@@ -159,8 +159,10 @@
                   {{ getGroupBookCount(group) }}
                 </span>
               </td>
-              <td class="text-center" data-label="Retourdatum">
-                {{ getGroupReturnDate(group) | date: "dd/MM/yyyy" }}
+              <td class="text-center" [attr.data-label]="getGroupDisplayDateLabel(group)">
+                <span class="date-chip" [class.date-chip--returned]="group.groupStatus === 'RETURNED'">
+                  {{ getGroupDisplayDate(group) | date: "dd/MM/yyyy" }}
+                </span>
               </td>
               <td class="text-center" data-label="Tijd over">
                 <span [class]="getGroupTimeLeftClass(group)">
@@ -203,9 +205,11 @@
                             <strong>Geen boek gekoppeld</strong>
                           }
 
-                          <small>
-                            Retourdatum:
-                            {{ loan.returnDate | date: "dd/MM/yyyy" }}
+                          <small class="loan-details__date-line">
+                            {{ getDisplayDateLabel(loan) }}:
+                            <span class="date-chip date-chip--small" [class.date-chip--returned]="loan.returnedDate">
+                              {{ getDisplayDate(loan) | date: "dd/MM/yyyy" }}
+                            </span>
                           </small>
 
                           <small>

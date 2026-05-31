@@ -328,8 +328,27 @@ export class BookManagementComponent implements OnInit {
     return 'status-badge status-badge--active';
   }
 
-  getGroupReturnDate(group: LoanGroup): string | null {
-    return group.earliestReturnDate;
+  getDisplayDate(loan: Loan): string | null {
+    return loan.returnedDate ?? loan.returnDate ?? null;
+  }
+
+  getDisplayDateLabel(loan: Loan): string {
+    return loan.returnedDate ? 'Teruggebracht op' : 'Retourdatum';
+  }
+
+  getGroupDisplayDate(group: LoanGroup): string | null {
+    if (group.groupStatus !== 'RETURNED') {
+      return group.earliestReturnDate;
+    }
+
+    return group.loans
+      .map((loan) => loan.returnedDate)
+      .filter((date): date is NonNullable<Loan['returnedDate']> => Boolean(date))
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
+  }
+
+  getGroupDisplayDateLabel(group: LoanGroup): string {
+    return group.groupStatus === 'RETURNED' ? 'Teruggebracht op' : 'Retourdatum';
   }
 
   getGroupTimeLeftText(group: LoanGroup): string {
