@@ -3,7 +3,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .page-header {
@@ -14,7 +14,7 @@
 }
 
 .page-header__text h1 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #1a0a10;
   letter-spacing: -0.5px;
@@ -22,7 +22,7 @@
 }
 
 .page-header__text p {
-  font-size: 14px;
+  font-size: 13px;
   color: #7a5560;
   margin: 4px 0 0;
 }
@@ -79,25 +79,25 @@
 .search-panel {
   background: #fff;
   border: 1px solid #f0e4e8;
-  border-radius: 14px;
-  padding: 18px 20px;
+  border-radius: 12px;
+  padding: 14px 18px;
 }
 
 .table-card {
   background: #fff;
   border: 1px solid #f0e4e8;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
 }
 
 .table-card__header {
-  padding: 22px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid #f0e4e8;
 }
 
 .table-card__header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   color: #1a0a10;
 }
 
@@ -108,15 +108,15 @@
 }
 
 .empty-state {
-  padding: 56px 24px;
+  padding: 40px 24px;
   text-align: center;
   color: #7a5560;
 }
 
 .empty-state__icon {
-  width: 58px;
-  height: 58px;
-  border-radius: 16px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   background: #f9f4f6;
   color: var(--main-color);
   display: grid;
@@ -125,19 +125,19 @@
 }
 
 .empty-state__icon lucide-icon {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
 }
 
 .empty-state h3 {
   margin: 0 0 6px;
   color: #1a0a10;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .empty-state p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 lucide-icon {
@@ -160,18 +160,18 @@ lucide-icon {
 
 .table-card th {
   color: #1a0a10;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-bottom: 1px solid #f0e4e8;
   background: #fff;
 }
 
 .table-card td {
-  padding: 16px 18px;
+  padding: 10px 16px;
   border-bottom: 1px solid #f0e4e8;
   color: #1a0a10;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .table-card tr:last-child td {
@@ -195,10 +195,76 @@ lucide-icon {
   background: #fff7fb;
 }
 
+.loan-row--skeleton {
+  pointer-events: none;
+  background-color: transparent !important;
+}
+
+.skeleton-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1e8eb 20%, #e6d6dc 50%, #f1e8eb 80%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.skeleton-cell-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.skeleton--text-main {
+  width: 90px;
+  height: 14px;
+}
+
+.skeleton--text-sub {
+  width: 60px;
+  height: 10px;
+}
+
+.skeleton--badge {
+  width: 28px;
+  height: 22px;
+  border-radius: 999px;
+  margin: 0 auto;
+}
+
+.skeleton--date {
+  width: 75px;
+  height: 14px;
+  margin: 0 auto;
+}
+
+.skeleton--badge-wide {
+  width: 75px;
+  height: 22px;
+  border-radius: 999px;
+  margin: 0 auto;
+}
+
+.skeleton--button {
+  width: 75px;
+  height: 26px;
+  border-radius: 8px;
+  margin: 0 auto;
+}
+
 .user-cell {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .user-cell--center {
@@ -208,21 +274,21 @@ lucide-icon {
 
 .user-cell strong {
   color: #1a0a10;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .user-cell span {
   color: #9b7a84;
-  font-size: 13px;
-  max-width: 180px;
+  font-size: 11px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .book-cell {
-  max-width: 280px;
+  max-width: 250px;
   margin: 0 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -231,13 +297,13 @@ lucide-icon {
   gap: 6px;
   background: #f9f4f6;
   border: 1px solid #f0e4e8;
-  border-radius: 10px;
-  padding: 8px 12px;
+  border-radius: 8px;
+  padding: 6px 10px;
 }
 
 .book-cell strong {
   color: #1a0a10;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -246,7 +312,7 @@ lucide-icon {
 
 .book-cell small {
   color: #7a5560;
-  font-size: 12px;
+  font-size: 11px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -256,13 +322,13 @@ lucide-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
-  height: 30px;
+  min-width: 28px;
+  height: 24px;
   border-radius: 999px;
   background: #f9f4f6;
   border: 1px solid #f0e4e8;
   color: #1a0a10;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -271,10 +337,10 @@ lucide-icon {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 4px 10px;
   background: #f9f4f6;
   color: #7a5560;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -299,8 +365,8 @@ lucide-icon {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -331,12 +397,12 @@ lucide-icon {
   background: var(--main-color);
   color: #fff;
   border-radius: 999px;
-  padding: 9px 14px;
+  padding: 7px 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   transition:
@@ -366,8 +432,8 @@ lucide-icon {
 }
 
 .btn-return lucide-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 .loan-details-row td {
@@ -376,7 +442,7 @@ lucide-icon {
 }
 
 .loan-details {
-  padding: 18px 24px 22px;
+  padding: 14px 20px 18px;
   border-top: 1px solid #f0e4e8;
   text-align: left;
 }
@@ -392,12 +458,12 @@ lucide-icon {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .loan-details__header strong {
   color: #1a0a10;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .loan-details__header small {
@@ -409,7 +475,7 @@ lucide-icon {
 
 .loan-details__header span {
   color: #7a5560;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -423,25 +489,25 @@ lucide-icon {
 
 .loan-details__books {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
 }
 
 .loan-details__book {
   background: #fff;
   border: 1px solid #f0e4e8;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 8px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .loan-details__book--returnable {
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
   box-shadow: 0 8px 20px rgba(138, 30, 65, 0.04);
 }
 
@@ -450,17 +516,17 @@ lucide-icon {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .loan-details__meta-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 3px;
   color: #7a5560;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -471,12 +537,12 @@ lucide-icon {
 
 .loan-details__book strong {
   color: #1a0a10;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .loan-details__book small {
   color: #7a5560;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .muted {
@@ -490,13 +556,13 @@ lucide-icon {
   }
 
   .table-card table {
-    min-width: 980px;
+    min-width: 800px;
   }
 }
 
 @media (max-width: 768px) {
   .book-management {
-    gap: 20px;
+    gap: 16px;
   }
 
   .page-header {
@@ -504,7 +570,7 @@ lucide-icon {
   }
 
   .page-header__text h1 {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .search-box {
@@ -536,7 +602,7 @@ lucide-icon {
   .table-card tr {
     margin-bottom: 0.75rem;
     border: 1px solid #f0e4e8;
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 0.5rem 0;
     background: #fff;
   }
@@ -547,10 +613,11 @@ lucide-icon {
     gap: 0.75rem;
     align-items: center;
     word-break: break-word;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 1rem;
     border: none;
     border-bottom: 1px solid #f5eef0;
     text-align: right;
+    font-size: 13px;
   }
 
   .table-card td:last-child {
