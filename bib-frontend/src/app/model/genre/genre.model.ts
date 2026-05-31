@@ -3,7 +3,7 @@ export interface Genre {
   name: string;
   color: string;
   description: string;
-  booksCount?: number;
+  bookCount?: number;
   subGenres?: Genre[];
 }
 export interface CreateGenreRequest {
