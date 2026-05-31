@@ -2,6 +2,7 @@ package edu.ap.bib_backend.service.user;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -146,6 +147,62 @@ class CurrentUserServiceTest {
                 () -> currentUserService.getCurrentUserSchool(auth));
 
         assertEquals("Gebruiker heeft geen school gekoppeld.", exception.getMessage());
+    }
+
+    @Test
+    void givenAdminWithActiveSchoolOverride_whenGetCurrentUserSchool_thenReturnsOverrideSchool() {
+        Authentication auth = mock(Authentication.class);
+        lenient().when(auth.getName()).thenReturn("admin-user");
+        when(auth.getAuthorities()).thenReturn(
+                (java.util.Collection) Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        when(activeSchoolContext.getActiveSchoolId()).thenReturn(99L);
+
+        School overrideSchool = new School();
+        overrideSchool.setId(99L);
+        overrideSchool.setDomainName("override.smartschool.be");
+        when(schoolRepository.findById(99L)).thenReturn(Optional.of(overrideSchool));
+
+        School result = currentUserService.getCurrentUserSchool(auth);
+
+        assertEquals(99L, result.getId());
+        assertEquals("override.smartschool.be", result.getDomainName());
+    }
+
+    @Test
+    void givenAdminWithoutDbUserAndWithoutOverride_whenGetCurrentUserSchool_thenThrowsWithHeaderMessage() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("admin-no-db");
+        when(auth.getAuthorities()).thenReturn(
+                (java.util.Collection) Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        when(activeSchoolContext.getActiveSchoolId()).thenReturn(null);
+        lenient().when(userRepository.findById("admin-no-db")).thenReturn(Optional.empty());
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> currentUserService.getCurrentUserSchool(auth));
+
+        assertTrue(exception.getMessage().contains("X-Active-School-Id"));
+    }
+
+    @Test
+    void givenAdminWithoutDbUserButWithOverride_whenGetCurrentUserSchool_thenReturnsOverrideSchool() {
+        Authentication auth = mock(Authentication.class);
+        lenient().when(auth.getName()).thenReturn("admin-no-db");
+        when(auth.getAuthorities()).thenReturn(
+                (java.util.Collection) Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        when(activeSchoolContext.getActiveSchoolId()).thenReturn(42L);
+
+        School overrideSchool = new School();
+        overrideSchool.setId(42L);
+        overrideSchool.setDomainName("override42.smartschool.be");
+        when(schoolRepository.findById(42L)).thenReturn(Optional.of(overrideSchool));
+
+        School result = currentUserService.getCurrentUserSchool(auth);
+
+        assertEquals(42L, result.getId());
+        assertEquals("override42.smartschool.be", result.getDomainName());
     }
 
     @ParameterizedTest

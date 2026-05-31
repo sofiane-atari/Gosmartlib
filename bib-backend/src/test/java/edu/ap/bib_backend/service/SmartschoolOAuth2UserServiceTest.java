@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -303,6 +304,129 @@ class SmartschoolOAuth2UserServiceTest {
         verify(userService, never()).getUser(anyString());
         verify(roleService, never()).getRoleEntity(anyString());
         verify(groupService, never()).getGroup(any(), anyString());
+
+        mockRestServiceServer.verify();
+    }
+
+    @Test
+    @DisplayName("givenEnvAdminUser whenLoadUser thenReturnsAdminRoleAndBypassesDbCheck")
+    void givenEnvAdminUser_whenLoadUser_thenReturnsAdminRoleAndBypassesDbCheck() {
+        String accessTokenValue = "access-token-env-admin";
+        OAuth2UserRequest userRequest = createUserRequest(accessTokenValue);
+
+        when(envAdminService.isEnvAdmin("env-admin-user", SCHOOL_DOMAIN_NAME)).thenReturn(true);
+
+        when(smartschoolProfileService.fetchGroups(accessTokenValue))
+                .thenReturn(new SmartschoolGroupDto("2ITSOF1", List.of("Leerlingen")));
+
+        expectUserInfoRequest(accessTokenValue, """
+            {
+              "userID": "env-admin-user",
+              "basisrol": "leerling",
+              "platform": "https://aphogeschool.smartschool.be"
+            }
+            """);
+
+        expectGroupInfoRequest(accessTokenValue, """
+            {
+              "groups": [
+                {
+                  "groupID": "7868b96OFO4=",
+                  "name": "2ITSOF1",
+                  "description": "2ITSOF1",
+                  "platform": "https://aphogeschool.smartschool.be"
+                }
+              ],
+              "parentGroups": []
+            }
+            """);
+
+        OAuth2User result = smartschoolOAuth2UserService.loadUser(userRequest);
+
+        assertEquals("env-admin-user", result.getAttribute("userID"));
+        assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        assertEquals(1L, ((Long) result.getAttribute("schoolId")).longValue());
+        assertEquals(SCHOOL_DOMAIN_NAME, result.getAttribute("schoolCode"));
+
+        verify(userService, never()).getUser(anyString());
+        verify(userService, never()).createUser(anyString(), any(), any());
+        verify(userService, never()).save(any());
+
+        mockRestServiceServer.verify();
+    }
+
+    @Test
+    @DisplayName("givenEnvAdminUserWithUnknownSchool whenLoadUser thenReturnsAdminRoleWithNullSchoolId")
+    void givenEnvAdminUserWithUnknownSchool_whenLoadUser_thenReturnsAdminRoleWithNullSchoolId() {
+        String accessTokenValue = "access-token-env-admin-unknown-school";
+        OAuth2UserRequest userRequest = createUserRequest(accessTokenValue);
+
+        String unknownDomain = "unknown.smartschool.be";
+
+        when(envAdminService.isEnvAdmin("env-admin-unknown", unknownDomain)).thenReturn(true);
+        when(schoolRepository.findByDomainName(unknownDomain)).thenReturn(Optional.empty());
+        when(smartschoolProfileService.fetchGroups(accessTokenValue))
+                .thenThrow(new RuntimeException("not available"));
+
+        expectUserInfoRequest(accessTokenValue, """
+            {
+              "userID": "env-admin-unknown",
+              "basisrol": "leerling",
+              "platform": "https://unknown.smartschool.be"
+            }
+            """);
+
+        expectGroupInfoRequest(accessTokenValue, """
+            {
+              "groups": [],
+              "parentGroups": []
+            }
+            """);
+
+        OAuth2User result = smartschoolOAuth2UserService.loadUser(userRequest);
+
+        assertEquals("env-admin-unknown", result.getAttribute("userID"));
+        assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        assertNull(result.getAttribute("schoolId"));
+        assertEquals(unknownDomain, result.getAttribute("schoolCode"));
+
+        verify(userService, never()).getUser(anyString());
+        verify(userService, never()).save(any());
+
+        mockRestServiceServer.verify();
+    }
+
+    @Test
+    @DisplayName("givenEnvAdminUserWithUsername matchWhenIsEnvAdmin thenReturnsAdminRole")
+    void givenEnvAdminUserWithUsername_whenLoadUser_thenReturnsAdminRole() {
+        String accessTokenValue = "access-token-env-admin-username";
+        OAuth2UserRequest userRequest = createUserRequest(accessTokenValue);
+
+        when(envAdminService.isEnvAdmin("encrypted123", SCHOOL_DOMAIN_NAME)).thenReturn(false);
+        when(envAdminService.isEnvAdmin("sof1.yazan.aldarra", SCHOOL_DOMAIN_NAME)).thenReturn(true);
+        when(smartschoolProfileService.fetchGroups(accessTokenValue))
+                .thenThrow(new RuntimeException("not available"));
+
+        expectUserInfoRequest(accessTokenValue, """
+            {
+              "userID": "encrypted123",
+              "username": "sof1.yazan.aldarra",
+              "basisrol": "leerling",
+              "platform": "https://aphogeschool.smartschool.be"
+            }
+            """);
+
+        expectGroupInfoRequest(accessTokenValue, """
+            {
+              "groups": [],
+              "parentGroups": []
+            }
+            """);
+
+        OAuth2User result = smartschoolOAuth2UserService.loadUser(userRequest);
+
+        assertEquals("encrypted123", result.getAttribute("userID"));
+        assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
         mockRestServiceServer.verify();
     }
