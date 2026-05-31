@@ -20,8 +20,8 @@ describe('LoanSummaryPanelComponent', () => {
         campusId: 1,
         campusName: 'Campus 1',
         copies: [
-          { id: 10, availability: 'AVAILABLE', condition: 'GOOD_CONDITION' },
-          { id: 11, availability: 'AVAILABLE', condition: 'GOOD_CONDITION' },
+          { id: 10, identifier: '2800000000103', availability: 'AVAILABLE', condition: 'GOOD_CONDITION' },
+          { id: 11, identifier: '2800000000110', availability: 'AVAILABLE', condition: 'GOOD_CONDITION' },
         ],
       },
     ],
@@ -51,6 +51,7 @@ describe('LoanSummaryPanelComponent', () => {
     // Arrange
     const copy: BookCopyLocation = {
       id: 10,
+      identifier: '2800000000103',
       availability: 'AVAILABLE',
       condition: 'GOOD_CONDITION',
       campusId: 1,
@@ -67,6 +68,7 @@ describe('LoanSummaryPanelComponent', () => {
     // Arrange
     const copy: BookCopyLocation = {
       id: 10,
+      identifier: '2800000000103',
       availability: 'AVAILABLE',
       condition: 'GOOD_CONDITION',
       campusId: 1,
@@ -83,6 +85,7 @@ describe('LoanSummaryPanelComponent', () => {
     // Arrange
     const copy: BookCopyLocation = {
       id: 10,
+      identifier: '2800000000103',
       availability: 'AVAILABLE',
       condition: 'GOOD_CONDITION',
       campusName: 'Campus 1',
@@ -92,7 +95,7 @@ describe('LoanSummaryPanelComponent', () => {
     const result = component.getCopyLabel(copy);
 
     // Assert
-    expect(result).toBe('Exemplaar #10 - Beschikbaar (Campus 1)');
+    expect(result).toBe('Exemplaar 2800000000103 - Beschikbaar - Goede staat (Campus 1)');
   });
 
   it('Given_SelectedCopyIdsByBook_When_RenderingCopySelects_Then_EachSlotShowsItsOwnSelectedCopy', () => {
@@ -105,10 +108,10 @@ describe('LoanSummaryPanelComponent', () => {
     // Assert
     expect(selects.length).toBe(2);
     expect(selects[0].selectedOptions[0].textContent?.trim()).toBe(
-      'Exemplaar #10 - Beschikbaar (Campus 1)',
+      'Exemplaar 2800000000103 - Beschikbaar - Goede staat (Campus 1)',
     );
     expect(selects[1].selectedOptions[0].textContent?.trim()).toBe(
-      'Exemplaar #11 - Beschikbaar (Campus 1)',
+      'Exemplaar 2800000000110 - Beschikbaar - Goede staat (Campus 1)',
     );
   });
 });

@@ -1,18 +1,34 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 
-import { SessionExpiredModalComponent } from './session-expired-modal.component';
+import { AuthService } from '../../../services/authorization/auth.service';
+import { LoginService } from '../../../services/login/login.service';
+import { SessionExpiryModalComponent } from './session-expired-modal.component';
 
-describe('SessionExpiredModalComponent', () => {
-  let component: SessionExpiredModalComponent;
-  let fixture: ComponentFixture<SessionExpiredModalComponent>;
+describe('SessionExpiryModalComponent', () => {
+  let component: SessionExpiryModalComponent;
+  let fixture: ComponentFixture<SessionExpiryModalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SessionExpiredModalComponent]
+      imports: [SessionExpiryModalComponent],
+      providers: [
+        {
+          provide: AuthService,
+          useValue: {
+            isSessionWarningVisible: signal(false),
+            sessionSecondsRemaining: signal(0),
+            isSessionRefreshLoading: signal(false),
+            refreshSessionFromWarning: jasmine.createSpy('refreshSessionFromWarning'),
+            dismissSessionWarningAndLogout: jasmine.createSpy('dismissSessionWarningAndLogout'),
+          },
+        },
+        { provide: LoginService, useValue: {} },
+      ],
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SessionExpiredModalComponent);
+    fixture = TestBed.createComponent(SessionExpiryModalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
