@@ -1,5 +1,6 @@
 package edu.ap.bib_backend.config;
 
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
@@ -48,6 +49,12 @@ class SecurityConfigUnauthorizedHandlingTest {
 
     @MockitoBean
     private OAuth2AuthorizedClientService authorizedClientService;
+
+    @MockitoBean
+    private ActiveSchoolContext activeSchoolContext;
+
+    @MockitoBean
+    private edu.ap.bib_backend.jpa.repository.SchoolRepository schoolRepository;
 
     @Test
     void Given_AnonymousRequest_When_AccessProtectedEndpoint_Then_ReturnsUnauthorizedJson() throws Exception {

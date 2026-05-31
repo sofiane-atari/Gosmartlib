@@ -81,7 +81,7 @@ public class UserService {
                 rosterUsers,
                 true);
 
-        Map<String, List<String>> enrollmentGroupsByUserId = options.isWithGroups()
+        Map<String, List<String>> enrollmentGroupsByUserId = options != null && options.isWithGroups()
                 ? buildEnrollmentGroups(schoolCode, smartschoolToken, rosterUsers)
                 : Map.of();
 

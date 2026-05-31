@@ -9,6 +9,7 @@ import edu.ap.bib_backend.jpa.entity.lessontips.LessonTip;
 import edu.ap.bib_backend.jpa.enums.LessonTipType;
 import edu.ap.bib_backend.jpa.repository.lessontips.LessonTipRepository;
 import edu.ap.bib_backend.mapper.lessontips.LessonTipMapperImpl;
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.lessontips.LessonTipAuthorizationService;
@@ -78,6 +79,9 @@ class LessonTipIntegrationTest {
 
         @MockitoBean
         private SmartschoolOAuth2UserService smartschoolOAuth2UserService;
+
+        @MockitoBean
+        private ActiveSchoolContext activeSchoolContext;
 
         @BeforeEach
         void setUp() {

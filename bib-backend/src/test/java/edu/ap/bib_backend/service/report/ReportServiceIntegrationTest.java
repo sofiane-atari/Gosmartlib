@@ -23,8 +23,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,6 +47,7 @@ class ReportServiceIntegrationTest {
 
         private static final String PLATFORM = "https://aphogeschool.smartschool.be";
         private static final String SCHOOL_CODE = "aphogeschool.smartschool.be";
+        private static final Long SCHOOL_ID = 999001L;
 
         private static final String CLASS_2ITSOF1_SOURCED_ID = "5905_usermanagement_232";
         private static final String CLASS_2ITSOF2_SOURCED_ID = "5905_usermanagement_234";
@@ -75,36 +79,11 @@ class ReportServiceIntegrationTest {
         private OneRosterClient oneRosterClient;
 
         @BeforeEach
-        void seedAuthSession() {
-                jdbcTemplate.update(
-                                "DELETE FROM auth_sessions WHERE user_id = ?",
-                                TEACHER_USER_ID);
-
-                jdbcTemplate.update(
-                                """
-                                                INSERT INTO auth_sessions (
-                                                    user_id,
-                                                    admin_override,
-                                                    admin_override_expires_at,
-                                                    jwt_expires_at,
-                                                    jwt_token,
-                                                    role,
-                                                    smartschool_access_token,
-                                                    smartschool_access_token_expires_at,
-                                                    smartschool_refresh_token,
-                                                    smartschool_refresh_token_expires_at
-                                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                                """,
-                                TEACHER_USER_ID,
-                                false,
-                                null,
-                                Timestamp.valueOf(LocalDateTime.of(2099, 1, 1, 0, 0)),
-                                JWT_TOKEN,
-                                TEACHER_ROLE,
-                                SMARTSCHOOL_ACCESS_TOKEN,
-                                Timestamp.valueOf(LocalDateTime.of(2099, 1, 1, 0, 0)),
-                                SMARTSCHOOL_REFRESH_TOKEN,
-                                Timestamp.valueOf(LocalDateTime.of(2099, 1, 1, 0, 0)));
+        void seedTestData() {
+                cleanupTestData();
+                seedSchool();
+                seedTeacherUser();
+                seedAuthSession();
         }
 
         @Test
@@ -269,6 +248,87 @@ class ReportServiceIntegrationTest {
                                 authentication)).hasMessageContaining("Klas niet gevonden");
         }
 
+        private void cleanupTestData() {
+                deleteByColumnIfExists("auth_sessions", "user_id", TEACHER_USER_ID);
+                deleteByColumnIfExists("users", "id", TEACHER_USER_ID);
+                deleteByColumnIfExists("schools", "code", SCHOOL_CODE);
+                deleteByColumnIfExists("schools", "id", SCHOOL_ID);
+        }
+
+        private void seedSchool() {
+                Map<String, Object> schoolValues = new LinkedHashMap<>();
+                schoolValues.put("id", SCHOOL_ID);
+                schoolValues.put("name", "AP Hogeschool");
+                schoolValues.put("code", SCHOOL_CODE);
+                schoolValues.put("school_code", SCHOOL_CODE);
+                schoolValues.put("platform", PLATFORM);
+                schoolValues.put("smartschool_platform", PLATFORM);
+                schoolValues.put("domain_name", SCHOOL_CODE);
+                schoolValues.put("default_loan_duration_days", 15);
+                schoolValues.put("provider_type", "REAL");
+                schoolValues.put("status", "ACTIVE");
+                schoolValues.put("catalog_visible", true);
+                schoolValues.put("catalog_featured_lists_enabled", false);
+                schoolValues.put("catalog_most_read_enabled", false);
+                schoolValues.put("catalog_newest_enabled", false);
+                schoolValues.put("created_at", Timestamp.valueOf(LocalDateTime.now()));
+                schoolValues.put("updated_at", Timestamp.valueOf(LocalDateTime.now()));
+
+                insertRowUsingExistingColumns("schools", schoolValues);
+        }
+
+        private void seedTeacherUser() {
+                Map<String, Object> userValues = new LinkedHashMap<>();
+                userValues.put("id", TEACHER_USER_ID);
+                userValues.put("user_id", TEACHER_USER_ID);
+                userValues.put("first_name", "Test");
+                userValues.put("firstname", "Test");
+                userValues.put("last_name", "Teacher");
+                userValues.put("lastname", "Teacher");
+                userValues.put("display_name", "Test Teacher");
+                userValues.put("name", "Test Teacher");
+                userValues.put("email", "teacher@test.be");
+                userValues.put("role", "TEACHER");
+                userValues.put("school_id", SCHOOL_ID);
+                userValues.put("school_code", SCHOOL_CODE);
+                userValues.put("created_at", Timestamp.valueOf(LocalDateTime.now()));
+                userValues.put("updated_at", Timestamp.valueOf(LocalDateTime.now()));
+
+                insertRowUsingExistingColumns("users", userValues);
+        }
+
+        private void seedAuthSession() {
+                jdbcTemplate.update(
+                                "DELETE FROM auth_sessions WHERE user_id = ?",
+                                TEACHER_USER_ID);
+
+                jdbcTemplate.update(
+                                """
+                                                INSERT INTO auth_sessions (
+                                                    user_id,
+                                                    admin_override,
+                                                    admin_override_expires_at,
+                                                    jwt_expires_at,
+                                                    jwt_token,
+                                                    role,
+                                                    smartschool_access_token,
+                                                    smartschool_access_token_expires_at,
+                                                    smartschool_refresh_token,
+                                                    smartschool_refresh_token_expires_at
+                                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                                """,
+                                TEACHER_USER_ID,
+                                false,
+                                null,
+                                Timestamp.valueOf(LocalDateTime.of(2099, 1, 1, 0, 0)),
+                                JWT_TOKEN,
+                                TEACHER_ROLE,
+                                SMARTSCHOOL_ACCESS_TOKEN,
+                                Timestamp.valueOf(LocalDateTime.of(2099, 1, 1, 0, 0)),
+                                SMARTSCHOOL_REFRESH_TOKEN,
+                                Timestamp.valueOf(LocalDateTime.of(2099, 1, 1, 0, 0)));
+        }
+
         private UsernamePasswordAuthenticationToken teacherAuthentication() {
                 return new UsernamePasswordAuthenticationToken(
                                 TEACHER_USER_ID,
@@ -305,5 +365,73 @@ class ReportServiceIntegrationTest {
                                                 "sourcedId", sourcedId,
                                                 "displayName", displayName),
                                 OneRosterUserDTO.class);
+        }
+
+        private void deleteByColumnIfExists(String tableName, String columnName, Object value) {
+                if (!tableExists(tableName) || !columnExists(tableName, columnName)) {
+                        return;
+                }
+
+                jdbcTemplate.update(
+                                "DELETE FROM " + tableName + " WHERE " + columnName + " = ?",
+                                value);
+        }
+
+        private void insertRowUsingExistingColumns(String tableName, Map<String, Object> values) {
+                Set<String> existingColumns = getExistingColumns(tableName);
+
+                Map<String, Object> filteredValues = values.entrySet()
+                                .stream()
+                                .filter(entry -> existingColumns.contains(entry.getKey().toLowerCase()))
+                                .collect(Collectors.toMap(
+                                                Map.Entry::getKey,
+                                                Map.Entry::getValue,
+                                                (left, right) -> left,
+                                                LinkedHashMap::new));
+
+                if (filteredValues.isEmpty()) {
+                        return;
+                }
+
+                String columns = String.join(", ", filteredValues.keySet());
+
+                String placeholders = filteredValues.keySet()
+                                .stream()
+                                .map(column -> "?")
+                                .collect(Collectors.joining(", "));
+
+                String sql = "INSERT INTO " + tableName + " (" + columns + ") VALUES (" + placeholders + ")";
+
+                jdbcTemplate.update(sql, filteredValues.values().toArray());
+        }
+
+        private boolean tableExists(String tableName) {
+                Integer count = jdbcTemplate.queryForObject(
+                                """
+                                                SELECT COUNT(*)
+                                                FROM INFORMATION_SCHEMA.TABLES
+                                                WHERE LOWER(TABLE_NAME) = LOWER(?)
+                                                """,
+                                Integer.class,
+                                tableName);
+
+                return count != null && count > 0;
+        }
+
+        private boolean columnExists(String tableName, String columnName) {
+                return getExistingColumns(tableName).contains(columnName.toLowerCase());
+        }
+
+        private Set<String> getExistingColumns(String tableName) {
+                return jdbcTemplate.queryForList(
+                                """
+                                                SELECT LOWER(COLUMN_NAME)
+                                                FROM INFORMATION_SCHEMA.COLUMNS
+                                                WHERE LOWER(TABLE_NAME) = LOWER(?)
+                                                """,
+                                String.class,
+                                tableName)
+                                .stream()
+                                .collect(Collectors.toSet());
         }
 }

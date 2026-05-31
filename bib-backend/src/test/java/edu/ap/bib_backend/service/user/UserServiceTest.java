@@ -150,7 +150,7 @@ class UserServiceTest {
         School school = new School();
         school.setDomainName("test.smartschool.be");
         currentUser.setSchool(school);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(school);
 
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 
@@ -190,7 +190,7 @@ class UserServiceTest {
         School school = new School();
         school.setDomainName("test.smartschool.be");
         currentUser.setSchool(school);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(school);
 
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 
@@ -240,7 +240,7 @@ class UserServiceTest {
         User currentUser = new User();
         currentUser.setId(userId);
         currentUser.setSchool(school);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
 
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 
@@ -301,7 +301,7 @@ class UserServiceTest {
         User currentUser = new User();
         currentUser.setId(userId);
         currentUser.setSchool(school);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
 
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 
@@ -362,7 +362,7 @@ class UserServiceTest {
         User currentUser = new User();
         currentUser.setId(userId);
         currentUser.setSchool(school);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
 
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 
@@ -427,8 +427,7 @@ class UserServiceTest {
         User currentUser = new User();
         currentUser.setId(userId);
         currentUser.setSchool(currentSchool);
-        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(currentSchool);
 
         Map<String, Object> teacher = Map.of(
                 "metadata", Map.of("smsc.legacyIdentifier", "teacher-1"),
@@ -484,8 +483,7 @@ class UserServiceTest {
         User currentUser = new User();
         currentUser.setId(userId);
         currentUser.setSchool(currentSchool);
-        when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(currentSchool);
 
         Map<String, Object> teacher = Map.of(
                 "sourcedId", "oneroster-teacher-1",
@@ -546,7 +544,7 @@ class UserServiceTest {
         School school = new School();
         school.setDomainName("test.smartschool.be");
         currentUser.setSchool(school);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(school);
 
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 
@@ -605,7 +603,7 @@ class UserServiceTest {
     }
 
     @Test
-    void Given_NonAdminAuthentication_When_GetUsersBySchoolId_Then_ThrowsIllegalStateException() {
+    void Given_NonAdminAuthentication_When_GetUsersBySchoolId_Then_ThrowsAccessDeniedException() {
         // Arrange
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -614,7 +612,7 @@ class UserServiceTest {
                 .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
 
         // Act
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
                 () -> userService.getUsersBySchoolId(authentication, 1L));
 
         // Assert
@@ -643,7 +641,7 @@ class UserServiceTest {
     }
 
     @Test
-    void Given_NonPrivilegedAuthentication_When_GetTeacherStats_Then_ThrowsIllegalStateException() {
+    void Given_NonPrivilegedAuthentication_When_GetTeacherStats_Then_ThrowsAccessDeniedException() {
         // Arrange
         Authentication authentication = mock(Authentication.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -653,7 +651,7 @@ class UserServiceTest {
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn(userId);
 
         // Act
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
                 () -> userService.getTeacherStats(authentication));
 
         // Assert
@@ -688,7 +686,7 @@ class UserServiceTest {
         School school = new School();
         school.setDomainName("test.smartschool.be");
         currentUser.setSchool(school);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
+        when(currentUserService.getCurrentUserSchool(auth)).thenReturn(school);
 
         when(tokenStorageService.getSmartschoolAccessToken(userId)).thenReturn("token");
 

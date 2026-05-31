@@ -52,6 +52,9 @@ class SchoolControllerTest {
     @MockitoBean
     private TokenStorageService tokenStorageService;
 
+    @MockitoBean
+    private edu.ap.bib_backend.service.oneroster.OneRosterClient oneRosterClient;
+
     @Test
     void GivenSchoolsExist_WhenGetSchools_ThenReturn200WithSchools() throws Exception {
         // Arrange

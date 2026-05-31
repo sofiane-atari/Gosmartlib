@@ -102,6 +102,8 @@ class SystemReportServiceIntegrationTest {
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 15));
         jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (3, 'student-3', 2, 3, ?, ?, ?)",
                 LocalDate.of(2026, 5, 2), LocalDate.of(2026, 5, 16), LocalDate.of(2026, 5, 10));
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (4, 'student-2', 1, 4, ?, ?, ?)",
+                LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 15), LocalDate.of(2026, 5, 20));
     }
 
     @Test

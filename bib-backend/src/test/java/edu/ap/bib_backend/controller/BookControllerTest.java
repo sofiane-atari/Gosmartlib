@@ -99,7 +99,7 @@ public class BookControllerTest {
                                  null,
                                  0,
                                  10,
-                                BookSortOption.AZ, null)).thenReturn(page);
+                                BookSortOption.AZ, null, null)).thenReturn(page);
 
                 // Act
                 mockMvc.perform(get("/books/catalog")
@@ -127,7 +127,7 @@ public class BookControllerTest {
                                  null,
                                  0,
                                  10,
-                                BookSortOption.AZ, null);
+                                BookSortOption.AZ, null, null);
         }
 
         @Test
@@ -146,7 +146,8 @@ public class BookControllerTest {
                     Mockito.eq(0),
                     Mockito.eq(10),
                     Mockito.isNull(),
-                    Mockito.nullable(Authentication.class)))
+                    Mockito.nullable(Authentication.class),
+                    Mockito.isNull()))
                     .thenReturn(page);
 
             // Act
@@ -168,7 +169,8 @@ public class BookControllerTest {
                      Mockito.eq(0),
                      Mockito.eq(10),
                     Mockito.isNull(),
-                    Mockito.nullable(Authentication.class));
+                    Mockito.nullable(Authentication.class),
+                    Mockito.isNull());
         }
 
         @Test
@@ -185,7 +187,8 @@ public class BookControllerTest {
             Mockito.when(bs.getRelatedBooksCarousel(
                     Mockito.eq(1L),
                     Mockito.eq(5),
-                    Mockito.nullable(Authentication.class)))
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class)))
                     .thenReturn(List.of(related1, related2));
 
             // Act
@@ -200,7 +203,8 @@ public class BookControllerTest {
             Mockito.verify(bs).getRelatedBooksCarousel(
                     Mockito.eq(1L),
                     Mockito.eq(5),
-                    Mockito.nullable(Authentication.class));
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class));
         }
 
         @Test
@@ -213,7 +217,8 @@ public class BookControllerTest {
             Mockito.when(bs.getRelatedBooksCarousel(
                     Mockito.eq(1L),
                     Mockito.eq(10),
-                    Mockito.nullable(Authentication.class)))
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class)))
                     .thenReturn(List.of(related));
 
             // Act
@@ -226,7 +231,8 @@ public class BookControllerTest {
             Mockito.verify(bs).getRelatedBooksCarousel(
                     Mockito.eq(1L),
                     Mockito.eq(10),
-                    Mockito.nullable(Authentication.class));
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class));
         }
 
         @Test
@@ -355,7 +361,7 @@ public class BookControllerTest {
                 book.setImageUrl("https://example.com/image.jpg");
                 book.setReleaseYear(2021);
 
-                Mockito.when(bs.getBookById(Mockito.eq(1L), Mockito.nullable(Authentication.class))).thenReturn(book);
+                Mockito.when(bs.getBookById(Mockito.eq(1L), Mockito.nullable(Authentication.class), Mockito.nullable(Long.class))).thenReturn(book);
 
                 mockMvc.perform(get("/books/1"))
                                 .andExpect(status().isOk())
@@ -391,6 +397,7 @@ public class BookControllerTest {
 
                 // Act & Assert
                 mockMvc.perform(post("/books")
+                                .param("campusId", "1")
                                 .principal(new UsernamePasswordAuthenticationToken("test-user", "password"))
                                 .contentType("application/json")
                                 .content(new ObjectMapper().writeValueAsString(requestDTO)))
@@ -426,7 +433,8 @@ public class BookControllerTest {
 
             Mockito.when(bs.getMostReadBooks(
                     Mockito.eq(3),
-                    Mockito.nullable(Authentication.class)))
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class)))
                     .thenReturn(List.of(book1, book2, book3));
 
             // Act
@@ -440,7 +448,8 @@ public class BookControllerTest {
 
             Mockito.verify(bs).getMostReadBooks(
                     Mockito.eq(3),
-                    Mockito.nullable(Authentication.class));
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class));
         }
 
         @Test
@@ -452,7 +461,8 @@ public class BookControllerTest {
 
             Mockito.when(bs.getMostReadBooks(
                     Mockito.eq(5),
-                    Mockito.nullable(Authentication.class)))
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class)))
                     .thenReturn(List.of(book1));
 
             // Act
@@ -467,7 +477,8 @@ public class BookControllerTest {
 
             Mockito.verify(bs).getMostReadBooks(
                     Mockito.eq(5),
-                    Mockito.nullable(Authentication.class));
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class));
         }
 
         @Test
@@ -493,7 +504,8 @@ public class BookControllerTest {
 
             Mockito.when(bs.getNewestBooks(
                     Mockito.eq(3),
-                    Mockito.nullable(Authentication.class)))
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class)))
                     .thenReturn(List.of(book1, book2, book3));
 
             // Act
@@ -507,7 +519,8 @@ public class BookControllerTest {
 
             Mockito.verify(bs).getNewestBooks(
                     Mockito.eq(3),
-                    Mockito.nullable(Authentication.class));
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class));
         }
 
         @Test
@@ -519,7 +532,8 @@ public class BookControllerTest {
 
             Mockito.when(bs.getNewestBooks(
                     Mockito.eq(10),
-                    Mockito.nullable(Authentication.class)))
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class)))
                     .thenReturn(List.of(book1));
 
             // Act
@@ -534,7 +548,8 @@ public class BookControllerTest {
 
             Mockito.verify(bs).getNewestBooks(
                     Mockito.eq(10),
-                    Mockito.nullable(Authentication.class));
+                    Mockito.nullable(Authentication.class),
+                    Mockito.nullable(Long.class));
         }
 
         @Test
@@ -549,7 +564,7 @@ public class BookControllerTest {
                 book.setDescription("Beschrijving van het boek");
                 book.setReleaseYear(2022);
 
-                Mockito.when(bs.getBookByISBN(Mockito.eq("9781234567890"), Mockito.nullable(Authentication.class))).thenReturn(book);
+                Mockito.when(bs.getBookByISBN(Mockito.eq("9781234567890"), Mockito.nullable(Authentication.class), Mockito.nullable(Long.class))).thenReturn(book);
 
                 mockMvc.perform(get("/books/isbn/9781234567890"))
                                 .andExpect(status().isOk())
@@ -562,7 +577,7 @@ public class BookControllerTest {
                                 .andExpect(jsonPath("$.description").value("Beschrijving van het boek"))
                                 .andExpect(jsonPath("$.releaseYear").value(2022));
 
-                Mockito.verify(bs).getBookByISBN(Mockito.eq("9781234567890"), Mockito.nullable(Authentication.class));
+                Mockito.verify(bs).getBookByISBN(Mockito.eq("9781234567890"), Mockito.nullable(Authentication.class), Mockito.nullable(Long.class));
         }
 
         @Test

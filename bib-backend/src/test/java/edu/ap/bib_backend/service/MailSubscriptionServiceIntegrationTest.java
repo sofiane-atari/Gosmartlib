@@ -22,6 +22,7 @@ import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
+import edu.ap.bib_backend.jpa.repository.MailSubscriptionRepository;
 import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
@@ -52,24 +53,29 @@ class MailSubscriptionServiceIntegrationTest {
     @Autowired
     private RoleEntityRepository roleEntityRepository;
 
+    @Autowired
+    private MailSubscriptionRepository mailSubscriptionRepository;
+
     private User user;
     private Book book;
+    private Campus campus;
 
     @BeforeEach
     void setUp() {
+        cleanDatabase();
+
         School school = new School();
         school.setDomainName("test.school.be");
         school.setName("Test School");
         school = schoolRepository.save(school);
 
-        Campus campus = new Campus();
+        campus = new Campus();
         campus.setName("Test Campus");
         campus.setSchool(school);
         campus = campusRepository.save(campus);
 
-        RoleEntity role = new RoleEntity();
-        role.setRole(Role.STUDENT);
-        roleEntityRepository.save(role);
+        RoleEntity role = roleEntityRepository.findByRole(Role.STUDENT)
+                .orElseThrow(() -> new RuntimeException("Role STUDENT not found. Startup seeding must create it."));
 
         user = new User();
         user.setId("integration-test-user");
@@ -86,6 +92,7 @@ class MailSubscriptionServiceIntegrationTest {
         bookCopy.setBook(book);
         bookCopy.setCampus(campus);
         bookCopyRepository.save(bookCopy);
+        book.getBookCopies().add(bookCopy);
     }
 
     @Test
@@ -107,6 +114,7 @@ class MailSubscriptionServiceIntegrationTest {
 
     @Test
     void GivenExistingSubscription_WhenUnsubscribe_ThenRemovesSubscription() {
+        mailSubscriptionService.subscribe(user.getId(), book.getId());
         mailSubscriptionService.unsubscribe(user.getId(), book.getId());
 
         List<MailSubscriptionDTO> subs = mailSubscriptionService.findSubscriptionsByUser(user.getId());
@@ -128,8 +136,9 @@ class MailSubscriptionServiceIntegrationTest {
 
         BookCopy bookCopy2 = new BookCopy();
         bookCopy2.setBook(book2);
-        bookCopy2.setCampus(book.getBookCopies().get(0).getCampus());
+        bookCopy2.setCampus(campus);
         bookCopyRepository.save(bookCopy2);
+        book2.getBookCopies().add(bookCopy2);
 
         mailSubscriptionService.subscribe(user.getId(), book.getId());
         mailSubscriptionService.subscribe(user.getId(), book2.getId());
@@ -144,5 +153,14 @@ class MailSubscriptionServiceIntegrationTest {
         List<MailSubscriptionDTO> result = mailSubscriptionService.findSubscriptionsByUser(user.getId());
 
         assertTrue(result.isEmpty());
+    }
+
+    private void cleanDatabase() {
+        mailSubscriptionRepository.deleteAll();
+        bookCopyRepository.deleteAll();
+        bookRepository.deleteAll();
+        userRepository.deleteAll();
+        campusRepository.deleteAll();
+        schoolRepository.deleteAll();
     }
 }
