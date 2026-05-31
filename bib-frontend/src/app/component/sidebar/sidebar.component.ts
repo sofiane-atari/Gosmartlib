@@ -31,7 +31,7 @@ import { Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../services/role-service/role.service';
 import { UserService } from '../../services/user/user.service';
 import { SchoolService } from '../../services/school/school.service';
-import { SchoolOverrideService } from '../../services/school-override/school-override.service';
+import { SchoolOverrideService, ClassOption } from '../../services/school-override/school-override.service';
 import { SidebarActiveLoansComponent } from './sidebar-active-loans/sidebar-active-loans.component';
 import { DevFeatureWrapperComponent } from '../shared/dev-feature-wrapper/dev-feature-wrapper.component';
 import { SchoolSwitchModalComponent } from '../shared/school-switch-modal/school-switch-modal.component';
@@ -72,18 +72,50 @@ export class SidebarComponent {
 
   protected readonly devModeEnabled = signal(false);
   protected readonly isSchoolSwitchModalOpen = signal(false);
+  protected readonly modalStep = signal<'school' | 'class'>('school');
+  protected readonly selectedSchoolForClasses = signal<SchoolModel | null>(null);
   protected readonly schoolsForSwitch = signal<SchoolModel[]>([]);
+  protected readonly classesForSwitch = signal<ClassOption[]>([]);
   protected readonly isLoadingSchools = signal(false);
+  protected readonly isLoadingClasses = signal(false);
   protected readonly schoolSwitchError = signal<string | null>(null);
+  protected readonly classSwitchError = signal<string | null>(null);
 
   protected readonly isSchoolOverrideActive = computed(
     () => this.schoolOverrideService.isActive(),
+  );
+
+  protected readonly isClassOverrideActive = computed(
+    () => this.schoolOverrideService.isClassOverrideActive(),
   );
 
   protected readonly activeSchoolDisplayName = computed(() => {
     const name = this.schoolOverrideService.activeSchoolName();
     return name ?? 'Onbekende school';
   });
+
+  protected readonly activeClassDisplayName = computed(() => {
+    const names = this.schoolOverrideService.activeClassNames();
+    const count = names.length;
+    if (count === 0) {
+      return null;
+    }
+    if (count === 1) {
+      return names[0];
+    }
+    if (count === 2) {
+      return `${names[0]} en ${names[1]}`;
+    }
+    return `${names[0]} en ${count - 1} andere`;
+  });
+
+  protected readonly canSwitchClass = computed(
+    () => this.roleService.isAdmin() || this.roleService.isLibrarian(),
+  );
+
+  protected readonly switchButtonLabel = computed(() =>
+    this.roleService.isAdmin() && !this.roleService.isLibrarian() ? 'School wisselen' : 'Klas wisselen'
+  );
 
   public constructor(private readonly router: Router) {
     this.schoolService.isDevModeEnabled().subscribe({
@@ -237,16 +269,51 @@ export class SidebarComponent {
 
   public openSchoolSwitchModal(): void {
     this.schoolSwitchError.set(null);
-    this.isLoadingSchools.set(true);
+    this.classSwitchError.set(null);
     this.isSchoolSwitchModalOpen.set(true);
+
+    const isAdminOnly = this.roleService.isAdmin() && !this.roleService.isLibrarian();
+
+    if (!isAdminOnly) {
+      const userSchool = this.authService.currentUser()?.school;
+
+      if (!userSchool) {
+        this.classSwitchError.set('Kon eigen school niet laden.');
+        return;
+      }
+
+      this.isLoadingClasses.set(true);
+      this.modalStep.set('class');
+
+      const ownSchool: SchoolModel = {
+        id: userSchool.id,
+        name: userSchool.name,
+        domainName: userSchool.domainName,
+      };
+
+      this.schoolOverrideService.captureOriginalSchool(userSchool.id);
+      this.selectedSchoolForClasses.set(ownSchool);
+
+      this.schoolService.getOwnSchoolClasses().subscribe({
+        next: (classes) => {
+          this.classesForSwitch.set(classes);
+          this.isLoadingClasses.set(false);
+        },
+        error: () => {
+          this.classSwitchError.set('De klassenlijst kon niet worden opgehaald. Probeer het opnieuw.');
+          this.isLoadingClasses.set(false);
+        },
+      });
+      return;
+    }
+
+    this.isLoadingSchools.set(true);
+    this.modalStep.set('school');
+    this.selectedSchoolForClasses.set(null);
 
     this.schoolService.getAll().subscribe({
       next: (schools) => {
-        const originalId = this.schoolOverrideService.originalSchoolId()
-          ?? this.authService.currentUser()?.schoolId;
-        const activeSchools = schools
-          .filter((s) => s.status === 'ACTIVE')
-          .filter((s) => s.id !== originalId);
+        const activeSchools = schools.filter((s) => s.status === 'ACTIVE');
         this.schoolsForSwitch.set(activeSchools);
         this.isLoadingSchools.set(false);
       },
@@ -262,9 +329,40 @@ export class SidebarComponent {
     if (currentUserId) {
       this.schoolOverrideService.captureOriginalSchool(currentUserId);
     }
+
+    this.selectedSchoolForClasses.set(school);
+    this.classSwitchError.set(null);
+    this.isLoadingClasses.set(true);
+    this.modalStep.set('class');
+
+    this.schoolService.getClasses(school.id).subscribe({
+      next: (classes) => {
+        this.classesForSwitch.set(classes);
+        this.isLoadingClasses.set(false);
+      },
+      error: () => {
+        this.classSwitchError.set('De klassenlijst kon niet worden opgehaald. Probeer het opnieuw.');
+        this.isLoadingClasses.set(false);
+      },
+    });
+  }
+
+  public onClassesConfirmed(options: ClassOption[]): void {
+    const school = this.selectedSchoolForClasses();
+    if (!school) return;
+
     this.schoolOverrideService.setActiveSchool(school);
+    this.schoolOverrideService.setActiveClasses(options);
     this.isSchoolSwitchModalOpen.set(false);
     window.location.reload();
+  }
+
+  public onBackToSchools(): void {
+    if (this.roleService.isAdmin() && !this.roleService.isLibrarian()) {
+      this.modalStep.set('school');
+    } else {
+      this.isSchoolSwitchModalOpen.set(false);
+    }
   }
 
   public resetSchoolOverride(): void {
