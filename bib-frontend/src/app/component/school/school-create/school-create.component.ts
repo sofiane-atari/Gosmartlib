@@ -20,6 +20,7 @@ import { UserRolePromotionComponent } from '../user-role-promotion/user-role-pro
 import { OnerosterHelpComponent } from '../oneroster-help/oneroster-help.component';
 import { ConfirmationModalComponent } from '../../shared/confirmation-modal/confirmation-modal.component';
 import { LoadingOverlayComponent } from '../../shared/loading-overlay/loading-overlay.component';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 import {
   CREATE_SCHOOL_STEPS_1_4,
   CREATE_SCHOOL_ALL_STEPS,
@@ -43,6 +44,7 @@ import { CreateSchoolRequest, OneRosterCredentialRequest, OneRosterCredentialVal
   ],
   templateUrl: './school-create.component.html',
   styleUrl: './school-create.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class SchoolCreateComponent {
   private readonly schoolService = inject(SchoolService);

@@ -28,6 +28,7 @@ import {
 import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 import { BookService } from '../../../services/bookService/book.service';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-lesson-tip-form-page',
@@ -45,6 +46,7 @@ import { BookService } from '../../../services/bookService/book.service';
   providers: [LessonTipBookSelectionService],
   templateUrl: './lesson-tip-form-page.component.html',
   styleUrl: './lesson-tip-form-page.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class LessonTipFormPageComponent {
   private readonly lessonTipService = inject(LessonTipService);

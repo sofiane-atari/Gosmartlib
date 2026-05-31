@@ -35,6 +35,7 @@ import {
 } from '../../../model/loan/loan-wizard.model';
 import { StepWizardComponent } from '../../shared/step-wizard/step-wizard.component';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-create-loan',
@@ -53,6 +54,7 @@ import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-
   ],
   templateUrl: './create-loan.component.html',
   styleUrl: './create-loan.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class CreateLoanComponent {
   protected readonly ArrowLeft = ArrowLeft;

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
+import { fadeInUpAnimation } from '../shared/animations/my-reviews.animations';
 
 import {
   LucideAngularModule,
@@ -58,6 +59,7 @@ interface AdminPromotionConfig {
   ],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css'],
+  animations: [fadeInUpAnimation],
 })
 export class UserManagementComponent {
   protected readonly Search = Search;

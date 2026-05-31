@@ -5,6 +5,7 @@ import { LucideAngularModule, Info, ArrowLeft } from 'lucide-angular';
 
 import { UserRolePromotionComponent } from '../user-role-promotion/user-role-promotion.component';
 import { ToastService } from '../../../services/toast/toast.service';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-school-assign-users',
@@ -12,6 +13,7 @@ import { ToastService } from '../../../services/toast/toast.service';
   imports: [CommonModule, LucideAngularModule, UserRolePromotionComponent],
   templateUrl: './school-assign-users.component.html',
   styleUrl: './school-assign-users.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class SchoolAssignUsersComponent {
   private readonly route = inject(ActivatedRoute);

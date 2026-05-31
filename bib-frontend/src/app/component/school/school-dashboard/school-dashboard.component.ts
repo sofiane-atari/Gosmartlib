@@ -1,22 +1,5 @@
 import { DestroyRef, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import {
-  LucideAngularModule,
-  School as SchoolIcon,
-  Building,
-  Plus,
-  Trash2,
-  Pencil,
-  Users,
-  BookOpen,
-  Landmark,
-  Flame,
-  Ban,
-  CheckCircle,
-  HelpCircle,
-  ChevronDown,
-} from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -32,6 +15,9 @@ import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-
 import { DevFeatureWrapperComponent } from '../../shared/dev-feature-wrapper/dev-feature-wrapper.component';
 import { ToastService } from '../../../services/toast/toast.service';
 import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
+import { Ban, BookOpen, Building, CheckCircle, ChevronDown, Flame, HelpCircle, Landmark, LucideAngularModule, Pencil, Plus, SchoolIcon, Trash2, Users } from 'lucide-angular';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-school-dashboard',
@@ -48,6 +34,7 @@ import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
   ],
   templateUrl: './school-dashboard.component.html',
   styleUrl: './school-dashboard.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class SchoolDashboardComponent implements OnInit {
   private readonly schoolService = inject(SchoolService);

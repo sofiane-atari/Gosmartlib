@@ -27,6 +27,7 @@ import {LucideAngularModule,
   Tag 
 } from "lucide-angular";
 import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 type PopupState = 'create' | 'edit' | null;
 
@@ -49,6 +50,7 @@ interface ErrorItem {
 ],
   templateUrl: './dashboard-genres.component.html',
   styleUrls: ['./dashboard-genres.component.css'],
+  animations: [fadeInUpAnimation],
 })
 export class DashboardGenresComponent {
   private genreService = inject(GenreService);

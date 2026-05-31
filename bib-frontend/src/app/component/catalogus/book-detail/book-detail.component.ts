@@ -27,6 +27,7 @@ import {
   Bell,
   BellOff,
 } from 'lucide-angular';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
@@ -75,8 +76,10 @@ interface CopyStatusSummary {
   ],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class BookDetailComponent implements OnInit {
+  protected readonly isLoading = signal(true);
   readonly X = X;
   readonly Library = Library;
   readonly Minus = Minus;
@@ -183,13 +186,19 @@ export class BookDetailComponent implements OnInit {
       if (id) {
         const numericBookId = +id;
 
-        this.bookService.getBookById(numericBookId, schoolId ?? undefined).subscribe((book) => {
-          this.selectedBook = book;
-          this.loadSubscriptionStatus(numericBookId);
+        this.bookService.getBookById(numericBookId, schoolId ?? undefined).subscribe({
+          next: (book) => {
+            this.selectedBook = book;
+            this.isLoading.set(false);
+            this.loadSubscriptionStatus(numericBookId);
 
-          if (book.id) {
-            this.loadLessonTips(book.id);
-          }
+            if (book.id) {
+              this.loadLessonTips(book.id);
+            }
+          },
+          error: () => {
+            this.isLoading.set(false);
+          },
         });
 
         this.loadRelatedBooksCarousel(numericBookId, schoolId ?? undefined);

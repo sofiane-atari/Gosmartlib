@@ -11,6 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LessonTipAttachmentsPanelComponent } from '../lesson-tip-attachments-panel/lesson-tip-attachments-panel.component';
 import { Trash2, Pencil, LucideAngularModule } from 'lucide-angular';
 import { LessonTip } from '../../../model/lesson-tip/lesson-tip.model';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-lesson-tip-detail',
@@ -24,6 +25,7 @@ import { LessonTip } from '../../../model/lesson-tip/lesson-tip.model';
   ],
   templateUrl: './lesson-tip-detail.component.html',
   styleUrl: './lesson-tip-detail.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class LessonTipDetailComponent {
   private readonly route = inject(ActivatedRoute);

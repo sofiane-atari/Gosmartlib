@@ -9,6 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule, Bell, ExternalLink } from 'lucide-angular';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 import { AuthService } from '../../../services/authorization/auth.service';
 import { AuthUserDto, Role } from '../../../model/auth.model';
@@ -23,6 +24,7 @@ import { MailSubscriptionDTO } from '../../../model/mail-subscription/mail-subsc
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [fadeInUpAnimation],
 })
 export class ProfileComponent implements OnInit {
   readonly Bell = Bell;

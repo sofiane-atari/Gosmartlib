@@ -9,6 +9,7 @@ import {
   LucideAngularModule,
   Calendar,
 } from 'lucide-angular';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 import { Loan, LoanHistory, LoanStatus } from '../../../model/loan/loan.model';
 import { LoansService } from '../../../services/loan/loans.service';
@@ -29,6 +30,7 @@ import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
 ],
   templateUrl: './loan-history.component.html',
   styleUrl: './loan-history.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class LoanHistoryComponent implements OnInit {
   private readonly loansService = inject(LoansService);
