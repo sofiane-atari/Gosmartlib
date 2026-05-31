@@ -4,7 +4,9 @@ import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.TeacherStatsDTO;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.user.UserService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
@@ -51,6 +53,12 @@ class UserControllerTest {
 
     @MockitoBean
     private AdminOverrideService adminOverrideService;
+
+    @MockitoBean
+    private ActiveSchoolContext activeSchoolContext;
+
+    @MockitoBean
+    private SchoolRepository schoolRepository;
 
     @Test
     void Given_NoOptions_When_GetUsers_Then_ReturnsOk() throws Exception {
@@ -142,5 +150,18 @@ class UserControllerTest {
         // Assert
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("t1"));
+    }
+
+    @Test
+    void Given_UserWithRefreshToken_When_GetNotificationStatus_Then_ReturnsStatus() throws Exception {
+        // Arrange
+        when(tokenStorageService.hasValidSmartschoolRefreshToken("user123")).thenReturn(true);
+
+        // Act
+        var result = mockMvc.perform(get("/users/user123/notification-status"));
+
+        // Assert
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasValidRefreshToken").value(true));
     }
 }
