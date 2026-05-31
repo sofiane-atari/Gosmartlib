@@ -41,10 +41,7 @@ import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.book.BookService;
-import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
-import edu.ap.bib_backend.service.message.component.BookRecommendationComponent;
-import edu.ap.bib_backend.service.message.component.LoanBookListComponent;
-import edu.ap.bib_backend.service.message.component.LoanGeneralInfoComponent;
+import edu.ap.bib_backend.service.message.SmartschoolMessageTemplateService;
 
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.transaction.Transactional;
@@ -65,6 +62,7 @@ public class LoanService {
     private final BookCopyRepository bookCopyRepository;
     private final UserRepository userRepository;
     private final SmartschoolMessageService smartschoolMessageService;
+    private final SmartschoolMessageTemplateService smartschoolMessageTemplateService;
     private final SmartschoolTokenRefreshService smartschoolTokenRefreshService;
     private final CurrentUserService currentUserService;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -73,6 +71,7 @@ public class LoanService {
     public LoanService(LoanRepository loanRepository, LoanMapper loanMapper, BookService bookService,
             ExternalUserDisplayService externalUserDisplayService, BookCopyRepository bookCopyRepository,
             UserRepository userRepository, SmartschoolMessageService smartschoolMessageService,
+            SmartschoolMessageTemplateService smartschoolMessageTemplateService,
             SmartschoolTokenRefreshService smartschoolTokenRefreshService,
             CurrentUserService currentUserService,
             ApplicationEventPublisher applicationEventPublisher,
@@ -84,6 +83,7 @@ public class LoanService {
         this.bookCopyRepository = bookCopyRepository;
         this.userRepository = userRepository;
         this.smartschoolMessageService = smartschoolMessageService;
+        this.smartschoolMessageTemplateService = smartschoolMessageTemplateService;
         this.smartschoolTokenRefreshService = smartschoolTokenRefreshService;
         this.currentUserService = currentUserService;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -696,13 +696,7 @@ String batchId = UUID.randomUUID().toString();
      * @return rendered HTML message
      */
     private String buildCombinedLoanMessage(List<Loan> loans, List<BookDTO> recommendations) {
-        return new HtmlMessageBuilder(
-                loans.size() == 1 ? "Bevestiging nieuwe uitlening" : "Bevestiging nieuwe uitleningen",
-                frontendUrl)
-                .addComponent(new LoanGeneralInfoComponent(loans, frontendUrl))
-                .addComponent(new LoanBookListComponent(loans, frontendUrl))
-                .addComponent(new BookRecommendationComponent(recommendations, frontendUrl))
-                .build();
+        return smartschoolMessageTemplateService.renderLoanConfirmation(loans, recommendations, frontendUrl);
     }
 
     /**
