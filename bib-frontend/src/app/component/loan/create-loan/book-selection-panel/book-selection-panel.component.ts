@@ -26,6 +26,7 @@ export class BookSelectionPanelComponent {
   public readonly isbnSearchChanged = output<Event>();
   public readonly isbnKeydown = output<KeyboardEvent>();
   public readonly addBookRequested = output<Book>();
+  public readonly removeBookRequested = output<number | undefined>();
 
   public readonly bookCandidates = computed(() => {
     return this.filteredBooks().map((book) => ({
@@ -54,5 +55,9 @@ export class BookSelectionPanelComponent {
     }
 
     this.addBookRequested.emit(matchedBook);
+  }
+
+  public handleRemoveBookRequested(book: BookCandidate): void {
+    this.removeBookRequested.emit(book.id);
   }
 }

@@ -137,11 +137,11 @@ public class BookSearchService {
                 .and(BookSpecification.visibleForUser(canSeeDidacticBooks));
 
         if (!isModerator) {
-            specification = specification.and(BookSpecification.hasNonLostCopyInSchool(schoolId));
+            specification = specification.and(BookSpecification.hasNonLostCopyInSchool(resolvedSchoolId));
         }
 
         if (availabilityFilter == BookAvailabilityFilter.AVAILABLE) {
-            specification = specification.and(BookSpecification.hasAnyAvailableCopy());
+            specification = specification.and(BookSpecification.hasAvailableCopyInSchool(resolvedSchoolId));
         }
 
         if (Boolean.TRUE.equals(didactic)) {
@@ -158,7 +158,7 @@ public class BookSearchService {
                 )
                 .values()
                 .stream()
-                .map(books -> toCatalogDto(books, favoriteBookIds))
+                .map(books -> toCatalogDto(books, favoriteBookIds, resolvedSchoolId))
                 .toList();
 
         int start = Math.min(validatedPage * validatedSize, uniqueBooks.size());
@@ -174,19 +174,18 @@ public class BookSearchService {
      * @param favoriteBookIds favorite book ids for the current user
      * @return catalog DTO with aggregate copy information
      */
-    private BookDTO toCatalogDto(List<Book> books, Set<Long> favoriteBookIds) {
+    private BookDTO toCatalogDto(List<Book> books, Set<Long> favoriteBookIds, Long schoolId) {
         BookDTO dto = bookMapper.toDTO(books.get(0));
-        dto.setTotalCopies(books.stream()
-                .map(Book::getTotalCopies)
-                .filter(Objects::nonNull)
-                .mapToInt(Integer::intValue)
-                .sum());
-        dto.setAvailableCopies((int) books.stream()
+        List<BookCopy> schoolCopies = books.stream()
                 .flatMap(book -> book.getBookCopies().stream())
+                .filter(copy -> belongsToSchool(copy, schoolId))
+                .toList();
+
+        dto.setTotalCopies(schoolCopies.size());
+        dto.setAvailableCopies((int) schoolCopies.stream()
                 .filter(this::isAvailableCopy)
                 .count());
-        dto.setAvailableCampuses(books.stream()
-                .flatMap(book -> book.getBookCopies().stream())
+        dto.setAvailableCampuses(schoolCopies.stream()
                 .filter(this::isAvailableCopy)
                 .map(BookCopy::getCampus)
                 .filter(Objects::nonNull)
@@ -205,6 +204,12 @@ public class BookSearchService {
 
     private boolean isAvailableCopy(BookCopy copy) {
         return copy.getAvailability() == Availability.AVAILABLE && copy.getCondition() != BookCondition.LOST;
+    }
+
+    private boolean belongsToSchool(BookCopy copy, Long schoolId) {
+        return copy.getCampus() != null
+                && copy.getCampus().getSchool() != null
+                && Objects.equals(copy.getCampus().getSchool().getId(), schoolId);
     }
 
     /**

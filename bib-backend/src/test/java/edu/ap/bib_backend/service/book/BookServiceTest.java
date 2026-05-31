@@ -28,6 +28,7 @@ import edu.ap.bib_backend.jpa.entity.Genre;
 import edu.ap.bib_backend.jpa.entity.ReadingLevel;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.Availability;
+import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
@@ -135,6 +136,7 @@ class BookServiceTest {
         given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(true);
         given(currentUserService.resolveSchool(any(), any())).willReturn(school);
+        given(authentication.getAuthorities()).willReturn(List.of());
         given(campusRepository.findByIdAndSchoolId(1L, 1L)).willReturn(Optional.of(campus));
     }
 
@@ -817,7 +819,7 @@ class BookServiceTest {
         given(br.findById(92L)).willReturn(Optional.of(sourceBook));
         given(br.save(any(Book.class))).willReturn(targetBook);
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
-        given(bookMapper1.toDTO(targetBook)).willReturn(dto);
+        given(bookMapper1.toDTO(sourceBook)).willReturn(dto);
 
         BookDTO result = bs.addCopyToBook(92L, 2L, authentication);
 
@@ -1070,6 +1072,64 @@ class BookServiceTest {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    @DisplayName("Given ISBN book exists in multiple schools, When getBookByISBN is called, Then return only current school copy information")
+    void Given_IsbnBookExistsInMultipleSchools_When_GetBookByISBN_Then_ReturnsOnlyCurrentSchoolCopyInformation() {
+        // Arrange
+        School otherSchool = new School();
+        otherSchool.setId(2L);
+
+        Campus otherCampus = new Campus();
+        otherCampus.setId(2L);
+        otherCampus.setName("Other Campus");
+        otherCampus.setSchool(otherSchool);
+
+        campus.setName("Current Campus");
+
+        Book currentSchoolBook = createBook(
+                1L,
+                "9781234567890",
+                "Test Boek",
+                "Auteur X",
+                300,
+                null,
+                null,
+                2024,
+                0.0,
+                Set.of());
+        Book otherSchoolBook = createBook(
+                2L,
+                "9781234567890",
+                "Test Boek",
+                "Auteur X",
+                300,
+                null,
+                null,
+                2024,
+                0.0,
+                Set.of());
+
+        currentSchoolBook.setBookCopies(List.of(createAvailableCopy(10L, currentSchoolBook, campus)));
+        otherSchoolBook.setBookCopies(List.of(createAvailableCopy(20L, otherSchoolBook, otherCampus)));
+
+        BookDTO dto = new BookDTO();
+        dto.setId(1L);
+        dto.setIsbn("9781234567890");
+        dto.setTitle("Test Boek");
+
+        given(br.findAllByIsbn("9781234567890")).willReturn(List.of(currentSchoolBook, otherSchoolBook));
+        given(bookMapper1.toDTO(currentSchoolBook)).willReturn(dto);
+
+        // Act
+        BookDTO result = bs.getBookByISBN("9781234567890", authentication, school.getId());
+
+        // Assert
+        assertThat(result.getAvailableCopies()).isEqualTo(1);
+        assertThat(result.getAvailableCampuses()).containsExactly("Current Campus");
+        assertThat(result.getCopyLocations()).hasSize(1);
+        assertThat(result.getCopyLocations().get(0).campusName()).isEqualTo("Current Campus");
+    }
+
     private Book createBook(
             Long id,
             String isbn,
@@ -1103,5 +1163,15 @@ class BookServiceTest {
         genre.setColor(color);
         genre.setDescription(description);
         return genre;
+    }
+
+    private BookCopy createAvailableCopy(Long id, Book book, Campus copyCampus) {
+        BookCopy copy = new BookCopy();
+        copy.setId(id);
+        copy.setBook(book);
+        copy.setCampus(copyCampus);
+        copy.setCondition(BookCondition.GOOD_CONDITION);
+        org.springframework.test.util.ReflectionTestUtils.setField(copy, "availability", Availability.AVAILABLE);
+        return copy;
     }
 }

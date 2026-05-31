@@ -305,6 +305,38 @@
   font-weight: 700;
 }
 
+.date-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f9f4f6;
+  border: 1px solid #f0e4e8;
+  color: #1a0a10;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.date-chip--returned {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.date-chip--small {
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.loan-details__date-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -367,6 +399,22 @@
   background: var(--main-color);
   color: #ffffff;
   transform: translateY(-1px);
+}
+
+.extend-loan-btn--bulk {
+  background: var(--main-color);
+  color: #ffffff;
+}
+
+.extend-loan-btn--bulk:hover {
+  box-shadow: 0 6px 14px rgba(138, 30, 65, 0.18);
+}
+
+.loan-row-actions {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 .muted {
@@ -688,5 +736,9 @@ lucide-icon {
 
   .table-card .book-cell small {
     margin-top: 4px;
+  }
+
+  .loan-row-actions {
+    align-items: flex-end;
   }
 }

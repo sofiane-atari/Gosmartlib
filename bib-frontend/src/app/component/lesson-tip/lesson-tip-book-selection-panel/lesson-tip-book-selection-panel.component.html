@@ -99,14 +99,27 @@
           </div>
 
           @if (book.id !== undefined) {
-            <button
-              type="button"
-              class="action-button action-button--secondary"
-              [disabled]="isSelectDisabled(book)"
-              (click)="addBookRequested.emit(book)"
-            >
-              {{ getActionLabel(book) }}
-            </button>
+            <div class="book-item-actions">
+              @if (canRemoveBook(book)) {
+                <button
+                  type="button"
+                  class="quantity-button quantity-button--minus"
+                  aria-label="Eén exemplaar minder"
+                  (click)="removeBookRequested.emit(book)"
+                >
+                  -
+                </button>
+              }
+
+              <button
+                type="button"
+                class="action-button action-button--secondary"
+                [disabled]="isSelectDisabled(book)"
+                (click)="addBookRequested.emit(book)"
+              >
+                {{ getActionLabel(book) }}
+              </button>
+            </div>
           } @else {
             <button
               type="button"

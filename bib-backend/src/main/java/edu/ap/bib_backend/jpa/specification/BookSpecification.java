@@ -156,6 +156,37 @@ public final class BookSpecification {
         };
     }
 
+    public static Specification<Book> hasAvailableCopyInSchool(Long schoolId) {
+        return (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+
+            jakarta.persistence.criteria.Subquery<Long> availableCopySubquery = query.subquery(Long.class);
+            var copyRoot = availableCopySubquery.from(BookCopy.class);
+            jakarta.persistence.criteria.Join<BookCopy, Loan> loanJoin = copyRoot.join("loans", jakarta.persistence.criteria.JoinType.LEFT);
+
+            availableCopySubquery.select(copyRoot.get("id"))
+                    .where(
+                            criteriaBuilder.equal(copyRoot.get("book"), root),
+                            criteriaBuilder.equal(copyRoot.get("campus").get("school").get("id"), schoolId),
+                            criteriaBuilder.notEqual(copyRoot.get("condition"), BookCondition.LOST)
+                    )
+                    .groupBy(copyRoot.get("id"))
+                    .having(criteriaBuilder.equal(
+                            criteriaBuilder.sum(
+                                    criteriaBuilder.<Integer>selectCase()
+                                            .when(criteriaBuilder.and(
+                                                    criteriaBuilder.isNotNull(loanJoin.get("id")),
+                                                    criteriaBuilder.isNull(loanJoin.get("returnedDate"))
+                                            ), 1)
+                                            .otherwise(0)
+                            ),
+                            0
+                    ));
+
+            return criteriaBuilder.exists(availableCopySubquery);
+        };
+    }
+
     public static Specification<Book> hasNonLostCopyInSchool(Long schoolId) {
         return (root, query, criteriaBuilder) -> {
             query.distinct(true);

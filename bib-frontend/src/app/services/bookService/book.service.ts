@@ -103,8 +103,13 @@ export class BookService {
     return this.http.put<Book>(`${this.apiUrl}/${id}`, book);
   }
 
-  public getBookByISBN(isbn: string): Observable<Book> {
-    return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`);
+  public getBookByISBN(isbn: string, schoolId?: number): Observable<Book> {
+    let params = new HttpParams();
+    if (schoolId !== undefined && schoolId !== null) {
+      params = params.set('schoolId', schoolId);
+    }
+
+    return this.http.get<Book>(`${this.apiUrl}/isbn/${isbn}`, { params });
   }
 
   getBookPreviewByISBN(isbn: string): Observable<BookPreview> {

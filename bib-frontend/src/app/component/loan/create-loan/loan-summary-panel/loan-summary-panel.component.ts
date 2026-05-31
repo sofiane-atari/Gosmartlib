@@ -105,6 +105,10 @@ export class LoanSummaryPanelComponent {
     );
   }
 
+  public isCopySelected(book: Book, copy: BookCopyLocation, index: number): boolean {
+    return this.getSelectedCopyId(book, index) === copy.id;
+  }
+
   public isCopyDisabled(book: Book, copy: BookCopyLocation, index: number): boolean {
     const selectedCampusId = this.selectedCampusId();
     const isDifferentCampus = selectedCampusId !== null
@@ -128,9 +132,9 @@ export class LoanSummaryPanelComponent {
     this.copySelectionChanged.emit({ bookId: book.id, index, copyId });
   }
 
-  public getCopyLabel(copy: BookCopyLocation, index: number): string {
+  public getCopyLabel(copy: BookCopyLocation): string {
     const campus = copy.campusName ? ` (${copy.campusName})` : '';
-    return `Exemplaar ${index + 1} - Beschikbaar${campus}`;
+    return `Exemplaar #${copy.id} - Beschikbaar${campus}`;
   }
 
   public getConditionLabel(condition?: BookCondition): string {

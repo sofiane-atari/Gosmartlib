@@ -28,6 +28,7 @@ import edu.ap.bib_backend.jpa.entity.ReadingListTargetType;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.Tag;
 import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.enums.Availability;
 import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
@@ -178,6 +179,7 @@ public class BookService {
 
         BookDTO dto = bookMapper.toDTO(book);
         dto.setCopyLocations(buildCopyLocations(book, school.getId(), authentication));
+        applySchoolCopySummary(dto, List.of(book), school.getId());
 
         try {
             User user = currentUserService.getCurrentUser(authentication);
@@ -378,16 +380,24 @@ public class BookService {
 
     @Transactional
     public BookDTO getBookByISBN(String rawIsbn, Authentication authentication, Long schoolId) {
-        currentUserService.resolveSchool(schoolId, authentication);
+        School school = currentUserService.resolveSchool(schoolId, authentication);
         String normalizedIsbn = IsbnUtils.normalizeIsbn(rawIsbn);
 
         if (normalizedIsbn == null || normalizedIsbn.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ongeldig ISBN");
         }
 
-        return findExistingByIsbn(normalizedIsbn)
-                .map(bookMapper::toDTO)
-                .orElseGet(() -> openLibraryClient.fetchBookByISBN(normalizedIsbn));
+        List<Book> existingBooks = bookRepository.findAllByIsbn(normalizedIsbn);
+        if (!existingBooks.isEmpty()) {
+            BookDTO dto = bookMapper.toDTO(existingBooks.get(0));
+            applySchoolCopySummary(dto, existingBooks, school.getId());
+            dto.setCopyLocations(existingBooks.stream()
+                    .flatMap(book -> buildCopyLocations(book, school.getId(), authentication).stream())
+                    .toList());
+            return dto;
+        }
+
+        return openLibraryClient.fetchBookByISBN(normalizedIsbn);
     }
 
     private Campus resolveCampusForCurrentUserSchool(Long campusId, Authentication authentication) {
@@ -434,6 +444,31 @@ public class BookService {
                 })
                 .filter(location -> !location.copies().isEmpty())
                 .toList();
+    }
+
+    private void applySchoolCopySummary(BookDTO dto, List<Book> books, Long schoolId) {
+        List<BookCopy> schoolCopies = books.stream()
+                .flatMap(book -> book.getBookCopies().stream())
+                .filter(copy -> copy.getCampus() != null)
+                .filter(copy -> copy.getCampus().getSchool() != null)
+                .filter(copy -> Objects.equals(copy.getCampus().getSchool().getId(), schoolId))
+                .toList();
+
+        dto.setTotalCopies(schoolCopies.size());
+        dto.setAvailableCopies((int) schoolCopies.stream()
+                .filter(copy -> copy.getAvailability() == Availability.AVAILABLE)
+                .filter(copy -> copy.getCondition() != BookCondition.LOST)
+                .count());
+        dto.setAvailableCampuses(schoolCopies.stream()
+                .filter(copy -> copy.getAvailability() == Availability.AVAILABLE)
+                .filter(copy -> copy.getCondition() != BookCondition.LOST)
+                .map(BookCopy::getCampus)
+                .filter(Objects::nonNull)
+                .map(Campus::getName)
+                .filter(Objects::nonNull)
+                .filter(name -> !name.isBlank())
+                .distinct()
+                .toList());
     }
 
     private BookCopyLocationDTO toCopyLocationDTO(BookCopy copy) {

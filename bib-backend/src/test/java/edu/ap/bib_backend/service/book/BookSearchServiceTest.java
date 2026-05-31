@@ -327,6 +327,55 @@ class BookSearchServiceTest {
                 .containsExactly("Campus A", "Campus B");
     }
 
+    @Test
+    void Given_BookHasCopiesInMultipleSchools_When_GetFilteredBooks_Then_AvailableCopiesOnlyCountsCurrentSchool() {
+        // Arrange
+        School currentSchool = new School();
+        currentSchool.setId(1L);
+        School otherSchool = new School();
+        otherSchool.setId(2L);
+
+        Campus currentCampus = new Campus();
+        currentCampus.setId(1L);
+        currentCampus.setName("Current Campus");
+        currentCampus.setSchool(currentSchool);
+        Campus otherCampus = new Campus();
+        otherCampus.setId(2L);
+        otherCampus.setName("Other Campus");
+        otherCampus.setSchool(otherSchool);
+
+        Book book = createBook(1L, "9781234567890", currentCampus);
+        book.setBookCopies(List.of(
+                createAvailableCopy(10L, book, currentCampus),
+                createAvailableCopy(20L, book, otherCampus)));
+
+        given(currentUserService.resolveSchool(any(), any())).willReturn(currentSchool);
+        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                .willReturn(List.of(book));
+
+        // Act
+        Page<BookDTO> result = bookSearchService.getFilteredBooks(
+                null,
+                BookAvailabilityFilter.AVAILABLE,
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                10,
+                BookSortOption.AZ,
+                authentication,
+                currentSchool.getId()
+        );
+
+        // Assert
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getAvailableCopies()).isEqualTo(1);
+        assertThat(result.getContent().get(0).getAvailableCampuses())
+                .containsExactly("Current Campus");
+    }
+
     private Book createBook(Long id, String isbn, Campus campus) {
         Book book = new Book();
         book.setId(id);

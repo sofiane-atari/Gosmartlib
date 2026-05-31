@@ -313,6 +313,10 @@ String batchId = UUID.randomUUID().toString();
      * @throws IllegalStateException if any copy is missing, unavailable, lost, or outside the allowed school/campus
      */
     private List<BookCopy> resolveSelectedCopies(List<Long> bookCopyIds, School currentUserSchool) {
+        if (bookCopyIds.stream().distinct().count() != bookCopyIds.size()) {
+            throw new IllegalStateException("Een boekexemplaar kan maar één keer per lening worden geselecteerd.");
+        }
+
         List<BookCopy> selectedCopies = bookCopyRepository.findAllById(bookCopyIds);
 
         if (selectedCopies.size() != bookCopyIds.size()) {
