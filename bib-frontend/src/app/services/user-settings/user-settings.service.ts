@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthService } from '../authorization/auth.service';
 
 const HOVER_HELP_STORAGE_KEY = 'hoverHelpEnabled';
 
@@ -11,7 +10,6 @@ const HOVER_HELP_STORAGE_KEY = 'hoverHelpEnabled';
 })
 export class UserSettingsService {
   private readonly http = inject(HttpClient);
-  private readonly authService = inject(AuthService);
 
   private hoverHelpEnabledSubject = new BehaviorSubject<boolean>(
     localStorage.getItem(HOVER_HELP_STORAGE_KEY) !== 'false'
@@ -37,16 +35,11 @@ export class UserSettingsService {
   readonly catalogNewestEnabled$ = this.catalogNewestEnabledSubject.asObservable();
 
   loadCatalogSidebarSettings(): void {
-    const schoolId = this.authService.currentUser()?.schoolId;
-    if (!schoolId) {
-      return;
-    }
-
     this.http.get<{
       catalogFeaturedListsEnabled: boolean;
       catalogMostReadEnabled: boolean;
       catalogNewestEnabled: boolean;
-    }>(`${environment.apiUrl}/schools/${schoolId}/catalog-sidebar-settings`).subscribe({
+    }>(`${environment.apiUrl}/schools/me/catalog-sidebar-settings`).subscribe({
       next: (settings) => {
         this.catalogFeaturedListsEnabledSubject.next(settings.catalogFeaturedListsEnabled);
         this.catalogMostReadEnabledSubject.next(settings.catalogMostReadEnabled);
@@ -71,16 +64,11 @@ export class UserSettingsService {
   }
 
   private persistCatalogSidebarSettings(): void {
-    const schoolId = this.authService.currentUser()?.schoolId;
-    if (!schoolId) {
-      return;
-    }
-
     this.http.put<{
       catalogFeaturedListsEnabled: boolean;
       catalogMostReadEnabled: boolean;
       catalogNewestEnabled: boolean;
-    }>(`${environment.apiUrl}/schools/${schoolId}/catalog-sidebar-settings`, {
+    }>(`${environment.apiUrl}/schools/me/catalog-sidebar-settings`, {
       catalogFeaturedListsEnabled: this.catalogFeaturedListsEnabledSubject.value,
       catalogMostReadEnabled: this.catalogMostReadEnabledSubject.value,
       catalogNewestEnabled: this.catalogNewestEnabledSubject.value,

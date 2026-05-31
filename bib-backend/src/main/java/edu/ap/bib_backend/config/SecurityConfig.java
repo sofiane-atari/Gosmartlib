@@ -41,6 +41,7 @@ public class SecurityConfig {
 
         private final SmartschoolOAuth2UserService smartschoolOAuth2UserService;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final ActiveSchoolFilter activeSchoolFilter;
         private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
         private final RestAccessDeniedHandler restAccessDeniedHandler;
         private final boolean mockModeEnabled;
@@ -48,12 +49,14 @@ public class SecurityConfig {
 
         public SecurityConfig(
                         JwtAuthenticationFilter jwtAuthenticationFilter,
+                        ActiveSchoolFilter activeSchoolFilter,
                         SmartschoolOAuth2UserService smartschoolOAuth2UserService,
                         RestAuthenticationEntryPoint restAuthenticationEntryPoint,
                         RestAccessDeniedHandler restAccessDeniedHandler,
                         @Value("${app.mock-mode-enabled}") boolean mockModeEnabled,
                         @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
                 this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+                this.activeSchoolFilter = activeSchoolFilter;
                 this.smartschoolOAuth2UserService = smartschoolOAuth2UserService;
                 this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
                 this.restAccessDeniedHandler = restAccessDeniedHandler;
@@ -77,6 +80,7 @@ public class SecurityConfig {
 
                                 // JWT filter
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterAfter(activeSchoolFilter, JwtAuthenticationFilter.class)
 
                                 .authorizeHttpRequests(auth -> {
                                         auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
@@ -145,11 +149,14 @@ public class SecurityConfig {
                                         auth.requestMatchers("/schools/dev-mode-enabled")
                                                         .permitAll();
 
-                                        auth.requestMatchers(HttpMethod.GET, "/schools/*/catalog-sidebar-settings")
+                                        auth.requestMatchers(HttpMethod.GET, "/schools/me/classes")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers(HttpMethod.GET, "/schools/me/catalog-sidebar-settings")
                                                         .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                         Role.LIBRARIAN.name(), Role.ADMIN.name());
 
-                                        auth.requestMatchers(HttpMethod.PUT, "/schools/*/catalog-sidebar-settings")
+                                        auth.requestMatchers(HttpMethod.PUT, "/schools/me/catalog-sidebar-settings")
                                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers(HttpMethod.GET, "/schools/accessible")

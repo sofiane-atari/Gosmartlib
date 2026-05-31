@@ -67,8 +67,8 @@ class SchoolReportServiceIntegrationTest {
         insertAuthSession("student-2", "ROLE_STUDENT", true);
 
         jdbcTemplate.update("""
-                INSERT INTO books (id, isbn, title, author, pages, image_url, description, release_year, added_date, didactic, campus_id)
-                VALUES (1, '9781', 'Boek Een', 'Auteur A', 100, null, '', 2024, ?, false, 1)
+                INSERT INTO books (id, isbn, title, author, pages, image_url, description, release_year, added_date, didactic)
+                VALUES (1, '9781', 'Boek Een', 'Auteur A', 100, null, '', 2024, ?, false)
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
 
         jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (1, 1, 1, 'GOOD_CONDITION')");

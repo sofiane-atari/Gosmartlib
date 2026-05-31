@@ -6,6 +6,7 @@ import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,10 +23,14 @@ public class CurrentUserService {
 
     private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
+    private final ActiveSchoolContext activeSchoolContext;
 
-    public CurrentUserService(UserRepository userRepository, SchoolRepository schoolRepository) {
+    public CurrentUserService(UserRepository userRepository,
+                              SchoolRepository schoolRepository,
+                              ActiveSchoolContext activeSchoolContext) {
         this.userRepository = userRepository;
         this.schoolRepository = schoolRepository;
+        this.activeSchoolContext = activeSchoolContext;
     }
 
     public String extractCurrentUserId(Authentication authentication) {
@@ -44,6 +49,11 @@ public class CurrentUserService {
     }
 
     public School getCurrentUserSchool(Authentication authentication) {
+        if (isAdmin(authentication) && activeSchoolContext.getActiveSchoolId() != null) {
+            return schoolRepository.findById(activeSchoolContext.getActiveSchoolId())
+                    .orElseThrow(() -> new IllegalStateException("Geselecteerde school niet gevonden."));
+        }
+
         User user = getCurrentUser(authentication);
 
         if (user.getSchool() == null) {

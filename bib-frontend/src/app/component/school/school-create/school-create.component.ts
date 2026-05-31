@@ -76,6 +76,10 @@ export class SchoolCreateComponent {
     this.validatedUpToStep(),
   );
 
+  protected readonly isSchoolCreated = computed(() =>
+    this.createdSchoolId() !== null,
+  );
+
   protected readonly canFinishWizard = computed(() =>
     this.step5LibrariansCount() > 0,
   );
@@ -433,11 +437,20 @@ export class SchoolCreateComponent {
   protected goToPreviousStep(): void {
     const current = this.currentStep();
     if (current <= 1) return;
+
+    if (this.isSchoolCreated()) {
+      return;
+    }
+
     this.stepError.set(null);
     this.currentStep.set((current - 1) as CreateSchoolWizardStep);
   }
 
   protected setCurrentStep(step: number): void {
+    if (this.isSchoolCreated() && step < 5) {
+      return;
+    }
+
     const max = this.wizardSteps().length;
     if (step >= 1 && step <= max) {
       this.currentStep.set(step as CreateSchoolWizardStep);

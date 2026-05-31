@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { CreateSchoolRequest, OneRosterCredentialValidationRequest, School } from '../../model/school.model';
+import { ClassOption } from '../school-override/school-override.service';
 
 @Injectable({
   providedIn: 'root',
@@ -72,5 +73,13 @@ export class SchoolService {
 
   public validateDomainChange(id: number, domainName: string): Observable<void> {
     return this.http.post<void>(`${this.url}/${id}/validate-domain`, { domainName });
+  }
+
+  public getClasses(schoolId: number): Observable<ClassOption[]> {
+    return this.http.get<ClassOption[]>(`${this.url}/${schoolId}/classes`);
+  }
+
+  public getOwnSchoolClasses(): Observable<ClassOption[]> {
+    return this.http.get<ClassOption[]>(`${this.url}/me/classes`);
   }
 }

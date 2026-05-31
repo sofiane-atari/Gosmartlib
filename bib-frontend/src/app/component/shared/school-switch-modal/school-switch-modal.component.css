@@ -1,0 +1,360 @@
+.school-switch-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.55);
+  font-family: var(--main-font);
+}
+
+.school-switch-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+}
+
+.school-switch-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.school-switch-header h2 {
+  flex: 1;
+  margin: 0;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.school-switch-description {
+  margin: 0 0 16px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.override-active-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  flex-wrap: wrap;
+}
+
+.override-active-text {
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.override-active-text strong {
+  font-weight: 700;
+}
+
+.reset-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid #d97706;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--main-font);
+  white-space: nowrap;
+}
+
+.reset-button:hover {
+  background: #fffbeb;
+  border-color: #b45309;
+}
+
+.search-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px 0 40px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  font-family: var(--main-font);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #8a1e41;
+}
+
+.error-message {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #ad4440;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.class-select-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #374151;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--main-font);
+}
+
+.select-all-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #8a1e41;
+  cursor: pointer;
+}
+
+.selected-count {
+  font-size: 12px;
+  color: #8a1e41;
+  font-weight: 600;
+}
+
+.school-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  min-height: 120px;
+}
+
+.loading-state,
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.school-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-family: var(--main-font);
+}
+
+.school-item:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.class-item {
+  padding: 8px 10px;
+  justify-content: space-between;
+}
+
+.class-item.selected {
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+
+.check-icon {
+  flex-shrink: 0;
+  color: #8a1e41;
+}
+
+.class-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #8a1e41;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.school-icon {
+  flex-shrink: 0;
+  color: #8a1e41;
+}
+
+.school-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.school-name {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.school-domain {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.school-switch-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primary-button {
+  min-height: 42px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #8a1e41;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--main-font);
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #6f1834;
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--main-font);
+}
+
+.secondary-button:hover {
+  background: #f9fafb;
+}
+
+@media (max-width: 480px) {
+  .school-switch-card {
+    max-height: 90vh;
+    padding: 16px;
+  }
+
+  .school-switch-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+}

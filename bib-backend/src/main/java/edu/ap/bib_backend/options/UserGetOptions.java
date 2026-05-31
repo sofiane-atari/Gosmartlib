@@ -14,4 +14,5 @@ public class UserGetOptions {
     private String firstName = "";
     private String lastName = "";
     private String id = "";
+    private boolean withGroups = false;
 }

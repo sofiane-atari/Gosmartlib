@@ -1,0 +1,328 @@
+<section class="school-report-dashboard">
+  <div class="page-header page-header--centered">
+    <div class="page-header__left">
+      <button class="back-button" (click)="goBackToReports()" title="Terug naar rapportage menu">
+        <lucide-icon [name]="icons.arrowLeft" width="20" height="20"></lucide-icon>
+        <span>Terug</span>
+      </button>
+    </div>
+
+    <div class="page-header__text">
+      <h1>Schoolrapportage</h1>
+      <p>Uitleenactiviteit, populaire boeken en klasactiviteit voor de volledige school.</p>
+    </div>
+
+    <div class="page-header__right"></div>
+  </div>
+
+  @if (loading) {
+    <article class="report-card report-card--skeleton">
+      <div class="report-card__header">
+        <div>
+          <span class="skeleton-block skeleton-label"></span>
+          <span class="skeleton-block skeleton-title"></span>
+          <span class="skeleton-block skeleton-text skeleton-text--wide"></span>
+        </div>
+      </div>
+    </article>
+  }
+
+  @if (!loading && report) {
+    <article class="report-card">
+      <div class="report-card__header school-hero">
+        <div>
+          <span class="section-label">Schoolrapport</span>
+          <h2>{{ report.schoolName }}</h2>
+          <p>
+            {{ report.classCount }} klassen ·
+            {{ report.totalStudentCount }} leerlingen met klas
+          </p>
+        </div>
+
+        <span class="count-badge">{{ report.totalLoans }} uitleningen</span>
+      </div>
+
+      <section class="stat-cards">
+        <app-stat-card
+          label="Totaal uitgeleend"
+          [value]="report.totalLoans"
+          [icon]="icons.library"
+          variant="purple"
+          helpText="Het totaal aantal boekexemplaren dat over de volledige school werd uitgeleend."
+        ></app-stat-card>
+
+        <app-stat-card
+          label="Momenteel uitgeleend"
+          [value]="report.activeLoans"
+          [icon]="icons.clock"
+          variant="orange"
+          helpText="Aantal boeken dat momenteel nog niet werd teruggebracht binnen de volledige school."
+        ></app-stat-card>
+
+        <app-stat-card
+          label="Klassen actief"
+          [value]="getActiveClassCount()"
+          [icon]="icons.users"
+          variant="blue"
+          helpText="Aantal klassen met uitleenactiviteit binnen dit schoolrapport."
+        ></app-stat-card>
+
+        <app-stat-card
+          label="Gemiddeld gelezen"
+          [value]="report.loansPerStudent"
+          [icon]="icons.trending"
+          variant="green"
+          helpText="Het gemiddeld aantal uitleningen per leerling over de volledige school."
+        ></app-stat-card>
+      </section>
+
+      <section class="insight-grid school-insight-grid">
+        <section class="insight-card school-card">
+          <div class="insight-card__header">
+            <div>
+              <h3>Populaire genres</h3>
+              <p>Meest uitgeleend over de volledige school.</p>
+            </div>
+          </div>
+
+          @if (report.popularGenres.length === 0) {
+            <div class="empty-table-state">Geen genredata beschikbaar.</div>
+          } @else {
+            <div class="ranking-list">
+              @for (genre of report.popularGenres; track genre.genreId; let index = $index) {
+                <div class="ranking-row">
+                  <span class="rank-badge">#{{ index + 1 }}</span>
+
+                  <span
+                    class="genre-dot"
+                    [style.background]="genre.color || 'var(--main-color)'">
+                  </span>
+
+                  <div class="ranking-main">
+                    <strong>{{ genre.name }}</strong>
+                    <span>Genre</span>
+                  </div>
+
+                  <span class="count-badge">{{ genre.loanCount }} boeken</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="insight-card school-card">
+          <div class="insight-card__header">
+            <div>
+              <h3>Hoogst beoordeelde boeken</h3>
+              <p>Minstens 3 beoordelingen, gededupliceerd op ISBN of titel.</p>
+            </div>
+          </div>
+
+          @if (report.topRatedBooks.length === 0) {
+            <div class="empty-table-state">Geen ratings beschikbaar.</div>
+          } @else {
+            <div class="book-list">
+              @for (book of report.topRatedBooks; track book.bookId) {
+                <div class="book-row">
+                  <div class="book-cover">
+                    @if (book.imageUrl) {
+                      <img [src]="book.imageUrl" [alt]="book.title">
+                    } @else {
+                      <lucide-icon [img]="icons.bookOpen"></lucide-icon>
+                    }
+                  </div>
+
+                  <div class="book-info">
+                    <strong>{{ book.title }}</strong>
+                    <span>{{ book.author || 'Onbekende auteur' }}</span>
+                    <small>{{ book.reviewCount }} reviews</small>
+                  </div>
+
+                  <span class="rating-badge">
+                    <lucide-icon [img]="icons.star"></lucide-icon>
+                    {{ book.averageRating }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="insight-card school-card">
+          <div class="insight-card__header">
+            <div>
+              <h3>Meest populaire boeken</h3>
+              <p>Top {{ report.popularBooks.length }} op basis van uitleningen.</p>
+            </div>
+          </div>
+
+          @if (report.popularBooks.length === 0) {
+            <div class="empty-table-state">Geen uitleningen beschikbaar.</div>
+          } @else {
+            <div class="popular-book-chart">
+              @for (book of report.popularBooks; track book.bookId; let index = $index) {
+                <div class="popular-book-row">
+                  <span class="rank-badge">#{{ index + 1 }}</span>
+                  <div class="popular-book-main">
+                    <div class="popular-book-title">
+                      <strong>{{ book.title }}</strong>
+                      <span>{{ book.author || 'Onbekende auteur' }}</span>
+                    </div>
+                    <div class="bar-track">
+                      <span class="bar-fill" [style.width]="getBookBarWidth(book.loanCount)"></span>
+                    </div>
+                  </div>
+                  <span class="count-badge">{{ book.loanCount }}</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="insight-card school-card">
+          <div class="insight-card__header">
+            <div>
+              <h3>Uitleenvolume per maand</h3>
+              <p>Piekmomenten in de volledige school.</p>
+            </div>
+          </div>
+
+          @if (report.loanVolume.length === 0) {
+            <div class="empty-table-state">Geen periodegegevens beschikbaar.</div>
+          } @else {
+            <svg class="volume-bar-chart" viewBox="0 0 500 200" role="img" aria-label="Uitleenvolume per maand">
+              <defs>
+                <linearGradient id="volumeBarGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#2563eb" />
+                  <stop offset="100%" stop-color="var(--main-color)" />
+                </linearGradient>
+              </defs>
+
+              @for (tick of getLoanVolumeTicks(); track tick; let tickIndex = $index) {
+                <line
+                  class="volume-grid-line"
+                  x1="52"
+                  x2="472"
+                  [attr.y1]="getLoanVolumeTickY(tickIndex)"
+                  [attr.y2]="getLoanVolumeTickY(tickIndex)" />
+                <text class="volume-axis-label" x="42" [attr.y]="getLoanVolumeTickY(tickIndex) + 4" text-anchor="end">
+                  {{ tick }}
+                </text>
+              }
+
+              <line class="volume-axis-line" x1="52" y1="20" x2="52" y2="150" />
+              <line class="volume-axis-line" x1="52" y1="150" x2="472" y2="150" />
+
+              @for (period of report.loanVolume; track period.period; let i = $index) {
+                <rect
+                  class="volume-chart-bar"
+                  [attr.x]="getLoanVolumeBarX(i)"
+                  [attr.y]="getLoanVolumeBarY(period.loanCount)"
+                  [attr.width]="getLoanVolumeBarWidth()"
+                  [attr.height]="getLoanVolumeBarHeight(period.loanCount)"
+                  rx="5" />
+                <text
+                  class="volume-value-label"
+                  [attr.x]="getLoanVolumeBarX(i) + getLoanVolumeBarWidth() / 2"
+                  [attr.y]="getLoanVolumeBarY(period.loanCount) - 6"
+                  text-anchor="middle">
+                  {{ period.loanCount }}
+                </text>
+                <text
+                  class="volume-x-label"
+                  [attr.x]="getLoanVolumeBarX(i) + getLoanVolumeBarWidth() / 2"
+                  y="172"
+                  text-anchor="middle">
+                  {{ formatPeriod(period.period) }}
+                </text>
+              }
+
+              <text class="volume-axis-title" x="262" y="195" text-anchor="middle">Maand</text>
+              <text class="volume-axis-title" x="15" y="88" text-anchor="middle" transform="rotate(-90 15 88)">Uitleningen</text>
+            </svg>
+          }
+        </section>
+      </section>
+
+      <section class="search-panel">
+        <app-search-bar
+          placeholder="Zoek klas..."
+          (searchChange)="onClassSearchChange($event)">
+        </app-search-bar>
+      </section>
+
+      <section class="table-card school-card">
+        <div class="table-card__header">
+          <div>
+            <h3>Activiteit per klas</h3>
+            <p>Gerangschikt op aantal uitgeleende boeken.</p>
+          </div>
+        </div>
+
+        @if (getFilteredClasses().length === 0) {
+          <div class="empty-table-state">Geen klassen gevonden.</div>
+        } @else {
+          <table class="school-activity-table">
+            <colgroup>
+              <col class="school-activity-table__class">
+              <col class="school-activity-table__students">
+              <col class="school-activity-table__loans">
+              <col class="school-activity-table__active">
+              <col class="school-activity-table__average">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Klas</th>
+                <th class="center-col">Leerlingen</th>
+                <th class="center-col">Uitleningen</th>
+                <th class="center-col">Uitgeleend</th>
+                <th class="center-col">Gemiddelde uitleningen</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (classItem of getPagedClasses(); track classItem.classTitle) {
+                <tr [class.row-muted]="classItem.totalLoans === 0">
+                  <td>
+                    <div class="class-cell">
+                      <div class="class-cell__icon">
+                        <lucide-icon [img]="icons.users"></lucide-icon>
+                      </div>
+                      <div>
+                        <strong>{{ classItem.classTitle }}</strong>
+                        <span class="class-badge">Klas</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="center-col">
+                    <span class="count-badge">{{ classItem.studentCount }}</span>
+                  </td>
+                  <td class="center-col">
+                    <span class="count-badge">{{ classItem.totalLoans }}</span>
+                  </td>
+                  <td class="center-col">
+                    @if (classItem.activeLoans > 0) {
+                      <span class="open-loans-badge">{{ classItem.activeLoans }}</span>
+                    } @else {
+                      <span class="muted-value">0</span>
+                    }
+                  </td>
+                  <td class="center-col">{{ classItem.averageLoansPerStudent }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (shouldShowClassPaging()) {
+            <div class="table-paging">
+              <app-paging
+                [meta]="getClassPagingMeta()"
+                (pageChange)="onClassPageChange($event)">
+              </app-paging>
+            </div>
+          }
+        }
+      </section>
+    </article>
+  }
+</section>

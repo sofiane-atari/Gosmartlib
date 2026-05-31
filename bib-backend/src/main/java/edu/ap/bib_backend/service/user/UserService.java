@@ -30,8 +30,6 @@ import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.options.UserGetOptions;
-import edu.ap.bib_backend.service.GroupService;
-import edu.ap.bib_backend.service.review.ProfanityFilterService;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 
@@ -45,8 +43,8 @@ public class UserService {
     private final CurrentUserService currentUserService;
     private final SchoolRepository schoolRepository;
 
-    public UserService(UserRepository userRepository, ProfanityFilterService profanityFilterService,
-            UserMapper userMapper, GroupService groupService, SchoolRepository schoolRepository,
+    public UserService(UserRepository userRepository,
+            UserMapper userMapper, SchoolRepository schoolRepository,
             OneRosterClient oneRosterClient, TokenStorageService tokenStorageService,
             CurrentUserService currentUserService) {
 
@@ -72,7 +70,7 @@ public class UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = requireUserId(authentication);
 
-        School school = getCurrentUserSchool(userId);
+        School school = currentUserService.getCurrentUserSchool(authentication);
 
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
@@ -83,10 +81,15 @@ public class UserService {
                 rosterUsers,
                 true);
 
+        Map<String, List<String>> enrollmentGroupsByUserId = options.isWithGroups()
+                ? buildEnrollmentGroups(schoolCode, smartschoolToken, rosterUsers)
+                : Map.of();
+
         return rosterUsers.stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
-                .map(dto -> withPrimaryGroupName(dto, oneRosterGroupNamesByUserId.get(dto.id())))
+                .map(dto -> withLocalGroupName(dto, oneRosterGroupNamesByUserId.get(dto.id())))
+                .map(dto -> withEnrollmentGroups(dto, enrollmentGroupsByUserId.get(dto.id())))
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
     }
@@ -110,7 +113,7 @@ public class UserService {
             throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
-        School school = getCurrentUserSchool(userId);
+        School school = currentUserService.getCurrentUserSchool(authentication);
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
@@ -171,7 +174,7 @@ public class UserService {
             throw new AccessDeniedException("Alleen bibliothecarissen en admins kunnen docenten bekijken.");
         }
 
-        School school = getCurrentUserSchool(userId);
+        School school = currentUserService.getCurrentUserSchool(authentication);
         String schoolCode = school.getDomainName();
         String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
@@ -246,7 +249,7 @@ public class UserService {
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResourceNotFoundException("schoolId", "School niet gevonden met id: " + schoolId));
 
-        School currentUserSchool = getCurrentUserSchool(currentUserService.extractCurrentUserId(authentication));
+        School currentUserSchool = currentUserService.getCurrentUserSchool(authentication);
         if (currentUserSchool.getId() != null && currentUserSchool.getId().equals(schoolId)) {
             throw new IllegalArgumentException("Kies een andere school voor extern uitlenen.");
         }
@@ -358,18 +361,6 @@ public class UserService {
         }
 
         return authentication.getName();
-    }
-
-    private School getCurrentUserSchool(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Gebruiker niet gevonden: " + userId));
-
-        if (user.getSchool() == null) {
-            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
-        }
-
-        return user.getSchool();
     }
 
     /**
@@ -587,6 +578,71 @@ public class UserService {
         return oneRosterClass.sourcedId();
     }
 
+    private Map<String, List<String>> buildEnrollmentGroups(
+            String schoolCode, String token, List<Map<String, Object>> rosterUsers) {
+        Map<String, String> sourcedIdToLegacyId = rosterUsers.stream()
+                .filter(u -> readMetadataString(u, "smsc.legacyIdentifier") != null)
+                .collect(Collectors.toMap(
+                        u -> firstNonBlank(u, "sourcedId"),
+                        u -> readMetadataString(u, "smsc.legacyIdentifier"),
+                        (a, b) -> a));
+
+        List<OneRosterEnrollmentDTO> enrollments = oneRosterClient.fetchEnrollmentsWithBearer(schoolCode, token);
+        List<OneRosterClassDTO> classes = oneRosterClient.fetchClassesWithBearer(schoolCode, token);
+
+        Map<String, String> classNames = classes.stream()
+                .filter(c -> c.sourcedId() != null && c.title() != null)
+                .collect(Collectors.toMap(
+                        OneRosterClassDTO::sourcedId,
+                        OneRosterClassDTO::title,
+                        (a, b) -> a));
+
+        return enrollments.stream()
+                .filter(e -> e.userSourcedId() != null && e.classSourcedId() != null)
+                .collect(Collectors.groupingBy(
+                        e -> sourcedIdToLegacyId.getOrDefault(e.userSourcedId(), e.userSourcedId()),
+                        Collectors.mapping(
+                                e -> classNames.getOrDefault(e.classSourcedId(), e.classSourcedId()),
+                                Collectors.toList())));
+    }
+
+    private AuthUserDto withEnrollmentGroups(AuthUserDto dto, List<String> groupNames) {
+        if (groupNames == null || groupNames.isEmpty()) {
+            return dto;
+        }
+
+        String primary = StringUtils.hasText(dto.primaryGroupName())
+                ? dto.primaryGroupName()
+                : groupNames.get(0);
+        List<String> parents = (dto.parentGroupNames() != null && !dto.parentGroupNames().isEmpty())
+                ? dto.parentGroupNames()
+                : (groupNames.size() > 1 ? groupNames.subList(1, groupNames.size()) : List.of());
+
+        return new AuthUserDto(
+                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                dto.role(), dto.email(), dto.username(),
+                dto.smartschoolId(), dto.platform(),
+                primary,
+                parents,
+                dto.reviewBlocked(),
+                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                dto.school());
+    }
+
+    private AuthUserDto withLocalGroupName(AuthUserDto dto, String localGroupName) {
+        if (StringUtils.hasText(dto.primaryGroupName()) || !StringUtils.hasText(localGroupName)) {
+            return dto;
+        }
+
+        return new AuthUserDto(
+                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                dto.role(), dto.email(), dto.username(),
+                dto.smartschoolId(), dto.platform(), localGroupName,
+                dto.parentGroupNames(), dto.reviewBlocked(),
+                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                dto.school());
+    }
+
     /**
      * Adds a primary group name when the DTO has no primary group name.
      *
@@ -594,7 +650,6 @@ public class UserService {
      * @param primaryGroupName primary group name
      * @return original or updated DTO
      */
-
     private AuthUserDto withPrimaryGroupName(AuthUserDto dto, String primaryGroupName) {
         if (StringUtils.hasText(dto.primaryGroupName()) || !StringUtils.hasText(primaryGroupName)) {
             return dto;
@@ -688,5 +743,3 @@ public class UserService {
         return null;
     }
 }
-
-

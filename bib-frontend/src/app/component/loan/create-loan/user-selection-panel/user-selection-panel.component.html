@@ -118,9 +118,9 @@
                   }}</span
                 >
               }
-              @if (user.primaryGroupName) {
+              @if (hasGroups(user)) {
                 <span class="list-item-subtitle"
-                  >Klas: {{ user.primaryGroupName }}</span
+                  >{{ groupLabel(user) }}: {{ joinGroupNames(user) }}</span
                 >
               }
             </div>

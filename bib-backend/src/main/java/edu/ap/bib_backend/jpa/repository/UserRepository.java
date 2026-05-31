@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
+import edu.ap.bib_backend.projection.report.ClassStudentCountProjection;
 import edu.ap.bib_backend.projection.report.SystemSchoolActivityProjection;
 
 public interface UserRepository extends JpaRepository<User, String> {
@@ -41,6 +42,15 @@ public interface UserRepository extends JpaRepository<User, String> {
             where u.school.id = :schoolId
             """)
     List<User> findBySchoolIdWithGroups(@Param("schoolId") Long schoolId);
+
+    @Query("""
+            select g.name as className, count(u.id) as studentCount
+            from User u
+            join u.groups g
+            where u.school.id = :schoolId
+            group by g.name
+            """)
+    List<ClassStudentCountProjection> findStudentCountsByClassForSchool(@Param("schoolId") Long schoolId);
 
     @Query(value = """
             select count(distinct u.id)

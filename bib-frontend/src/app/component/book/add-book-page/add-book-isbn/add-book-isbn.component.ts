@@ -207,6 +207,8 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
     });
   }
   clearForm() {
+    const savedCampusId = this.campusId;
+
     this.isbn = '';
     this.selectedBook = undefined;
     this.candidates = [];
@@ -242,6 +244,8 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
       didactic: false,
       readingLevel: undefined,
     });
+
+    this.campusId = savedCampusId;
   }
   searchByTitleAuthorYear() {
     this.showCandidates = false;

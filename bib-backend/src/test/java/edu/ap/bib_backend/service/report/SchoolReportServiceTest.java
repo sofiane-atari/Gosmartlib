@@ -4,13 +4,15 @@ import edu.ap.bib_backend.dto.report.SchoolReportDTO;
 import edu.ap.bib_backend.dto.report.PopularGenreDTO;
 import edu.ap.bib_backend.dto.report.TopRatedBookReportDTO;
 import edu.ap.bib_backend.jpa.entity.School;
-import edu.ap.bib_backend.jpa.entity.User;
+import edu.ap.bib_backend.jpa.repository.GroupRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.projection.report.ClassLoanActivityProjection;
+import edu.ap.bib_backend.projection.report.ClassStudentCountProjection;
 import edu.ap.bib_backend.projection.report.LoanVolumePeriodProjection;
 import edu.ap.bib_backend.projection.report.PopularLoanedBookProjection;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -35,34 +37,46 @@ import static org.mockito.Mockito.when;
 class SchoolReportServiceTest {
 
     private final ReportAccessService reportAccessService = new ReportAccessService();
-    private final UserRepository userRepository = mock(UserRepository.class);
     private final SchoolRepository schoolRepository = mock(SchoolRepository.class);
     private final LoanRepository loanRepository = mock(LoanRepository.class);
+    private final GroupRepository groupRepository = mock(GroupRepository.class);
+    private final UserRepository userRepository = mock(UserRepository.class);
     private final ReportStatisticsQueryService statisticsQueryService = mock(ReportStatisticsQueryService.class);
+    private final CurrentUserService currentUserService = mock(CurrentUserService.class);
 
     private final SchoolReportService service = new SchoolReportService(
             reportAccessService,
-            userRepository,
             schoolRepository,
             loanRepository,
-            statisticsQueryService);
+            groupRepository,
+            userRepository,
+            statisticsQueryService,
+            currentUserService);
 
     @Test
     void generateSchoolReport_aggregatesSchoolLevelDataAndCalculatesAverage() {
-        User user = user("teacher-1", 1L, "School Een");
-        when(userRepository.findById("teacher-1")).thenReturn(Optional.of(user));
+        School school = school(1L, "School Een");
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(school);
 
         PopularLoanedBookProjection popularBook = popularBook(10L, "Boek A", null, null, 7L);
         LoanVolumePeriodProjection volumePeriod = volumePeriod(2026, 5, 12L);
-        ClassLoanActivityProjection classActivity = classActivity("2ITSOF1", 5L, 12L, 3L);
+        ClassLoanActivityProjection classActivity = classActivity("2ITSOF1", 12L, 3L);
 
+        when(groupRepository.findDistinctNamesBySchoolId(1L))
+                .thenReturn(List.of("2ITSOF1", "2ITSOF2", "2ITSOF3", "2ITSOF4"));
+
+        ClassStudentCountProjection sc1 = classStudentCount("2ITSOF1", 5L);
+        ClassStudentCountProjection sc2 = classStudentCount("2ITSOF2", 20L);
+        ClassStudentCountProjection sc3 = classStudentCount("2ITSOF3", 15L);
+        ClassStudentCountProjection sc4 = classStudentCount("2ITSOF4", 10L);
+        when(userRepository.findStudentCountsByClassForSchool(1L))
+                .thenReturn(List.of(sc1, sc2, sc3, sc4));
         when(loanRepository.findPopularLoanedBooksForSchool(any(), any(), any(Pageable.class)))
                 .thenReturn(List.of(popularBook));
         when(loanRepository.findMonthlyLoanVolumeForSchool(1L, null)).thenReturn(List.of(volumePeriod));
         when(loanRepository.findClassLoanActivityForSchool(1L, null)).thenReturn(List.of(classActivity));
         when(loanRepository.countLoanedBookCopiesForSchool(1L, null)).thenReturn(12L);
         when(loanRepository.countActiveLoanedBookCopiesForSchool(1L, null)).thenReturn(3L);
-        when(loanRepository.countClassesForSchool(1L)).thenReturn(4L);
         when(loanRepository.countStudentsWithClassForSchool(1L)).thenReturn(5L);
         when(loanRepository.countOnTimeReturnsForSchool(1L, null)).thenReturn(8L);
         when(loanRepository.countLateReturnsForSchool(1L, null)).thenReturn(4L);
@@ -89,8 +103,17 @@ class SchoolReportServiceTest {
         assertThat(result.loanVolume().get(0).period()).isEqualTo("2026-05");
         assertThat(result.loanVolume().get(0).loanCount()).isEqualTo(12L);
 
-        assertThat(result.classActivity()).hasSize(1);
+        assertThat(result.classActivity()).hasSize(4);
+        assertThat(result.classActivity().get(0).classTitle()).isEqualTo("2ITSOF1");
+        assertThat(result.classActivity().get(0).totalLoans()).isEqualTo(12L);
         assertThat(result.classActivity().get(0).averageLoansPerStudent()).isEqualTo(2.4);
+        assertThat(result.classActivity().get(1).classTitle()).isEqualTo("2ITSOF2");
+        assertThat(result.classActivity().get(1).totalLoans()).isEqualTo(0);
+        assertThat(result.classActivity().get(2).classTitle()).isEqualTo("2ITSOF3");
+        assertThat(result.classActivity().get(2).totalLoans()).isEqualTo(0);
+        assertThat(result.classActivity().get(3).classTitle()).isEqualTo("2ITSOF4");
+        assertThat(result.classActivity().get(3).totalLoans()).isEqualTo(0);
+
         assertThat(result.popularGenres()).hasSize(1);
         assertThat(result.popularGenres().get(0).name()).isEqualTo("Fantasy");
         assertThat(result.topRatedBooks()).hasSize(1);
@@ -117,15 +140,16 @@ class SchoolReportServiceTest {
 
     @Test
     void generateSchoolReport_returnsZeroAverageWhenSchoolHasNoStudents() {
-        User user = user("teacher-1", 1L, "School Een");
-        when(userRepository.findById("teacher-1")).thenReturn(Optional.of(user));
+        School school = school(1L, "School Een");
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(school);
 
+        when(groupRepository.findDistinctNamesBySchoolId(1L)).thenReturn(List.of());
+        when(userRepository.findStudentCountsByClassForSchool(1L)).thenReturn(List.of());
         when(loanRepository.findPopularLoanedBooksForSchool(any(), any(), any(Pageable.class))).thenReturn(List.of());
         when(loanRepository.findMonthlyLoanVolumeForSchool(1L, null)).thenReturn(List.of());
         when(loanRepository.findClassLoanActivityForSchool(1L, null)).thenReturn(List.of());
         when(loanRepository.countLoanedBookCopiesForSchool(1L, null)).thenReturn(8L);
         when(loanRepository.countActiveLoanedBookCopiesForSchool(1L, null)).thenReturn(0L);
-        when(loanRepository.countClassesForSchool(1L)).thenReturn(0L);
         when(loanRepository.countStudentsWithClassForSchool(1L)).thenReturn(0L);
         when(loanRepository.countOnTimeReturnsForSchool(1L, null)).thenReturn(0L);
         when(loanRepository.countLateReturnsForSchool(1L, null)).thenReturn(0L);
@@ -134,6 +158,8 @@ class SchoolReportServiceTest {
 
         assertThat(result.loansPerStudent()).isZero();
         assertThat(result.totalStudentCount()).isZero();
+        assertThat(result.classCount()).isZero();
+        assertThat(result.classActivity()).isEmpty();
         assertThat(result.returnedOnTimeLoans()).isZero();
         assertThat(result.returnedLateLoans()).isZero();
         assertThat(result.onTimePercentage()).isZero();
@@ -142,11 +168,13 @@ class SchoolReportServiceTest {
 
     @Test
     void generateSchoolReport_allowsAdminToRequestAnotherSchool() {
-        User user = user("admin-1", 1L, "School Een");
+        School adminSchool = school(1L, "School Een");
         School requestedSchool = school(2L, "School Twee");
 
-        when(userRepository.findById("admin-1")).thenReturn(Optional.of(user));
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(adminSchool);
         when(schoolRepository.findById(2L)).thenReturn(Optional.of(requestedSchool));
+        when(groupRepository.findDistinctNamesBySchoolId(2L)).thenReturn(List.of());
+        when(userRepository.findStudentCountsByClassForSchool(2L)).thenReturn(List.of());
         when(loanRepository.findPopularLoanedBooksForSchool(any(), any(), any(Pageable.class))).thenReturn(List.of());
         when(loanRepository.findMonthlyLoanVolumeForSchool(2L, null)).thenReturn(List.of());
         when(loanRepository.findClassLoanActivityForSchool(2L, null)).thenReturn(List.of());
@@ -161,14 +189,14 @@ class SchoolReportServiceTest {
 
     @Test
     void generateSchoolReport_rejectsTeacherRequestingAnotherSchool() {
-        User user = user("teacher-1", 1L, "School Een");
-        when(userRepository.findById("teacher-1")).thenReturn(Optional.of(user));
+        School school = school(1L, "School Een");
+        when(currentUserService.getCurrentUserSchool(any())).thenReturn(school);
 
         assertThatThrownBy(() -> service.generateSchoolReport(teacherAuthentication("teacher-1"), 2L, 10, 0))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Je hebt geen toegang tot rapporten van deze school");
 
-        verifyNoInteractions(schoolRepository, loanRepository);
+        verifyNoInteractions(schoolRepository, groupRepository, userRepository, loanRepository);
     }
 
     private UsernamePasswordAuthenticationToken teacherAuthentication(String userId) {
@@ -183,13 +211,6 @@ class SchoolReportServiceTest {
                 userId,
                 null,
                 List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
-    }
-
-    private User user(String userId, Long schoolId, String schoolName) {
-        User user = new User();
-        user.setId(userId);
-        user.setSchool(school(schoolId, schoolName));
-        return user;
     }
 
     private School school(Long id, String name) {
@@ -217,12 +238,18 @@ class SchoolReportServiceTest {
         return projection;
     }
 
-    private ClassLoanActivityProjection classActivity(String classTitle, Long studentCount, Long totalLoans, Long activeLoans) {
+    private ClassLoanActivityProjection classActivity(String classTitle, Long totalLoans, Long activeLoans) {
         ClassLoanActivityProjection projection = mock(ClassLoanActivityProjection.class);
         when(projection.getClassTitle()).thenReturn(classTitle);
-        when(projection.getStudentCount()).thenReturn(studentCount);
         when(projection.getTotalLoans()).thenReturn(totalLoans);
         when(projection.getActiveLoans()).thenReturn(activeLoans);
+        return projection;
+    }
+
+    private ClassStudentCountProjection classStudentCount(String className, Long studentCount) {
+        ClassStudentCountProjection projection = mock(ClassStudentCountProjection.class);
+        when(projection.getClassName()).thenReturn(className);
+        when(projection.getStudentCount()).thenReturn(studentCount);
         return projection;
     }
 }

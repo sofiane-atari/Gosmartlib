@@ -50,16 +50,9 @@ public class CampusService {
     }
 
     public List<CampusDTO> getCampusesForCurrentUserSchool(Authentication authentication) {
-        String userId = currentUserService.extractCurrentUserId(authentication);
+        School school = currentUserService.getCurrentUserSchool(authentication);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("userId", "Gebruiker niet gevonden."));
-
-        if (user.getSchool() == null) {
-            throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
-        }
-
-        return campusRepository.findBySchoolId(user.getSchool().getId())
+        return campusRepository.findBySchoolId(school.getId())
                 .stream()
                 .map(campusMapper::toDto)
                 .toList();

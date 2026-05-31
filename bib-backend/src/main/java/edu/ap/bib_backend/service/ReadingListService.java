@@ -22,9 +22,12 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class ReadingListService {
@@ -34,7 +37,7 @@ public class ReadingListService {
     private final UserRepository userRepository;
     private final CampusRepository campusRepository;
     private final CurrentUserService currentUserService;
-    private final SchoolRepository schoolRepository;
+    private final ActiveSchoolContext activeSchoolContext;
 
     private static final String FAVORITES_NAME = "Favorieten";
     private static final int MAX_CATALOG_FEATURED_LISTS = 2;
@@ -46,13 +49,13 @@ public class ReadingListService {
             UserRepository userRepository,
             CampusRepository campusRepository,
             CurrentUserService currentUserService,
-            SchoolRepository schoolRepository) {
+            ActiveSchoolContext activeSchoolContext) {
         this.readingListRepository = readingListRepository;
         this.readingListBookRepository = readingListBookRepository;
         this.userRepository = userRepository;
         this.campusRepository = campusRepository;
         this.currentUserService = currentUserService;
-        this.schoolRepository = schoolRepository;
+        this.activeSchoolContext = activeSchoolContext;
     }
 
     public ReadingList createReadingList(String userId, ReadingListDTO dto) {
@@ -84,12 +87,15 @@ public class ReadingListService {
         AudienceContext audience = getAudienceContext();
         ensureSharedListsExist(user, campus, audience);
 
+        List<String> expandedClassCodes = expandClassCodePrefixes(audience.classCodes());
+
         return readingListRepository.findVisibleForUser(
                 userId,
                 campus.getId(),
-                audience.classCode(),
+                expandedClassCodes,
                 audience.yearCode(),
-                user.getSchool().getId(),
+                audience.schoolCode(),
+                campus.getSchool().getId(),
                 shouldIncludeOwnSharedLists());
     }
 
@@ -98,13 +104,16 @@ public class ReadingListService {
         Campus campus = resolveReadingListCampus(user);
         AudienceContext audience = getAudienceContext();
 
+        List<String> expandedClassCodes = expandClassCodePrefixes(audience.classCodes());
+
         return readingListRepository.findVisibleById(
                 id,
                 userId,
                 campus.getId(),
-                audience.classCode(),
+                expandedClassCodes,
                 audience.yearCode(),
-                user.getSchool().getId(),
+                audience.schoolCode(),
+                campus.getSchool().getId(),
                 shouldIncludeOwnSharedLists())
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet"));
     }
@@ -198,8 +207,17 @@ public class ReadingListService {
                 .orElseThrow(() -> new IllegalArgumentException("Gebruiker met id " + userId + " bestaat niet"));
     }
 
-    private Campus resolveReadingListCampus(User user) {
-        School school = user.getSchool();
+    private Campus resolveReadingListCampus(User fallbackUser) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        School school = null;
+        try {
+            school = currentUserService.getCurrentUserSchool(authentication);
+        } catch (Exception e) {
+            // fall through to fallback
+        }
+        if (school == null || school.getId() == null) {
+            school = fallbackUser.getSchool();
+        }
         if (school == null || school.getId() == null) {
             throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
         }
@@ -208,12 +226,20 @@ public class ReadingListService {
                 .orElseThrow(() -> new IllegalStateException("School heeft geen campus voor leeslijsten."));
     }
 
-    private School resolveSchool(User user) {
-        School school = user.getSchool();
+    private School resolveSchool(User fallbackUser) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        School school = null;
+        try {
+            school = currentUserService.getCurrentUserSchool(authentication);
+        } catch (Exception e) {
+            // fall through to fallback
+        }
+        if (school == null || school.getId() == null) {
+            school = fallbackUser.getSchool();
+        }
         if (school == null || school.getId() == null) {
             throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
         }
-
         return school;
     }
 
@@ -226,7 +252,7 @@ public class ReadingListService {
         return switch (targetType) {
             case PERSONAL -> null;
             case CLASS ->
-                (requestedValue == null || requestedValue.isBlank()) ? audience.classCode() : requestedValue.trim();
+                (requestedValue == null || requestedValue.isBlank()) ? audience.primaryClassCode() : requestedValue.trim();
             case SYSTEM -> null;
         };
     }
@@ -238,25 +264,55 @@ public class ReadingListService {
             return AudienceContext.defaults();
         }
 
-        if (authentication.getDetails() instanceof Map<?, ?> detailsRaw) {
+        List<String> classCodes = new ArrayList<>();
+        String yearCode = AudienceContext.defaults().yearCode();
+        String schoolCode = AudienceContext.defaults().schoolCode();
+
+        if (activeSchoolContext.isClassOverrideActive()) {
+            classCodes = new ArrayList<>(activeSchoolContext.getActiveClassCodes());
+        }
+
+        if (classCodes.isEmpty() && authentication.getDetails() instanceof Map<?, ?> detailsRaw) {
             Map<String, Object> details = (Map<String, Object>) detailsRaw;
-            String classCode = readDetail(details, "classCode", AudienceContext.defaults().classCode());
-            String yearCode = readDetail(details, "yearCode", AudienceContext.defaults().yearCode());
-            String schoolCode = readDetail(details, "schoolCode", AudienceContext.defaults().schoolCode());
-            return new AudienceContext(classCode, yearCode, schoolCode);
+            classCodes = readClassCodesFromDetails(details);
+            yearCode = readDetail(details, "yearCode", AudienceContext.defaults().yearCode());
+            schoolCode = readDetail(details, "schoolCode", AudienceContext.defaults().schoolCode());
         }
 
         Object principal = authentication.getPrincipal();
-        if (principal instanceof OAuth2AuthenticatedPrincipal oauthPrincipal) {
-            String classCode = readPrincipalAttribute(oauthPrincipal, "classCode",
-                    AudienceContext.defaults().classCode());
-            String yearCode = readPrincipalAttribute(oauthPrincipal, "yearCode", AudienceContext.defaults().yearCode());
-            String schoolCode = readPrincipalAttribute(oauthPrincipal, "schoolCode",
+        if (classCodes.isEmpty() && principal instanceof OAuth2AuthenticatedPrincipal oauthPrincipal) {
+            String singleClassCode = readPrincipalAttribute(oauthPrincipal, "classCode",
+                    AudienceContext.defaults().primaryClassCode());
+            classCodes = List.of(singleClassCode);
+            yearCode = readPrincipalAttribute(oauthPrincipal, "yearCode", AudienceContext.defaults().yearCode());
+            schoolCode = readPrincipalAttribute(oauthPrincipal, "schoolCode",
                     AudienceContext.defaults().schoolCode());
-            return new AudienceContext(classCode, yearCode, schoolCode);
         }
 
-        return AudienceContext.defaults();
+        if (classCodes.isEmpty()) {
+            classCodes = List.of(AudienceContext.defaults().primaryClassCode());
+        }
+
+        return new AudienceContext(classCodes, yearCode, schoolCode);
+    }
+
+    private List<String> readClassCodesFromDetails(Map<String, Object> details) {
+        List<String> result = new ArrayList<>();
+        Object raw = details.get("classCodes");
+        if (raw instanceof List<?> list) {
+            for (Object item : list) {
+                if (item instanceof String str && !str.isBlank()) {
+                    result.add(str.trim());
+                }
+            }
+        }
+        if (result.isEmpty()) {
+            Object single = details.get("classCode");
+            if (single instanceof String str && !str.isBlank()) {
+                result.add(str.trim());
+            }
+        }
+        return result;
     }
 
     private String readDetail(Map<String, Object> details, String key, String fallback) {
@@ -276,11 +332,19 @@ public class ReadingListService {
     }
 
     private void ensureSharedListsExist(User owner, Campus campus, AudienceContext audience) {
-        ensureSharedList(owner,
-                campus,
-                ReadingListTargetType.CLASS,
-                audience.classCode(),
-                "Klas " + audience.classCode());
+        if (!currentUserService.currentUserHasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")) {
+            List<String> classCodes = audience.classCodes();
+            if (classCodes.isEmpty()) {
+                classCodes = List.of(audience.primaryClassCode());
+            }
+            for (String classCode : classCodes) {
+                ensureSharedList(owner,
+                        campus,
+                        ReadingListTargetType.CLASS,
+                        classCode,
+                        "Klas " + classCode);
+            }
+        }
 
         ensureSharedList(owner,
                 campus,
@@ -319,7 +383,7 @@ public class ReadingListService {
             String targetValue,
             String defaultName) {
         if (targetType == ReadingListTargetType.SYSTEM) {
-            if (readingListRepository.findFirstByTargetTypeAndCampus_School_Id(targetType, owner.getSchool().getId()).isPresent()) {
+            if (readingListRepository.findFirstByTargetTypeAndCampus_School_Id(targetType, campus.getSchool().getId()).isPresent()) {
                 return;
             }
         } else if (targetValue != null && readingListRepository
@@ -374,11 +438,27 @@ public class ReadingListService {
     }
 
     private boolean shouldIncludeOwnSharedLists() {
-        return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_LIBRARIAN");
+        return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER");
     }
 
     private boolean isTeacherAuthenticated() {
         return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER");
+    }
+
+    private List<String> expandClassCodePrefixes(List<String> codes) {
+        Set<String> expanded = new LinkedHashSet<>();
+        for (String code : codes) {
+            if (code == null || code.isBlank()) continue;
+            String trimmed = code.trim().toLowerCase();
+            expanded.add(trimmed);
+            for (int i = trimmed.length() - 1; i > 0; i--) {
+                String prefix = trimmed.substring(0, i);
+                if (!prefix.isBlank()) {
+                    expanded.add(prefix);
+                }
+            }
+        }
+        return new ArrayList<>(expanded);
     }
 
     public ReadingListShareDTO enableSharing(String userId, Long listId, String frontendBaseUrl) {

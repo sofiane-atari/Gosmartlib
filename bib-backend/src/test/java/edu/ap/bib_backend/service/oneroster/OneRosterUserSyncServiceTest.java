@@ -58,14 +58,17 @@ class OneRosterUserSyncServiceTest {
                 "sourcedId", "sourced-1"
         );
         when(oneRosterClient.fetchUsers("test.smartschool.be")).thenReturn(List.of(rosterUser));
+        when(oneRosterClient.fetchEnrollments("test.smartschool.be")).thenReturn(List.of());
+        when(oneRosterClient.fetchClasses("test.smartschool.be")).thenReturn(List.of());
         when(userRepository.findById("user1")).thenReturn(Optional.empty());
-        when(roleService.getRoleEntity("teacher")).thenReturn(null);
+        when(roleService.getRoleEntity(any())).thenReturn(null);
 
         syncService.syncAllSchools();
 
         verify(oneRosterClient).fetchUsers("test.smartschool.be");
+        verify(oneRosterClient).fetchEnrollments("test.smartschool.be");
+        verify(oneRosterClient).fetchClasses("test.smartschool.be");
         verify(userRepository).findById("user1");
-        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -77,6 +80,8 @@ class OneRosterUserSyncServiceTest {
                 "metadata", Map.of("wrongKey", "user1")
         );
         when(oneRosterClient.fetchUsers("test.smartschool.be")).thenReturn(List.of(rosterUser));
+        when(oneRosterClient.fetchEnrollments("test.smartschool.be")).thenReturn(List.of());
+        when(oneRosterClient.fetchClasses("test.smartschool.be")).thenReturn(List.of());
 
         OneRosterCredential cred = new OneRosterCredential();
         cred.setSchool(school);

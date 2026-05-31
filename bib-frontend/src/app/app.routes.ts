@@ -46,6 +46,7 @@ import { ReturnLoanComponent } from './component/loan/return-loan/return-loan.co
 import { UserManagementComponent } from './component/user-management/user-management.component';
 import { ClassReportComponent } from './component/class-report/class-report/class-report.component';
 import { ReportSelectorComponent } from './component/class-report/report-selector/report-selector.component';
+import { SchoolReportComponent } from './component/class-report/school-report/school-report.component';
 import { SystemReportComponent } from './component/class-report/system-report/system-report.component';
 import { UnauthorizedComponent } from './component/unauthorized/unauthorized.component';
 
@@ -187,6 +188,11 @@ export const routes: Routes = [
         path: 'class',
         component: ClassReportComponent,
         canActivate: [authGuard, staffOnlyGuard]
+      },
+      {
+        path: 'school',
+        component: SchoolReportComponent,
+        canActivate: [authGuard, librarianOrAdminGuard]
       },
       {
         path: 'system',

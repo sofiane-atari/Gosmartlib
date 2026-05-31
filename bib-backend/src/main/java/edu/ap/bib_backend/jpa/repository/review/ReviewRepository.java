@@ -143,15 +143,16 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
                                min(b.author) as author,
                                min(b.image_url) as imageUrl,
                                avg(r.rating) as averageRating,
-                               count(r.id) as reviewCount
+                               count(distinct r.id) as reviewCount
                         from reviews r
                         join books b on b.id = r.book_id
+                        join book_copies bc on bc.book_id = b.id
                         join users u on u.id = r.user_id
                         join auth_sessions s on s.user_id = u.id
                         where u.school_id = :schoolId
                         and s.smartschool_refresh_token is not null
                         and (s.smartschool_refresh_token_expires_at is null or s.smartschool_refresh_token_expires_at > current_timestamp)
-                        and (:campusId is null or b.campus_id = :campusId)
+                        and (:campusId is null or bc.campus_id = :campusId)
                         and r.moderation_status in ('ACTIVE', 'KEPT')
                         group by case
                             when nullif(trim(b.isbn), '') is not null then concat('isbn:', trim(b.isbn))

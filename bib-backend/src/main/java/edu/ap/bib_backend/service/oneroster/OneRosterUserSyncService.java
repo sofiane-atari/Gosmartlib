@@ -3,6 +3,8 @@ package edu.ap.bib_backend.service.oneroster;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import edu.ap.bib_backend.dto.oneroster.OneRosterClassDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
 import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.OneRosterCredential;
 import edu.ap.bib_backend.jpa.entity.School;
@@ -81,11 +85,32 @@ public class OneRosterUserSyncService {
 
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsers(schoolCode);
 
+        List<OneRosterEnrollmentDTO> enrollments = oneRosterClient.fetchEnrollments(schoolCode);
+        List<OneRosterClassDTO> classes = oneRosterClient.fetchClasses(schoolCode);
+
+        Map<String, String> classNames = classes.stream()
+                .filter(c -> c.sourcedId() != null && c.title() != null)
+                .collect(Collectors.toMap(
+                        OneRosterClassDTO::sourcedId,
+                        OneRosterClassDTO::title,
+                        (a, b) -> a));
+
+        Map<String, Set<String>> enrollmentGroups = enrollments.stream()
+                .filter(e -> e.userSourcedId() != null && e.classSourcedId() != null)
+                .collect(Collectors.groupingBy(
+                        OneRosterEnrollmentDTO::userSourcedId,
+                        Collectors.mapping(
+                                e -> classNames.getOrDefault(e.classSourcedId(), e.classSourcedId()),
+                                Collectors.toSet())));
+
+        logger.info("Fetched {} enrollments across {} classes for school id={}",
+                enrollments.size(), classes.size(), school.getId());
+
         int saved = 0;
         int skipped = 0;
 
         for (Map<String, Object> rosterUser : rosterUsers) {
-            if (upsertUserFromRoster(school, rosterUser)) {
+            if (upsertUserFromRoster(school, rosterUser, enrollmentGroups)) {
                 saved++;
             } else {
                 skipped++;
@@ -161,9 +186,11 @@ public class OneRosterUserSyncService {
      *
      * @param school school that owns the roster user
      * @param rosterUser raw OneRoster user payload
+     * @param enrollmentGroups enrollment group mapping by user sourcedId
      * @return true when the user was saved, false when skipped
      */
-    private boolean upsertUserFromRoster(School school, Map<String, Object> rosterUser) {
+    private boolean upsertUserFromRoster(School school, Map<String, Object> rosterUser,
+                                         Map<String, Set<String>> enrollmentGroups) {
         String legacyIdentifier = readMetadataString(rosterUser, "smsc.legacyIdentifier");
         String sourcedId = firstNonBlank(rosterUser, "sourcedId");
         String roleName = firstNonBlank(rosterUser, "role");
@@ -173,7 +200,7 @@ public class OneRosterUserSyncService {
                 sourcedId, legacyIdentifier, roleName, groupName);
 
         if (!StringUtils.hasText(legacyIdentifier)) {
-            logger.warn("Skipping OneRoster user for school id={} because smsc.legacyIdentifier is missing (sourcedId={})", 
+            logger.warn("Skipping OneRoster user for school id={} because smsc.legacyIdentifier is missing (sourcedId={})",
                     school.getId(), sourcedId);
             return false;
         }
@@ -185,16 +212,35 @@ public class OneRosterUserSyncService {
             user.setSchool(school);
         }
 
-        if (StringUtils.hasText(groupName)) {
+        user.getGroups().clear();
+
+        boolean assignedFromEnrollment = false;
+        if (sourcedId != null && enrollmentGroups.containsKey(sourcedId)) {
+            Set<String> userClasses = enrollmentGroups.get(sourcedId);
+            for (String className : userClasses) {
+                Group group = resolveGroup(school.getId(), className);
+                if (group != null) {
+                    user.getGroups().add(group);
+                    assignedFromEnrollment = true;
+                    logger.info("Assigned user {} to class {} (from enrollment)", legacyIdentifier, className);
+                } else {
+                    logger.warn("Failed to resolve or create class {} for user {} (from enrollment)", className, legacyIdentifier);
+                }
+            }
+        }
+
+        if (!assignedFromEnrollment && StringUtils.hasText(groupName)) {
             Group group = resolveGroup(school.getId(), groupName);
             if (group != null) {
                 user.getGroups().add(group);
-                logger.info("Assigned user {} to class {}", legacyIdentifier, groupName);
+                logger.info("Assigned user {} to class {} (from metadata)", legacyIdentifier, groupName);
             } else {
                 logger.warn("Failed to resolve or create class {} for user {}", groupName, legacyIdentifier);
             }
-        } else {
-            logger.info("User {} has no class metadata associated", legacyIdentifier);
+        }
+
+        if (!assignedFromEnrollment && !StringUtils.hasText(groupName)) {
+            logger.info("User {} has no class associated (no enrollment, no metadata)", legacyIdentifier);
         }
 
         if (StringUtils.hasText(sourcedId)) {

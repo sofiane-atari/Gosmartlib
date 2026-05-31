@@ -217,7 +217,7 @@ public class SchoolService {
 
                 String schoolUsers = "SELECT u.id FROM users u WHERE u.school_id = :schoolId";
                 String schoolCampuses = "SELECT c.id FROM campuses c WHERE c.school_id = :schoolId";
-                String schoolBooks = "SELECT b.id FROM books b WHERE b.campus_id IN (" + schoolCampuses + ")";
+                String schoolBooks = "SELECT bc.book_id FROM book_copies bc WHERE bc.campus_id IN (" + schoolCampuses + ")";
                 String schoolProfiles = "SELECT gp.id FROM gamification_profiles gp WHERE gp.user_id IN (" + schoolUsers
                                 + ")";
                 String schoolLoans = "SELECT l.id FROM loans l WHERE l.campus_id IN (" + schoolCampuses + ")";
@@ -260,13 +260,13 @@ public class SchoolService {
                 executePurgeDelete("DELETE FROM loans WHERE campus_id IN ("
                                 + schoolCampuses + ")", schoolId);
 
-                executePurgeDelete("DELETE FROM book_copies WHERE campus_id IN ("
-                                + schoolCampuses + ")", schoolId);
                 executePurgeDelete("DELETE FROM book_genres WHERE book_id IN ("
                                 + schoolBooks + ")", schoolId);
                 executePurgeDelete("DELETE FROM book_tags WHERE book_id IN ("
                                 + schoolBooks + ")", schoolId);
-                executePurgeDelete("DELETE FROM books WHERE campus_id IN ("
+                executePurgeDelete("DELETE FROM books WHERE id IN ("
+                                + schoolBooks + ")", schoolId);
+                executePurgeDelete("DELETE FROM book_copies WHERE campus_id IN ("
                                 + schoolCampuses + ")", schoolId);
 
                 executePurgeDelete("DELETE FROM auth_sessions WHERE user_id IN ("
@@ -300,7 +300,7 @@ public class SchoolService {
         public void setCatalogVisibility(Long schoolId, boolean visible, Authentication authentication) {
                 School userSchool = currentUserService.getCurrentUserSchool(authentication);
 
-                if (!userSchool.getId().equals(schoolId) && !currentUserService.isAdmin(authentication)) {
+                if (!userSchool.getId().equals(schoolId)) {
                         throw new AccessDeniedException(
                                         "Je kunt alleen de zichtbaarheid van je eigen school aanpassen.");
                 }

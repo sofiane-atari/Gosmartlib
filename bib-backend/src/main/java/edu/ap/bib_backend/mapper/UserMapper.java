@@ -8,8 +8,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
+import edu.ap.bib_backend.dto.SchoolSummaryDto;
 import edu.ap.bib_backend.jpa.entity.Group;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 
@@ -28,6 +30,7 @@ public interface UserMapper {
     @Mapping(target = "reviewBlocked", source = "reviewBlocked")
     @Mapping(target = "schoolId", source = "school.id")
     @Mapping(target = "schoolName", source = "school.name")
+    @Mapping(target = "school", expression = "java(toSchoolSummaryDto(user.getSchool()))")
     AuthUserDto toDto(User user);
 
     List<AuthUserDto> toDtoList(List<User> users);
@@ -46,5 +49,18 @@ public interface UserMapper {
             return null;
         }
         return groups.iterator().next().getName();
+    }
+
+    default SchoolSummaryDto toSchoolSummaryDto(School school) {
+        if (school == null) {
+            return null;
+        }
+        return new SchoolSummaryDto(
+                school.getId(),
+                school.getName(),
+                school.getDomainName(),
+                school.getDefaultLoanDurationDays(),
+                school.getStatus(),
+                school.getCatalogVisible());
     }
 }

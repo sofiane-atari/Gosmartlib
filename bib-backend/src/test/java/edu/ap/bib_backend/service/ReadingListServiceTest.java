@@ -49,6 +49,8 @@ class ReadingListServiceTest {
 
         private static final String USER_ID = "user-1";
         private static final String CLASS_CODE = "2ITSOF1";
+        private static final List<String> EXPANDED_CLASS_CODES = List.of(
+                "2itsof1", "2itsof", "2itso", "2its", "2it", "2i", "2");
         private static final String YEAR_CODE = "2";
         private static final String SCHOOL_CODE = "https://aphogeschool.smartschool.be";
 	private static final Long CAMPUS_ID = 100L;
@@ -69,13 +71,16 @@ class ReadingListServiceTest {
         @Mock
         private CurrentUserService currentUserService;
 
+        @Mock
+        private ActiveSchoolContext activeSchoolContext;
+
         @InjectMocks
         private ReadingListService readingListService;
 
         @BeforeEach
         void setUp() {
                 lenient().when(userRepository.findById(USER_ID)).thenReturn(Optional.of(makeUser()));
-                lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(1L)).thenReturn(Optional.of(makeCampus()));
+                lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(SCHOOL_ID)).thenReturn(Optional.of(makeCampus()));
                 setAuthenticationAsStudent();
         }
 
@@ -134,8 +139,9 @@ class ReadingListServiceTest {
                 when(readingListRepository.findVisibleForUser(
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(List.of());
 
@@ -168,8 +174,9 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
@@ -193,8 +200,9 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
@@ -217,8 +225,9 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
@@ -246,8 +255,9 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
@@ -275,8 +285,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
@@ -303,8 +314,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
@@ -337,8 +349,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
@@ -364,8 +377,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
@@ -392,8 +406,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
@@ -431,8 +446,9 @@ class ReadingListServiceTest {
                                 99L,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(favoritesList));
 
@@ -458,8 +474,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(sharedList));
 
@@ -487,8 +504,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 true)).thenReturn(Optional.of(sharedList));
 
@@ -512,8 +530,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 false)).thenReturn(Optional.of(systemList));
 
@@ -540,8 +559,9 @@ class ReadingListServiceTest {
                                 listId,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 true)).thenReturn(Optional.of(systemList));
 
@@ -569,10 +589,11 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
-                                true)).thenReturn(Optional.of(list));
+                                false)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
 
@@ -595,10 +616,11 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
-                                true)).thenReturn(Optional.of(list));
+                                false)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
 
@@ -621,8 +643,9 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
@@ -650,10 +673,11 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
-                                true)).thenReturn(Optional.of(list));
+                                false)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
 
@@ -676,10 +700,11 @@ class ReadingListServiceTest {
                                 id,
                                 USER_ID,
                                 CAMPUS_ID,
-                                CLASS_CODE,
+                                EXPANDED_CLASS_CODES,
                                 YEAR_CODE,
+                                SCHOOL_CODE,
                                 SCHOOL_ID,
-                                true)).thenReturn(Optional.of(list));
+                                false)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
 

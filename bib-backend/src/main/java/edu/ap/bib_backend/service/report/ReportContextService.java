@@ -3,13 +3,14 @@ package edu.ap.bib_backend.service.report;
 import edu.ap.bib_backend.dto.SmartschoolProfileDto;
 import edu.ap.bib_backend.dto.groupinfo.GroupInfoItemDTO;
 import edu.ap.bib_backend.dto.groupinfo.SmartschoolGroupInfoDTO;
+import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.smartschool.SmartschoolProfileService;
+import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,12 +21,15 @@ public class ReportContextService {
 
     private final TokenStorageService tokenStorageService;
     private final SmartschoolProfileService smartschoolProfileService;
+    private final CurrentUserService currentUserService;
 
     public ReportContextService(
             TokenStorageService tokenStorageService,
-            SmartschoolProfileService smartschoolProfileService) {
+            SmartschoolProfileService smartschoolProfileService,
+            CurrentUserService currentUserService) {
         this.tokenStorageService = tokenStorageService;
         this.smartschoolProfileService = smartschoolProfileService;
+        this.currentUserService = currentUserService;
     }
 
     /**
@@ -44,6 +48,9 @@ public class ReportContextService {
                     "Geen Smartschool access token gevonden");
         }
 
+        School activeSchool = currentUserService.getCurrentUserSchool(authentication);
+        String schoolCode = activeSchool.getDomainName();
+
         SmartschoolProfileDto profile = smartschoolProfileService.fetchProfile(accessToken);
 
         if (profile == null || profile.platform() == null || profile.platform().isBlank()) {
@@ -51,8 +58,6 @@ public class ReportContextService {
                     UNAUTHORIZED,
                     "Geen Smartschool platform gevonden");
         }
-
-        String schoolCode = extractHostFromPlatform(profile.platform());
 
         return new ReportContext(
                 accessToken,
@@ -107,28 +112,6 @@ public class ReportContextService {
         }
 
         return null;
-    }
-
-    /**
-     * Extracts the host portion from a Smartschool platform URL.
-     *
-     * @param platform Smartschool platform URL
-     * @return platform host name
-     */
-    private String extractHostFromPlatform(String platform) {
-        try {
-            URI uri = URI.create(platform);
-
-            if (uri.getHost() == null || uri.getHost().isBlank()) {
-                throw new IllegalArgumentException();
-            }
-
-            return uri.getHost();
-        } catch (Exception ex) {
-            throw new ResponseStatusException(
-                    UNAUTHORIZED,
-                    "Geen geldige Smartschool platform URL gevonden");
-        }
     }
 
     public record ReportContext(

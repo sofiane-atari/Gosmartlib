@@ -13,7 +13,7 @@ import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.Loan;
 public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
 
-    Optional<Book> findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(
+    List<Book> findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(
             String title,
             String author,
             Integer releaseYear

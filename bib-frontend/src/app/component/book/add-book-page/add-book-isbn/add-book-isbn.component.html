@@ -357,9 +357,9 @@
 
         <select
           id="isbnCampus"
-          name="campusId"
           [ngModel]="campusId"
           (ngModelChange)="selectCampus($event)"
+          [ngModelOptions]="{ standalone: true }"
           [disabled]="campuses.length <= 1"
           required
         >
