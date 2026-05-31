@@ -2,6 +2,7 @@ package edu.ap.bib_backend.event;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
@@ -28,6 +29,7 @@ import edu.ap.bib_backend.service.MailSubscriptionService;
 import edu.ap.bib_backend.service.SmartschoolMessageService;
 import edu.ap.bib_backend.service.SmartschoolTokenRefreshService;
 import edu.ap.bib_backend.service.book.BookService;
+import edu.ap.bib_backend.service.message.SmartschoolMessageTemplateService;
 
 @ExtendWith(MockitoExtension.class)
 class BookAvailableEventListenerTest {
@@ -46,6 +48,8 @@ class BookAvailableEventListenerTest {
     private BookService bookService;
     @Mock
     private SmartschoolMessageService smartschoolMessageService;
+    @Mock
+    private SmartschoolMessageTemplateService smartschoolMessageTemplateService;
     @Mock
     private SmartschoolTokenRefreshService smartschoolTokenRefreshService;
 
@@ -186,6 +190,8 @@ class BookAvailableEventListenerTest {
         given(smartschoolTokenRefreshService.getValidSmartschoolAccessToken(USER_ID)).willReturn("valid-token");
         given(bookService.getRelatedBooksForLoan(List.of(BOOK_ID), 4, SCHOOL_DOMAIN))
                 .willReturn(List.of(recommendation));
+        given(smartschoolMessageTemplateService.renderBookAvailable(eq(book), eq(List.of(recommendation)), nullable(String.class)))
+                .willReturn("<html>available</html>");
 
         eventListener.onBookAvailable(event);
 
@@ -206,6 +212,8 @@ class BookAvailableEventListenerTest {
         given(smartschoolTokenRefreshService.getValidSmartschoolAccessToken("user2")).willReturn("token2");
         given(bookService.getRelatedBooksForLoan(List.of(BOOK_ID), 4, SCHOOL_DOMAIN))
                 .willReturn(List.of());
+        given(smartschoolMessageTemplateService.renderBookAvailable(eq(book), eq(List.of()), nullable(String.class)))
+                .willReturn("<html>available</html>");
 
         eventListener.onBookAvailable(event);
 
@@ -226,6 +234,8 @@ class BookAvailableEventListenerTest {
         given(smartschoolTokenRefreshService.getValidSmartschoolAccessToken("user2")).willReturn("token2");
         given(bookService.getRelatedBooksForLoan(List.of(BOOK_ID), 4, SCHOOL_DOMAIN))
                 .willReturn(List.of());
+        given(smartschoolMessageTemplateService.renderBookAvailable(eq(book), eq(List.of()), nullable(String.class)))
+                .willReturn("<html>available</html>");
         doThrow(new RuntimeException("SMTP error")).doNothing()
                 .when(smartschoolMessageService).sendMessage(anyString(), anyString(), anyString());
 

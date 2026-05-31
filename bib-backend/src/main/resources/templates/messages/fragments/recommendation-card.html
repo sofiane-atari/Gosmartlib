@@ -1,0 +1,17 @@
+<div style="flex: 1 1 calc(50% - 10px); min-width: 200px; padding: 12px; background-color: #ffffff; border-radius: 8px; border: 1px solid #f0e4e8; box-sizing: border-box;" class="msg-book-card">
+    <div style="display: flex; align-items: flex-start;">
+        <a href="{{BOOK_URL}}" class="msg-cover-link" style="text-decoration: none; display: block;">
+            <div style="flex-shrink: 0; width: 48px; height: 68px; margin-right: 10px; background-color: #f5eef1; border-radius: 3px; overflow: hidden;">
+                <img src="{{BOOK_IMAGE_URL}}" alt="{{BOOK_TITLE}}" style="width: 100%; height: 100%; object-fit: cover; display: {{BOOK_IMAGE_DISPLAY}};">
+                <div style="width: 100%; height: 100%; display: {{BOOK_PLACEHOLDER_DISPLAY}}; align-items: center; justify-content: center; color: #8a7580; font-size: 16px;">&#128218;</div>
+            </div>
+        </a>
+        <div style="flex: 1; min-width: 0;">
+            <a href="{{BOOK_URL}}" class="msg-book-link" style="color: #1a0a10; text-decoration: none; font-weight: 600;">
+                <p style="margin: 0 0 2px 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{BOOK_TITLE}}</p>
+            </a>
+            <p style="margin: 0 0 2px 0; font-size: 12px; color: #8a7580; display: {{BOOK_AUTHOR_DISPLAY}};">{{BOOK_AUTHOR}}</p>
+            <p style="margin: 2px 0 0 0; font-size: 12px; color: #c98500; display: {{REVIEW_SCORE_DISPLAY}};">&#9733; {{REVIEW_SCORE}}</p>
+        </div>
+    </div>
+</div>

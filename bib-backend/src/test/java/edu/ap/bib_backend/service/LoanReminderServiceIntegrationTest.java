@@ -174,7 +174,7 @@ class LoanReminderServiceIntegrationTest {
 
         assertDoesNotThrow(() -> loanReminderService.sendOverdueUserReminders());
 
-        verify(smartschoolMessageService).sendMessage(eq("overdue-token"), eq("Boek(en) te laat teruggebracht"), anyString());
+        verify(smartschoolMessageService).sendMessage(eq("overdue-token"), eq("Boek(en) te laat"), anyString());
     }
 
     @Test

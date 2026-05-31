@@ -23,9 +23,7 @@ import edu.ap.bib_backend.service.MailSubscriptionService;
 import edu.ap.bib_backend.service.SmartschoolMessageService;
 import edu.ap.bib_backend.service.SmartschoolTokenRefreshService;
 import edu.ap.bib_backend.service.book.BookService;
-import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
-import edu.ap.bib_backend.service.message.component.BookAvailableMessageComponent;
-import edu.ap.bib_backend.service.message.component.BookRecommendationComponent;
+import edu.ap.bib_backend.service.message.SmartschoolMessageTemplateService;
 
 @Component
 public class BookAvailableEventListener {
@@ -36,6 +34,7 @@ public class BookAvailableEventListener {
     private final BookRepository bookRepository;
     private final BookService bookService;
     private final SmartschoolMessageService smartschoolMessageService;
+    private final SmartschoolMessageTemplateService smartschoolMessageTemplateService;
     private final SmartschoolTokenRefreshService smartschoolTokenRefreshService;
     private final String frontendUrl;
 
@@ -44,12 +43,14 @@ public class BookAvailableEventListener {
             BookRepository bookRepository,
             BookService bookService,
             SmartschoolMessageService smartschoolMessageService,
+            SmartschoolMessageTemplateService smartschoolMessageTemplateService,
             SmartschoolTokenRefreshService smartschoolTokenRefreshService,
             @org.springframework.beans.factory.annotation.Value("${FRONTEND_URL:http://localhost:4200}") String frontendUrl) {
         this.mailSubscriptionService = mailSubscriptionService;
         this.bookRepository = bookRepository;
         this.bookService = bookService;
         this.smartschoolMessageService = smartschoolMessageService;
+        this.smartschoolMessageTemplateService = smartschoolMessageTemplateService;
         this.smartschoolTokenRefreshService = smartschoolTokenRefreshService;
         this.frontendUrl = frontendUrl;
     }
@@ -105,11 +106,10 @@ public class BookAvailableEventListener {
                         .map(domain -> bookService.getRelatedBooksForLoan(List.of(book.getId()), 4, domain))
                         .orElseGet(List::of);
 
-                String htmlMessage = new HtmlMessageBuilder(
-                        "Boek beschikbaar", frontendUrl)
-                        .addComponent(new BookAvailableMessageComponent(book, frontendUrl))
-                        .addComponent(new BookRecommendationComponent(recommendations, frontendUrl))
-                        .build();
+                String htmlMessage = smartschoolMessageTemplateService.renderBookAvailable(
+                        book,
+                        recommendations,
+                        frontendUrl);
 
                 smartschoolMessageService.sendMessage(token, book.getTitle() + " is beschikbaar!", htmlMessage);
                 log.info("Notified user {} about book '{}'", userId, book.getTitle());
