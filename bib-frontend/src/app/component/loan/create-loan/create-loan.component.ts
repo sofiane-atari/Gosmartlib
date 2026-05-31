@@ -535,6 +535,13 @@ export class CreateLoanComponent {
     index: number,
     copyId: number,
   ): void {
+    if (this.isCopyAlreadySelected(copyId, bookId, index)) {
+      this.showError(
+        'Elk te lenen exemplaar moet uniek zijn. Kies een ander exemplaar.',
+      );
+      return;
+    }
+
     const book = this.selectedBooks().find(
       (selectedBook) => selectedBook.id === bookId,
     );
@@ -604,6 +611,13 @@ export class CreateLoanComponent {
       return;
     }
 
+    if (this.hasDuplicateSelectedCopies(bookCopyIds)) {
+      this.showError(
+        'Elk te lenen exemplaar moet uniek zijn. Kies een ander exemplaar.',
+      );
+      return;
+    }
+
     if (!this.hasSingleSelectedCampus()) {
       this.showError(
         'Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.',
@@ -634,6 +648,13 @@ export class CreateLoanComponent {
     const returnDate = this.loanForm.controls.returnDate.value;
 
     if (user && returnDate) {
+      if (this.hasDuplicateSelectedCopies(bookCopyIds)) {
+        this.showError(
+          'Elk te lenen exemplaar moet uniek zijn. Kies een ander exemplaar.',
+        );
+        return;
+      }
+
       if (!this.hasSingleSelectedCampus()) {
         this.showError(
           'Je kan per lening alleen exemplaren uit dezelfde campus selecteren. Maak een aparte lening voor een andere campus.',
@@ -739,6 +760,26 @@ export class CreateLoanComponent {
     }
 
     return true;
+  }
+
+  private isCopyAlreadySelected(
+    copyId: number,
+    bookIdToReplace?: number,
+    indexToReplace?: number,
+  ): boolean {
+    return Object.entries(this.selectedCopyIdsByBook()).some(
+      ([bookId, selectedCopyIds]) =>
+        selectedCopyIds.some((selectedCopyId, index) => {
+          const isCurrentSlot =
+            Number(bookId) === bookIdToReplace && index === indexToReplace;
+
+          return !isCurrentSlot && selectedCopyId === copyId;
+        }),
+    );
+  }
+
+  private hasDuplicateSelectedCopies(bookCopyIds: number[]): boolean {
+    return new Set(bookCopyIds).size !== bookCopyIds.length;
   }
 
   private getSelectedCampusId(): number | null {

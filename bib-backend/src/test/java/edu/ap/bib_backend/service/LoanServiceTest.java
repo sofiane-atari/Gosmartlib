@@ -199,6 +199,29 @@ assertEquals(List.of(expectedDto), result);
     }
 
     @Test
+    void Given_DuplicateBookCopyIds_When_Create_Then_ThrowsIllegalStateException() {
+        // Arrange
+        LoanDTO inputDto = LoanDTO.builder()
+                .userId("user123")
+                .bookCopyIds(List.of(10L, 10L))
+                .returnDate(LocalDate.now(ZoneId.of("Europe/Brussels")).plusDays(7).toString())
+                .build();
+        User user = new User();
+        user.setId("user123");
+        user.setSchool(school);
+
+        when(currentUserService.getCurrentUserSchool(authentication)).thenReturn(school);
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        // Act
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> loanService.create(inputDto, authentication));
+
+        // Assert
+        assertEquals("Een boekexemplaar kan maar één keer per lening worden geselecteerd.", exception.getMessage());
+    }
+
+    @Test
     void Given_LostCopy_When_Create_Then_ThrowsIllegalStateException() {
         LoanDTO inputDto = LoanDTO.builder()
                 .userId("user123")
@@ -310,7 +333,6 @@ assertEquals(List.of(expectedDto), result);
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn("librarian-42");
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(bookCopyRepository.findAllById(List.of(10L))).thenReturn(List.of(copy));
-        when(loanMapper.toEntity(inputDto)).thenReturn(new Loan());
         when(loanRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         loanService.create(inputDto, authentication);
