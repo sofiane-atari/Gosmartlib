@@ -44,6 +44,7 @@ class SmartschoolMessageTemplateServiceTest {
         assertTrue(html.contains("Test Auteur"));
         assertTrue(html.contains("Aanbevolen boeken"));
         assertTrue(html.contains("Aanrader"));
+        assertFalse(html.contains("{{"));
     }
 
     @Test
@@ -62,6 +63,7 @@ class SmartschoolMessageTemplateServiceTest {
         assertTrue(html.contains("Beschikbaar Boek"));
         assertTrue(html.contains("Bekijk in catalogus"));
         assertTrue(html.contains("Suggestie"));
+        assertFalse(html.contains("{{"));
     }
 
     @Test
@@ -76,6 +78,7 @@ class SmartschoolMessageTemplateServiceTest {
         assertTrue(html.contains("&lt;script&gt;alert(1)&lt;/script&gt;"));
         assertTrue(html.contains("Auteur &amp; Co"));
         assertFalse(html.contains("<script>alert(1)</script>"));
+        assertFalse(html.contains("{{"));
     }
 
     @Test

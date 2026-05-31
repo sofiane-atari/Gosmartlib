@@ -72,11 +72,17 @@ public class SmartschoolMessageTemplateService {
         Map<String, String> placeholders = new LinkedHashMap<>();
         placeholders.put("TITLE", "Boek beschikbaar");
         placeholders.put("BOOK_TITLE", escapeHtml(book.getTitle()));
-        placeholders.put("BOOK_AUTHOR_HTML", renderBookAvailableAuthor(book.getAuthor()));
-        placeholders.put("BOOK_COVER_HTML", renderBookAvailableCover(book));
-        placeholders.put("GENRES_HTML", renderBookAvailableGenreBadges(book.getGenres()));
-        placeholders.put("REVIEW_SCORE_HTML", renderBookAvailableReviewScore(book.getReviewScore()));
-        placeholders.put("DESCRIPTION_HTML", renderBookAvailableDescription(book.getDescription()));
+        placeholders.put("BOOK_AUTHOR", escapeHtml(book.getAuthor()));
+        placeholders.put("BOOK_AUTHOR_DISPLAY", displayWhen(StringUtils.hasText(book.getAuthor()), "block"));
+        placeholders.put("BOOK_IMAGE_URL", escapeHtml(book.getImageUrl()));
+        placeholders.put("BOOK_IMAGE_DISPLAY", displayWhen(StringUtils.hasText(book.getImageUrl()), "block"));
+        placeholders.put("BOOK_PLACEHOLDER_DISPLAY", displayWhen(!StringUtils.hasText(book.getImageUrl()), "flex"));
+        placeholders.put("GENRE_BADGES_HTML", renderBookAvailableGenreBadges(book.getGenres()));
+        placeholders.put("GENRES_DISPLAY", displayWhen(hasGenres(book.getGenres()), "block"));
+        placeholders.put("REVIEW_SCORE", renderReviewScoreValue(book.getReviewScore()));
+        placeholders.put("REVIEW_SCORE_DISPLAY", displayWhen(hasReviewScore(book.getReviewScore()), "block"));
+        placeholders.put("BOOK_DESCRIPTION", renderShortenedDescription(book.getDescription()));
+        placeholders.put("DESCRIPTION_DISPLAY", displayWhen(StringUtils.hasText(book.getDescription()), "block"));
         placeholders.put("BOOK_URL", escapeHtml(frontendUrl + "/book/" + book.getId()));
         placeholders.put("RECOMMENDATIONS_HTML", renderRecommendations(recommendations, frontendUrl));
 
@@ -104,59 +110,20 @@ public class SmartschoolMessageTemplateService {
         Map<String, String> placeholders = new LinkedHashMap<>();
         placeholders.put("BOOK_URL", escapeHtml(bookUrl));
         placeholders.put("BOOK_TITLE", escapeHtml(book.getTitle()));
-        placeholders.put("BOOK_AUTHOR_HTML", renderBookCardAuthor(book.getAuthor()));
-        placeholders.put("BOOK_COVER_HTML", renderBookCardCover(book));
-        placeholders.put("GENRES_HTML", renderGenreBadges(book.getGenres()));
-        placeholders.put("COPY_COUNT_HTML", renderCopyCount(count));
+        placeholders.put("BOOK_AUTHOR", escapeHtml(book.getAuthor()));
+        placeholders.put("BOOK_AUTHOR_DISPLAY", displayWhen(StringUtils.hasText(book.getAuthor()), "block"));
+        placeholders.put("BOOK_IMAGE_URL", escapeHtml(book.getImageUrl()));
+        placeholders.put("BOOK_IMAGE_DISPLAY", displayWhen(StringUtils.hasText(book.getImageUrl()), "block"));
+        placeholders.put("BOOK_PLACEHOLDER_DISPLAY", displayWhen(!StringUtils.hasText(book.getImageUrl()), "flex"));
+        placeholders.put("GENRE_BADGES_HTML", renderGenreBadges(book.getGenres()));
+        placeholders.put("GENRES_DISPLAY", displayWhen(hasGenres(book.getGenres()), "block"));
+        placeholders.put("COPY_COUNT", String.valueOf(count));
+        placeholders.put("COPY_COUNT_DISPLAY", displayWhen(count > 1, "block"));
 
         return renderFragment("book-card.html", placeholders);
     }
 
-    private String renderBookCardAuthor(String author) {
-        if (!StringUtils.hasText(author)) {
-            return "";
-        }
-
-        return renderFragment("book-card-author.html", Map.of("BOOK_AUTHOR", escapeHtml(author)));
-    }
-
-    private String renderBookAvailableAuthor(String author) {
-        if (!StringUtils.hasText(author)) {
-            return "";
-        }
-
-        return renderFragment("book-available-author.html", Map.of("BOOK_AUTHOR", escapeHtml(author)));
-    }
-
-    private String renderCopyCount(long count) {
-        if (count <= 1) {
-            return "";
-        }
-
-        return renderFragment("copy-count.html", Map.of("COPY_COUNT", String.valueOf(count)));
-    }
-
-    private String renderBookCardCover(Book book) {
-        if (StringUtils.hasText(book.getImageUrl())) {
-            return renderFragment("book-cover-image.html", Map.of(
-                    "BOOK_IMAGE_URL", escapeHtml(book.getImageUrl()),
-                    "BOOK_TITLE", escapeHtml(book.getTitle())));
-        }
-
-        return renderFragment("book-cover-placeholder.html", Map.of());
-    }
-
-    private String renderBookAvailableCover(Book book) {
-        if (StringUtils.hasText(book.getImageUrl())) {
-            return renderFragment("book-available-cover-image.html", Map.of(
-                    "BOOK_IMAGE_URL", escapeHtml(book.getImageUrl()),
-                    "BOOK_TITLE", escapeHtml(book.getTitle())));
-        }
-
-        return renderFragment("book-available-cover-placeholder.html", Map.of());
-    }
-
-    private String renderBookAvailableDescription(String description) {
+    private String renderShortenedDescription(String description) {
         if (!StringUtils.hasText(description)) {
             return "";
         }
@@ -166,8 +133,7 @@ public class SmartschoolMessageTemplateService {
             shortenedDescription = shortenedDescription.substring(0, 197) + "...";
         }
 
-        return renderFragment("book-available-description.html", Map.of(
-                "BOOK_DESCRIPTION", escapeHtml(shortenedDescription)));
+        return escapeHtml(shortenedDescription);
     }
 
     private String renderRecommendations(List<BookDTO> recommendations, String frontendUrl) {
@@ -193,29 +159,15 @@ public class SmartschoolMessageTemplateService {
         Map<String, String> placeholders = new LinkedHashMap<>();
         placeholders.put("BOOK_URL", escapeHtml(bookUrl));
         placeholders.put("BOOK_TITLE", escapeHtml(book.getTitle()));
-        placeholders.put("BOOK_AUTHOR_HTML", renderRecommendationAuthor(book.getAuthor()));
-        placeholders.put("BOOK_COVER_HTML", renderRecommendationCover(book));
-        placeholders.put("REVIEW_SCORE_HTML", renderReviewScore(book.getReviewScore()));
+        placeholders.put("BOOK_AUTHOR", escapeHtml(book.getAuthor()));
+        placeholders.put("BOOK_AUTHOR_DISPLAY", displayWhen(StringUtils.hasText(book.getAuthor()), "block"));
+        placeholders.put("BOOK_IMAGE_URL", escapeHtml(book.getImageUrl()));
+        placeholders.put("BOOK_IMAGE_DISPLAY", displayWhen(StringUtils.hasText(book.getImageUrl()), "block"));
+        placeholders.put("BOOK_PLACEHOLDER_DISPLAY", displayWhen(!StringUtils.hasText(book.getImageUrl()), "flex"));
+        placeholders.put("REVIEW_SCORE", renderReviewScoreValue(book.getReviewScore()));
+        placeholders.put("REVIEW_SCORE_DISPLAY", displayWhen(hasReviewScore(book.getReviewScore()), "block"));
 
         return renderFragment("recommendation-card.html", placeholders);
-    }
-
-    private String renderRecommendationAuthor(String author) {
-        if (!StringUtils.hasText(author)) {
-            return "";
-        }
-
-        return renderFragment("recommendation-author.html", Map.of("BOOK_AUTHOR", escapeHtml(author)));
-    }
-
-    private String renderRecommendationCover(BookDTO book) {
-        if (StringUtils.hasText(book.getImageUrl())) {
-            return renderFragment("recommendation-cover-image.html", Map.of(
-                    "BOOK_IMAGE_URL", escapeHtml(book.getImageUrl()),
-                    "BOOK_TITLE", escapeHtml(book.getTitle())));
-        }
-
-        return renderFragment("recommendation-cover-placeholder.html", Map.of());
     }
 
     private String renderGenreBadges(Collection<Genre> genres) {
@@ -229,11 +181,7 @@ public class SmartschoolMessageTemplateService {
                 .map(genre -> renderFragment("genre-badge.html", Map.of("GENRE_NAME", escapeHtml(genre))))
                 .collect(Collectors.joining());
 
-        if (!StringUtils.hasText(badgesHtml)) {
-            return "";
-        }
-
-        return renderFragment("book-card-genres.html", Map.of("GENRES_HTML", badgesHtml));
+        return badgesHtml;
     }
 
     private String renderBookAvailableGenreBadges(Collection<Genre> genres) {
@@ -247,29 +195,11 @@ public class SmartschoolMessageTemplateService {
                 .map(genre -> renderFragment("book-available-genre-badge.html", Map.of("GENRE_NAME", escapeHtml(genre))))
                 .collect(Collectors.joining());
 
-        if (!StringUtils.hasText(badgesHtml)) {
-            return "";
-        }
-
-        return renderFragment("book-available-genres.html", Map.of("GENRES_HTML", badgesHtml));
+        return badgesHtml;
     }
 
-    private String renderReviewScore(Double reviewScore) {
-        if (reviewScore == null || reviewScore <= 0) {
-            return "";
-        }
-
-        return renderFragment("review-score.html", Map.of(
-                "REVIEW_SCORE", escapeHtml(String.format("%.1f", reviewScore))));
-    }
-
-    private String renderBookAvailableReviewScore(Double reviewScore) {
-        if (reviewScore == null || reviewScore <= 0) {
-            return "";
-        }
-
-        return renderFragment("book-available-review-score.html", Map.of(
-                "REVIEW_SCORE", escapeHtml(String.format("%.1f", reviewScore))));
+    private String renderReviewScoreValue(Double reviewScore) {
+        return hasReviewScore(reviewScore) ? escapeHtml(String.format("%.1f", reviewScore)) : "";
     }
 
     private Map<Long, BookGroup> groupBooksById(List<Loan> loans) {
@@ -297,6 +227,20 @@ public class SmartschoolMessageTemplateService {
 
     private String renderFragment(String templateName, Map<String, String> placeholders) {
         return templateRenderer.render(FRAGMENT_ROOT + templateName, placeholders);
+    }
+
+    private boolean hasGenres(Collection<Genre> genres) {
+        return genres != null && genres.stream()
+                .map(Genre::getName)
+                .anyMatch(StringUtils::hasText);
+    }
+
+    private boolean hasReviewScore(Double reviewScore) {
+        return reviewScore != null && reviewScore > 0;
+    }
+
+    private String displayWhen(boolean visible, String display) {
+        return visible ? display : "none";
     }
 
     private <T> List<T> safeList(List<T> items) {
