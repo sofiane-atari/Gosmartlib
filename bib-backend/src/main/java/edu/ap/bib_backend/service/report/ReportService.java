@@ -4,6 +4,7 @@ import edu.ap.bib_backend.dto.oneroster.OneRosterClassDTO;
 import edu.ap.bib_backend.dto.oneroster.OneRosterUserDTO;
 import edu.ap.bib_backend.dto.report.ClassReportDTO;
 import edu.ap.bib_backend.dto.report.ReportClassOptionDTO;
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class ReportService {
     private final ReportStudentResolverService reportStudentResolverService;
     private final ReportBuilderService reportBuilderService;
     private final OneRosterClient oneRosterClient;
+    private final ActiveSchoolContext activeSchoolContext;
 
     public ReportService(
             ReportAccessService reportAccessService,
@@ -30,13 +32,15 @@ public class ReportService {
             ReportClassMatcherService reportClassMatcherService,
             ReportStudentResolverService reportStudentResolverService,
             ReportBuilderService reportBuilderService,
-            OneRosterClient oneRosterClient) {
+            OneRosterClient oneRosterClient,
+            ActiveSchoolContext activeSchoolContext) {
         this.reportAccessService = reportAccessService;
         this.reportContextService = reportContextService;
         this.reportClassMatcherService = reportClassMatcherService;
         this.reportStudentResolverService = reportStudentResolverService;
         this.reportBuilderService = reportBuilderService;
         this.oneRosterClient = oneRosterClient;
+        this.activeSchoolContext = activeSchoolContext;
     }
 
     public List<ReportClassOptionDTO> getAvailableClasses(Authentication authentication) {
@@ -47,15 +51,25 @@ public class ReportService {
 
         List<OneRosterClassDTO> oneRosterClasses = oneRosterClient.fetchClasses(context.schoolCode());
 
-        List<String> smartschoolGroupNames = reportContextService.getSmartschoolGroupNames(
-                context.accessToken(),
-                context.platform());
+        List<OneRosterClassDTO> resultClasses;
+        if (activeSchoolContext.isClassOverrideActive()) {
+            List<String> overrideClassCodes = activeSchoolContext.getActiveClassCodes();
+            List<String> overrideClassNames = activeSchoolContext.getActiveClassNames();
+            resultClasses = oneRosterClasses.stream()
+                    .filter(c -> overrideClassCodes.stream().anyMatch(code -> code.equalsIgnoreCase(c.classCode()))
+                            || overrideClassNames.stream().anyMatch(name -> name.equalsIgnoreCase(c.title())))
+                    .toList();
+        } else {
+            List<String> smartschoolGroupNames = reportContextService.getSmartschoolGroupNames(
+                    context.accessToken(),
+                    context.platform());
 
-        List<OneRosterClassDTO> matchedClasses = reportClassMatcherService.findMatches(
-                smartschoolGroupNames,
-                oneRosterClasses);
+            resultClasses = reportClassMatcherService.findMatches(
+                    smartschoolGroupNames,
+                    oneRosterClasses);
+        }
 
-        return matchedClasses.stream()
+        return resultClasses.stream()
                 .map(oneRosterClass -> new ReportClassOptionDTO(
                         oneRosterClass.sourcedId(),
                         oneRosterClass.title(),
@@ -80,19 +94,33 @@ public class ReportService {
                         NOT_FOUND,
                         "Klas niet gevonden"));
 
-        List<String> smartschoolGroupNames = reportContextService.getSmartschoolGroupNames(
-                context.accessToken(),
-                context.platform());
+        if (!activeSchoolContext.isClassOverrideActive()) {
+            List<String> smartschoolGroupNames = reportContextService.getSmartschoolGroupNames(
+                    context.accessToken(),
+                    context.platform());
 
-        boolean hasAccessToClass = reportClassMatcherService
-                .findMatches(smartschoolGroupNames, oneRosterClasses)
-                .stream()
-                .anyMatch(oneRosterClass -> classSourcedId.equals(oneRosterClass.sourcedId()));
+            boolean hasAccessToClass = reportClassMatcherService
+                    .findMatches(smartschoolGroupNames, oneRosterClasses)
+                    .stream()
+                    .anyMatch(oneRosterClass -> classSourcedId.equals(oneRosterClass.sourcedId()));
 
-        if (!hasAccessToClass) {
-            throw new ResponseStatusException(
-                    FORBIDDEN,
-                    "Je hebt geen toegang tot deze klas");
+            if (!hasAccessToClass) {
+                throw new ResponseStatusException(
+                        FORBIDDEN,
+                        "Je hebt geen toegang tot deze klas");
+            }
+        } else {
+            List<String> overrideClassCodes = activeSchoolContext.getActiveClassCodes();
+            List<String> overrideClassNames = activeSchoolContext.getActiveClassNames();
+            boolean isOverridden = oneRosterClasses.stream()
+                    .filter(c -> classSourcedId.equals(c.sourcedId()))
+                    .anyMatch(c -> overrideClassCodes.stream().anyMatch(code -> code.equalsIgnoreCase(c.classCode()))
+                            || overrideClassNames.stream().anyMatch(name -> name.equalsIgnoreCase(c.title())));
+            if (!isOverridden) {
+                throw new ResponseStatusException(
+                        FORBIDDEN,
+                        "Je hebt geen toegang tot deze klas");
+            }
         }
 
         List<OneRosterUserDTO> students = reportStudentResolverService.resolveStudentsForClass(
