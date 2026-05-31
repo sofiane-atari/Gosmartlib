@@ -84,22 +84,23 @@ public class OneRosterClient {
     }
 
     /**
-     * @param schoolCode school domain name or URL
+     * @param normalized school domain name or URL
      * @return aggregated class, year, and school labels for the audience filter UI
      */
     public AudiencePayload fetchAudiencePayload(String schoolCode) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
         if (mock != null) {
-            List<Map<String, Object>> rawClasses = mock.fetchClasses(schoolCode);
-            List<Map<String, Object>> rawSessions = mock.fetchAcademicSessions(schoolCode);
-            List<Map<String, Object>> rawOrgs = mock.fetchOrgs(schoolCode);
+            List<Map<String, Object>> rawClasses = mock.fetchClasses(normalized);
+            List<Map<String, Object>> rawSessions = mock.fetchAcademicSessions(normalized);
+            List<Map<String, Object>> rawOrgs = mock.fetchOrgs(normalized);
             List<String> classes = extractDistinctSortedLabels(rawClasses, "classCode", "title", "sourcedId");
             List<String> years = extractDistinctSortedLabels(rawSessions, "title", "schoolYear", "sourcedId");
             List<String> schools = extractDistinctSortedLabels(rawOrgs, "name", "title", "sourcedId");
             return new AudiencePayload(classes, years, schools);
         }
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        School school = resolveSchool(schoolCode);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
+        School school = resolveSchool(normalized);
         String accessToken = tokenService.fetchAccessToken(school, host);
         try {
             return dataService.fetchAudiencePayloadWithResolvedHost(host, accessToken);
@@ -114,14 +115,15 @@ public class OneRosterClient {
     }
 
     /**
-     * @param schoolCode school domain name or URL
+     * @param normalized school domain name or URL
      * @return raw OneRoster user records (List of Map), with 401 retry
      */
     public List<Map<String, Object>> fetchUsers(String schoolCode) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
-        if (mock != null) return mock.fetchUsers(schoolCode);
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        School school = resolveSchool(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
+        if (mock != null) return mock.fetchUsers(normalized);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
+        School school = resolveSchool(normalized);
         String accessToken = tokenService.fetchAccessToken(school, host);
         try {
             return dataService.fetchUsersWithResolvedHost(host, accessToken);
@@ -136,27 +138,29 @@ public class OneRosterClient {
     }
 
     public AudiencePayload fetchAudiencePayloadWithBearer(String schoolCode, String bearerToken) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
-        if (mock != null) return fetchAudiencePayload(schoolCode);
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
+        if (mock != null) return fetchAudiencePayload(normalized);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
         if (!StringUtils.hasText(bearerToken)) {
-            return fetchAudiencePayload(schoolCode);
+            return fetchAudiencePayload(normalized);
         }
 
         try {
             return dataService.fetchAudiencePayloadWithResolvedHost(host, bearerToken.trim());
         } catch (ResponseStatusException ex) {
             // Fallback naar client-credentials flow wanneer delegated token niet werkt.
-            return fetchAudiencePayload(schoolCode);
+            return fetchAudiencePayload(normalized);
         }
     }
 
     public List<OneRosterClassDTO> fetchClassesWithBearer(String schoolCode, String bearerToken) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
-        if (mock != null) return fetchClasses(schoolCode);
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
+        if (mock != null) return fetchClasses(normalized);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
         if (!StringUtils.hasText(bearerToken)) {
-            return fetchClasses(schoolCode);
+            return fetchClasses(normalized);
         }
 
         try {
@@ -167,16 +171,17 @@ public class OneRosterClient {
                     .sorted(java.util.Comparator.comparing(OneRosterClassDTO::title, String.CASE_INSENSITIVE_ORDER))
                     .toList();
         } catch (ResponseStatusException ex) {
-            return fetchClasses(schoolCode);
+            return fetchClasses(normalized);
         }
     }
 
     public List<OneRosterEnrollmentDTO> fetchEnrollmentsWithBearer(String schoolCode, String bearerToken) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
-        if (mock != null) return fetchEnrollments(schoolCode);
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
+        if (mock != null) return fetchEnrollments(normalized);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
         if (!StringUtils.hasText(bearerToken)) {
-            return fetchEnrollments(schoolCode);
+            return fetchEnrollments(normalized);
         }
 
         try {
@@ -187,16 +192,17 @@ public class OneRosterClient {
                     .filter(enrollment -> enrollment.classSourcedId() != null && !enrollment.classSourcedId().isBlank())
                     .toList();
         } catch (ResponseStatusException ex) {
-            return fetchEnrollments(schoolCode);
+            return fetchEnrollments(normalized);
         }
     }
 
     public List<OneRosterUserDTO> fetchStudentsForClassWithBearer(String schoolCode, String bearerToken, String classSourcedId) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
-        if (mock != null) return fetchStudentsForClass(schoolCode, classSourcedId);
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
+        if (mock != null) return fetchStudentsForClass(normalized, classSourcedId);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
         if (!StringUtils.hasText(bearerToken)) {
-            return fetchStudentsForClass(schoolCode, classSourcedId);
+            return fetchStudentsForClass(normalized, classSourcedId);
         }
 
         try {
@@ -207,27 +213,28 @@ public class OneRosterClient {
                     .sorted(java.util.Comparator.comparing(OneRosterUserDTO::displayName, String.CASE_INSENSITIVE_ORDER))
                     .toList();
         } catch (ResponseStatusException ex) {
-            return fetchStudentsForClass(schoolCode, classSourcedId);
+            return fetchStudentsForClass(normalized, classSourcedId);
         }
     }
 
     /**
-     * @param schoolCode  school domain name or URL
+     * @param normalized  school domain name or URL
      * @param bearerToken optional Smartschool delegated token
      * @return raw OneRoster user records (falls back to client-credentials if needed)
      */
     public List<Map<String, Object>> fetchUsersWithBearer(String schoolCode, String bearerToken) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
-        if (mock != null) return fetchUsers(schoolCode);
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
+        if (mock != null) return fetchUsers(normalized);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
         if (!StringUtils.hasText(bearerToken)) {
-            return fetchUsers(schoolCode);
+            return fetchUsers(normalized);
         }
 
         try {
             return dataService.fetchUsersWithResolvedHost(host, bearerToken.trim());
         } catch (ResponseStatusException ex) {
-            return fetchUsers(schoolCode);
+            return fetchUsers(normalized);
         }
     }
 
@@ -262,15 +269,16 @@ public class OneRosterClient {
     }
 
     public Map<String, String> fetchUserDisplayNames(String schoolCode, Set<String> userIds) {
+        String normalized = normalizeSchoolCode(schoolCode);
         if (userIds == null || userIds.isEmpty()) {
             return Map.of();
         }
 
-        SchoolApiProvider mock = mockProvider(schoolCode);
-        if (mock != null) return mock.fetchUserDisplayNames(schoolCode, userIds);
+        SchoolApiProvider mock = mockProvider(normalized);
+        if (mock != null) return mock.fetchUserDisplayNames(normalized, userIds);
 
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        School school = resolveSchool(schoolCode);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
+        School school = resolveSchool(normalized);
         String accessToken = tokenService.fetchAccessToken(school, host);
         try {
             return dataService.fetchUserDisplayNamesWithResolvedHost(host, accessToken, userIds);
@@ -285,15 +293,16 @@ public class OneRosterClient {
     }
 
     public String findSourcedIdByLegacyIdentifier(String schoolCode, String legacyIdentifier) {
+        String normalized = normalizeSchoolCode(schoolCode);
         if (legacyIdentifier == null || legacyIdentifier.isBlank()) {
             return null;
         }
 
-        SchoolApiProvider mock = mockProvider(schoolCode);
-        if (mock != null) return mock.findSourcedIdByLegacyIdentifier(schoolCode, legacyIdentifier);
+        SchoolApiProvider mock = mockProvider(normalized);
+        if (mock != null) return mock.findSourcedIdByLegacyIdentifier(normalized, legacyIdentifier);
 
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        School school = resolveSchool(schoolCode);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
+        School school = resolveSchool(normalized);
         String accessToken = tokenService.fetchAccessToken(school, host);
         try {
             return dataService.findSourcedIdByLegacyIdentifierWithResolvedHost(host, accessToken, legacyIdentifier);
@@ -308,16 +317,17 @@ public class OneRosterClient {
     }
 
     public List<OneRosterClassDTO> fetchClasses(String schoolCode) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
         if (mock != null) {
-            return mock.fetchClasses(schoolCode).stream()
+            return mock.fetchClasses(normalized).stream()
                     .map(oneRosterMapper::toOneRosterClass)
                     .filter(item -> item.sourcedId() != null && !item.sourcedId().isBlank())
                     .sorted(java.util.Comparator.comparing(OneRosterClassDTO::title, String.CASE_INSENSITIVE_ORDER))
                     .toList();
         }
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        School school = resolveSchool(schoolCode);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
+        School school = resolveSchool(normalized);
         String accessToken = tokenService.fetchAccessToken(school, host);
         List<Map<String, Object>> classes = dataService.fetchClassesWithResolvedHost(host, accessToken);
         return classes.stream()
@@ -328,16 +338,17 @@ public class OneRosterClient {
     }
 
     public List<OneRosterEnrollmentDTO> fetchEnrollments(String schoolCode) {
-        SchoolApiProvider mock = mockProvider(schoolCode);
+        String normalized = normalizeSchoolCode(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
         if (mock != null) {
-            return mock.fetchEnrollments(schoolCode).stream()
+            return mock.fetchEnrollments(normalized).stream()
                     .map(oneRosterMapper::toOneRosterEnrollment)
                     .filter(enrollment -> enrollment.userSourcedId() != null && !enrollment.userSourcedId().isBlank())
                     .filter(enrollment -> enrollment.classSourcedId() != null && !enrollment.classSourcedId().isBlank())
                     .toList();
         }
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        School school = resolveSchool(schoolCode);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
+        School school = resolveSchool(normalized);
         String accessToken = tokenService.fetchAccessToken(school, host);
         List<Map<String, Object>> enrollments = dataService.fetchEnrollmentsWithResolvedHost(host, accessToken);
         return enrollments.stream()
@@ -348,21 +359,22 @@ public class OneRosterClient {
     }
 
     private List<OneRosterUserDTO> fetchStudentsForClass(String schoolCode, String classSourcedId) {
+        String normalized = normalizeSchoolCode(schoolCode);
         if (!StringUtils.hasText(classSourcedId)) {
             throw new ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST, "Geen geldige klas geselecteerd");
         }
-        SchoolApiProvider mock = mockProvider(schoolCode);
+        SchoolApiProvider mock = mockProvider(normalized);
         if (mock != null) {
-            List<Map<String, Object>> students = mock.fetchStudentsForClass(schoolCode, classSourcedId);
+            List<Map<String, Object>> students = mock.fetchStudentsForClass(normalized, classSourcedId);
             return students.stream()
                     .map(oneRosterMapper::toOneRosterUser)
                     .filter(user -> user.sourcedId() != null && !user.sourcedId().isBlank())
                     .sorted(java.util.Comparator.comparing(OneRosterUserDTO::displayName, String.CASE_INSENSITIVE_ORDER))
                     .toList();
         }
-        String host = hostValidator.normalizeAndValidateSchoolHost(schoolCode);
-        School school = resolveSchool(schoolCode);
+        String host = hostValidator.normalizeAndValidateSchoolHost(normalized);
+        School school = resolveSchool(normalized);
         String accessToken = tokenService.fetchAccessToken(school, host);
         return fetchStudentsForClassWithResolvedHost(host, accessToken, classSourcedId);
     }
