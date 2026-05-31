@@ -175,9 +175,26 @@
                 </span>
               </td>
               <td class="text-center" data-label="Actie">
-                <span class="muted">
-                  {{ getGroupLoanCount(group) }} item(s)
-                </span>
+                <div class="loan-row-actions">
+                  <span class="muted">
+                    {{ getGroupLoanCount(group) }} item(s)
+                  </span>
+
+                  @if (getDirectExtendLoan(group); as directExtendLoan) {
+
+                    @if (getExtendableLoans(group).length > 1) {
+                      <button
+                        type="button"
+                        class="extend-loan-btn extend-loan-btn--bulk"
+                        (click)="openExtendAllLoansModal(group, $event)"
+                      >
+                        Alles verlengen
+                      </button>
+                    }
+                  } @else {
+                    <span class="muted">Verlengen niet mogelijk</span>
+                  }
+                </div>
               </td>
             </tr>
 
@@ -250,6 +267,7 @@
   @if (selectedLoanToExtend(); as selectedLoan) {
     <app-extend-loan
       [loan]="selectedLoan"
+      [loans]="selectedLoansToExtend()"
       (cancelled)="closeExtendLoanModal()"
       (loanExtended)="handleLoanExtended($event)"
     />

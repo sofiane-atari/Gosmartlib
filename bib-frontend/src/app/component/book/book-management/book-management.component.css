@@ -401,6 +401,22 @@
   transform: translateY(-1px);
 }
 
+.extend-loan-btn--bulk {
+  background: var(--main-color);
+  color: #ffffff;
+}
+
+.extend-loan-btn--bulk:hover {
+  box-shadow: 0 6px 14px rgba(138, 30, 65, 0.18);
+}
+
+.loan-row-actions {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
 .muted {
   color: #9b7a84;
   font-size: 12px;
@@ -720,5 +736,9 @@ lucide-icon {
 
   .table-card .book-cell small {
     margin-top: 4px;
+  }
+
+  .loan-row-actions {
+    align-items: flex-end;
   }
 }
