@@ -26,7 +26,6 @@ import edu.ap.bib_backend.jpa.repository.MailSubscriptionRepository;
 import edu.ap.bib_backend.jpa.repository.RoleEntityRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -163,6 +162,5 @@ class MailSubscriptionServiceIntegrationTest {
         userRepository.deleteAll();
         campusRepository.deleteAll();
         schoolRepository.deleteAll();
-        roleEntityRepository.deleteAll();
     }
 }
