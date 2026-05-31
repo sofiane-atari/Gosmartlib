@@ -35,6 +35,7 @@ import { SchoolOverrideService, ClassOption } from '../../services/school-overri
 import { SidebarActiveLoansComponent } from './sidebar-active-loans/sidebar-active-loans.component';
 import { DevFeatureWrapperComponent } from '../shared/dev-feature-wrapper/dev-feature-wrapper.component';
 import { School as SchoolModel } from '../../model/school.model';
+import {SchoolSwitchModalComponent} from "../shared/school-switch-modal/school-switch-modal.component";
 
 @Component({
   selector: 'app-sidebar',
@@ -46,6 +47,7 @@ import { School as SchoolModel } from '../../model/school.model';
     FormsModule,
     SidebarActiveLoansComponent,
     DevFeatureWrapperComponent,
+    SchoolSwitchModalComponent,
   ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
