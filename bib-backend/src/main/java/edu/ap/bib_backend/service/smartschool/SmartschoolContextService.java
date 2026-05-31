@@ -76,7 +76,6 @@ public class SmartschoolContextService {
                 .toList();
     }
 
-    @SuppressWarnings("unchecked")
     public String extractClassCodeFromAuthentication(Authentication authentication) {
         Object details = authentication.getDetails();
 

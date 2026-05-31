@@ -127,13 +127,6 @@ class SchoolReportServiceIntegrationTest {
         assertThat(result.latePercentage()).isZero();
     }
 
-    private UsernamePasswordAuthenticationToken teacherAuthentication(String userId) {
-        return new UsernamePasswordAuthenticationToken(
-                userId,
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_TEACHER")));
-    }
-
     private void insertAuthSession(String userId, String role, boolean linked) {
         jdbcTemplate.update("""
                 INSERT INTO auth_sessions (

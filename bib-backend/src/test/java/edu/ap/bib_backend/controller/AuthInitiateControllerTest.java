@@ -16,7 +16,6 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)

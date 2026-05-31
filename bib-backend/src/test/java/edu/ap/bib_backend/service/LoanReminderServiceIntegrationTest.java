@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.anyString;

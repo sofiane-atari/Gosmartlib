@@ -96,7 +96,6 @@ class MailSubscriptionServiceTest {
         BookCopy bookCopy = new BookCopy();
         bookCopy.setCampus(campus);
         book.getBookCopies().add(bookCopy);
-        MailSubscription subscription = new MailSubscription();
         MailSubscription saved = new MailSubscription();
         MailSubscriptionDTO expectedDto = MailSubscriptionDTO.builder().id(1L).bookId(1L).build();
 

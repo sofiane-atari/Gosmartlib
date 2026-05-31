@@ -39,7 +39,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @WebMvcTest(BookController.class)
 @AutoConfigureMockMvc(addFilters = false)

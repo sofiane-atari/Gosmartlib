@@ -207,7 +207,6 @@ public class MockOneRosterController {
         return ResponseEntity.ok().headers(headers).body(body);
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> buildUserRecord(MockSchoolData.MockUser user, MockSchoolData school) {
         Map<String, Object> result = new java.util.LinkedHashMap<>();
         result.put("sourcedId", user.onerosterSourcedId);

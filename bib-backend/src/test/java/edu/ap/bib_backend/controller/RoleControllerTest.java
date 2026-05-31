@@ -1,6 +1,5 @@
 package edu.ap.bib_backend.controller;
 
-import edu.ap.bib_backend.dto.AssignLibrarianRequestDto;
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;

@@ -168,6 +168,7 @@ public class SchoolController {
     }
 
     @GetMapping("/me/classes")
+    @SuppressWarnings("unchecked")
     public ResponseEntity<List<OneRosterClassDTO>> getOwnSchoolClasses() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Map<String, Object> details = (Map<String, Object>) auth.getDetails();
@@ -201,6 +202,7 @@ public class SchoolController {
     public record CatalogVisibilityRequest(boolean visible) {
     }
 
+    @SuppressWarnings("unchecked")
     private Long resolveOwnSchoolId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Map<String, Object> details = (Map<String, Object>) auth.getDetails();

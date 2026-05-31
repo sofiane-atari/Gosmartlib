@@ -31,6 +31,7 @@ public class GoogleBooksClient {
         this.bookCandidateMapper = bookCandidateMapper;
     }
 
+    @SuppressWarnings("unchecked")
     private List<Map<String, Object>> fetchGoogleBooksItems(String title, String author) {
         String encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8);
         String encodedAuthor = URLEncoder.encode(author, StandardCharsets.UTF_8);
@@ -61,6 +62,7 @@ public class GoogleBooksClient {
         return items;
     }
 
+    @SuppressWarnings("unchecked")
     public List<BookCandidateDTO> searchBookCandidates(String title, String author, Integer releaseYear) {
         List<Map<String, Object>> items = fetchGoogleBooksItems(title, author);
         List<BookCandidateDTO> candidates = new ArrayList<>();
@@ -132,6 +134,7 @@ public class GoogleBooksClient {
                 || foundTitle.contains(wantedTitle);
     }
 
+    @SuppressWarnings("unchecked")
     private boolean matchesAuthor(Map<String, Object> volumeInfo, String expectedAuthor) {
         List<String> authors = (List<String>) volumeInfo.get("authors");
 
@@ -152,24 +155,6 @@ public class GoogleBooksClient {
         }
 
         return false;
-    }
-
-    private boolean matchesReleaseYear(Map<String, Object> volumeInfo, Integer expectedYear) {
-        if (expectedYear == null) {
-            return true;
-        }
-
-        String publishedDate = (String) volumeInfo.get("publishedDate");
-        if (publishedDate == null || publishedDate.length() < 4) {
-            return false;
-        }
-
-        try {
-            int year = Integer.parseInt(publishedDate.substring(0, 4));
-            return Math.abs(year - expectedYear) <= 1;
-        } catch (NumberFormatException e) {
-            return false;
-        }
     }
 
     private String normalize(String value) {

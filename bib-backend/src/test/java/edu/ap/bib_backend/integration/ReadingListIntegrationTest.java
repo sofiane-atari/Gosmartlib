@@ -70,7 +70,6 @@ class ReadingListIntegrationTest {
     private Campus otherCampus;
     private School school;
     private RoleEntity studentRole;
-    private RoleEntity teacherRole;
     private RoleEntity librarianRole;
     private UsernamePasswordAuthenticationToken currentPrincipal;
 
@@ -141,7 +140,6 @@ class ReadingListIntegrationTest {
         school = schoolRepository.save(school);
 
         studentRole = getOrCreateRole(Role.STUDENT);
-        teacherRole = getOrCreateRole(Role.TEACHER);
         librarianRole = getOrCreateRole(Role.LIBRARIAN);
 
         librarianRole = new RoleEntity();
@@ -357,19 +355,11 @@ class ReadingListIntegrationTest {
         setAuthentication("ROLE_STUDENT");
     }
 
-    private void setAuthenticationAsTeacher() {
-        User user = userRepository.findById(USER_ID).orElseThrow();
-        user.setRole(teacherRole);
-        userRepository.save(user);
-
-        setAuthentication("ROLE_TEACHER");
-    }
-
     private void setAuthenticationAsLibrarian() {
         User user = userRepository.findById(USER_ID).orElseThrow();
         user.setRole(librarianRole);
         userRepository.save(user);
-
+        
         setAuthentication("ROLE_LIBRARIAN");
     }
 

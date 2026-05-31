@@ -41,359 +41,361 @@ import edu.ap.bib_backend.service.user.CurrentUserService;
 @ExtendWith(MockitoExtension.class)
 class BookSearchServiceTest {
 
-    @Mock
-    private BookRepository bookRepository;
+        @Mock
+        private BookRepository bookRepository;
 
-    @Mock
-    private UserRepository userRepository;
+        @Mock
+        private UserRepository userRepository;
 
-    @Mock
-    private BookMapper bookMapper;
+        @Mock
+        private BookMapper bookMapper;
 
-    @Mock
-    private CurrentUserService currentUserService;
+        @Mock
+        private CurrentUserService currentUserService;
 
-    @Mock
-    private ReadingListRepository readingListRepository;
+        @Mock
+        private ReadingListRepository readingListRepository;
 
-    @Mock
-    private CampusRepository campusRepository;
+        @Mock
+        private CampusRepository campusRepository;
 
-    private BookSearchService bookSearchService;
-    private UsernamePasswordAuthenticationToken authentication;
+        private BookSearchService bookSearchService;
+        private UsernamePasswordAuthenticationToken authentication;
 
-    @BeforeEach
-    void setUp() {
-        bookSearchService = new BookSearchService(
-                bookRepository,
-                bookMapper,
-                currentUserService,
-                readingListRepository,
-                campusRepository
-        );
+        @BeforeEach
+        void setUp() {
+                bookSearchService = new BookSearchService(
+                                bookRepository,
+                                bookMapper,
+                                currentUserService,
+                                readingListRepository,
+                                campusRepository);
 
-        authentication = new UsernamePasswordAuthenticationToken("test-user", null);
+                authentication = new UsernamePasswordAuthenticationToken("test-user", null);
 
-        User user = new User();
-        user.setId("test-user");
+                User user = new User();
+                user.setId("test-user");
 
-        School school = new School();
-        school.setId(1L);
-        school.setDomainName("school1");
-        user.setSchool(school);
+                School school = new School();
+                school.setId(1L);
+                school.setDomainName("school1");
+                user.setSchool(school);
 
-        Campus userCampus = new Campus();
-        userCampus.setId(1L);
-        userCampus.setSchool(school);
-        lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId()))
-                .thenReturn(java.util.Optional.of(userCampus));
+                Campus userCampus = new Campus();
+                userCampus.setId(1L);
+                userCampus.setSchool(school);
+                lenient().when(campusRepository.findFirstBySchoolIdOrderByIdAsc(school.getId()))
+                                .thenReturn(java.util.Optional.of(userCampus));
 
-        lenient().when(userRepository.findById("test-user"))
-                .thenReturn(java.util.Optional.of(user));
+                lenient().when(userRepository.findById("test-user"))
+                                .thenReturn(java.util.Optional.of(user));
 
-        lenient().when(currentUserService.getCurrentUser(authentication))
-                .thenReturn(user);
-        lenient().when(currentUserService.canSeeDidacticBooks(authentication))
-                .thenReturn(true);
+                lenient().when(currentUserService.getCurrentUser(authentication))
+                                .thenReturn(user);
+                lenient().when(currentUserService.canSeeDidacticBooks(authentication))
+                                .thenReturn(true);
 
-        Campus campus = new Campus();
-        campus.setId(1L);
-        campus.setSchool(school);
-        lenient().when(currentUserService.getCurrentUserSchool(authentication))
-                .thenReturn(school);
-        lenient().when(currentUserService.resolveSchool(any(), any())).thenReturn(school);
+                Campus campus = new Campus();
+                campus.setId(1L);
+                campus.setSchool(school);
+                lenient().when(currentUserService.getCurrentUserSchool(authentication))
+                                .thenReturn(school);
+                lenient().when(currentUserService.resolveSchool(any(), any())).thenReturn(school);
 
-        lenient().when(bookMapper.toDTO(any(Book.class)))
-                .thenAnswer(invocation -> {
-                    Book book = invocation.getArgument(0);
+                lenient().when(bookMapper.toDTO(any(Book.class)))
+                                .thenAnswer(invocation -> {
+                                        Book book = invocation.getArgument(0);
 
-                    BookDTO dto = new BookDTO();
-                    dto.setId(book.getId());
-                    dto.setTitle(book.getTitle());
-                    dto.setAuthor(book.getAuthor());
-                    dto.setReviewScore(book.getReviewScore() == null ? 0.0 : book.getReviewScore());
-                    dto.setReleaseYear(book.getReleaseYear());
+                                        BookDTO dto = new BookDTO();
+                                        dto.setId(book.getId());
+                                        dto.setTitle(book.getTitle());
+                                        dto.setAuthor(book.getAuthor());
+                                        dto.setReviewScore(book.getReviewScore() == null ? 0.0 : book.getReviewScore());
+                                        dto.setReleaseYear(book.getReleaseYear());
 
-                    return dto;
-                });
-    }
+                                        return dto;
+                                });
+        }
 
-    @Test
-    void givenNoFilters_whenGetFilteredBooks_thenUseDefaultPagingAndSort() {
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of());
+        @SuppressWarnings("unchecked")
+        @Test
+        void givenNoFilters_whenGetFilteredBooks_thenUseDefaultPagingAndSort() {
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of());
 
-        bookSearchService.getFilteredBooks(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                0,
-                10,
-                null,
-                authentication
-        );
+                bookSearchService.getFilteredBooks(
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                10,
+                                null,
+                                authentication);
 
-        ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
-        then(bookRepository).should().findAll(any(Specification.class), sortCaptor.capture());
+                ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
+                then(bookRepository).should().findAll(any(Specification.class), sortCaptor.capture());
 
-        Sort.Order order = sortCaptor.getValue().getOrderFor("title");
-        assertThat(order).isNotNull();
-        assertThat(order.isAscending()).isTrue();
-    }
+                Sort.Order order = sortCaptor.getValue().getOrderFor("title");
+                assertThat(order).isNotNull();
+                assertThat(order.isAscending()).isTrue();
+        }
 
-    @Test
-    void givenNegativePage_whenGetFilteredBooks_thenNormalizePageToZero() {
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of());
+        @SuppressWarnings("unchecked")
+        @Test
+        void givenNegativePage_whenGetFilteredBooks_thenNormalizePageToZero() {
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of());
 
-        Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null, null, null, null, null, null, null, -5, 10, null, authentication);
+                Page<BookDTO> result = bookSearchService.getFilteredBooks(
+                                null, null, null, null, null, null, null, -5, 10, null, authentication);
 
-        assertThat(result.getPageable().getPageNumber()).isEqualTo(0);
-    }
+                assertThat(result.getPageable().getPageNumber()).isEqualTo(0);
+        }
 
-    @Test
-    void givenSizeBelowOne_whenGetFilteredBooks_thenNormalizeSizeToOne() {
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of());
+        @SuppressWarnings("unchecked")
+        @Test
+        void givenSizeBelowOne_whenGetFilteredBooks_thenNormalizeSizeToOne() {
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of());
 
-        Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null, null, null, null, null, null, null, 0, 0, null, authentication);
+                Page<BookDTO> result = bookSearchService.getFilteredBooks(
+                                null, null, null, null, null, null, null, 0, 0, null, authentication);
 
-        assertThat(result.getPageable().getPageSize()).isEqualTo(1);
-    }
+                assertThat(result.getPageable().getPageSize()).isEqualTo(1);
+        }
 
-    @Test
-    void givenSizeAboveMax_whenGetFilteredBooks_thenCapSizeAtFifty() {
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of());
+        @SuppressWarnings("unchecked")
+        @Test
+        void givenSizeAboveMax_whenGetFilteredBooks_thenCapSizeAtFifty() {
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of());
 
-        Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null, null, null, null, null, null, null, 0, 999, null, authentication);
+                Page<BookDTO> result = bookSearchService.getFilteredBooks(
+                                null, null, null, null, null, null, null, 0, 999, null, authentication);
 
-        assertThat(result.getPageable().getPageSize()).isEqualTo(50);
-    }
+                assertThat(result.getPageable().getPageSize()).isEqualTo(50);
+        }
 
-    @Test
-    void givenMinPagesGreaterThanMaxPages_whenGetFilteredBooks_thenThrowException() {
-        assertThatThrownBy(() -> bookSearchService.getFilteredBooks(
-                null,
-                null,
-                300,
-                100,
-                null,
-                null,
-                null,
-                0,
-                10,
-                null,
-                authentication
-        ))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("minPages mag niet groter zijn dan maxPages.");
-    }
+        @Test
+        void givenMinPagesGreaterThanMaxPages_whenGetFilteredBooks_thenThrowException() {
+                assertThatThrownBy(() -> bookSearchService.getFilteredBooks(
+                                null,
+                                null,
+                                300,
+                                100,
+                                null,
+                                null,
+                                null,
+                                0,
+                                10,
+                                null,
+                                authentication))
+                                .isInstanceOf(IllegalArgumentException.class)
+                                .hasMessage("minPages mag niet groter zijn dan maxPages.");
+        }
 
-    @Test
-    void givenAvailableFilter_whenGetFilteredBooks_thenQueryRepository() {
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of());
+        @SuppressWarnings("unchecked")
+        @Test
+        void givenAvailableFilter_whenGetFilteredBooks_thenQueryRepository() {
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of());
 
-        bookSearchService.getFilteredBooks(
-                null,
-                BookAvailabilityFilter.AVAILABLE,
-                null,
-                null,
-                null,
-                null,
-                null,
-                0,
-                10,
-                null,
-                authentication
-        );
+                bookSearchService.getFilteredBooks(
+                                null,
+                                BookAvailabilityFilter.AVAILABLE,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                10,
+                                null,
+                                authentication);
 
-        then(bookRepository).should().findAll(any(Specification.class), any(Sort.class));
-    }
+                then(bookRepository).should().findAll(any(Specification.class), any(Sort.class));
+        }
 
-    @Test
-    void givenAuthorZaSort_whenGetFilteredBooks_thenUseAuthorDescending() {
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of());
+        @SuppressWarnings("unchecked")
+        @Test
+        void givenAuthorZaSort_whenGetFilteredBooks_thenUseAuthorDescending() {
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of());
 
-        bookSearchService.getFilteredBooks(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                0,
-                10,
-                BookSortOption.AUTHOR_ZA,
-                authentication
-        );
+                bookSearchService.getFilteredBooks(
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                10,
+                                BookSortOption.AUTHOR_ZA,
+                                authentication);
 
-        ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
-        then(bookRepository).should().findAll(any(Specification.class), sortCaptor.capture());
+                ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
+                then(bookRepository).should().findAll(any(Specification.class), sortCaptor.capture());
 
-        Sort.Order order = sortCaptor.getValue().getOrderFor("author");
+                Sort.Order order = sortCaptor.getValue().getOrderFor("author");
 
-        assertThat(order).isNotNull();
-        assertThat(order.isDescending()).isTrue();
-    }
+                assertThat(order).isNotNull();
+                assertThat(order.isDescending()).isTrue();
+        }
 
-    @Test
-    void givenRepositoryReturnsBooks_whenGetFilteredBooks_thenMapPageContentToDto() {
-        Book book = new Book();
-        book.setId(5L);
-        book.setTitle("Titel");
-        book.setAuthor("Auteur");
-        book.setPages(200);
-        book.setGenres(Set.of());
-        book.setReviewScore(null);
+        @SuppressWarnings("unchecked")
+        @Test
+        void givenRepositoryReturnsBooks_whenGetFilteredBooks_thenMapPageContentToDto() {
+                Book book = new Book();
+                book.setId(5L);
+                book.setTitle("Titel");
+                book.setAuthor("Auteur");
+                book.setPages(200);
+                book.setGenres(Set.of());
+                book.setReviewScore(null);
 
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of(book));
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of(book));
 
-        Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                0,
-                10,
-                BookSortOption.AZ,
-                authentication
-        );
+                Page<BookDTO> result = bookSearchService.getFilteredBooks(
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                10,
+                                BookSortOption.AZ,
+                                authentication);
 
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent()).hasSize(1);
+                assertThat(result.getTotalElements()).isEqualTo(1);
+                assertThat(result.getContent()).hasSize(1);
 
-        BookDTO first = result.getContent().get(0);
+                BookDTO first = result.getContent().get(0);
 
-        assertThat(first.getId()).isEqualTo(5L);
-        assertThat(first.getTitle()).isEqualTo("Titel");
-        assertThat(first.getReviewScore()).isEqualTo(0.0);
-    }
+                assertThat(first.getId()).isEqualTo(5L);
+                assertThat(first.getTitle()).isEqualTo("Titel");
+                assertThat(first.getReviewScore()).isEqualTo(0.0);
+        }
 
-    @Test
-    void givenSameIsbnInMultipleCampuses_whenGetFilteredBooks_thenReturnOneBookWithAllAvailableCampuses() {
-        School school = new School();
-        school.setId(1L);
+        @SuppressWarnings("unchecked")
+        @Test
+        void givenSameIsbnInMultipleCampuses_whenGetFilteredBooks_thenReturnOneBookWithAllAvailableCampuses() {
+                School school = new School();
+                school.setId(1L);
 
-        Campus campusA = new Campus();
-        campusA.setId(1L);
-        campusA.setName("Campus A");
-        campusA.setSchool(school);
+                Campus campusA = new Campus();
+                campusA.setId(1L);
+                campusA.setName("Campus A");
+                campusA.setSchool(school);
 
-        Campus campusB = new Campus();
-        campusB.setId(2L);
-        campusB.setName("Campus B");
-        campusB.setSchool(school);
+                Campus campusB = new Campus();
+                campusB.setId(2L);
+                campusB.setName("Campus B");
+                campusB.setSchool(school);
 
-        Book bookA = createBook(1L, "9781234567890", campusA);
-        Book bookB = createBook(2L, "9781234567890", campusB);
-        bookA.setBookCopies(List.of(createAvailableCopy(10L, bookA, campusA)));
-        bookB.setBookCopies(List.of(createAvailableCopy(20L, bookB, campusB)));
+                Book bookA = createBook(1L, "9781234567890", campusA);
+                Book bookB = createBook(2L, "9781234567890", campusB);
+                bookA.setBookCopies(List.of(createAvailableCopy(10L, bookA, campusA)));
+                bookB.setBookCopies(List.of(createAvailableCopy(20L, bookB, campusB)));
 
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of(bookA, bookB));
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of(bookA, bookB));
 
-        Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null,
-                BookAvailabilityFilter.AVAILABLE,
-                null,
-                null,
-                null,
-                null,
-                null,
-                0,
-                10,
-                BookSortOption.AZ,
-                authentication
-        );
+                Page<BookDTO> result = bookSearchService.getFilteredBooks(
+                                null,
+                                BookAvailabilityFilter.AVAILABLE,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                10,
+                                BookSortOption.AZ,
+                                authentication);
 
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getAvailableCampuses())
-                .containsExactly("Campus A", "Campus B");
-    }
+                assertThat(result.getTotalElements()).isEqualTo(1);
+                assertThat(result.getContent()).hasSize(1);
+                assertThat(result.getContent().get(0).getAvailableCampuses())
+                                .containsExactly("Campus A", "Campus B");
+        }
 
-    @Test
-    void Given_BookHasCopiesInMultipleSchools_When_GetFilteredBooks_Then_AvailableCopiesOnlyCountsCurrentSchool() {
-        // Arrange
-        School currentSchool = new School();
-        currentSchool.setId(1L);
-        School otherSchool = new School();
-        otherSchool.setId(2L);
+        @SuppressWarnings("unchecked")
+        @Test
+        void Given_BookHasCopiesInMultipleSchools_When_GetFilteredBooks_Then_AvailableCopiesOnlyCountsCurrentSchool() {
+                // Arrange
+                School currentSchool = new School();
+                currentSchool.setId(1L);
+                School otherSchool = new School();
+                otherSchool.setId(2L);
 
-        Campus currentCampus = new Campus();
-        currentCampus.setId(1L);
-        currentCampus.setName("Current Campus");
-        currentCampus.setSchool(currentSchool);
-        Campus otherCampus = new Campus();
-        otherCampus.setId(2L);
-        otherCampus.setName("Other Campus");
-        otherCampus.setSchool(otherSchool);
+                Campus currentCampus = new Campus();
+                currentCampus.setId(1L);
+                currentCampus.setName("Current Campus");
+                currentCampus.setSchool(currentSchool);
+                Campus otherCampus = new Campus();
+                otherCampus.setId(2L);
+                otherCampus.setName("Other Campus");
+                otherCampus.setSchool(otherSchool);
 
-        Book book = createBook(1L, "9781234567890", currentCampus);
-        book.setBookCopies(List.of(
-                createAvailableCopy(10L, book, currentCampus),
-                createAvailableCopy(20L, book, otherCampus)));
+                Book book = createBook(1L, "9781234567890", currentCampus);
+                book.setBookCopies(List.of(
+                                createAvailableCopy(10L, book, currentCampus),
+                                createAvailableCopy(20L, book, otherCampus)));
 
-        given(currentUserService.resolveSchool(any(), any())).willReturn(currentSchool);
-        given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
-                .willReturn(List.of(book));
+                given(currentUserService.resolveSchool(any(), any())).willReturn(currentSchool);
+                given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
+                                .willReturn(List.of(book));
 
-        // Act
-        Page<BookDTO> result = bookSearchService.getFilteredBooks(
-                null,
-                BookAvailabilityFilter.AVAILABLE,
-                null,
-                null,
-                null,
-                null,
-                null,
-                0,
-                10,
-                BookSortOption.AZ,
-                authentication,
-                currentSchool.getId()
-        );
+                // Act
+                Page<BookDTO> result = bookSearchService.getFilteredBooks(
+                                null,
+                                BookAvailabilityFilter.AVAILABLE,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                10,
+                                BookSortOption.AZ,
+                                authentication,
+                                currentSchool.getId());
 
-        // Assert
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getAvailableCopies()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getAvailableCampuses())
-                .containsExactly("Current Campus");
-    }
+                // Assert
+                assertThat(result.getContent()).hasSize(1);
+                assertThat(result.getContent().get(0).getAvailableCopies()).isEqualTo(1);
+                assertThat(result.getContent().get(0).getAvailableCampuses())
+                                .containsExactly("Current Campus");
+        }
 
-    private Book createBook(Long id, String isbn, Campus campus) {
-        Book book = new Book();
-        book.setId(id);
-        book.setIsbn(isbn);
-        book.setTitle("Titel");
-        book.setAuthor("Auteur");
-        book.setPages(200);
-        book.setGenres(Set.of());
-        return book;
-    }
+        private Book createBook(Long id, String isbn, Campus campus) {
+                Book book = new Book();
+                book.setId(id);
+                book.setIsbn(isbn);
+                book.setTitle("Titel");
+                book.setAuthor("Auteur");
+                book.setPages(200);
+                book.setGenres(Set.of());
+                return book;
+        }
 
-    private BookCopy createAvailableCopy(Long id, Book book, Campus campus) {
-        BookCopy copy = new BookCopy();
-        copy.setId(id);
-        copy.setBook(book);
-        copy.setCampus(campus);
-        copy.setCondition(BookCondition.GOOD_CONDITION);
-        org.springframework.test.util.ReflectionTestUtils.setField(copy, "availability", Availability.AVAILABLE);
-        return copy;
-    }
+        private BookCopy createAvailableCopy(Long id, Book book, Campus campus) {
+                BookCopy copy = new BookCopy();
+                copy.setId(id);
+                copy.setBook(book);
+                copy.setCampus(campus);
+                copy.setCondition(BookCondition.GOOD_CONDITION);
+                org.springframework.test.util.ReflectionTestUtils.setField(copy, "availability",
+                                Availability.AVAILABLE);
+                return copy;
+        }
 }

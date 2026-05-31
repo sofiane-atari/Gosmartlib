@@ -30,7 +30,8 @@ class GenreSeederTest {
         seeder = new GenreSeeder();
     }
 
-    @Test
+    @SuppressWarnings("rawtypes")
+@Test
     @DisplayName("Given empty genre table, when initGenres runs, then save hoofdgenres and subgenres")
     void givenEmptyGenreTable_whenInitGenresRuns_thenSaveHoofdgenresAndSubgenres() throws Exception {
         given(repository.count()).willReturn(0L);

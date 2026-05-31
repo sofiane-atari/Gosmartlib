@@ -423,7 +423,6 @@ public class OneRosterClient {
         return withoutScheme;
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> extractDistinctSortedLabels(List<Map<String, Object>> items, String... keys) {
         return items.stream()
                 .flatMap(item -> {

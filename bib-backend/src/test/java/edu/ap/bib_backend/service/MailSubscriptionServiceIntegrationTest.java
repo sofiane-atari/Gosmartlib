@@ -107,8 +107,6 @@ class MailSubscriptionServiceIntegrationTest {
 
     @Test
     void GivenExistingSubscription_WhenUnsubscribe_ThenRemovesSubscription() {
-        MailSubscriptionDTO sub = mailSubscriptionService.subscribe(user.getId(), book.getId());
-
         mailSubscriptionService.unsubscribe(user.getId(), book.getId());
 
         List<MailSubscriptionDTO> subs = mailSubscriptionService.findSubscriptionsByUser(user.getId());
