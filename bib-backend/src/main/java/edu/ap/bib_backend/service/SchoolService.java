@@ -20,6 +20,7 @@ import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class SchoolService {
 
@@ -126,6 +128,7 @@ public class SchoolService {
 
                 eventPublisher.publishEvent(new SchoolCreatedEvent(savedSchool.getId()));
 
+                log.info("school '{}' created (domain={}, id={})", savedSchool.getName(), savedSchool.getDomainName(), savedSchool.getId());
                 return toDto(savedSchool);
         }
 
@@ -171,7 +174,9 @@ public class SchoolService {
                         }
                 }
 
-                return toDto(schoolRepository.save(school));
+                School saved = schoolRepository.save(school);
+                log.info("school {} updated: name='{}', domain='{}'", id, saved.getName(), saved.getDomainName());
+                return toDto(saved);
         }
 
         @Transactional
@@ -182,6 +187,7 @@ public class SchoolService {
                 school.setStatus(SchoolStatus.MARKED_FOR_DELETION);
                 school.setMarkedForDeletionAt(LocalDateTime.now());
                 schoolRepository.save(school);
+                log.info("school {} marked for deletion", id);
         }
 
         @Transactional
@@ -191,6 +197,7 @@ public class SchoolService {
 
                 school.setStatus(SchoolStatus.DISABLED);
                 school.setMarkedForDeletionAt(null);
+                log.info("school {} disabled", id);
                 return toDto(schoolRepository.save(school));
         }
 
@@ -201,6 +208,7 @@ public class SchoolService {
 
                 school.setStatus(SchoolStatus.ACTIVE);
                 school.setMarkedForDeletionAt(null);
+                log.info("school {} enabled", id);
                 return toDto(schoolRepository.save(school));
         }
 
@@ -276,6 +284,7 @@ public class SchoolService {
                 executePurgeDelete("DELETE FROM campuses WHERE school_id = :schoolId", schoolId);
 
                 schoolRepository.deleteById(schoolId);
+                log.info("school {} purged", schoolId);
         }
 
         private void executePurgeDelete(String sql, Long schoolId) {
@@ -310,6 +319,7 @@ public class SchoolService {
                 String normalized = normalizeDomainName(domainName);
 
                 if (schoolRepository.existsByDomainName(normalized)) {
+                        log.warn("domain conflict: '{}' already exists", domainName);
                         throw new ResponseStatusException(
                                         HttpStatus.CONFLICT,
                                         "Er bestaat al een school met domein '" + domainName + "'.");

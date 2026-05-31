@@ -16,6 +16,7 @@ import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,7 @@ import java.nio.file.*;
 import java.time.Year;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookBulkService {
@@ -66,6 +68,7 @@ public class BookBulkService {
             Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING);
         }
 
+        log.info("temp file stored: {} (original='{}')", tempFileId, file.getOriginalFilename());
         return tempFileId;
     }
 
@@ -104,6 +107,7 @@ public class BookBulkService {
     @Transactional
     public void importBooks(Authentication authentication, MultipartFile file, Long campusId) {
         Campus campus = resolveCampusForCurrentUserSchool(authentication, campusId);
+        log.info("bulk import started for campus {} by user {}", campusId, authentication.getName());
 
         try (InputStream is = file.getInputStream(); Workbook wb = WorkbookFactory.create(is)) {
             Sheet sheet = wb.getSheetAt(0);
@@ -178,7 +182,9 @@ public class BookBulkService {
                 BookCopy savedCopy = bcr.save(copy);
                 bookCopyIdentifierService.assignIdentifier(savedCopy);
             }
+            log.info("bulk import completed for campus {} ({} rows processed)", campusId, sheet.getLastRowNum());
         } catch (Exception e) {
+            log.error("bulk import failed for campus {}: {}", campusId, e.getMessage(), e);
             throw new RuntimeException("Gefailed om boeken te importeren: " + e.getMessage(), e);
         }
     }

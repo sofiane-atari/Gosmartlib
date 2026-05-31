@@ -6,6 +6,7 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.service.BookCopyService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/book-copies")
 public class BookCopyController {
@@ -56,6 +58,7 @@ public class BookCopyController {
         copy.setCondition(request.condition());
         bookCopyRepository.save(copy);
 
+        log.info("book copy {} condition updated to '{}' by user {}", copyId, request.condition(), authentication.getName());
         return ResponseEntity.ok(new BookCopyConditionUpdateDTO(
                 copy.getId(),
                 copy.getPublicIdentifier(),
@@ -75,6 +78,7 @@ public class BookCopyController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCopy(@PathVariable Long copyId, Authentication authentication) {
         bookCopyService.deleteCopy(copyId, authentication);
+        log.info("book copy {} deleted by user {}", copyId, authentication.getName());
     }
 
     @DeleteMapping("/book/{bookId}")
@@ -82,5 +86,6 @@ public class BookCopyController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAllCopiesByBookIdForSchool(@PathVariable Long bookId, Authentication authentication) {
         bookCopyService.deleteAllCopiesByBookIdForSchool(bookId, authentication);
+        log.info("all copies of book {} deleted by user {}", bookId, authentication.getName());
     }
 }
