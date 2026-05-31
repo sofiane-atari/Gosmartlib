@@ -125,7 +125,7 @@ class BookBulkServiceTest {
         Book existingBook = new Book();
         existingBook.setIsbn("9781234567890");
 
-        when(br.findByIsbnAndCampusId("9781234567890", 1L)).thenReturn(Optional.of(existingBook));
+        when(br.findAllByIsbn("9781234567890")).thenReturn(List.of(existingBook));
 
         service.importBooks(authentication, file, 1L);
 
@@ -194,7 +194,7 @@ class BookBulkServiceTest {
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 createValidWorkbookBytes());
 
-        when(br.findByIsbnAndCampusId(anyString(), any())).thenThrow(new IllegalArgumentException("Database disconnect"));
+        when(br.findAllByIsbn(anyString())).thenThrow(new IllegalArgumentException("Database disconnect"));
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> service.importBooks(authentication, file, 1L));

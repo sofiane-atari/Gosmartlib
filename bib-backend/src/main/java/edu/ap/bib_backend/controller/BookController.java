@@ -119,8 +119,9 @@ public class BookController {
     @PostMapping
     public ResponseEntity<BookDTO> addBook(
             Authentication authentication,
-            @RequestBody BookDTO dto) {
-        BookDTO savedBook = bookService.addBook(dto, authentication);
+            @RequestBody BookDTO dto,
+            @RequestParam Long campusId) {
+        BookDTO savedBook = bookService.addBook(dto, campusId, authentication);
         return ResponseEntity.ok(savedBook);
     }
 

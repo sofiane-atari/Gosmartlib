@@ -45,8 +45,6 @@ import { BookLessonTipPreview } from '../../../model/lesson-tip/lesson-tip.model
 import { LESSON_TIP_PATHS } from '../../../routes/lesson-tip.routes';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { BookImagePlaceholderComponent } from '../../shared/book-image-placeholder/book-image-placeholder.component';
-import { Campus } from '../../../model/campus.model';
-import { CampusService } from '../../../services/campus/campus.service';
 import { MailSubscriptionService } from '../../../services/mail-subscription/mail-subscription.service';
 import { ReadingList } from '../../../model/readingList.model';
 import { BookReviewsComponent } from '../../reviews/book-reviews/book-reviews.component';
@@ -172,7 +170,6 @@ export class BookDetailComponent implements OnInit {
     private toastService: ToastService,
     private sanitizer: DomSanitizer,
     protected authService: AuthService,
-    private campusService: CampusService,
   ) {}
 
   public ngOnInit(): void {
@@ -188,7 +185,6 @@ export class BookDetailComponent implements OnInit {
 
         this.bookService.getBookById(numericBookId, schoolId ?? undefined).subscribe((book) => {
           this.selectedBook = book;
-          this.loadCampusForBook(book);
           this.loadSubscriptionStatus(numericBookId);
 
           if (book.id) {
@@ -272,7 +268,6 @@ export class BookDetailComponent implements OnInit {
     { value: 'LOST', label: 'Verloren' },
   ];
   selectedBook?: Book;
-  selectedCampus?: Campus;
 
   protected get copyLocationGroups(): BookCopyCampusLocation[] {
     return (
@@ -304,27 +299,7 @@ export class BookDetailComponent implements OnInit {
   }
 
   protected get hasLocationInfo(): boolean {
-    return (
-      this.copyLocationGroups.length > 0 ||
-      !!this.selectedBook?.campusId ||
-      !!this.selectedBook?.campusName
-    );
-  }
-
-  get campusName(): string {
-    return (
-      this.selectedCampus?.name ??
-      this.selectedBook?.campusName ??
-      'Onbekende campus'
-    );
-  }
-
-  get campusAddress(): string | null {
-    if (!this.selectedCampus) {
-      return null;
-    }
-
-    return `${this.selectedCampus.address}, ${this.selectedCampus.postalCode}`;
+    return this.copyLocationGroups.length > 0;
   }
 
   protected getCampusAddress(group: BookCopyCampusLocation): string | null {
@@ -458,23 +433,6 @@ export class BookDetailComponent implements OnInit {
 
   private isBorrowed(availability: string | null | undefined): boolean {
     return availability === 'BORROWED' || availability === 'UITGELEEND';
-  }
-
-  private loadCampusForBook(book: Book): void {
-    this.selectedCampus = undefined;
-
-    if (!book.campusId) {
-      return;
-    }
-
-    this.campusService.getById(book.campusId).subscribe({
-      next: (campus) => {
-        this.selectedCampus = campus;
-      },
-      error: (error) => {
-        console.error('Problem with loading campus details', error);
-      },
-    });
   }
 
   loadReadingLists() {
@@ -752,7 +710,6 @@ export class BookDetailComponent implements OnInit {
 
         this.bookService.getBookById(bookId).subscribe((book) => {
           this.selectedBook = book;
-          this.loadCampusForBook(book);
         });
       },
       error: (err) => {

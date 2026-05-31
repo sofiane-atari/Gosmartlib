@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import edu.ap.bib_backend.dto.MailSubscriptionDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.MailSubscription;
 import edu.ap.bib_backend.jpa.entity.School;
@@ -92,7 +93,9 @@ class MailSubscriptionServiceTest {
         user.setSchool(school);
         Book book = new Book();
         book.setId(1L);
-        book.setCampus(campus);
+        BookCopy bookCopy = new BookCopy();
+        bookCopy.setCampus(campus);
+        book.getBookCopies().add(bookCopy);
         MailSubscription subscription = new MailSubscription();
         MailSubscription saved = new MailSubscription();
         MailSubscriptionDTO expectedDto = MailSubscriptionDTO.builder().id(1L).bookId(1L).build();

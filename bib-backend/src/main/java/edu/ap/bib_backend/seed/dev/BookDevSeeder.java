@@ -128,7 +128,7 @@ public class BookDevSeeder {
         int copiesCreated = 0;
 
         for (BookData data : BOOK_DATA) {
-            if (bookRepository.findByIsbnAndCampusId(data.isbn, campusId).isPresent()) {
+            if (bookRepository.existsByIsbn(data.isbn)) {
                 log.info("Boek overgeslagen (bestaat al): {}", data.title);
                 continue;
             }
@@ -143,7 +143,6 @@ public class BookDevSeeder {
                 dto.setImageUrl(data.imageUrl);
                 dto.setReleaseYear(data.releaseYear);
                 dto.setDidactic(false);
-                dto.setCampusId(campusId);
 
                 // These labels are intentionally used as both tags and genres in dev-seed.
                 dto.setGenres(data.tagNames.stream()
@@ -167,7 +166,7 @@ public class BookDevSeeder {
                 }
                 dto.setTags(bookTags);
 
-                BookDTO createdBook = bookService.addBook(dto, authentication);
+                BookDTO createdBook = bookService.addBook(dto, campusId, authentication);
                 Long bookId = createdBook.getId();
                 createdBookIds.add(bookId);
                 booksCreated++;

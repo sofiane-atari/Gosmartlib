@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.MailSubscription;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
@@ -60,8 +61,13 @@ class MailSubscriptionRepositoryTest {
         book = new Book();
         book.setTitle("Repo Test Book");
         book.setIsbn("9780000000099");
-        book.setCampus(campus);
         entityManager.persist(book);
+
+        BookCopy copy = new BookCopy();
+        copy.setBook(book);
+        copy.setCampus(campus);
+        entityManager.persist(copy);
+        book.getBookCopies().add(copy);
 
         entityManager.flush();
     }
@@ -169,8 +175,14 @@ class MailSubscriptionRepositoryTest {
         Book book2 = new Book();
         book2.setTitle("Second Book");
         book2.setIsbn("9780000000010");
-        book2.setCampus(book.getCampus());
         entityManager.persist(book2);
+
+        BookCopy copy2 = new BookCopy();
+        copy2.setBook(book2);
+        copy2.setCampus(book.getBookCopies().get(0).getCampus());
+        entityManager.persist(copy2);
+        book2.getBookCopies().add(copy2);
+
         entityManager.flush();
 
         createSubscription(user, book, MailType.AVAILABLE_BOOK);

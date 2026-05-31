@@ -321,7 +321,6 @@ export class AddBookManualComponent
       tags: this.selectedTags,
       readingLevel: formValue.readingLevel ?? undefined,
       didactic: formValue.didactic,
-      campusId: this.campusId,
     };
     this.saveDraft();
     this.bookAdded.emit(book);

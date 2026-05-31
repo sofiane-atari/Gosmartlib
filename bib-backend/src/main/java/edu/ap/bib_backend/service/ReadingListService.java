@@ -89,7 +89,7 @@ public class ReadingListService {
                 campus.getId(),
                 audience.classCode(),
                 audience.yearCode(),
-                audience.schoolCode(),
+                user.getSchool().getId(),
                 shouldIncludeOwnSharedLists());
     }
 
@@ -104,7 +104,7 @@ public class ReadingListService {
                 campus.getId(),
                 audience.classCode(),
                 audience.yearCode(),
-                audience.schoolCode(),
+                user.getSchool().getId(),
                 shouldIncludeOwnSharedLists())
                 .orElseThrow(() -> new IllegalArgumentException("Leeslijst met id " + id + " bestaat niet"));
     }

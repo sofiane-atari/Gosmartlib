@@ -18,8 +18,6 @@ export interface Book {
   genres?: Genre[];
   tags?: Tag[];
   readingLevel?: ReadingLevel;
-  campusId?: number;
-  campusName?: string;
   availableCampuses?: string[];
   copyLocations?: BookCopyCampusLocation[];
   favorite?: boolean;

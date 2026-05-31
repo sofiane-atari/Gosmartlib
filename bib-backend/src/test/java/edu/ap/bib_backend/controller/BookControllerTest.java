@@ -388,7 +388,7 @@ public class BookControllerTest {
                 savedDTO.setDescription("Beschrijving hier");
                 savedDTO.setReleaseYear(2024);
 
-                Mockito.when(bs.addBook(Mockito.any(BookDTO.class), Mockito.any())).thenReturn(savedDTO);
+                Mockito.when(bs.addBook(Mockito.any(BookDTO.class), Mockito.eq(1L), Mockito.any())).thenReturn(savedDTO);
 
                 // Act & Assert
                 mockMvc.perform(post("/books")

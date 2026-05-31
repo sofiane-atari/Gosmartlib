@@ -92,7 +92,6 @@ class LoanServiceIntegrationTest {
         Book book = new Book();
         book.setTitle("Loanable Book");
         book.setIsbn("1234567890");
-        book.setCampus(campus);
         book = bookRepository.save(book);
 
         BookCopy copy = new BookCopy();

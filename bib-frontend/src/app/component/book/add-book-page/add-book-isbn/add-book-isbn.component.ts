@@ -126,7 +126,7 @@ export class AddBookISBNComponent extends GenreSelectionBase implements OnInit, 
       return;
     }
 
-    this.bookAdded.emit({ ...this.book, campusId: this.campusId, tags: this.selectedTags });
+    this.bookAdded.emit({ ...this.book, tags: this.selectedTags });
     this.clearForm();
   }
 

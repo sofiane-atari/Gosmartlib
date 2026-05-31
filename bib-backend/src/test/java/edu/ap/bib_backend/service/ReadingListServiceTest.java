@@ -136,7 +136,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(List.of());
 
                 readingListService.getAllLists(USER_ID);
@@ -170,7 +170,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
                 ReadingList result = readingListService.getListById(USER_ID, id);
@@ -195,7 +195,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
@@ -219,7 +219,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
                 IllegalArgumentException exception = assertThrows(
@@ -248,7 +248,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
@@ -277,7 +277,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
                 when(readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId)).thenReturn(false);
@@ -305,7 +305,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
                 IllegalArgumentException exception = assertThrows(
@@ -339,7 +339,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
                 when(readingListBookRepository.existsByReadingList_IdAndBookId(listId, bookId)).thenReturn(false);
@@ -366,7 +366,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(list));
 
                 IllegalArgumentException exception = assertThrows(
@@ -394,7 +394,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
                 IllegalArgumentException exception = assertThrows(
@@ -433,7 +433,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(favoritesList));
 
                 when(readingListBookRepository.existsByReadingList_IdAndBookId(99L, bookId)).thenReturn(false);
@@ -460,7 +460,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(sharedList));
 
                 IllegalArgumentException exception = assertThrows(
@@ -489,7 +489,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(sharedList));
 
                 when(readingListBookRepository.deleteAllByReadingListIdAndBookId(listId, bookId)).thenReturn(1);
@@ -514,7 +514,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 false)).thenReturn(Optional.of(systemList));
 
                 IllegalArgumentException exception = assertThrows(
@@ -542,7 +542,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(systemList));
 
                 IllegalArgumentException exception = assertThrows(
@@ -571,7 +571,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
@@ -597,7 +597,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
@@ -623,7 +623,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
                 IllegalArgumentException exception = assertThrows(
@@ -652,7 +652,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
@@ -678,7 +678,7 @@ class ReadingListServiceTest {
                                 CAMPUS_ID,
                                 CLASS_CODE,
                                 YEAR_CODE,
-                                SCHOOL_CODE,
+                                SCHOOL_ID,
                                 true)).thenReturn(Optional.of(list));
 
                 readingListService.deleteReadingList(USER_ID, id);
@@ -888,7 +888,7 @@ class ReadingListServiceTest {
 
         private User makeUser() {
                 School school = new School();
-                school.setId(1L);
+                school.setId(SCHOOL_ID);
                 school.setDomainName("test.smartschool.be");
                 User user = new User();
                 user.setId(USER_ID);
