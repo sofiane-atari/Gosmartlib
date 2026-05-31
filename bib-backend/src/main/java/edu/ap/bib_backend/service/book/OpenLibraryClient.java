@@ -25,6 +25,7 @@ public class OpenLibraryClient {
         this.restTemplate = restTemplate;
     }
 
+    @SuppressWarnings("unchecked")
     public BookDTO fetchBookByISBN(String isbn) {
         String url = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data";
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
@@ -64,6 +65,7 @@ public class OpenLibraryClient {
         return dto;
     }
 
+    @SuppressWarnings("unchecked")
     public BookPreviewDTO fetchPreviewByISBN(String rawIsbn) {
         String normalizedIsbn = IsbnUtils.normalizeAndValidateIsbn(rawIsbn);
         String requestUrl = UriComponentsBuilder

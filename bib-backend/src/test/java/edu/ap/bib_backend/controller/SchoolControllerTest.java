@@ -83,7 +83,6 @@ class SchoolControllerTest {
     @Test
     void GivenValidSchool_WhenCreateSchool_ThenReturn201() throws Exception {
         // Arrange
-        SchoolDTO school = schoolDto(null, "newschool.be", "Nieuwe School", "Nieuwstraat 1", 1000);
         SchoolDTO savedSchool = schoolDto(3L, "newschool.be", "Nieuwe School", "Nieuwstraat 1", 1000);
         given(schoolService.create(any(SchoolDTO.class))).willReturn(savedSchool);
 

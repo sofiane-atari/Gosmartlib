@@ -16,7 +16,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
-import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.MailSubscription;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.service.MailSubscriptionService;

@@ -247,7 +247,6 @@ class OneRosterDataService {
         return username != null ? username : "Onbekende gebruiker";
     }
 
-    @SuppressWarnings("unchecked")
     private String readMetadataString(Map<String, Object> user, String key) {
         Object metadataObject = user.get("metadata");
 

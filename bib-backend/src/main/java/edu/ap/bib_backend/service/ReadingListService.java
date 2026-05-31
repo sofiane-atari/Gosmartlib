@@ -11,7 +11,6 @@ import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.CampusRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListBookRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingListRepository;
-import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 
@@ -353,29 +352,6 @@ public class ReadingListService {
                 "Uitgelicht");
     }
 
-    private String extractSchoolName(String schoolCode) {
-        if (schoolCode == null || schoolCode.isBlank()) {
-            return "School";
-        }
-
-        String normalized = schoolCode.trim();
-
-        if (normalized.startsWith("https://") || normalized.startsWith("http://")) {
-            int slashIndex = normalized.indexOf('/', 8);
-            if (slashIndex > 0) {
-                normalized = normalized.substring(8, slashIndex);
-            } else {
-                normalized = normalized.substring(8);
-            }
-        }
-
-        if (normalized.endsWith(".smartschool.be")) {
-            normalized = normalized.substring(0, normalized.length() - ".smartschool.be".length());
-        }
-
-        return normalized.substring(0, 1).toUpperCase() + normalized.substring(1);
-    }
-
     private void ensureSharedList(
             User owner,
             Campus campus,
@@ -438,10 +414,6 @@ public class ReadingListService {
     }
 
     private boolean shouldIncludeOwnSharedLists() {
-        return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER");
-    }
-
-    private boolean isTeacherAuthenticated() {
         return currentUserService.currentUserHasAnyAuthority("ROLE_TEACHER");
     }
 

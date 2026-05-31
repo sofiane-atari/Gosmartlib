@@ -35,7 +35,8 @@ class SmartschoolMessageServiceIntegrationTest {
         ReflectionTestUtils.setField(smartschoolMessageService, "restTemplate", restTemplate);
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void Given_ValidPayload_When_SendMessage_Then_ApiCallSucceeds() {
         ReflectionTestUtils.setField(smartschoolMessageService, "smartschoolBaseUrl", "https://smartschool.be");
         when(restTemplate.exchange(
@@ -51,7 +52,8 @@ class SmartschoolMessageServiceIntegrationTest {
                 any(org.springframework.core.ParameterizedTypeReference.class));
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void Given_ApiError_When_SendMessage_Then_ThrowsIllegalStateException() {
         ReflectionTestUtils.setField(smartschoolMessageService, "smartschoolBaseUrl", "https://smartschool.be");
         when(restTemplate.exchange(
@@ -62,7 +64,8 @@ class SmartschoolMessageServiceIntegrationTest {
                 () -> smartschoolMessageService.sendMessage("test-token", "Title", "Body"));
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void Given_ApiReturnsFailure_When_SendMessage_Then_ThrowsIllegalStateException() {
         ReflectionTestUtils.setField(smartschoolMessageService, "smartschoolBaseUrl", "https://smartschool.be");
         when(restTemplate.exchange(
@@ -73,7 +76,8 @@ class SmartschoolMessageServiceIntegrationTest {
                 () -> smartschoolMessageService.sendMessage("test-token", "Title", "Body"));
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void Given_NetworkError_When_SendMessage_Then_ThrowsIllegalStateException() {
         ReflectionTestUtils.setField(smartschoolMessageService, "smartschoolBaseUrl", "https://smartschool.be");
         when(restTemplate.exchange(

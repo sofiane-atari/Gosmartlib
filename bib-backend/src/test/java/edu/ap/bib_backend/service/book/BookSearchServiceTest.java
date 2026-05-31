@@ -118,7 +118,8 @@ class BookSearchServiceTest {
                 });
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void givenNoFilters_whenGetFilteredBooks_thenUseDefaultPagingAndSort() {
         given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
                 .willReturn(List.of());
@@ -145,7 +146,8 @@ class BookSearchServiceTest {
         assertThat(order.isAscending()).isTrue();
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void givenNegativePage_whenGetFilteredBooks_thenNormalizePageToZero() {
         given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
                 .willReturn(List.of());
@@ -156,7 +158,8 @@ class BookSearchServiceTest {
         assertThat(result.getPageable().getPageNumber()).isEqualTo(0);
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void givenSizeBelowOne_whenGetFilteredBooks_thenNormalizeSizeToOne() {
         given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
                 .willReturn(List.of());
@@ -167,7 +170,8 @@ class BookSearchServiceTest {
         assertThat(result.getPageable().getPageSize()).isEqualTo(1);
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void givenSizeAboveMax_whenGetFilteredBooks_thenCapSizeAtFifty() {
         given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
                 .willReturn(List.of());
@@ -197,7 +201,8 @@ class BookSearchServiceTest {
                 .hasMessage("minPages mag niet groter zijn dan maxPages.");
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void givenAvailableFilter_whenGetFilteredBooks_thenQueryRepository() {
         given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
                 .willReturn(List.of());
@@ -219,7 +224,8 @@ class BookSearchServiceTest {
         then(bookRepository).should().findAll(any(Specification.class), any(Sort.class));
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void givenAuthorZaSort_whenGetFilteredBooks_thenUseAuthorDescending() {
         given(bookRepository.findAll(any(Specification.class), any(Sort.class)))
                 .willReturn(List.of());
@@ -247,7 +253,8 @@ class BookSearchServiceTest {
         assertThat(order.isDescending()).isTrue();
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void givenRepositoryReturnsBooks_whenGetFilteredBooks_thenMapPageContentToDto() {
         Book book = new Book();
         book.setId(5L);
@@ -284,7 +291,8 @@ class BookSearchServiceTest {
         assertThat(first.getReviewScore()).isEqualTo(0.0);
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void givenSameIsbnInMultipleCampuses_whenGetFilteredBooks_thenReturnOneBookWithAllAvailableCampuses() {
         School school = new School();
         school.setId(1L);
@@ -327,7 +335,8 @@ class BookSearchServiceTest {
                 .containsExactly("Campus A", "Campus B");
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+@Test
     void Given_BookHasCopiesInMultipleSchools_When_GetFilteredBooks_Then_AvailableCopiesOnlyCountsCurrentSchool() {
         // Arrange
         School currentSchool = new School();

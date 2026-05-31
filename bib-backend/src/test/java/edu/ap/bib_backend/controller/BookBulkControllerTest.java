@@ -41,23 +41,6 @@ class BookBulkControllerTest {
                                 .andExpect(jsonPath("$.message").value("Only excel files are supported"));
         }
 
-//        @Test
-//        @DisplayName("POST /books/upload moet 200 geven als xlsm bestand correct is")
-//        void uploadBooks_ShouldReturnOk_WhenFileIsXlsm() throws Exception {
-//                 doNothing().when(bbs).importBooks(any(MultipartFile.class));
-//
-//                MockMultipartFile file = new MockMultipartFile(
-//                                "file",
-//                                "books.xlsm",
-//                                "application/vnd.ms-excel.sheet.macroEnabled.12",
-//                                "fake excel content".getBytes());
-//
-//                mockMvc.perform(
-//                                multipart("/books/upload").file(file))
-//                                .andExpect(status().isOk())
-//                                .andExpect(jsonPath("$.message").value("Books uploaded successfully"));
-//        }
-
         @Test
         @DisplayName("GET /books/template moet template downloaden")
         void downloadTemplate_ShouldReturnResource() throws Exception {

@@ -29,7 +29,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.*;
 import java.time.Year;
 import java.util.*;
@@ -97,8 +97,8 @@ public class BookBulkService {
      * Imports books from a spreadsheet and creates copies for the selected campus.
      *
      * @param authentication current user authentication
-     * @param file spreadsheet to import
-     * @param campusId target campus id
+     * @param file           spreadsheet to import
+     * @param campusId       target campus id
      */
     @Transactional
     public void importBooks(Authentication authentication, MultipartFile file, Long campusId) {
@@ -185,7 +185,7 @@ public class BookBulkService {
      * Resolves a campus within the current user's school.
      *
      * @param authentication current user authentication
-     * @param campusId campus id to resolve
+     * @param campusId       campus id to resolve
      * @return matching campus
      */
     private Campus resolveCampusForCurrentUserSchool(Authentication authentication, Long campusId) {
@@ -231,8 +231,7 @@ public class BookBulkService {
                             evaluator,
                             existingIsbns,
                             seenIsbns,
-                            seenNaturalKeys
-                    );
+                            seenNaturalKeys);
 
                     int progress = (int) (((double) i / totalRows) * 100);
 
@@ -240,8 +239,7 @@ public class BookBulkService {
                             i,
                             totalRows,
                             progress,
-                            rowErrors
-                    );
+                            rowErrors);
 
                     emitter.send(SseEmitter.event().name("progress").data(update));
                     Thread.sleep(40);
@@ -261,7 +259,7 @@ public class BookBulkService {
     /**
      * Checks whether the import columns in a row are empty.
      *
-     * @param row spreadsheet row
+     * @param row       spreadsheet row
      * @param formatter cell formatter
      * @param evaluator formula evaluator
      * @return true when no import column contains a value
@@ -285,12 +283,12 @@ public class BookBulkService {
     /**
      * Validates one spreadsheet row for book import.
      *
-     * @param row row to validate
-     * @param rowIndex zero-based row index
-     * @param formatter cell formatter
-     * @param evaluator formula evaluator
-     * @param existingIsbns ISBNs already present in the database
-     * @param seenIsbns ISBNs already seen in this file
+     * @param row             row to validate
+     * @param rowIndex        zero-based row index
+     * @param formatter       cell formatter
+     * @param evaluator       formula evaluator
+     * @param existingIsbns   ISBNs already present in the database
+     * @param seenIsbns       ISBNs already seen in this file
      * @param seenNaturalKeys natural keys already seen in this file
      * @return validation errors and warnings for the row
      */
@@ -301,8 +299,7 @@ public class BookBulkService {
             FormulaEvaluator evaluator,
             Set<String> existingIsbns,
             Set<String> seenIsbns,
-            Set<String> seenNaturalKeys
-    ) {
+            Set<String> seenNaturalKeys) {
         List<FileValidationError> rowErrors = new ArrayList<>();
         int rowNumber = rowIndex + 1;
 
@@ -329,16 +326,14 @@ public class BookBulkService {
                             rowNumber,
                             "ISBN",
                             "ISBN komt dubbel voor in het bestand. Er zal een exemplaar toegevoegd worden met de gegevens van de eerst voorkomende rij",
-                            "warning"
-                    ));
+                            "warning"));
                     hasIsbnMatch = true;
                 } else if (existingIsbns.contains(isbn)) {
                     rowErrors.add(new FileValidationError(
                             rowNumber,
                             "ISBN",
                             "ISBN bestaat al in de database. Er zal een exemplaar toegevoegd worden met de gegevens in de database",
-                            "warning"
-                    ));
+                            "warning"));
                     hasIsbnMatch = true;
                 }
 
@@ -383,15 +378,14 @@ public class BookBulkService {
                         rowNumber,
                         "Title/Author/ReleaseYear",
                         "De combinatie titel + auteur + jaar komt dubbel voor in het bestand. Er zal een exemplaar toegevoegd worden met de gegevens van de eerst voorkomende rij.",
-                        "warning"
-                ));
-            } else if (!br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear).isEmpty()) {
+                        "warning"));
+            } else if (!br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear)
+                    .isEmpty()) {
                 rowErrors.add(new FileValidationError(
                         rowNumber,
                         "Title/Author/ReleaseYear",
                         "De combinatie titel + auteur + jaar bestaat al in de database. Er zal een exemplaar toegevoegd worden met de bestaande boekgegevens.",
-                        "warning"
-                ));
+                        "warning"));
             }
 
             seenNaturalKeys.add(naturalKey);
@@ -399,7 +393,7 @@ public class BookBulkService {
 
         if (!imageUrl.isEmpty()) {
             try {
-                new URL(imageUrl);
+                URI.create(imageUrl).toURL();
             } catch (MalformedURLException e) {
                 rowErrors.add(new FileValidationError(rowNumber, "ImageUrl", "Invalide URL formaat"));
             }
@@ -420,15 +414,15 @@ public class BookBulkService {
             }
         }
 
-        boolean hasAnyGenre =
-                !mainGenre.isEmpty()
-                        || !subGenre1.isEmpty()
-                        || !subGenre2.isEmpty()
-                        || !subGenre3.isEmpty();
+        boolean hasAnyGenre = !mainGenre.isEmpty()
+                || !subGenre1.isEmpty()
+                || !subGenre2.isEmpty()
+                || !subGenre3.isEmpty();
 
         if (hasAnyGenre) {
             if (mainGenre.isEmpty()) {
-                rowErrors.add(new FileValidationError(rowNumber, "Hoofdgenre", "Hoofdgenre is verplicht als je subgenres invult"));
+                rowErrors.add(new FileValidationError(rowNumber, "Hoofdgenre",
+                        "Hoofdgenre is verplicht als je subgenres invult"));
             } else {
                 Genre mainGenreEntity = genreRepository.findByName(mainGenre).orElse(null);
                 if (mainGenreEntity == null) {
@@ -439,9 +433,12 @@ public class BookBulkService {
                 }
 
                 List<String> subGenres = new ArrayList<>();
-                if (!subGenre1.isEmpty()) subGenres.add(subGenre1);
-                if (!subGenre2.isEmpty()) subGenres.add(subGenre2);
-                if (!subGenre3.isEmpty()) subGenres.add(subGenre3);
+                if (!subGenre1.isEmpty())
+                    subGenres.add(subGenre1);
+                if (!subGenre2.isEmpty())
+                    subGenres.add(subGenre2);
+                if (!subGenre3.isEmpty())
+                    subGenres.add(subGenre3);
 
                 List<String> uniqueSubGenres = new ArrayList<>(new LinkedHashSet<>(subGenres));
                 Genre mainGenreEntityWithParent = genreRepository.findByNameWithParent(mainGenre).orElse(null);
@@ -450,7 +447,8 @@ public class BookBulkService {
                     Genre subGenreEntity = genreRepository.findByNameWithParent(subGenreName).orElse(null);
 
                     if (subGenreEntity == null) {
-                        rowErrors.add(new FileValidationError(rowNumber, "Subgenres", "Subgenre bestaat niet: " + subGenreName));
+                        rowErrors.add(new FileValidationError(rowNumber, "Subgenres",
+                                "Subgenre bestaat niet: " + subGenreName));
                     } else if (subGenreEntity.getParentGenre() == null) {
                         rowErrors.add(new FileValidationError(rowNumber, "Subgenres",
                                 "Subgenre is geen echt subgenre: " + subGenreName));
@@ -477,9 +475,9 @@ public class BookBulkService {
     /**
      * Maps a spreadsheet row to a book entity for a campus.
      *
-     * @param row row to map
+     * @param row       row to map
      * @param evaluator formula evaluator
-     * @param campus campus to attach to the book
+     * @param campus    campus to attach to the book
      * @return mapped book entity
      */
     private Book mapRowToBook(Row row, FormulaEvaluator evaluator, Campus campus) {
@@ -508,9 +506,12 @@ public class BookBulkService {
 
         Set<String> uniqueSubGenreNames = new LinkedHashSet<>();
 
-        if (!subGenre1.isBlank()) uniqueSubGenreNames.add(subGenre1);
-        if (!subGenre2.isBlank()) uniqueSubGenreNames.add(subGenre2);
-        if (!subGenre3.isBlank()) uniqueSubGenreNames.add(subGenre3);
+        if (!subGenre1.isBlank())
+            uniqueSubGenreNames.add(subGenre1);
+        if (!subGenre2.isBlank())
+            uniqueSubGenreNames.add(subGenre2);
+        if (!subGenre3.isBlank())
+            uniqueSubGenreNames.add(subGenre3);
 
         Set<Genre> selectedGenres = new HashSet<>();
 
@@ -533,8 +534,8 @@ public class BookBulkService {
     /**
      * Builds a normalized duplicate-detection key from title, author, and year.
      *
-     * @param title book title
-     * @param author book author
+     * @param title       book title
+     * @param author      book author
      * @param releaseYear release year
      * @return natural key string
      */

@@ -25,7 +25,7 @@ public class SmartschoolMessageTemplateService {
     private static final String TEMPLATE_ROOT = "templates/messages/";
     private static final String FRAGMENT_ROOT = TEMPLATE_ROOT + "fragments/";
     private static final DateTimeFormatter DATE_FORMATTER =
-            DateTimeFormatter.ofPattern("d MMMM yyyy", new Locale("nl", "BE"));
+            DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.of("nl", "BE"));
 
     private final TemplateRenderer templateRenderer;
 

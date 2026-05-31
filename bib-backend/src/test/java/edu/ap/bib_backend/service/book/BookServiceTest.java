@@ -114,7 +114,6 @@ class BookServiceTest {
                 br,
                 bcr,
                 gr,
-                reviewRepository,
                 bookLoanRepository,
                 rlr,
                 campusRepository,

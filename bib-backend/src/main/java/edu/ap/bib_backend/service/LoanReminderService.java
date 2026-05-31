@@ -27,7 +27,7 @@ public class LoanReminderService {
 
     private static final Logger log = LoggerFactory.getLogger(LoanReminderService.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy",
-            new Locale("nl", "BE"));
+            Locale.of("nl", "BE"));
     private static final ZoneId BRUSSELS_ZONE = ZoneId.of("Europe/Brussels");
 
     private final LoanRepository loanRepository;

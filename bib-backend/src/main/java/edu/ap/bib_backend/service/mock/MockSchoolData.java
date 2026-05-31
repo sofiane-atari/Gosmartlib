@@ -477,7 +477,6 @@ public class MockSchoolData {
                 users, classes, enrollments, academicSessions, orgs);
     }
 
-    @SuppressWarnings("unchecked")
     private static Map<String, Object> buildEnrollment(
             MockUser user, Map<String, Object> classData,
             String platformId, String orgSourcedId, String schoolName, String termSourcedId) {

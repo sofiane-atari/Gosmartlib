@@ -379,7 +379,6 @@ public class OneRosterUserSyncService {
      * @param key metadata key
      * @return trimmed metadata value, or null when absent
      */
-    @SuppressWarnings("unchecked")
     private String readMetadataString(Map<String, Object> user, String key) {
         if (user == null) {
             return null;

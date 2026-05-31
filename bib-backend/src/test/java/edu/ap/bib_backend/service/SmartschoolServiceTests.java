@@ -26,6 +26,7 @@ class SmartschoolServiceTests {
     @Mock
     private TokenStorageService tokenStorageService;
 
+    @SuppressWarnings("unchecked")
     @Test
     void Given_ValidData_When_SendMessage_Then_RestTemplateIsCalled() {
         // Arrange

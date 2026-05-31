@@ -12,7 +12,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
-import jakarta.transaction.Transactional;
 
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.oneroster.OneRosterClassDTO;
@@ -724,7 +723,6 @@ public class UserService {
      * @param key metadata key
      * @return trimmed metadata value, or null
      */
-    @SuppressWarnings("unchecked")
     private String readMetadataString(Map<String, Object> user, String key) {
         if (user == null) {
             return null;

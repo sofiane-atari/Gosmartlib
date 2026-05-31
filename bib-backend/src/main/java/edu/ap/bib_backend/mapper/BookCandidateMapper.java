@@ -11,6 +11,7 @@ import edu.ap.bib_backend.jpa.entity.Book;
 @Component
 public class BookCandidateMapper {
 
+    @SuppressWarnings("unchecked")
     public BookCandidateDTO toCandidateDTO(Map<String, Object> volumeInfo, String isbn13) {
         BookCandidateDTO dto = new BookCandidateDTO();
         dto.setTitle((String) volumeInfo.get("title"));
@@ -41,6 +42,7 @@ public class BookCandidateMapper {
         return dto;
     }
 
+    @SuppressWarnings("unchecked")
     private String getFirstAuthor(Map<String, Object> volumeInfo) {
         List<String> authors = (List<String>) volumeInfo.get("authors");
         if (authors == null || authors.isEmpty()) {

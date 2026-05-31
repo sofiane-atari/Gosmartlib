@@ -2,11 +2,8 @@ package edu.ap.bib_backend.seed.dev;
 
 import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
-import edu.ap.bib_backend.jpa.repository.LoanRepository;
-import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.LoanService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -23,16 +20,11 @@ import java.util.List;
 public class LoanDevSeeder {
 
     private final LoanService loanService;
-    private final UserRepository userRepository;
     private final BookCopyRepository bookCopyRepository;
-    private final LoanRepository loanRepository;
 
-    public LoanDevSeeder(LoanService loanService, UserRepository userRepository,
-                          BookCopyRepository bookCopyRepository, LoanRepository loanRepository) {
+    public LoanDevSeeder(LoanService loanService, BookCopyRepository bookCopyRepository) {
         this.loanService = loanService;
-        this.userRepository = userRepository;
         this.bookCopyRepository = bookCopyRepository;
-        this.loanRepository = loanRepository;
     }
 
     public LoanSeedResult seed(Authentication authentication, Long schoolId, Long campusId,

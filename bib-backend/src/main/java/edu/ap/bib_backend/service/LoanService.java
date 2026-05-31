@@ -28,7 +28,6 @@ import edu.ap.bib_backend.event.BookAvailableEvent;
 import edu.ap.bib_backend.event.gamification.BookReturnedGamificationEvent;
 import edu.ap.bib_backend.jpa.entity.Book;
 import edu.ap.bib_backend.jpa.entity.BookCopy;
-import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
@@ -38,7 +37,6 @@ import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
-import edu.ap.bib_backend.mapper.PageMapper;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.message.SmartschoolMessageTemplateService;
@@ -47,10 +45,6 @@ import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
 @Service
 @Slf4j
 public class LoanService {
@@ -615,19 +609,6 @@ String batchId = UUID.randomUUID().toString();
         }
 
         return calculateDefaultReturnDate(loanDTO.userId());
-    }
-
-    private List<Long> expandRequestedBookIds(LoanDTO loanDTO) {
-        if (loanDTO.bookCopyIds() == null || loanDTO.bookCopyIds().isEmpty()) {
-            return List.of();
-        }
-
-        return bookCopyRepository.findAllById(loanDTO.bookCopyIds()).stream()
-                .map(BookCopy::getBook)
-                .filter(java.util.Objects::nonNull)
-                .map(Book::getId)
-                .distinct()
-                .toList();
     }
 
     /**
