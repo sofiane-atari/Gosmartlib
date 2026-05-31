@@ -35,6 +35,8 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     List<User> findBySchoolId(Long schoolId);
 
+    List<User> findBySchoolIdAndReviewBlockedTrue(Long schoolId);
+
     @Query("""
             select distinct u
             from User u

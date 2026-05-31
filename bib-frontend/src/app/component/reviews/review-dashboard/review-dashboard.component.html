@@ -289,4 +289,24 @@
       }
     }
   </div>
+
+  @if (roleService.canModerateReviews()) {
+    <button
+      type="button"
+      class="review-dashboard__blocked-btn"
+      (click)="openBlockedUsersModal()"
+    >
+      Geblokkeerde leerlingen
+    </button>
+  }
 </div>
+
+<app-review-blocked-list
+  [isVisible]="showBlockedUsers()"
+  [blockedUsers]="blockedUsers()"
+  [isLoading]="isLoadingBlocked()"
+  [errorMessage]="blockedError()"
+  (unblockUser)="onUnblockFromModal($event)"
+  (close)="showBlockedUsers.set(false)"
+  (retry)="openBlockedUsersModal()"
+></app-review-blocked-list>

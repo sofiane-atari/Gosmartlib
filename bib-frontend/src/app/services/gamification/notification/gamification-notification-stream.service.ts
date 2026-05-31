@@ -62,8 +62,6 @@ export class GamificationNotificationStreamService {
           this.disconnect();
           return;
         }
-
-        console.log('Gamification notification stream connected');
       },
 
       onmessage: (event) => {

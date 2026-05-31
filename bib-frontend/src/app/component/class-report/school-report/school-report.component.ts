@@ -229,6 +229,10 @@ export class SchoolReportComponent implements OnInit {
     return new Date(year, month - 1).toLocaleDateString('nl-BE', { month: 'short', year: '2-digit' });
   }
 
+  formatTick(value: number): string {
+    return parseFloat(value.toFixed(1)).toString();
+  }
+
   goBackToReports(): void {
     this.router.navigate(['/reports']);
   }

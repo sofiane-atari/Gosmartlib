@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -348,6 +349,46 @@ public class UserService {
         user.setReviewBlocked(blocked);
         User updatedUser = userRepository.save(user);
         return userMapper.toDto(updatedUser);
+    }
+
+    public List<AuthUserDto> getReviewBlockedUsers(Authentication authentication) {
+        boolean isModerator = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_LIBRARIAN"))
+                || authentication.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isModerator) {
+            throw new AccessDeniedException("Alleen moderators kunnen geblokkeerde leerlingen bekijken.");
+        }
+
+        School school = currentUserService.getCurrentUserSchool(authentication);
+        String userId = currentUserService.extractCurrentUserId(authentication);
+
+        Set<String> blockedUserIds = userRepository.findBySchoolIdAndReviewBlockedTrue(school.getId())
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+
+        if (blockedUserIds.isEmpty()) {
+            return List.of();
+        }
+
+        String schoolCode = school.getDomainName();
+        String smartschoolToken = tokenStorageService.getSmartschoolAccessToken(userId);
+        List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
+
+        return rosterUsers.stream()
+                .map(user -> toAuthUserDto(user, school))
+                .filter(Objects::nonNull)
+                .filter(dto -> blockedUserIds.contains(dto.id()))
+                .map(dto -> new AuthUserDto(
+                        dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                        dto.role(), dto.email(), dto.username(),
+                        dto.smartschoolId(), dto.platform(), dto.primaryGroupName(),
+                        dto.parentGroupNames(), true,
+                        dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                        dto.school()))
+                .toList();
     }
 
     public User save(User user) {

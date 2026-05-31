@@ -224,50 +224,6 @@ export class SystemReportComponent implements OnInit {
     return `${Math.max(0, Math.min(percentage, 100))}%`;
   }
 
-  getPieSliceData(): { d: string; color: string; label: string; percentage: number; count: number }[] {
-    const report = this.report;
-    if (!report) return [];
-
-    const total = report.activeLoans + report.returnedOnTimeLoans + report.returnedLateLoans;
-    if (total === 0) return [];
-
-    const slices = [
-      { percentage: (report.returnedOnTimeLoans / total) * 100, color: '#22c55e', label: 'Optijd', count: report.returnedOnTimeLoans },
-      { percentage: (report.returnedLateLoans / total) * 100, color: '#ef4444', label: 'Te laat', count: report.returnedLateLoans },
-      { percentage: (report.activeLoans / total) * 100, color: '#f59e0b', label: 'Nog actief', count: report.activeLoans },
-    ];
-
-    const cx = 120;
-    const cy = 90;
-    const r = 75;
-
-    let startAngleDeg = 0;
-    return slices.map(slice => {
-      const sweepAngleDeg = (slice.percentage / 100) * 360;
-      let d = '';
-
-      if (sweepAngleDeg > 0) {
-        if (sweepAngleDeg >= 359.999) {
-          d = `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx - 0.01} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy - r} Z`;
-        } else {
-          const startRad = ((startAngleDeg - 90) * Math.PI) / 180;
-          const endRad = ((startAngleDeg + sweepAngleDeg - 90) * Math.PI) / 180;
-
-          const x1 = cx + r * Math.cos(startRad);
-          const y1 = cy + r * Math.sin(startRad);
-          const x2 = cx + r * Math.cos(endRad);
-          const y2 = cy + r * Math.sin(endRad);
-
-          const largeArc = sweepAngleDeg > 180 ? 1 : 0;
-          d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
-        }
-      }
-
-      startAngleDeg += sweepAngleDeg;
-      return { ...slice, d };
-    });
-  }
-
   formatTick(value: number): string {
     return parseFloat(value.toFixed(1)).toString();
   }

@@ -206,7 +206,7 @@
                   [attr.y1]="getLoanVolumeTickY(tickIndex)"
                   [attr.y2]="getLoanVolumeTickY(tickIndex)" />
                 <text class="volume-axis-label" x="42" [attr.y]="getLoanVolumeTickY(tickIndex) + 4" text-anchor="end">
-                  {{ tick }}
+                  {{ formatTick(tick) }}
                 </text>
               }
 

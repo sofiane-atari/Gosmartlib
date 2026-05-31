@@ -65,6 +65,34 @@ lucide-angular.star-filled ::ng-deep polygon {
   margin: 4px 0 0;
 }
 
+.review-dashboard__blocked-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--main-color);
+  border-radius: 8px;
+  padding: 10px 20px;
+  background: var(--main-color);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--main-font);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(138, 30, 65, 0.25);
+  transition: all 0.15s;
+}
+
+.review-dashboard__blocked-btn:hover {
+  background: var(--main-color-hover);
+  box-shadow: 0 6px 20px rgba(138, 30, 65, 0.35);
+  transform: translateY(-1px);
+}
+
 /* =========================================================
    STAT CARDS
    ========================================================= */

@@ -1,228 +1,346 @@
-.login-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-  padding: 2.5rem 1.5rem;
-  background: linear-gradient(135deg, var(--main-light-color) 0%, var(--sec-light-color) 100%);
-  font-family: var(--main-font);
-  gap: 1.5rem;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      "Roboto",
+      sans-serif;
+  }
 }
 
+/* Modern Login Page Styles */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background blur effects */
+
+/* Header Styles */
 .login-header {
   text-align: center;
-  max-width: 680px;
+  margin-bottom: 2rem;
+  animation: slideDown 0.6s ease-out;
+  position: relative;
+  z-index: 10;
 }
 
 .login-eyebrow {
-  margin: 0 0 0.6rem 0;
-  color: var(--main-color);
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
+  font-size: 0.875rem;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--main-color);
+  margin-bottom: 0.5rem;
 }
 
 .login-header h1 {
-  color: var(--main-color);
-  font-size: clamp(2rem, 3.5vw, 2.7rem);
-  margin: 0 0 0.75rem 0;
-  font-weight: bold;
-  line-height: 1.15;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
 }
 
 .login-subtitle {
-  color: var(--main-color);
-  font-size: 1.05rem;
-  margin: 0;
-  opacity: 0.85;
-  line-height: 1.5;
+  font-size: 1.125rem;
+  color: #475569;
+  line-height: 1.6;
+  max-width: 28rem;
+  margin: 0 auto;
 }
 
+/* Main Content Card */
 .login-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  background: white;
-  border-radius: 16px;
-  padding: 2.25rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  max-width: 520px;
+  background: #ffffff;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   width: 100%;
-  border-top: 4px solid var(--main-color);
+  max-width: 28rem;
+  overflow: hidden;
+  animation: slideUp 0.6s ease-out;
+  position: relative;
+  z-index: 10;
+}
+
+.login-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--main-color);
+}
+
+/* Error Box Styles */
+.error-box {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  animation: slideDown 0.4s ease-out;
+}
+
+.error-box h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-box p {
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+}
+
+.contact-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.4);
 }
 
 /* Info Box */
 .info-box {
-  text-align: center;
-  width: 100%;
+  padding: 1.5rem 2rem;
+  background: #ffffff;
+  margin: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-box::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--main-color);
 }
 
 .info-box h2 {
-  color: var(--main-color);
-  font-size: 1.4rem;
-  margin: 0 0 0.6rem 0;
-  font-weight: bold;
-}
-
-.info-box p {
-  color: #555;
-  font-size: 0.96rem;
-  margin: 0;
-  line-height: 1.55;
-}
-
-/* Error Box */
-.error-box {
-  text-align: center;
-  width: 100%;
-  padding: 1.25rem;
-  background: #fff3f3;
-  border: 1px solid #fca5a5;
-  border-radius: 8px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
   margin-bottom: 0.5rem;
 }
 
-.error-box h2 {
-  color: #b91c1c;
-  font-size: 1.2rem;
-  margin: 0 0 0.5rem 0;
-  font-weight: 600;
-}
-
-.error-box p {
-  color: #7f1d1d;
-  font-size: 0.92rem;
-  margin: 0 0 0.75rem 0;
+.info-box p {
+  font-size: 0.9375rem;
+  color: #475569;
   line-height: 1.5;
 }
 
-.contact-link {
-  display: inline-block;
-  color: #fff;
-  background: var(--main-color);
-  padding: 0.5rem 1.25rem;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 82, 14, 0.2);
-  cursor: pointer;
+/* Smartschool Button */
+app-smartschool-button {
+  display: block;
+  padding: 0 2rem 2rem;
 }
 
-.contact-link:hover {
-  background: var(--main-color-hover);
-  box-shadow: 0 6px 20px rgba(138, 30, 65, 0.3);
-  transform: translateY(-2px);
-}
-
-.contact-link:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(255, 82, 14, 0.2);
-}
-
-.login-benefits {
-  margin: 1rem 0 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.55rem;
-  text-align: left;
-}
-
-.login-benefits li {
-  color: #444;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  padding-left: 1.4rem;
+app-smartschool-button button {
+  width: 100%;
   position: relative;
+  overflow: hidden;
+  background: var(--main-color);
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 1.25rem 2rem;
+  border-radius: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px -5px rgba(138, 30, 65, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
 }
 
-.login-benefits li::before {
-  content: '•';
-  color: var(--main-color);
+app-smartschool-button button::before {
+  content: "";
   position: absolute;
-  left: 0.45rem;
   top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  transition: left 0.7s ease;
+}
+
+app-smartschool-button button:hover {
+  background: var(--main-color-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 30px -10px rgba(138, 30, 65, 0.4);
+}
+
+app-smartschool-button button:hover::before {
+  left: 100%;
+}
+
+app-smartschool-button button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Loading Spinner */
 .loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  color: var(--main-color);
+  padding: 2rem;
+  text-align: center;
+  animation: fadeIn 0.5s ease-out;
+  background: #ffffff;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #ff520e;
-  border-top-color: transparent;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid rgba(138, 30, 65, 0.1);
+  border-top-color: var(--main-color);
+  border-right-color: var(--main-color-light);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
 }
 
 .loading-spinner p {
-  margin: 0;
-  font-size: 0.92rem;
+  font-size: 0.875rem;
+  color: #475569;
   font-weight: 500;
 }
 
 /* Footer Section */
 .login-footer {
+  margin-top: 2rem;
   text-align: center;
-  padding: 0.5rem 1rem 0;
-  max-width: 680px;
+  padding: 0 1rem;
+  animation: fadeIn 0.8s ease-out;
+  position: relative;
+  z-index: 10;
 }
 
 .login-footer p {
-  color: #666;
-  font-size: 0.83rem;
-  margin: 0;
-  line-height: 1.5;
+  background: #ffffff;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 0.8125rem;
+  color: #475569;
+  line-height: 1.6;
+  max-width: 26rem;
+  margin: 0 auto;
+  display: inline-block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.login-footer strong {
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */
-@media (max-width: 600px) {
-  .login-container {
-    justify-content: flex-start;
-    padding: 1.25rem;
-    gap: 1.25rem;
-  }
-
-  .login-eyebrow {
-    font-size: 0.82rem;
+@media (max-width: 640px) {
+  .login-header h1 {
+    font-size: 1.875rem;
   }
 
   .login-subtitle {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
 
   .login-content {
-    padding: 1.75rem 1.25rem;
-    gap: 1.5rem;
-    border-radius: 14px;
+    margin: 0 0.5rem;
+    border-radius: 1rem;
   }
 
-  .info-box h2 {
-    font-size: 1.18rem;
+  .info-box {
+    margin: 1rem;
+    padding: 1rem 1.25rem;
   }
 
-  .login-benefits {
-    gap: 0.5rem;
+  app-smartschool-button {
+    padding: 0 1rem 1.5rem;
   }
+}
 
-  .login-benefits li {
-    font-size: 0.9rem;
+/* Hover effects for touch devices */
+@media (hover: none) {
+  .contact-link:hover,
+  app-smartschool-button button:hover {
+    transform: none;
   }
 }

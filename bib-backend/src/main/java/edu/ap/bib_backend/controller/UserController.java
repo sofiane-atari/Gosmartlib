@@ -70,6 +70,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsersBySchoolId(authentication, schoolId));
     }
 
+    @GetMapping("/review-blocked")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    public ResponseEntity<List<AuthUserDto>> getReviewBlockedUsers(Authentication authentication) {
+        return ResponseEntity.ok(userService.getReviewBlockedUsers(authentication));
+    }
+
     @GetMapping("/{userId}/notification-status")
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<UserNotificationStatusDto> getNotificationStatus(@PathVariable String userId) {
