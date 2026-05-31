@@ -19,6 +19,8 @@ import edu.ap.bib_backend.dto.TeacherStatsDTO;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.PaginatedMeta;
 import edu.ap.bib_backend.dto.SchoolSummaryDto;
+import edu.ap.bib_backend.dto.oneroster.OneRosterClassDTO;
+import edu.ap.bib_backend.dto.oneroster.OneRosterEnrollmentDTO;
 import edu.ap.bib_backend.exception.ResourceNotFoundException;
 import edu.ap.bib_backend.jpa.entity.RoleEntity;
 import edu.ap.bib_backend.jpa.enums.Role;
@@ -75,10 +77,15 @@ public class UserService {
         List<Map<String, Object>> rosterUsers = oneRosterClient.fetchUsersWithBearer(schoolCode, smartschoolToken);
         Map<String, String> localGroupNamesByUserId = getLocalGroupNamesByUserId(school.getId());
 
+        Map<String, List<String>> enrollmentGroupsByUserId = options.isWithGroups()
+                ? buildEnrollmentGroups(schoolCode, smartschoolToken, rosterUsers)
+                : Map.of();
+
         return rosterUsers.stream()
                 .map(user -> toAuthUserDto(user, school))
                 .filter(Objects::nonNull)
                 .map(dto -> withLocalGroupName(dto, localGroupNamesByUserId.get(dto.id())))
+                .map(dto -> withEnrollmentGroups(dto, enrollmentGroupsByUserId.get(dto.id())))
                 .filter(dto -> matchesOptions(dto, options))
                 .toList();
     }
@@ -420,6 +427,57 @@ public class UserService {
         return userRepository.findBySchoolIdWithGroups(schoolId).stream()
                 .filter(user -> user.getGroups() != null && !user.getGroups().isEmpty())
                 .collect(Collectors.toMap(User::getId, user -> user.getGroups().iterator().next().getName()));
+    }
+
+    private Map<String, List<String>> buildEnrollmentGroups(
+            String schoolCode, String token, List<Map<String, Object>> rosterUsers) {
+        Map<String, String> sourcedIdToLegacyId = rosterUsers.stream()
+                .filter(u -> readMetadataString(u, "smsc.legacyIdentifier") != null)
+                .collect(Collectors.toMap(
+                        u -> firstNonBlank(u, "sourcedId"),
+                        u -> readMetadataString(u, "smsc.legacyIdentifier"),
+                        (a, b) -> a));
+
+        List<OneRosterEnrollmentDTO> enrollments = oneRosterClient.fetchEnrollmentsWithBearer(schoolCode, token);
+        List<OneRosterClassDTO> classes = oneRosterClient.fetchClassesWithBearer(schoolCode, token);
+
+        Map<String, String> classNames = classes.stream()
+                .filter(c -> c.sourcedId() != null && c.title() != null)
+                .collect(Collectors.toMap(
+                        OneRosterClassDTO::sourcedId,
+                        OneRosterClassDTO::title,
+                        (a, b) -> a));
+
+        return enrollments.stream()
+                .filter(e -> e.userSourcedId() != null && e.classSourcedId() != null)
+                .collect(Collectors.groupingBy(
+                        e -> sourcedIdToLegacyId.getOrDefault(e.userSourcedId(), e.userSourcedId()),
+                        Collectors.mapping(
+                                e -> classNames.getOrDefault(e.classSourcedId(), e.classSourcedId()),
+                                Collectors.toList())));
+    }
+
+    private AuthUserDto withEnrollmentGroups(AuthUserDto dto, List<String> groupNames) {
+        if (groupNames == null || groupNames.isEmpty()) {
+            return dto;
+        }
+
+        String primary = StringUtils.hasText(dto.primaryGroupName())
+                ? dto.primaryGroupName()
+                : groupNames.get(0);
+        List<String> parents = (dto.parentGroupNames() != null && !dto.parentGroupNames().isEmpty())
+                ? dto.parentGroupNames()
+                : (groupNames.size() > 1 ? groupNames.subList(1, groupNames.size()) : List.of());
+
+        return new AuthUserDto(
+                dto.id(), dto.firstName(), dto.lastName(), dto.fullName(),
+                dto.role(), dto.email(), dto.username(),
+                dto.smartschoolId(), dto.platform(),
+                primary,
+                parents,
+                dto.reviewBlocked(),
+                dto.schoolId(), dto.schoolName(), dto.campusId(), dto.campusName(),
+                dto.school());
     }
 
     private AuthUserDto withLocalGroupName(AuthUserDto dto, String localGroupName) {

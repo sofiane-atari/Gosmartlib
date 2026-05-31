@@ -5,9 +5,12 @@ import edu.ap.bib_backend.dto.report.PopularLoanedBookDTO;
 import edu.ap.bib_backend.dto.report.SchoolReportClassActivityDTO;
 import edu.ap.bib_backend.dto.report.SchoolReportDTO;
 import edu.ap.bib_backend.jpa.entity.School;
+import edu.ap.bib_backend.jpa.repository.GroupRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.projection.report.ClassLoanActivityProjection;
+import edu.ap.bib_backend.projection.report.ClassStudentCountProjection;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +19,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -26,6 +33,8 @@ public class SchoolReportService {
     private final ReportAccessService reportAccessService;
     private final SchoolRepository schoolRepository;
     private final LoanRepository loanRepository;
+    private final GroupRepository groupRepository;
+    private final UserRepository userRepository;
     private final ReportStatisticsQueryService statisticsQueryService;
     private final CurrentUserService currentUserService;
 
@@ -33,11 +42,15 @@ public class SchoolReportService {
             ReportAccessService reportAccessService,
             SchoolRepository schoolRepository,
             LoanRepository loanRepository,
+            GroupRepository groupRepository,
+            UserRepository userRepository,
             ReportStatisticsQueryService statisticsQueryService,
             CurrentUserService currentUserService) {
         this.reportAccessService = reportAccessService;
         this.schoolRepository = schoolRepository;
         this.loanRepository = loanRepository;
+        this.groupRepository = groupRepository;
+        this.userRepository = userRepository;
         this.statisticsQueryService = statisticsQueryService;
         this.currentUserService = currentUserService;
     }
@@ -79,10 +92,63 @@ public class SchoolReportService {
                         period.getLoanCount() == null ? 0 : period.getLoanCount()))
                 .toList();
 
+        List<String> allClassNames = groupRepository.findDistinctNamesBySchoolId(schoolId);
+
+        Map<String, Long> studentCountsByClass = userRepository.findStudentCountsByClassForSchool(schoolId)
+                .stream()
+                .collect(Collectors.toMap(
+                        ClassStudentCountProjection::getClassName,
+                        p -> p.getStudentCount() == null ? 0L : p.getStudentCount(),
+                        (a, b) -> a));
+
         List<ClassLoanActivityProjection> activityRows = loanRepository.findClassLoanActivityForSchool(schoolId, campusId);
-        List<SchoolReportClassActivityDTO> classActivity = activityRows.stream()
-                .map(this::toClassActivity)
-                .toList();
+        Map<String, ClassLoanActivityProjection> loanActivityByClass = activityRows.stream()
+                .collect(Collectors.toMap(
+                        ClassLoanActivityProjection::getClassTitle,
+                        p -> p,
+                        (a, b) -> a));
+
+        List<SchoolReportClassActivityDTO> classActivity = new ArrayList<>();
+
+        for (String className : allClassNames) {
+            long studentCount = studentCountsByClass.getOrDefault(className, 0L);
+            ClassLoanActivityProjection loanActivity = loanActivityByClass.remove(className);
+
+            if (loanActivity != null) {
+                long totalLoans = loanActivity.getTotalLoans() == null ? 0 : loanActivity.getTotalLoans();
+                long activeLoans = loanActivity.getActiveLoans() == null ? 0 : loanActivity.getActiveLoans();
+                classActivity.add(new SchoolReportClassActivityDTO(
+                        className,
+                        studentCount,
+                        totalLoans,
+                        activeLoans,
+                        studentCount == 0 ? 0 : round((double) totalLoans / studentCount)));
+            } else {
+                classActivity.add(new SchoolReportClassActivityDTO(
+                        className,
+                        studentCount,
+                        0,
+                        0,
+                        0));
+            }
+        }
+
+        for (var entry : loanActivityByClass.entrySet()) {
+            ClassLoanActivityProjection row = entry.getValue();
+            long studentCount = row.getStudentCount() == null ? 0 : row.getStudentCount();
+            long totalLoans = row.getTotalLoans() == null ? 0 : row.getTotalLoans();
+            long activeLoans = row.getActiveLoans() == null ? 0 : row.getActiveLoans();
+            classActivity.add(new SchoolReportClassActivityDTO(
+                    entry.getKey(),
+                    studentCount,
+                    totalLoans,
+                    activeLoans,
+                    studentCount == 0 ? 0 : round((double) totalLoans / studentCount)));
+        }
+
+        classActivity.sort(Comparator
+                .comparingLong(SchoolReportClassActivityDTO::totalLoans).reversed()
+                .thenComparing(SchoolReportClassActivityDTO::classTitle));
 
         var popularGenres = statisticsQueryService.findPopularGenresForSchool(
                 schoolId,
@@ -112,7 +178,7 @@ public class SchoolReportService {
                 List.of(),
                 totalLoans,
                 activeLoans,
-                (int) loanRepository.countClassesForSchool(schoolId),
+                allClassNames.size(),
                 totalStudentCount,
                 totalStudentCount == 0 ? 0 : round((double) totalLoans / totalStudentCount),
                 popularGenres,
@@ -124,19 +190,6 @@ public class SchoolReportService {
                 lateReturns,
                 onTimePct,
                 latePct);
-    }
-
-    private SchoolReportClassActivityDTO toClassActivity(ClassLoanActivityProjection row) {
-        long studentCount = row.getStudentCount() == null ? 0 : row.getStudentCount();
-        long totalLoans = row.getTotalLoans() == null ? 0 : row.getTotalLoans();
-        long activeLoans = row.getActiveLoans() == null ? 0 : row.getActiveLoans();
-
-        return new SchoolReportClassActivityDTO(
-                row.getClassTitle(),
-                studentCount,
-                totalLoans,
-                activeLoans,
-                studentCount == 0 ? 0 : round((double) totalLoans / studentCount));
     }
 
     private double round(double value) {
