@@ -4,6 +4,7 @@ import { BadgeCollectionComponent } from '../../components/badge-collection/badg
 import { GamificationTabsComponent } from '../../components/gamification-tabs/gamification-tabs.component';
 import { GamificationBadgeFilters } from '../../../../services/gamification/gamification.service';
 import { GamificationStoreService } from '../../../../services/gamification/gamification-store.service';
+import { fadeInUpAnimation } from '../../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-badge-page',
@@ -11,6 +12,7 @@ import { GamificationStoreService } from '../../../../services/gamification/gami
   imports: [BadgeCollectionComponent, GamificationTabsComponent],
   templateUrl: './badge-page.component.html',
   styleUrl: './badge-page.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class BadgePageComponent implements OnInit {
   protected readonly gamificationStore = inject(GamificationStoreService);

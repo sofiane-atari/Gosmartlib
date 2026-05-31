@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
 import { ToastService } from '../../../services/toast/toast.service';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-return-loan',
@@ -22,6 +23,7 @@ import { ToastService } from '../../../services/toast/toast.service';
   imports: [CommonModule, FormsModule, LucideAngularModule, PagingComponent, SearchBarComponent],
   templateUrl: './return-loan.component.html',
   styleUrl: './return-loan.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class ReturnLoanComponent implements OnInit {
   private readonly loansService = inject(LoansService);

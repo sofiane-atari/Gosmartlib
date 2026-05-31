@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   ArrowRight,
 } from 'lucide-angular';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 import { LoansService } from '../../../services/loan/loans.service';
 import { Loan } from '../../../model/loan/loan.model';
 import {
@@ -40,6 +41,7 @@ type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
 ],
   templateUrl: './book-management.component.html',
   styleUrl: './book-management.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class BookManagementComponent implements OnInit {
   private readonly loansService = inject(LoansService);

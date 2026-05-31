@@ -14,6 +14,7 @@ import { Book } from '../../../model/book/book.model';
 import { Genre } from '../../../model/genre/genre.model';
 import { ReadingLevel } from '../../../model/readingLevel.model';
 import { Tag } from '../../../model/tag/tag.model';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-book-edit-page',
@@ -21,6 +22,8 @@ import { Tag } from '../../../model/tag/tag.model';
   imports: [ReactiveFormsModule, LucideAngularModule],
   templateUrl: './book-edit-page.component.html',
   styleUrl: './book-edit-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [fadeInUpAnimation],
 })
 export class BookEditPageComponent {
   protected readonly infoIcon = Info;

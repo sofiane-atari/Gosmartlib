@@ -12,6 +12,7 @@ import { ReadingLevel } from '../../../model/readingLevel.model';
 import { Book } from '../../../model/book/book.model';
 import { Campus } from '../../../model/campus.model';
 import { CampusService } from '../../../services/campus/campus.service';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-add-book-page',
@@ -19,6 +20,7 @@ import { CampusService } from '../../../services/campus/campus.service';
   imports: [FormsModule, AddBookISBNComponent, AddBookManualComponent, AddBookBulkComponent],
   templateUrl: './add-book-page.component.html',
   styleUrl: './add-book-page.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class AddBookPageComponent {
   private readonly campusStorageKey = 'addBookSelectedCampusId';

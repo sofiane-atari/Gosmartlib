@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-angular';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 import { SystemReport, SystemSchoolActivity } from '../../../model/system-report.model';
 import { SystemReportService } from '../../../services/system-report/system-report.service';
 import { ToastService } from '../../../services/toast/toast.service';
@@ -32,6 +33,7 @@ import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
     StatCardComponent
 ],
   styleUrls: ['./system-report.component.css'],
+  animations: [fadeInUpAnimation],
 })
 export class SystemReportComponent implements OnInit {
   report: SystemReport | null = null;

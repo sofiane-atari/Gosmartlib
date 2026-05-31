@@ -10,6 +10,7 @@ import { ToastService } from '../../../services/toast/toast.service';
 import { LucideAngularModule, Trash2 } from 'lucide-angular';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../services/authorization/auth.service';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 import { ReadingList } from '../../../model/readingList.model';
 
 @Component({
@@ -17,7 +18,8 @@ import { ReadingList } from '../../../model/readingList.model';
     standalone: true,
     imports: [CommonModule, RouterLink, LucideAngularModule],
     templateUrl: './reading-list-detail.component.html',
-    styleUrl: './reading-list-detail.component.css'
+    styleUrl: './reading-list-detail.component.css',
+    animations: [fadeInUpAnimation]
 })
 export class ReadingListDetailComponent implements OnInit {
 

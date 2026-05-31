@@ -3,13 +3,15 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Users, BarChart3 } from 'lucide-angular';
 import { RoleService } from '../../../services/role-service/role.service';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-report-selector',
   standalone: true,
   templateUrl: './report-selector.component.html',
   styleUrls: ['./report-selector.component.css'],
-  imports: [CommonModule, LucideAngularModule, RouterModule]
+  imports: [CommonModule, LucideAngularModule, RouterModule],
+  animations: [fadeInUpAnimation],
 })
 export class ReportSelectorComponent {
   readonly icons = {

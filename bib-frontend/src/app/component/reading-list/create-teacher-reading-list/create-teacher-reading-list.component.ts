@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
 import { CreateReadingListDTO, ReadingListTargetType, TeacherAudienceOptions } from '../../../model/readingList.model';
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 interface ScopeOption {
   value: ReadingListTargetType;
@@ -19,7 +20,8 @@ interface ScopeOption {
   styleUrls: [
     '../create-reading-list/create-reading-list.component.css',
     './create-teacher-reading-list.component.css'
-  ]
+  ],
+  animations: [fadeInUpAnimation],
 })
 export class CreateTeacherReadingListComponent implements OnInit {
   listName = '';

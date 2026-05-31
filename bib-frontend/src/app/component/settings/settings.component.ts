@@ -8,6 +8,7 @@ import { AuthService } from '../../services/authorization/auth.service';
 import { SchoolService } from '../../services/school/school.service';
 import { DevSeedService } from '../../services/dev-seed/dev-seed.service';
 import { DevFeatureWrapperComponent } from '../shared/dev-feature-wrapper/dev-feature-wrapper.component';
+import { fadeInUpAnimation } from '../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-settings',
@@ -15,6 +16,7 @@ import { DevFeatureWrapperComponent } from '../shared/dev-feature-wrapper/dev-fe
   imports: [CommonModule, DevFeatureWrapperComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
+  animations: [fadeInUpAnimation],
 })
 export class SettingsComponent implements OnInit {
   private readonly syncService = inject(OneRosterSyncService);

@@ -3,13 +3,15 @@ import {Router, RouterLink} from '@angular/router';
 import { ReadingListService } from '../../../services/reading-list/reading-list.service';
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-create-reading-list',
   imports: [CommonModule, FormsModule, RouterLink],
   standalone: true,
   templateUrl: './create-reading-list.component.html',
-  styleUrls: ['./create-reading-list.component.css']
+  styleUrls: ['./create-reading-list.component.css'],
+  animations: [fadeInUpAnimation],
 })
 export class CreateReadingListComponent {
   listName = '';

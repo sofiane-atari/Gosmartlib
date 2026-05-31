@@ -24,6 +24,7 @@ import {
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { ToastService } from '../../../services/toast/toast.service';
 import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
+import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 
 @Component({
   selector: 'app-teacher-class-report',
@@ -38,6 +39,7 @@ import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
     StatCardComponent
 ],
   styleUrls: ['./class-report.component.css'],
+  animations: [fadeInUpAnimation],
 })
 export class ClassReportComponent implements OnInit {
   classOptions: ReportClassOption[] = [];
