@@ -38,13 +38,13 @@ import edu.ap.bib_backend.jpa.repository.GenreRepository;
 import edu.ap.bib_backend.jpa.repository.ReadingLevelRepository;
 import edu.ap.bib_backend.jpa.repository.TagRepository;
 import edu.ap.bib_backend.jpa.repository.BookLoanRepository;
-import edu.ap.bib_backend.jpa.repository.review.ReviewRepository;
 import edu.ap.bib_backend.jpa.specification.BookSpecification;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
 import edu.ap.bib_backend.mapper.BookMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.util.IsbnUtils;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -55,12 +55,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class BookService {
 
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
     private final GenreRepository genreRepository;
-    private final ReviewRepository reviewRepository;
     private final ReadingListRepository readingListRepository;
     private final BookLoanRepository bookLoanRepository;
     private final ReadingLevelRepository readingLevelRepository;
@@ -71,41 +71,11 @@ public class BookService {
     private final OpenLibraryClient openLibraryClient;
     private final CurrentUserService currentUserService;
 
-    public BookService(
-            BookRepository bookRepository,
-            BookCopyRepository bookCopyRepository,
-            GenreRepository genreRepository,
-            ReviewRepository reviewRepository,
-            BookLoanRepository bookLoanRepository,
-            ReadingLevelRepository readingLevelRepository,
-            CampusRepository campusRepository,
-            TagRepository tagRepository,
-            BookMapper bookMapper,
-            BookCandidateMapper bookCandidateMapper,
-            OpenLibraryClient openLibraryClient,
-            CurrentUserService currentUserService,
-            ReadingListRepository readingListRepository
-    ) {
-        this.bookRepository = bookRepository;
-        this.bookCopyRepository = bookCopyRepository;
-        this.genreRepository = genreRepository;
-        this.reviewRepository = reviewRepository;
-        this.bookLoanRepository = bookLoanRepository;
-        this.readingLevelRepository = readingLevelRepository;
-        this.campusRepository = campusRepository;
-        this.tagRepository = tagRepository;
-        this.bookMapper = bookMapper;
-        this.bookCandidateMapper = bookCandidateMapper;
-        this.openLibraryClient = openLibraryClient;
-        this.currentUserService = currentUserService;
-        this.readingListRepository = readingListRepository;
-    }
-
     @Transactional
     public List<BookDTO> getAllBooks(Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
 
-        Specification<Book> spec = Specification.where(BookSpecification.belongsToSchool(school.getId()));
+        Specification<Book> spec = BookSpecification.belongsToSchool(school.getId());
 
         if (!currentUserService.isModerator(authentication)) {
             spec = spec.and(BookSpecification.hasNonLostCopyInSchool(school.getId()));

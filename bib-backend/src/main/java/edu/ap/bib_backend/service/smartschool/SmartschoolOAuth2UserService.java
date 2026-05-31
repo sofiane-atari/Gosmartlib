@@ -8,8 +8,6 @@ import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.GroupService;
-import edu.ap.bib_backend.service.RoleService;
-import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.user.UserService;
 
 import java.util.Collections;
@@ -30,8 +28,11 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import lombok.RequiredArgsConstructor;
+
 
 @Service
+@RequiredArgsConstructor
 public class SmartschoolOAuth2UserService
         implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
@@ -40,32 +41,12 @@ public class SmartschoolOAuth2UserService
     public static final String CLAIM_SCHOOL_CODE = "schoolCode";
 
     private final UserService userService;
-    private final RoleService roleService;
     private final SmartschoolAudienceResolverService audienceResolverService;
     private final GroupService groupService;
     private final SmartschoolProfileService smartschoolProfileService;
     private final SchoolRepository schoolRepository;
-    private final OneRosterClient oneRosterClient;
 
     private final RestTemplate restTemplate = new RestTemplate();
-
-    public SmartschoolOAuth2UserService(
-            UserService userService,
-            RoleService roleService,
-            SmartschoolAudienceResolverService audienceResolverService,
-            GroupService groupService,
-            SmartschoolProfileService smartschoolProfileService,
-            SchoolRepository schoolRepository,
-            OneRosterClient oneRosterClient
-    ) {
-        this.userService = userService;
-        this.roleService = roleService;
-        this.audienceResolverService = audienceResolverService;
-        this.groupService = groupService;
-        this.smartschoolProfileService = smartschoolProfileService;
-        this.schoolRepository = schoolRepository;
-        this.oneRosterClient = oneRosterClient;
-    }
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -94,7 +75,6 @@ public class SmartschoolOAuth2UserService
         );
 
         String userId = requireStringAttribute(attributes, "userID");
-        String basisrol = requireStringAttribute(attributes, "basisrol");
 
         String classCode = audienceResolverService.resolveClassCode(attributes);
         if (SmartschoolAudienceResolverService.FALLBACK_CLASS_CODE.equalsIgnoreCase(classCode)) {

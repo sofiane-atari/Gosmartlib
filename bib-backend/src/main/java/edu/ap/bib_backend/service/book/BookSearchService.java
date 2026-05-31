@@ -125,8 +125,7 @@ public class BookSearchService {
         boolean canSeeDidacticBooks = currentUserService.canSeeDidacticBooks(authentication);
         boolean isModerator = currentUserService.isModerator(authentication);
 
-        Specification<Book> specification = Specification
-                .where(BookSpecification.belongsToSchool(resolvedSchoolId))
+        Specification<Book> specification = BookSpecification.belongsToSchool(resolvedSchoolId)
                 .and(BookSpecification.withFilters(
                         normalizedSearchTerm,
                         minPages,

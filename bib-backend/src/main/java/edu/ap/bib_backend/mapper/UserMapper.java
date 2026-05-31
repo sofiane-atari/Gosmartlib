@@ -30,6 +30,9 @@ public interface UserMapper {
     @Mapping(target = "reviewBlocked", source = "reviewBlocked")
     @Mapping(target = "schoolId", source = "school.id")
     @Mapping(target = "schoolName", source = "school.name")
+    @Mapping(target = "username", ignore = true)
+    @Mapping(target = "campusId", ignore = true)
+    @Mapping(target = "campusName", ignore = true)
     @Mapping(target = "school", expression = "java(toSchoolSummaryDto(user.getSchool()))")
     AuthUserDto toDto(User user);
 

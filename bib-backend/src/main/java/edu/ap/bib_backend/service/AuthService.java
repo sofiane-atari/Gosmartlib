@@ -101,7 +101,7 @@ public class AuthService {
                 ? dbUser.getSchool().getName()
                 : null;
 
-SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
+        SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 ? dbUser.getSchool().getSchoolSummaryDto()
                 : null;
 
@@ -138,8 +138,7 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                         schoolName,
                         null,
                         null,
-                        schoolSummary
-                );
+                        schoolSummary);
             } catch (Exception ignored) {
                 // Fallback to JWT claims below
             }
@@ -202,8 +201,7 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                     schoolName,
                     null,
                     null,
-                    schoolSummary
-            );
+                    schoolSummary);
         }
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             String name = oauthToken.getPrincipal().getAttribute("name");
@@ -225,8 +223,7 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                     schoolName,
                     null,
                     null,
-                    schoolSummary
-            );
+                    schoolSummary);
         }
 
         return new AuthUserDto(
@@ -246,8 +243,7 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 schoolName,
                 null,
                 null,
-                schoolSummary
-        );
+                schoolSummary);
     }
 
     /**
@@ -273,23 +269,28 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 getAttributeOrDefault(oauthToken, SmartschoolOAuth2UserService.CLAIM_SCHOOL_CODE, "ALLEMAAL"));
 
         Object name = oauthToken.getPrincipal().getAttribute("name");
-        if (name instanceof String n && !n.isBlank()) claims.put("name", n);
+        if (name instanceof String n && !n.isBlank())
+            claims.put("name", n);
 
         Object surname = oauthToken.getPrincipal().getAttribute("surname");
-        if (surname instanceof String s && !s.isBlank()) claims.put("surname", s);
+        if (surname instanceof String s && !s.isBlank())
+            claims.put("surname", s);
 
         Object email = oauthToken.getPrincipal().getAttribute("email");
-        if (email instanceof String e && !e.isBlank()) claims.put("email", e);
+        if (email instanceof String e && !e.isBlank())
+            claims.put("email", e);
 
         Object platform = oauthToken.getPrincipal().getAttribute("platform");
-        if (platform instanceof String p && !p.isBlank()) claims.put("platform", p);
+        if (platform instanceof String p && !p.isBlank())
+            claims.put("platform", p);
 
         Object primaryGroupName = oauthToken.getPrincipal().getAttribute("primaryGroupName");
-        if (primaryGroupName instanceof String g && !g.isBlank()) claims.put("primaryGroupName", g);
+        if (primaryGroupName instanceof String g && !g.isBlank())
+            claims.put("primaryGroupName", g);
 
-        @SuppressWarnings("unchecked")
         Object parentGroupNames = oauthToken.getPrincipal().getAttribute("parentGroupNames");
-        if (parentGroupNames instanceof List<?> list && !list.isEmpty()) claims.put("parentGroupNames", list);
+        if (parentGroupNames instanceof List<?> list && !list.isEmpty())
+            claims.put("parentGroupNames", list);
 
         String jwt = jwtService.generateToken(userId, roleStr, claims);
 
@@ -297,13 +298,11 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 userId,
                 jwt,
                 roleStr,
-                jwtService.extractExpirationInstant(jwt)
-        );
+                jwtService.extractExpirationInstant(jwt));
 
         OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
                 oauthToken.getAuthorizedClientRegistrationId(),
-                userId
-        );
+                userId);
 
         if (client != null && client.getAccessToken() != null) {
             String smartschoolAccessToken = client.getAccessToken().getTokenValue();
@@ -315,8 +314,7 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
             tokenStorageService.storeSmartschoolTokens(
                     userId,
                     smartschoolAccessToken,
-                    smartschoolRefreshToken
-            );
+                    smartschoolRefreshToken);
         }
 
         return jwt;
@@ -331,8 +329,9 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
      *
      * @param authorities granted authorities to inspect
      * @return extracted application role
-     * @throws IllegalStateException if no ROLE_ authority is present
-     * @throws IllegalArgumentException if the ROLE_ authority does not map to a known role
+     * @throws IllegalStateException    if no ROLE_ authority is present
+     * @throws IllegalArgumentException if the ROLE_ authority does not map to a
+     *                                  known role
      */
     private Role extractRole(Collection<? extends GrantedAuthority> authorities) {
         return authorities.stream()
@@ -347,8 +346,8 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
     /**
      * Reads an OAuth attribute or returns the provided fallback value.
      *
-     * @param token OAuth token containing principal attributes
-     * @param attr attribute name
+     * @param token        OAuth token containing principal attributes
+     * @param attr         attribute name
      * @param defaultValue fallback value
      * @return attribute value or fallback value
      */
@@ -372,7 +371,8 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
      *
      * @param oldToken current JWT
      * @return refreshed JWT and expiration
-     * @throws ResponseStatusException if the token is invalid, inactive, or cannot refresh Smartschool access
+     * @throws ResponseStatusException if the token is invalid, inactive, or cannot
+     *                                 refresh Smartschool access
      */
     public JwtTokenDTO refreshJwtToken(String oldToken) {
         if (!jwtService.isValid(oldToken)) {
@@ -400,21 +400,18 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                 userId,
                 newToken,
                 role,
-                jwtService.extractExpirationInstant(newToken)
-        );
+                jwtService.extractExpirationInstant(newToken));
 
         tokenStorageService.storeSmartschoolTokens(
                 userId,
                 refreshResult.accessToken(),
                 refreshResult.refreshToken() != null
                         ? refreshResult.refreshToken()
-                        : smartschoolRefreshToken
-        );
+                        : smartschoolRefreshToken);
 
         return new JwtTokenDTO(
                 newToken,
-                jwtService.extractExpirationInstant(newToken)
-        );
+                jwtService.extractExpirationInstant(newToken));
     }
 
     /**
@@ -422,8 +419,10 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
      *
      * @param refreshToken Smartschool refresh token
      * @return Smartschool refresh result
-     * @throws ResponseStatusException if Smartschool rejects the refresh or omits an access token
+     * @throws ResponseStatusException if Smartschool rejects the refresh or omits
+     *                                 an access token
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private SmartschoolRefreshResult refreshSmartschoolAccessToken(String refreshToken) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -445,14 +444,12 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
                     smartschoolTokenUri,
                     HttpMethod.POST,
                     request,
-                    Map.class
-            );
+                    Map.class);
         } catch (HttpStatusCodeException ex) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "Smartschool refresh failed",
-                    ex
-            );
+                    ex);
         }
 
         Map<String, Object> responseBody = response.getBody();
@@ -470,7 +467,6 @@ SchoolSummaryDto schoolSummary = dbUser != null && dbUser.getSchool() != null
 
         return new SmartschoolRefreshResult(
                 accessTokenString,
-                newRefreshToken instanceof String refreshTokenString ? refreshTokenString : null
-        );
+                newRefreshToken instanceof String refreshTokenString ? refreshTokenString : null);
     }
 }

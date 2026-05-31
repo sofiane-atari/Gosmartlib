@@ -22,6 +22,8 @@ public interface LoanMapper {
     @Mapping(target = "returnedDate", ignore = true)
     @Mapping(target = "campus", ignore = true)
     @Mapping(target = "extensions", ignore = true)
+    @Mapping(target = "librarianId", ignore = true)
+    @Mapping(target = "librarianNotifiedAt", ignore = true)
     Loan toEntity(LoanDTO dto);
 
     @Mapping(target = "userId", source = "user.id")
@@ -33,6 +35,7 @@ public interface LoanMapper {
     @Mapping(target = "returnedDate", expression = "java(loan.getReturnedDate() != null ? loan.getReturnedDate().toString() : null)")
     @Mapping(target = "status", expression = "java(loan.getStatus())")
     @Mapping(target = "extensionCount", expression = "java(loan.getExtensions() != null ? loan.getExtensions().size() : 0)")
+    @Mapping(target = "userDisplayName", expression = "java(loan.getUser() != null ? loan.getUser().getId() : null)")
     LoanDTO toDto(Loan loan);
 
     List<LoanDTO> toDtoList(List<Loan> loans);
