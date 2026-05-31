@@ -5,7 +5,9 @@ import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.enums.BookCondition;
 import edu.ap.bib_backend.jpa.repository.BookCopyRepository;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.AdminOverrideService;
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import edu.ap.bib_backend.service.BookCopyService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.TokenStorageService;
@@ -53,6 +55,12 @@ class BookCopyControllerTest {
     @MockitoBean
     private TokenStorageService tokenStorageService;
 
+    @MockitoBean
+    private ActiveSchoolContext activeSchoolContext;
+
+    @MockitoBean
+    private SchoolRepository schoolRepository;
+
     @Test
     void Given_AdminConditionUpdate_When_UpdateCondition_Then_ReturnsUpdatedCondition() throws Exception {
         School school = new School();
@@ -64,6 +72,7 @@ class BookCopyControllerTest {
 
         BookCopy copy = new BookCopy();
         copy.setId(10L);
+        copy.setPublicIdentifier("2800000000100");
         copy.setCampus(campus);
 
         when(bookCopyRepository.findById(10L)).thenReturn(Optional.of(copy));
@@ -79,6 +88,7 @@ class BookCopyControllerTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookCopyId").value(10))
+                .andExpect(jsonPath("$.identifier").value("2800000000100"))
                 .andExpect(jsonPath("$.condition").value(BookCondition.GOOD_CONDITION.name()));
     }
 }

@@ -60,6 +60,37 @@
     <div class="table-card__header">
       <div>
         <h2>Leningoverzicht</h2>
+        <p>Zoek en filter op gebruiker, boek, ISBN of exemplaarcode.</p>
+      </div>
+    </div>
+
+    <div class="loan-overview-controls">
+      <app-search-bar
+        placeholder="Zoek op gebruiker, boek, ISBN of exemplaarcode..."
+        (searchChange)="onSearchChange($event)"
+      />
+
+      <div class="loan-filter-group">
+        <label>
+          Status
+          <select [value]="statusFilter()" (change)="onStatusFilterChange($event)">
+            @for (option of statusFilterOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Verlenging
+          <select
+            [value]="extendableFilter() === true ? 'EXTENDABLE' : extendableFilter() === false ? 'NOT_EXTENDABLE' : 'ALL'"
+            (change)="onExtendableFilterChange($event)"
+          >
+            @for (option of extendableFilterOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
       </div>
     </div>
 
@@ -237,6 +268,10 @@
                           </small>
 
                           <small> Status: {{ getLoanStatus(loan) }} </small>
+
+                          @for (copyLabel of getLoanCopyLabels(loan); track copyLabel) {
+                            <small>{{ copyLabel }}</small>
+                          }
 
                           @if (canExtendLoan(loan)) {
                             <button

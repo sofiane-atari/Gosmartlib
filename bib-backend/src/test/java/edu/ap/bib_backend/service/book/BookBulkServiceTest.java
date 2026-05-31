@@ -45,6 +45,7 @@ class BookBulkServiceTest {
     private ReadingLevelRepository rlr;
     private CampusRepository campusRepository;
     private CurrentUserService currentUserService;
+    private BookCopyIdentifierService bookCopyIdentifierService;
     private Authentication authentication;
     private School school;
     private Campus campus;
@@ -57,7 +58,8 @@ class BookBulkServiceTest {
         rlr = mock(ReadingLevelRepository.class);
         campusRepository = mock(CampusRepository.class);
         currentUserService = mock(CurrentUserService.class);
-        service = new BookBulkService(br, bcr, gr, rlr, campusRepository, currentUserService);
+        bookCopyIdentifierService = mock(BookCopyIdentifierService.class);
+        service = new BookBulkService(br, bcr, gr, rlr, campusRepository, currentUserService, bookCopyIdentifierService);
 
         authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("user-1");

@@ -12,7 +12,13 @@ export interface LoanBook {
   isbn?: string;
   imageUrl?: string;
   bookCopyIds?: number[];
+  copies?: LoanBookCopy[];
   copiesCount?: number;
+}
+
+export interface LoanBookCopy {
+  id: number;
+  identifier?: string | null;
 }
 
 export interface Loan {
@@ -31,6 +37,7 @@ export interface Loan {
 export interface LoanReturnRequest {
   copyConditions: {
     bookCopyId: number;
+    identifier?: string | null;
     condition: BookCondition;
   }[];
 }

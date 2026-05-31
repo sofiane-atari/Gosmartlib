@@ -192,6 +192,41 @@
   color: #7a5560;
 }
 
+.loan-overview-controls {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0e4e8;
+  background: #fffafd;
+}
+
+.loan-filter-group {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+}
+
+.loan-filter-group label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #7a5560;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.loan-filter-group select {
+  min-width: 150px;
+  border: 1px solid #ead4dc;
+  border-radius: 10px;
+  background: #fff;
+  color: #1a0a10;
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
 .table-card table {
   width: 100%;
   border-collapse: collapse;
@@ -628,6 +663,20 @@ lucide-icon {
   .action-card {
     align-items: flex-start;
     padding: 16px;
+  }
+
+  .loan-overview-controls {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .loan-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .loan-filter-group select {
+    width: 100%;
   }
 
   /* ── Mobiel: tabel → cards ── */

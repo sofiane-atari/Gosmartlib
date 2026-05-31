@@ -10,21 +10,14 @@ import {
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { LoansService } from '../../../services/loan/loans.service';
-import { Loan } from '../../../model/loan/loan.model';
+import { Loan, LoanBook, LoanBookCopy } from '../../../model/loan/loan.model';
+import { LoanGroup } from '../../../model/loan/loanGroup.model';
 import { BookCondition } from '../../../model/book/book.model';
 import { Router } from '@angular/router';
 import { PagingComponent, PagingMeta } from '../../shared/paging/paging.component';
 import { SearchBarComponent } from "../../shared/search-bar/search-bar.component";
 import { ToastService } from '../../../services/toast/toast.service';
 import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
-
-interface ReturnLoanGroup {
-  userId: string;
-  userDisplayName?: string | null;
-  loans: Loan[];
-  bookCount: number;
-  earliestReturnDate: Loan['returnDate'] | null;
-}
 
 @Component({
   selector: 'app-return-loan',
@@ -44,6 +37,7 @@ export class ReturnLoanComponent implements OnInit {
   protected readonly ArrowLeft = ArrowLeft;
 
   protected readonly loans = signal<Loan[]>([]);
+  protected readonly loanGroups = signal<LoanGroup[]>([]);
   protected readonly searchTerm = signal('');
   protected readonly isLoading = signal(false);
   protected readonly returningLoanId = signal<number | null>(null);
@@ -62,7 +56,7 @@ export class ReturnLoanComponent implements OnInit {
 
   private readonly toastService = inject(ToastService);
   protected readonly expandedLoanIds = new Set<number>();
-  protected readonly expandedUserIds = new Set<string>();
+  protected readonly expandedGroupIds = new Set<string>();
 
   protected readonly pagingMeta = computed<PagingMeta>(() => ({
     currentPage: this.page(),
@@ -71,58 +65,7 @@ export class ReturnLoanComponent implements OnInit {
     totalPages: this.totalPages()
   }));
 
-  protected readonly activeLoans = computed(() =>
-    this.loans().filter(loan => !loan.returnedDate),
-  );
-
-  protected readonly filteredLoans = computed(() => {
-    const term = this.searchTerm().trim().toLowerCase();
-
-    if (!term) {
-      return this.activeLoans();
-    }
-
-    return this.activeLoans().filter(loan => {
-      const userName = loan.userDisplayName?.toLowerCase() ?? '';
-      const userId = loan.userId?.toLowerCase() ?? '';
-      const books = loan.books?.map(book => book.title?.toLowerCase() ?? '').join(' ') ?? '';
-
-      return userName.includes(term) || userId.includes(term) || books.includes(term);
-    });
-  });
-
-  protected readonly filteredLoanGroups = computed<ReturnLoanGroup[]>(() => {
-    const groups = new Map<string, Loan[]>();
-
-    for (const loan of this.filteredLoans()) {
-      const key = this.getLoanGroupKey(loan);
-      groups.set(key, [...(groups.get(key) ?? []), loan]);
-    }
-
-    return Array.from(groups.entries())
-      .map(([userId, loans]) => ({
-        userId,
-        userDisplayName: loans[0]?.userDisplayName,
-        loans: [...loans].sort(
-          (a, b) => new Date(a.returnDate).getTime() - new Date(b.returnDate).getTime(),
-        ),
-        bookCount: loans.reduce((total, loan) => total + this.bookCount(loan), 0),
-        earliestReturnDate: loans
-          .map((loan) => loan.returnDate)
-          .filter((date): date is NonNullable<Loan['returnDate']> => Boolean(date))
-          .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0] ?? null,
-      }))
-      .sort((a, b) => {
-        const statusOrder = this.getGroupStatus(a) === 'Te laat' ? 0 : 1;
-        const otherStatusOrder = this.getGroupStatus(b) === 'Te laat' ? 0 : 1;
-
-        if (statusOrder !== otherStatusOrder) {
-          return statusOrder - otherStatusOrder;
-        }
-
-        return (a.earliestReturnDate ?? '').localeCompare(b.earliestReturnDate ?? '');
-      });
-  });
+  protected readonly filteredLoanGroups = computed<LoanGroup[]>(() => this.loanGroups());
 
   public ngOnInit(): void {
     this.loadLoans();
@@ -134,7 +77,7 @@ export class ReturnLoanComponent implements OnInit {
 
   protected onPageChange(page: number): void {
     this.page.set(page);
-    this.expandedUserIds.clear();
+    this.expandedGroupIds.clear();
     this.loadLoans();
   }
 
@@ -155,7 +98,7 @@ export class ReturnLoanComponent implements OnInit {
     });
   }
 
-  protected returnAllLoans(group: ReturnLoanGroup): void {
+  protected returnAllLoans(group: LoanGroup): void {
     const loansToReturn = group.loans.filter((loan) => loan.id !== undefined);
 
     if (loansToReturn.length === 0) {
@@ -165,16 +108,16 @@ export class ReturnLoanComponent implements OnInit {
     const message = `Weet je zeker dat je alle ${loansToReturn.length} actieve lening(en) van ${group.userDisplayName || group.userId} wilt terugbrengen?`;
 
     this.toastService.showConfirm(message, () => {
-      this.confirmReturnAllLoans(group.userId, loansToReturn);
+      this.confirmReturnAllLoans(group.groupId, group.userId, loansToReturn);
     });
   }
 
   private loadLoans(): void {
     this.isLoading.set(true);
 
-    this.loansService.getActiveLoans(this.page(), this.pageSize()).subscribe({
+    this.loansService.getActiveBatchLoans(this.page(), this.pageSize(), this.searchTerm()).subscribe({
       next: (response) => {
-        this.loans.set(response.data);
+        this.loanGroups.set(response.data);
         this.totalItems.set(response.meta.totalItems);
         this.totalPages.set(response.meta.totalPages);
         this.isLoading.set(false);
@@ -323,47 +266,45 @@ export class ReturnLoanComponent implements OnInit {
     return this.expandedLoanIds.has(loanId);
   }
 
-  protected toggleUserGroup(userId: string): void {
-    if (this.expandedUserIds.has(userId)) {
-      this.expandedUserIds.delete(userId);
+  protected toggleGroup(groupId: string): void {
+    if (this.expandedGroupIds.has(groupId)) {
+      this.expandedGroupIds.delete(groupId);
     } else {
-      this.expandedUserIds.add(userId);
+      this.expandedGroupIds.add(groupId);
     }
   }
 
-  protected isUserGroupExpanded(userId: string): boolean {
-    return this.expandedUserIds.has(userId);
+  protected isGroupExpanded(groupId: string): boolean {
+    return this.expandedGroupIds.has(groupId);
   }
 
-  protected getGroupStatus(group: ReturnLoanGroup): 'Uitgeleend' | 'Te laat' {
-    return group.loans.some((loan) => this.getLoanStatus(loan) === 'Te laat')
-      ? 'Te laat'
-      : 'Uitgeleend';
+  protected getGroupStatus(group: LoanGroup): 'Uitgeleend' | 'Te laat' {
+    return group.groupStatus === 'OVERDUE' ? 'Te laat' : 'Uitgeleend';
   }
 
-  protected getGroupStatusClass(group: ReturnLoanGroup): string {
+  protected getGroupStatusClass(group: LoanGroup): string {
     return this.getGroupStatus(group) === 'Te laat'
       ? 'status-badge status-badge--overdue'
       : 'status-badge status-badge--active';
   }
 
-  protected getGroupTimeLeftText(group: ReturnLoanGroup): string {
+  protected getGroupTimeLeftText(group: LoanGroup): string {
     const loan = this.getMostUrgentLoan(group);
     return loan ? this.getTimeLeftText(loan) : 'Geen leningen';
   }
 
-  protected getGroupTimeLeftClass(group: ReturnLoanGroup): string {
+  protected getGroupTimeLeftClass(group: LoanGroup): string {
     const loan = this.getMostUrgentLoan(group);
     return loan ? this.getTimeLeftClass(loan) : 'time-left';
   }
 
-  protected getPrimaryBookTitle(group: ReturnLoanGroup): string {
+  protected getPrimaryBookTitle(group: LoanGroup): string {
     const firstTitle = group.loans[0]?.books?.[0]?.title;
     return firstTitle ?? 'Geen boek gekoppeld';
   }
 
-  protected getPrimaryBookSubtitle(group: ReturnLoanGroup): string {
-    const loanCount = group.loans.length;
+  protected getPrimaryBookSubtitle(group: LoanGroup): string {
+    const loanCount = group.loanCount;
     const bookCount = group.bookCount;
 
     return `${loanCount} lening(en) · ${bookCount} boek(en)`;
@@ -371,20 +312,41 @@ export class ReturnLoanComponent implements OnInit {
 
   protected onSearchChange(value: string): void {
     this.searchTerm.set(value);
+    this.page.set(0);
+    this.expandedGroupIds.clear();
+    this.loadLoans();
   }
 
-  private getLoanGroupKey(loan: Loan): string {
-    return loan.userId || loan.userDisplayName || 'unknown-user';
-  }
-
-  private getMostUrgentLoan(group: ReturnLoanGroup): Loan | null {
+  private getMostUrgentLoan(group: LoanGroup): Loan | null {
     return [...group.loans].sort(
       (a, b) => new Date(a.returnDate).getTime() - new Date(b.returnDate).getTime(),
     )[0] ?? null;
   }
 
   protected getBookCopyIdsForLoan(loan: Loan): number[] {
-    return loan.books?.flatMap((book) => book.bookCopyIds ?? []) ?? loan.bookCopyIds ?? [];
+    return this.getCopiesForLoan(loan).map((copy) => copy.id);
+  }
+
+  protected getBookCopies(book: LoanBook): LoanBookCopy[] {
+    if (book.copies && book.copies.length > 0) {
+      return book.copies;
+    }
+
+    return (book.bookCopyIds ?? []).map((id) => ({ id, identifier: null }));
+  }
+
+  protected getCopyDisplayIdentifier(copy: LoanBookCopy): string {
+    return copy.identifier?.trim() || `#${copy.id}`;
+  }
+
+  private getCopiesForLoan(loan: Loan): LoanBookCopy[] {
+    const copies = loan.books?.flatMap((book) => this.getBookCopies(book)) ?? [];
+
+    if (copies.length > 0) {
+      return copies;
+    }
+
+    return (loan.bookCopyIds ?? []).map((id) => ({ id, identifier: null }));
   }
 
   protected getCopyCondition(copyId: number): BookCondition {
@@ -418,10 +380,12 @@ export class ReturnLoanComponent implements OnInit {
 
     this.returningLoanId.set(loan.id);
 
-    const copyConditions = this.getBookCopyIdsForLoan(loan).map((copyId) => ({
-      bookCopyId: copyId,
-      condition: this.getCopyCondition(copyId),
-    }));
+    const copyConditions = this.getCopiesForLoan(loan)
+      .map((copy) => ({
+        bookCopyId: copy.id,
+        identifier: copy.identifier,
+        condition: this.getCopyCondition(copy.id),
+      }));
 
     this.loansService.returnLoan(loan.id, { copyConditions }).subscribe({
       next: () => {
@@ -436,16 +400,18 @@ export class ReturnLoanComponent implements OnInit {
     });
   }
 
-  private confirmReturnAllLoans(userId: string, loans: Loan[]): void {
+  private confirmReturnAllLoans(groupId: string, userId: string, loans: Loan[]): void {
     this.returningUserId.set(userId);
 
     const requests = loans
       .filter((loan): loan is Loan & { id: number } => loan.id !== undefined)
       .map((loan) => {
-        const copyConditions = this.getBookCopyIdsForLoan(loan).map((copyId) => ({
-          bookCopyId: copyId,
-          condition: this.getCopyCondition(copyId),
-        }));
+        const copyConditions = this.getCopiesForLoan(loan)
+          .map((copy) => ({
+            bookCopyId: copy.id,
+            identifier: copy.identifier,
+            condition: this.getCopyCondition(copy.id),
+          }));
 
         return this.loansService.returnLoan(loan.id, { copyConditions });
       });
@@ -459,7 +425,7 @@ export class ReturnLoanComponent implements OnInit {
       next: () => {
         this.toastService.show('Alle boeken van deze gebruiker zijn succesvol teruggebracht.', 'success');
         this.returningUserId.set(null);
-        this.expandedUserIds.delete(userId);
+        this.expandedGroupIds.delete(groupId);
         this.loadLoans();
       },
       error: () => {

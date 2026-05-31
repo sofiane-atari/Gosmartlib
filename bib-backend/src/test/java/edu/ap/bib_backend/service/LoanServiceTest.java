@@ -258,7 +258,7 @@ assertEquals(List.of(expectedDto), result);
         loan.setCopy(copy);
 
         LoanReturnDTO request = new LoanReturnDTO(List.of(
-                new BookCopyConditionUpdateDTO(10L, BookCondition.DAMAGED)
+                new BookCopyConditionUpdateDTO(10L, null, BookCondition.DAMAGED)
         ));
         LoanDTO dto = LoanDTO.builder().id(1L).userId("user123").build();
 

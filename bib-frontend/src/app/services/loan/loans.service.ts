@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../../model/shared/paging/PaginatedResponse.model';
 import { LoanExtensionRequest } from '../../model/loan/loanExtension.model';
-import { LoanGroup } from '../../model/loan/loanGroup.model';
+import { LoanGroup, LoanGroupStatus } from '../../model/loan/loanGroup.model';
 
 @Injectable({
   providedIn: 'root',
@@ -79,15 +79,70 @@ export class LoansService {
   public getGroupedLoans(
     page: number,
     pageSize: number,
+    search?: string,
+    status?: LoanGroupStatus | 'ALL',
+    extendable?: boolean | null,
   ): Observable<PaginatedResponse<LoanGroup>> {
+    const params: Record<string, string | number | boolean> = {
+      page,
+      pageSize,
+    };
+
+    if (search?.trim()) {
+      params['search'] = search.trim();
+    }
+
+    if (status && status !== 'ALL') {
+      params['status'] = status;
+    }
+
+    if (extendable !== null && extendable !== undefined) {
+      params['extendable'] = extendable;
+    }
+
     return this.http.get<PaginatedResponse<LoanGroup>>(
       `${this.apiUrl}/grouped`,
-      {
-        params: {
-          page,
-          pageSize,
-        },
-      },
+      { params },
+    );
+  }
+
+  public getActiveGroupedLoans(
+    page: number,
+    pageSize: number,
+    search?: string,
+  ): Observable<PaginatedResponse<LoanGroup>> {
+    const params: Record<string, string | number> = {
+      page,
+      pageSize,
+    };
+
+    if (search?.trim()) {
+      params['search'] = search.trim();
+    }
+
+    return this.http.get<PaginatedResponse<LoanGroup>>(
+      `${this.apiUrl}/active/grouped`,
+      { params },
+    );
+  }
+
+  public getActiveBatchLoans(
+    page: number,
+    pageSize: number,
+    search?: string,
+  ): Observable<PaginatedResponse<LoanGroup>> {
+    const params: Record<string, string | number> = {
+      page,
+      pageSize,
+    };
+
+    if (search?.trim()) {
+      params['search'] = search.trim();
+    }
+
+    return this.http.get<PaginatedResponse<LoanGroup>>(
+      `${this.apiUrl}/active/batches`,
+      { params },
     );
   }
 }

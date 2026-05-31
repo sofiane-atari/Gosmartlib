@@ -70,6 +70,7 @@ public class BookService {
     private final BookCandidateMapper bookCandidateMapper;
     private final OpenLibraryClient openLibraryClient;
     private final CurrentUserService currentUserService;
+    private final BookCopyIdentifierService bookCopyIdentifierService;
 
     @Transactional
     public List<BookDTO> getAllBooks(Authentication authentication) {
@@ -384,7 +385,8 @@ public class BookService {
         BookCopy copy = new BookCopy();
         copy.setBook(book);
         copy.setCampus(campus);
-        bookCopyRepository.save(copy);
+        BookCopy savedCopy = bookCopyRepository.save(copy);
+        bookCopyIdentifierService.assignIdentifier(savedCopy);
     }
 
     private List<BookCopyCampusLocationDTO> buildCopyLocations(Book book, Long schoolId, Authentication authentication) {
@@ -444,6 +446,7 @@ public class BookService {
     private BookCopyLocationDTO toCopyLocationDTO(BookCopy copy) {
         return BookCopyLocationDTO.builder()
                 .id(copy.getId())
+                .identifier(copy.getPublicIdentifier())
                 .availability(copy.getAvailability())
                 .condition(copy.getCondition())
                 .expectedReturnDate(getExpectedReturnDate(copy))
