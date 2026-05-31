@@ -38,6 +38,12 @@ class RoleControllerTest {
     @MockitoBean
     private AdminOverrideService adminOverrideService;
 
+    @MockitoBean
+    private edu.ap.bib_backend.service.ActiveSchoolContext activeSchoolContext;
+
+    @MockitoBean
+    private edu.ap.bib_backend.jpa.repository.SchoolRepository schoolRepository;
+
     @Test
     void Given_AssignLibrarianRequest_When_AssignLibrarian_Then_ReturnsUser() throws Exception {
         // Arrange

@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,10 +34,13 @@ class SchoolReportServiceIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @BeforeEach
     void seedData() {
+        entityManager.clear();
         jdbcTemplate.update("SET REFERENTIAL_INTEGRITY FALSE");
-        jdbcTemplate.update("DELETE FROM loan_copies");
         jdbcTemplate.update("DELETE FROM loans");
         jdbcTemplate.update("DELETE FROM book_copies");
         jdbcTemplate.update("DELETE FROM books");
@@ -52,15 +56,15 @@ class SchoolReportServiceIntegrationTest {
         jdbcTemplate.update("INSERT INTO roles (role) VALUES ('TEACHER')");
 
         jdbcTemplate.update("""
-                INSERT INTO schools (id, domain_name, name, address, postal_code, default_loan_duration_days, created_at, provider_type, status, catalog_visible)
-                VALUES (1, 'school-a.smartschool.be', 'School A', '', 0, 15, ?, 'REAL', 'ACTIVE', true)
+                INSERT INTO schools (id, domain_name, name, default_loan_duration_days, created_at, provider_type, status, catalog_visible, catalog_featured_lists_enabled, catalog_most_read_enabled, catalog_newest_enabled)
+                VALUES (1, 'school-a.smartschool.be', 'School A', 15, ?, 'REAL', 'ACTIVE', true, true, true, true)
                 """, Timestamp.valueOf(LocalDateTime.of(2026, 1, 1, 0, 0)));
 
         jdbcTemplate.update("INSERT INTO campuses (id, name, school_id) VALUES (1, 'Campus A', 1)");
 
-        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, campus_id, review_blocked) VALUES ('teacher-1', 'TEACHER', 1, 1, false)");
-        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, campus_id, review_blocked) VALUES ('student-1', 'STUDENT', 1, 1, false)");
-        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, campus_id, review_blocked) VALUES ('student-2', 'STUDENT', 1, 1, false)");
+        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, review_blocked) VALUES ('teacher-1', 'TEACHER', 1, false)");
+        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, review_blocked) VALUES ('student-1', 'STUDENT', 1, false)");
+        jdbcTemplate.update("INSERT INTO users (id, role_id, school_id, review_blocked) VALUES ('student-2', 'STUDENT', 1, false)");
 
         insertAuthSession("teacher-1", "ROLE_TEACHER", true);
         insertAuthSession("student-1", "ROLE_STUDENT", true);
@@ -76,17 +80,14 @@ class SchoolReportServiceIntegrationTest {
         jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (3, 1, 1, 'GOOD_CONDITION')");
         jdbcTemplate.update("INSERT INTO book_copies (id, book_id, campus_id, physical_condition) VALUES (4, 1, 1, 'GOOD_CONDITION')");
 
-        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, loan_date, return_date, returned_date) VALUES (1, 'student-1', 1, ?, ?, null)",
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (1, 'student-1', 1, 1, ?, ?, null)",
                 LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 15));
-        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, loan_date, return_date, returned_date) VALUES (2, 'student-2', 1, ?, ?, ?)",
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (2, 'student-2', 1, 2, ?, ?, ?)",
                 LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 15), LocalDate.of(2026, 4, 10));
-        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, loan_date, return_date, returned_date) VALUES (3, 'student-1', 1, ?, ?, ?)",
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (3, 'student-1', 1, 3, ?, ?, ?)",
                 LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 15), LocalDate.of(2026, 3, 20));
-
-        jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (1, 1)");
-        jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (1, 2)");
-        jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (2, 3)");
-        jdbcTemplate.update("INSERT INTO loan_copies (loan_id, book_copy_id) VALUES (3, 4)");
+        jdbcTemplate.update("INSERT INTO loans (id, user_id, campus_id, book_copy_id, loan_date, return_date, returned_date) VALUES (4, 'student-1', 1, 4, ?, ?, null)",
+                LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 15));
     }
 
     @Test
@@ -111,8 +112,7 @@ class SchoolReportServiceIntegrationTest {
 
     @Test
     void generateSchoolReport_computesReturnStatisticsWhenNoReturns() {
-        jdbcTemplate.update("DELETE FROM loan_copies WHERE loan_id IN (2, 3)");
-        jdbcTemplate.update("DELETE FROM loans WHERE id IN (2, 3)");
+        jdbcTemplate.update("DELETE FROM loans WHERE id IN (2, 3, 4)");
 
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 "teacher-1",

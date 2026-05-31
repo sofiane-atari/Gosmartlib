@@ -54,6 +54,9 @@ class BookServiceIntegrationTest {
     @Test
     void Given_BooksInSchool_When_GetAllBooks_Then_ReturnsOnlySchoolBooks() {
         School school = createSchool("book-svc-1.be");
+        Campus campus = createCampus("Campus 1", school);
+        createBookWithCopy("Book A", campus);
+        createBookWithCopy("Book B", campus);
         entityManager.flush();
 
         Authentication auth = mockAuth();
@@ -137,6 +140,8 @@ class BookServiceIntegrationTest {
     @Test
     void Given_BooksWithLoans_When_GetMostReadBooks_Then_ReturnsOrderedByLoanCount() {
         School school = createSchool("book-svc-6.be");
+        Campus campus = createCampus("Campus 6", school);
+        createBookWithCopy("Most Read Book", campus);
         entityManager.flush();
 
         Authentication auth = mockAuth();
@@ -239,6 +244,8 @@ class BookServiceIntegrationTest {
     @Test
     void Given_BooksInDb_When_SearchBooksInDb_Then_ReturnsMatchingBooks() {
         School school = createSchool("book-svc-10.be");
+        Book book = new Book("9781234567890", "Harry Potter", "J.K. Rowling", 300, null, null, 2000);
+        bookRepository.save(book);
         entityManager.flush();
 
         Authentication auth = mockAuth();

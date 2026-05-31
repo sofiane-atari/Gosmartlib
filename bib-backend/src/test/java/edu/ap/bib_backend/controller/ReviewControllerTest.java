@@ -70,6 +70,12 @@ class ReviewControllerTest {
         @MockitoBean
         private TokenStorageService tokenStorageService;
 
+        @MockitoBean
+        private edu.ap.bib_backend.service.ActiveSchoolContext activeSchoolContext;
+
+        @MockitoBean
+        private edu.ap.bib_backend.jpa.repository.SchoolRepository schoolRepository;
+
         @Test
         @DisplayName("givenValidBookId whenGetReviewsForBook thenReturn200AndReviewList")
         void givenValidBookId_whenGetReviewsForBook_thenReturn200AndReviewList() throws Exception {

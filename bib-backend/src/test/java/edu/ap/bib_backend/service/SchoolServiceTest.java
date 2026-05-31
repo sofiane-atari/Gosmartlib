@@ -257,7 +257,10 @@ class SchoolServiceTest {
         when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
         when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        SchoolDTO result = schoolService.disable(schoolId);
+
         assertEquals(SchoolStatus.DISABLED, school.getStatus());
+        assertEquals(SchoolStatus.DISABLED, result.status());
         verify(schoolRepository).save(school);
     }
 
@@ -277,7 +280,10 @@ class SchoolServiceTest {
         when(schoolRepository.findById(schoolId)).thenReturn(Optional.of(school));
         when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        SchoolDTO result = schoolService.enable(schoolId);
+
         assertEquals(SchoolStatus.ACTIVE, school.getStatus());
+        assertEquals(SchoolStatus.ACTIVE, result.status());
         verify(schoolRepository).save(school);
     }
 

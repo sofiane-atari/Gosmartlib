@@ -54,7 +54,10 @@ class BookCopyServiceIntegrationTest {
     @Test
     void Given_BookWithCopiesInSchool_When_GetCopiesByBookIdForSchool_Then_ReturnsCopies() {
         School school = createSchool("bookcopy-test-1.be");
+        Campus campus = createCampus("Campus Main", school);
         Book book = createBook("Copy Service Book 1");
+        createCopy(book, campus);
+        createCopy(book, campus);
         entityManager.flush();
 
         Authentication auth = mockAuth();
