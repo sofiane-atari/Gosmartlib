@@ -10,6 +10,7 @@ export interface GetUsersOpt {
   WithfirstName?: string;
   WithlastName?: string;
   WithId?: String;
+  withGroups?: boolean;
 }
 
 @Injectable({
@@ -47,6 +48,7 @@ export class UserService {
         firstName: String(opt?.WithfirstName ?? ''),
         lastName: String(opt?.WithlastName ?? ''),
         id: String(opt?.WithId ?? ''),
+        withGroups: String(opt?.withGroups ?? false),
       },
     });
 

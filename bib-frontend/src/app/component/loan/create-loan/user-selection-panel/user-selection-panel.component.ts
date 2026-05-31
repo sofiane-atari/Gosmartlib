@@ -79,4 +79,26 @@ export class UserSelectionPanelComponent {
         return 'Gebruiker';
     }
   }
+
+  protected joinGroupNames(user: AuthUserDto): string {
+    const groups: string[] = [];
+    if (user.primaryGroupName) groups.push(user.primaryGroupName);
+    if (user.parentGroupNames?.length) groups.push(...user.parentGroupNames);
+    return groups.join(', ');
+  }
+
+  protected hasGroups(user: AuthUserDto): boolean {
+    return !!user.primaryGroupName || (user.parentGroupNames?.length ?? 0) > 0;
+  }
+
+  protected groupCount(user: AuthUserDto): number {
+    let count = 0;
+    if (user.primaryGroupName) count++;
+    if (user.parentGroupNames?.length) count += user.parentGroupNames.length;
+    return count;
+  }
+
+  protected groupLabel(user: AuthUserDto): string {
+    return this.groupCount(user) === 1 ? 'Klas' : 'Klassen';
+  }
 }

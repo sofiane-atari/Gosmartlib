@@ -782,7 +782,7 @@ export class CreateLoanComponent {
     this.isLoadingUsers.set(true);
 
     this.userService
-      .getUsers({ WithfirstName: firstName, WithlastName: lastName })
+      .getUsers({ WithfirstName: firstName, WithlastName: lastName, withGroups: true })
       .subscribe({
         next: (users) => {
           this.users.set(users);
