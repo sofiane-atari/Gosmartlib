@@ -22,6 +22,7 @@ import edu.ap.bib_backend.service.book.BookService;
 import edu.ap.bib_backend.service.book.GoogleBooksClient;
 import edu.ap.bib_backend.service.book.OpenLibraryClient;
 import edu.ap.bib_backend.service.lessontips.LessonTipService;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 
+@Slf4j
 @RestController
 @RequestMapping("/books")
 public class BookController {
@@ -121,6 +123,7 @@ public class BookController {
             @RequestBody BookDTO dto,
             @RequestParam Long campusId) {
         BookDTO savedBook = bookService.addBook(dto, campusId, authentication);
+        log.info("book created: id={}, title='{}' by user {}", savedBook.getId(), savedBook.getTitle(), authentication.getName());
         return ResponseEntity.ok(savedBook);
     }
 
@@ -200,6 +203,7 @@ public class BookController {
             @RequestBody BookDTO dto,
             Authentication authentication) {
         BookDTO updatedBook = bookService.updateBook(id, dto, authentication);
+        log.info("book {} updated by user {}", id, authentication.getName());
         return ResponseEntity.ok(updatedBook);
     }
 
@@ -209,7 +213,9 @@ public class BookController {
             Authentication authentication,
             @PathVariable Long bookId,
             @RequestParam(required = false) Long campusId) {
-        return ResponseEntity.ok(bookService.addCopyToBook(bookId, campusId, authentication));
+        BookDTO result = bookService.addCopyToBook(bookId, campusId, authentication);
+        log.info("copy added to book {} by user {}", bookId, authentication.getName());
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{bookId}/lesson-tips")

@@ -11,6 +11,7 @@ import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.CampusMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class CampusService {
 
@@ -95,6 +97,7 @@ public class CampusService {
         updateCampusDetails(campus, dto);
 
         Campus saved = campusRepository.save(campus);
+        log.info("campus '{}' created in school {} (id={})", saved.getName(), school.getId(), saved.getId());
         return campusMapper.toDto(saved);
     }
 
@@ -118,7 +121,9 @@ public class CampusService {
         campus.setName(name);
         updateCampusDetails(campus, dto);
 
-        return campusMapper.toDto(campusRepository.save(campus));
+        campus = campusRepository.save(campus);
+        log.info("campus {} updated: name='{}'", id, campus.getName());
+        return campusMapper.toDto(campus);
     }
 
     private String normalizeName(String value) {

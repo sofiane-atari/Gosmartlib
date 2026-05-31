@@ -14,7 +14,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.dto.BookPreviewDTO;
 import edu.ap.bib_backend.util.IsbnUtils;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class OpenLibraryClient {
 
@@ -27,6 +29,7 @@ public class OpenLibraryClient {
 
     @SuppressWarnings("unchecked")
     public BookDTO fetchBookByISBN(String isbn) {
+        log.info("OpenLibrary API call: fetchBookByISBN({})", isbn);
         String url = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data";
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 

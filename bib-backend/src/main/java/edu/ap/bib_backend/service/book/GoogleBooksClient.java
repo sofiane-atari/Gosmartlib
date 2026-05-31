@@ -13,8 +13,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import edu.ap.bib_backend.dto.BookCandidateDTO;
 import edu.ap.bib_backend.mapper.BookCandidateMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
+@Slf4j
 @Service
 public class GoogleBooksClient {
 
@@ -33,6 +35,8 @@ public class GoogleBooksClient {
 
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> fetchGoogleBooksItems(String title, String author) {
+        log.info("GoogleBooks API call: title='{}', author='{}'", title, author);
+
         String encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8);
         String encodedAuthor = URLEncoder.encode(author, StandardCharsets.UTF_8);
 
@@ -48,6 +52,7 @@ public class GoogleBooksClient {
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
         if (response == null || !response.containsKey("items")) {
+            log.warn("GoogleBooks no results for title='{}', author='{}'", title, author);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Geen boeken gevonden voor title en author");
         }
@@ -55,6 +60,7 @@ public class GoogleBooksClient {
         List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
 
         if (items == null || items.isEmpty()) {
+            log.warn("GoogleBooks empty items for title='{}', author='{}'", title, author);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Geen boeken gevonden voor title en author");
         }
@@ -86,6 +92,8 @@ public class GoogleBooksClient {
 
             candidates.add(bookCandidateMapper.toCandidateDTO(volumeInfo, isbn13));
         }
+
+        log.info("GoogleBooks found {} candidates for title='{}', author='{}'", candidates.size(), title, author);
 
         if (releaseYear != null) {
             candidates.sort((a, b) -> {
