@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Campus;
 import edu.ap.bib_backend.jpa.entity.MailSubscription;
 import edu.ap.bib_backend.jpa.entity.School;
@@ -65,7 +66,10 @@ class BookAvailableEventListenerTest {
         school.setId(SCHOOL_ID);
         school.setDomainName(SCHOOL_DOMAIN);
         campus.setSchool(school);
-        book.setCampus(campus);
+        BookCopy copy = new BookCopy();
+        copy.setCampus(campus);
+        copy.setBook(book);
+        book.getBookCopies().add(copy);
         return book;
     }
 

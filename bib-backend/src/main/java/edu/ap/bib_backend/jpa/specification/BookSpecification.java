@@ -69,15 +69,19 @@ public final class BookSpecification {
         };
     }
 
-public static Specification<Book> belongsToCampus(Long campusId) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("campus").get("id"), campusId);
+    public static Specification<Book> belongsToCampus(Long campusId) {
+        return (root, query, criteriaBuilder) -> {
+            query.distinct(true);
+            Join<Book, BookCopy> copyJoin = root.join("bookCopies");
+            return criteriaBuilder.equal(copyJoin.get("campus").get("id"), campusId);
+        };
     }
 
     public static Specification<Book> belongsToSchool(Long schoolId) {
         return (root, query, criteriaBuilder) -> {
             query.distinct(true);
-            return criteriaBuilder.equal(root.get("campus").get("school").get("id"), schoolId);
+            Join<Book, BookCopy> copyJoin = root.join("bookCopies");
+            return criteriaBuilder.equal(copyJoin.get("campus").get("school").get("id"), schoolId);
         };
     }
 

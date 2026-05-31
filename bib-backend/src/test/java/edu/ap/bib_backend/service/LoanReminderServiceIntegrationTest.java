@@ -100,7 +100,6 @@ class LoanReminderServiceIntegrationTest {
 
         Book book = new Book();
         book.setTitle("Reminder Test Book");
-        book.setCampus(campus);
         book = bookRepository.save(book);
 
         BookCopy copy = new BookCopy();
@@ -152,7 +151,6 @@ class LoanReminderServiceIntegrationTest {
 
         Book book = new Book();
         book.setTitle("Overdue Test Book");
-        book.setCampus(campus);
         book = bookRepository.save(book);
 
         BookCopy copy = new BookCopy();
@@ -214,7 +212,6 @@ class LoanReminderServiceIntegrationTest {
 
         Book book = new Book();
         book.setTitle("Alert Test Book");
-        book.setCampus(campus);
         book = bookRepository.save(book);
 
         BookCopy copy = new BookCopy();

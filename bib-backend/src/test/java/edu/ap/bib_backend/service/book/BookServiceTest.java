@@ -176,7 +176,6 @@ class BookServiceTest {
     @DisplayName("Given valid book without ISBN, When addBook is called, Then save Book and BookCopy")
     void givenValidBookWithoutISBN_whenAddBook_thenSaveBookAndBookCopy() {
         BookDTO dto = new BookDTO();
-        dto.setCampusId(1L);
         dto.setTitle("Nieuwe Boek");
         dto.setAuthor("Auteur Test");
         dto.setPages(300);
@@ -212,7 +211,7 @@ class BookServiceTest {
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
-        BookDTO result = bs.addBook(dto, authentication);
+        BookDTO result = bs.addBook(dto, 1L, authentication);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
@@ -227,7 +226,6 @@ class BookServiceTest {
     @DisplayName("Given existing ISBN, When addBook is called, Then normalize ISBN and reuse Book")
     void givenExistingISBN_whenAddBook_thenNormalizeAndReuseExistingBook() {
         BookDTO dto = new BookDTO();
-        dto.setCampusId(1L);
         dto.setIsbn("978-1 234567890");
         dto.setTitle("Bestaand Boek");
         dto.setAuthor("Auteur");
@@ -251,17 +249,17 @@ class BookServiceTest {
         existingDto.setIsbn("9781234567890");
         existingDto.setTitle("Bestaand Boek");
 
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.of(existingBook));
+        given(br.findAllByIsbn("9781234567890")).willReturn(List.of(existingBook));
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(existingBook)).willReturn(existingDto);
 
-        BookDTO result = bs.addBook(dto, authentication);
+        BookDTO result = bs.addBook(dto, 1L, authentication);
 
         assertThat(dto.getIsbn()).isEqualTo("9781234567890");
         assertThat(result.getId()).isEqualTo(5L);
         assertThat(result.getIsbn()).isEqualTo("9781234567890");
 
-        then(br).should().findByIsbnAndCampusId("9781234567890", 1L);
+        then(br).should().findAllByIsbn("9781234567890");
         then(br).should(never()).save(any(Book.class));
         then(bcr).should().save(any(BookCopy.class));
     }
@@ -272,7 +270,6 @@ class BookServiceTest {
         Genre genre = createGenre("Roman", "#8B5CF6", "Literaire fictie");
 
         BookDTO dto = new BookDTO();
-        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setPages(123);
@@ -307,7 +304,7 @@ class BookServiceTest {
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
-        bs.addBook(dto, authentication);
+        bs.addBook(dto, 1L, authentication);
 
         ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
         then(br).should().save(captor.capture());
@@ -324,7 +321,6 @@ class BookServiceTest {
     @DisplayName("Given unknown genre, When addBook is called, Then throw Exception")
     void givenUnknownGenre_whenAddBook_thenThrowException() {
         BookDTO dto = new BookDTO();
-        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of(
@@ -336,7 +332,7 @@ class BookServiceTest {
         given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
         given(gr.findByName("Onbekend")).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> bs.addBook(dto, authentication))
+        assertThatThrownBy(() -> bs.addBook(dto, 1L, authentication))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Genre bestaat niet: Onbekend");
 
@@ -348,7 +344,6 @@ class BookServiceTest {
     @DisplayName("Given unknown reading level id, when addBook is called, then throw exception")
     void givenUnknownReadingLevelId_whenAddBook_thenThrowException() {
         BookDTO dto = new BookDTO();
-        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -359,7 +354,7 @@ class BookServiceTest {
         given(bookMapper1.toEntity(dto)).willReturn(mappedBook);
         given(rlr.findById(99L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> bs.addBook(dto, authentication))
+        assertThatThrownBy(() -> bs.addBook(dto, 1L, authentication))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Reading level bestaat niet: 99");
 
@@ -371,7 +366,6 @@ class BookServiceTest {
     @DisplayName("Given valid reading level id, when addBook is called, then set reading level")
     void givenValidReadingLevelId_whenAddBook_thenSetReadingLevel() {
         BookDTO dto = new BookDTO();
-        dto.setCampusId(1L);
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of());
@@ -408,7 +402,7 @@ class BookServiceTest {
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
-        BookDTO result = bs.addBook(dto, authentication);
+        BookDTO result = bs.addBook(dto, 1L, authentication);
 
         assertThat(result.getReadingLevel()).isNotNull();
         assertThat(result.getReadingLevel().getId()).isEqualTo(2L);
@@ -435,7 +429,7 @@ class BookServiceTest {
         dto.setTitle("Boek 3");
         dto.setAuthor("Auteur 3");
 
-        given(br.findByIdAndCampusSchoolId(3L, 1L)).willReturn(Optional.of(book));
+        given(br.findById(3L)).willReturn(Optional.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         BookDTO result = bs.getBookById(3L, authentication);
@@ -448,7 +442,7 @@ class BookServiceTest {
     @Test
     @DisplayName("Given non-existing book ID, When getBookById is called, Then throw Exception")
     void givenNonExistingBookId_whenGetBookById_thenThrowException() {
-        given(br.findByIdAndCampusSchoolId(99L, 1L)).willReturn(Optional.empty());
+        given(br.findById(99L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> bs.getBookById(99L, authentication))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -568,14 +562,12 @@ class BookServiceTest {
     void givenRelatedBooksExist_whenGetRelatedBooksCarousel_thenReturnMappedBooks() {
         Book source = new Book();
         source.setId(1L);
-        source.setCampus(campus);
 
         Book related = new Book();
         related.setId(2L);
         related.setTitle("Related");
         related.setAuthor("Author");
         related.setGenres(Set.of());
-        related.setCampus(campus);
 
         BookDTO relatedDto = new BookDTO();
         relatedDto.setId(2L);
@@ -584,7 +576,7 @@ class BookServiceTest {
         List<Object[]> relatedBooks = new ArrayList<>();
         relatedBooks.add(new Object[]{related, 2L});
 
-        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(source));
+        given(br.findById(1L)).willReturn(Optional.of(source));
         given(br.findRelatedBooksWithScoreBySchool(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
         given(bookMapper1.toDTO(related)).willReturn(relatedDto);
 
@@ -638,8 +630,8 @@ class BookServiceTest {
         savedDto.setTitle("Nieuwe Titel");
         savedDto.setIsbn("9781234567890");
 
-        given(br.findByIdAndCampusSchoolId(bookId, 1L)).willReturn(Optional.of(existingBook));
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.empty());
+        given(br.findById(bookId)).willReturn(Optional.of(existingBook));
+        given(br.findAllByIsbn("9781234567890")).willReturn(List.of());
         given(br.save(any(Book.class))).willReturn(savedBook);
         given(bookMapper1.toDTO(savedBook)).willReturn(savedDto);
 
@@ -650,8 +642,8 @@ class BookServiceTest {
         assertThat(result.getTitle()).isEqualTo("Nieuwe Titel");
         assertThat(result.getIsbn()).isEqualTo("9781234567890");
 
-        then(br).should().findByIdAndCampusSchoolId(bookId, 1L);
-        then(br).should().findByIsbnAndCampusId("9781234567890", 1L);
+        then(br).should().findById(bookId);
+        then(br).should().findAllByIsbn("9781234567890");
         then(br).should().save(any(Book.class));
     }
 
@@ -682,8 +674,8 @@ class BookServiceTest {
         BookDTO savedDto = new BookDTO();
         savedDto.setTitle("Geüpdatete Titel");
 
-        given(br.findByIdAndCampusSchoolId(bookId, 1L)).willReturn(Optional.of(existingBook));
-        given(br.findByIsbnAndCampusId(isbn, 1L)).willReturn(Optional.of(existingBook));
+        given(br.findById(bookId)).willReturn(Optional.of(existingBook));
+        given(br.findAllByIsbn(isbn)).willReturn(List.of(existingBook));
         given(br.save(any(Book.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(any(Book.class))).willReturn(savedDto);
 
@@ -730,8 +722,8 @@ class BookServiceTest {
         BookDTO updateDto = new BookDTO();
         updateDto.setIsbn(duplicateIsbn);
 
-        given(br.findByIdAndCampusSchoolId(currentBookId, 1L)).willReturn(Optional.of(currentBook));
-        given(br.findByIsbnAndCampusId(duplicateIsbn, 1L)).willReturn(Optional.of(otherBookWithSameIsbn));
+        given(br.findById(currentBookId)).willReturn(Optional.of(currentBook));
+        given(br.findAllByIsbn(duplicateIsbn)).willReturn(List.of(otherBookWithSameIsbn));
 
         assertThatThrownBy(() -> bs.updateBook(currentBookId, updateDto, authentication))
                 .isInstanceOf(ResponseStatusException.class)
@@ -752,13 +744,13 @@ class BookServiceTest {
         BookDTO updateDto = new BookDTO();
         updateDto.setTitle("Ghost Book");
 
-        given(br.findByIdAndCampusSchoolId(invalidId, 1L)).willReturn(Optional.empty());
+        given(br.findById(invalidId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> bs.updateBook(invalidId, updateDto, authentication))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Boek niet gevonden met id: 99");
 
-        then(br).should(never()).findByIsbnAndCampusId(anyString(), eq(1L));
+        then(br).should(never()).findAllByIsbn(anyString());
         then(br).should(never()).save(any());
     }
 
@@ -781,7 +773,7 @@ class BookServiceTest {
         BookDTO dto = new BookDTO();
         dto.setId(11L);
 
-        given(br.findByIdAndCampusId(11L, 1L)).willReturn(Optional.of(book));
+        given(br.findById(11L)).willReturn(Optional.of(book));
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
@@ -811,22 +803,18 @@ class BookServiceTest {
                 0.0,
                 Set.of()
         );
-        sourceBook.setCampus(campus);
 
         Book targetBook = new Book();
         targetBook.setId(93L);
         targetBook.setIsbn(sourceBook.getIsbn());
         targetBook.setTitle(sourceBook.getTitle());
         targetBook.setGenres(new HashSet<>());
-        targetBook.setCampus(targetCampus);
 
         BookDTO dto = new BookDTO();
         dto.setId(93L);
 
         given(campusRepository.findByIdAndSchoolId(2L, 1L)).willReturn(Optional.of(targetCampus));
-        given(br.findByIdAndCampusId(92L, 2L)).willReturn(Optional.empty());
-        given(br.findByIdAndCampusSchoolId(92L, 1L)).willReturn(Optional.of(sourceBook));
-        given(br.findByIsbnAndCampusId("9781234567890", 2L)).willReturn(Optional.empty());
+        given(br.findById(92L)).willReturn(Optional.of(sourceBook));
         given(br.save(any(Book.class))).willReturn(targetBook);
         given(bcr.save(any(BookCopy.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(bookMapper1.toDTO(targetBook)).willReturn(dto);
@@ -835,8 +823,7 @@ class BookServiceTest {
 
         assertThat(result.getId()).isEqualTo(93L);
 
-        then(br).should().findByIdAndCampusSchoolId(92L, 1L);
-        then(br).should().save(any(Book.class));
+        then(br).should().findById(92L);
         then(bcr).should().save(any(BookCopy.class));
     }
 
@@ -873,7 +860,7 @@ class BookServiceTest {
         dto.setIsbn("9781234567890");
         dto.setTitle("DB Boek");
 
-        given(br.findByIsbnAndCampusSchoolId("9781234567890", 1L)).willReturn(Optional.of(book));
+        given(br.findAllByIsbn("9781234567890")).willReturn(List.of(book));
         given(bookMapper1.toDTO(book)).willReturn(dto);
 
         BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
@@ -891,7 +878,7 @@ class BookServiceTest {
         dto.setIsbn("9781234567890");
         dto.setTitle("OpenLibrary Boek");
 
-        given(br.findByIsbnAndCampusSchoolId("9781234567890", 1L)).willReturn(Optional.empty());
+        given(br.findAllByIsbn("9781234567890")).willReturn(List.of());
         given(openLibraryClient.fetchBookByISBN("9781234567890")).willReturn(dto);
 
         BookDTO result = bs.getBookByISBN("978-1234567890", authentication);
@@ -909,7 +896,6 @@ class BookServiceTest {
         related.setTitle("Related");
         related.setAuthor("Author");
         related.setGenres(Set.of());
-        related.setCampus(campus);
 
         BookDTO dto = new BookDTO();
         dto.setId(2L);
@@ -964,7 +950,6 @@ class BookServiceTest {
         book.setId(1L);
         book.setTitle("Test Book");
         book.setAuthor("Test Author");
-        book.setCampus(campus);
 
         BookCandidateDTO candidateDto = new BookCandidateDTO();
         candidateDto.setId(1L);
@@ -993,7 +978,6 @@ class BookServiceTest {
         Book book = new Book();
         book.setId(1L);
         book.setAuthor("Test Author");
-        book.setCampus(campus);
 
         BookCandidateDTO candidateDto = new BookCandidateDTO();
         candidateDto.setId(1L);
@@ -1012,7 +996,7 @@ class BookServiceTest {
     void givenExistingIsbn_whenFindExistingByIsbn_thenReturnBook() {
         Book book = new Book();
         book.setId(1L);
-        given(br.findByIsbn("9781234567890")).willReturn(book);
+        given(br.findAllByIsbn("9781234567890")).willReturn(List.of(book));
 
         Optional<Book> result = bs.findExistingByIsbn("9781234567890");
 
@@ -1037,13 +1021,13 @@ class BookServiceTest {
     }
 
     @Test
-    @DisplayName("Given existing isbn and campus, When findExistingByIsbnAndCampus is called, Then return book")
-    void givenExistingIsbnAndCampus_whenFindExistingByIsbnAndCampus_thenReturnBook() {
+    @DisplayName("Given existing isbn, When findExistingByIsbn is called, Then return book")
+    void givenExistingIsbnForFindByIsbn_whenFindExistingByIsbn_thenReturnBook() {
         Book book = new Book();
         book.setId(1L);
-        given(br.findByIsbnAndCampusId("9781234567890", 1L)).willReturn(Optional.of(book));
+        given(br.findAllByIsbn("9781234567890")).willReturn(List.of(book));
 
-        Optional<Book> result = bs.findExistingByIsbnAndCampus("9781234567890", 1L);
+        Optional<Book> result = bs.findExistingByIsbn("9781234567890");
 
         assertThat(result).isPresent();
     }
@@ -1054,9 +1038,8 @@ class BookServiceTest {
         Book book = new Book();
         book.setId(1L);
         book.setDidactic(false);
-        book.setCampus(campus);
 
-        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(book));
+        given(br.findById(1L)).willReturn(Optional.of(book));
 
         Book result = bs.getBookByIdForCurrentCampus(1L, authentication);
 
@@ -1068,19 +1051,17 @@ class BookServiceTest {
     void givenDidacticBookWithoutPermission_whenGetRelatedBooksCarousel_thenHideIt() {
         Book source = new Book();
         source.setId(1L);
-        source.setCampus(campus);
 
         Book didacticRelated = new Book();
         didacticRelated.setId(2L);
         didacticRelated.setTitle("Didactic Book");
         didacticRelated.setDidactic(true);
-        didacticRelated.setCampus(campus);
 
         List<Object[]> relatedBooks = new ArrayList<>();
         relatedBooks.add(new Object[]{didacticRelated, 2L});
 
         given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
-        given(br.findByIdAndCampusSchoolId(1L, 1L)).willReturn(Optional.of(source));
+        given(br.findById(1L)).willReturn(Optional.of(source));
         given(br.findRelatedBooksWithScoreBySchool(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
         given(currentUserService.canSeeDidacticBooks(authentication)).willReturn(false);
 
@@ -1113,7 +1094,6 @@ class BookServiceTest {
         book.setReviewScore(reviewScore);
         book.setAddedDate(LocalDateTime.now());
         book.setGenres(genres);
-        book.setCampus(campus);
         return book;
     }
 

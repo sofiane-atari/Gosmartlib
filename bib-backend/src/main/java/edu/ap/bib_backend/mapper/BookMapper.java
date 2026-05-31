@@ -49,12 +49,6 @@ public class BookMapper {
                     book.getReadingLevel().getDescription()));
         }
 
-        // Campus informatie toevoegen
-        if (book.getCampus() != null) {
-            dto.setCampusId(book.getCampus().getId());
-            dto.setCampusName(book.getCampus().getName());
-        }
-
         return dto;
     }
 

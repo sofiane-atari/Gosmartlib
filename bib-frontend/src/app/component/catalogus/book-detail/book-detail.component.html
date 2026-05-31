@@ -448,20 +448,6 @@
                   </div>
                 }
               </div>
-            } @else {
-              <div class="campus-info-card">
-                <div class="campus-info-icon">
-                  <lucide-icon [img]="MapPin" [size]="18"></lucide-icon>
-                </div>
-
-                <div class="campus-info-content">
-                  <p class="campus-info-name">{{ campusName }}</p>
-
-                  @if (campusAddress) {
-                    <p class="campus-info-address">{{ campusAddress }}</p>
-                  }
-                </div>
-              </div>
             }
           </section>
         }

@@ -46,8 +46,11 @@ public class MailSubscriptionService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalStateException("Boek niet gevonden."));
 
-        if (!user.getSchool().getId().equals(book.getCampus().getSchool().getId())) {
-            throw new IllegalStateException("Je kunt je niet abonneren op boeken van een andere school.");
+        boolean hasCopyInUserSchool = book.getBookCopies().stream()
+                .anyMatch(copy -> copy.getCampus() != null
+                        && copy.getCampus().getSchool().getId().equals(user.getSchool().getId()));
+        if (!hasCopyInUserSchool) {
+            throw new IllegalStateException("Je kunt je niet abonneren op boeken die niet in jouw school beschikbaar zijn.");
         }
 
         MailSubscription subscription = new MailSubscription();

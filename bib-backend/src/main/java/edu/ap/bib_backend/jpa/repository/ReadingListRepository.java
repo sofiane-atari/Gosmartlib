@@ -17,7 +17,8 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
         @Query("""
                         SELECT rl
                         FROM ReadingList rl
-                        WHERE rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM
+                        WHERE (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM
+                               AND rl.campus.school.id = :schoolId)
                            OR (rl.campus.id = :campusId
                                AND (
                                     (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
@@ -37,14 +38,15 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                         @Param("campusId") Long campusId,
                         @Param("classCode") String classCode,
                         @Param("yearCode") String yearCode,
-                        @Param("schoolCode") String schoolCode,
+                        @Param("schoolId") Long schoolId,
                         @Param("includeOwnShared") boolean includeOwnShared);
 
         @Query("""
                         SELECT rl
                         FROM ReadingList rl
                         WHERE rl.id = :id
-                          AND (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM
+                          AND ((rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.SYSTEM
+                                AND rl.campus.school.id = :schoolId)
                            OR (rl.campus.id = :campusId
                                AND (
                                     (rl.targetType = edu.ap.bib_backend.jpa.entity.ReadingListTargetType.PERSONAL AND rl.user.id = :userId)
@@ -65,7 +67,7 @@ public interface ReadingListRepository extends JpaRepository<ReadingList, Long> 
                         @Param("campusId") Long campusId,
                         @Param("classCode") String classCode,
                         @Param("yearCode") String yearCode,
-                        @Param("schoolCode") String schoolCode,
+                        @Param("schoolId") Long schoolId,
                         @Param("includeOwnShared") boolean includeOwnShared);
 
         Optional<ReadingList> findByNameIgnoreCaseAndUser_IdAndTargetTypeAndCampusId(

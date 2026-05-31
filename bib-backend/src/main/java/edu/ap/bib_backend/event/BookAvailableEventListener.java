@@ -1,6 +1,10 @@
 package edu.ap.bib_backend.event;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +16,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import edu.ap.bib_backend.dto.BookDTO;
 import edu.ap.bib_backend.jpa.entity.Book;
+import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.MailSubscription;
 import edu.ap.bib_backend.jpa.repository.BookRepository;
 import edu.ap.bib_backend.service.MailSubscriptionService;
@@ -70,14 +75,17 @@ public class BookAvailableEventListener {
             return;
         }
 
-        Long bookCampusSchoolId = book.getCampus().getSchool().getId();
+        Set<Long> schoolIdsWithCopies = book.getBookCopies().stream()
+                .map(copy -> copy.getCampus().getSchool().getId())
+                .collect(Collectors.toSet());
 
-        log.info("Notifying subscribers that book '{}' is available (school id={})", book.getTitle(), bookCampusSchoolId);
+        log.info("Notifying subscribers that book '{}' is available (schools with copies: {})", book.getTitle(), schoolIdsWithCopies);
 
         for (MailSubscription subscription : subscribers) {
             String userId = subscription.getUser().getId();
+            Long userSchoolId = subscription.getUser().getSchool().getId();
 
-            if (!subscription.getUser().getSchool().getId().equals(bookCampusSchoolId)) {
+            if (!schoolIdsWithCopies.contains(userSchoolId)) {
                 log.debug("Skipping user {} from different school", userId);
                 continue;
             }
@@ -89,9 +97,13 @@ public class BookAvailableEventListener {
                     continue;
                 }
 
-                String schoolDomain = book.getCampus().getSchool().getDomainName();
-                List<BookDTO> recommendations = bookService.getRelatedBooksForLoan(
-                        List.of(book.getId()), 4, schoolDomain);
+                Optional<String> schoolDomain = book.getBookCopies().stream()
+                        .map(copy -> copy.getCampus().getSchool().getDomainName())
+                        .filter(Objects::nonNull)
+                        .findFirst();
+                List<BookDTO> recommendations = schoolDomain
+                        .map(domain -> bookService.getRelatedBooksForLoan(List.of(book.getId()), 4, domain))
+                        .orElseGet(List::of);
 
                 String htmlMessage = new HtmlMessageBuilder(
                         "Boek beschikbaar", frontendUrl)

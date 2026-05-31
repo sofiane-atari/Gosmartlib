@@ -106,9 +106,8 @@ export class AddBookPageComponent {
     }
 
     const bookToSave = event ?? this.book;
-    bookToSave.campusId = this.selectedCampusId;
 
-    this.bs.addBook(bookToSave).subscribe({
+    this.bs.addBook(bookToSave, this.selectedCampusId).subscribe({
       next: () => {
         localStorage.removeItem('bookFilters');
         this.rt.navigate(['/catalog']);

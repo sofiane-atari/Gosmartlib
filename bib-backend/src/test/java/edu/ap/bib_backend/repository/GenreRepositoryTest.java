@@ -56,7 +56,6 @@ class GenreRepositoryTest {
 
         Book book = new Book();
         book.setTitle("Test Book");
-        book.setCampus(campus);
 
         // Add to both sides of the relationship (owning side is Book.genres)
         book.getGenres().add(genre);

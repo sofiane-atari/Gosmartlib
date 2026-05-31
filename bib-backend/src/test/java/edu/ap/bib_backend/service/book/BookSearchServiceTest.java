@@ -335,7 +335,6 @@ class BookSearchServiceTest {
         book.setAuthor("Auteur");
         book.setPages(200);
         book.setGenres(Set.of());
-        book.setCampus(campus);
         return book;
     }
 

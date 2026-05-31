@@ -95,8 +95,8 @@ export class BookService {
     return this.http.get<Book>(`${this.apiUrl}/${id}`, { params });
   }
 
-  addBook(book: Book): Observable<Book> {
-    return this.http.post<Book>(this.apiUrl, book);
+  addBook(book: Book, campusId: number): Observable<Book> {
+    return this.http.post<Book>(this.apiUrl, book, { params: { campusId } });
   }
 
   public updateBook(id: number, book: Book): Observable<Book> {

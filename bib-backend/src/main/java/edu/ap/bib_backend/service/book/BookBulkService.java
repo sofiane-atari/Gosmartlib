@@ -143,13 +143,14 @@ public class BookBulkService {
                 }
 
                 if (book == null && !isbn.isEmpty()) {
-                    book = br.findByIsbnAndCampusId(isbn, campus.getId()).orElse(null);
+                    List<Book> globalBooks = br.findAllByIsbn(isbn);
+                    if (!globalBooks.isEmpty()) {
+                        book = globalBooks.get(0);
+                    }
                 }
 
                 if (book == null) {
                     book = br.findByTitleIgnoreCaseAndAuthorIgnoreCaseAndReleaseYear(title, author, releaseYear)
-                            .filter(existingBook -> existingBook.getCampus() != null
-                                    && existingBook.getCampus().getId().equals(campus.getId()))
                             .orElse(null);
                 }
 
@@ -491,7 +492,6 @@ public class BookBulkService {
         String subGenre3 = formatter.formatCellValue(row.getCell(10), evaluator).trim();
         String readingLevelName = formatter.formatCellValue(row.getCell(11), evaluator).trim();
 
-        book.setCampus(campus);
         book.setIsbn(isbn.isEmpty() ? null : isbn);
         book.setTitle(title);
         book.setAuthor(author);
