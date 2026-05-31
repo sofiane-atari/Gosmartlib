@@ -44,8 +44,6 @@ services:
       SCHOOL_DELETION_CHECK_CRON: "${SCHOOL_DELETION_CHECK_CRON}"
       ADMIN_USERNAMES: "${ADMIN_USERNAMES}"
       ADMIN_SCHOOL_DOMAINS: "${ADMIN_SCHOOL_DOMAINS}"
-      REDIS_HOST: "${REDIS_HOST}"
-      REDIS_PORT: "${REDIS_PORT}"
 
     labels:
       - "traefik.enable=true"
