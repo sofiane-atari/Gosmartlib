@@ -29,7 +29,7 @@
       <div class="empty-state">
         <p>Leningen laden...</p>
       </div>
-    } @else if (filteredLoans().length === 0) {
+    } @else if (filteredLoanGroups().length === 0) {
       <div class="empty-state">
         <div class="empty-state__icon">
           <lucide-icon [name]="AlertTriangle"></lucide-icon>
@@ -52,52 +52,45 @@
         </thead>
 
         <tbody>
-          @for (loan of filteredLoans(); track loan.id) {
+          @for (group of filteredLoanGroups(); track group.userId) {
             <tr
               class="loan-row"
-              [class.loan-row--expanded]="isLoanExpanded(loan.id)"
-              (click)="toggleLoan(loan.id)"
+              [class.loan-row--expanded]="isUserGroupExpanded(group.userId)"
+              (click)="toggleUserGroup(group.userId)"
             >
               <td class="text-center" data-label="Gebruiker">
                 <div class="user-cell user-cell--center">
-                  <strong>{{ getFirstName(loan.userDisplayName) }}</strong>
-                  <span>{{ getLastName(loan.userDisplayName) }}</span>
+                  <strong>{{ getFirstName(group.userDisplayName) }}</strong>
+                  <span>{{ getLastName(group.userDisplayName) }}</span>
                 </div>
               </td>
 
               <td class="text-center" data-label="Boek">
-                @if (firstBook(loan); as book) {
-                  <div class="book-cell">
-                    <strong>{{ book.title }}</strong>
-
-                    @if (book.author) {
-                      <small>{{ book.author }}</small>
-                    }
-                  </div>
-                } @else {
-                  <span class="muted">Geen boek gekoppeld</span>
-                }
+                <div class="book-cell">
+                  <strong>{{ getPrimaryBookTitle(group) }}</strong>
+                  <small>{{ getPrimaryBookSubtitle(group) }}</small>
+                </div>
               </td>
 
               <td class="text-center" data-label="Aantal">
                 <span class="book-count">
-                  {{ bookCount(loan) }}
+                  {{ group.bookCount }}
                 </span>
               </td>
 
               <td class="text-center" data-label="Retourdatum">
-                {{ loan.returnDate | date: 'dd/MM/yyyy' }}
+                {{ group.earliestReturnDate | date: 'dd/MM/yyyy' }}
               </td>
 
               <td class="text-center" data-label="Tijd over">
-                <span [class]="getTimeLeftClass(loan)">
-                  {{ getTimeLeftText(loan) }}
+                <span [class]="getGroupTimeLeftClass(group)">
+                  {{ getGroupTimeLeftText(group) }}
                 </span>
               </td>
 
               <td class="text-center" data-label="Status">
-                <span [class]="getStatusClass(loan)">
-                  {{ getLoanStatus(loan) }}
+                <span [class]="getGroupStatusClass(group)">
+                  {{ getGroupStatus(group) }}
                 </span>
               </td>
 
@@ -105,49 +98,102 @@
                 <div class="table-actions">
                   <button
                     type="button"
-                    class="btn-return"
-                    (click)="returnLoan(loan)"
-                    [disabled]="returningLoanId() === loan.id"
+                    class="btn-return btn-return--secondary"
+                    (click)="toggleUserGroup(group.userId)"
                   >
-                    <lucide-icon [name]="RotateCcw"></lucide-icon>
-                    {{ returningLoanId() === loan.id ? 'Bezig...' : 'Terugbrengen' }}
+                    {{ isUserGroupExpanded(group.userId) ? 'Verbergen' : 'Bekijken' }}
                   </button>
                 </div>
               </td>
             </tr>
 
-            @if (isLoanExpanded(loan.id)) {
+            @if (isUserGroupExpanded(group.userId)) {
               <tr class="loan-details-row">
                 <td colspan="7">
-                  <div class="loan-details">
+                  <div class="loan-details loan-details--grouped">
                     <div class="loan-details__header">
-                      <strong>Alle boeken in deze lening</strong>
-                      <span>{{ bookCount(loan) }} boek(en)</span>
+                      <div>
+                        <strong>Leningen van {{ group.userDisplayName || group.userId }}</strong>
+                        <small>Alle actieve bookcopies staan hieronder samen gegroepeerd.</small>
+                      </div>
+                      <div class="loan-details__header-actions" (click)="$event.stopPropagation()">
+                        <span>{{ group.loans.length }} lening(en) · {{ group.bookCount }} boek(en)</span>
+                        <button
+                          type="button"
+                          class="btn-return"
+                          (click)="returnAllLoans(group)"
+                          [disabled]="returningUserId() === group.userId"
+                        >
+                          <lucide-icon [name]="RotateCcw"></lucide-icon>
+                          {{ returningUserId() === group.userId ? 'Alles verwerken...' : 'Alles terugbrengen' }}
+                        </button>
+                      </div>
                     </div>
 
                     <div class="loan-details__books">
-                      @for (book of loan.books; track book.id) {
-                        <div class="loan-details__book">
-                          <strong>{{ book.title }}</strong>
+                      @for (loan of group.loans; track loan.id) {
+                        @for (book of loan.books; track book.id) {
+                          <div class="loan-details__book loan-details__book--returnable">
+                            <div class="loan-details__book-main">
+                              <strong>{{ book.title }}</strong>
 
-                          @if (book.author) {
-                            <small>{{ book.author }}</small>
-                          }
+                              @if (book.author) {
+                                <small>{{ book.author }}</small>
+                              }
 
-                          @for (copyId of book.bookCopyIds ?? []; track copyId) {
-                            <label class="return-condition-field" (click)="$event.stopPropagation()">
-                              <span>Exemplaar #{{ copyId }} terug als</span>
-                              <select
-                                [value]="getCopyCondition(copyId)"
-                                (change)="onReturnConditionChange(copyId, $event)"
-                              >
-                                @for (option of conditionOptions; track option.value) {
-                                  <option [value]="option.value">{{ option.label }}</option>
-                                }
-                              </select>
-                            </label>
-                          }
-                        </div>
+                              <div class="loan-details__meta-row">
+                                <span>Retourdatum: {{ loan.returnDate | date: 'dd/MM/yyyy' }}</span>
+                                <span [class]="getTimeLeftClass(loan)">{{ getTimeLeftText(loan) }}</span>
+                                <span [class]="getStatusClass(loan)">{{ getLoanStatus(loan) }}</span>
+                              </div>
+
+                              @for (copyId of book.bookCopyIds ?? []; track copyId) {
+                                <label class="return-condition-field" (click)="$event.stopPropagation()">
+                                  <span>Exemplaar #{{ copyId }} terug als</span>
+                                  <select
+                                    [value]="getCopyCondition(copyId)"
+                                    (change)="onReturnConditionChange(copyId, $event)"
+                                  >
+                                    @for (option of conditionOptions; track option.value) {
+                                      <option [value]="option.value">{{ option.label }}</option>
+                                    }
+                                  </select>
+                                </label>
+                              }
+                            </div>
+
+                            <button
+                              type="button"
+                              class="btn-return loan-details__return-button"
+                              (click)="returnLoan(loan); $event.stopPropagation()"
+                              [disabled]="returningLoanId() === loan.id || returningUserId() === group.userId"
+                            >
+                              <lucide-icon [name]="RotateCcw"></lucide-icon>
+                              {{ returningLoanId() === loan.id ? 'Bezig...' : 'Terugbrengen' }}
+                            </button>
+                          </div>
+                        } @empty {
+                          <div class="loan-details__book loan-details__book--returnable">
+                            <div class="loan-details__book-main">
+                              <strong>Geen boek gekoppeld</strong>
+                              <div class="loan-details__meta-row">
+                                <span>Retourdatum: {{ loan.returnDate | date: 'dd/MM/yyyy' }}</span>
+                                <span [class]="getTimeLeftClass(loan)">{{ getTimeLeftText(loan) }}</span>
+                                <span [class]="getStatusClass(loan)">{{ getLoanStatus(loan) }}</span>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              class="btn-return loan-details__return-button"
+                              (click)="returnLoan(loan); $event.stopPropagation()"
+                              [disabled]="returningLoanId() === loan.id || returningUserId() === group.userId"
+                            >
+                              <lucide-icon [name]="RotateCcw"></lucide-icon>
+                              {{ returningLoanId() === loan.id ? 'Bezig...' : 'Terugbrengen' }}
+                            </button>
+                          </div>
+                        }
                       }
                     </div>
                   </div>
