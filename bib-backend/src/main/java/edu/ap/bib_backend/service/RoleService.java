@@ -3,6 +3,7 @@ package edu.ap.bib_backend.service;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ public class RoleService {
     private final OneRosterClient oneRosterClient;
     private final UserService userService;
     private final SchoolRepository schoolRepository;
+    private final boolean devModeEnabled;
 
     public RoleService(
             RoleEntityRepository roleEntityRepository,
@@ -41,7 +43,8 @@ public class RoleService {
             TokenStorageService tokenStorageService,
             OneRosterClient oneRosterClient,
             UserService userService,
-            SchoolRepository schoolRepository) {
+            SchoolRepository schoolRepository,
+            @Value("${app.dev-mode-enabled:false}") boolean devModeEnabled) {
         this.roleEntityRepository = roleEntityRepository;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
@@ -50,6 +53,7 @@ public class RoleService {
         this.oneRosterClient = oneRosterClient;
         this.userService = userService;
         this.schoolRepository = schoolRepository;
+        this.devModeEnabled = devModeEnabled;
     }
 
     @Transactional
@@ -140,6 +144,10 @@ public class RoleService {
             throw new IllegalStateException("Alleen platformbeheerders kunnen deze actie uitvoeren.");
         }
 
+        if (!devModeEnabled) {
+            throw new IllegalStateException("Admin promotion is alleen beschikbaar in development mode.");
+        }
+
         School school = resolveTargetSchool(true, schoolCode, currentUser);
 
         User targetUser = userRepository.findByIdAndSchoolId(targetUserId, school.getId()).orElse(null);
@@ -174,6 +182,10 @@ public class RoleService {
 
         if (!isAdmin) {
             throw new IllegalStateException("Alleen platformbeheerders kunnen deze actie uitvoeren.");
+        }
+
+        if (!devModeEnabled) {
+            throw new IllegalStateException("Admin revocation is alleen beschikbaar in development mode.");
         }
 
         School school = resolveTargetSchool(true, schoolCode, currentUser);
