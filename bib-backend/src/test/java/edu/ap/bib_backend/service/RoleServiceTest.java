@@ -13,11 +13,12 @@ import edu.ap.bib_backend.mapper.UserMapper;
 import edu.ap.bib_backend.service.oneroster.OneRosterClient;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.service.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -60,8 +61,21 @@ class RoleServiceTest {
     @Mock
     private SchoolRepository schoolRepository;
 
-    @InjectMocks
     private RoleService roleService;
+
+    @BeforeEach
+    void setUp() {
+        roleService = new RoleService(
+                roleEntityRepository,
+                userRepository,
+                userMapper,
+                currentUserService,
+                tokenStorageService,
+                oneRosterClient,
+                userService,
+                schoolRepository,
+                true);
+    }
 
     @Test
     void Given_EnglishRoleNameUpperCase_When_GetRoleEntity_Then_ReturnsExistingRoleEntity() {
@@ -841,5 +855,51 @@ class RoleServiceTest {
                 () -> roleService.revokeAdmin(authentication, "missing-user", "test.smartschool.be"));
 
         assertTrue(exception.getMessage().contains("Gebruiker niet gevonden"));
+    }
+
+    @Test
+    @DisplayName("given devModeDisabled when assignAdmin then throws IllegalStateException")
+    void givenDevModeDisabled_whenAssignAdmin_thenThrowsIllegalStateException() {
+        RoleService disabledService = new RoleService(
+                roleEntityRepository, userRepository, userMapper,
+                currentUserService, tokenStorageService, oneRosterClient,
+                userService, schoolRepository, false);
+
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        User currentUser = new User();
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> disabledService.assignAdmin(authentication, "target-user", "test.smartschool.be"));
+
+        assertTrue(exception.getMessage().contains("alleen beschikbaar in development mode"));
+    }
+
+    @Test
+    @DisplayName("given devModeDisabled when revokeAdmin then throws IllegalStateException")
+    void givenDevModeDisabled_whenRevokeAdmin_thenThrowsIllegalStateException() {
+        RoleService disabledService = new RoleService(
+                roleEntityRepository, userRepository, userMapper,
+                currentUserService, tokenStorageService, oneRosterClient,
+                userService, schoolRepository, false);
+
+        Authentication authentication = mock(Authentication.class);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        when(authentication.getAuthorities())
+                .thenAnswer(invocation -> (Collection<? extends GrantedAuthority>) authorities);
+
+        User currentUser = new User();
+        when(currentUserService.getCurrentUser(authentication)).thenReturn(currentUser);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> disabledService.revokeAdmin(authentication, "target-user", "test.smartschool.be"));
+
+        assertTrue(exception.getMessage().contains("alleen beschikbaar in development mode"));
     }
 }

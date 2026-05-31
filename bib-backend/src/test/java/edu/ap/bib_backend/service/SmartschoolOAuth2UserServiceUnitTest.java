@@ -32,6 +32,8 @@ class SmartschoolOAuth2UserServiceUnitTest {
     private SchoolRepository schoolRepository;
     @Mock
     private OneRosterClient oneRosterClient;
+    @Mock
+    private EnvAdminService envAdminService;
 
     @InjectMocks
     private SmartschoolOAuth2UserService smartschoolOAuth2UserService;

@@ -18,7 +18,9 @@ import edu.ap.bib_backend.jpa.repository.LoanExtensionRepository;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.user.CurrentUserService;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class LoanExtensionService {
 
@@ -85,6 +87,9 @@ public class LoanExtensionService {
 
         loan.setReturnDate(newReturnDate);
 
+        log.info("loan {} extended by {}: {} → {} (type={})",
+                loanId, currentUserId, oldReturnDate, newReturnDate, request.extensionType());
+
         loanExtensionRepository.save(extension);
         Loan savedLoan = loanRepository.save(loan);
 
@@ -142,6 +147,7 @@ public class LoanExtensionService {
 
         if (loan.getCampus() == null || loan.getCampus().getSchool() == null
                 || !loan.getCampus().getSchool().getId().equals(school.getId())) {
+            log.warn("loan {} extension rejected: belongs to different school", loan.getId());
             throw new AccessDeniedException("Lening behoort tot een andere school.");
         }
     }
@@ -157,10 +163,12 @@ public class LoanExtensionService {
         LocalDate today = LocalDate.now(APPLICATION_ZONE);
 
         if (!newReturnDate.isAfter(today)) {
+            log.warn("loan extension rejected: new date {} is not in the future", newReturnDate);
             throw new IllegalArgumentException("Nieuwe retourdatum moet in de toekomst liggen.");
         }
 
         if (!newReturnDate.isAfter(oldReturnDate)) {
+            log.warn("loan extension rejected: new date {} is not after current date {}", newReturnDate, oldReturnDate);
             throw new IllegalArgumentException("Nieuwe retourdatum moet na de huidige retourdatum liggen.");
         }
     }
@@ -173,16 +181,19 @@ public class LoanExtensionService {
      */
     private void validateLoanCanBeExtended(Loan loan) {
         if (loan.getReturnedDate() != null) {
+            log.warn("loan {} extension rejected: already returned", loan.getId());
             throw new IllegalStateException("Een teruggebrachte lening kan niet verlengd worden.");
         }
 
         if (loan.getReturnDate() == null) {
+            log.warn("loan {} extension rejected: no return date set", loan.getId());
             throw new IllegalStateException("Deze lening heeft geen retourdatum en kan niet verlengd worden.");
         }
 
         int extensionCount = loanExtensionRepository.countByLoanId(loan.getId());
 
         if (extensionCount >= MAX_EXTENSION_COUNT) {
+            log.warn("loan {} extension rejected: max {} extensions reached", loan.getId(), MAX_EXTENSION_COUNT);
             throw new IllegalStateException("Deze lening werd al maximaal twee keer verlengd.");
         }
     }

@@ -11,8 +11,10 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.reflect.Method;
 
@@ -122,7 +124,7 @@ class GlobalExceptionHandlerTest {
     // ==================== RuntimeException Tests ====================
 
     @Test
-    void givenRuntimeException_whenHandleRuntime_thenReturn500InternalServerError() {
+    void Given_RuntimeException_When_HandleRuntime_Then_ReturnGeneric500InternalServerError() {
         // Arrange
         RuntimeException exception = new RuntimeException("Database connection failed");
 
@@ -133,11 +135,12 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(500);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getError().getCode()).isEqualTo(500);
-        assertThat(response.getBody().getError().getMessage()).isEqualTo("Database connection failed");
+        assertThat(response.getBody().getError().getMessage()).isEqualTo("Er is een onverwachte fout opgetreden.");
+        assertThat(response.getBody().getError().getMessage()).doesNotContain("Database connection failed");
     }
 
     @Test
-    void givenRuntimeExceptionWithNullMessage_whenHandleRuntime_thenReturnNullMessage() {
+    void Given_RuntimeExceptionWithNullMessage_When_HandleRuntime_Then_ReturnGeneric500InternalServerError() {
         // Arrange
         RuntimeException exception = new RuntimeException();
 
@@ -146,7 +149,24 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(500);
-        assertThat(response.getBody().getError().getMessage()).isNull();
+        assertThat(response.getBody().getError().getMessage()).isEqualTo("Er is een onverwachte fout opgetreden.");
+    }
+
+    @Test
+    void Given_ResponseStatusExceptionWithServerError_When_HandleResponseStatus_Then_ReturnGenericMessage() {
+        // Arrange
+        ResponseStatusException exception = new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "OneRoster data ophalen mislukt: secret-token-123");
+
+        // Act
+        ResponseEntity<ErrorResponse> response = globalExceptionHandler.handleResponseStatus(exception);
+
+        // Assert
+        assertThat(response.getStatusCode().value()).isEqualTo(502);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getError().getMessage()).isEqualTo("Er is een onverwachte fout opgetreden.");
+        assertThat(response.getBody().getError().getMessage()).doesNotContain("secret-token-123");
     }
 
     // ==================== MethodArgumentNotValidException Tests
@@ -352,8 +372,8 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(409);
-        // Should contain extracted table name in the detail message
-        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("genres");
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).doesNotContain("genres");
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("gerelateerde items");
     }
 
     @Test
@@ -368,8 +388,9 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(409);
-        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("test@example.com");
-        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("email");
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).doesNotContain("test@example.com");
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).doesNotContain("users.email");
+        assertThat(response.getBody().getError().getDetails().get(0).getMessage()).contains("unieke waarde");
     }
 
     @Test

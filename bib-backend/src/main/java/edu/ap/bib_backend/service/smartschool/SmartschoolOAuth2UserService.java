@@ -8,6 +8,7 @@ import edu.ap.bib_backend.jpa.enums.Role;
 import edu.ap.bib_backend.jpa.enums.SchoolStatus;
 import edu.ap.bib_backend.jpa.repository.SchoolRepository;
 import edu.ap.bib_backend.service.GroupService;
+import edu.ap.bib_backend.service.EnvAdminService;
 import edu.ap.bib_backend.service.user.UserService;
 
 import java.util.Collections;
@@ -41,6 +42,7 @@ public class SmartschoolOAuth2UserService
     public static final String CLAIM_SCHOOL_CODE = "schoolCode";
 
     private final UserService userService;
+    private final EnvAdminService envAdminService;
     private final SmartschoolAudienceResolverService audienceResolverService;
     private final GroupService groupService;
     private final SmartschoolProfileService smartschoolProfileService;
@@ -75,6 +77,8 @@ public class SmartschoolOAuth2UserService
         );
 
         String userId = requireStringAttribute(attributes, "userID");
+        String username = attributes.get("username") instanceof String s ? s : null;
+        String basisrol = requireStringAttribute(attributes, "basisrol");
 
         String classCode = audienceResolverService.resolveClassCode(attributes);
         if (SmartschoolAudienceResolverService.FALLBACK_CLASS_CODE.equalsIgnoreCase(classCode)) {
@@ -89,7 +93,30 @@ public class SmartschoolOAuth2UserService
 
         attributes.put(CLAIM_CLASS_CODE, classCode);
         attributes.put(CLAIM_YEAR_CODE, yearCode);
-        attributes.put(CLAIM_SCHOOL_CODE, schoolCode);
+
+        String schoolDomain = mapSchoolCodeToDomainName(schoolCode);
+        attributes.put(CLAIM_SCHOOL_CODE, schoolDomain);
+
+        boolean isEnvAdmin = envAdminService.isEnvAdmin(userId, schoolDomain)
+                || (username != null && envAdminService.isEnvAdmin(username, schoolDomain));
+
+        if (isEnvAdmin) {
+            School school = null;
+            try {
+                school = resolveSchool(schoolCode);
+            } catch (OAuth2AuthenticationException ignored) {
+            }
+
+            attributes.put("schoolId", school != null ? school.getId() : null);
+
+            fetchSmartschoolProfile(attributes, accessToken);
+
+            return new DefaultOAuth2User(
+                    Collections.singleton(new SimpleGrantedAuthority("ROLE_ADMIN")),
+                    attributes,
+                    "userID"
+            );
+        }
 
         School school = resolveSchool(schoolCode);
 
@@ -282,6 +309,22 @@ public class SmartschoolOAuth2UserService
         }
 
         return null;
+    }
+
+    private void fetchSmartschoolProfile(Map<String, Object> attributes, String accessToken) {
+        try {
+            SmartschoolGroupDto groupDto = smartschoolProfileService.fetchGroups(accessToken);
+            if (groupDto != null) {
+                String primaryGroupName = groupDto.primaryGroupName();
+                if (primaryGroupName != null && !primaryGroupName.isBlank()) {
+                    attributes.put("primaryGroupName", primaryGroupName);
+                }
+                if (groupDto.parentGroupNames() != null && !groupDto.parentGroupNames().isEmpty()) {
+                    attributes.put("parentGroupNames", groupDto.parentGroupNames());
+                }
+            }
+        } catch (RuntimeException ignored) {
+        }
     }
 
     private String getOAuthUserRole(Role role) {

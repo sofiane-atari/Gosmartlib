@@ -54,9 +54,13 @@ public class CurrentUserService {
                     .orElseThrow(() -> new IllegalStateException("Geselecteerde school niet gevonden."));
         }
 
-        User user = getCurrentUser(authentication);
+        String userId = extractCurrentUserId(authentication);
+        User user = userRepository.findById(userId).orElse(null);
 
-        if (user.getSchool() == null) {
+        if (user == null || user.getSchool() == null) {
+            if (isAdmin(authentication)) {
+                throw new IllegalStateException("Selecteer een school via de X-Active-School-Id header.");
+            }
             throw new IllegalStateException("Gebruiker heeft geen school gekoppeld.");
         }
 

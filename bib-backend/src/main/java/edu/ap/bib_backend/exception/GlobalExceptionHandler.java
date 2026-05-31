@@ -6,12 +6,17 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.validation.FieldError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String GENERIC_SERVER_ERROR_MESSAGE = "Er is een onverwachte fout opgetreden.";
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleResourceAlreadyExists(ResourceAlreadyExistsException ex) {
@@ -39,7 +44,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
         int errorCode = 500;
         List<ErrorDetail> details = new ArrayList<>();
-        ApiError error = new ApiError(errorCode, ex.getMessage(), details);
+        log.error("Unexpected server error", ex);
+        ApiError error = new ApiError(errorCode, GENERIC_SERVER_ERROR_MESSAGE, details);
 
         ErrorResponse response = new ErrorResponse(error);
         return ResponseEntity.status(error.getCode()).body(response);
@@ -88,7 +94,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
         int errorCode = ex.getStatusCode().value();
         List<ErrorDetail> details = new ArrayList<>();
-        ApiError error = new ApiError(errorCode, ex.getReason(), details);
+        String message = errorCode >= 500 ? GENERIC_SERVER_ERROR_MESSAGE : ex.getReason();
+
+        if (errorCode >= 500) {
+            log.error("Response status exception handled as server error", ex);
+        }
+
+        ApiError error = new ApiError(errorCode, message, details);
 
         ErrorResponse response = new ErrorResponse(error);
         return ResponseEntity.status(error.getCode()).body(response);
@@ -141,28 +153,12 @@ public class GlobalExceptionHandler {
     // Tries to extract the referenced table name from the error, e.g:
     // "foreign key (`order_id`) references `orders`" → "orders"
     private String extractForeignKeyDetail(String message) {
-        if (message.contains("references")) {
-            try {
-                String table = message.replaceAll(".*references `?(\\w+)`?.*", "$1");
-                return String.format(
-                        "Verwijder eerst de gekoppelde items in '%s' voordat u dit item verwijdert.", table);
-            } catch (Exception ignored) {
-            }
-        }
         return "Verwijder of ontkoppel eerst alle gerelateerde items voordat u dit item verwijdert.";
     }
 
     // Tries to extract the duplicate value and field name from the error, e.g:
     // "duplicate entry 'john@example.com' for key 'email'" → value + field
     private String extractUniqueViolationDetail(String message) {
-        try {
-            if (message.contains("duplicate entry")) {
-                String value = message.replaceAll(".*duplicate entry '([^']+)'.*", "$1");
-                String field = message.replaceAll(".*for key '([^']+)'.*", "$1");
-                return String.format("De waarde '%s' bestaat al voor het veld '%s'.", value, field);
-            }
-        } catch (Exception ignored) {
-        }
         return "Een van de ingevoerde waarden bestaat al in het systeem. Gebruik een unieke waarde.";
     }
 }

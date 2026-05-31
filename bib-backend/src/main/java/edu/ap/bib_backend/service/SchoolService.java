@@ -20,6 +20,7 @@ import edu.ap.bib_backend.service.oneroster.OneRosterUserSyncService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class SchoolService {
 
@@ -126,6 +128,7 @@ public class SchoolService {
 
                 eventPublisher.publishEvent(new SchoolCreatedEvent(savedSchool.getId()));
 
+                log.info("school '{}' created (domain={}, id={})", savedSchool.getName(), savedSchool.getDomainName(), savedSchool.getId());
                 return toDto(savedSchool);
         }
 
@@ -171,7 +174,9 @@ public class SchoolService {
                         }
                 }
 
-                return toDto(schoolRepository.save(school));
+                School saved = schoolRepository.save(school);
+                log.info("school {} updated: name='{}', domain='{}'", id, saved.getName(), saved.getDomainName());
+                return toDto(saved);
         }
 
         @Transactional
@@ -182,6 +187,7 @@ public class SchoolService {
                 school.setStatus(SchoolStatus.MARKED_FOR_DELETION);
                 school.setMarkedForDeletionAt(LocalDateTime.now());
                 schoolRepository.save(school);
+                log.info("school {} marked for deletion", id);
         }
 
         @Transactional
@@ -191,6 +197,7 @@ public class SchoolService {
 
                 school.setStatus(SchoolStatus.DISABLED);
                 school.setMarkedForDeletionAt(null);
+                log.info("school {} disabled", id);
                 return toDto(schoolRepository.save(school));
         }
 
@@ -201,6 +208,7 @@ public class SchoolService {
 
                 school.setStatus(SchoolStatus.ACTIVE);
                 school.setMarkedForDeletionAt(null);
+                log.info("school {} enabled", id);
                 return toDto(schoolRepository.save(school));
         }
 
@@ -217,14 +225,12 @@ public class SchoolService {
 
                 String schoolUsers = "SELECT u.id FROM users u WHERE u.school_id = :schoolId";
                 String schoolCampuses = "SELECT c.id FROM campuses c WHERE c.school_id = :schoolId";
-                String schoolBooks = "SELECT bc.book_id FROM book_copies bc WHERE bc.campus_id IN (" + schoolCampuses + ")";
                 String schoolProfiles = "SELECT gp.id FROM gamification_profiles gp WHERE gp.user_id IN (" + schoolUsers
                                 + ")";
                 String schoolLoans = "SELECT l.id FROM loans l WHERE l.campus_id IN (" + schoolCampuses + ")";
                 String schoolReadingLists = "SELECT rl.id FROM reading_lists rl WHERE rl.user_id IN (" + schoolUsers
                                 + ") OR rl.campus_id IN (" + schoolCampuses + ")";
-                String schoolReviews = "SELECT r.id FROM reviews r WHERE r.user_id IN (" + schoolUsers
-                                + ") OR r.book_id IN (" + schoolBooks + ")";
+                String schoolReviews = "SELECT r.id FROM reviews r WHERE r.user_id IN (" + schoolUsers + ")";
 
                 executePurgeDelete("DELETE FROM gamification_notifications WHERE profile_id IN ("
                                 + schoolProfiles + ")", schoolId);
@@ -241,31 +247,20 @@ public class SchoolService {
                                 + schoolReviews + ")", schoolId);
                 executePurgeDelete("DELETE FROM review_reports WHERE reported_by_user_id IN ("
                                 + schoolUsers + ")", schoolId);
-                executePurgeDelete("DELETE FROM reviews WHERE user_id IN (" + schoolUsers
-                                + ") OR book_id IN (" + schoolBooks + ")", schoolId);
+                executePurgeDelete("DELETE FROM reviews WHERE user_id IN (" + schoolUsers + ")", schoolId);
 
-                executePurgeDelete("DELETE FROM mail_subscriptions WHERE user_id IN ("
-                                + schoolUsers + ") OR book_id IN (" + schoolBooks + ")", schoolId);
+                executePurgeDelete("DELETE FROM mail_subscriptions WHERE user_id IN (" + schoolUsers + ")", schoolId);
 
                 executePurgeDelete("DELETE FROM reading_list_books WHERE reading_list_id IN ("
                                 + schoolReadingLists + ")", schoolId);
                 executePurgeDelete("DELETE FROM reading_lists WHERE user_id IN (" + schoolUsers
                                 + ") OR campus_id IN (" + schoolCampuses + ")", schoolId);
 
-                executePurgeDelete("DELETE FROM lesson_tip_book_links WHERE book_id IN ("
-                                + schoolBooks + ")", schoolId);
-
                 executePurgeDelete("DELETE FROM loan_extensions WHERE loan_id IN ("
                                 + schoolLoans + ")", schoolId);
                 executePurgeDelete("DELETE FROM loans WHERE campus_id IN ("
                                 + schoolCampuses + ")", schoolId);
 
-                executePurgeDelete("DELETE FROM book_genres WHERE book_id IN ("
-                                + schoolBooks + ")", schoolId);
-                executePurgeDelete("DELETE FROM book_tags WHERE book_id IN ("
-                                + schoolBooks + ")", schoolId);
-                executePurgeDelete("DELETE FROM books WHERE id IN ("
-                                + schoolBooks + ")", schoolId);
                 executePurgeDelete("DELETE FROM book_copies WHERE campus_id IN ("
                                 + schoolCampuses + ")", schoolId);
 
@@ -282,12 +277,14 @@ public class SchoolService {
                 executePurgeDelete("DELETE FROM users WHERE school_id = :schoolId", schoolId);
 
                 executePurgeDelete("DELETE FROM classes WHERE school_id = :schoolId", schoolId);
+                executePurgeDelete("DELETE FROM book_tags WHERE tag_id IN (SELECT t.id FROM tags t WHERE t.school_id = :schoolId)", schoolId);
                 executePurgeDelete("DELETE FROM tags WHERE school_id = :schoolId", schoolId);
                 executePurgeDelete("DELETE FROM oneroster_tokens WHERE school_id = :schoolId", schoolId);
                 executePurgeDelete("DELETE FROM oneroster_credentials WHERE school_id = :schoolId", schoolId);
                 executePurgeDelete("DELETE FROM campuses WHERE school_id = :schoolId", schoolId);
 
                 schoolRepository.deleteById(schoolId);
+                log.info("school {} purged", schoolId);
         }
 
         private void executePurgeDelete(String sql, Long schoolId) {
@@ -322,6 +319,7 @@ public class SchoolService {
                 String normalized = normalizeDomainName(domainName);
 
                 if (schoolRepository.existsByDomainName(normalized)) {
+                        log.warn("domain conflict: '{}' already exists", domainName);
                         throw new ResponseStatusException(
                                         HttpStatus.CONFLICT,
                                         "Er bestaat al een school met domein '" + domainName + "'.");
