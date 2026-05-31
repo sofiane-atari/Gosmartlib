@@ -19,6 +19,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
 
 import { Review, ReviewDashboardStats } from '../../../model/review/review.model';
+import { AuthUserDto } from '../../../model/auth.model';
 import { ReviewService } from '../../../services/review-service/review.service';
 import { ToastService } from '../../../services/toast/toast.service';
 import { PagingMeta, PagingComponent } from '../../shared/paging/paging.component';
@@ -30,11 +31,12 @@ import { UserService } from '../../../services/user/user.service';
 import { RoleService } from '../../../services/role-service/role.service';
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
+import { ReviewBlockedListComponent } from '../review-blocked-list/review-blocked-list.component';
 
 @Component({
   selector: 'app-review-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, PagingComponent, ButtonHoverHelpComponent, StatCardComponent],
+  imports: [CommonModule, LucideAngularModule, PagingComponent, ButtonHoverHelpComponent, StatCardComponent, ReviewBlockedListComponent],
   templateUrl: './review-dashboard.component.html',
   styleUrl: './review-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +54,11 @@ export class ReviewDashboardComponent {
   protected readonly CircleAlert = CircleAlert;
   protected readonly Star = Star;
   protected readonly eraser = Eraser;
+
+  protected readonly showBlockedUsers = signal<boolean>(false);
+  protected readonly blockedUsers = signal<AuthUserDto[]>([]);
+  protected readonly isLoadingBlocked = signal<boolean>(false);
+  protected readonly blockedError = signal<string | null>(null);
 
   protected readonly reviews = signal<Review[]>([]);
   protected readonly selectedReviewIds = signal<Set<number>>(new Set());
@@ -220,6 +227,42 @@ export class ReviewDashboardComponent {
       },
       () => {},
     );
+  }
+
+  protected openBlockedUsersModal(): void {
+    this.showBlockedUsers.set(true);
+    this.isLoadingBlocked.set(true);
+    this.blockedError.set(null);
+
+    this.userService.getReviewBlockedUsers().subscribe({
+      next: (users) => {
+        this.blockedUsers.set(users);
+        this.isLoadingBlocked.set(false);
+      },
+      error: () => {
+        this.blockedError.set('De geblokkeerde leerlingen konden niet opgehaald worden.');
+        this.isLoadingBlocked.set(false);
+      },
+    });
+  }
+
+  protected onUnblockFromModal(userId: string): void {
+    this.userService.updateReviewAccess(userId, false).subscribe({
+      next: () => {
+        this.blockedUsers.update((users) => users.filter((u) => u.id !== userId));
+        this.reviews.update((list) =>
+          list.map((r) =>
+            r.reviewerId === userId
+              ? { ...r, reviewerReviewBlocked: false }
+              : r,
+          ),
+        );
+        this.toastService.show('Leerling gedeblokkeerd voor reviews.', 'success');
+      },
+      error: () => {
+        this.toastService.show('De leerling kon niet gedeblokkeerd worden.', 'error');
+      },
+    });
   }
 
   protected approveSelectedReviews(): void {

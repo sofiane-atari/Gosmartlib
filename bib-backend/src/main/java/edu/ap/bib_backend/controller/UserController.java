@@ -65,6 +65,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsersBySchoolId(authentication, schoolId));
     }
 
+    @GetMapping("/review-blocked")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    public ResponseEntity<List<AuthUserDto>> getReviewBlockedUsers(Authentication authentication) {
+        return ResponseEntity.ok(userService.getReviewBlockedUsers(authentication));
+    }
+
     @PatchMapping("/{userId}/review-access")
     public ResponseEntity<AuthUserDto> updateReviewAccess(
             @PathVariable String userId,

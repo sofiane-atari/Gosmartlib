@@ -113,6 +113,10 @@ export class UserService {
     return this.http.patch<AuthUserDto>(`${this.apiUrl}/users/${userId}/review-access`, { blocked });
   }
 
+  public getReviewBlockedUsers(): Observable<AuthUserDto[]> {
+    return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/review-blocked`);
+  }
+
   public getUsersBySchoolId(schoolId: number): Observable<AuthUserDto[]> {
     return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/by-school/${schoolId}`);
   }

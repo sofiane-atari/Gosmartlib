@@ -1,0 +1,68 @@
+@if (isVisible()) {
+  <div class="blocked-backdrop" (click)="onClose()">
+    <section
+      class="blocked-card"
+      role="dialog"
+      aria-modal="true"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="blocked-header">
+        <div class="blocked-header__left">
+          <lucide-angular [img]="ShieldAlertIcon" size="20" class="blocked-header__icon"></lucide-angular>
+          <h2 class="blocked-header__title">Geblokkeerde leerlingen</h2>
+        </div>
+        <button type="button" class="blocked-close-btn" (click)="onClose()" aria-label="Sluiten">
+          <lucide-angular [img]="CloseIcon" size="18"></lucide-angular>
+        </button>
+      </div>
+
+      <p class="blocked-description">
+        Leerlingen die momenteel geen reviews kunnen plaatsen.
+      </p>
+
+      @if (errorMessage()) {
+        <div class="blocked-error">
+          <span>{{ errorMessage() }}</span>
+          <button type="button" class="blocked-retry-btn" (click)="onRetry()">
+            <lucide-angular [img]="RefreshIcon" size="14"></lucide-angular>
+            Opnieuw proberen
+          </button>
+        </div>
+      }
+
+      <div class="blocked-list custom-scrollbar">
+        @if (isLoading()) {
+          <div class="blocked-loading">
+            @for (item of [1, 2, 3]; track item) {
+              <div class="blocked-skeleton-card">
+                <div class="skeleton skeleton--name"></div>
+                <div class="skeleton skeleton--button"></div>
+              </div>
+            }
+          </div>
+        } @else if (blockedUsers().length === 0) {
+          <div class="blocked-empty">
+            <lucide-angular [img]="ShieldAlertIcon" size="32" class="blocked-empty__icon"></lucide-angular>
+            <p class="blocked-empty__text">Er zijn geen geblokkeerde leerlingen.</p>
+          </div>
+        } @else {
+          @for (user of blockedUsers(); track user.id) {
+            <div class="blocked-user-card">
+              <div class="blocked-user-card__info">
+                <span class="blocked-user-card__name">{{ getDisplayName(user) }}</span>
+                <span class="blocked-user-card__role">{{ userService.getRoleLabel(user.role) }}</span>
+              </div>
+              <button
+                type="button"
+                class="blocked-user-card__unblock-btn"
+                (click)="onUnblock(user.id)"
+              >
+                Deblokkeren
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  </div>
+}
