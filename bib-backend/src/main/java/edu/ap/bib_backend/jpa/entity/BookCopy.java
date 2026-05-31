@@ -31,6 +31,9 @@ public class BookCopy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "public_identifier", length = 13, unique = true)
+    private String publicIdentifier;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;

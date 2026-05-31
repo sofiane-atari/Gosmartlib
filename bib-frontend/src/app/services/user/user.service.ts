@@ -13,6 +13,10 @@ export interface GetUsersOpt {
   withGroups?: boolean;
 }
 
+export interface UserNotificationStatus {
+  hasValidRefreshToken: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -119,5 +123,9 @@ export class UserService {
 
   public getUsersBySchoolId(schoolId: number): Observable<AuthUserDto[]> {
     return this.http.get<AuthUserDto[]>(`${this.apiUrl}/users/by-school/${schoolId}`);
+  }
+
+  public getNotificationStatus(userId: string): Observable<UserNotificationStatus> {
+    return this.http.get<UserNotificationStatus>(`${this.apiUrl}/users/${userId}/notification-status`);
   }
 }

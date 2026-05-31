@@ -39,7 +39,7 @@ public class BookCopyController {
     }
 
     @PatchMapping("/{copyId}/condition")
-    @PreAuthorize("hasRole('LIBRARIAN','ADMIN')")
+    @PreAuthorize("hasAnyRole('LIBRARIAN','ADMIN')")
     public ResponseEntity<BookCopyConditionUpdateDTO> updateCondition(
             @PathVariable Long copyId,
             @Valid @RequestBody BookCopyConditionUpdateDTO request,
@@ -56,7 +56,10 @@ public class BookCopyController {
         copy.setCondition(request.condition());
         bookCopyRepository.save(copy);
 
-        return ResponseEntity.ok(new BookCopyConditionUpdateDTO(copy.getId(), copy.getCondition()));
+        return ResponseEntity.ok(new BookCopyConditionUpdateDTO(
+                copy.getId(),
+                copy.getPublicIdentifier(),
+                copy.getCondition()));
     }
 
     @GetMapping("/book/{bookId}/by-school")

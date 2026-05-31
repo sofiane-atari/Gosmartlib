@@ -134,7 +134,8 @@ export class LoanSummaryPanelComponent {
 
   public getCopyLabel(copy: BookCopyLocation): string {
     const campus = copy.campusName ? ` (${copy.campusName})` : '';
-    return `Exemplaar #${copy.id} - Beschikbaar${campus}`;
+    const identifier = copy.identifier?.trim() || `#${copy.id}`;
+    return `Exemplaar ${identifier} - Beschikbaar - ${this.getConditionLabel(copy.condition)}${campus}`;
   }
 
   public getConditionLabel(condition?: BookCondition): string {

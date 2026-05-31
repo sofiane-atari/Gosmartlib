@@ -7,6 +7,7 @@ import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanHistoryDTO;
 import edu.ap.bib_backend.dto.loan.LoanReturnDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
+import edu.ap.bib_backend.jpa.enums.LoanStatus;
 import edu.ap.bib_backend.service.LoanExtensionService;
 import edu.ap.bib_backend.service.LoanService;
 import jakarta.validation.Valid;
@@ -97,7 +98,28 @@ public class LoanController {
     public ResponseEntity<PageDTO<LoanGroupDTO>> findAllGrouped(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LoanStatus status,
+            @RequestParam(required = false) Boolean extendable,
             Authentication authentication) {
-        return ResponseEntity.ok(loanService.findAllGrouped(page, pageSize, authentication));
+        return ResponseEntity.ok(loanService.findAllGrouped(page, pageSize, search, status, extendable, authentication));
+    }
+
+    @GetMapping("/active/grouped")
+    public ResponseEntity<PageDTO<LoanGroupDTO>> findActiveGrouped(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String search,
+            Authentication authentication) {
+        return ResponseEntity.ok(loanService.findActiveGrouped(page, pageSize, search, authentication));
+    }
+
+    @GetMapping("/active/batches")
+    public ResponseEntity<PageDTO<LoanGroupDTO>> findActiveBatches(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String search,
+            Authentication authentication) {
+        return ResponseEntity.ok(loanService.findActiveBatches(page, pageSize, search, authentication));
     }
 }

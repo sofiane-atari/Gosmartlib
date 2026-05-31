@@ -312,7 +312,7 @@ export class CreateLoanComponent {
 
     if (this.selectedUser()) {
       const user = this.selectedUser()!;
-      this.hasValidRefreshToken.set(true);
+      this.loadNotificationStatus(user.id);
 
       if (this.bookSearchQuery().trim()) {
         this.triggerCatalogSearch();
@@ -414,8 +414,22 @@ export class CreateLoanComponent {
     this.updateDefaultReturnDate();
     this.triggerCatalogSearch();
     this.triggerIsbnSearch();
+    this.loadNotificationStatus(user.id);
+  }
 
-    this.hasValidRefreshToken.set(true);
+  private loadNotificationStatus(userId: string): void {
+    this.userService.getNotificationStatus(userId).subscribe({
+      next: (status) => {
+        if (this.selectedUser()?.id === userId) {
+          this.hasValidRefreshToken.set(status.hasValidRefreshToken);
+        }
+      },
+      error: () => {
+        if (this.selectedUser()?.id === userId) {
+          this.hasValidRefreshToken.set(false);
+        }
+      },
+    });
   }
 
   public clearSelectedUser(): void {
@@ -895,7 +909,7 @@ export class CreateLoanComponent {
   private loadSchools(): void {
     this.isLoadingSchools.set(true);
 
-    this.schoolService.getAll().subscribe({
+    this.schoolService.getAccessibleSchools().subscribe({
       next: (schools) => {
         this.schools.set(schools);
         this.isLoadingSchools.set(false);

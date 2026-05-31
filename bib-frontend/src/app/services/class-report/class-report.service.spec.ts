@@ -1,13 +1,17 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { ClassReportService } from './class-report.service';
+import { TeacherClassReportService } from './class-report.service';
 
-describe('ClassReportService', () => {
-  let service: ClassReportService;
+describe('TeacherClassReportService', () => {
+  let service: TeacherClassReportService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(ClassReportService);
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(TeacherClassReportService);
   });
 
   it('should be created', () => {

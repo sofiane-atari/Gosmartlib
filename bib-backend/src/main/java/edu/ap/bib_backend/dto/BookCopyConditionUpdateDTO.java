@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 public record BookCopyConditionUpdateDTO(
         Long bookCopyId,
 
+        String identifier,
+
         @NotNull(message = "Boekstaat is verplicht")
         BookCondition condition
 ) {}

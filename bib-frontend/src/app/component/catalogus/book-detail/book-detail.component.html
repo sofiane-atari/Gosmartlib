@@ -91,6 +91,14 @@
           </div>
         </div>
 
+        @if (roleService.canManageBooks() && selectedBook.isbn) {
+          <div class="isbn-card">
+            <span class="isbn-card__label">ISBN</span>
+            <strong class="isbn-card__value">{{ selectedBook.isbn }}</strong>
+            <app-barcode [value]="selectedBook.isbn" label="ISBN"></app-barcode>
+          </div>
+        }
+
         <app-button-hover-help
           class="full-button-help"
           [text]="
@@ -447,7 +455,7 @@
                             [class.copy-condition-row--lost]="isLostCopy(copy)"
                           >
                             <div>
-                              <strong>Exemplaar #{{ copy.id }}</strong>
+                              <strong>Exemplaar {{ getCopyDisplayIdentifier(copy) }}</strong>
 
                               @if (isLostCopy(copy)) {
                                 <span class="copy-lost-badge">Verloren</span>
@@ -459,7 +467,7 @@
                               }
                             </div>
 
-                            @if (roleService.canAccessAdminOnlyFeatures()) {
+                            @if (roleService.canManageBooks()) {
                               <label>
                                 <span>Wijzig staat</span>
 

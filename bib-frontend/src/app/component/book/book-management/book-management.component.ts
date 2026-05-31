@@ -13,7 +13,7 @@ import {
 } from 'lucide-angular';
 import { fadeInUpAnimation } from '../../shared/animations/my-reviews.animations';
 import { LoansService } from '../../../services/loan/loans.service';
-import { Loan } from '../../../model/loan/loan.model';
+import { Loan, LoanBook, LoanBookCopy } from '../../../model/loan/loan.model';
 import {
   PagingMeta,
   PagingComponent,
@@ -21,8 +21,9 @@ import {
 import { ButtonHoverHelpComponent } from '../../shared/button-hover-help/button-hover-help.component';
 import { ExtendLoanComponent } from './extend-loan/extend-loan.component';
 import { ToastService } from '../../../services/toast/toast.service';
-import { LoanGroup } from '../../../model/loan/loanGroup.model';
+import { LoanGroup, LoanGroupStatus } from '../../../model/loan/loanGroup.model';
 import { StatCardComponent } from "../../shared/stat-card/stat-card.component";
+import { SearchBarComponent } from '../../shared/search-bar/search-bar.component';
 
 type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
 
@@ -37,7 +38,8 @@ type LoanStatus = 'Uitgeleend' | 'Te laat' | 'Teruggebracht';
     PagingComponent,
     ButtonHoverHelpComponent,
     ExtendLoanComponent,
-    StatCardComponent
+    StatCardComponent,
+    SearchBarComponent,
 ],
   templateUrl: './book-management.component.html',
   styleUrl: './book-management.component.css',
@@ -73,6 +75,22 @@ export class BookManagementComponent implements OnInit {
   protected readonly pageSize = signal(10);
   protected readonly totalItems = signal(0);
   protected readonly totalPages = signal(0);
+  protected readonly searchTerm = signal('');
+  protected readonly statusFilter = signal<LoanGroupStatus | 'ALL'>('ALL');
+  protected readonly extendableFilter = signal<boolean | null>(null);
+
+  protected readonly statusFilterOptions: { value: LoanGroupStatus | 'ALL'; label: string }[] = [
+    { value: 'ALL', label: 'Alle statussen' },
+    { value: 'ACTIVE', label: 'Uitgeleend' },
+    { value: 'OVERDUE', label: 'Te laat' },
+    { value: 'RETURNED', label: 'Teruggebracht' },
+  ];
+
+  protected readonly extendableFilterOptions: { value: string; label: string }[] = [
+    { value: 'ALL', label: 'Alle leningen' },
+    { value: 'EXTENDABLE', label: 'Verlengbaar' },
+    { value: 'NOT_EXTENDABLE', label: 'Niet verlengbaar' },
+  ];
 
   protected readonly loanGroups = signal<LoanGroup[]>([]);
   expandedUserIds = new Set<string>();
@@ -128,7 +146,15 @@ export class BookManagementComponent implements OnInit {
   loadLoans(): void {
     this.isLoading.set(true);
 
-    this.loansService.getGroupedLoans(this.page(), this.pageSize()).subscribe({
+    this.loansService
+      .getGroupedLoans(
+        this.page(),
+        this.pageSize(),
+        this.searchTerm(),
+        this.statusFilter(),
+        this.extendableFilter(),
+      )
+      .subscribe({
       next: (response) => {
         this.loanGroups.set(response.data);
         this.totalItems.set(response.meta.totalItems);
@@ -140,6 +166,31 @@ export class BookManagementComponent implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  protected onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.resetToFirstPageAndLoad();
+  }
+
+  protected onStatusFilterChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value as LoanGroupStatus | 'ALL';
+    this.statusFilter.set(value);
+    this.resetToFirstPageAndLoad();
+  }
+
+  protected onExtendableFilterChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    const filter = value === 'EXTENDABLE' ? true : value === 'NOT_EXTENDABLE' ? false : null;
+
+    this.extendableFilter.set(filter);
+    this.resetToFirstPageAndLoad();
+  }
+
+  private resetToFirstPageAndLoad(): void {
+    this.page.set(0);
+    this.expandedUserIds.clear();
+    this.loadLoans();
   }
 
   getFirstName(displayName?: string | null): string {
@@ -240,6 +291,20 @@ export class BookManagementComponent implements OnInit {
 
   bookCount(loan: any): number {
     return loan.books?.length ?? 0;
+  }
+
+  protected getBookCopies(book: LoanBook): LoanBookCopy[] {
+    if (book.copies && book.copies.length > 0) {
+      return book.copies;
+    }
+
+    return (book.bookCopyIds ?? []).map((id) => ({ id, identifier: null }));
+  }
+
+  protected getLoanCopyLabels(loan: Loan): string[] {
+    return loan.books
+      ?.flatMap((book) => this.getBookCopies(book))
+      .map((copy) => `Exemplaar ${copy.identifier?.trim() || `#${copy.id}`}`) ?? [];
   }
 
   loadLoanStats(): void {

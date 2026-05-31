@@ -12,5 +12,6 @@ public record LoanBookDTO(
         String isbn,
         String imageUrl,
         List<Long> bookCopyIds,
+        List<LoanBookCopyDTO> copies,
         Integer copiesCount
 ) {}

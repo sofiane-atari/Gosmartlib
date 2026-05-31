@@ -3,8 +3,10 @@ package edu.ap.bib_backend.controller;
 import edu.ap.bib_backend.dto.AuthUserDto;
 import edu.ap.bib_backend.dto.PageDTO;
 import edu.ap.bib_backend.dto.TeacherStatsDTO;
+import edu.ap.bib_backend.dto.UserNotificationStatusDto;
 import edu.ap.bib_backend.dto.UserReviewAccessUpdateDto;
 import edu.ap.bib_backend.options.UserGetOptions;
+import edu.ap.bib_backend.service.TokenStorageService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import edu.ap.bib_backend.service.user.UserService;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +23,13 @@ public class UserController {
 
     private final UserService userService;
     private final CurrentUserService currentUserService;
+    private final TokenStorageService tokenStorageService;
 
-    public UserController(UserService userService, CurrentUserService currentUserService) {
+    public UserController(UserService userService, CurrentUserService currentUserService,
+            TokenStorageService tokenStorageService) {
         this.userService = userService;
         this.currentUserService = currentUserService;
+        this.tokenStorageService = tokenStorageService;
     }
 
     @GetMapping
@@ -69,6 +74,13 @@ public class UserController {
     @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
     public ResponseEntity<List<AuthUserDto>> getReviewBlockedUsers(Authentication authentication) {
         return ResponseEntity.ok(userService.getReviewBlockedUsers(authentication));
+    }
+
+    @GetMapping("/{userId}/notification-status")
+    @PreAuthorize("hasAnyRole('LIBRARIAN', 'ADMIN')")
+    public ResponseEntity<UserNotificationStatusDto> getNotificationStatus(@PathVariable String userId) {
+        return ResponseEntity.ok(new UserNotificationStatusDto(
+                tokenStorageService.hasValidSmartschoolRefreshToken(userId)));
     }
 
     @PatchMapping("/{userId}/review-access")

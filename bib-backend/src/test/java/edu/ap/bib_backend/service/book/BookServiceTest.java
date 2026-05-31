@@ -100,6 +100,9 @@ class BookServiceTest {
     private CurrentUserService currentUserService;
 
     @Mock
+    private BookCopyIdentifierService bookCopyIdentifierService;
+
+    @Mock
     private Authentication authentication;
 
     private BookService bs;
@@ -122,7 +125,10 @@ class BookServiceTest {
                 bookMapper1,
                 bookCandidateMapper,
                 openLibraryClient,
-                currentUserService
+                currentUserService,
+                bookCopyIdentifierService,
+                readingListRepository
+        );
 
         );
         campus = new Campus();
