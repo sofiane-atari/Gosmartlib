@@ -168,7 +168,7 @@ class LoanReminderServiceTest {
 
         loanReminderService.sendOverdueUserReminders();
 
-        verify(smartschoolMessageService).sendMessage("token-123", "Boek(en) te laat teruggebracht", "<html>overdue</html>");
+        verify(smartschoolMessageService).sendMessage("token-123", "Boek(en) te laat", "<html>overdue</html>");
     }
 
     @Test
@@ -251,7 +251,7 @@ class LoanReminderServiceTest {
     @ParameterizedTest
     @CsvSource({
             "upcoming-return, Retourdatum nadert",
-            "overdue-user, Boek(en) te laat teruggebracht",
+            "overdue-user, Boek(en) te laat",
             "unknown, Herinnering"
     })
     void Given_ValidLoan_When_SendReminderWithDifferentTemplates_Then_UsesCorrectTitle(String templateName, String expectedTitle) {

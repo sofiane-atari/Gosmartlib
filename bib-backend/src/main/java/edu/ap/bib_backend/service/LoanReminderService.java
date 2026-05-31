@@ -133,7 +133,7 @@ public class LoanReminderService {
 
         String title = switch (templateName) {
             case "upcoming-return" -> "Retourdatum nadert";
-            case "overdue-user" -> "Boek(en) te laat teruggebracht";
+            case "overdue-user" -> "Boek(en) te laat";
             default -> "Herinnering";
         };
 
