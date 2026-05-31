@@ -1,5 +1,4 @@
 <aside class="sidebar" [class.mobile-open]="mobileOpen()">
-  <!-- Mobile Close Button -->
   <button
     class="mobile-close-btn"
     (click)="closeOnMobile()"
@@ -24,9 +23,9 @@
   <div class="sidebar-header">
     <div class="profile-container">
     <div class="avatar">
-      <img 
-        src="assets/profile-icon/GoAntwerpen.jpg" 
-        alt="Go Antwerpen Logo" 
+      <img
+        src="assets/profile-icon/GoAntwerpen.jpg"
+        alt="Go Antwerpen Logo"
         class="avatar-logo"
       />
     </div>
@@ -86,19 +85,24 @@
       </app-dev-feature-wrapper>
     }
 
-    @if (roleService.isAdmin()) {
-      @if (isSchoolOverrideActive()) {
+    @if (canSwitchClass()) {
+      @if (isSchoolOverrideActive() || isClassOverrideActive()) {
         <div class="active-school-badge">
-          <span class="active-school-name">{{ activeSchoolDisplayName() }}</span>
+          @if (isSchoolOverrideActive()) {
+            <span class="active-school-name">{{ activeSchoolDisplayName() }}</span>
+          }
+          @if (isClassOverrideActive()) {
+            <span class="active-class-name">{{ activeClassDisplayName() }}</span>
+          }
           <button class="btn btn-outline-white" (click)="openSchoolSwitchModal()">
             <lucide-icon [name]="SchoolSwitchIcon" class="btn-icon"></lucide-icon>
-            <span class="btn-text">School wisselen</span>
+            <span class="btn-text">{{ switchButtonLabel() }}</span>
           </button>
         </div>
       } @else {
         <button class="btn btn-outline-white" (click)="openSchoolSwitchModal()">
           <lucide-icon [name]="SchoolSwitchIcon" class="btn-icon"></lucide-icon>
-          <span class="btn-text">School wisselen</span>
+          <span class="btn-text">{{ switchButtonLabel() }}</span>
         </button>
       }
     }
@@ -112,12 +116,20 @@
 
 <app-school-switch-modal
   [isVisible]="isSchoolSwitchModalOpen()"
+  [step]="modalStep()"
   [schools]="schoolsForSwitch()"
+  [classes]="classesForSwitch()"
   [isLoading]="isLoadingSchools()"
+  [isLoadingClasses]="isLoadingClasses()"
   [errorMessage]="schoolSwitchError()"
+  [classErrorMessage]="classSwitchError()"
   [isOverrideActive]="isSchoolOverrideActive()"
   [activeSchoolName]="schoolOverrideService.activeSchoolName()"
+  [selectedSchoolName]="selectedSchoolForClasses()?.name ?? null"
+  [canGoBackToSchool]="roleService.isAdmin() && !roleService.isLibrarian()"
   (schoolSelected)="onSchoolSelected($event)"
+  (classesConfirmed)="onClassesConfirmed($event)"
   (cancelRequested)="closeSchoolSwitchModal()"
   (resetRequested)="resetSchoolOverride()"
+  (backRequested)="onBackToSchools()"
 ></app-school-switch-modal>

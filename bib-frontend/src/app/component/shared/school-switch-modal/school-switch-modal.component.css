@@ -25,15 +25,36 @@
 .school-switch-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
 .school-switch-header h2 {
+  flex: 1;
   margin: 0;
   color: #111827;
   font-size: 20px;
   font-weight: 800;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
 }
 
 .close-btn {
@@ -49,6 +70,7 @@
   color: #6b7280;
   cursor: pointer;
   transition: background 0.2s ease;
+  flex-shrink: 0;
 }
 
 .close-btn:hover {
@@ -150,6 +172,38 @@
   font-weight: 600;
 }
 
+.class-select-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #374151;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--main-font);
+}
+
+.select-all-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #8a1e41;
+  cursor: pointer;
+}
+
+.selected-count {
+  font-size: 12px;
+  color: #8a1e41;
+  font-weight: 600;
+}
+
 .school-list {
   flex: 1;
   overflow-y: auto;
@@ -190,6 +244,29 @@
   border-color: #d1d5db;
 }
 
+.class-item {
+  padding: 8px 10px;
+  justify-content: space-between;
+}
+
+.class-item.selected {
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+
+.check-icon {
+  flex-shrink: 0;
+  color: #8a1e41;
+}
+
+.class-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #8a1e41;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .school-icon {
   flex-shrink: 0;
   color: #8a1e41;
@@ -224,6 +301,29 @@
   flex-wrap: wrap;
 }
 
+.primary-button {
+  min-height: 42px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #8a1e41;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--main-font);
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #6f1834;
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .secondary-button {
   min-height: 42px;
   padding: 8px 16px;
@@ -253,6 +353,7 @@
     align-items: stretch;
   }
 
+  .primary-button,
   .secondary-button {
     width: 100%;
   }

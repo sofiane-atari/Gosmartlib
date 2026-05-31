@@ -7,69 +7,143 @@
       (click)="$event.stopPropagation()"
     >
       <div class="school-switch-header">
-        <h2>School wisselen</h2>
+        @if (step() === 'class' && canGoBackToSchool()) {
+          <button type="button" class="back-btn" (click)="goBack()" aria-label="Terug naar scholen">
+            <lucide-icon [name]="BackIcon" class="icon-sm"></lucide-icon>
+          </button>
+        }
+        <h2>{{ step() === 'school' ? 'School wisselen' : 'Klassen selecteren' }}</h2>
         <button type="button" class="close-btn" (click)="close()" aria-label="Sluiten">
           <lucide-icon [name]="CloseIcon" class="icon-sm"></lucide-icon>
         </button>
       </div>
 
-      <p class="school-switch-description">
-        Kies een school om tijdelijk als die school te werken. Dit heeft invloed op alle dashboards en overzichten.
-      </p>
+      @if (step() === 'school') {
+        <p class="school-switch-description">
+          Kies een school om tijdelijk als die school te werken. Dit heeft invloed op alle dashboards en overzichten.
+        </p>
 
-      @if (isOverrideActive()) {
-        <div class="override-active-banner">
-          <span class="override-active-text">
-            Je bekijkt nu: <strong>{{ activeSchoolName() }}</strong>
-          </span>
-          <button type="button" class="reset-button" (click)="reset()">
-            <lucide-icon [name]="ResetIcon" class="icon-sm"></lucide-icon>
-            Reset naar eigen school
+        @if (isOverrideActive()) {
+          <div class="override-active-banner">
+            <span class="override-active-text">
+              Je bekijkt nu: <strong>{{ activeSchoolName() }}</strong>
+            </span>
+            <button type="button" class="reset-button" (click)="reset()">
+              <lucide-icon [name]="ResetIcon" class="icon-sm"></lucide-icon>
+              Reset naar eigen school
+            </button>
+          </div>
+        }
+
+        <div class="search-wrapper">
+          <lucide-icon [name]="SearchIcon" class="search-icon"></lucide-icon>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Zoek een school..."
+            (input)="onSchoolSearch($event)"
+          />
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-message">{{ errorMessage() }}</div>
+        }
+
+        <div class="school-list custom-scrollbar">
+          @if (isLoading()) {
+            <div class="loading-state">Scholen laden...</div>
+          } @else if (filteredSchools().length === 0) {
+            <div class="empty-state">Geen scholen gevonden.</div>
+          } @else {
+            @for (school of filteredSchools(); track school.id) {
+              <button
+                type="button"
+                class="school-item"
+                (click)="selectSchool(school)"
+              >
+                <lucide-icon [name]="SchoolIcon" class="school-icon"></lucide-icon>
+                <div class="school-info">
+                  <span class="school-name">{{ school.name }}</span>
+                  <span class="school-domain">{{ school.domainName }}</span>
+                </div>
+              </button>
+            }
+          }
+        </div>
+      }
+
+      @if (step() === 'class') {
+        <p class="school-switch-description">
+          Selecteer een of meer klassen van <strong>{{ selectedSchoolName() }}</strong>.
+        </p>
+
+        <div class="search-wrapper">
+          <lucide-icon [name]="SearchIcon" class="search-icon"></lucide-icon>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Zoek een klas..."
+            (input)="onClassSearch($event)"
+          />
+        </div>
+
+        @if (classErrorMessage()) {
+          <div class="error-message">{{ classErrorMessage() }}</div>
+        }
+
+        <div class="school-list custom-scrollbar">
+          @if (isLoadingClasses()) {
+            <div class="loading-state">Klassen laden...</div>
+          } @else if (filteredClasses().length === 0) {
+            <div class="empty-state">Geen klassen gevonden.</div>
+          } @else {
+            @for (cls of filteredClasses(); track cls.sourcedId) {
+              <button
+                type="button"
+                class="school-item class-item"
+                [class.selected]="isClassSelected(cls)"
+                (click)="toggleClass(cls)"
+              >
+                <div class="school-info">
+                  <span class="school-name">{{ cls.title }}</span>
+                  <span class="school-domain">{{ cls.classCode }}</span>
+                </div>
+                @if (isClassSelected(cls)) {
+                  <lucide-icon [name]="CheckIcon" class="check-icon"></lucide-icon>
+                }
+              </button>
+            }
+          }
+        </div>
+
+        <div class="school-switch-actions">
+          @if (canGoBackToSchool()) {
+            <button type="button" class="secondary-button" (click)="goBack()">
+              Terug
+            </button>
+          } @else {
+            <button type="button" class="secondary-button" (click)="close()">
+              Annuleren
+            </button>
+          }
+          <button
+            type="button"
+            class="primary-button"
+            [disabled]="!canConfirm()"
+            (click)="confirmClasses()"
+          >
+            Selecteer {{ selectedCount() > 0 ? '(' + selectedCount() + ')' : '' }}
           </button>
         </div>
       }
 
-      <div class="search-wrapper">
-        <lucide-icon [name]="SearchIcon" class="search-icon"></lucide-icon>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Zoek een school..."
-          (input)="onSearchInput($event)"
-        />
-      </div>
-
-      @if (errorMessage()) {
-        <div class="error-message">{{ errorMessage() }}</div>
+      @if (step() === 'school') {
+        <div class="school-switch-actions">
+          <button type="button" class="secondary-button" (click)="close()">
+            Annuleren
+          </button>
+        </div>
       }
-
-      <div class="school-list custom-scrollbar">
-        @if (isLoading()) {
-          <div class="loading-state">Scholen laden...</div>
-        } @else if (filteredSchools().length === 0) {
-          <div class="empty-state">Geen scholen gevonden.</div>
-        } @else {
-          @for (school of filteredSchools(); track school.id) {
-            <button
-              type="button"
-              class="school-item"
-              (click)="selectSchool(school)"
-            >
-              <lucide-icon [name]="SchoolIcon" class="school-icon"></lucide-icon>
-              <div class="school-info">
-                <span class="school-name">{{ school.name }}</span>
-                <span class="school-domain">{{ school.domainName }}</span>
-              </div>
-            </button>
-          }
-        }
-      </div>
-
-      <div class="school-switch-actions">
-        <button type="button" class="secondary-button" (click)="close()">
-          Annuleren
-        </button>
-      </div>
     </section>
   </div>
 }

@@ -286,6 +286,16 @@ lucide-icon {
   text-overflow: ellipsis;
 }
 
+.active-class-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #fca5a5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: -2px;
+}
+
 .divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.2);
