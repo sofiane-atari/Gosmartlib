@@ -88,6 +88,9 @@ class SmartschoolOAuth2UserServiceTest {
     @MockitoBean
     private OneRosterClient oneRosterClient;
 
+    @MockitoBean
+    private EnvAdminService envAdminService;
+
     private MockRestServiceServer mockRestServiceServer;
 
     @BeforeEach
@@ -149,7 +152,7 @@ class SmartschoolOAuth2UserServiceTest {
         assertEquals("existing-user", result.getAttribute("userID"));
         assertEquals("2ITSOF1", result.getAttribute("classCode"));
         assertEquals("2", result.getAttribute("yearCode"));
-        assertEquals(PLATFORM_URL, result.getAttribute("schoolCode"));
+        assertEquals(SCHOOL_DOMAIN_NAME, result.getAttribute("schoolCode"));
         assertTrue(result.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER")));
 
         verify(userService, times(1)).getUser("existing-user");
