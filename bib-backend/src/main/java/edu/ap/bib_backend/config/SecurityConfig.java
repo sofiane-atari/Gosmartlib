@@ -149,11 +149,14 @@ public class SecurityConfig {
                                         auth.requestMatchers("/schools/dev-mode-enabled")
                                                         .permitAll();
 
-                                        auth.requestMatchers(HttpMethod.GET, "/schools/*/catalog-sidebar-settings")
+                                        auth.requestMatchers(HttpMethod.GET, "/schools/me/classes")
+                                                        .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
+
+                                        auth.requestMatchers(HttpMethod.GET, "/schools/me/catalog-sidebar-settings")
                                                         .hasAnyRole(Role.STUDENT.name(), Role.TEACHER.name(),
                                                                         Role.LIBRARIAN.name(), Role.ADMIN.name());
 
-                                        auth.requestMatchers(HttpMethod.PUT, "/schools/*/catalog-sidebar-settings")
+                                        auth.requestMatchers(HttpMethod.PUT, "/schools/me/catalog-sidebar-settings")
                                                         .hasAnyRole(Role.LIBRARIAN.name(), Role.ADMIN.name());
 
                                         auth.requestMatchers("/schools/**")

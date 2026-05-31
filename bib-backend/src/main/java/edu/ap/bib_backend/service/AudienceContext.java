@@ -1,8 +1,13 @@
 package edu.ap.bib_backend.service;
 
-public record AudienceContext(String classCode, String yearCode, String schoolCode) {
+import java.util.List;
+
+public record AudienceContext(List<String> classCodes, String yearCode, String schoolCode) {
     public static AudienceContext defaults() {
-        return new AudienceContext("GENERAL", "0", "ALLEMAAL");
+        return new AudienceContext(List.of("GENERAL"), "0", "ALLEMAAL");
+    }
+
+    public String primaryClassCode() {
+        return classCodes.isEmpty() ? "GENERAL" : classCodes.get(0);
     }
 }
-
