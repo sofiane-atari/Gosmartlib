@@ -474,13 +474,18 @@
         />
 
         <div class="wizard-actions wizard-actions--split">
-          <button
-            type="button"
-            class="action-button action-button--secondary"
-            (click)="goToPreviousStep()"
-          >
-            Vorige
-          </button>
+          @if (!isSchoolCreated()) {
+            <button
+              type="button"
+              class="action-button action-button--secondary"
+              (click)="goToPreviousStep()"
+            >
+              Vorige
+            </button>
+          }
+          @else {
+            <span></span>
+          }
 
           <button
             type="button"

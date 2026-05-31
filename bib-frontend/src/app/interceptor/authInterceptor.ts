@@ -37,6 +37,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }
   }
 
+  if (schoolOverrideService.isClassOverrideActive()) {
+    const classCodes = schoolOverrideService.activeClassCodes();
+    if (classCodes.length > 0) {
+      headers['X-Active-Class-Codes'] = classCodes.map((c) => encodeURIComponent(c)).join(',');
+    }
+    const classNames = schoolOverrideService.activeClassNames();
+    if (classNames.length > 0) {
+      headers['X-Active-Class-Names'] = classNames.map((n) => encodeURIComponent(n)).join(',');
+    }
+    const primaryGroups = schoolOverrideService.activePrimaryGroupNames();
+    if (primaryGroups.length > 0) {
+      headers['X-Active-Primary-Group-Names'] = primaryGroups.map((g) => encodeURIComponent(g)).join(',');
+    }
+  }
+
   const authReq = req.clone({
     setHeaders: headers,
   });
