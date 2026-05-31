@@ -7,6 +7,7 @@ import edu.ap.bib_backend.jpa.entity.School;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
+import edu.ap.bib_backend.service.message.SmartschoolMessageTemplateService;
 import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +47,8 @@ class LoanReminderServiceTest {
     private ExternalUserDisplayService externalUserDisplayService;
     @Mock
     private TemplateRenderer templateRenderer;
+    @Mock
+    private SmartschoolMessageTemplateService smartschoolMessageTemplateService;
 
     @Captor
     private ArgumentCaptor<String> templatePathCaptor;
@@ -67,8 +69,12 @@ class LoanReminderServiceTest {
                 loanRepository, userRepository,
                 smartschoolTokenRefreshService, smartschoolMessageService,
                 externalUserDisplayService, templateRenderer,
+                smartschoolMessageTemplateService,
                 "http://localhost:4200"
         );
+
+        lenient().when(smartschoolMessageTemplateService.renderLoanBookList(anyList(), anyString()))
+                .thenReturn("<div>Test Boek Test Auteur</div>");
 
         school = new School();
         school.setId(1L);

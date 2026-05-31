@@ -1,0 +1,15 @@
+<div style="display: flex; align-items: center; padding: 12px; margin: 0 0 10px 0; background-color: #faf5f7; border-radius: 8px; border: 1px solid #f0e4e8;" class="msg-book-card">
+    <a href="{{BOOK_URL}}" class="msg-cover-link" style="text-decoration: none; display: block;">
+        <div style="flex-shrink: 0; width: 56px; height: 80px; margin-right: 14px; background-color: #f0e4e8; border-radius: 4px; overflow: hidden;">
+            {{BOOK_COVER_HTML}}
+        </div>
+    </a>
+    <div style="flex: 1; min-width: 0;">
+        <a href="{{BOOK_URL}}" class="msg-book-link" style="color: #1a0a10; text-decoration: none; font-weight: 600;">
+            <p style="margin: 0 0 3px 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{BOOK_TITLE}}</p>
+        </a>
+        {{BOOK_AUTHOR_HTML}}
+        {{GENRES_HTML}}
+        {{COPY_COUNT_HTML}}
+    </div>
+</div>

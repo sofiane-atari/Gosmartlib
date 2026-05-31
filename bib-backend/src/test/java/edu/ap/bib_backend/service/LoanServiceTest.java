@@ -19,6 +19,7 @@ import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
 import edu.ap.bib_backend.mapper.LoanMapper;
 import edu.ap.bib_backend.service.book.BookService;
+import edu.ap.bib_backend.service.message.SmartschoolMessageTemplateService;
 import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 import edu.ap.bib_backend.service.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +69,8 @@ class LoanServiceTest {
     @Mock
     private SmartschoolMessageService smartschoolMessageService;
     @Mock
+    private SmartschoolMessageTemplateService smartschoolMessageTemplateService;
+    @Mock
     private SmartschoolTokenRefreshService smartschoolTokenRefreshService;
     @Mock
     private CurrentUserService currentUserService;
@@ -99,6 +102,7 @@ class LoanServiceTest {
                 bookCopyRepository,
                 userRepository,
                 smartschoolMessageService,
+                smartschoolMessageTemplateService,
                 smartschoolTokenRefreshService,
                 currentUserService,
                 applicationEventPublisher,
@@ -310,7 +314,6 @@ assertEquals(List.of(expectedDto), result);
         when(currentUserService.extractCurrentUserId(authentication)).thenReturn("librarian-42");
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(bookCopyRepository.findAllById(List.of(10L))).thenReturn(List.of(copy));
-        when(loanMapper.toEntity(inputDto)).thenReturn(new Loan());
         when(loanRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         loanService.create(inputDto, authentication);

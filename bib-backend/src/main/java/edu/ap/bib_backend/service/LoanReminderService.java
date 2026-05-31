@@ -15,13 +15,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import edu.ap.bib_backend.jpa.entity.Book;
-import edu.ap.bib_backend.jpa.entity.BookCopy;
 import edu.ap.bib_backend.jpa.entity.Loan;
 import edu.ap.bib_backend.jpa.entity.User;
 import edu.ap.bib_backend.jpa.repository.LoanRepository;
 import edu.ap.bib_backend.jpa.repository.UserRepository;
-import edu.ap.bib_backend.service.message.HtmlMessageBuilder;
+import edu.ap.bib_backend.service.message.SmartschoolMessageTemplateService;
 import edu.ap.bib_backend.service.oneroster.ExternalUserDisplayService;
 
 @Service
@@ -32,26 +30,13 @@ public class LoanReminderService {
             new Locale("nl", "BE"));
     private static final ZoneId BRUSSELS_ZONE = ZoneId.of("Europe/Brussels");
 
-    private static final String BOOK_CARD_STYLE = "display: flex; align-items: center; padding: 12px; " +
-            "margin: 0 0 10px 0; background-color: #faf5f7; " +
-            "border-radius: 8px; border: 1px solid #f0e4e8;";
-    private static final String COVER_WRAPPER_STYLE = "flex-shrink: 0; width: 56px; height: 80px; margin-right: 14px; "
-            +
-            "background-color: #f0e4e8; border-radius: 4px; overflow: hidden;";
-    private static final String COVER_PLACEHOLDER_STYLE = "width: 100%; height: 100%; display: flex; align-items: center; "
-            +
-            "justify-content: center; color: #8a7580; font-size: 20px;";
-    private static final String GENRE_BADGE_STYLE = "display: inline-block; padding: 1px 8px; margin: 0 4px 2px 0; " +
-            "font-size: 11px; color: #8a1e41; background-color: #fdf0f5; " +
-            "border-radius: 10px;";
-    private static final String LINK_STYLE = "color: #1a0a10; text-decoration: none; font-weight: 600;";
-
     private final LoanRepository loanRepository;
     private final UserRepository userRepository;
     private final SmartschoolTokenRefreshService smartschoolTokenRefreshService;
     private final SmartschoolMessageService smartschoolMessageService;
     private final ExternalUserDisplayService externalUserDisplayService;
     private final TemplateRenderer templateRenderer;
+    private final SmartschoolMessageTemplateService smartschoolMessageTemplateService;
     private final String frontendUrl;
 
     public LoanReminderService(
@@ -61,6 +46,7 @@ public class LoanReminderService {
             SmartschoolMessageService smartschoolMessageService,
             ExternalUserDisplayService externalUserDisplayService,
             TemplateRenderer templateRenderer,
+            SmartschoolMessageTemplateService smartschoolMessageTemplateService,
             @Value("${FRONTEND_URL:http://localhost:4200}") String frontendUrl) {
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
@@ -68,6 +54,7 @@ public class LoanReminderService {
         this.smartschoolMessageService = smartschoolMessageService;
         this.externalUserDisplayService = externalUserDisplayService;
         this.templateRenderer = templateRenderer;
+        this.smartschoolMessageTemplateService = smartschoolMessageTemplateService;
         this.frontendUrl = frontendUrl;
     }
 
@@ -139,7 +126,7 @@ public class LoanReminderService {
         }
 
         String userDisplayName = resolveUserDisplayName(user);
-        String booksHtml = buildBooksHtml(loan);
+        String booksHtml = smartschoolMessageTemplateService.renderLoanBookList(List.of(loan), frontendUrl);
         long daysOverdue = loan.getReturnDate() != null
                 ? LocalDate.now(BRUSSELS_ZONE).toEpochDay() - loan.getReturnDate().toEpochDay()
                 : 0;
@@ -202,7 +189,7 @@ public class LoanReminderService {
 
         User borrower = loan.getUser();
         String userDisplayName = resolveUserDisplayName(borrower);
-        String booksHtml = buildBooksHtml(loan);
+        String booksHtml = smartschoolMessageTemplateService.renderLoanBookList(List.of(loan), frontendUrl);
         long daysOverdue = loan.getReturnDate() != null
                 ? LocalDate.now(BRUSSELS_ZONE).toEpochDay() - loan.getReturnDate().toEpochDay()
                 : 0;
@@ -241,71 +228,4 @@ public class LoanReminderService {
                 user.getSchool().getDomainName(), user.getOneRosterSourcedId());
     }
 
-    private String buildBooksHtml(Loan loan) {
-        if (loan.getCopy() == null ||
-                loan.getCopy().getBook() == null) {
-            return "";
-        }
-        Book book = loan.getCopy().getBook();
-
-        StringBuilder sb = new StringBuilder();
-        String bookUrl = frontendUrl + "/book/" + book.getId();
-
-        sb.append("<div style=\"").append(BOOK_CARD_STYLE)
-                .append("\" class=\"msg-book-card\">");
-
-        sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
-                .append("\" class=\"msg-cover-link\" style=\"text-decoration: none; display: block;\">");
-        sb.append("<div style=\"").append(COVER_WRAPPER_STYLE).append("\">");
-        appendCoverImage(sb, book);
-        sb.append("</div>");
-        sb.append("</a>");
-
-        sb.append("<div style=\"flex: 1; min-width: 0;\">");
-        sb.append("<a href=\"").append(HtmlMessageBuilder.escapeHtml(bookUrl))
-                .append("\" class=\"msg-book-link\" style=\"").append(LINK_STYLE).append("\">");
-        sb.append("<p style=\"margin: 0 0 3px 0; font-size: 14px; ")
-                .append("overflow: hidden; text-overflow: ellipsis; white-space: nowrap;\">");
-        sb.append(HtmlMessageBuilder.escapeHtml(book.getTitle()));
-        sb.append("</p>");
-        sb.append("</a>");
-
-        if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
-            sb.append("<p style=\"margin: 0 0 2px 0; font-size: 13px; color: #8a7580;\">");
-            sb.append(HtmlMessageBuilder.escapeHtml(book.getAuthor()));
-            sb.append("</p>");
-        }
-
-        appendGenres(sb, book);
-
-        sb.append("</div>");
-        sb.append("</div>");
-
-        return sb.toString();
-    }
-
-    private void appendCoverImage(StringBuilder sb, Book book) {
-        if (book.getImageUrl() != null && !book.getImageUrl().isBlank()) {
-            sb.append("<img src=\"").append(HtmlMessageBuilder.escapeHtml(book.getImageUrl()))
-                    .append("\" alt=\"").append(HtmlMessageBuilder.escapeHtml(book.getTitle()))
-                    .append("\" style=\"width: 100%; height: 100%; object-fit: cover; display: block;\">");
-        } else {
-            sb.append("<div style=\"").append(COVER_PLACEHOLDER_STYLE).append("\">&#128218;</div>");
-        }
-    }
-
-    private void appendGenres(StringBuilder sb, Book book) {
-        if (book.getGenres() == null || book.getGenres().isEmpty())
-            return;
-        sb.append("<div style=\"margin-top: 4px;\">");
-        for (var genre : book.getGenres()) {
-            sb.append("<span style=\"").append(GENRE_BADGE_STYLE).append("\">");
-            sb.append(HtmlMessageBuilder.escapeHtml(genre.getName()));
-            sb.append("</span>");
-        }
-        sb.append("</div>");
-    }
-
-    private record BookGroup(Book book, long count) {
-    }
 }
