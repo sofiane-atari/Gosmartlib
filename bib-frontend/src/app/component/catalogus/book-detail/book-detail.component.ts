@@ -54,6 +54,7 @@ import {
   CopySelectionModalComponent,
   CopySelectionItem,
 } from '../../shared/copy-selection-modal/copy-selection-modal.component';
+import { BarcodeComponent } from '../../shared/barcode/barcode.component';
 interface CopyStatusSummary {
   status: 'available' | 'borrowed' | 'lost';
   count: number;
@@ -73,6 +74,7 @@ interface CopyStatusSummary {
     BookReviewsComponent,
     BookImagePlaceholderComponent,
     CopySelectionModalComponent,
+    BarcodeComponent,
   ],
   templateUrl: './book-detail.component.html',
   styleUrl: './book-detail.component.css',
