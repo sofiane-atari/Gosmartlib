@@ -129,7 +129,7 @@ export class SidebarComponent {
   );
 
   protected readonly isAdminOverrideVisible = computed(
-    () => this.devModeEnabled() && !!this.currentUser(),
+    () => this.devModeEnabled() && this.authService.isAdminOverrideFeatureEnabled && !!this.currentUser(),
   );
 
   protected readonly isAdminOverrideEnabled = computed(

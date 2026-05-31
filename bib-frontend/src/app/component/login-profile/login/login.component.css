@@ -120,6 +120,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
+  background-color: #dc2626;
   color: white;
   text-decoration: none;
   border-radius: 0.5rem;
@@ -130,6 +131,7 @@
 }
 
 .contact-link:hover {
+  background-color: #b91c1c;
   transform: translateY(-2px);
   box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.4);
 }
