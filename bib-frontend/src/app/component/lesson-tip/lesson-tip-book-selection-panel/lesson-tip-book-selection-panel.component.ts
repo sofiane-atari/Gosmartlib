@@ -27,6 +27,7 @@ export class LessonTipBookSelectionPanelComponent {
   public readonly isbnSearchChanged = output<Event>();
   public readonly isbnKeydown = output<KeyboardEvent>();
   public readonly addBookRequested = output<BookCandidate>();
+  public readonly removeBookRequested = output<BookCandidate>();
 
   protected isBookAlreadySelected(bookId: number): boolean {
     return this.selectedBookIds().includes(bookId);
@@ -101,5 +102,9 @@ export class LessonTipBookSelectionPanelComponent {
     }
 
     return `${book.selectedCount} geselecteerd`;
+  }
+
+  protected canRemoveBook(book: BookCandidate): boolean {
+    return this.allowMultipleSelection() && (book.selectedCount ?? 0) > 0;
   }
 }

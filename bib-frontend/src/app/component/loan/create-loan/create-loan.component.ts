@@ -443,7 +443,7 @@ export class CreateLoanComponent {
       return;
     }
 
-    this.bookService.getBookById(book.id).subscribe({
+    this.bookService.getBookById(book.id, this.getCurrentSchoolId()).subscribe({
       next: (detailedBook) => this.addBookCopySelection(detailedBook),
       error: () =>
         this.showError('Exemplaren konden niet geladen worden voor dit boek.'),
@@ -716,6 +716,14 @@ export class CreateLoanComponent {
       );
   }
 
+  private getCurrentSchoolId(): number | undefined {
+    return (
+      this.authService.currentUser()?.school?.id ??
+      this.authService.currentUser()?.schoolId ??
+      undefined
+    );
+  }
+
   private getCopyCampusId(book: Book, copyId: number): number | null {
     for (const location of book.copyLocations ?? []) {
       if (location.copies.some((copy) => copy.id === copyId)) {
@@ -918,6 +926,7 @@ export class CreateLoanComponent {
         0,
         50,
         'AZ',
+        this.getCurrentSchoolId(),
       )
       .subscribe({
         next: (response: PaginatedResponse<Book>) => {
@@ -941,7 +950,7 @@ export class CreateLoanComponent {
     const requestSequence = ++this.latestIsbnRequestSequence;
     this.isLoadingIsbnBooks.set(true);
 
-    this.bookService.getBookByISBN(isbn).subscribe({
+    this.bookService.getBookByISBN(isbn, this.getCurrentSchoolId()).subscribe({
       next: (book: Book) => {
         if (requestSequence !== this.latestIsbnRequestSequence) {
           return;

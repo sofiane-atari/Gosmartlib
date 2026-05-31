@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { BookService } from '../../../services/bookService/book.service';
@@ -8,6 +8,7 @@ import { UserService } from '../../../services/user/user.service';
 import { SchoolService } from '../../../services/school/school.service';
 import { AuthService } from '../../../services/authorization/auth.service';
 import { ToastService } from '../../../services/toast/toast.service';
+import { AuthUserDto } from '../../../model/auth.model';
 import { Book } from '../../../model/book/book.model';
 import { LocalDate } from '../../../shared/types/local-date.type';
 
@@ -21,6 +22,7 @@ describe('CreateLoanComponent', () => {
   let loansServiceSpy: jasmine.SpyObj<LoansService>;
   let schoolServiceSpy: jasmine.SpyObj<SchoolService>;
   let toastServiceSpy: jasmine.SpyObj<ToastService>;
+  let currentUser: WritableSignal<AuthUserDto | null>;
 
   const book: Book = {
     id: 1,
@@ -49,6 +51,7 @@ describe('CreateLoanComponent', () => {
     bookServiceSpy = jasmine.createSpyObj<BookService>('BookService', [
       'getFilteredBooks',
       'getBookById',
+      'getBookByISBN',
     ]);
     loansServiceSpy = jasmine.createSpyObj<LoansService>('LoansService', [
       'createLoans',
@@ -64,8 +67,10 @@ describe('CreateLoanComponent', () => {
       }),
     );
     bookServiceSpy.getBookById.and.returnValue(of(book));
+    bookServiceSpy.getBookByISBN.and.returnValue(of(book));
     loansServiceSpy.createLoans.and.returnValue(of([]));
     schoolServiceSpy.getAll.and.returnValue(of([]));
+    currentUser = signal<AuthUserDto | null>(null);
 
     await TestBed.configureTestingModule({
       imports: [CreateLoanComponent],
@@ -76,7 +81,7 @@ describe('CreateLoanComponent', () => {
         { provide: LoansService, useValue: loansServiceSpy },
         { provide: SchoolService, useValue: schoolServiceSpy },
         { provide: ToastService, useValue: toastServiceSpy },
-        { provide: AuthService, useValue: { currentUser: signal(null) } },
+        { provide: AuthService, useValue: { currentUser } },
       ],
     })
     .compileComponents();
@@ -124,5 +129,52 @@ describe('CreateLoanComponent', () => {
       'Elk te lenen exemplaar moet uniek zijn. Kies een ander exemplaar.',
       'error',
     );
+  });
+
+  it('Given_CurrentSchool_When_AddBook_Then_FetchesBookByIdWithSchoolId', () => {
+    // Arrange
+    currentUser.set({ id: 'librarian-1', role: 'LIBRARIAN', schoolId: 7 });
+
+    // Act
+    component.addBook(book);
+
+    // Assert
+    expect(bookServiceSpy.getBookById).toHaveBeenCalledWith(1, 7);
+  });
+
+  it('Given_CurrentSchool_When_LoadCatalogBooks_Then_SearchUsesSchoolId', () => {
+    // Arrange
+    currentUser.set({ id: 'librarian-1', role: 'LIBRARIAN', schoolId: 7 });
+    component.selectedUser.set({ id: 'user-1', role: 'STUDENT' });
+
+    // Act
+    (component as any).loadCatalogBooks('harry');
+
+    // Assert
+    expect(bookServiceSpy.getFilteredBooks).toHaveBeenCalledWith(
+      'harry',
+      'AVAILABLE',
+      null,
+      null,
+      null,
+      null,
+      'ALL',
+      0,
+      50,
+      'AZ',
+      7,
+    );
+  });
+
+  it('Given_CurrentSchool_When_FetchBookByIsbn_Then_SearchUsesSchoolId', () => {
+    // Arrange
+    currentUser.set({ id: 'librarian-1', role: 'LIBRARIAN', schoolId: 7 });
+    component.selectedUser.set({ id: 'user-1', role: 'STUDENT' });
+
+    // Act
+    (component as any).fetchBookByIsbn('9781234567890', false);
+
+    // Assert
+    expect(bookServiceSpy.getBookByISBN).toHaveBeenCalledWith('9781234567890', 7);
   });
 });
