@@ -527,9 +527,42 @@ String batchId = UUID.randomUUID().toString();
      * @return paged grouped loan response
      */
     public PageDTO<LoanGroupDTO> findAllGrouped(int page, int pageSize, Authentication authentication) {
+        return findAllGrouped(page, pageSize, null, null, null, authentication);
+    }
+
+    public PageDTO<LoanGroupDTO> findAllGrouped(int page, int pageSize, String search, LoanStatus status,
+            Boolean extendable, Authentication authentication) {
         School school = currentUserService.getCurrentUserSchool(authentication);
 
         List<Loan> loans = loanRepository.findByCampusSchoolId(school.getId());
+
+        return toPagedLoanGroupDtoResponse(loans, page, pageSize, search, status, extendable, true);
+    }
+
+    public PageDTO<LoanGroupDTO> findActiveGrouped(int page, int pageSize, String search, Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
+
+        List<Loan> loans = loanRepository.findByCampusSchoolIdAndReturnedDateIsNull(school.getId());
+
+        return toPagedLoanGroupDtoResponse(loans, page, pageSize, search, null, null, false);
+    }
+
+    public PageDTO<LoanGroupDTO> findActiveBatches(int page, int pageSize, String search, Authentication authentication) {
+        School school = currentUserService.getCurrentUserSchool(authentication);
+
+        List<Loan> loans = loanRepository.findByCampusSchoolIdAndReturnedDateIsNull(school.getId());
+
+        return toPagedBatchGroupDtoResponse(loans, page, pageSize, search);
+    }
+
+    private PageDTO<LoanGroupDTO> toPagedLoanGroupDtoResponse(
+            List<Loan> loans,
+            int page,
+            int pageSize,
+            String search,
+            LoanStatus status,
+            Boolean extendable,
+            boolean groupByStatus) {
 
         Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
                 .filter(loan -> loan.getUser() != null)
@@ -551,8 +584,14 @@ String batchId = UUID.randomUUID().toString();
 
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
 
-        Map<String, List<Loan>> loansByUserAndGroup = loans.stream()
-                .collect(Collectors.groupingBy(loan -> buildLoanGroupKey(loan, today)));
+        List<Loan> filteredLoans = loans.stream()
+                .filter(loan -> status == null || resolveLoanGroupStatus(loan, today) == status)
+                .filter(loan -> extendable == null || canExtendLoan(loan) == extendable)
+                .filter(loan -> matchesLoanSearch(loan, search, displayNamesByUserId))
+                .toList();
+
+        Map<String, List<Loan>> loansByUserAndGroup = filteredLoans.stream()
+                .collect(Collectors.groupingBy(loan -> buildLoanGroupKey(loan, today, groupByStatus)));
 
         List<LoanGroupDTO> groups = loansByUserAndGroup.entrySet()
                 .stream()
@@ -588,6 +627,36 @@ String batchId = UUID.randomUUID().toString();
                 totalPages);
 
         return new PageDTO<>(pageData, meta);
+    }
+
+    private boolean matchesLoanSearch(Loan loan, String search, Map<String, String> displayNamesByUserId) {
+        if (search == null || search.isBlank()) {
+            return true;
+        }
+
+        String term = search.trim().toLowerCase();
+        User user = loan.getUser();
+        String lookupId = user != null ? user.getOneRosterSourcedId() : null;
+        BookCopy copy = loan.getCopy();
+        Book book = copy != null ? copy.getBook() : null;
+
+        return containsIgnoreCase(user != null ? user.getId() : null, term)
+                || containsIgnoreCase(lookupId, term)
+                || containsIgnoreCase(displayNamesByUserId.get(lookupId), term)
+                || containsIgnoreCase(book != null ? book.getTitle() : null, term)
+                || containsIgnoreCase(book != null ? book.getAuthor() : null, term)
+                || containsIgnoreCase(book != null ? book.getIsbn() : null, term)
+                || containsIgnoreCase(copy != null ? copy.getPublicIdentifier() : null, term)
+                || containsIgnoreCase(copy != null && copy.getId() != null ? copy.getId().toString() : null, term);
+    }
+
+    private boolean containsIgnoreCase(String value, String term) {
+        return value != null && value.toLowerCase().contains(term);
+    }
+
+    private boolean canExtendLoan(Loan loan) {
+        return loan.getReturnedDate() == null
+                && (loan.getExtensions() == null || loan.getExtensions().size() < 2);
     }
 
     /**
@@ -710,11 +779,77 @@ String batchId = UUID.randomUUID().toString();
      * @param today current date used for overdue checks
      * @return stable group key
      */
-    private String buildLoanGroupKey(Loan loan, LocalDate today) {
+    private String buildLoanGroupKey(Loan loan, LocalDate today, boolean groupByStatus) {
         String userId = loan.getUser() != null ? loan.getUser().getId() : "unknown-user";
         LoanStatus groupStatus = resolveLoanGroupStatus(loan, today);
 
-        return userId + "-" + groupStatus.name();
+        return groupByStatus ? userId + "-" + groupStatus.name() : userId;
+    }
+
+    private PageDTO<LoanGroupDTO> toPagedBatchGroupDtoResponse(
+            List<Loan> loans,
+            int page,
+            int pageSize,
+            String search) {
+
+        Map<String, Set<String>> userIdsBySchoolCode = loans.stream()
+                .filter(loan -> loan.getUser() != null)
+                .filter(loan -> loan.getUser().getSchool() != null)
+                .filter(loan -> loan.getUser().getSchool().getDomainName() != null)
+                .filter(loan -> loan.getUser().getOneRosterSourcedId() != null)
+                .collect(Collectors.groupingBy(
+                        loan -> loan.getUser().getSchool().getDomainName(),
+                        Collectors.mapping(
+                                loan -> loan.getUser().getOneRosterSourcedId(),
+                                Collectors.toSet())));
+
+        Map<String, String> displayNamesByUserId = new java.util.HashMap<>();
+
+        userIdsBySchoolCode.forEach((schoolCode, userIds) -> {
+            Map<String, String> names = externalUserDisplayService.getDisplayNames(schoolCode, userIds);
+            displayNamesByUserId.putAll(names);
+        });
+
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Brussels"));
+
+        List<Loan> filteredLoans = loans.stream()
+                .filter(loan -> matchesLoanSearch(loan, search, displayNamesByUserId))
+                .toList();
+
+        Map<String, List<Loan>> loansByBatch = filteredLoans.stream()
+                .collect(Collectors.groupingBy(this::getBatchGroupKey));
+
+        List<LoanGroupDTO> groups = loansByBatch.entrySet()
+                .stream()
+                .map(entry -> toLoanGroupDto(entry.getKey(), entry.getValue(), displayNamesByUserId, today))
+                .sorted(Comparator.comparing(
+                        LoanGroupDTO::earliestReturnDate,
+                        Comparator.nullsLast(String::compareTo)))
+                .toList();
+
+        int safePage = Math.max(page, 0);
+        int safePageSize = Math.max(pageSize, 1);
+
+        int totalItems = groups.size();
+        int totalPages = (int) Math.ceil((double) totalItems / safePageSize);
+
+        int fromIndex = safePage * safePageSize;
+        int toIndex = Math.min(fromIndex + safePageSize, totalItems);
+
+        List<LoanGroupDTO> pageData = fromIndex >= totalItems
+                ? List.of()
+                : groups.subList(fromIndex, toIndex);
+
+        PaginatedMeta meta = new PaginatedMeta(safePage, safePageSize, totalItems, totalPages);
+
+        return new PageDTO<>(pageData, meta);
+    }
+
+    private String getBatchGroupKey(Loan loan) {
+        if (loan.getBatchId() != null && !loan.getBatchId().isBlank()) {
+            return "batch-" + loan.getBatchId();
+        }
+        return "standalone-" + (loan.getId() != null ? loan.getId() : "unknown");
     }
 
     /**

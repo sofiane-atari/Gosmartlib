@@ -6,6 +6,8 @@ import edu.ap.bib_backend.dto.loan.LoanDTO;
 import edu.ap.bib_backend.dto.loan.LoanGroupDTO;
 import edu.ap.bib_backend.dto.loan.LoanStatsDTO;
 import edu.ap.bib_backend.jpa.enums.LoanStatus;
+import edu.ap.bib_backend.jpa.repository.SchoolRepository;
+import edu.ap.bib_backend.service.ActiveSchoolContext;
 import edu.ap.bib_backend.service.AdminOverrideService;
 import edu.ap.bib_backend.service.JwtService;
 import edu.ap.bib_backend.service.LoanExtensionService;
@@ -50,6 +52,10 @@ class LoanControllerTest {
     private TokenStorageService tokenStorageService;
     @MockitoBean
     private LoanExtensionService loanExtensionService;
+    @MockitoBean
+    private ActiveSchoolContext activeSchoolContext;
+    @MockitoBean
+    private SchoolRepository schoolRepository;
 
     @Test
     void Given_ValidLoan_When_CreateLoan_Then_ReturnsOkWithCreatedLoan() throws Exception {
@@ -118,7 +124,7 @@ class LoanControllerTest {
                 "2099-12-31",
                 List.of(loanDto));
 
-        when(loanService.findAllGrouped(anyInt(), anyInt(), any()))
+        when(loanService.findAllGrouped(anyInt(), anyInt(), any(), any(), any(), any()))
                 .thenReturn(new PageDTO<>(List.of(groupDto), new PaginatedMeta(0, 10, 1, 1)));
 
         mockMvc.perform(get("/loans/grouped")
@@ -126,6 +132,37 @@ class LoanControllerTest {
                         .param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].groupId").value("user1-ACTIVE"))
+                .andExpect(jsonPath("$.data[0].loans[0].bookCopyIds[0]").value(10));
+    }
+
+    @Test
+    void Given_ActiveGroupedLoansExist_When_GetActiveGroupedLoans_Then_ReturnsPagedLoanGroups() throws Exception {
+        LoanDTO loanDto = LoanDTO.builder()
+                .id(1L)
+                .userId("user1")
+                .bookCopyIds(List.of(10L))
+                .returnDate("2099-12-31")
+                .status(LoanStatus.ACTIVE)
+                .build();
+        LoanGroupDTO groupDto = new LoanGroupDTO(
+                "user1",
+                "user1",
+                "Jan Peeters",
+                LoanStatus.ACTIVE,
+                1,
+                1,
+                "2099-12-31",
+                List.of(loanDto));
+
+        when(loanService.findActiveGrouped(anyInt(), anyInt(), any(), any()))
+                .thenReturn(new PageDTO<>(List.of(groupDto), new PaginatedMeta(0, 10, 1, 1)));
+
+        mockMvc.perform(get("/loans/active/grouped")
+                        .param("page", "0")
+                        .param("pageSize", "10")
+                        .param("search", "jan"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].groupId").value("user1"))
                 .andExpect(jsonPath("$.data[0].loans[0].bookCopyIds[0]").value(10));
     }
 
