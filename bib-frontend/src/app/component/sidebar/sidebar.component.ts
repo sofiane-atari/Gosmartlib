@@ -242,7 +242,11 @@ export class SidebarComponent {
 
     this.schoolService.getAll().subscribe({
       next: (schools) => {
-        const activeSchools = schools.filter((s) => s.status === 'ACTIVE');
+        const originalId = this.schoolOverrideService.originalSchoolId()
+          ?? this.authService.currentUser()?.schoolId;
+        const activeSchools = schools
+          .filter((s) => s.status === 'ACTIVE')
+          .filter((s) => s.id !== originalId);
         this.schoolsForSwitch.set(activeSchools);
         this.isLoadingSchools.set(false);
       },
@@ -254,6 +258,10 @@ export class SidebarComponent {
   }
 
   public onSchoolSelected(school: SchoolModel): void {
+    const currentUserId = this.authService.currentUser()?.schoolId;
+    if (currentUserId) {
+      this.schoolOverrideService.captureOriginalSchool(currentUserId);
+    }
     this.schoolOverrideService.setActiveSchool(school);
     this.isSchoolSwitchModalOpen.set(false);
     window.location.reload();

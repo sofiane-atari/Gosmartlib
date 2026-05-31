@@ -142,7 +142,14 @@ export class SchoolReportComponent implements OnInit {
       return 0;
     }
 
-    return Math.round((this.report.classActivity.length / this.report.classCount) * 100);
+    return Math.round((this.report.classActivity.filter(c => c.totalLoans > 0).length / this.report.classCount) * 100);
+  }
+
+  getActiveClassCount(): number {
+    if (!this.report) {
+      return 0;
+    }
+    return this.report.classActivity.filter(c => c.totalLoans > 0).length;
   }
 
   getMaxBookLoans(): number {

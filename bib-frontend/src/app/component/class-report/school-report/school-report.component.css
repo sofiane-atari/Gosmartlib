@@ -891,6 +891,10 @@ lucide-icon svg {
   font-size: 13px;
 }
 
+.row-muted td {
+  opacity: 0.55;
+}
+
 @media (max-width: 1024px) {
   .stat-cards {
     grid-template-columns: repeat(2, 1fr);

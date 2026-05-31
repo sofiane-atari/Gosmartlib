@@ -8,9 +8,11 @@ export class SchoolOverrideService {
   private static readonly ACTIVE_SCHOOL_ID_KEY = 'activeSchoolId';
   private static readonly ACTIVE_SCHOOL_NAME_KEY = 'activeSchoolName';
   private static readonly ACTIVE_SCHOOL_EXPIRY_KEY = 'activeSchoolExpiry';
+  private static readonly ORIGINAL_SCHOOL_ID_KEY = 'activeSchoolOriginalId';
 
   public readonly activeSchoolId = signal<number | null>(null);
   public readonly activeSchoolName = signal<string | null>(null);
+  public readonly originalSchoolId = signal<number | null>(null);
 
   public readonly isActive = computed(() => {
     const id = this.activeSchoolId();
@@ -38,12 +40,16 @@ export class SchoolOverrideService {
     localStorage.removeItem(SchoolOverrideService.ACTIVE_SCHOOL_ID_KEY);
     localStorage.removeItem(SchoolOverrideService.ACTIVE_SCHOOL_NAME_KEY);
     localStorage.removeItem(SchoolOverrideService.ACTIVE_SCHOOL_EXPIRY_KEY);
+    localStorage.removeItem(SchoolOverrideService.ORIGINAL_SCHOOL_ID_KEY);
 
     this.activeSchoolId.set(null);
     this.activeSchoolName.set(null);
+    this.originalSchoolId.set(null);
   }
 
   public loadActiveSchool(): void {
+    this.loadOriginalSchool();
+
     const expiryStr = localStorage.getItem(SchoolOverrideService.ACTIVE_SCHOOL_EXPIRY_KEY);
     if (!expiryStr) {
       this.clearActiveSchool();
@@ -72,5 +78,24 @@ export class SchoolOverrideService {
 
     this.activeSchoolId.set(id);
     this.activeSchoolName.set(name);
+  }
+
+  public captureOriginalSchool(schoolId: number): void {
+    if (this.originalSchoolId() !== null) {
+      return;
+    }
+    localStorage.setItem(SchoolOverrideService.ORIGINAL_SCHOOL_ID_KEY, schoolId.toString());
+    this.originalSchoolId.set(schoolId);
+  }
+
+  private loadOriginalSchool(): void {
+    const idStr = localStorage.getItem(SchoolOverrideService.ORIGINAL_SCHOOL_ID_KEY);
+    if (!idStr) {
+      return;
+    }
+    const id = Number(idStr);
+    if (Number.isFinite(id)) {
+      this.originalSchoolId.set(id);
+    }
   }
 }

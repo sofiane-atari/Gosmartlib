@@ -61,7 +61,7 @@
 
         <app-stat-card
           label="Klassen actief"
-          [value]="report.classActivity.length"
+          [value]="getActiveClassCount()"
           [icon]="icons.users"
           variant="blue"
           helpText="Aantal klassen met uitleenactiviteit binnen dit schoolrapport."
@@ -282,7 +282,7 @@
 
             <tbody>
               @for (classItem of getPagedClasses(); track classItem.classTitle) {
-                <tr>
+                <tr [class.row-muted]="classItem.totalLoans === 0">
                   <td>
                     <div class="class-cell">
                       <div class="class-cell__icon">
