@@ -34,6 +34,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class AuthService {
 
@@ -294,6 +297,8 @@ public class AuthService {
 
         String jwt = jwtService.generateToken(userId, roleStr, claims);
 
+        log.info("user {} logged in (role={})", userId, roleStr);
+
         tokenStorageService.storeToken(
                 userId,
                 jwt,
@@ -321,6 +326,7 @@ public class AuthService {
     }
 
     public void logout(String userId) {
+        log.info("user {} logged out", userId);
         tokenStorageService.revokeToken(userId);
     }
 
@@ -376,6 +382,7 @@ public class AuthService {
      */
     public JwtTokenDTO refreshJwtToken(String oldToken) {
         if (!jwtService.isValid(oldToken)) {
+            log.warn("token refresh failed: token invalid or expired");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
         }
 
@@ -383,12 +390,14 @@ public class AuthService {
         String role = (String) jwtService.extractClaim(oldToken, "roles");
 
         if (!tokenStorageService.isCurrentToken(userId, oldToken)) {
+            log.warn("token refresh failed for user {}: token no longer active", userId);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token is no longer active");
         }
 
         String smartschoolRefreshToken = tokenStorageService.getSmartschoolRefreshToken(userId);
 
         if (smartschoolRefreshToken == null || smartschoolRefreshToken.isBlank()) {
+            log.warn("token refresh failed for user {}: no Smartschool refresh token", userId);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No Smartschool refresh token available");
         }
 
