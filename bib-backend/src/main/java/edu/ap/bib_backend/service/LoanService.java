@@ -610,7 +610,7 @@ String batchId = UUID.randomUUID().toString();
 
         return calculateDefaultReturnDate(loanDTO.userId());
     }
-
+    
     /**
      * Sends a Smartschool confirmation message for newly created loans.
      *

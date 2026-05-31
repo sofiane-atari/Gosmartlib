@@ -148,6 +148,7 @@ class CurrentUserServiceTest {
         assertEquals("Gebruiker heeft geen school gekoppeld.", exception.getMessage());
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @ParameterizedTest
     @ValueSource(strings = {"ROLE_LIBRARIAN", "ROLE_ADMIN"})
     void givenModeratorRole_whenIsModerator_thenReturnsTrue(String role) {
@@ -160,6 +161,7 @@ class CurrentUserServiceTest {
         assertTrue(result);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @ParameterizedTest
     @ValueSource(strings = {"ROLE_STUDENT", "ROLE_TEACHER"})
     void givenNonModeratorRole_whenIsModerator_thenReturnsFalse(String role) {
@@ -189,6 +191,7 @@ class CurrentUserServiceTest {
         assertFalse(result);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @ParameterizedTest
     @ValueSource(strings = {"ROLE_TEACHER", "ROLE_LIBRARIAN", "ROLE_ADMIN"})
     void givenDidacticBookRole_whenCanSeeDidacticBooks_thenReturnsTrue(String role) {
@@ -201,6 +204,7 @@ class CurrentUserServiceTest {
         assertTrue(result);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     void givenStudentRole_whenCanSeeDidacticBooks_thenReturnsFalse() {
         Authentication auth = mock(Authentication.class);
@@ -219,6 +223,7 @@ class CurrentUserServiceTest {
         assertFalse(result);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     void Given_AdminRole_When_IsAdmin_Then_ReturnsTrue() {
         Authentication auth = mock(Authentication.class);
@@ -230,6 +235,7 @@ class CurrentUserServiceTest {
         assertTrue(result);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     void Given_LibrarianRole_When_IsAdmin_Then_ReturnsFalse() {
         Authentication auth = mock(Authentication.class);
@@ -282,6 +288,7 @@ class CurrentUserServiceTest {
         assertEquals("AP", result.getName());
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     void Given_OtherSchoolWithCatalogVisible_When_ResolveSchool_Then_ReturnsSchool() {
         School userSchool = schoolEntity(1L, "own.be", "Own");
@@ -305,6 +312,7 @@ class CurrentUserServiceTest {
         assertTrue(result.getCatalogVisible());
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     void Given_OtherSchoolWithCatalogNotVisible_When_ResolveSchool_Then_ThrowsAccessDeniedException() {
         School userSchool = schoolEntity(1L, "own.be", "Own");
@@ -326,6 +334,7 @@ class CurrentUserServiceTest {
                 () -> currentUserService.resolveSchool(2L, auth));
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     void Given_OtherSchoolNotFound_When_ResolveSchool_Then_ThrowsResourceNotFoundException() {
         School userSchool = schoolEntity(1L, "own.be", "Own");
@@ -344,6 +353,7 @@ class CurrentUserServiceTest {
                 () -> currentUserService.resolveSchool(999L, auth));
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     void givenMatchingAuthority_whenCurrentUserHasAnyAuthority_thenReturnsTrue() {
         Authentication auth = mock(Authentication.class);
@@ -359,6 +369,7 @@ class CurrentUserServiceTest {
         assertTrue(result);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     void givenNonMatchingAuthority_whenCurrentUserHasAnyAuthority_thenReturnsFalse() {
         Authentication auth = mock(Authentication.class);

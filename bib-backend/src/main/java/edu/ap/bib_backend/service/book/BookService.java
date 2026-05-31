@@ -83,7 +83,7 @@ public class BookService {
 
         return bookMapper.toDTOList(bookRepository.findAll(spec));
     }
-
+    
     @Transactional
     public BookDTO addCopyToBook(Long bookId, Long campusId, Authentication authentication) {
         Campus campus = resolveCampusForCurrentUserSchool(campusId, authentication);

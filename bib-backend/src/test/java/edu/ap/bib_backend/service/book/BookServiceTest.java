@@ -114,6 +114,7 @@ class BookServiceTest {
                 br,
                 bcr,
                 gr,
+                readingListRepository,
                 bookLoanRepository,
                 rlr,
                 campusRepository,
@@ -121,10 +122,9 @@ class BookServiceTest {
                 bookMapper1,
                 bookCandidateMapper,
                 openLibraryClient,
-                currentUserService,
-                readingListRepository
-        );
+                currentUserService
 
+        );
         campus = new Campus();
         campus.setId(1L);
 
@@ -140,6 +140,7 @@ class BookServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     @DisplayName("Given books exist in DB, When getAllBooks is called, Then return mapped DTOs")
     void givenBooksExist_whenGetAllBooks_thenReturnMappedDTOs() {
         Book book = createBook(
@@ -152,8 +153,7 @@ class BookServiceTest {
                 "Beschrijving",
                 2022,
                 4.5,
-                Set.of(createGenre("Roman", "#8B5CF6", "Literaire fictie"))
-        );
+                Set.of(createGenre("Roman", "#8B5CF6", "Literaire fictie")));
 
         BookDTO dto = new BookDTO();
         dto.setId(1L);
@@ -199,8 +199,7 @@ class BookServiceTest {
                 "Beschrijving hier",
                 2024,
                 0.0,
-                Set.of()
-        );
+                Set.of());
 
         BookDTO savedDto = new BookDTO();
         savedDto.setId(1L);
@@ -242,8 +241,7 @@ class BookServiceTest {
                 null,
                 2020,
                 3.5,
-                Set.of()
-        );
+                Set.of());
 
         BookDTO existingDto = new BookDTO();
         existingDto.setId(5L);
@@ -275,8 +273,7 @@ class BookServiceTest {
         dto.setAuthor("Auteur");
         dto.setPages(123);
         dto.setGenres(List.of(
-                new GenreDTO(null, "Roman", "#8B5CF6", "Literaire fictie", null, null)
-        ));
+                new GenreDTO(null, "Roman", "#8B5CF6", "Literaire fictie", null, null)));
 
         Book mappedBook = new Book();
         mappedBook.setTitle("Boek");
@@ -292,8 +289,7 @@ class BookServiceTest {
                 null,
                 2024,
                 0.0,
-                Set.of(genre)
-        );
+                Set.of(genre));
 
         BookDTO savedDto = new BookDTO();
         savedDto.setId(7L);
@@ -325,8 +321,7 @@ class BookServiceTest {
         dto.setTitle("Boek");
         dto.setAuthor("Auteur");
         dto.setGenres(List.of(
-                new GenreDTO(null, "Onbekend", "#000000", "Bestaat niet", null, null)
-        ));
+                new GenreDTO(null, "Onbekend", "#000000", "Bestaat niet", null, null)));
 
         Book mappedBook = new Book();
 
@@ -389,8 +384,7 @@ class BookServiceTest {
                 null,
                 2024,
                 0.0,
-                Set.of()
-        );
+                Set.of());
         savedBook.setReadingLevel(readingLevel);
 
         BookDTO savedDto = new BookDTO();
@@ -422,8 +416,7 @@ class BookServiceTest {
                 "Beschrijving",
                 2021,
                 4.2,
-                Set.of()
-        );
+                Set.of());
 
         BookDTO dto = new BookDTO();
         dto.setId(3L);
@@ -503,8 +496,7 @@ class BookServiceTest {
                 null,
                 2022,
                 4.0,
-                Set.of()
-        );
+                Set.of());
 
         BookDTO dto = new BookDTO();
         dto.setTitle("Populair Boek");
@@ -541,8 +533,7 @@ class BookServiceTest {
                 null,
                 2025,
                 0.0,
-                Set.of()
-        );
+                Set.of());
 
         BookDTO dto = new BookDTO();
         dto.setTitle("Nieuw Boek");
@@ -575,7 +566,7 @@ class BookServiceTest {
         relatedDto.setTitle("Related");
 
         List<Object[]> relatedBooks = new ArrayList<>();
-        relatedBooks.add(new Object[]{related, 2L});
+        relatedBooks.add(new Object[] { related, 2L });
 
         given(br.findById(1L)).willReturn(Optional.of(source));
         given(br.findRelatedBooksWithScoreBySchool(eq(1L), eq(1L), eq(PageRequest.of(0, 10)))).willReturn(relatedBooks);
@@ -603,8 +594,7 @@ class BookServiceTest {
                 null,
                 2000,
                 0.0,
-                new HashSet<>()
-        );
+                new HashSet<>());
 
         BookDTO updateDto = new BookDTO();
         updateDto.setIsbn("978-1234567890");
@@ -623,8 +613,7 @@ class BookServiceTest {
                 null,
                 2000,
                 0.0,
-                new HashSet<>()
-        );
+                new HashSet<>());
 
         BookDTO savedDto = new BookDTO();
         savedDto.setId(bookId);
@@ -664,8 +653,7 @@ class BookServiceTest {
                 null,
                 2000,
                 0.0,
-                new HashSet<>()
-        );
+                new HashSet<>());
 
         BookDTO updateDto = new BookDTO();
         updateDto.setIsbn(isbn);
@@ -704,8 +692,7 @@ class BookServiceTest {
                 null,
                 2000,
                 0.0,
-                new HashSet<>()
-        );
+                new HashSet<>());
 
         Book otherBookWithSameIsbn = createBook(
                 otherBookId,
@@ -717,8 +704,7 @@ class BookServiceTest {
                 null,
                 2010,
                 0.0,
-                new HashSet<>()
-        );
+                new HashSet<>());
 
         BookDTO updateDto = new BookDTO();
         updateDto.setIsbn(duplicateIsbn);
@@ -768,8 +754,7 @@ class BookServiceTest {
                 null,
                 2020,
                 0.0,
-                Set.of()
-        );
+                Set.of());
 
         BookDTO dto = new BookDTO();
         dto.setId(11L);
@@ -802,8 +787,7 @@ class BookServiceTest {
                 "Beschrijving",
                 2020,
                 0.0,
-                Set.of()
-        );
+                Set.of());
 
         Book targetBook = new Book();
         targetBook.setId(93L);
@@ -853,8 +837,7 @@ class BookServiceTest {
                 null,
                 2020,
                 0.0,
-                Set.of()
-        );
+                Set.of());
 
         BookDTO dto = new BookDTO();
         dto.setId(15L);
@@ -903,7 +886,7 @@ class BookServiceTest {
         dto.setTitle("Related");
 
         List<Object[]> relatedResults = new ArrayList<>();
-        relatedResults.add(new Object[]{related, 5L});
+        relatedResults.add(new Object[] { related, 5L });
 
         given(br.findRelatedBooksWithScoreBySchoolDomain(eq(1L), anyString(), any(PageRequest.class)))
                 .willReturn(relatedResults);
@@ -944,6 +927,7 @@ class BookServiceTest {
         assertThat(result).isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     @DisplayName("Given title and author filters, When searchBooksInDb is called, Then return matching candidates")
     void givenTitleAndAuthorFilters_whenSearchBooksInDb_thenReturnMatchingCandidates() {
@@ -973,7 +957,7 @@ class BookServiceTest {
         assertThat(result).isEmpty();
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
     @DisplayName("Given blank title, When searchBooksInDb is called, Then normalize to null filter")
     void givenBlankTitle_whenSearchBooksInDb_thenNormalizeToNullFilter() {
         Book book = new Book();
@@ -1059,7 +1043,7 @@ class BookServiceTest {
         didacticRelated.setDidactic(true);
 
         List<Object[]> relatedBooks = new ArrayList<>();
-        relatedBooks.add(new Object[]{didacticRelated, 2L});
+        relatedBooks.add(new Object[] { didacticRelated, 2L });
 
         given(currentUserService.getCurrentUserSchool(authentication)).willReturn(school);
         given(br.findById(1L)).willReturn(Optional.of(source));
@@ -1139,8 +1123,7 @@ class BookServiceTest {
             String description,
             Integer releaseYear,
             Double reviewScore,
-            Set<Genre> genres
-    ) {
+            Set<Genre> genres) {
         Book book = new Book();
         book.setId(id);
         book.setIsbn(isbn);

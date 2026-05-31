@@ -33,7 +33,7 @@ public class LoanDevSeeder {
             log.info("Geen studenten gevonden, lening seeding overgeslagen");
             return new LoanSeedResult(0, 0, List.of());
         }
-
+        
         if (bookIds.isEmpty()) {
             log.info("Geen boeken gevonden, lening seeding overgeslagen");
             return new LoanSeedResult(0, 0, List.of());

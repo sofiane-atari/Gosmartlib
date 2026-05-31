@@ -359,7 +359,7 @@ class ReadingListIntegrationTest {
         User user = userRepository.findById(USER_ID).orElseThrow();
         user.setRole(librarianRole);
         userRepository.save(user);
-
+        
         setAuthentication("ROLE_LIBRARIAN");
     }
 

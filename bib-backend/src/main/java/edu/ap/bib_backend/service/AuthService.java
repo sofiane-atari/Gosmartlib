@@ -422,7 +422,7 @@ public class AuthService {
      * @throws ResponseStatusException if Smartschool rejects the refresh or omits
      *                                 an access token
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private SmartschoolRefreshResult refreshSmartschoolAccessToken(String refreshToken) {
         RestTemplate restTemplate = new RestTemplate();
 

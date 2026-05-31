@@ -50,7 +50,7 @@ public class BookCandidateMapper {
         }
         return authors.get(0);
     }
-
+    
     private Integer extractYearFromGoogleDate(String publishedDate) {
         if (publishedDate == null)
             return null;
