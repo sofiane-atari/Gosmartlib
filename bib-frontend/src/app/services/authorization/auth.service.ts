@@ -154,8 +154,11 @@ export class AuthService {
       AuthService.TOKEN_EXPIRY_STORAGE_KEY,
       expiresAt.toString(),
     );
+    this.clearCountdownInterval();
     this.token.set(normalizedToken);
     this.tokenExpiryEpochMs.set(expiresAt);
+    this.isSessionWarningVisible.set(false);
+    this.sessionSecondsRemaining.set(null);
     this.scheduleTokenTimers(expiresAt);
 
     return true;
@@ -349,9 +352,6 @@ private scheduleTokenTimers(expiresAt: number): void {
   ).subscribe({
     next: (response) => {
       this.storeToken(response.token);
-
-      this.isSessionWarningVisible.set(false);
-      this.sessionSecondsRemaining.set(null);
       this.isSessionRefreshLoading.set(false);
     },
     error: () => {

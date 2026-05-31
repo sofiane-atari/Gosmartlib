@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import {
   HttpTestingController,
   provideHttpClientTesting,
@@ -7,16 +7,25 @@ import { provideHttpClient } from '@angular/common/http';
 
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
+import { Router } from '@angular/router';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
+  let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(() => {
     localStorage.clear();
+    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate', 'navigateByUrl'], {
+      url: '/catalog',
+    });
 
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: Router, useValue: routerSpy },
+      ],
     });
 
     service = TestBed.inject(AuthService);
@@ -68,6 +77,32 @@ describe('AuthService', () => {
 
     expect(service.adminOverrideStatus()?.enabled).toBeTrue();
   });
+
+  it('should not logout at the old expiry after refreshing the session', fakeAsync(() => {
+    service.storeToken(createTokenWithExpSeconds(1));
+    expect(service.isSessionWarningVisible()).toBeTrue();
+
+    const logoutSpy = spyOn(service, 'logout').and.callThrough();
+
+    service.refreshSessionFromWarning();
+
+    const request = httpMock.expectOne(`${environment.apiUrl}/auth/refresh`);
+    expect(request.request.method).toBe('POST');
+    request.flush({
+      token: createTokenWithExpSeconds(3600),
+      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+    });
+
+    expect(service.isSessionWarningVisible()).toBeFalse();
+    expect(service.sessionSecondsRemaining()).toBeNull();
+
+    tick(1500);
+
+    expect(logoutSpy).not.toHaveBeenCalled();
+    expect(service.isAuthenticated()).toBeTrue();
+
+    service.clearToken();
+  }));
 });
 
 function createTokenWithExpSeconds(expiresInSecondsFromNow: number): string {
